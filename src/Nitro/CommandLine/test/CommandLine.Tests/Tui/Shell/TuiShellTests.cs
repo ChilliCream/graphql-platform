@@ -5,7 +5,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
+using Spectre.Console;
 using Spectre.Console.Testing;
+using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
@@ -124,8 +126,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_PrioritizeConfirmDialogKeys_OverGlobalCopyBinding_When_ConfirmActive()
     {
-        // The global table binds 'y' to CopySelectedId; while the confirm dialog is
-        // active it must win that binding instead of falling through to global.
+        // arrange
         var mode = new FakeTuiMode();
         var shell = CreateShell(mode);
         var confirmed = false;
@@ -143,9 +144,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_SwallowUnboundKey_When_QuitConfirmIsActive()
     {
-        // The quit confirmation is fully modal: a key unresolved by its own
-        // key map (y/n/Esc) must not fall through to the active mode or the
-        // global table, so no overlay opens and no mode change happens.
+        // arrange
         var mode = new FakeTuiMode { SelectedTaskId = "a" };
         var shell = CreateShell(mode);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
@@ -163,9 +162,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_NotDelegateToActiveMode_When_EnterPressedWhileQuitConfirmIsActive()
     {
-        // Enter (OpenSelected) must not reach the active mode while the quit
-        // confirmation is open, so it cannot switch the mode underneath the
-        // dialog.
+        // arrange
         var mode = new FakeTuiMode { SelectedTaskId = "a", RenderText = "board" };
         var shell = CreateShell(mode);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
@@ -464,9 +461,8 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
         Assert.Contains("Edit Task", RenderToText(shell));
 
-        // act: append a character to the focused title field, then tab to the
-        // button row (7 fields: title/status/priority/type/labels/description/
-        // notes) and activate the default-selected Save button.
+        // act
+        // Append to the title field, tab through all 7 fields, then activate Save.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 7; i++)
@@ -493,8 +489,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
 
-        // act: append a character to the focused title field, tab to the
-        // button row, and activate the default-selected Save button.
+        // act
+        // Append to the title field, tab to the button row, then activate Save.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 7; i++)
@@ -504,14 +500,13 @@ public sealed class TuiShellTests
 
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
-        // assert: the form is still open, and the store's error is shown as a
-        // toast rather than silently discarded.
+        // assert
         var rendered = RenderToText(shell);
         Assert.Contains("Edit Task", rendered);
         Assert.Contains("rejected", rendered);
 
-        // act: one more Tab wraps focus from the button row back to the title
-        // field, scrolling it into view.
+        // act
+        // One more Tab wraps focus back to the title field, scrolling it into view.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
 
         // assert: the edited value survived the rejected save.
@@ -521,8 +516,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_OpenEditorFromBoardSelection_When_BoardModeIsActive()
     {
-        // arrange: a real BoardMode (not FakeTuiMode) supplies SelectedTaskId
-        // from its focused column's selected row.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
         var view = new BoardView
@@ -545,8 +539,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_CreateChildTaskFromBoardSelection_When_BoardModeIsActive()
     {
-        // arrange: create-as-child reads the active mode's SelectedTaskId as
-        // the new task's parent id.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
         var view = new BoardView
@@ -558,8 +551,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(board, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
 
-        // act: fill the required title field, tab past the parent field
-        // (left on its default "child" option) to the button row, submit.
+        // act
+        // Fill the title field, tab past the parent field (default "child"), submit.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 6; i++)
@@ -806,8 +799,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_OpenCloseConfirmation_When_ClosedPickedOnStatusPicker()
     {
-        // arrange: picking Closed on the status picker is not a bare status
-        // write, it routes through the same close confirmation flow as x.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
         var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
@@ -876,8 +868,7 @@ public sealed class TuiShellTests
         Assert.Contains("Create Task", RenderToText(shell));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
 
-        // assert: the 'j' that would otherwise move the active mode's cursor
-        // was absorbed by the modal create form instead.
+        // assert
         Assert.Empty(mode.HandledMessages);
     }
 
@@ -890,8 +881,8 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('C', ConsoleKey.C, ConsoleModifiers.Shift)));
         Assert.Contains("Create Epic", RenderToText(shell));
 
-        // act: type a title, tab to the button row (5 fields: title/type/
-        // priority/labels/description), then activate the default Create button.
+        // act
+        // Type a title, tab through all 5 fields, then activate Create.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 5; i++)
@@ -914,8 +905,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
 
-        // act: a selection adds a parent field (title/type/parent/priority/
-        // labels/description), left on its default "child" option.
+        // act
+        // A selection adds a parent field, left on its default "child" option.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 6; i++)
@@ -932,10 +923,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_CreateTopLevelTask_When_ParentFieldSwitchedToNoParentWithSelection()
     {
-        // arrange: TryOpenCreateForm always passes the active mode's
-        // SelectedTaskId as parent, and a populated board column always has
-        // a selection, so switching the parent field is the only board
-        // gesture that creates a root task while a row is selected.
+        // arrange
         var store = new FakeTaskStore();
         var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
@@ -961,9 +949,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_CreateTopLevelTaskWithNoToast_When_CreateFormSubmittedWithNoSelection()
     {
-        // arrange: creating never requires a selection, so a null
-        // SelectedTaskId must not trigger the "No task selected." toast that
-        // gates edit, lifecycle, and the pickers.
+        // arrange
         var store = new FakeTaskStore();
         var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
@@ -1024,8 +1010,7 @@ public sealed class TuiShellTests
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
-        // assert: the form is still open with the entered title, and the
-        // store's error is shown as a toast rather than silently discarded.
+        // assert
         Assert.Equal("!", store.CreationReceived!.Title);
         var rendered = RenderToText(shell);
         Assert.Contains("Create Task", rendered);
@@ -1056,8 +1041,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
 
-        // act: 'j' would move a list cursor globally, but with the query
-        // input focused it must be typed instead.
+        // act
+        // 'j' would move a list cursor globally, but with the query focused it must be typed instead.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
 
         // assert
@@ -1067,15 +1052,13 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive()
     {
-        // arrange: an actor, so the write chords are live and the footer
-        // carries its full hint set.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), actor: "pascal");
 
         // act
         var text = RenderToText(shell);
 
-        // assert: the curated global hint set fits an 80-column footer
-        // untruncated.
+        // assert
         Assert.Contains("move", text);
         Assert.Contains("open", text);
         Assert.Contains("refresh", text);
@@ -1096,8 +1079,7 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell);
 
-        // assert: every task write is refused without an actor, so the
-        // chord is not advertised; the read-only hints stay.
+        // assert
         Assert.DoesNotContain("edit", text);
         Assert.Contains("move", text);
         Assert.Contains("open", text);
@@ -1152,8 +1134,7 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell);
 
-        // assert: the quit dialog swallows every key itself, so the global
-        // hints (which would not actually work) are not shown alongside it.
+        // assert
         Assert.Contains("confirm", text);
         Assert.Contains("cancel", text);
         Assert.DoesNotContain("move", text);
@@ -1172,8 +1153,7 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
         var text = RenderToText(shell);
 
-        // assert: the editor form swallows every key itself, so the global
-        // hints (which would not actually work) are not shown alongside it.
+        // assert
         Assert.Contains("next field", text);
         Assert.Contains("save", text);
         Assert.Contains("cancel", text);
@@ -1211,10 +1191,7 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
         var text = RenderToText(shell);
 
-        // assert: only the hints the query input actually honors are shown
-        // (typing, esc back, tab open, enter open); every other key,
-        // including the global table's hjkl/r/y/z/e/q, is swallowed into
-        // the query instead, so those hints must not appear.
+        // assert
         Assert.Contains("type search  esc back  tab open  enter open", text);
         Assert.DoesNotContain("move", text);
         Assert.DoesNotContain("refresh", text);
@@ -1232,8 +1209,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
 
-        // act: Tab opens the selected result, moving focus from Input to
-        // List, so the query is no longer swallowing every key.
+        // act
+        // Tab opens the selected result, moving focus from Input to List.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
         var text = RenderToText(shell);
 
@@ -1241,6 +1218,22 @@ public sealed class TuiShellTests
         Assert.Equal(SearchFocus.List, search.Focus);
         Assert.DoesNotContain("type search", text);
         Assert.Contains("move", text);
+    }
+
+    [Fact]
+    public void FormatFooterHints_Should_FitDisplayWidth_When_HintContainsCjkAndEmoji()
+    {
+        // arrange
+        const int width = 11;
+        var hints = new[] { new KeyHint("漢", "😀 action") };
+
+        // act
+        var markup = TuiShell.FormatFooterHints(hints, width, out var plainWidth);
+        var renderedWidth = Markup.Remove(markup).GetCellWidth();
+
+        // assert
+        Assert.Equal(renderedWidth, plainWidth);
+        Assert.True(renderedWidth <= width);
     }
 
     [Fact]
@@ -1252,8 +1245,7 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell, width: 15);
 
-        // assert: the first (and narrowest-fitting) hint survives, later
-        // ones are dropped behind a trailing ellipsis.
+        // assert
         Assert.Contains("move", text);
         Assert.Contains("…", text);
         Assert.DoesNotContain("quit", text);
@@ -1262,17 +1254,13 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_ShowActorIdentity_When_ActorIsSet()
     {
-        // arrange: the curated global hint set already fills nearly all of
-        // an 80-column footer (see
-        // Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive),
-        // so a wider row is needed to leave room for the identity too.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), width: 120, actor: "pascal");
 
         // act
         var text = RenderToText(shell, 120);
 
-        // assert: the actor identity is shown alongside the footer hints,
-        // right-aligned after them.
+        // assert
         Assert.Contains("pascal", text);
         Assert.Contains("quit", text);
     }
@@ -1280,8 +1268,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_OmitActorIdentity_When_ActorIsNull()
     {
-        // arrange: the other TuiShell constructor can be built without an
-        // actor.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), actor: null);
 
         // act
@@ -1295,19 +1282,14 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_TruncateActorIdentity_When_NotEnoughRoomAfterHints()
     {
-        // arrange: the global hints fit an 80-column footer untruncated (see
-        // Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive),
-        // so a wider row still leaves comfortable room for the hints while
-        // an overlong actor name cannot fit in what is left over.
+        // arrange
         var longActor = new string('a', 60);
         var shell = CreateShell(new FakeTuiMode(), width: 120, actor: longActor);
 
         // act
         var text = RenderToText(shell, 120);
 
-        // assert: the identity truncates itself with an ellipsis rather than
-        // stealing width the hints would otherwise use, so the hints remain
-        // untouched and the full actor name does not appear.
+        // assert
         Assert.Contains("quit", text);
         Assert.Contains("…", text);
         Assert.DoesNotContain(longActor, text);
@@ -1316,9 +1298,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_OmitActorIdentity_When_HintsAlreadyFillTheRow()
     {
-        // arrange: at this width the hints themselves are already truncated
-        // (see Render_Should_TruncateFooterWithEllipsis_When_WidthCannotFitEveryHint),
-        // leaving no room at all for the identity.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), width: 15, actor: "someone");
 
         // act

@@ -8,7 +8,6 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public class CostAlgebraTests
 {
-
     [Fact]
     public void Empty_Should_Be_ZeroZero_When_Read()
     {

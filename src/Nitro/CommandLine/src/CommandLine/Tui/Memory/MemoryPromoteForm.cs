@@ -7,14 +7,8 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The promote form: type (required) and tags. Mechanical copy only, no
-/// summarization: submitting calls <see cref="IMemoryStore.PromoteAsync"/>,
-/// the same store member the CLI's <c>promote</c> command calls, in the
-/// journal entry's own scope. A repeat promotion of the same journal entry
-/// is idempotent, surfaced as <see cref="MemoryPromoteOutcome.Succeeded.AlreadyPromoted"/>
-/// rather than an error. The host is expected to feed it raw key input via
-/// <see cref="HandleKey"/> and call <see cref="SubmitAsync"/> once it
-/// returns <see cref="FormResult.Submitted"/> on the primary button.
+/// Collects a required type and optional tags for promoting a journal entry.
+/// Repeated promotion returns the existing curated memory.
 /// </summary>
 internal sealed class MemoryPromoteForm
 {
@@ -25,8 +19,7 @@ internal sealed class MemoryPromoteForm
     public const string CancelButtonId = "cancel";
 
     /// <summary>
-    /// The footer hints for the promote form: its keys are consumed entirely
-    /// while it is active, so no global hints follow.
+    /// The footer hints displayed while the promote form captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
@@ -57,9 +50,7 @@ internal sealed class MemoryPromoteForm
     }
 
     /// <summary>
-    /// Whether the type or tags field's current value differs from its
-    /// blank default: gates whether Esc should ask for discard confirmation
-    /// before cancelling.
+    /// Whether either field contains text, including whitespace.
     /// </summary>
     public bool IsDirty => Text(_typeField).Length != 0 || Text(_tagsField).Length != 0;
 

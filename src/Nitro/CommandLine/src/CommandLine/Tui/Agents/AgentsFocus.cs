@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Which pane of the agents tab currently holds focus, mirroring
-/// <c>MailFocus</c> for the mail tab's list/detail split.
+/// Which pane of the agents tab currently holds focus.
 /// </summary>
 internal enum AgentsFocus
 {

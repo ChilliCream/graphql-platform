@@ -17,8 +17,6 @@ internal sealed class ActingActorResolver(IAgentRegistry agents) : IActingActorR
 
         var actor = MailAgentName.Normalize(optionValue);
 
-        // Actor names are allocated, never invented: only `agent login` and
-        // the session-start hooks mint one.
         if (await agents.GetAsync(actor, cancellationToken) is null)
         {
             throw new ExitException(

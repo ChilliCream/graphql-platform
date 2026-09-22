@@ -19,21 +19,15 @@ internal sealed class LaunchDescriptorResolver : ILaunchDescriptorResolver
     {
         var processName = Path.GetFileNameWithoutExtension(processPath);
 
-        // A framework-dependent .NET global tool runs through its `nitro`
-        // shim while argv[0] points at the package's internal .store DLL.
-        // The shim already selects that DLL, so appending argv[0] would pass
-        // it to Nitro as a user argument and break every installed hook.
-        // Store the stable command name instead; it also survives tool
-        // updates that replace the versioned .store directory.
+        // A Nitro tool invocation resolves to the command name without its internal DLL path.
         if (string.Equals(processName, "nitro", StringComparison.OrdinalIgnoreCase)
             && arg0?.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) == true)
         {
             return new LaunchDescriptor("nitro", []);
         }
 
-        // Framework-dependent invocation ("dotnet nitro.dll ..."): the
-        // running process is the dotnet muxer, and argv[0] is the managed
-        // assembly path, distinct from the muxer executable itself.
+        // Framework-dependent invocation: the running process is the dotnet muxer,
+        // and argv[0] is the managed assembly path.
         if (arg0?.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) == true
             && string.Equals(processName, "dotnet", StringComparison.OrdinalIgnoreCase))
         {

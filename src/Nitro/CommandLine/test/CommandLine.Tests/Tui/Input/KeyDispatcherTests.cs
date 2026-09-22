@@ -126,9 +126,7 @@ public sealed class KeyDispatcherTests
     [Fact]
     public void CombineHints_Should_DropSuppressedGlobalHints()
     {
-        // arrange: a mode overrides a global gesture its current state makes
-        // inert (see ITuiMode.SuppressedGlobalHints), so the footer must not
-        // advertise it even though the global table still binds it.
+        // arrange
         var globalMap = new KeyMap(
         [
             new KeyBinding(new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'), () => new TuiMessage.QuitRequested(), new KeyHint("q", "quit")),

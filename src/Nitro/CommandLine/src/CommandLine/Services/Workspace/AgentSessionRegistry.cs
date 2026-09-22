@@ -15,13 +15,16 @@ internal sealed class AgentSessionRegistry(
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IAgentSessionRegistry
 {
     /// <summary>
-    /// How long a session row survives without a heartbeat before
-    /// <see cref="ReapAsync"/> removes it. A live session beats on every
-    /// hook event it sends.
+    /// The heartbeat age at which current-instance session presence becomes eligible for reaping.
     /// </summary>
     private static readonly TimeSpan s_staleAfter = TimeSpan.FromHours(24);
 
-    public async Task<AgentSessionRecord> StartAsync(
+    /// <summary>
+    /// Invoked after a stale reap candidate is read and before its guarded delete.
+    /// </summary>
+    internal Func<AgentSessionRecord, CancellationToken, Task>? OnStaleReapCandidateCapturedAsync { get; init; }
+
+    public Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
         string cwd,
         string workspacePath,
@@ -29,9 +32,29 @@ internal sealed class AgentSessionRegistry(
         string endpointAddr,
         string? envActor,
         CancellationToken cancellationToken)
+        => StartAsync(
+            generation,
+            cwd,
+            workspacePath,
+            endpointKind,
+            endpointAddr,
+            endpointSecret: null,
+            envActor: envActor,
+            cancellationToken: cancellationToken);
+
+    public async Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        string? envActor,
+        CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
-        var (normalizedEndpointKind, normalizedEndpointAddr) = NormalizeEndpoint(endpointKind, endpointAddr);
+        var (normalizedEndpointKind, normalizedEndpointAddr, normalizedEndpointSecret) =
+            NormalizeEndpoint(generation.Harness, endpointKind, endpointAddr, endpointSecret);
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = connection.BeginTransaction(deferred: false);
@@ -42,7 +65,8 @@ internal sealed class AgentSessionRegistry(
 
         if (generation.Harness is AgentSessionHarness.ClaudeCode
             or AgentSessionHarness.Codex
-            or AgentSessionHarness.Copilot)
+            or AgentSessionHarness.Copilot
+            or AgentSessionHarness.Opencode)
         {
             var identity = await EnsureCodingIdentityWithinTransactionAsync(
                 connection, transaction, generation, now, envActor, cancellationToken);
@@ -78,11 +102,11 @@ internal sealed class AgentSessionRegistry(
                 """
                 INSERT INTO agent_sessions (
                     harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
                     block_budget_used, role
                 ) VALUES (
                     @harness, @sessionId, @agentName, @bindingKind, @host,
-                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @role
+                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @endpointSecret, @now, @now, 0, @role
                 );
                 """,
                 new
@@ -96,6 +120,7 @@ internal sealed class AgentSessionRegistry(
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
+                    endpointSecret = normalizedEndpointSecret,
                     now,
                     role = identityRole,
                     cancellationToken
@@ -104,10 +129,8 @@ internal sealed class AgentSessionRegistry(
         }
         else if (IsSameGeneration(existing, generation))
         {
-            // Normal duplicate SessionStart only refreshes the heartbeat.
-            // A pre-v9 row can have no durable identity yet, however. When
-            // EnsureCodingIdentity created one above, reconcile the copied
-            // live-row actor and clear its old delivery ledger atomically.
+            // A matching host refreshes presence; an actor mismatch also reconciles the
+            // binding and role and clears delivery reservations.
             if (existing.AgentName == boundAgentName)
             {
                 await connection.ExecuteAsync(
@@ -156,21 +179,7 @@ internal sealed class AgentSessionRegistry(
         }
         else
         {
-            // A generation change on the same (harness, session_id): a new
-            // process replaced the one the row remembered. Treat it as a
-            // fresh SessionStart, rebinding exactly as the missing-row case
-            // above does, and reset the delivery ledger and counters.
-            //
-            // Both statements below predicate on the OLD generation
-            // (`existing`), not just (harness, session_id): a reader that
-            // observed this same old generation is the only writer allowed
-            // to act on it. Without the full predicate, two processes
-            // racing to rebind the same stale row could both read the same
-            // `existing` snapshot, and the second writer would blindly
-            // overwrite whatever the first writer already committed instead
-            // of affecting zero rows (the plan's "full-generation predicates
-            // on all lifecycle mutations" rule, carried forward from the
-            // .6 review as a hardening item for this bead).
+            // A different host replaces session presence and clears delivery, block, and ping state.
             var rowsAffected = await connection.ExecuteAsync(
                 """
                 UPDATE agent_sessions SET
@@ -181,6 +190,7 @@ internal sealed class AgentSessionRegistry(
                     workspace_path = @workspacePath,
                     endpoint_kind = @endpointKind,
                     endpoint_addr = @endpointAddr,
+                    endpoint_secret = @endpointSecret,
                     started_at = @now,
                     last_beat_at = @now,
                     block_budget_used = 0,
@@ -204,6 +214,7 @@ internal sealed class AgentSessionRegistry(
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
+                    endpointSecret = normalizedEndpointSecret,
                     now,
                     role = identityRole,
                     oldHost = existing.Host,
@@ -315,11 +326,6 @@ internal sealed class AgentSessionRegistry(
     {
         var normalizedActor = MailAgentName.Normalize(actor);
 
-        // Resolved BEFORE opening this method's own connection and
-        // transaction: EnsureImplicitAsync opens a separate connection to
-        // the same database file, and starting a second writer transaction
-        // while this one is already open self-deadlocks SQLite ("database
-        // is locked") instead of merely serializing.
         await agentRegistry.EnsureImplicitAsync(normalizedActor, cancellationToken);
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -384,9 +390,7 @@ internal sealed class AgentSessionRegistry(
     }
 
     /// <summary>
-    /// Fails when no agent carries this name. Actor names are allocated,
-    /// never invented: only <c>agent login</c> and the session-start hooks
-    /// mint one.
+    /// Throws <see cref="ExitException"/> when the agent registry does not contain the actor.
     /// </summary>
     private static async Task RequireKnownActorAsync(
         SqliteConnection connection,
@@ -568,8 +572,6 @@ internal sealed class AgentSessionRegistry(
             await RequireKnownActorAsync(connection, transaction, normalizedActor, cancellationToken);
         }
 
-        // Actor names are allocated, never invented: `register` binds a name
-        // `agent login` or a session-start hook already minted.
         if (actorGiven)
         {
             var known = await connection.QueryFirstOrDefaultAsync<string>(
@@ -715,11 +717,8 @@ internal sealed class AgentSessionRegistry(
     }
 
     /// <summary>
-    /// The claim state machine <see cref="ClaimAsync"/> and registration
-    /// both apply: none binds, env promotes to
-    /// explicit (resetting the ledger only for a different actor), explicit
-    /// for the same actor is a no-op, and explicit for a different actor
-    /// requires <paramref name="forceRebind"/>.
+    /// Computes the explicit binding transition and whether delivery state must reset.
+    /// Changing an existing explicit actor requires <paramref name="forceRebind"/>.
     /// </summary>
     private static (string NewBindingKind, bool ResetLedger, bool Changed) ComputeClaimTransition(
         string previousBindingKind,
@@ -733,9 +732,6 @@ internal sealed class AgentSessionRegistry(
                 (AgentSessionBindingKind.Explicit, true, true),
 
             (AgentSessionBindingKind.Env, var current) when current == normalizedActor =>
-                // Provenance-only promotion: without it, a later
-                // different-actor claim could bypass the force-rebind
-                // protection explicit(A) -> explicit(B) enforces below.
                 (AgentSessionBindingKind.Explicit, false, true),
 
             (AgentSessionBindingKind.Env, _) =>
@@ -753,10 +749,8 @@ internal sealed class AgentSessionRegistry(
         };
 
     /// <summary>
-    /// Applies a changed binding: sets <c>agent_name</c>/<c>binding_kind</c>,
-    /// and when <paramref name="resetLedger"/> also clears the delivery
-    /// ledger and block budget, all predicated on <paramref
-    /// name="generation"/> exactly.
+    /// Updates the matching session's actor binding.
+    /// When <paramref name="resetLedger"/> is true, clears its delivery reservations and block budget.
     /// </summary>
     private static async Task ApplyBindingAsync(
         SqliteConnection connection,
@@ -919,18 +913,17 @@ internal sealed class AgentSessionRegistry(
         {
             var record = candidate.ToRecord();
 
-            // A session that has not beaten within the stale window is
-            // reaped. A live session beats on every hook event it sends, so
-            // silence this long means the harness ended without its
-            // SessionEnd hook running.
             if (record.LastBeatAt > cutoff)
             {
                 continue;
             }
 
-            // The heartbeat predicate guards a TOCTOU race: if the row beat
-            // again between the SELECT above and this DELETE, the WHERE
-            // clause matches nothing and the live session survives.
+            if (OnStaleReapCandidateCapturedAsync is { } onStaleReapCandidateCapturedAsync)
+            {
+                await onStaleReapCandidateCapturedAsync(record, cancellationToken);
+            }
+
+            // Delete only if the recorded host and heartbeat still match.
             var rowsAffected = await connection.ExecuteAsync(
                 "DELETE FROM agent_sessions WHERE harness = @harness AND session_id = @sessionId "
                 + "AND host = @host AND last_beat_at = @lastBeatAt",
@@ -984,9 +977,8 @@ internal sealed class AgentSessionRegistry(
     }
 
     /// <summary>
-    /// Computes the same <see cref="AgentSessionState"/> <see cref="ListAsync"/>
-    /// and <see cref="ListParticipantsAsync"/> report for <paramref name="record"/>,
-    /// relative to the current instance's resolved <paramref name="host"/>.
+    /// Returns remote for another host, unreachable for a local session without an
+    /// endpoint, or online otherwise.
     /// </summary>
     private static string ComputeState(AgentSessionRecord record, string host)
         => record.Host != host
@@ -1037,11 +1029,8 @@ internal sealed class AgentSessionRegistry(
     }
 
     /// <summary>
-    /// Reaps dead current-instance rows, then returns one
-    /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
-    /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when
-    /// the session is claimed, and computing the same
-    /// <see cref="AgentSessionState"/> as <see cref="ListAsync"/>.
+    /// Reaps stale local sessions, then returns each surviving session with its agent
+    /// identity when available and its computed presence state.
     /// </summary>
     public async Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(
         CancellationToken cancellationToken)
@@ -1195,6 +1184,88 @@ internal sealed class AgentSessionRegistry(
         return rowsAffected > 0;
     }
 
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => SetSessionFlagAsync(generation, "announcement_pending", value: true, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => ClaimSessionFlagAsync(generation, "announcement_pending", cancellationToken);
+
+    public Task<bool> IsAnnouncementPendingAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => PeekSessionFlagAsync(generation, "announcement_pending", cancellationToken);
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => SetSessionFlagAsync(generation, "idle_push_armed", value: true, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => ClaimSessionFlagAsync(generation, "idle_push_armed", cancellationToken);
+
+    /// <summary>
+    /// Sets the named flag for the matching session; a missing session is unchanged.
+    /// <paramref name="column"/> must be a trusted session flag column name.
+    /// </summary>
+    private async Task SetSessionFlagAsync(
+        AgentSessionGeneration generation, string column, bool value, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agent_sessions SET {column} = @value "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND host = @host";
+        command.Parameters.AddWithValue("@value", value ? 1 : 0);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Clears the named flag for the matching session and returns whether it was set.
+    /// <paramref name="column"/> must be a trusted session flag column name.
+    /// </summary>
+    private async Task<bool> ClaimSessionFlagAsync(
+        AgentSessionGeneration generation, string column, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agent_sessions SET {column} = 0 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + $"AND host = @host AND {column} = 1";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
+    /// <summary>
+    /// Returns whether the named flag is set for the matching session, or false when
+    /// none matches. <paramref name="column"/> must be a trusted session flag column name.
+    /// </summary>
+    private async Task<bool> PeekSessionFlagAsync(
+        AgentSessionGeneration generation, string column, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"SELECT {column} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId AND host = @host";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        return result is not null && (long)result != 0;
+    }
+
     private async Task<string> ResolveHostAsync(CancellationToken cancellationToken)
         => await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
@@ -1202,10 +1273,7 @@ internal sealed class AgentSessionRegistry(
         => existing.Host == generation.Host;
 
     /// <summary>
-    /// Maps an <see cref="AgentSessionHarness"/> value to the harness name
-    /// its <c>hooks</c> subcommand group uses, which differs from the
-    /// harness value only for Claude Code (<c>claude-code</c> installs under
-    /// <c>claude</c>).
+    /// Returns the hooks command name for the harness, mapping <c>claude-code</c> to <c>claude</c>.
     /// </summary>
     private static string HooksInstallCommandName(string harness) => harness switch
     {
@@ -1214,19 +1282,29 @@ internal sealed class AgentSessionRegistry(
     };
 
     /// <summary>
-    /// Demotes an endpoint to <c>none</c> when its kind is already
-    /// <c>none</c> or its address fails the write-time grammar
-    /// <see cref="EndpointAddress"/> enforces; the table's cross-column
-    /// CHECK requires the two to agree.
+    /// Normalizes invalid or absent endpoints to kind <c>none</c>, an empty address,
+    /// and no credential. Credentials are retained only for valid opencode-server
+    /// endpoints belonging to the opencode harness.
     /// </summary>
-    private static (string Kind, string Addr) NormalizeEndpoint(string endpointKind, string endpointAddr)
+    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
+        string harness,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret)
     {
-        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
-            return (AgentSessionEndpointKind.None, string.Empty);
+            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
+                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
+                : (AgentSessionEndpointKind.None, string.Empty, null);
         }
 
-        return (endpointKind, endpointAddr);
+        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        {
+            return (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        return (endpointKind, endpointAddr, null);
     }
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
@@ -1237,10 +1315,6 @@ internal sealed class AgentSessionRegistry(
         return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
-    // Internal, not private: Dapper.AOT's generated interceptors live
-    // outside AgentSessionRegistry and cannot reference a private nested
-    // type, so a private row type would silently fall back to Dapper's
-    // reflection-emit deserializer. Mirrors AgentRegistry.AgentRegistryRow.
     internal sealed class AgentSessionRow
     {
         public required string Harness { get; init; }
@@ -1252,6 +1326,7 @@ internal sealed class AgentSessionRegistry(
         public required string WorkspacePath { get; init; }
         public required string EndpointKind { get; init; }
         public required string EndpointAddr { get; init; }
+        public string? EndpointSecret { get; init; }
         public required string StartedAt { get; init; }
         public required string LastBeatAt { get; init; }
         public required int BlockBudgetUsed { get; init; }
@@ -1263,9 +1338,7 @@ internal sealed class AgentSessionRegistry(
         public required string HarnessVersion { get; init; }
 
         /// <summary>
-        /// Maps a row from a <see cref="AgentSessionRecord.Columns"/> query
-        /// by column name, for the raw ADO.NET reads Dapper.AOT cannot
-        /// intercept (a runtime-assembled <c>CommandDefinition</c>).
+        /// Reads the current row using the column names declared by <see cref="AgentSessionRecord.Columns"/>.
         /// </summary>
         public static AgentSessionRow ReadFrom(DbDataReader reader) => new()
         {
@@ -1280,6 +1353,9 @@ internal sealed class AgentSessionRegistry(
             WorkspacePath = reader.GetString(reader.GetOrdinal("WorkspacePath")),
             EndpointKind = reader.GetString(reader.GetOrdinal("EndpointKind")),
             EndpointAddr = reader.GetString(reader.GetOrdinal("EndpointAddr")),
+            EndpointSecret = reader.IsDBNull(reader.GetOrdinal("EndpointSecret"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("EndpointSecret")),
             StartedAt = reader.GetString(reader.GetOrdinal("StartedAt")),
             LastBeatAt = reader.GetString(reader.GetOrdinal("LastBeatAt")),
             BlockBudgetUsed = reader.GetInt32(reader.GetOrdinal("BlockBudgetUsed")),
@@ -1310,6 +1386,7 @@ internal sealed class AgentSessionRegistry(
             WorkspacePath = WorkspacePath,
             EndpointKind = EndpointKind,
             EndpointAddr = EndpointAddr,
+            EndpointSecret = EndpointSecret,
             StartedAt = DateTimeOffset.Parse(StartedAt, CultureInfo.InvariantCulture),
             LastBeatAt = DateTimeOffset.Parse(LastBeatAt, CultureInfo.InvariantCulture),
             BlockBudgetUsed = BlockBudgetUsed,

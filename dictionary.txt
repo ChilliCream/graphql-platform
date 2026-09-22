@@ -145,6 +145,7 @@ matchesBrics
 maxage
 MCPEXP
 mcpjam
+mdns
 MediatR
 Memberwise
 mercurius

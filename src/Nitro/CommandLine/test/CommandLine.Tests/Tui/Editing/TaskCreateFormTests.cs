@@ -116,7 +116,7 @@ public sealed class TaskCreateFormTests
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: the form stays open because the required title is empty.
+        // assert
         Assert.Null(result);
     }
 
@@ -151,7 +151,7 @@ public sealed class TaskCreateFormTests
     [Fact]
     public void HandleKey_Should_Create_When_CtrlEnterFromTitleField()
     {
-        // arrange: focus never leaves the title field, no Tab to Create.
+        // arrange
         var form = new TaskCreateForm(TaskTypes.Task);
         Type(form, "New task");
 
@@ -166,8 +166,7 @@ public sealed class TaskCreateFormTests
     [Fact]
     public void HandleKey_Should_Create_When_CtrlSFromTitleField()
     {
-        // arrange: Ctrl+S is the fallback save chord for terminals that
-        // deliver Ctrl+Enter identically to a plain Enter.
+        // arrange
         var form = new TaskCreateForm(TaskTypes.Task);
         Type(form, "New task");
 
@@ -188,8 +187,7 @@ public sealed class TaskCreateFormTests
         // act
         var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
 
-        // assert: the form stays open and focus moves to the invalid title
-        // field instead of closing.
+        // assert
         Assert.Null(result);
         Assert.Equal(TaskCreateForm.TitleFieldId, form.FocusedField?.Id);
     }
@@ -221,7 +219,7 @@ public sealed class TaskCreateFormTests
     [Fact]
     public async Task SubmitAsync_Should_PassParentId_Through_ToTheStore()
     {
-        // arrange: a task created as the child of the currently selected task.
+        // arrange
         var form = new TaskCreateForm(TaskTypes.Task, parentId: "app-1a2");
         Type(form, "Sub task");
         var submitted = Save(form);
@@ -252,9 +250,8 @@ public sealed class TaskCreateFormTests
     [Fact]
     public async Task SubmitAsync_Should_CreateTopLevelTask_When_ParentFieldSwitchedToNoParent()
     {
-        // arrange: the board always has a selection once a column is
-        // populated, so this is the only gesture that lets a root task be
-        // created while a row is selected.
+        // arrange
+        // Select the no-parent option.
         var form = new TaskCreateForm(TaskTypes.Task, parentId: "app-1a2");
         Type(form, "Root task");
         TabTo(form, 2);

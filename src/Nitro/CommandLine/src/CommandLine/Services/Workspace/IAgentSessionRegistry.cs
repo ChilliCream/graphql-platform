@@ -1,31 +1,17 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The <c>agent_sessions</c> lifecycle: bind, claim, heartbeat, reap, and
-/// list, all predicated on the full generation identity in
-/// <see cref="AgentSessionGeneration"/> so a stale caller can never mutate a
-/// row a newer generation now owns. Backend-agnostic: no member exposes
-/// ADO.NET or SQLite types.
+/// Manages session presence, actor bindings, heartbeats, and notification state
+/// using harness session ids and Nitro instance ids.
 /// </summary>
 internal interface IAgentSessionRegistry
 {
     /// <summary>
-    /// Upserts the row for <paramref name="generation"/>'s
-    /// <c>(harness, session_id)</c>, the SessionStart binding rules:
-    /// <list type="bullet">
-    /// <item>No existing coding-session row: creates or reuses its durable
-    /// identity, allocating an actor when <paramref name="envActor"/> is not
-    /// supplied. Production coding hooks do not supply it; the parameter is
-    /// retained for non-coding board sessions and low-level lifecycle
-    /// callers.</item>
-    /// <item>An existing row at the SAME generation: a duplicate delivery,
-    /// preserves binding, ledger, and counters, only refreshing the
-    /// heartbeat.</item>
-    /// <item>An existing row at a DIFFERENT generation: a new process
-    /// replaced the one the row remembered, rebinds per
-    /// <paramref name="envActor"/> exactly like a missing row would, and
-    /// resets the delivery ledger and counters.</item>
-    /// </list>
+    /// Starts or refreshes presence; coding harnesses reuse a durable actor or create one
+    /// from <paramref name="envActor"/> (allocating when null), while other harnesses use
+    /// that value as an optional binding. A matching host preserves state except for
+    /// heartbeat and actor reconciliation; a different host replaces presence and
+    /// clears delivery reservations, block budget, and ping state.
     /// </summary>
     Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
@@ -37,13 +23,31 @@ internal interface IAgentSessionRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Applies the claim state machine to the row matching
-    /// <paramref name="generation"/> exactly (harness, session id, and host
-    /// all predicate the row lookup, so a stale generation matches
-    /// nothing). Throws <see cref="ExitException"/> when
-    /// no row matches that generation, or when the row is already
-    /// explicitly claimed by a different actor and
-    /// <paramref name="forceRebind"/> is false.
+    /// Starts or refreshes a session with an optional endpoint credential.
+    /// The default implementation ignores <paramref name="endpointSecret"/>.
+    /// </summary>
+    Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        string? envActor,
+        CancellationToken cancellationToken)
+        => StartAsync(
+            generation,
+            cwd,
+            workspacePath,
+            endpointKind,
+            endpointAddr,
+            envActor,
+            cancellationToken);
+
+    /// <summary>
+    /// Claims the matching session for the normalized actor. Throws <see cref="ExitException"/>
+    /// when no session matches or changing a protected explicit binding requires
+    /// <paramref name="forceRebind"/> and it is false.
     /// </summary>
     Task<AgentSessionClaimResult> ClaimAsync(
         AgentSessionGeneration generation,
@@ -52,28 +56,20 @@ internal interface IAgentSessionRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Conditionally deletes the row matching <paramref name="generation"/>
-    /// exactly. A late call against a generation the row no longer carries
-    /// (superseded by a fresh SessionStart, already reaped) is a no-op.
-    /// Returns whether a row was actually deleted.
+    /// Deletes the session matching <paramref name="generation"/> and returns whether
+    /// a row was deleted; a missing or differently owned session is unchanged.
     /// </summary>
     Task<bool> EndAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the row matching <paramref name="generation"/> exactly (the
-    /// full generation predicate, not just harness and session id), or null
-    /// when no row matches. Used by the hook adapters to require a claimed
-    /// row belonging to the exact process instance a turn-boundary event
-    /// fired against before acting on it.
+    /// Returns the session matching the harness, session id, and host in
+    /// <paramref name="generation"/>, or null when none matches.
     /// </summary>
     Task<AgentSessionRecord?> FindByGenerationAsync(
         AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Resets <c>block_budget_used</c> to zero for the row matching
-    /// <paramref name="generation"/> exactly. A generation that matches no
-    /// row is a no-op. Called on <c>UserPromptSubmit</c>, so a lifetime
-    /// ceiling can never silently disable the Stop gate.
+    /// Resets the matching session's block budget to zero; a missing session is unchanged.
     /// </summary>
     Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
@@ -85,11 +81,8 @@ internal interface IAgentSessionRegistry
     Task<int?> IncrementBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Deletes every row on the CURRENT Nitro instance that has not beaten
-    /// within the stale window. A live session beats on every hook event it
-    /// sends, so silence that long means the harness ended without its
-    /// SessionEnd hook running. Rows recorded by a different instance id are
-    /// never touched. Returns the rows that were reaped.
+    /// Reaps current-instance sessions whose heartbeat has reached the stale cutoff
+    /// and returns the deleted records. Sessions owned by another instance are retained.
     /// </summary>
     Task<IReadOnlyList<AgentSessionRecord>> ReapAsync(CancellationToken cancellationToken);
 
@@ -100,40 +93,27 @@ internal interface IAgentSessionRegistry
     Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Advances <c>last_beat_at</c> to now for the row matching <paramref
-    /// name="generation"/> exactly, without changing binding, role,
-    /// counters, endpoints, or delivery ledgers. A generation that matches
-    /// no row (already ended or superseded) is a no-op. Returns whether a
-    /// row was actually touched.
+    /// Updates only the matching session's heartbeat to now.
+    /// Returns false when no session matches.
     /// </summary>
     Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Records <paramref name="harnessVersion"/> for the row matching
-    /// <paramref name="generation"/> exactly, without changing any other
-    /// column. A generation that matches no row (already ended or
-    /// superseded) is a no-op. Returns whether a row was actually updated.
+    /// Updates only the matching session's harness version.
+    /// Returns false when no session matches.
     /// </summary>
     Task<bool> RecordHarnessVersionAsync(
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Sets the mutable participant <c>role</c> for the row matching
-    /// <paramref name="generation"/> exactly, without changing binding,
-    /// counters, endpoints, harness_version, or delivery ledgers, and
-    /// without touching the durable identity's own role (see
-    /// <see cref="AgentRecord.Role"/>). A generation that matches no row
-    /// (already ended or superseded) is a no-op. Returns whether a row was
-    /// actually updated.
+    /// Updates only the matching session's normalized role, preserving the agent identity
+    /// role. Returns false when no session matches.
     /// </summary>
     Task<bool> SetRoleAsync(AgentSessionGeneration generation, string role, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reaps stale current-instance rows, then returns one
-    /// <see cref="AgentSessionParticipant"/> per surviving row, joining the
-    /// durable <see cref="AgentRecord"/> its <c>agent_name</c> binds to when
-    /// the session is claimed, and computing the same
-    /// <see cref="AgentSessionState"/> as <see cref="ListAsync"/>.
+    /// Reaps stale local sessions, then returns each surviving session with its agent
+    /// identity when available and its computed presence state.
     /// </summary>
     Task<IReadOnlyList<AgentSessionParticipant>> ListParticipantsAsync(CancellationToken cancellationToken);
 
@@ -159,18 +139,10 @@ internal interface IAgentSessionRegistry
     }
 
     /// <summary>
-    /// Atomically upserts the durable identity for <paramref name="actor"/>
-    /// and binds/promotes it onto the row matching <paramref
-    /// name="generation"/> exactly, applying the same claim state machine as
-    /// <see cref="ClaimAsync"/> and persisting <paramref name="role"/>
-    /// (normalized) onto the participant. Both writes commit or roll back
-    /// together. Throws <see cref="ExitException"/> when no row matches that
-    /// generation, when this process cannot verify it against the row's
-    /// recorded process scope, or when the row is already explicitly
-    /// claimed by a different actor and <paramref name="forceRebind"/> is
-    /// false. Repeating the same actor and role is idempotent: it still
-    /// refreshes the identity's last-seen time and the participant's
-    /// heartbeat, but reports no change.
+    /// Atomically registers the known actor and normalized role and applies the session
+    /// claim transition. Throws <see cref="ExitException"/> for an unknown actor, a missing
+    /// session, or a protected explicit binding that cannot be changed without
+    /// <paramref name="forceRebind"/>.
     /// </summary>
     Task<AgentSessionRegisterResult> RegisterAsync(
         AgentSessionGeneration generation,
@@ -229,23 +201,16 @@ internal interface IAgentSessionRegistry
         string harness, string host, string sessionId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reaps stale current-instance rows, then returns every surviving row
-    /// bound to <paramref name="agentName"/> on the CURRENT instance (remote
-    /// rows are never returned: a wake fired from here cannot reach a
-    /// session another Nitro instance owns). Used by the notifier to
-    /// resolve which sessions to fire at.
+    /// Reaps stale local sessions, then returns surviving current-instance sessions
+    /// bound to <paramref name="agentName"/>.
     /// </summary>
     Task<IReadOnlyList<AgentSessionRecord>> FindLiveClaimedByAgentNameAsync(
         string agentName, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Atomically claims the per-session ping cooldown for
-    /// <paramref name="session"/>'s exact generation: succeeds, stamping
-    /// <paramref name="attemptId"/> as the new pending attempt and clearing
-    /// any previous result, only when no prior attempt was claimed within
-    /// <paramref name="cooldown"/> of <paramref name="now"/>. Returns false
-    /// (a no-op) when the cooldown is still active or the generation no
-    /// longer matches a row - both cases mean the caller must not act.
+    /// Claims the matching session's ping cooldown for <paramref name="attemptId"/>,
+    /// clearing the previous result and detail. Returns false when no session matches
+    /// or the previous attempt is newer than <paramref name="now"/> minus <paramref name="cooldown"/>.
     /// </summary>
     Task<bool> TryClaimPingCooldownAsync(
         AgentSessionRecord session,
@@ -255,12 +220,8 @@ internal interface IAgentSessionRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Writes a ping outcome for <paramref name="sessionId"/>, conditioned
-    /// on <paramref name="attemptId"/> still being the row's current
-    /// <c>last_ping_attempt</c>: an out-of-order or superseded completion
-    /// (the row rebound to a new generation, or a newer attempt already
-    /// claimed the cooldown) affects zero rows instead of overwriting a
-    /// newer result.
+    /// Records the ping result and detail only when the harness, session id, and
+    /// current attempt id match; an outdated completion changes nothing.
     /// </summary>
     Task WritePingResultAsync(
         string harness,
@@ -269,4 +230,27 @@ internal interface IAgentSessionRegistry
         string result,
         string? detail,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Marks the matching session's actor announcement as pending.
+    /// A missing session is unchanged.
+    /// </summary>
+    Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomically clears the matching session's pending announcement and returns true.
+    /// Returns false when no session matches or no announcement is pending.
+    /// </summary>
+    Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Arms one idle push for the matching session. A missing session is unchanged.
+    /// </summary>
+    Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomically consumes the matching session's armed idle push and returns true.
+    /// Returns false when no session matches or no push is armed.
+    /// </summary>
+    Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 }

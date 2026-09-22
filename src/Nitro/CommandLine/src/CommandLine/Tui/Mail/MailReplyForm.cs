@@ -7,17 +7,8 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The reply form: body only. Recipient computation (reply-all, minus the
-/// acting agent) is entirely owned by
-/// <see cref="IMailStore.ReplyMessageAsync(string, string, string, CancellationToken)"/>,
-/// the same store member the
-/// CLI's reply command calls, so the recipient set for a given message is
-/// identical whether the reply was sent from the CLI or here. The host is
-/// expected to feed it raw key input via <see cref="HandleKey"/> and call
-/// <see cref="BuildRequest"/> once it returns <see cref="FormResult.Submitted"/>
-/// on the primary button; the actual store write and actor-wake dispatch run
-/// off the input thread through <see cref="MailMode"/>'s own send effect,
-/// not synchronously from here.
+/// A body-only reply form. The mail store determines reply-all recipients when
+/// the request is submitted.
 /// </summary>
 internal sealed class MailReplyForm
 {
@@ -27,8 +18,7 @@ internal sealed class MailReplyForm
     public const string CancelButtonId = "cancel";
 
     /// <summary>
-    /// The footer hints for the reply form: its keys are consumed entirely
-    /// while it is active, so no global hints follow.
+    /// The footer hints displayed while the reply form captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
@@ -57,9 +47,7 @@ internal sealed class MailReplyForm
     }
 
     /// <summary>
-    /// Whether the body field's current value differs from its blank
-    /// default: gates whether Esc should ask for discard confirmation
-    /// before cancelling.
+    /// Whether the body contains text, including whitespace.
     /// </summary>
     public bool IsDirty => Text(_bodyField).Length != 0;
 
@@ -77,12 +65,8 @@ internal sealed class MailReplyForm
     public IRenderable Render(int width, int height) => _form.Render(width, height);
 
     /// <summary>
-    /// Snapshots the submitted <paramref name="values"/>, together with the
-    /// message id this form was built with, into a <see cref="MailReplyRequest"/>
-    /// ready for <see cref="IMailStore.ReplyMessageAsync(string, string, string, MailWakePolicy, CancellationToken)"/>.
-    /// Pure and synchronous; the body is already validated by the time a
-    /// <see cref="FormResult.Submitted"/> carries these values, so this does
-    /// no I/O and cannot fail.
+    /// Builds a reply request from the submitted body, acting agent, and original
+    /// message id without writing to the store.
     /// </summary>
     public MailReplyRequest BuildRequest(IReadOnlyDictionary<string, FormValue> values, string actor)
     {

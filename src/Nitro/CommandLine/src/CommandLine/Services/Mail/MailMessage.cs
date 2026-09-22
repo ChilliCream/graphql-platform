@@ -28,22 +28,14 @@ internal sealed record MailMessage
     public IReadOnlyList<MailRecipient> Recipients { get; init; } = [];
 
     /// <summary>
-    /// The normalized names, in recipient order, of every recipient that has
-    /// never registered: their agent row is marked implicit, whether it was
-    /// already implicit or was created by this send. Populated only by
-    /// <see cref="IMailStore.SendMessageAsync"/>; every other path leaves
-    /// this empty.
+    /// Names of implicit recipient identities in recipient order, populated by
+    /// <see cref="IMailStore.SendMessageAsync"/>. Other operations leave this empty.
     /// </summary>
     public IReadOnlyList<string> Unregistered { get; init; } = [];
 
     /// <summary>
-    /// Each recipient's actor-wake generation token committed alongside this
-    /// message, when the send or reply used <see cref="MailWakePolicy.Enqueue"/>.
-    /// Empty when the policy was <see cref="MailWakePolicy.Skip"/>. Populated
-    /// only by <see cref="IMailStore.SendMessageAsync"/> and
-    /// <see cref="IMailStore.ReplyMessageAsync(string, string, string, MailWakePolicy, CancellationToken)"/>;
-    /// every other path leaves
-    /// this empty.
+    /// Wake generation tokens returned by sends or replies that use
+    /// <see cref="MailWakePolicy.Enqueue"/>. Other operations leave this empty.
     /// </summary>
     public IReadOnlyList<MailWakeReceipt> WakeReceipts { get; init; } = [];
 }

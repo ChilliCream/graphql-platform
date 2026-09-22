@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The mail board's named mailboxes: a direct-jump axis over which message
-/// corpus the list pane shows, independent of <see cref="MailListFilter"/>'s
-/// read-state axis within <see cref="Inbox"/>.
+/// The message collection displayed by the mail board.
 /// </summary>
 internal enum MailMailbox
 {

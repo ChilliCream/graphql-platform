@@ -1,12 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Per-session-generation mutual exclusion over <c>session_ping_gates</c>: at
-/// most one caller may hold the gate for a given
-/// <see cref="AgentSessionGeneration"/> at a time. Distinct from
-/// <see cref="IPingLeaseStore"/>, which caps total outstanding ping children
-/// workspace-wide regardless of target; a caller reserving a transport
-/// attempt against one session acquires both.
+/// Manages one shared transport lease for each harness, session id, and host tuple.
 /// </summary>
 internal interface ISessionPingGateStore
 {
@@ -24,10 +19,8 @@ internal interface ISessionPingGateStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Extends a held gate's expiry. Returns false, changing nothing, when
-    /// <paramref name="attemptId"/> no longer holds the gate or its lease
-    /// has already expired (a lost gate can never be renewed back; the
-    /// caller must re-acquire).
+    /// Sets the matching gate's expiry to <paramref name="now"/> plus <paramref name="leaseDuration"/>.
+    /// Returns false when the attempt does not own the gate or its lease has expired.
     /// </summary>
     Task<bool> TryRenewAsync(
         AgentSessionGeneration generation,
@@ -37,10 +30,8 @@ internal interface ISessionPingGateStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Releases a held gate. A no-op when <paramref name="attemptId"/> no
-    /// longer holds it (already stolen as expired, or already released), so
-    /// a late or duplicate release can never free a different attempt's
-    /// gate.
+    /// Releases the matching session gate only when it still belongs to
+    /// <paramref name="attemptId"/>; a missing or reassigned gate is unchanged.
     /// </summary>
     Task ReleaseAsync(
         AgentSessionGeneration generation,

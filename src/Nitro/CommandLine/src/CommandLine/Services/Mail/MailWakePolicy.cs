@@ -1,12 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
-/// Whether sending or replying to a message advances a recipient's
-/// actor-wake generation. <see cref="Skip"/> stores the message without
-/// touching wake intent for any recipient, and is the default for callers
-/// not yet migrated to select a policy. <see cref="Enqueue"/> increments
-/// <c>mail_wake_outbox.requested_generation</c> once per distinct recipient,
-/// in the same transaction as the message and recipient rows.
+/// Whether a send or reply advances recipients' wake generations.
+/// Enqueue advances each distinct recipient's generation atomically with the message;
+/// Skip leaves wake generations unchanged.
 /// </summary>
 internal enum MailWakePolicy
 {

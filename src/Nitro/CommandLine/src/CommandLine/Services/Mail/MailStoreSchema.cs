@@ -3,8 +3,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 internal static class MailStoreSchema
 {
     /// <summary>
-    /// The complete schema. Statements are idempotent so applying them to an
-    /// existing database is non-destructive.
+    /// Creates missing mail tables and indexes without modifying existing ones.
     /// </summary>
     public const string Create =
         """

@@ -3,11 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// An in-memory <see cref="IAgentSessionRegistry"/> exercising the surface
-/// <see cref="CommandLine.Tui.Agents.AgentsState"/> consumes
-/// (<see cref="ListParticipantsAsync"/>) and <see cref="FindLiveClaimedByAgentNameAsync"/>,
-/// configurable via <see cref="LiveSessionsByAgentName"/>. Every other member
-/// throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IAgentSessionRegistry"/> supporting <see cref="ListParticipantsAsync"/>
+/// and <see cref="FindLiveClaimedByAgentNameAsync"/>. All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
 {
@@ -100,5 +97,17 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         string result,
         string? detail,
         CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 }

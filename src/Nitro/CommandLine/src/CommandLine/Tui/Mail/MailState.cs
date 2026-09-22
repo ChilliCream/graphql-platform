@@ -3,125 +3,66 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The mail board's live state: the acting agent's messages and thread
-/// rollups for the current mailbox and filter, the selected row, which pane
-/// has focus, and the detail pane's view mode.
+/// The mail board's loaded messages and threads, mailbox filters, selection,
+/// focus, and detail view mode.
 /// </summary>
-/// <remarks>
-/// <see cref="Rows"/> is the single navigation surface <see cref="SelectedRow"/>
-/// indexes, regardless of <see cref="ListMode"/>: in <see cref="MailListMode.Flat"/>
-/// it is one <see cref="MailListRow.MessageRow"/> per <see cref="Messages"/>
-/// entry; in <see cref="MailListMode.Threads"/> it is one
-/// <see cref="MailListRow.Thread"/> per <see cref="Threads"/> entry, followed
-/// by that thread's messages as indented <see cref="MailListRow.MessageRow"/>
-/// rows when the thread id is in the fold set. Assigning <see cref="SelectedRow"/>
-/// synchronously resolves the detail pane's <see cref="ViewMode"/>,
-/// <see cref="ThreadMessages"/>, and <see cref="SelectedMessage"/> for the
-/// newly-selected row (a thread row defaults the detail pane to
-/// <see cref="MailViewMode.Thread"/>, per the epic's layout ruling, and
-/// <see cref="SelectedMessage"/> resolves to that thread's most recent
-/// message so the u/a/r gestures still have a concrete message to act on);
-/// <see cref="ShowThreadAsync"/> and <see cref="ShowMessage"/> remain a
-/// manual, per-selection override of that default, exactly as before this
-/// epic, since they only ever touch <see cref="ViewMode"/> and
-/// <see cref="ThreadMessages"/>, which this class still owns.
-/// </remarks>
 internal sealed class MailState(string? actor, MailDataLoader loader)
 {
     /// <summary>
-    /// The acting agent whose mail this state loads, or null when the board
-    /// has no identity: only <see cref="MailMailbox.Workspace"/>, which
-    /// belongs to no actor, is reachable then.
+    /// The acting agent, or null when the board has no identity.
     /// </summary>
     public string? Actor { get; } = actor;
 
     /// <summary>
-    /// <see cref="Actor"/> for the personal mailboxes and every write, none
-    /// of which is reachable without an identity.
+    /// The acting agent required by personal mailbox queries; throws when no identity
+    /// is available.
     /// </summary>
     private string RequiredActor
         => Actor ?? throw new InvalidOperationException("The board has no agent identity.");
 
     /// <summary>
-    /// The mailbox currently selected. Changed only by
-    /// <see cref="SelectMailboxAsync"/>, a direct jump independent of
-    /// <see cref="Filter"/>. Defaults to <see cref="MailMailbox.Workspace"/>
-    /// per the epic's user ruling.
+    /// The selected mailbox, initially <see cref="MailMailbox.Workspace"/>.
     /// </summary>
     public MailMailbox Mailbox { get; private set; } = MailMailbox.Workspace;
 
     /// <summary>
-    /// The read-state filter applied to <see cref="Messages"/> within
-    /// <see cref="MailMailbox.Inbox"/>. Carried but not applied to any other
-    /// <see cref="Mailbox"/>. <see cref="Threads"/> within Inbox is narrowed
-    /// for <see cref="Filter"/> too, so f/F is visible in
-    /// <see cref="MailListMode.Threads"/> as well as Flat, though not
-    /// identically for every value: <see cref="MailListFilter.Inbox"/>
-    /// itself already excludes threads whose only messages to the actor are
-    /// archived, the store's default (see <see cref="MailDataLoader.LoadInboxThreadsAsync"/>).
-    /// <see cref="MailListFilter.Unread"/> additionally hides threads whose
-    /// <see cref="MailThreadSummary.UnreadCount"/> (already actor-scoped for
-    /// Inbox rollups) is zero, applied client-side in
-    /// <see cref="LoadThreadsAsync"/> since the store exposes no unread-only
-    /// thread query. <see cref="MailListFilter.Archived"/> is powered by the
-    /// store's own includeArchived knob, then narrowed further, client-side,
-    /// to threads carrying at least one archived-for-actor message
-    /// (<see cref="MailThreadSummary.ArchivedCount"/>) - see
-    /// <see cref="MailDataLoader.LoadInboxThreadsAsync"/>.
+    /// The read-state filter for Inbox messages and thread summaries.
+    /// Other mailboxes ignore this filter.
     /// </summary>
     public MailListFilter Filter { get; private set; } = MailListFilter.Inbox;
 
     /// <summary>
-    /// The agent <see cref="Messages"/> and <see cref="Threads"/> are
-    /// narrowed to (sent or received) within <see cref="MailMailbox.Workspace"/>,
-    /// or null for every agent. Set by <see cref="SelectAgentFilterAsync"/>,
-    /// and cleared whenever <see cref="SelectMailboxAsync"/> leaves
-    /// <see cref="MailMailbox.Workspace"/> for another mailbox; belongs to
-    /// Workspace only, since no other mailbox is already scoped to every
-    /// agent.
+    /// The agent whose sent or received mail is shown in Workspace, or null for all
+    /// agents. Leaving Workspace clears the filter.
     /// </summary>
     public string? AgentFilter { get; private set; }
 
     /// <summary>
-    /// Which shape <see cref="Rows"/> renders in. Defaults to
-    /// <see cref="MailListMode.Threads"/> per the epic's user ruling;
-    /// <see cref="ToggleListMode"/> (Shift+V) switches back and forth.
+    /// The list shape, initially <see cref="MailListMode.Threads"/>.
     /// </summary>
     public MailListMode ListMode { get; private set; } = MailListMode.Threads;
 
     /// <summary>
-    /// The flat messages currently loaded for <see cref="Mailbox"/> (and,
-    /// within <see cref="MailMailbox.Inbox"/>, <see cref="Filter"/>), newest
-    /// first. Loaded on every reload regardless of <see cref="ListMode"/> so
-    /// <see cref="MailListMode.Flat"/> always has current data to show the
-    /// moment <see cref="ToggleListMode"/> switches to it.
+    /// Messages loaded for the current mailbox and filters, newest first, regardless
+    /// of the active list shape.
     /// </summary>
     public IReadOnlyList<MailMessage> Messages { get; private set; } = [];
 
     /// <summary>
-    /// The thread rollups currently loaded for <see cref="Mailbox"/> (and,
-    /// within <see cref="MailMailbox.Workspace"/>, <see cref="AgentFilter"/>),
-    /// newest activity first. Loaded on every reload regardless of
-    /// <see cref="ListMode"/>, mirroring <see cref="Messages"/>.
+    /// Thread summaries loaded for the current mailbox and filters, newest activity
+    /// first, regardless of the active list shape.
     /// </summary>
     public IReadOnlyList<MailThreadSummary> Threads { get; private set; } = [];
 
     /// <summary>
-    /// The list pane's flattened, navigable rows for the current
-    /// <see cref="ListMode"/>; see the class remarks.
+    /// The navigable message rows, or thread rows followed by any expanded messages.
     /// </summary>
     public IReadOnlyList<MailListRow> Rows { get; private set; } = [];
 
     /// <summary>
-    /// The index of the selected row within <see cref="Rows"/>. Assigning
-    /// this resolves <see cref="ViewMode"/>, <see cref="ThreadMessages"/>,
-    /// and <see cref="SelectedMessage"/> for the newly-selected row, but only
-    /// when the row's <see cref="RowKey"/> actually differs from
-    /// <see cref="_syncedRowKey"/>: a refresh or fold rebuild that lands the
-    /// same logical row back on this index (see <see cref="RebuildRowsPreservingSelection"/>
-    /// and <see cref="ReloadAsync"/>) must not clobber a manual
-    /// <see cref="ShowThreadAsync"/>/<see cref="ShowMessage"/> override with
-    /// the row's default; see the class remarks.
+    /// The selected index in <see cref="Rows"/>. Selecting a different row identity
+    /// resolves its detail content and view mode; selecting the same identity preserves
+    /// a manual view-mode override.
     /// </summary>
     public int SelectedRow
     {
@@ -158,25 +99,15 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     public IReadOnlyList<MailMessage> ThreadMessages { get; private set; } = [];
 
     /// <summary>
-    /// The message the detail pane and the u/a/r gestures act on: the
-    /// selected row's own message when it is a <see cref="MailListRow.MessageRow"/>,
-    /// or a thread row's most recent message otherwise (see the class
-    /// remarks); null when no row is selected.
+    /// The selected message row's message or the selected thread's latest message,
+    /// or null when no message is selected.
     /// </summary>
     public MailMessage? SelectedMessage { get; private set; }
 
     private int _selectedRow;
 
     /// <summary>
-    /// The <see cref="RowKey"/> <see cref="SyncSelectionBlocking"/> last
-    /// resolved <see cref="ViewMode"/>/<see cref="ThreadMessages"/>/<see cref="SelectedMessage"/>
-    /// from; null when nothing has been synced yet or the last sync landed
-    /// on no row. <see cref="SelectedRow"/>'s setter only re-syncs when the
-    /// new row's key differs from this, so a genuine selection change still
-    /// resolves the row's default view mode while a refresh/fold rebuild
-    /// landing back on the same logical row leaves a manual
-    /// <see cref="ShowThreadAsync"/>/<see cref="ShowMessage"/> override
-    /// alone.
+    /// The last synchronized row identity, or null when none is selected.
     /// </summary>
     private string? _syncedRowKey;
 
@@ -185,25 +116,14 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Thread ids, among <see cref="Threads"/>, that carry at least one
-    /// message unread and addressed to <see cref="Actor"/> as a to or cc
-    /// recipient - populated only within <see cref="MailMailbox.Workspace"/>,
-    /// from the actor's own <see cref="MailDataLoader.LoadInboxThreadsAsync"/>
-    /// rollups (never another agent's, per epic wi3 convention 8) run
-    /// alongside the workspace query. <see cref="IsThreadUnreadToMe"/> is the
-    /// public read of this set.
+    /// Workspace thread ids with unread mail addressed to the acting agent,
+    /// loaded from that agent's inbox thread summaries.
     /// </summary>
     private HashSet<string> _workspaceUnreadToMeThreadIds = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Whether <paramref name="summary"/> should render with the
-    /// unread-to-me highlight: outside <see cref="MailMailbox.Workspace"/>,
-    /// <see cref="MailThreadSummary.UnreadCount"/> is already actor-scoped,
-    /// so a positive count is enough; within Workspace, where
-    /// <see cref="MailThreadSummary.UnreadCount"/> is always null (never
-    /// exposing any agent's read state from the unscoped query), this reads
-    /// the actor's own <see cref="_workspaceUnreadToMeThreadIds"/> instead -
-    /// still only ever the actor's own state, never another agent's.
+    /// Whether the thread has unread mail for the acting agent.
+    /// Workspace uses the separately loaded actor-specific thread ids.
     /// </summary>
     public bool IsThreadUnreadToMe(MailThreadSummary summary)
         => Mailbox == MailMailbox.Workspace
@@ -246,10 +166,7 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     /// Sets <see cref="AgentFilter"/> and reloads, resetting
     /// <see cref="SelectedRow"/> to the top the same way
     /// <see cref="SelectMailboxAsync"/> does. Meaningful only within
-    /// <see cref="MailMailbox.Workspace"/>: <see cref="LoadMessagesAsync"/>
-    /// and <see cref="LoadThreadsAsync"/> are the only places
-    /// <see cref="AgentFilter"/> is read, so calling this while another
-    /// mailbox is active reloads that mailbox's data unchanged.
+    /// <see cref="MailMailbox.Workspace"/>.
     /// </summary>
     public Task SelectAgentFilterAsync(string? agent, CancellationToken cancellationToken)
     {
@@ -258,12 +175,8 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Changes <see cref="Filter"/> by <paramref name="delta"/> positions,
-    /// cycling through the three <see cref="MailListFilter"/> values, and
-    /// reloads. The cycle always advances <see cref="Filter"/> regardless of
-    /// <see cref="Mailbox"/> or <see cref="ListMode"/>, but the filter only
-    /// changes the reloaded messages within <see cref="MailMailbox.Inbox"/>
-    /// and <see cref="MailListMode.Flat"/>; see <see cref="Filter"/>.
+    /// Cycles the inbox filter by the supplied number of positions and reloads.
+    /// The filter affects both messages and threads in Inbox only.
     /// </summary>
     public async Task CycleFilterAsync(int delta, CancellationToken cancellationToken)
     {
@@ -280,12 +193,9 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Toggles <see cref="ListMode"/> between <see cref="MailListMode.Threads"/>
-    /// and <see cref="MailListMode.Flat"/> (Shift+V), rebuilding
-    /// <see cref="Rows"/> from the already-loaded <see cref="Messages"/> and
-    /// <see cref="Threads"/> - no reload. The selected row is preserved by
-    /// identity when the same message or thread is present in both shapes,
-    /// or clamped to the rebuilt list's bounds otherwise.
+    /// Toggles the list shape using loaded messages and thread summaries, preserving
+    /// the selected identity when present or clamping its index otherwise.
+    /// Resolving the selection may load the selected thread's messages.
     /// </summary>
     public void ToggleListMode()
     {
@@ -294,9 +204,8 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Expands the thread's messages into indented rows immediately after
-    /// it, fetching (and caching) them first when not already cached. A
-    /// no-op when already expanded.
+    /// Expands the thread's message rows, loading its messages when needed.
+    /// An already expanded thread is unchanged.
     /// </summary>
     public void ExpandThread(string threadId)
     {
@@ -358,11 +267,9 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Switches the detail pane to <see cref="MailViewMode.Thread"/>,
-    /// loading the selected message's thread. Has no effect, and returns
-    /// false, when no message is selected. A manual override of whatever
-    /// <see cref="SelectedRow"/>'s assignment already resolved <see cref="ViewMode"/>
-    /// to; the next selection change resolves it again from that row.
+    /// Loads the selected message's thread and displays it until the selected row
+    /// identity changes or the view is changed manually. Returns false without
+    /// changing the view when no message is selected.
     /// </summary>
     public async Task<bool> ShowThreadAsync(CancellationToken cancellationToken)
     {
@@ -377,9 +284,8 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Switches the detail pane back to <see cref="MailViewMode.Message"/>.
-    /// See <see cref="ShowThreadAsync"/>'s remark on this being a manual,
-    /// per-selection override.
+    /// Displays the selected message alone until the selected row identity changes
+    /// or the view is changed manually.
     /// </summary>
     public void ShowMessage()
     {
@@ -388,25 +294,9 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Reloads <see cref="Messages"/>, <see cref="Threads"/>, and (within
-    /// <see cref="MailMailbox.Workspace"/>) <see cref="_workspaceUnreadToMeThreadIds"/>,
-    /// rebuilds <see cref="Rows"/>, and either resets <see cref="SelectedRow"/>
-    /// to the top or restores it by row identity, per <paramref name="resetToTop"/>.
-    /// Clears the thread-message cache first so an expanded thread's rows
-    /// always reflect the fresh reload, not stale data from before it. When
-    /// the same logical row survives the reload, <see cref="SelectedRow"/>'s
-    /// setter deliberately skips re-syncing <see cref="ViewMode"/> (so a
-    /// manual <see cref="ShowThreadAsync"/>/<see cref="ShowMessage"/>
-    /// override survives the refresh), so this still has to re-resolve
-    /// <see cref="SelectedMessage"/>, and <see cref="ThreadMessages"/> when
-    /// <see cref="ViewMode"/> is <see cref="MailViewMode.Thread"/>, from the
-    /// freshly-reloaded row itself, via <see cref="RefreshSelectedRowContent"/>
-    /// - otherwise u/a/r would keep acting on the pre-reload message object,
-    /// and an open thread view would keep showing pre-reload messages, even
-    /// though the cache backing it was just cleared. Resetting to the top,
-    /// or clamping when the previously-selected row is gone, both resolve
-    /// <see cref="ViewMode"/> normally through the setter instead, since
-    /// those are genuine selection changes.
+    /// Reloads mailbox data and rebuilds the rows, resetting to the first row when
+    /// requested or retaining the selection when present. A retained selection gets
+    /// fresh content while preserving its detail view mode.
     /// </summary>
     private async Task ReloadAsync(CancellationToken cancellationToken, bool resetToTop)
     {
@@ -441,14 +331,8 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// Re-resolves <see cref="SelectedMessage"/>, and <see cref="ThreadMessages"/>
-    /// when <see cref="ViewMode"/> is <see cref="MailViewMode.Thread"/>, from
-    /// whatever row <see cref="_selectedRow"/> now points at, without
-    /// touching <see cref="ViewMode"/> itself. Called only from
-    /// <see cref="ReloadAsync"/>, and only when the selection survived the
-    /// reload by identity, so <see cref="SelectedRow"/>'s setter has already
-    /// skipped <see cref="SyncSelectionBlocking"/> for it; see that method's
-    /// remark for why <see cref="ViewMode"/> must stay untouched here.
+    /// Refreshes the selected message and any displayed thread without changing the
+    /// detail view mode.
     /// </summary>
     private void RefreshSelectedRowContent()
     {
@@ -486,8 +370,7 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     /// Rebuilds <see cref="Rows"/> from the current <see cref="Messages"/> or
     /// <see cref="Threads"/> (per <see cref="ListMode"/>) and preserves the
     /// selected row by identity across the rebuild, or clamps when the
-    /// previously-selected row is gone (for example a thread just collapsed
-    /// out from under an indented child row that was selected).
+    /// previously-selected row is gone.
     /// </summary>
     private void RebuildRowsPreservingSelection()
     {
@@ -529,10 +412,7 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     /// <summary>
     /// Resolves <see cref="ViewMode"/>, <see cref="ThreadMessages"/>, and
     /// <see cref="SelectedMessage"/> for whatever row <see cref="_selectedRow"/>
-    /// now points at in <see cref="Rows"/>; see the class remarks. Blocking,
-    /// like every other store-facing call in this TUI layer: called from
-    /// <see cref="SelectedRow"/>'s setter, so it runs once per selection
-    /// change rather than once per render.
+    /// now points at in <see cref="Rows"/>. Called from <see cref="SelectedRow"/>'s setter.
     /// </summary>
     private void SyncSelectionBlocking()
     {
@@ -574,10 +454,7 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     }
 
     /// <summary>
-    /// A row's stable identity across a reload or a fold/list-mode change:
-    /// its thread id for a thread row, or its message id for a message row -
-    /// used to keep the same logical row selected across <see cref="Rows"/>
-    /// being rebuilt.
+    /// A row identity containing its kind and its thread or message id.
     /// </summary>
     private static string RowKey(MailListRow row) => row switch
     {
@@ -613,14 +490,7 @@ internal sealed class MailState(string? actor, MailDataLoader loader)
     };
 
     /// <summary>
-    /// Routes to the thread-rollup load method for <see cref="Mailbox"/>,
-    /// mirroring <see cref="LoadMessagesAsync"/>. Within Inbox,
-    /// <see cref="Filter"/> is passed through to <see cref="MailDataLoader.LoadInboxThreadsAsync"/>
-    /// (which covers <see cref="MailListFilter.Inbox"/> and
-    /// <see cref="MailListFilter.Archived"/>), plus one further client-side
-    /// narrowing this method still owns for <see cref="MailListFilter.Unread"/>,
-    /// since the store exposes no unread-only thread query - see
-    /// <see cref="Filter"/> for the full breakdown.
+    /// Loads thread summaries for the current mailbox and filters.
     /// </summary>
     private async Task<IReadOnlyList<MailThreadSummary>> LoadThreadsAsync(CancellationToken cancellationToken)
     {

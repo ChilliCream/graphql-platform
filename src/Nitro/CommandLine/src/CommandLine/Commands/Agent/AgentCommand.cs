@@ -82,13 +82,7 @@ internal sealed class AgentCommand : Command
     }
 
     /// <summary>
-    /// Reproduces exactly what System.CommandLine prints today when this
-    /// group is invoked bare with no action set: the "Required command was
-    /// not provided." parse error on stderr, followed by the group's own
-    /// help (which lists <c>init</c> among its subcommands) on stdout.
-    /// Locked in so giving this group an action, needed to launch the TUI,
-    /// does not silently change bare-group discoverability for
-    /// non-interactive terminals or when no agent workspace is found.
+    /// Writes a missing-command error and the group help, then returns the error exit code.
     /// </summary>
     private static int WriteBareGroupGuidance(ParseResult parseResult)
     {
