@@ -3,12 +3,12 @@
  * share, so every visual on the page names the same subgraphs, languages and
  * specifications.
  *
- * Every colour role is a `CC.*` token, a `BRAND.*` accent (mixed with opacity
- * where a role needs a wash) or `FONTS.mono`, so this module carries no
- * colour of its own.
+ * Every colour role is a `CC.*` token or a `BRAND.*` accent (mixed with
+ * opacity where a role needs a wash), so this module carries no colour of
+ * its own.
  */
 
-import { BRAND, CC, FONTS } from "./tokens";
+import { BRAND, CC } from "./tokens";
 
 export const MC = {
   /** Ops-room floor: the page background, so a scene never darkens the page. */
@@ -27,11 +27,6 @@ export const MC = {
   phosphor: BRAND.teal,
   /** Tracked traffic: client signals and query blips. */
   signal: BRAND.cyan,
-  /** Caution: risky change, held countdown. */
-  amber: BRAND.amber,
-  /** Abort: composition conflict, breaking change. */
-  alert: BRAND.coral,
-  mono: FONTS.mono,
 } as const;
 
 export type StationSpec = "GraphQL Federation" | "Apollo Federation";

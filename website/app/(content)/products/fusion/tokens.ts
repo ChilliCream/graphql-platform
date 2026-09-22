@@ -113,35 +113,4 @@ export const TYPE = {
   caption: 14,
   /** Mono eyebrow / SVG label; the smallest safe size at 375px. */
   label: 11,
-  /** Only for scenes that render above 1x, where 10 lands at 11px or more. */
-  labelTight: 10,
 } as const;
-
-/**
- * A `TYPE` size in SVG viewBox units, boosted so its rendered pixel size
- * never drops below `base` once the SVG's `viewBox` is scaled down to fit a
- * narrower box. `scale` is the SVG's own rendered-width / viewBox-width
- * ratio (`useSvgLabelScale` in `visuals/hooks.ts` measures it). At
- * `scale >= 1` this returns `base` unchanged, so a visual's rendering at its
- * native size or larger is untouched; below that, the viewBox size grows by
- * the same factor the box shrinks by, holding the rendered pixel size at
- * `base`.
- */
-export function svgLabelSize(base: number, scale: number): number {
-  return scale > 0 ? Math.max(base / scale, base) : base;
-}
-
-/**
- * A gap between two stacked `<text>` lines (or a line and the next row),
- * widened only by however far `size` has grown past `base`, so two labels
- * `svgLabelSize` boosted keep clear of each other. At `size === base` (today
- * at 1440) this returns `originalGap` unchanged.
- */
-export function svgLabelGap(
-  originalGap: number,
-  size: number,
-  base: number,
-  factor = 1.15,
-): number {
-  return originalGap + Math.max(0, size - base) * factor;
-}
