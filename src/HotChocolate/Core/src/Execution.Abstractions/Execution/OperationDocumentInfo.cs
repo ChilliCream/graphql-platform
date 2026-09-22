@@ -8,6 +8,7 @@ namespace HotChocolate.Execution;
 public sealed class OperationDocumentInfo : RequestFeature
 {
     private DocumentNode? _document;
+    private OperationDocumentId _id;
     private int? _operationCount;
 
     /// <summary>
@@ -20,6 +21,7 @@ public sealed class OperationDocumentInfo : RequestFeature
         {
             _document = value;
             _operationCount = null;
+            OperationId = null;
         }
     }
 
@@ -36,7 +38,15 @@ public sealed class OperationDocumentInfo : RequestFeature
     /// <summary>
     /// Gets or sets a unique identifier for an operation document.
     /// </summary>
-    public OperationDocumentId Id { get; set; }
+    public OperationDocumentId Id
+    {
+        get => _id;
+        set
+        {
+            _id = value;
+            OperationId = null;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the document hash.
