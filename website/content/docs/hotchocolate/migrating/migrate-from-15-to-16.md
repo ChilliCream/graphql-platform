@@ -803,9 +803,15 @@ query {
 
 This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
 
-## Byte arrays now mapped to Base64String
+## ByteArray scalar deprecated in favor of Base64String
 
-C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+The `ByteArray` scalar type is deprecated. Use `Base64String` instead. `byte[]` is not bound to it implicitly, so bind it explicitly:
+
+```csharp
+AddGraphQL().BindRuntimeType<byte[], Base64StringType>()
+```
+
+Without a binding, `byte[]` members are inferred as `[UnsignedByte!]!` and `byte[]?` members as `[UnsignedByte!]`.
 
 ## Uri now mapped to URI scalar instead of URL
 
