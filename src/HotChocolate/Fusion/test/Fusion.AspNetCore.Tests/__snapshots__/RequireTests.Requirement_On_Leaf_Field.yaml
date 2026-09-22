@@ -142,7 +142,7 @@ operationPlan:
             nullableField @fusion__requirement
           }
         }
-      hash: b05a9c488c79e334decd9cae59fb7892
+      hash: ef5871ef4c5445fe7bcf159492376ab0
       searchSpace: 2
       expandedNodes: 6
   nodes:
