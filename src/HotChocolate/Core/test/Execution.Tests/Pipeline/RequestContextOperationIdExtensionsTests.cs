@@ -15,7 +15,9 @@ public sealed class RequestContextOperationIdExtensionsTests
 
         // assert
         var exception = Assert.Throws<InvalidOperationException>(Act);
-        Assert.Equal("The request context has no operation document to compute an operation id from.", exception.Message);
+        Assert.Equal(
+            "The request context has no operation document to compute an operation id from.",
+            exception.Message);
     }
 
     [Fact]
