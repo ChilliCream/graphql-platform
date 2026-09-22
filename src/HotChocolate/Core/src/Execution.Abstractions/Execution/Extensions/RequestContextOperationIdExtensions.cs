@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Pipeline;
+using static HotChocolate.Language.GraphQLCharacters;
 
 namespace HotChocolate.Execution;
 
@@ -11,11 +12,7 @@ public static class RequestContextOperationIdExtensions
 {
     // The '.' separator between the operation document id and the operation name.
     private const int OperationIdSeparatorLength = 1;
-
     private const string DefaultOperationName = "Default";
-
-    // Buffers at or below this size are stack-allocated, larger buffers are rented from the array pool.
-    private const int StackallocThreshold = 256;
 
     /// <summary>
     /// Tries to get the operation id without computing it.
