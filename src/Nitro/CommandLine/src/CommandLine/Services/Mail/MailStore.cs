@@ -832,7 +832,7 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, preserveOrder: false, cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
@@ -878,7 +878,7 @@ internal sealed class MailStore(
                 """,
                 new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, preserveOrder: false, cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
@@ -903,7 +903,7 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, preserveOrder: false, cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
@@ -946,17 +946,84 @@ internal sealed class MailStore(
                 new { agent = normalizedAgent, cancellationToken });
 
         // Workspace summaries omit per-actor unread and archived counts.
-        return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, cancellationToken);
+        return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, preserveOrder: false, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MailThreadSummary>> QueryParticipationThreadsAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var normalizedAgent = MailAgentName.Normalize(agent);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        // Ranks threads by the agent's own newest sent-or-received message in the
+        // thread, not the thread's overall last message, so a later reply from
+        // someone else does not outrank the agent's own activity.
+        var rankSql =
+            """
+            SELECT thread_id
+            FROM (
+                SELECT thread_id, created_at FROM messages WHERE sender = @agent
+                UNION
+                SELECT m.thread_id, m.created_at
+                FROM messages m
+                JOIN message_recipients mr ON mr.message_id = m.id
+                WHERE mr.recipient = @agent
+            )
+            GROUP BY thread_id
+            ORDER BY MAX(created_at) DESC, thread_id DESC
+            """;
+
+        var rankParameters = new Dictionary<string, object?> { ["agent"] = normalizedAgent };
+
+        if (limit is { } value)
+        {
+            rankParameters["limit"] = value;
+            rankSql += " LIMIT @limit";
+        }
+
+        var rankedThreadIds = await ExecuteIdQueryAsync(connection, rankSql, rankParameters, cancellationToken);
+
+        if (rankedThreadIds.Count == 0)
+        {
+            return [];
+        }
+
+        // Reads one rollup per ranked thread id, in ranking order, rather than a
+        // single IN-list query: the thread's true message count and last-message
+        // time (any sender), unlike the ranking key above.
+        var rollups = new List<ThreadRollupRow>(rankedThreadIds.Count);
+
+        foreach (var threadId in rankedThreadIds)
+        {
+            rollups.Add(await connection.QueryFirstAsync<ThreadRollupRow>(
+                """
+                SELECT
+                    thread_id AS ThreadId,
+                    COUNT(*) AS MessageCount,
+                    MAX(created_at) AS LastMessageAt
+                FROM messages
+                WHERE thread_id = @threadId
+                GROUP BY thread_id
+                """,
+                new { threadId, cancellationToken }));
+        }
+
+        return await BuildThreadSummariesAsync(connection, rollups, normalizedAgent, preserveOrder: true, cancellationToken);
     }
 
     /// <summary>
-    /// Returns thread summaries ordered by last-message time and thread id, newest first.
+    /// Returns thread summaries ordered by last-message time and thread id, newest first,
+    /// or in <paramref name="rollups"/> order when <paramref name="preserveOrder"/> is true.
     /// Unread and archived counts are null when <paramref name="unreadActor"/> is null.
     /// </summary>
     private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
         SqliteConnection connection,
         IEnumerable<ThreadRollupRow> rollups,
         string? unreadActor,
+        bool preserveOrder,
         CancellationToken cancellationToken)
     {
         var summaries = new List<MailThreadSummary>();
@@ -1022,6 +1089,11 @@ internal sealed class MailStore(
                 UnreadCount = unreadCount,
                 ArchivedCount = archivedCount
             });
+        }
+
+        if (preserveOrder)
+        {
+            return summaries;
         }
 
         return summaries

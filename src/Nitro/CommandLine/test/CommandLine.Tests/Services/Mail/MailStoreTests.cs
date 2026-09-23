@@ -1250,6 +1250,136 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_IncludeThread_When_AgentOnlyCcd()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var thread = await SendAsync("claude", "cc carol", ["bob"], ["carol"], cancellationToken);
+
+        // act
+        var threads = await _store.QueryParticipationThreadsAsync("carol", limit: null, cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(thread.ThreadId, summary.ThreadId);
+    }
+
+    [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_RankByAgentsOwnMessage_When_OtherAgentRepliesLater()
+    {
+        // arrange
+        // A reply through the public API always keeps every thread participant on
+        // every later message, so a message that excludes bob is inserted directly.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        await SeedAgentAsync("dave", cancellationToken);
+        var threadA = await SendAsync("bob", "thread a", ["carol"], null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        var threadB = await SendAsync("bob", "thread b", ["carol"], null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+
+        await using (var connection = await SeedAsync(cancellationToken))
+        {
+            var laterCreatedAt = _timeProvider.GetUtcNow()
+                .ToString("yyyy-MM-dd HH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture);
+
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO messages (id, thread_id, in_reply_to, sender, subject, body, created_at)
+                VALUES (@id, @threadId, @inReplyTo, @sender, @subject, @body, @createdAt)
+                """,
+                ("@id", "m-later"), ("@threadId", threadA.ThreadId), ("@inReplyTo", threadA.Id),
+                ("@sender", "carol"), ("@subject", "thread a"), ("@body", "later reply"),
+                ("@createdAt", laterCreatedAt));
+
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO message_recipients (message_id, recipient, kind, ordinal)
+                VALUES (@messageId, @recipient, 'to', 0)
+                """,
+                ("@messageId", "m-later"), ("@recipient", "dave"));
+        }
+
+        // act
+        var threads = await _store.QueryParticipationThreadsAsync("bob", limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([threadB.ThreadId, threadA.ThreadId], threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_ApplyLimit_ToTenNewest()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var threadIds = new List<string>();
+
+        for (var i = 0; i < 12; i++)
+        {
+            var message = await SendAsync("bob", $"thread {i}", ["carol"], null, cancellationToken);
+            threadIds.Add(message.ThreadId);
+            _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        }
+
+        // act
+        var threads = await _store.QueryParticipationThreadsAsync("bob", limit: 10, cancellationToken);
+
+        // assert
+        var expectedNewestFirst = threadIds.Skip(2).Reverse();
+        Assert.Equal(expectedNewestFirst, threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_ReturnOneRow_When_ThreadHasManyMessages()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var first = await SendAsync("bob", "thread", ["carol"], null, cancellationToken);
+        var reply = await _store.ReplyMessageAsync(first.Id, "carol", "reply 1", cancellationToken);
+        await _store.ReplyMessageAsync(reply.Id, "bob", "reply 2", cancellationToken);
+
+        // act
+        var threads = await _store.QueryParticipationThreadsAsync("bob", limit: null, cancellationToken);
+
+        // assert
+        var summary = Assert.Single(threads);
+        Assert.Equal(first.ThreadId, summary.ThreadId);
+        Assert.Equal(3, summary.MessageCount);
+    }
+
+    [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_ScopeUnreadAndArchivedCounts_ToAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var message = await SendAsync("claude", "for bob and carol", ["bob"], ["carol"], cancellationToken);
+        await _store.MarkReadAsync([message.Id], "bob", cancellationToken);
+
+        // act
+        var bobThreads = await _store.QueryParticipationThreadsAsync("bob", limit: null, cancellationToken);
+        var carolThreads = await _store.QueryParticipationThreadsAsync("carol", limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal(0, Assert.Single(bobThreads).UnreadCount);
+        Assert.Equal(1, Assert.Single(carolThreads).UnreadCount);
+    }
+
+    [Fact]
     public async Task ThreadRollup_Should_CollapseWhitespaceAndTruncate_InBodyPreview()
     {
         // arrange

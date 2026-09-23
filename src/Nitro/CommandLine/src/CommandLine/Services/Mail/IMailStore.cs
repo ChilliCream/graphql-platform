@@ -173,6 +173,19 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns threads where the agent sent a message or was a to or cc recipient of one,
+    /// one row per thread, ranked by the agent's own newest such message in the thread,
+    /// then thread id descending. A null <paramref name="limit"/> leaves results uncapped;
+    /// otherwise the limit applies to the thread ranking. Unread and archived counts are
+    /// scoped to the agent.
+    /// </summary>
+    Task<IReadOnlyList<MailThreadSummary>> QueryParticipationThreadsAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken)
+        => Task.FromException<IReadOnlyList<MailThreadSummary>>(new NotSupportedException());
+
+    /// <summary>
     /// Returns the actor's sent or received messages whose subject, body, or sender
     /// contains the text, matching ASCII case-insensitively.
     /// Results include recipients and are ordered by creation time and id, newest first.
