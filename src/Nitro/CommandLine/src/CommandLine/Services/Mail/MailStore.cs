@@ -12,7 +12,7 @@ internal sealed class MailStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     AgentDatabase database,
-    IAgentRegistry agentRegistry,
+    IAgentStore agentStore,
     INitroInstanceIdProvider? instanceIdProvider = null,
     IGlobalConfigDirectoryProvider? globalConfigDirectoryProvider = null) : IMailStore
 {
@@ -70,11 +70,11 @@ internal sealed class MailStore(
         var now = timeProvider.GetUtcNow();
         var seed = $"{sender}|{subject}|{now:O}";
 
-        // Registers the sender before the message transaction.
-        await agentRegistry.TouchAsync(sender, cancellationToken);
+        // Refreshes the sender's presence before the message transaction.
+        await agentStore.TouchAsync(sender, cancellationToken);
 
-        // Creates missing recipient identities before the message transaction.
-        var unregistered = await EnsureRecipientsAsync(recipients, cancellationToken);
+        // Rejects the whole send when a recipient is unknown or deleted.
+        await EnsureRecipientsExistAsync(recipients, cancellationToken);
 
         // Resolves wake ownership before the message transaction.
         var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
@@ -138,7 +138,6 @@ internal sealed class MailStore(
             Body = creation.Body,
             CreatedAt = now,
             Recipients = recipients,
-            Unregistered = unregistered,
             WakeReceipts = wakeReceipts
         };
     }
@@ -163,8 +162,8 @@ internal sealed class MailStore(
         var (original, root, recipients) =
             await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
 
-        // Registers the replying actor after participant validation.
-        await agentRegistry.TouchAsync(actor, cancellationToken);
+        // Refreshes the replying actor's presence after participant validation.
+        await agentStore.TouchAsync(actor, cancellationToken);
 
         // Resolves wake ownership before the reply transaction.
         var nitroInstanceId = wakePolicy == MailWakePolicy.Enqueue
@@ -1464,28 +1463,28 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Ensures every recipient has an agent row, implicit-creating one for
-    /// any name that has never registered or acted, and returns the names,
-    /// in recipient order, whose row is implicit, whether it already was or
-    /// was just created here.
+    /// Fails the whole send when a to or cc recipient does not exist or was deleted.
+    /// Checks recipients in order and throws <see cref="ExitException"/> for the
+    /// first offending name.
     /// </summary>
-    private async Task<List<string>> EnsureRecipientsAsync(
+    private async Task EnsureRecipientsExistAsync(
         IReadOnlyList<MailRecipient> recipients,
         CancellationToken cancellationToken)
     {
-        var unregistered = new List<string>();
-
         foreach (var recipient in recipients)
         {
-            var agent = await agentRegistry.EnsureImplicitAsync(recipient.Name, cancellationToken);
+            var agent = await agentStore.FindAsync(recipient.Name, cancellationToken);
 
-            if (agent.Implicit)
+            if (agent is null)
             {
-                unregistered.Add(recipient.Name);
+                throw ThrowHelper.UnknownMailRecipient(recipient.Name);
+            }
+
+            if (agent.IsDeleted)
+            {
+                throw ThrowHelper.DeletedMailRecipient(recipient.Name);
             }
         }
-
-        return unregistered;
     }
 
     private static async Task InsertRecipientsAsync(

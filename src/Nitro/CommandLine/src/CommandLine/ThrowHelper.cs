@@ -29,4 +29,10 @@ internal static class ThrowHelper
 
     public static ArgumentException UnknownAgentHarness(string harness)
         => new($"'{harness}' is not an agent harness.", nameof(harness));
+
+    public static ExitException UnknownMailRecipient(string name)
+        => Exit($"Unknown agent '{name}'. Look the name up with 'nitro agent list'.");
+
+    public static ExitException DeletedMailRecipient(string name)
+        => Exit($"Agent '{name}' was deleted. Look the name up with 'nitro agent list'.");
 }
