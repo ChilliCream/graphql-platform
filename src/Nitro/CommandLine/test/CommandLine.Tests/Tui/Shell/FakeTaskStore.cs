@@ -83,6 +83,9 @@ internal sealed class FakeTaskStore : ITaskStore
         return Task.FromResult(task);
     }
 
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<TaskUpdateResult> UpdateTaskAsync(string id, TaskUpdate update, CancellationToken cancellationToken)
     {
         UpdatedId = id;

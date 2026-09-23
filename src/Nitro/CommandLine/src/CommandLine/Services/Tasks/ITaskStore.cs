@@ -294,6 +294,15 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Releases every in-progress task assigned to the given agent, moving each to open
+    /// with no assignee and recording the reason. Returns the number of tasks released.
+    /// </summary>
+    Task<int> ReleaseAssigneeAsync(
+        string agent,
+        string reason,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Closes every epic whose non-tombstone children all closed, and records
     /// a closed event for each. After the close commits, enforces
     /// <see cref="TaskStates.ClosedTaskCap"/> the same way

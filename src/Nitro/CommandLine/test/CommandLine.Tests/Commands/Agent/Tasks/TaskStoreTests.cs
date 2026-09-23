@@ -727,6 +727,76 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ReleaseAssigneeAsync_Should_ReleaseInProgressTasksAndAppearInReady()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "felix");
+        await InsertTaskAsync(
+            connection, "acme-2", status: TaskStates.InProgress, priority: 2, assignee: "felix");
+        await InsertTaskAsync(
+            connection, "acme-3", status: TaskStates.InProgress, priority: 2, assignee: "oscar");
+
+        // act
+        var count = await _store.ReleaseAssigneeAsync("felix", "agent deleted", cancellationToken);
+        var ready = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Open], ExcludeBlocked = true }, cancellationToken);
+        var untouched = await _store.GetRequiredTaskAsync("acme-3", cancellationToken);
+
+        // assert
+        Assert.Equal(2, count);
+        Assert.Equal(["acme-1", "acme-2"], ready.Select(task => task.Id).Order(StringComparer.Ordinal));
+        Assert.All(ready, task => Assert.Null(task.Assignee));
+        Assert.Equal(TaskStates.InProgress, untouched.Status);
+        Assert.Equal("oscar", untouched.Assignee);
+    }
+
+    [Fact]
+    public async Task ReleaseAssigneeAsync_Should_LeaveOpenTaskAssignedToAgentAlone()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.Open, priority: 2, assignee: "felix");
+
+        // act
+        var count = await _store.ReleaseAssigneeAsync("felix", "agent deleted", cancellationToken);
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+
+        // assert
+        Assert.Equal(0, count);
+        Assert.Equal(TaskStates.Open, task.Status);
+        Assert.Equal("felix", task.Assignee);
+    }
+
+    [Fact]
+    public async Task ReleaseAssigneeAsync_Should_RecordEventsWithReasonAndEmptyActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "felix");
+
+        // act
+        await _store.ReleaseAssigneeAsync("felix", "agent deleted", cancellationToken);
+
+        // assert
+        Assert.Equal(
+            [TaskEventTypes.AssigneeChanged, TaskEventTypes.StatusChanged],
+            await QueryEventTypesAsync(connection, "acme-1"));
+        Assert.Equal(
+            [
+                "assignee_changed||felix||agent deleted",
+                "status_changed||in_progress|open|agent deleted"
+            ],
+            await QueryEventDetailsAsync(connection, "acme-1", cancellationToken));
+    }
+
+    [Fact]
     public async Task CloseEligibleEpicsAsync_ClosesOnlyEpicsWithAllChildrenClosed()
     {
         // arrange
@@ -1384,6 +1454,36 @@ public sealed class TaskStoreTests : IAsyncDisposable
         while (await reader.ReadAsync(cancellationToken))
         {
             events.Add($"{reader.GetString(0)}:{reader.GetString(1)}");
+        }
+
+        return events;
+    }
+
+    /// <summary>
+    /// Returns a task's events, in event-id order, formatted as
+    /// "type|actor|old_value|new_value|comment" with null values as empty strings.
+    /// </summary>
+    private static async Task<List<string>> QueryEventDetailsAsync(
+        SqliteConnection connection,
+        string taskId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT event_type, actor, old_value, new_value, comment FROM events "
+            + "WHERE task_id = @taskId ORDER BY id";
+        command.Parameters.AddWithValue("@taskId", taskId);
+
+        var events = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            events.Add(
+                $"{reader.GetString(0)}|{reader.GetString(1)}|"
+                + $"{(reader.IsDBNull(2) ? "" : reader.GetString(2))}|"
+                + $"{(reader.IsDBNull(3) ? "" : reader.GetString(3))}|"
+                + $"{(reader.IsDBNull(4) ? "" : reader.GetString(4))}");
         }
 
         return events;

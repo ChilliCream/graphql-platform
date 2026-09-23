@@ -97,6 +97,9 @@ internal sealed class FakeTaskStore : ITaskStore
         return Task.FromResult(ResultTask);
     }
 
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public string? FindWorkspaceDirectory() => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(TaskFilter filter, CancellationToken cancellationToken)

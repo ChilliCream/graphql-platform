@@ -138,7 +138,7 @@ internal sealed class TaskStore(
         throw new ExitException("Could not allocate a unique task ID.");
     }
 
-    private async Task RecordEventAsync(
+    private static async Task RecordEventAsync(
         SqliteConnection connection,
         TaskEvent taskEvent,
         CancellationToken cancellationToken,
@@ -1699,6 +1699,100 @@ internal sealed class TaskStore(
         task.UpdatedAt = now;
 
         return task;
+    }
+
+    public async Task<int> ReleaseAssigneeAsync(
+        string agent,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction =
+            (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
+        var count = await ReleaseAssigneeWithinTransactionAsync(
+            connection, transaction, agent, reason, now, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return count;
+    }
+
+    /// <summary>
+    /// Releases every in-progress task assigned to the given agent within the supplied
+    /// transaction, moving each to open with no assignee and recording the reason.
+    /// Returns the number of tasks released.
+    /// </summary>
+    public static async Task<int> ReleaseAssigneeWithinTransactionAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string agent,
+        string reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var ids = (await connection.QueryAsync<string>(
+            "SELECT id FROM tasks WHERE status = @status AND assignee = @agent",
+            new { status = TaskStates.InProgress, agent, cancellationToken },
+            transaction)).ToList();
+
+        if (ids.Count == 0)
+        {
+            return 0;
+        }
+
+        await connection.ExecuteAsync(
+            """
+            UPDATE tasks
+            SET status = @newStatus,
+                assignee = NULL,
+                updated_at = @now
+            WHERE status = @oldStatus AND assignee = @agent
+            """,
+            new
+            {
+                newStatus = TaskStates.Open,
+                oldStatus = TaskStates.InProgress,
+                agent,
+                now,
+                cancellationToken
+            },
+            transaction);
+
+        foreach (var id in ids)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.AssigneeChanged,
+                    OldValue = agent,
+                    NewValue = "",
+                    Comment = reason,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.StatusChanged,
+                    OldValue = TaskStates.InProgress,
+                    NewValue = TaskStates.Open,
+                    Comment = reason,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        return ids.Count;
     }
 
     public async Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(
