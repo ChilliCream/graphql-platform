@@ -179,7 +179,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 16,
+              "Version": 17,
               "Tasks": 1,
               "Messages": 1,
               "MessageRecipients": 1,
@@ -292,7 +292,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 16,
+              "Version": 17,
               "Sender": "ghost",
               "Subject": "Old mail",
               "ReadAt": "2026-01-11T09:00:00+00:00"
@@ -1200,54 +1200,39 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that fresh wake-target and ping-gate tables accept <c>nitro-board</c>.
+    /// <c>mail_wake_targets.agent</c> references <c>agents (name)</c>; an
+    /// unknown agent name is rejected.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_AcceptNitroBoardHarnessInMailWakeTargetsAndSessionPingGates_When_DatabaseIsFreshlyCreated()
+    public async Task MailWakeTargetsTable_Should_RejectUnknownAgent_When_ForeignKeyFires()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
         await ExecuteAsync(
             connection,
-            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
-            + "('pascal', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
-            cancellationToken);
-        await ExecuteAsync(
-            connection,
             """
-            INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
-            VALUES ('instance-a', 'pascal', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES
+                ('pascal', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+            VALUES ('pascal', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_batches (
-                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
-                status, claimed_at, expires_at
+                batch_id, actor, claimed_generation, owner_id, attempt_id, status, claimed_at, expires_at
             ) VALUES (
-                'batch-fresh', 'instance-a', 'pascal', 1, 'owner-1', 'attempt-1',
+                'batch-fresh', 'pascal', 1, 'owner-1', 'attempt-1',
                 'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
             );
             """,
             cancellationToken);
 
-        // act
-        await ExecuteAsync(
+        // act & assert
+        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
-            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
-            VALUES ('batch-fresh', 'nitro-board', 'board-fresh', 'host-a', 'pending', '2026-01-10T12:00:00+00:00');
-
-            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
-            VALUES ('nitro-board', 'board-fresh', 'host-a', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            INSERT INTO mail_wake_targets (batch_id, agent, status, updated_at)
+            VALUES ('batch-fresh', 'ghost', 'pending', '2026-01-10T12:00:00+00:00');
             """,
-            cancellationToken);
-
-        // assert
-        var targetHarness = await QueryScalarStringAsync(
-            connection, "SELECT harness FROM mail_wake_targets WHERE session_id = 'board-fresh'", cancellationToken);
-        var gateHarness = await QueryScalarStringAsync(
-            connection, "SELECT harness FROM session_ping_gates WHERE session_id = 'board-fresh'", cancellationToken);
-        Assert.Equal("nitro-board", targetHarness);
-        Assert.Equal("nitro-board", gateHarness);
+            cancellationToken));
     }
 
     /// <summary>
@@ -1270,16 +1255,15 @@ public sealed class AgentDatabaseTests : IDisposable
         await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
-            INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
-            VALUES ('instance-a', 'claude', 1, 2, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+            VALUES ('claude', 1, 2, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             """,
             cancellationToken));
     }
 
     /// <summary>
     /// At most one <c>active</c> <c>mail_wake_batches</c> row exists per
-    /// (nitro_instance_id, actor), enforced by
-    /// <c>idx_mail_wake_batches_one_active_per_actor</c>.
+    /// actor, enforced by <c>idx_mail_wake_batches_one_active_per_actor</c>.
     /// </summary>
     [Fact]
     public async Task MailWakeBatchesTable_Should_RejectSecondActiveBatch_When_UniqueIndexFires()
@@ -1292,13 +1276,12 @@ public sealed class AgentDatabaseTests : IDisposable
             """
             INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES
                 ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-            INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
-            VALUES ('instance-a', 'claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+            VALUES ('claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_batches (
-                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
-                status, claimed_at, expires_at
+                batch_id, actor, claimed_generation, owner_id, attempt_id, status, claimed_at, expires_at
             ) VALUES (
-                'batch-1', 'instance-a', 'claude', 1, 'owner-1', 'attempt-1',
+                'batch-1', 'claude', 1, 'owner-1', 'attempt-1',
                 'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
             );
             """,
@@ -1309,10 +1292,9 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             """
             INSERT INTO mail_wake_batches (
-                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
-                status, claimed_at, expires_at
+                batch_id, actor, claimed_generation, owner_id, attempt_id, status, claimed_at, expires_at
             ) VALUES (
-                'batch-2', 'instance-a', 'claude', 1, 'owner-2', 'attempt-2',
+                'batch-2', 'claude', 1, 'owner-2', 'attempt-2',
                 'active', '2026-01-10T12:00:01+00:00', '2026-01-10T12:00:31+00:00'
             );
             """,
@@ -1321,53 +1303,50 @@ public sealed class AgentDatabaseTests : IDisposable
 
     /// <summary>
     /// <c>mail_wake_targets</c> rows cascade-delete with their owning
-    /// <c>mail_wake_batches</c> row, but a target row's own generation
-    /// columns carry no foreign key against <c>agent_sessions</c>: deleting
-    /// the live session row must never touch the durable target row.
+    /// <c>mail_wake_batches</c> row when the batch itself is deleted.
     /// </summary>
     [Fact]
-    public async Task MailWakeTargetsTable_Should_SurviveAgentSessionDeletion_When_OwningBatchStillExists()
+    public async Task MailWakeTargetsTable_Should_CascadeDelete_When_TheOwningBatchIsDeleted()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await InsertAgentSessionAsync(connection, "session-target", cancellationToken);
         await ExecuteAsync(
             connection,
             """
             INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES
                 ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-            INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
-            VALUES ('instance-a', 'claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+            VALUES ('claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_batches (
-                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
-                status, claimed_at, expires_at
+                batch_id, actor, claimed_generation, owner_id, attempt_id, status, claimed_at, expires_at
             ) VALUES (
-                'batch-target', 'instance-a', 'claude', 1, 'owner-1', 'attempt-1',
+                'batch-target', 'claude', 1, 'owner-1', 'attempt-1',
                 'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
             );
-            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
-            VALUES ('batch-target', 'claude-code', 'session-target', 'host-a', 'pending', '2026-01-10T12:00:00+00:00');
+            INSERT INTO mail_wake_targets (batch_id, agent, status, updated_at)
+            VALUES ('batch-target', 'claude', 'pending', '2026-01-10T12:00:00+00:00');
             """,
             cancellationToken);
 
         // act
         await ExecuteAsync(
-            connection, "DELETE FROM agent_sessions WHERE session_id = 'session-target';", cancellationToken);
+            connection, "DELETE FROM mail_wake_batches WHERE batch_id = 'batch-target';", cancellationToken);
 
         // assert
         var targetCount = await QueryScalarLongAsync(
             connection,
             "SELECT COUNT(*) FROM mail_wake_targets WHERE batch_id = 'batch-target'",
             cancellationToken);
-        Assert.Equal(1, targetCount);
+        Assert.Equal(0, targetCount);
     }
 
     /// <summary>
-    /// <c>mail_wake_daemons.epoch</c> must be at least 1.
+    /// <c>mail_wake_daemons.id</c> only ever accepts <c>1</c>: the table
+    /// holds a single row.
     /// </summary>
     [Fact]
-    public async Task MailWakeDaemonsTable_Should_RejectEpochBelowOne_When_CheckConstraintFires()
+    public async Task MailWakeDaemonsTable_Should_RejectASecondRow_When_CheckConstraintFires()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1377,8 +1356,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
-            INSERT INTO mail_wake_daemons (nitro_instance_id, owner_id, epoch, leased_at, expires_at)
-            VALUES ('instance-a', 'owner-1', 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            INSERT INTO mail_wake_daemons (id, owner_token, acquired_at, heartbeat_at, expires_at)
+            VALUES (2, 'owner-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
             """,
             cancellationToken));
     }

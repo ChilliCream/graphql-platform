@@ -10,11 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class MailWakeBatchStoreTests : IDisposable
 {
-    private const string InstanceId = "instance-a";
     private const string Actor = "claude";
-
-    private static readonly AgentSessionGeneration s_target =
-        new("claude-code", "session-1", "host-a");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -44,7 +40,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.Null(claim);
@@ -64,7 +60,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.Null(claim);
@@ -85,7 +81,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.Null(claim);
@@ -105,12 +101,12 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.NotNull(claim);
         Assert.Equal(3, claim.ClaimedGeneration);
-        Assert.Equal([s_target], claim.Targets);
+        Assert.Equal([Actor], claim.Targets);
 
         await using var connection = await ConnectAsync(cancellationToken);
         var targetCount = await ExecuteScalarLongAsync(
@@ -132,11 +128,11 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             await SeedOutboxAsync(connection, requestedGeneration: 2, settledGeneration: 0, dueAt: now, cancellationToken);
         }
         var firstClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
         var secondClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-2", "attempt-2", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.NotNull(firstClaim);
@@ -146,7 +142,8 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryClaimAsync_Should_ReturnNull_When_TheActiveBatchLeaseHasNotExpiredYet()
     {
-        // arrange: a batch claimed with a 10s lease.
+        // arrange
+        // a batch claimed with a 10s lease.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
@@ -154,7 +151,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         // act
         // Attempt a second claim five seconds into the ten-second lease.
         var secondClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(5),
+            Actor, "owner-2", "attempt-2", [Actor], now + TimeSpan.FromSeconds(5),
             TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
@@ -165,14 +162,16 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryClaimAsync_Should_ReclaimTheActor_When_TheActiveBatchLeaseHasExpired()
     {
-        // arrange: a batch claimed with a 10s lease.
+        // arrange
+        // a batch claimed with a 10s lease.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
 
-        // act: a new owner claims 11s later, after the lease expired.
+        // act
+        // a new owner claims 11s later, after the lease expired.
         var secondClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(11),
+            Actor, "owner-2", "attempt-2", [Actor], now + TimeSpan.FromSeconds(11),
             TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
@@ -187,15 +186,17 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryCompleteAsync_Should_ReturnFalse_When_BatchWasReclaimedAfterExpiry()
     {
-        // arrange: the original batch's lease expires and a new owner reclaims the actor.
+        // arrange
+        // the original batch's lease expires and a new owner reclaims the actor.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
         await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(11),
+            Actor, "owner-2", "attempt-2", [Actor], now + TimeSpan.FromSeconds(11),
             TimeSpan.FromSeconds(10), cancellationToken);
 
-        // act: the stale owner tries to complete the batch it no longer holds.
+        // act
+        // the stale owner tries to complete the batch it no longer holds.
         var completed = await _batches.TryCompleteAsync(
             firstClaim.BatchId, "owner-1", "attempt-1", now + TimeSpan.FromSeconds(12), cancellationToken);
 
@@ -204,7 +205,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         await using var connection = await ConnectAsync(cancellationToken);
         var settledGeneration = await ExecuteScalarLongAsync(
             connection,
-            $"SELECT settled_generation FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            $"SELECT settled_generation FROM mail_wake_outbox WHERE actor = '{Actor}'",
             cancellationToken);
         Assert.Equal(0, settledGeneration);
     }
@@ -212,7 +213,8 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryClaimAsync_Should_ClaimExactlyOnce_When_ConcurrentCallersRaceTheSameActor()
     {
-        // arrange: separate connections (Pooling=False, matching production) racing the same actor.
+        // arrange
+        // separate connections (Pooling=False, matching production) racing the same actor.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         await using (var connection = await InitializeWorkspaceAsync(cancellationToken))
@@ -225,9 +227,10 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var results = await ConcurrentTestHarness.RunAsync(
             6,
             i => new MailWakeBatchStore(_fileSystem, _database).TryClaimAsync(
-                InstanceId, Actor, $"owner-{i}", $"attempt-{i}", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken));
+                Actor, $"owner-{i}", $"attempt-{i}", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken));
 
-        // assert: exactly one caller claimed the batch.
+        // assert
+        // exactly one caller claimed the batch.
         Assert.Single(results, claim => claim is not null);
     }
 
@@ -284,7 +287,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         await using var connection = await ConnectAsync(cancellationToken);
         var settledGeneration = await ExecuteScalarLongAsync(
             connection,
-            $"SELECT settled_generation FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            $"SELECT settled_generation FROM mail_wake_outbox WHERE actor = '{Actor}'",
             cancellationToken);
         Assert.Equal(2, settledGeneration);
         var status = await ExecuteScalarStringAsync(
@@ -305,8 +308,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         {
             await ExecuteAsync(
                 connection,
-                "UPDATE mail_wake_outbox SET requested_generation = 2 "
-                + $"WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}';",
+                $"UPDATE mail_wake_outbox SET requested_generation = 2 WHERE actor = '{Actor}';",
                 cancellationToken);
         }
 
@@ -318,7 +320,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         await using var assertConnection = await ConnectAsync(cancellationToken);
         var settledGeneration = await ExecuteScalarLongAsync(
             assertConnection,
-            $"SELECT settled_generation FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            $"SELECT settled_generation FROM mail_wake_outbox WHERE actor = '{Actor}'",
             cancellationToken);
         Assert.Equal(1, settledGeneration);
     }
@@ -350,7 +352,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var released = await _batches.TryReleaseAsync(
             claim.BatchId, "owner-1", "attempt-1", now, retryAt: null, lastError: "spawn-failed", cancellationToken);
         var reclaimed = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            Actor, "owner-2", "attempt-2", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.True(released);
@@ -373,7 +375,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         await using var connection = await ConnectAsync(cancellationToken);
         var dueAt = await ExecuteScalarStringAsync(
             connection,
-            $"SELECT due_at FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            $"SELECT due_at FROM mail_wake_outbox WHERE actor = '{Actor}'",
             cancellationToken);
         Assert.Equal(retryAt, DateTimeOffset.Parse(dueAt!, System.Globalization.CultureInfo.InvariantCulture));
     }
@@ -397,7 +399,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         await using var connection = await ConnectAsync(cancellationToken);
         var dueAt = await ExecuteScalarStringAsync(
             connection,
-            $"SELECT due_at FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            $"SELECT due_at FROM mail_wake_outbox WHERE actor = '{Actor}'",
             cancellationToken);
         Assert.Equal(now, DateTimeOffset.Parse(dueAt!, System.Globalization.CultureInfo.InvariantCulture));
     }
@@ -418,7 +420,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         await using var connection = await ConnectAsync(cancellationToken);
         var dueAt = await ExecuteScalarStringAsync(
             connection,
-            $"SELECT due_at FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            $"SELECT due_at FROM mail_wake_outbox WHERE actor = '{Actor}'",
             cancellationToken);
         Assert.Equal(now, DateTimeOffset.Parse(dueAt!, System.Globalization.CultureInfo.InvariantCulture));
     }
@@ -433,7 +435,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var recorded = await _batches.TryRecordTargetOutcomeAsync(
-            claim.BatchId, s_target, "owner-1", "attempt-1", "delivered",
+            claim.BatchId, Actor, "owner-1", "attempt-1", "delivered",
             offeredGeneration: null, acceptedGeneration: 1, lastError: null, now, cancellationToken);
 
         // assert
@@ -457,51 +459,11 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var recorded = await _batches.TryRecordTargetOutcomeAsync(
-            claim.BatchId, s_target, "owner-1", "attempt-stale", "delivered",
+            claim.BatchId, Actor, "owner-1", "attempt-stale", "delivered",
             offeredGeneration: null, acceptedGeneration: 1, lastError: null, now, cancellationToken);
 
         // assert
         Assert.False(recorded);
-    }
-
-    [Fact]
-    public async Task TryClaimAsync_Should_YieldAnIndependentClaim_When_ADifferentNitroInstanceClaimsTheSameActor()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        const string otherInstanceId = "instance-b";
-        await using (var connection = await InitializeWorkspaceAsync(cancellationToken))
-        {
-            await SeedActorAsync(connection, cancellationToken);
-            await SeedOutboxAsync(connection, requestedGeneration: 1, settledGeneration: 0, dueAt: now, cancellationToken);
-            await SeedOutboxAsync(
-                connection, requestedGeneration: 1, settledGeneration: 0, dueAt: now, cancellationToken,
-                instanceId: otherInstanceId);
-        }
-        var claimA = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-a", "attempt-a", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
-
-        // act
-        var claimB = await _batches.TryClaimAsync(
-            otherInstanceId, Actor, "owner-b", "attempt-b", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
-
-        // assert
-        Assert.NotNull(claimA);
-        Assert.NotNull(claimB);
-        Assert.NotEqual(claimA.BatchId, claimB.BatchId);
-
-        var crossRenewed = await _batches.TryRenewAsync(
-            claimA.BatchId, "owner-b", "attempt-b", now, TimeSpan.FromSeconds(30), cancellationToken);
-        Assert.False(crossRenewed);
-
-        var crossCompleted = await _batches.TryCompleteAsync(
-            claimA.BatchId, "owner-b", "attempt-b", now, cancellationToken);
-        Assert.False(crossCompleted);
-
-        // instance-a's own owner still completes its own batch normally.
-        var completedA = await _batches.TryCompleteAsync(claimA.BatchId, "owner-a", "attempt-a", now, cancellationToken);
-        Assert.True(completedA);
     }
 
     private async Task<MailWakeBatchClaim> SeedClaimedBatchAsync(
@@ -514,7 +476,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         }
 
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, leaseDuration, cancellationToken);
+            Actor, "owner-1", "attempt-1", [Actor], now, leaseDuration, cancellationToken);
 
         return claim ?? throw new InvalidOperationException("Failed to seed a claimed batch for the test.");
     }
@@ -537,17 +499,15 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         long requestedGeneration,
         long settledGeneration,
         DateTimeOffset dueAt,
-        CancellationToken cancellationToken,
-        string instanceId = InstanceId)
+        CancellationToken cancellationToken)
     {
         // Bind dueAt with the same timestamp representation used by the store.
         await using var command = connection.CreateCommand();
         command.CommandText =
             """
-            INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
-            VALUES (@instanceId, @actor, @requestedGeneration, @settledGeneration, @dueAt, @dueAt);
+            INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+            VALUES (@actor, @requestedGeneration, @settledGeneration, @dueAt, @dueAt);
             """;
-        command.Parameters.AddWithValue("@instanceId", instanceId);
         command.Parameters.AddWithValue("@actor", Actor);
         command.Parameters.AddWithValue("@requestedGeneration", requestedGeneration);
         command.Parameters.AddWithValue("@settledGeneration", settledGeneration);

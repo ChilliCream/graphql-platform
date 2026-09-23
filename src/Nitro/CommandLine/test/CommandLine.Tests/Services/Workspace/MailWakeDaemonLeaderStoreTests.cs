@@ -4,13 +4,11 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="MailWakeDaemonLeaderStore"/>'s leader election over
-/// the one persistent <c>mail_wake_daemons</c> row per Nitro instance,
-/// directly against a real workspace database.
+/// the single persistent <c>mail_wake_daemons</c> row, directly against a
+/// real workspace database.
 /// </summary>
 public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
 {
-    private const string InstanceId = "instance-a";
-
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
     private readonly TestFileSystem _fileSystem;
@@ -30,7 +28,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
     [Fact]
-    public async Task TryAcquireAsync_Should_ReturnEpochOne_When_NoLeaderRowExistsYet()
+    public async Task TryAcquireAsync_Should_ReturnTrue_When_NoLeaseRowExistsYet()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -38,85 +36,84 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var epoch = await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        var acquired = await _leader.TryAcquireAsync("token-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
-        Assert.Equal(1, epoch);
+        Assert.True(acquired);
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_ReturnNull_When_ALiveLeaseIsAlreadyHeld()
+    public async Task TryAcquireAsync_Should_ReturnFalse_When_ALiveLeaseIsAlreadyHeld()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        var epoch = await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        // even the same holder cannot re-acquire; it must renew instead.
+        var acquired = await _leader.TryAcquireAsync("token-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
-        Assert.Null(epoch);
+        Assert.False(acquired);
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_IncrementEpoch_When_StealingAnExpiredLease()
+    public async Task TryAcquireAsync_Should_Succeed_When_StealingAnExpiredLease()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var firstEpoch =
-            await _leader.TryAcquireAsync(InstanceId, "owner-1", acquiredAt, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", acquiredAt, TimeSpan.FromSeconds(30), cancellationToken);
         var later = acquiredAt + TimeSpan.FromSeconds(31);
 
         // act
-        var secondEpoch =
-            await _leader.TryAcquireAsync(InstanceId, "owner-2", later, TimeSpan.FromSeconds(30), cancellationToken);
+        var acquired = await _leader.TryAcquireAsync("token-2", later, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
-        Assert.Equal(1, firstEpoch);
-        Assert.Equal(2, secondEpoch);
+        Assert.True(acquired);
+        var renewedByOriginal = await _leader.TryRenewAsync(
+            "token-1", later, TimeSpan.FromSeconds(30), cancellationToken);
+        Assert.False(renewedByOriginal);
     }
 
     [Fact]
-    public async Task TryRenewAsync_Should_ExtendTheLease_When_OwnerAndEpochStillMatch()
+    public async Task TryRenewAsync_Should_ExtendTheLease_When_TokenStillHolds()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var epoch =
-            await _leader.TryAcquireAsync(InstanceId, "owner-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
         var justBeforeExpiry = acquiredAt + TimeSpan.FromSeconds(9);
 
         // act
         var renewed = await _leader.TryRenewAsync(
-            InstanceId, "owner-1", epoch!.Value, justBeforeExpiry, TimeSpan.FromSeconds(10), null, cancellationToken);
+            "token-1", justBeforeExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
         Assert.True(renewed);
         var stolen = await _leader.TryAcquireAsync(
-            InstanceId, "owner-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
-        Assert.Null(stolen);
+            "token-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
+        Assert.False(stolen);
     }
 
     [Fact]
-    public async Task TryRenewAsync_Should_ReturnFalse_When_EpochNoLongerMatches()
+    public async Task TryRenewAsync_Should_ReturnFalse_When_TokenDoesNotHoldTheLease()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var staleEpoch =
-            await _leader.TryAcquireAsync(InstanceId, "owner-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
         var later = acquiredAt + TimeSpan.FromSeconds(11);
-        await _leader.TryAcquireAsync(InstanceId, "owner-2", later, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leader.TryAcquireAsync("token-2", later, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        var renewed = await _leader.TryRenewAsync(
-            InstanceId, "owner-1", staleEpoch!.Value, later, TimeSpan.FromSeconds(10), null, cancellationToken);
+        // the stale holder tries to renew after a new holder has taken over.
+        var renewed = await _leader.TryRenewAsync("token-1", later, TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
         Assert.False(renewed);
@@ -129,57 +126,55 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var epoch =
-            await _leader.TryAcquireAsync(InstanceId, "owner-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
         var afterExpiry = acquiredAt + TimeSpan.FromSeconds(11);
 
         // act
-        var renewed = await _leader.TryRenewAsync(
-            InstanceId, "owner-1", epoch!.Value, afterExpiry, TimeSpan.FromSeconds(10), null, cancellationToken);
+        var renewed = await _leader.TryRenewAsync("token-1", afterExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
         Assert.False(renewed);
     }
 
     [Fact]
-    public async Task TryReleaseAsync_Should_ExpireTheLeaseImmediately_When_OwnerAndEpochMatch()
+    public async Task TryReleaseAsync_Should_ExpireTheLeaseImmediately_When_TokenHolds()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var epoch = await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        var released = await _leader.TryReleaseAsync(InstanceId, "owner-1", epoch!.Value, now, cancellationToken);
-        var reacquiredEpoch =
-            await _leader.TryAcquireAsync(InstanceId, "owner-2", now, TimeSpan.FromSeconds(30), cancellationToken);
+        var released = await _leader.TryReleaseAsync("token-1", now, cancellationToken);
+        var reacquired = await _leader.TryAcquireAsync("token-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.True(released);
-        Assert.Equal(2, reacquiredEpoch);
+        Assert.True(reacquired);
     }
 
     [Fact]
-    public async Task TryReleaseAsync_Should_ReturnFalse_When_EpochDoesNotMatch()
+    public async Task TryReleaseAsync_Should_ReturnFalse_When_TokenDoesNotHold()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leader.TryAcquireAsync("token-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        var released = await _leader.TryReleaseAsync(InstanceId, "owner-1", 999, now, cancellationToken);
+        var released = await _leader.TryReleaseAsync("token-2", now, cancellationToken);
 
         // assert
         Assert.False(released);
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_ElectExactlyOneLeader_When_SixConcurrentCallersRaceTheSameInstance()
+    public async Task TryAcquireAsync_Should_ElectExactlyOneHolder_When_SixDifferentTokensRaceTheSameLease()
     {
-        // arrange: separate connections (Pooling=False, matching production) racing the same instance.
+        // arrange
+        // separate connections (Pooling=False, matching production) racing with six distinct tokens.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -188,29 +183,11 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var results = await ConcurrentTestHarness.RunAsync(
             6,
             i => new MailWakeDaemonLeaderStore(_fileSystem, _database)
-                .TryAcquireAsync(InstanceId, $"owner-{i}", now, TimeSpan.FromSeconds(30), cancellationToken));
+                .TryAcquireAsync($"token-{i}", now, TimeSpan.FromSeconds(30), cancellationToken));
 
-        // assert: exactly one caller became leader, with epoch 1.
-        var won = results.Where(epoch => epoch is not null).ToArray();
-        Assert.Single(won);
-        Assert.Equal(1, won[0]);
-    }
-
-    [Fact]
-    public async Task TryAcquireAsync_Should_ElectIndependentLeaders_When_InstanceIdsDiffer()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-
-        // act
-        var epochA = await _leader.TryAcquireAsync("instance-a", "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
-        var epochB = await _leader.TryAcquireAsync("instance-b", "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
-
-        // assert: a live lease on one instance never blocks another.
-        Assert.Equal(1, epochA);
-        Assert.Equal(1, epochB);
+        // assert
+        // exactly one distinct token ever won, so two tokens never both lead.
+        Assert.Single(results, acquired => acquired);
     }
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
