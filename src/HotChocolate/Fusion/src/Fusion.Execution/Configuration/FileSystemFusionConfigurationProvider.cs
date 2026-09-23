@@ -137,6 +137,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                 DocumentNode schema;
                 ulong settingsHash;
                 ulong schemaHash;
+                string? configurationId = null;
 
                 if (_isPackage)
                 {
@@ -170,6 +171,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     buffer.Write(settingsSpan);
                     settingsHash = XxHash64.HashToUInt64(settingsSpan);
                     settings = new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+                    configurationId = config.ConfigurationId;
                 }
                 else
                 {
@@ -186,7 +188,10 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
 
                 _settingsHash = settingsHash;
                 _schemaDocumentHash = schemaHash;
-                NotifyObservers(new FusionConfiguration(schema, settings));
+                NotifyObservers(new FusionConfiguration(schema, settings)
+                {
+                    ConfigurationId = configurationId
+                });
             }
             catch
             {

@@ -4,6 +4,7 @@ internal static class FileNames
 {
     private const string GatewaySchemaFormat = "gateway/{0}/gateway.graphqls";
     private const string GatewaySettingsFormat = "gateway/{0}/gateway-settings.json";
+    private const string GatewayConfigurationIdFormat = "gateway/{0}/configuration-id";
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
     private const string SourceSchemaExtensionsFormat = "source-schemas/{0}/schema-extensions.graphqls";
     private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
@@ -19,6 +20,9 @@ internal static class FileNames
 
     public static string GetGatewaySettingsPath(Version version)
         => string.Format(GatewaySettingsFormat, version);
+
+    public static string GetGatewayConfigurationIdPath(Version version)
+        => string.Format(GatewayConfigurationIdFormat, version);
 
     public static string GetSourceSchemaPath(string schemaName)
         => string.Format(SourceSchemaFormat, schemaName);
@@ -40,6 +44,7 @@ internal static class FileNames
 
             case "schema-settings.json":
             case "gateway-settings.json":
+            case "configuration-id":
             case "composition-settings.json":
                 return FileKind.Settings;
 

@@ -13,7 +13,8 @@ public sealed class GatewayConfiguration : IDisposable
     internal GatewayConfiguration(
         Func<CancellationToken, Task<Stream>> openReadSchema,
         JsonDocument settings,
-        Version version)
+        Version version,
+        string? configurationId)
     {
         ArgumentNullException.ThrowIfNull(openReadSchema);
         ArgumentNullException.ThrowIfNull(settings);
@@ -21,12 +22,19 @@ public sealed class GatewayConfiguration : IDisposable
         _openReadSchema = openReadSchema;
         Settings = settings;
         Version = version;
+        ConfigurationId = configurationId;
     }
 
     /// <summary>
     /// Gets the version of the gateway configuration.
     /// </summary>
     public Version Version { get; }
+
+    /// <summary>
+    /// Gets the identifier of the configuration inputs relevant to operation planning,
+    /// or null if no valid identifier is stored.
+    /// </summary>
+    public string? ConfigurationId { get; }
 
     /// <summary>
     /// Opens the Hot Chocolate Fusion execution schema for reading.

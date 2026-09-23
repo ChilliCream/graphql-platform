@@ -185,6 +185,7 @@ internal sealed class FusionRequestExecutorManager
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
+            configuration,
             options,
             requestOptions,
             parserOptions);
@@ -304,6 +305,7 @@ internal sealed class FusionRequestExecutorManager
 
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
+        FusionConfiguration configuration,
         FusionOptions options,
         FusionRequestOptions requestOptions,
         ParserOptions parserOptions)
@@ -317,7 +319,10 @@ internal sealed class FusionRequestExecutorManager
         features.Set(parserOptions);
         features.Set(CreateTypeResolverInterceptors(options));
         features.Set(new SchemaCancellationFeature());
-        features.Set(new OperationPlannerFeature(OperationPlanner.Version));
+        features.Set(new OperationPlannerFeature(OperationPlanner.Version)
+        {
+            ConfigurationId = configuration.ConfigurationId
+        });
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
