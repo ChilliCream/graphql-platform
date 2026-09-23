@@ -50,7 +50,7 @@ public sealed class CostOptions
 
             field = value;
         }
-    } = 1_000;
+    } = 10_000;
 
     /// <summary>
     /// Defines if the analyzer shall enforce cost limits.

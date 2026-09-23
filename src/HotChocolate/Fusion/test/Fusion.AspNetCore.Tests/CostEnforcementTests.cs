@@ -47,7 +47,9 @@ public class CostEnforcementTests : FusionTestBase
     {
         // arrange
         using var server = CreateSourceSchema("A", OverCostSchema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
         var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
 
         // act
@@ -73,18 +75,22 @@ public class CostEnforcementTests : FusionTestBase
         using var server = CreateSourceSchema("A", OverCostSchema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: builder => builder.UseRequest(
-                (_, next) => async context =>
-                {
-                    await next(context);
-
-                    if (context.TryGetCostAnalysisResult(out var result))
+            configureGatewayBuilder: builder =>
+            {
+                builder.ModifyCostOptions(o => o.MaxTypeCost = 1_000);
+                builder.UseRequest(
+                    (_, next) => async context =>
                     {
-                        analysisResults.Enqueue(result);
-                    }
-                },
-                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
-                allowMultiple: true));
+                        await next(context);
+
+                        if (context.TryGetCostAnalysisResult(out var result))
+                        {
+                            analysisResults.Enqueue(result);
+                        }
+                    },
+                    before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
+                    allowMultiple: true);
+            });
         var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var uri = new Uri("http://localhost:5000/graphql");
@@ -116,7 +122,9 @@ public class CostEnforcementTests : FusionTestBase
     {
         // arrange
         using var server = CreateSourceSchema("A", OverCostSchema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             new Uri("http://localhost:5000/graphql"))

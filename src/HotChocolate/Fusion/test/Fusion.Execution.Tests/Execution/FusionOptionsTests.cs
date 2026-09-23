@@ -130,7 +130,7 @@ public class FusionOptionsTests : FusionTestBase
         else
         {
             Assert.IsType<ArgumentOutOfRangeException>(exception);
-            Assert.Equal(1_000, options.MaxTypeCost);
+            Assert.Equal(10_000, options.MaxTypeCost);
         }
     }
 

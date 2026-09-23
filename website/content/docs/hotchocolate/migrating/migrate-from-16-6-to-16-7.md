@@ -247,6 +247,10 @@ On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.De
 
 When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxResponseSize`. A rejection includes `{ maxResponseSize, maxAllowedResponseSize }` in the error extensions and uses error code `HC0047`.
 
+## Default maximum type cost raised to 10,000
+
+The default maximum type cost is now `10,000`, up from `1,000`. The maximum field cost stays `1,000`.
+
 ## Reporting and result access
 
 `GraphQL-Cost: validate` always coerces variables and reports the evaluated cost, exactly like `execute`/`report` (2026-09-14 user ruling; the value changes from an earlier 16.7 preview, where `validate` without variables reported the assumed bound instead of coercing). A required variable that is not supplied fails the request with the ordinary variable-coercion error. Coercion succeeding, `validate` does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.

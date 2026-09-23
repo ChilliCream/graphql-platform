@@ -153,7 +153,7 @@ An explicit `null` slicing argument is not a slicing value and suppresses that a
 `AddGraphQLGatewayServer()` enables cost enforcement in every hosting environment with these limits:
 
 - Maximum field cost: `1,000`
-- Maximum type cost: `1,000`
+- Maximum type cost: `10,000`
 
 This environment-independent behavior differs from the default introspection rule, which permits introspection in Development.
 
@@ -259,16 +259,16 @@ A custom pipeline must place `UseOperationVariableCoercion()` before `UseCostAna
 
 Configure `FusionCostOptions` with `ModifyCostOptions`:
 
-| Option                       | Type                          | Default | Contract                                                                                                                                       |
-| ---------------------------- | ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MaxFieldCost`               | `double`                      | `1,000` | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                             |
-| `MaxTypeCost`                | `double`                      | `1,000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                              |
-| `EnforceCostLimits`          | `bool`                        | `true`  | Enforces the field, type, and response-size limits.                                                                                            |
-| `SkipAnalyzer`               | `bool`                        | `false` | Skips analysis, enforcement, and reporting.                                                                                                    |
-| `MaxResponseSize`            | `double?`                     | `null`  | Maximum estimated response-field count. `null` disables this check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
-| `CostPlanCacheSize`          | `int`                         | `256`   | Maximum compiled cost plans cached per schema.                                                                                                 |
-| `CaseBudget`                 | `int?`                        | `null`  | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                    |
-| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`  | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                   |
+| Option                       | Type                          | Default  | Contract                                                                                                                                       |
+| ---------------------------- | ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxFieldCost`               | `double`                      | `1,000`  | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                             |
+| `MaxTypeCost`                | `double`                      | `10,000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                              |
+| `EnforceCostLimits`          | `bool`                        | `true`   | Enforces the field, type, and response-size limits.                                                                                            |
+| `SkipAnalyzer`               | `bool`                        | `false`  | Skips analysis, enforcement, and reporting.                                                                                                    |
+| `MaxResponseSize`            | `double?`                     | `null`   | Maximum estimated response-field count. `null` disables this check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
+| `CostPlanCacheSize`          | `int`                         | `256`    | Maximum compiled cost plans cached per schema.                                                                                                 |
+| `CaseBudget`                 | `int?`                        | `null`   | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                    |
+| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`   | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                   |
 
 ```csharp
 builder.Services
