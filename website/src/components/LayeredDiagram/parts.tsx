@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
-import { TYPE } from "../tokens";
-import { MC } from "../palette";
+import { TYPE } from "@/app/(content)/products/fusion/tokens";
+import { MC } from "./palette";
 import { BUS_Y } from "./diagram";
 import type { BandFlow, Lane } from "./diagram";
 

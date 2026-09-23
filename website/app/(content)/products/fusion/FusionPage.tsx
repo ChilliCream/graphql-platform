@@ -7,6 +7,13 @@ import { CardGrid } from "@/src/components/CardGrid";
 import { ClassificationCard } from "@/src/components/ClassificationCard";
 import { ClientImpactMatrix } from "@/src/components/ClientImpactMatrix";
 import { FeatureRow } from "@/src/components/FeatureRow";
+import LayeredDiagram from "@/src/components/LayeredDiagram/index";
+import {
+  CLIENT_NODES,
+  COMPOSITE_LINE,
+  REQUESTS,
+  TIER_NODES,
+} from "@/src/components/LayeredDiagram/diagram";
 import { Section } from "@/src/components/Section";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -16,7 +23,6 @@ import { Link } from "@/src/design-system/Link";
 import type { CopyLink } from "./content";
 import { FEATURES, NITRO_BAND, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
-import LayeredDiagram from "./hero/LayeredDiagram";
 import { CompositionWindow } from "./visuals/CompositionWindow";
 import { ProtocolsWindow } from "./visuals/ProtocolsWindow";
 
@@ -111,7 +117,17 @@ interface Panel {
 
 /** One panel per text section, in the order the copy declares them. */
 const VISUALS: Readonly<Record<string, Panel>> = {
-  "what-is-fusion": { visual: <LayeredDiagram /> },
+  "what-is-fusion": {
+    visual: (
+      <LayeredDiagram
+        gatewayLabel="Fusion"
+        compositionLine={COMPOSITE_LINE}
+        clients={CLIENT_NODES}
+        tiers={TIER_NODES}
+        requests={REQUESTS}
+      />
+    ),
+  },
   "both-specifications": { visual: <ProtocolsWindow /> },
   "any-server": { visual: <CompositionWindow /> },
   "client-safety": {

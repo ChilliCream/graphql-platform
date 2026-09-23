@@ -1,5 +1,5 @@
-import { CLIENTS, SOURCES, STATIONS, specTag } from "../palette";
-import type { StationSpec } from "../palette";
+import { CLIENTS, SOURCES, STATIONS, specTag } from "./palette";
+import type { StationSpec } from "./palette";
 
 /**
  * The three tiers the Layered Diagram hero draws, the request script it
@@ -107,7 +107,6 @@ export const REQUESTS: readonly Request[] = [
 export const PHASE_LABEL = ["Receive", "Fan out", "Merge"] as const;
 
 export const PHASE_MS = 1200;
-export const STEPS = REQUESTS.length * PHASE_LABEL.length;
 /**
  * Rest frame: the Checkout fan-out. The server render, the reduced-motion
  * render and the off-screen render all show one client asking, the gateway

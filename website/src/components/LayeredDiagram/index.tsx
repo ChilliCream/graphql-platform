@@ -2,30 +2,26 @@
 
 import { useRef } from "react";
 
-import { BRAND, TYPE } from "../tokens";
-import { anim, useCycle, useElementMotion } from "../visuals/hooks";
-import { MC, specTag } from "../palette";
-import type { StationSpec } from "../palette";
+import { BRAND, TYPE } from "@/app/(content)/products/fusion/tokens";
+import { anim, useCycle, useElementMotion } from "./hooks";
+import { MC, specTag } from "./palette";
+import type { StationSpec } from "./palette";
 import {
   BUS_Y,
-  CLIENT_NODES,
-  COMPOSITE_LINE,
   PHASE_LABEL,
   PHASE_MS,
   REQUESTS,
   REST_STEP,
   SPEC_LEGEND,
-  STEPS,
-  TIER_NODES,
   columnLanes,
 } from "./diagram";
-import type { BandFlow } from "./diagram";
+import type { BandFlow, ClientNode, Request, TierNode } from "./diagram";
 import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
 
 /**
- * Diagram visual: the architecture drawn as a three-tier diagram, with four
- * client cards, one gateway panel, and the five subgraphs plus two
- * non-GraphQL sources along the bottom. Each request fans out from a client
+ * Diagram visual: the architecture drawn as a three-tier diagram, with a
+ * client card per `clients` entry, one gateway panel, and one card per
+ * `tiers` entry along the bottom. Each request fans out from a client
  * through the gateway to the sources it needs and merges back into one
  * response. Renders directly inside a panel box of whatever width its
  * caller gives it (a half-width feature-row column, say); the tiers collapse
@@ -33,6 +29,17 @@ import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
  * diagram's own width, not the viewport's, so the layout is right from the
  * first paint with no measured state.
  */
+
+interface LayeredDiagramProps {
+  /** Name on the gateway panel, e.g. "Fusion". */
+  readonly gatewayLabel: string;
+  /** Readout line under the gateway's phase indicator. */
+  readonly compositionLine: string;
+  readonly clients: readonly ClientNode[];
+  readonly tiers: readonly TierNode[];
+  /** Request script the diagram replays; defaults to the Fusion script. */
+  readonly requests?: readonly Request[];
+}
 
 /** Column counts per tier, stacked (below the container query) and wide. */
 const CLIENT_COLUMNS = [2, 4] as const;
@@ -145,19 +152,26 @@ function Band({ flow, count, columns, lit, tone, step, pulse }: BandProps) {
   );
 }
 
-export default function LayeredDiagram() {
+export default function LayeredDiagram({
+  gatewayLabel,
+  compositionLine,
+  clients,
+  tiers,
+  requests = REQUESTS,
+}: LayeredDiagramProps) {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
-  const step = useCycle(running, STEPS, PHASE_MS, REST_STEP);
+  const steps = requests.length * PHASE_LABEL.length;
+  const step = useCycle(running, steps, PHASE_MS, REST_STEP);
 
   const phase = step % PHASE_LABEL.length;
-  const request = REQUESTS[Math.floor(step / PHASE_LABEL.length)];
+  const request = requests[Math.floor(step / PHASE_LABEL.length)];
   const merging = phase === 2;
   const tone = merging ? MC.phosphor : MC.signal;
 
-  const targets = TIER_NODES.map((node, i) =>
-    request.targets.includes(node.name) ? i : -1,
-  ).filter((i) => i >= 0);
+  const targets = tiers
+    .map((node, i) => (request.targets.includes(node.name) ? i : -1))
+    .filter((i) => i >= 0);
   const litNodes = phase === 0 ? [] : targets;
 
   const upstream =
@@ -189,7 +203,7 @@ export default function LayeredDiagram() {
       <div className="px-4 py-4 sm:px-8 sm:py-8 md:px-12">
         <div className="mx-auto w-full max-w-7xl">
           <div className="grid grid-cols-2 gap-2 @min-[760px]:grid-cols-4">
-            {CLIENT_NODES.map((client, i) => (
+            {clients.map((client, i) => (
               <Card
                 key={client.key}
                 title={client.label}
@@ -202,7 +216,7 @@ export default function LayeredDiagram() {
 
           <Band
             flow="to-gateway"
-            count={CLIENT_NODES.length}
+            count={clients.length}
             columns={CLIENT_COLUMNS}
             lit={[request.client]}
             tone={tone}
@@ -228,7 +242,7 @@ export default function LayeredDiagram() {
                   lineHeight: LINE_HEIGHT,
                 }}
               >
-                Fusion
+                {gatewayLabel}
               </p>
               <p
                 className="font-mono uppercase"
@@ -288,13 +302,13 @@ export default function LayeredDiagram() {
                 lineHeight: LINE_HEIGHT,
               }}
             >
-              {COMPOSITE_LINE}
+              {compositionLine}
             </p>
           </div>
 
           <Band
             flow="from-gateway"
-            count={TIER_NODES.length}
+            count={tiers.length}
             columns={NODE_COLUMNS}
             lit={litNodes}
             tone={tone}
@@ -303,7 +317,7 @@ export default function LayeredDiagram() {
           />
 
           <div className="grid grid-cols-3 gap-2 @min-[760px]:grid-cols-7">
-            {TIER_NODES.map((node, i) => (
+            {tiers.map((node, i) => (
               <Card
                 key={node.name}
                 title={node.name}
