@@ -791,6 +791,27 @@ public sealed class AgentStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_ReturnTrue_When_CooldownElapsed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await _store.TryClaimPingCooldownAsync(
+            minted.Row!.Name, TimeSpan.FromSeconds(60), "attempt-1", cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromSeconds(61));
+
+        // act
+        var claimed = await _store.TryClaimPingCooldownAsync(
+            minted.Row.Name, TimeSpan.FromSeconds(60), "attempt-2", cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.True(claimed);
+        Assert.Equal("attempt-2", row?.LastPingAttempt);
+    }
+
+    [Fact]
     public async Task TryClaimPingCooldownAsync_Should_ReturnFalse_When_RowDeleted()
     {
         // arrange
@@ -805,6 +826,24 @@ public sealed class AgentStoreTests : IDisposable
 
         // assert
         Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_HaveExactlyOneWinner_When_ConcurrentClaimsRaceTheSameRow()
+    {
+        // arrange: each call opens its own connection against the same agent row.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+
+        // act
+        var results = await ConcurrentTestHarness.RunAsync(
+            5,
+            i => _store.TryClaimPingCooldownAsync(
+                minted.Row!.Name, TimeSpan.FromSeconds(60), $"attempt-{i}", cancellationToken));
+
+        // assert
+        Assert.Equal(1, results.Count(claimed => claimed));
     }
 
     [Fact]
