@@ -11,7 +11,7 @@ Hot Chocolate implements the draft [IBM Cost Analysis specification](https://ibm
 
 In the request pipeline, cost analysis runs after variable coercion but ahead of the operation cache and the operation compiler. A request that fails cost enforcement is therefore never compiled and never enters the operation cache. Document normalization, i.e. inlining fragments into the selected operation, is not a pipeline stage; it is resolved once per request by whichever stage needs it first, which is now variable coercion. The result is cached by operation id in the normalized-document cache and rewritten only on a miss of that cache, so a later stage, including the cost analyzer on a cost plan cache miss, or a later request for the same operation reads the already normalized document instead of re-normalizing it. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to compile regardless of their variables.
 
-# Cost Metrics
+# How Cost Is Calculated
 
 The analyzer produces these metrics:
 
@@ -32,7 +32,76 @@ The default cost weights are:
 | Arguments and input fields with input-object values | `1`            |
 | Fields without a pure resolver                      | `10`           |
 
-The resolver weight is written as an explicit `@cost` directive when `ApplyCostDefaults` is enabled.
+The resolver weight is written as an explicit `@cost` directive when `ApplyCostDefaults` is enabled. A field with no explicit `@cost` directive weighs `1` when its return type is an object, interface, or union, and `0` otherwise. A field without a pure resolver instead receives an explicit `@cost` directive worth `DefaultResolverCost`; its return type keeps its own weight, which counts only toward type cost.
+
+## Field Cost Example
+
+Walk a query for a `book` field without a pure resolver, returning a `title` and an `author`:
+
+```graphql
+{
+  book {
+    # 10 (field without a pure resolver)
+    title # 0 (scalar)
+    author {
+      # 1 (field returning an object)
+      name # 0 (scalar)
+    }
+  }
+}
+# Field cost: 10 + 0 + 1 + 0 = 11
+```
+
+Add pagination and the weight of every field below the list multiplies by the list size. This `books` field returns a `BooksConnection` generated with the defaults, evaluated with `first: 50`:
+
+```graphql
+{
+  books(first: 50) {
+    # 10 (field without a pure resolver)
+    edges {
+      # 1 (field returning an object, paid once)
+      node {
+        # 1 x 50 (field returning an object, once per edge)
+        title # 0 x 50 (scalar)
+        author {
+          # 1 x 50 (field returning an object, once per node)
+          name # 0 x 50 (scalar)
+        }
+      }
+    }
+  }
+}
+# Field cost: 10 + 1 + 1 x 50 + 0 x 50 + 1 x 50 + 0 x 50 = 111
+```
+
+The same selection without `first` evaluates at `DefaultPageSize`, and a list field with no inherited or explicit `@listSize` annotation evaluates at `DefaultListSize`, which defaults to `50`.
+
+## Type Cost Example
+
+Type cost counts the weighted objects the response instantiates. The same paginated query instantiates one `BooksConnection`, fifty `BooksEdge` objects, fifty `Book` objects, and fifty `Author` objects, on top of the root `Query` object:
+
+```graphql
+{
+  # 1 Query
+  books(first: 50) {
+    # 1 BooksConnection
+    edges {
+      # 50 BooksEdges
+      node {
+        # 50 Books
+        title
+        author {
+          # 50 Authors
+          name
+        }
+      }
+    }
+  }
+}
+# Type cost: 1 + 1 + 50 + 50 + 50 = 152
+```
+
+Compare these totals against `MaxFieldCost` and `MaxTypeCost`, both `1_000` by default: an operation whose evaluated field cost or type cost exceeds its limit is rejected with error code `HC0047`, shown under [Rejections and HTTP Status](#rejections-and-http-status).
 
 ## Variable-Aware Evaluation
 
