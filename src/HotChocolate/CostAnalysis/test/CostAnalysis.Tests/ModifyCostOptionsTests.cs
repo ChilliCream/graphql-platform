@@ -127,6 +127,52 @@ public sealed class ModifyCostOptionsTests
         Assert.True(response.ExpectOperationResult().Errors is null or { Count: 0 });
     }
 
+    [Fact]
+    public async Task ModifyCostOptions_Should_ApplyContextModifierOnce_When_SameRequestExecutesTwice()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder(o => o.MaxTypeCost = 100)
+            .UseRequest(
+                next => async context =>
+                {
+                    context.ModifyCostOptions(o => o.MaxTypeCost -= 300);
+                    await next(context);
+                },
+                key: "LowerMaxTypeCostPerExecution",
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(Operation)
+            .ModifyCostOptions(o => o.MaxTypeCost = 1_000)
+            .Build();
+
+        // act
+        var firstResponse =
+            await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var secondResponse =
+            await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        new[] { firstResponse, secondResponse }.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "data": {
+                    "items": []
+                  }
+                }
+                """,
+                """
+                {
+                  "data": {
+                    "items": []
+                  }
+                }
+                """
+            ]);
+    }
+
 #pragma warning disable CS0618 // Verifies the obsolete SetCostOptions/RequestCostOptions path.
     [Theory]
     [InlineData(false, ErrorCodes.Execution.CostExceeded)]
