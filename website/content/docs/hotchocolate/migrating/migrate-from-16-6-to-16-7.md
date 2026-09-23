@@ -194,7 +194,7 @@ The deprecated evaluation overloads continue to work for operations with at most
 
 ## SetCostOptions and RequestCostOptions replaced by ModifyCostOptions
 
-`OperationRequestBuilder.SetCostOptions` and `RequestContext.SetCostOptions`, together with the `RequestCostOptions` type they take, are marked `[Obsolete]`. Use the new per-request `ModifyCostOptions(Action<CostOptions>)` overloads on `OperationRequestBuilder` and `RequestContext` instead. A modifier receives a per-request copy of the schema's cost options; `CostAnalyzerMiddleware` applies every modifier added to the request, in the order they were added, on top of the schema defaults, and on top of a legacy `RequestCostOptions` value if the request still sets one, then uses the result for that request.
+`OperationRequestBuilder.SetCostOptions` and `RequestContext.SetCostOptions`, together with the `RequestCostOptions` type they take, are marked `[Obsolete]`. Use the new per-request `ModifyCostOptions(Action<CostOptions>)` overloads on `OperationRequestBuilder` and `RequestContext` instead. A modifier receives a per-request copy of the schema's cost options. Modifiers run in the order they were added, on top of the schema options and on top of a legacy `RequestCostOptions` value if the request still sets one.
 
 ```diff
  requestBuilder
