@@ -1,6 +1,6 @@
 ---
 title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
-description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement and composition-derived cost directives, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, and review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header."
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, and review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header."
 ---
 
 Update every Hot Chocolate Fusion package in the application to version 16.7 before applying these changes.
@@ -65,10 +65,6 @@ Direct implementations of `IFusionExecutionDiagnosticEvents` or `IFusionExecutio
 `AnalyzeOperationCost` scopes cost analysis. `OperationCost` reports each evaluated field-cost and type-cost pair inside that scope.
 
 `FusionExecutionDiagnosticEventListener` supplies implementations for both members, so subclasses do not require changes. `FusionActivityScopes.AnalyzeComplexity` now enables the cost-analysis activity span. It is included in `FusionActivityScopes.All`, but not in `FusionActivityScopes.Default`.
-
-## Composition derives public cost directives
-
-Composition folds every serving source schema's `@cost` and `@listSize` usage on a coordinate into a single public directive on the execution schema, and records each source's own declared value as an internal `@fusion__cost` or `@fusion__listSize` provenance entry. The gateway analyzes and enforces cost against the folded public values. See [Cost Metadata Derivation](../composition.md#cost-metadata-derivation) for the fold rules.
 
 ## Cost enforcement is enabled by default
 
