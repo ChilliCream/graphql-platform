@@ -859,8 +859,8 @@ public sealed class AgentDatabaseTests : IDisposable
             """,
             cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+        // act
+        var exception = await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
             INSERT INTO agents (name, registered_at, started_at, last_seen_at, harness, session_id)
@@ -868,6 +868,9 @@ public sealed class AgentDatabaseTests : IDisposable
                     '2026-01-10T12:00:00+00:00', 'claude-code', 'session-dup');
             """,
             cancellationToken));
+
+        // assert
+        Assert.Equal(2067, exception.SqliteExtendedErrorCode);
     }
 
     /// <summary>
@@ -909,14 +912,17 @@ public sealed class AgentDatabaseTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+        // act
+        var exception = await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
             INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at)
             VALUES ('ghost', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
             """,
             cancellationToken));
+
+        // assert
+        Assert.Equal(787, exception.SqliteExtendedErrorCode);
     }
 
     /// <summary>
@@ -930,14 +936,17 @@ public sealed class AgentDatabaseTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+        // act
+        var exception = await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
             INSERT INTO agent_ping_gates (agent, attempt_id, acquired_at, expires_at)
             VALUES ('ghost', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
             """,
             cancellationToken));
+
+        // assert
+        Assert.Equal(787, exception.SqliteExtendedErrorCode);
     }
 
     /// <summary>
