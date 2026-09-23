@@ -6,10 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Runs the worked examples from the "How Cost Is Calculated" section of the cost-analysis docs
-/// page in report mode and snapshots the reported field cost and type cost. The docs numbers are
-/// copied from these snapshots, so a change in what the analyzer reports for these queries fails
-/// this test before the docs go stale.
+/// Runs the worked examples from the How Cost Is Calculated section of the cost-analysis docs
+/// page in report mode and snapshots the reported field cost and type cost.
 /// </summary>
 public sealed class DocsExamplesTests
 {
