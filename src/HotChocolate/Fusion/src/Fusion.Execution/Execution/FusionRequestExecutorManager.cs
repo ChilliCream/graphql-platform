@@ -321,7 +321,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(new SchemaCancellationFeature());
         features.Set(new OperationPlannerFeature(OperationPlanner.Version)
         {
-            ConfigurationId = configuration.ConfigurationId
+            PlanningFingerprint = configuration.PlanningFingerprint
         });
 
         foreach (var configure in setup.SchemaFeaturesModifiers)

@@ -17,7 +17,7 @@ namespace HotChocolate.Fusion.Packaging;
 /// </summary>
 public sealed class FusionArchive : IDisposable
 {
-    private const string ConfigurationIdPrefix = "v1:";
+    private const string PlanningFingerprintPrefix = "v1:";
 
     private readonly Stream _stream;
     private readonly bool _leaveOpen;
@@ -383,7 +383,7 @@ public sealed class FusionArchive : IDisposable
                 "You need to first declare the gateway schema version in the archive metadata.");
         }
 
-        var configurationId = FormatConfigurationId(SHA256.HashData(schema.Span));
+        var planningFingerprint = FormatPlanningFingerprint(SHA256.HashData(schema.Span));
 
         await using (var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version)))
         {
@@ -397,9 +397,9 @@ public sealed class FusionArchive : IDisposable
             await jsonWriter.FlushAsync(cancellationToken);
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetGatewayConfigurationIdPath(version)))
+        await using (var stream = _session.OpenWrite(FileNames.GetGatewayPlanningFingerprintPath(version)))
         {
-            await stream.WriteAsync(Encoding.UTF8.GetBytes(configurationId), cancellationToken);
+            await stream.WriteAsync(Encoding.UTF8.GetBytes(planningFingerprint), cancellationToken);
         }
     }
 
@@ -433,7 +433,7 @@ public sealed class FusionArchive : IDisposable
             return null;
         }
 
-        var configurationId = await TryReadConfigurationIdAsync(version, cancellationToken);
+        var planningFingerprint = await TryReadPlanningFingerprintAsync(version, cancellationToken);
 
         JsonDocument settings;
         await using (var stream = await _session.OpenReadAsync(
@@ -444,7 +444,7 @@ public sealed class FusionArchive : IDisposable
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new GatewayConfiguration(OpenReadSchemaAsync, settings, version, configurationId);
+        return new GatewayConfiguration(OpenReadSchemaAsync, settings, version, planningFingerprint);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetGatewaySchemaPath(version), FileKind.Schema, ct);
@@ -907,45 +907,28 @@ public sealed class FusionArchive : IDisposable
         }
     }
 
-    private async Task<string?> TryReadConfigurationIdAsync(
+    private async Task<string?> TryReadPlanningFingerprintAsync(
         Version version,
         CancellationToken cancellationToken)
     {
-        var path = FileNames.GetGatewayConfigurationIdPath(version);
+        var path = FileNames.GetGatewayPlanningFingerprintPath(version);
         if (!_session.Exists(path))
         {
             return null;
         }
 
-        string identifier;
-        await using (var stream = await _session.OpenReadAsync(path, FileKind.Settings, cancellationToken))
-        {
-            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false);
-            identifier = await reader.ReadToEndAsync(cancellationToken);
-        }
+        await using var stream = await _session.OpenReadAsync(path, FileKind.Settings, cancellationToken);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false);
+        var fingerprint = await reader.ReadToEndAsync(cancellationToken);
 
-        if (identifier.Length != ConfigurationIdPrefix.Length + 64
-            || !identifier.StartsWith(ConfigurationIdPrefix, StringComparison.Ordinal))
-        {
-            return null;
-        }
-
-        await using var schema = await _session.OpenReadAsync(
-            FileNames.GetGatewaySchemaPath(version),
-            FileKind.Schema,
-            cancellationToken);
-        var hash = await SHA256.HashDataAsync(schema, cancellationToken);
-
-        return identifier.Equals(FormatConfigurationId(hash), StringComparison.Ordinal)
-            ? identifier
-            : null;
+        return fingerprint.Length > 0 ? fingerprint : null;
     }
 
-    private static string FormatConfigurationId(ReadOnlySpan<byte> hash)
+    private static string FormatPlanningFingerprint(ReadOnlySpan<byte> hash)
 #if NET9_0_OR_GREATER
-        => ConfigurationIdPrefix + Convert.ToHexStringLower(hash);
+        => PlanningFingerprintPrefix + Convert.ToHexStringLower(hash);
 #else
-        => ConfigurationIdPrefix + Convert.ToHexString(hash).ToLowerInvariant();
+        => PlanningFingerprintPrefix + Convert.ToHexString(hash).ToLowerInvariant();
 #endif
 
     private async Task<SignatureManifest> GenerateManifestAsync(CancellationToken cancellationToken)

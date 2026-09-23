@@ -14,7 +14,7 @@ public sealed class GatewayConfiguration : IDisposable
         Func<CancellationToken, Task<Stream>> openReadSchema,
         JsonDocument settings,
         Version version,
-        string? configurationId)
+        string? planningFingerprint)
     {
         ArgumentNullException.ThrowIfNull(openReadSchema);
         ArgumentNullException.ThrowIfNull(settings);
@@ -22,7 +22,7 @@ public sealed class GatewayConfiguration : IDisposable
         _openReadSchema = openReadSchema;
         Settings = settings;
         Version = version;
-        ConfigurationId = configurationId;
+        PlanningFingerprint = planningFingerprint;
     }
 
     /// <summary>
@@ -31,10 +31,10 @@ public sealed class GatewayConfiguration : IDisposable
     public Version Version { get; }
 
     /// <summary>
-    /// Gets the identifier of the configuration inputs relevant to operation planning,
-    /// or null if no valid identifier is stored.
+    /// Gets an opaque fingerprint of the configuration inputs relevant to operation planning,
+    /// or null if the archive does not contain one.
     /// </summary>
-    public string? ConfigurationId { get; }
+    public string? PlanningFingerprint { get; }
 
     /// <summary>
     /// Opens the Hot Chocolate Fusion execution schema for reading.
