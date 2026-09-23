@@ -731,6 +731,64 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
+    public async Task RequestCostOptions_Should_ApplyContextModifierOncePerExecution_When_RequestIsExecutedTwice()
+    {
+        // arrange
+        var callCount = 0;
+        var services = new ServiceCollection();
+        var builder = services
+            .AddGraphQLGateway()
+            .UseDefaultPipeline();
+
+        builder
+            .ModifyCostOptions(options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = double.PositiveInfinity;
+            })
+            .UseRequest(
+                (_, next) => context =>
+                {
+                    context.ModifyCostOptions((FusionCostOptions o) =>
+                    {
+                        callCount++;
+                        o.MaxTypeCost = 5000;
+                    });
+                    return next(context);
+                },
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => context =>
+                {
+                    context.Result = CreateProbeResult();
+                    return default;
+                },
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true);
+
+        builder.AddInMemoryConfiguration(ComposeSchemaDocument(defaultListSize: 1, Schema));
+
+        await using var provider = services.BuildServiceProvider();
+        var executor = await provider.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        using var request = OperationRequestBuilder.New()
+            .SetDocument("{ costlyLeaf }")
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 5000)
+            .Build();
+
+        // act
+        var firstResult = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var secondResult = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, callCount);
+        Assert.Empty(firstResult.ExpectOperationResult().Errors);
+        Assert.Empty(secondResult.ExpectOperationResult().Errors);
+    }
+
+    [Fact]
     public async Task CaseBudgetExceededBehavior_Should_PriceExactly_When_DefaultBehaviorIsUsed()
     {
         // arrange

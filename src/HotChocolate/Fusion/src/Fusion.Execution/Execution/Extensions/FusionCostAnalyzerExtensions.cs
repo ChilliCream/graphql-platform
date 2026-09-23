@@ -1,4 +1,3 @@
-using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 
 // ReSharper disable once CheckNamespace
@@ -32,7 +31,15 @@ public static class FusionCostAnalyzerExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
-        GetOrCreateModifiers(builder.Features).Modifiers.Add(configure);
+        var modifiers = builder.Features.Get<FusionCostOptionsModifiers>();
+
+        if (modifiers is null)
+        {
+            modifiers = new FusionCostOptionsModifiers();
+            builder.Features.Set(modifiers);
+        }
+
+        modifiers.Modifiers.Add(configure);
         return builder;
     }
 
@@ -52,7 +59,16 @@ public static class FusionCostAnalyzerExtensions
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(configure);
 
-        GetOrCreateModifiers(context.Features).Modifiers.Add(configure);
+        var existing = context.Features.Get<FusionCostOptionsModifiers>();
+        var modifiers = new FusionCostOptionsModifiers();
+
+        if (existing is not null)
+        {
+            modifiers.Modifiers.AddRange(existing.Modifiers);
+        }
+
+        modifiers.Modifiers.Add(configure);
+        context.Features.Set(modifiers);
     }
 
     /// <summary>
@@ -79,18 +95,5 @@ public static class FusionCostAnalyzerExtensions
         options.MakeReadOnly();
 
         return options;
-    }
-
-    private static FusionCostOptionsModifiers GetOrCreateModifiers(IFeatureCollection features)
-    {
-        var modifiers = features.Get<FusionCostOptionsModifiers>();
-
-        if (modifiers is null)
-        {
-            modifiers = new FusionCostOptionsModifiers();
-            features.Set(modifiers);
-        }
-
-        return modifiers;
     }
 }
