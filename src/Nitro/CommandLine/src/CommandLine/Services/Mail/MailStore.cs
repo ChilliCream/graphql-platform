@@ -12,9 +12,7 @@ internal sealed class MailStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     AgentDatabase database,
-    IAgentStore agentStore,
-    INitroInstanceIdProvider? instanceIdProvider = null,
-    IGlobalConfigDirectoryProvider? globalConfigDirectoryProvider = null) : IMailStore
+    IAgentStore agentStore) : IMailStore
 {
     private const string IdPrefix = "m-";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -76,10 +74,7 @@ internal sealed class MailStore(
         // Rejects the whole send when a recipient is unknown or deleted.
         await EnsureRecipientsExistAsync(recipients, cancellationToken);
 
-        // Resolves wake ownership before the message transaction.
-        var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
-            ? await ResolveNitroInstanceIdAsync(cancellationToken)
-            : null;
+        var shouldEnqueueWake = creation.WakePolicy == MailWakePolicy.Enqueue;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -122,9 +117,9 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
-        var wakeReceipts = nitroInstanceId is null
-            ? []
-            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+        var wakeReceipts = shouldEnqueueWake
+            ? await EnqueueWakeAsync(connection, recipients, now, cancellationToken, transaction)
+            : [];
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -165,10 +160,7 @@ internal sealed class MailStore(
         // Refreshes the replying actor's presence after participant validation.
         await agentStore.TouchAsync(actor, cancellationToken);
 
-        // Resolves wake ownership before the reply transaction.
-        var nitroInstanceId = wakePolicy == MailWakePolicy.Enqueue
-            ? await ResolveNitroInstanceIdAsync(cancellationToken)
-            : null;
+        var shouldEnqueueWake = wakePolicy == MailWakePolicy.Enqueue;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -212,9 +204,9 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
-        var wakeReceipts = nitroInstanceId is null
-            ? []
-            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+        var wakeReceipts = shouldEnqueueWake
+            ? await EnqueueWakeAsync(connection, recipients, now, cancellationToken, transaction)
+            : [];
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -304,32 +296,11 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Resolves this machine's Nitro instance id for a
-    /// <see cref="MailWakePolicy.Enqueue"/> send or reply. Throws
-    /// <see cref="InvalidOperationException"/> when this store was
-    /// constructed without the instance id and global config directory
-    /// providers <see cref="MailWakePolicy.Enqueue"/> requires.
-    /// </summary>
-    private async Task<string> ResolveNitroInstanceIdAsync(CancellationToken cancellationToken)
-    {
-        if (instanceIdProvider is null || globalConfigDirectoryProvider is null)
-        {
-            throw new InvalidOperationException(
-                "MailWakePolicy.Enqueue requires this MailStore to be constructed with an "
-                + "INitroInstanceIdProvider and an IGlobalConfigDirectoryProvider.");
-        }
-
-        return await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-    }
-
-    /// <summary>
-    /// Advances each recipient's wake generation for the Nitro instance and returns
-    /// the resulting tokens in recipient order. Preserves the earlier due time
-    /// when wake work already exists.
+    /// Advances each recipient's wake generation and returns the resulting tokens
+    /// in recipient order. Preserves the earlier due time when wake work already exists.
     /// </summary>
     private static async Task<List<MailWakeReceipt>> EnqueueWakeAsync(
         SqliteConnection connection,
-        string nitroInstanceId,
         IReadOnlyList<MailRecipient> recipients,
         DateTimeOffset now,
         CancellationToken cancellationToken,
@@ -341,17 +312,15 @@ internal sealed class MailStore(
         {
             var generation = await connection.QueryFirstOrDefaultAsync<long>(
                 """
-                INSERT INTO mail_wake_outbox (
-                    nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at
-                )
-                VALUES (@nitroInstanceId, @actor, 1, 0, @now, @now)
-                ON CONFLICT (nitro_instance_id, actor) DO UPDATE SET
+                INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+                VALUES (@actor, 1, 0, @now, @now)
+                ON CONFLICT (actor) DO UPDATE SET
                     requested_generation = requested_generation + 1,
                     due_at = MIN(due_at, excluded.due_at),
                     updated_at = excluded.updated_at
                 RETURNING requested_generation
                 """,
-                new { nitroInstanceId, actor = recipient.Name, now, cancellationToken },
+                new { actor = recipient.Name, now, cancellationToken },
                 transaction);
 
             receipts.Add(new MailWakeReceipt { Actor = recipient.Name, Generation = generation });
