@@ -622,6 +622,88 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
+    public async Task RequestCostOptions_Should_OverrideGatewayLimitDownward_When_RequestLowersMaxResponseSizeLimit()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = double.PositiveInfinity;
+                options.MaxResponseSize = 2000;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(ItemsQuery)
+            .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1000 })
+            .SetCostOptions(new FusionRequestCostOptions(
+                maxFieldCost: double.PositiveInfinity,
+                maxTypeCost: double.PositiveInfinity,
+                enforceCostLimits: true,
+                skipAnalyzer: false,
+                maxResponseSize: 500))
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed response size was exceeded.",
+                  "extensions": {
+                    "code": "HC0047",
+                    "maxResponseSize": 1001,
+                    "maxAllowedResponseSize": 500
+                  }
+                }
+              ]
+            }
+            """);
+        Assert.Equal(0, observation.DownstreamCalls);
+    }
+
+    [Fact]
+    public async Task RequestCostOptions_Should_OverrideGatewayLimitUpward_When_RequestRaisesMaxResponseSizeLimit()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = double.PositiveInfinity;
+                options.MaxResponseSize = 100;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(ItemsQuery)
+            .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1000 })
+            .SetCostOptions(new FusionRequestCostOptions(
+                maxFieldCost: double.PositiveInfinity,
+                maxTypeCost: double.PositiveInfinity,
+                enforceCostLimits: true,
+                skipAnalyzer: false,
+                maxResponseSize: 2000))
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(result.ExpectOperationResult().Errors);
+        Assert.Equal(1, observation.DownstreamCalls);
+    }
+
+    [Fact]
     public async Task CaseBudgetExceededBehavior_Should_PriceExactly_When_DefaultBehaviorIsUsed()
     {
         // arrange
