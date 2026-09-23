@@ -1389,7 +1389,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                             {
                                 o.EnableDefer = true;
                                 o.EnableStream = true;
-                            });
+                            })
+                        .ModifyCostOptions(o => o.DefaultListSize = 1);
 
                     configureBuilder?.Invoke(builder);
                 });

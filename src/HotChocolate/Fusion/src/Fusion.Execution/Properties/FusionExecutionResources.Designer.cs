@@ -261,6 +261,30 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string ErrorHelper_MaxFieldCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxFieldCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxTypeCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxTypeCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxResponseSizeReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxResponseSizeReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_ResponseSizeAnalysisNotEnabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseSizeAnalysisNotEnabled", resourceCulture);
+            }
+        }
+
         internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
             get {
                 return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);

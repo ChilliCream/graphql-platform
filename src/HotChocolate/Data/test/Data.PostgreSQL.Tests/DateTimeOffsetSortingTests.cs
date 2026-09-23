@@ -20,6 +20,7 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
         await using var services = new ServiceCollection()
             .AddDbContext<EventContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddSorting()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .AddQueryType(

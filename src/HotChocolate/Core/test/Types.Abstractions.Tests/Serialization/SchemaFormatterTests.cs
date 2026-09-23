@@ -137,6 +137,124 @@ public class SchemaFormatterTests
             """);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Format_IntrospectionOnlyQuery_OmitsQuery(bool orderTypesByName)
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+              query: RootQuery
+              mutation: Mutation
+            }
+
+            type RootQuery {
+              __typename: String
+            }
+
+            type Mutation {
+              doThing: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["RootQuery"])
+            .Fields["__typename"]
+            .IsIntrospectionField = true;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { OrderTypesByName = orderTypesByName });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              mutation: Mutation
+            }
+
+            type Mutation {
+              doThing: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_IntrospectionOnlyQueryWithDescription_OmitsEmptySchemaBlock()
+    {
+        // arrange
+        const string sdl =
+            """
+            "Schema description."
+            schema {
+              query: Query
+            }
+
+            type Query {
+              __typename: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["Query"])
+            .Fields["__typename"]
+            .IsIntrospectionField = true;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot("");
+    }
+
+    [Fact]
+    public void Format_QueryWithRealFields_PrintsQuery()
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              __typename: String
+              normal: String
+              secret: String @inaccessible
+            }
+
+            extend type Query {
+              extended: String
+            }
+
+            directive @inaccessible on FIELD_DEFINITION
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["Query"])
+            .Fields["__typename"]
+            .IsIntrospectionField = true;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              extended: String
+              normal: String
+              secret: String @inaccessible
+            }
+
+            directive @inaccessible on FIELD_DEFINITION
+            """);
+    }
+
     [Fact]
     public void Format_Two_Object_Extensions_Into_One()
     {

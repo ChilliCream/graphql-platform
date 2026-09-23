@@ -107,6 +107,7 @@ GraphiQL
 graphqlconf
 graphqlconfig
 graphqlrc
+GraphQLResponse
 graphqls
 graphyne
 greendonut
@@ -146,6 +147,7 @@ Marek
 marocchino
 matchesBrics
 maxage
+maxAllowedResponseSize
 MCPEXP
 mcpjam
 mdns
@@ -190,6 +192,7 @@ opencover
 openhands
 OpenIddict
 opensgid
+operationCost
 OPTOUT
 overfetching
 OWIN
@@ -253,6 +256,7 @@ Silmarillion
 skillz
 skybridge
 Skywalker
+slicingArgumentDefaultValue
 slnx
 snapshooter
 snupkg

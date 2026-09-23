@@ -1,0 +1,61 @@
+title: Request_Should_BeRejected_When_MaxResponseSizeIsExceeded
+request:
+  document: |
+    query Items($n: Int!) {
+      items(n: $n) {
+        value
+      }
+    }
+  variables: |
+    {
+      "n": 1000
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The maximum allowed response size was exceeded.",
+          "extensions": {
+            "code": "HC0047",
+            "maxResponseSize": 1001,
+            "maxAllowedResponseSize": 100
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        unannotatedItems: [Item]
+        expensive: Expensive
+      }
+
+      type Expensive @cost(weight: "2000") {
+        value: String
+      }
+
+      type Item {
+        value: Int @cost(weight: "5")
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION
+
+      directive @listSize(
+        assumedSize: Int
+        slicingArguments: [String!]
+        sizedFields: [String!]
+        requireOneSlicingArgument: Boolean = true
+      ) on FIELD_DEFINITION

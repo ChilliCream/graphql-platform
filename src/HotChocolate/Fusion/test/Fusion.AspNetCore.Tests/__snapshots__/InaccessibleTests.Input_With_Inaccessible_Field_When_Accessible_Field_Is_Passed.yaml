@@ -80,7 +80,7 @@ operationPlan:
         {
           shareable(input: { a: "Hello" })
         }
-      hash: 8f2de74d9defdb645d7a602b2dfeb0c2
+      hash: 8411fe2e81c109f0ba2dbccf04be2849
       searchSpace: 1
       expandedNodes: 1
   nodes:

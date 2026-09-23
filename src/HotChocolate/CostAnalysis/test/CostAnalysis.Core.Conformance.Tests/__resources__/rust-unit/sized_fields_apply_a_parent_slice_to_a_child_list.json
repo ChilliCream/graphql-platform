@@ -1,0 +1,17 @@
+{
+  "id": "sized_fields_apply_a_parent_slice_to_a_child_list",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\ntype Edge { node: String }\ntype Connection { edges: [Edge] }\ntype Query {\n  items(first: Int): Connection @listSize(\n    slicingArguments: [\"first\"]\n    sizedFields: [\"edges\"]\n  )\n}\n",
+  "operation": "query Example($first: Int!) { items(first: $first) { edges { node } } }",
+  "operationName": "Example",
+  "variables": {
+    "first": 3
+  },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 5,
+    "fieldCost": 2
+  },
+  "notes": "Port of estimator.rs test `sized_fields_apply_a_parent_slice_to_a_child_list` at line 1285, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. The source asserts the same result for both backends; this fixture carries the ExactCase row."
+}

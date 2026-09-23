@@ -74,6 +74,123 @@ Validates the merged schema as a whole. The rules here treat the composed schema
 
 Performs reachability analysis. Starting from the root types, the pipeline walks every reachable field in the merged schema and confirms it can be resolved by at least one subgraph given the available `@lookup` and `@key` paths. If a field is reachable from a query but no subgraph can produce it, satisfiability reports `UNSATISFIABLE_QUERY_PATH`. This is normally an error. When source-schema node resolution has a usable dispatcher but does not cover a composite `Node` type, Fusion reports a warning because the source resolver can return `null` or an error at runtime.
 
+# Cost Metadata Derivation
+
+Fusion composition records each compatible source usage as an internal `@fusion__cost` or `@fusion__listSize` provenance entry, folds the source values, and projects the result as a public directive. A public `@cost` or `@listSize` directive is emitted only when at least one source has a compatible usage. The internal entries identify the source schema and preserve its declared values. An unannotated serving source contributes the coordinate default to the public `@cost` fold without adding an internal provenance entry.
+
+Both folds only consider serving sources: a source schema that resolves the field itself. A source that provides the field only as partial (for example an Apollo Federation `@external` field returned through `@provides`) is not a serving source for either fold, so an unannotated partial member contributes neither the coordinate's default weight nor a gap that widens the `@listSize` bound. Its own `@cost` or `@listSize` usage, when declared, still folds in and is still recorded as its own provenance entry.
+
+A usage without a local directive definition receives the canonical definition during composition. A locally declared definition can use a compatible subset of the canonical arguments.
+
+For `@cost`, the public weight is the maximum effective weight across every serving source. A declared weight is effective as written. An unannotated serving source contributes the default for the coordinate:
+
+| Coordinate                                            | Default weight |
+| ----------------------------------------------------- | -------------- |
+| Object type                                           | `1`            |
+| Scalar or enum type                                   | `0`            |
+| Output field returning an object, interface, or union | `1`            |
+| Output field returning a scalar or enum               | `0`            |
+| Argument or input field with an input-object value    | `1`            |
+| Argument or input field with a scalar, enum, or ID    | `0`            |
+
+For example, a composite-typed coordinate with weight `-7` in one source and no declared weight in another source derives the public weight `1`. Given these two source schemas:
+
+```graphql
+# Schema A
+type Query {
+  book: Book @cost(weight: "-7")
+}
+
+type Book {
+  id: ID
+}
+```
+
+```graphql
+# Schema B
+type Query {
+  book: Book
+}
+
+type Book {
+  id: ID
+}
+```
+
+Composition folds `Query.book` to the public weight `1` and records schema A's declared value as its own provenance entry; schema B contributes the coordinate default without one:
+
+```graphql
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  book: Book
+    @cost(weight: "1")
+    @fusion__cost(schema: A, weight: "-7")
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+}
+```
+
+The public `@listSize` directive applies these folds:
+
+| Argument                             | Fold                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `assumedSize`                        | Maximum over sources that declare it.                                  |
+| `slicingArguments` and `sizedFields` | Deterministic union in first-seen order.                               |
+| `requireOneSlicingArgument`          | Apply each source definition's default when omitted, then true if any. |
+| `slicingArgumentDefaultValue`        | Maximum over sources that declare it.                                  |
+
+The name unions are preserved as declared. A name that does not match an argument or child field in the composite schema contributes no runtime value, and list-size selection continues through its remaining fallbacks.
+
+For `assumedSize`, given these two source schemas:
+
+```graphql
+# Schema A
+type Query {
+  field: [Int] @listSize(assumedSize: 10)
+}
+```
+
+```graphql
+# Schema B
+type Query {
+  field: [Int] @listSize(assumedSize: 5)
+}
+```
+
+Composition folds `assumedSize` to the maximum of the two, `10`, and records both declared values as provenance entries:
+
+```graphql
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  field: [Int]
+    @listSize(assumedSize: 10)
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+    @fusion__listSize(schema: A, assumedSize: 10)
+    @fusion__listSize(schema: B, assumedSize: 5)
+}
+```
+
+The `slicingArgumentDefaultValue` argument is optional. A source can use a spec-only `@listSize` definition that omits this ChilliCream extension, and it composes without a warning. If every source omits the value, the public directive omits it too.
+
+Composition reports a normal `INVALID_GRAPHQL` error for invalid locally declared definitions. Applying an argument-less local `@cost` definition reports `The @cost directive must have a 'weight' argument of type String.`, the source schema name, and the usage coordinate.
+
+## Default List Size
+
+The assumed size for a list field that carries no applicable `@listSize` information is a composition setting, not a gateway runtime option. Set `SourceSchemaMergerOptions.DefaultListSize` on the composer:
+
+```csharp
+var options = new SchemaComposerOptions
+{
+    Merger =
+    {
+        DefaultListSize = 100
+    }
+};
+```
+
+When set, composition writes the value onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and folds it into the effective `assumedSize` of a field for which at least one serving source declares a `@listSize`, so the public `@listSize` reflects the higher, sound bound. For a field no source annotates, composition emits no `@listSize` and the gateway applies the value directly from `@fusion__cost_options`. When absent (the default), no `@fusion__cost_options` usage is emitted and the gateway treats an unannotated list as unbounded.
+
+See [Cost Analysis](./cost-analysis.md) for gateway enforcement, reporting, and options.
+
 # Common Scenarios
 
 A few rules account for most composition failures. Knowing the shape of the error helps you spot the cause quickly.

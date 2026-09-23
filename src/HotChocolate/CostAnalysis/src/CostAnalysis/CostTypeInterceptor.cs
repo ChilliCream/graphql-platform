@@ -107,19 +107,19 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                 foreach (var argumentDef in fieldDef.Arguments)
                 {
                     if ((argumentDef.Flags & CoreFieldFlags.FilterArgument) == CoreFieldFlags.FilterArgument
-                        && _options.Sorting.DefaultSortArgumentCost.HasValue
-                        && !fieldDef.HasCostDirective())
-                    {
-                        argumentDef.AddDirective(
-                            new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
-                            completionContext.DescriptorContext.TypeInspector);
-                    }
-                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
                         && _options.Filtering.DefaultFilterArgumentCost.HasValue
-                        && !fieldDef.HasCostDirective())
+                        && !argumentDef.HasCostDirective())
                     {
                         argumentDef.AddDirective(
                             new CostDirective(_options.Filtering.DefaultFilterArgumentCost.Value),
+                            completionContext.DescriptorContext.TypeInspector);
+                    }
+                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
+                        && _options.Sorting.DefaultSortArgumentCost.HasValue
+                        && !argumentDef.HasCostDirective())
+                    {
+                        argumentDef.AddDirective(
+                            new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
                             completionContext.DescriptorContext.TypeInspector);
                     }
                 }

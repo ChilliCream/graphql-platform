@@ -150,9 +150,6 @@
   <data name="ErrorHelper_StateInvalidForOperationResolver_Message" xml:space="preserve">
     <value>Either no query document exists or the document validation result is invalid.</value>
   </data>
-  <data name="ErrorHelper_StateInvalidForOperationVariableCoercion_Message" xml:space="preserve">
-    <value>There is no operation on the context which can be used to coerce variables.</value>
-  </data>
   <data name="ErrorHelper_StateInvalidForOperationExecution_Message" xml:space="preserve">
     <value>Either no compiled operation was found or the variables have not been coerced.</value>
   </data>
