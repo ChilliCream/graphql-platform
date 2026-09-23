@@ -18,5 +18,7 @@ public sealed record FusionConfiguration(
     JsonDocumentOwner Settings)
     : IDisposable
 {
+    public string? PlanningFingerprint { get; init; }
+
     public void Dispose() => Settings.Dispose();
 }
