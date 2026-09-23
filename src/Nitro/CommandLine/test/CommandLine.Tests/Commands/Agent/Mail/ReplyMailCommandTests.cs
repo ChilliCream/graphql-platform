@@ -43,9 +43,9 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await ExecuteCommandAsync("agent", "register", "--actor", "carol");
+        await SeedAgentAsync("alice");
+        await SeedAgentAsync("bob");
+        await SeedAgentAsync("carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
         await SetupSuccessfulWakeAsync("host-reply-all-test", "alice", "carol");
 
@@ -67,7 +67,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await SeedAgentAsync("alice");
         var originalId = await SendOriginalMessageAsync("alice", "Note to self", "alice");
 
         // act
@@ -84,9 +84,9 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await ExecuteCommandAsync("agent", "register", "--actor", "carol");
+        await SeedAgentAsync("alice");
+        await SeedAgentAsync("bob");
+        await SeedAgentAsync("carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
 
         // act
@@ -120,8 +120,8 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAgentAsync("alice");
+        await SeedAgentAsync("bob");
         var originalId = await SendOriginalMessageAsync("alice", "Root subject", "bob");
         await SetupSuccessfulWakeAsync("host-reply-thread-test", "alice");
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -148,8 +148,8 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
-        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        await SeedAgentAsync("alice");
+        await SeedAgentAsync("bob");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
         var queueClient = await SetupSuccessfulWakeAsync("host-reply-nudge-test", "alice");
 
@@ -170,7 +170,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await SeedAgentAsync("alice");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "alice");
 
         // act

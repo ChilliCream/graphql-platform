@@ -20,6 +20,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     private readonly string _workspaceDirectory;
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentRegistry _registry;
+    private readonly AgentStore _agentStore;
     private readonly AgentDatabase _database;
     private readonly MailStore _store;
 
@@ -35,12 +36,13 @@ public sealed class MailStoreTests : IAsyncDisposable
 
         _database = new AgentDatabase();
         _registry = new AgentRegistry(new TestFileSystem(_workingDirectory), _timeProvider, _database);
+        _agentStore = new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, _database);
         _store = CreateStore();
     }
 
     /// <summary>
     /// Creates a new <see cref="MailStore"/> bound to this test's file
-    /// system, clock, database, and registry, with a fixed instance id and
+    /// system, clock, database, and agent store, with a fixed instance id and
     /// global config directory. Concurrency tests create one of these per
     /// racing caller.
     /// </summary>
@@ -49,9 +51,25 @@ public sealed class MailStoreTests : IAsyncDisposable
             new TestFileSystem(_workingDirectory),
             _timeProvider,
             _database,
-            _registry,
+            _agentStore,
             new FixedInstanceIdProvider(InstanceId),
             new FixedGlobalConfigDirectoryProvider(_workingDirectory));
+
+    /// <summary>
+    /// Soft-deletes the named agent directly, bypassing the store, since delete mechanics
+    /// are a different ticket's scope.
+    /// </summary>
+    private async Task MarkDeletedAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agents SET deleted_at = @now WHERE name = @name";
+        command.Parameters.AddWithValue("@now", _timeProvider.GetUtcNow());
+        command.Parameters.AddWithValue("@name", name);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -129,25 +147,40 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task SendMessageAsync_Should_CreateImplicitRow_When_RecipientUnknown()
+    public async Task SendMessageAsync_Should_Throw_When_ToRecipientUnknown()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
 
         // act
-        var message = await SendAsync("claude", "hello", ["bob", "alice"], null, cancellationToken);
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => SendAsync("claude", "hello", ["bob"], null, cancellationToken));
 
         // assert
-        Assert.Equal(["bob", "alice"], message.Unregistered);
-        var bob = await _registry.GetAsync("bob", cancellationToken);
-        var alice = await _registry.GetAsync("alice", cancellationToken);
-        Assert.True(bob?.Implicit);
-        Assert.True(alice?.Implicit);
+        Assert.Equal("Unknown agent 'bob'. Look the name up with 'nitro agent list'.", exception.Message);
     }
 
     [Fact]
-    public async Task SendMessageAsync_Should_ReportOnlyUnknownRecipients_When_Mixed()
+    public async Task SendMessageAsync_Should_Throw_When_CcRecipientDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("dave", cancellationToken);
+        await MarkDeletedAsync("dave", cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => SendAsync("claude", "hello", ["bob"], ["dave"], cancellationToken));
+
+        // assert
+        Assert.Equal("Agent 'dave' was deleted. Look the name up with 'nitro agent list'.", exception.Message);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_Should_WriteNothing_When_ARecipientIsRejected()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -155,41 +188,30 @@ public sealed class MailStoreTests : IAsyncDisposable
         await SeedAgentAsync("bob", cancellationToken);
 
         // act
-        var message = await SendAsync("claude", "hello", ["bob", "dave"], null, cancellationToken);
+        await Assert.ThrowsAsync<ExitException>(
+            () => SendAsync("claude", "rejected", ["bob", "ghost"], null, cancellationToken));
 
         // assert
-        Assert.Equal(["dave"], message.Unregistered);
+        Assert.Equal(0L, await CountAsync("messages", "subject = 'rejected'", cancellationToken));
+        Assert.Equal(0L, await CountAsync("message_recipients", "recipient = 'bob'", cancellationToken));
     }
 
     [Fact]
-    public async Task SendMessageAsync_Should_ReportStillImplicitRecipient_When_AlreadyImplicit()
+    public async Task SendMessageAsync_Should_CreateNoAgentsRow_When_SendingToKnownRecipients()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
-        await SendAsync("claude", "first", ["dave"], null, cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var before = await CountAsync("agents", "1 = 1", cancellationToken);
 
         // act
-        var second = await SendAsync("claude", "second", ["dave"], null, cancellationToken);
+        await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
 
-        // assert
-        Assert.Equal(["dave"], second.Unregistered);
-    }
-
-    [Fact]
-    public async Task SendMessageAsync_Should_NotReportRegisteredRecipient_When_ImplicitRegistersAfterwards()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitWorkspaceAsync(cancellationToken);
-        await SendAsync("claude", "first", ["dave"], null, cancellationToken);
-        await _registry.RegisterAsync("dave", role: "", client: "", cancellationToken);
-
-        // act
-        var second = await SendAsync("claude", "second", ["dave"], null, cancellationToken);
-
-        // assert
-        Assert.Empty(second.Unregistered);
+        // assert: neither the unknown sender "claude" nor recipient "bob" minted a new row.
+        var after = await CountAsync("agents", "1 = 1", cancellationToken);
+        Assert.Equal(before, after);
+        Assert.Null(await _registry.GetAsync("claude", cancellationToken));
     }
 
     [Fact]
@@ -202,22 +224,6 @@ public sealed class MailStoreTests : IAsyncDisposable
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
             () => SendAsync("claude", "hello", ["Dave!"], null, cancellationToken));
-    }
-
-    [Fact]
-    public async Task SendMessageAsync_Should_AutoRegisterSender_When_NotAlreadyRegistered()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitWorkspaceAsync(cancellationToken);
-        await SeedAgentAsync("bob", cancellationToken);
-
-        // act
-        await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
-
-        // assert
-        var sender = await _registry.GetAsync("claude", cancellationToken);
-        Assert.NotNull(sender);
     }
 
     [Fact]
@@ -306,6 +312,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var original = await SendAsync("claude", "note to self", ["claude"], null, cancellationToken);
 
         // act
@@ -398,6 +405,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var original = await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
 
         // act
@@ -1684,6 +1692,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var ownMessage = await SendAsync("claude", "mine", ["bob"], null, cancellationToken);
         await SendAsync("bob", "not mine", ["claude"], null, cancellationToken);
 
@@ -1701,6 +1710,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var message = await SendAsync("claude", "note to self", ["claude"], null, cancellationToken);
 
         // act

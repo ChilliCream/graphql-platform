@@ -47,7 +47,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// clock, for seeding data without going through the CLI.
     /// </summary>
     internal MailStore CreateStore()
-        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry());
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateAgentStore());
 
     /// <summary>
     /// Creates an <see cref="IMailStore"/> like <see cref="CreateStore"/>,
@@ -58,7 +58,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// </summary>
     internal MailStore CreateWakeStore(string instanceId)
         => new(
-            new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry(),
+            new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateAgentStore(),
             new FixedInstanceIdProvider(instanceId), new FixedGlobalConfigDirectoryProvider(WorkingDirectory));
 
     /// <summary>
@@ -66,6 +66,13 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// and clock, for seeding agents without going through the CLI.
     /// </summary>
     internal AgentRegistry CreateRegistry()
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
+
+    /// <summary>
+    /// Creates an <see cref="IAgentStore"/> bound to this test's workspace and
+    /// clock, over the same underlying agents table as <see cref="CreateRegistry"/>.
+    /// </summary>
+    internal AgentStore CreateAgentStore()
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
 
     /// <summary>
@@ -88,6 +95,13 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// </summary>
     internal Task<AgentRecord> SeedAgentAsync(string name, string role = "")
         => CreateRegistry().RegisterAsync(name, role, client: "", TestContext.Current.CancellationToken);
+
+    /// <summary>
+    /// Soft-deletes the named agent directly, bypassing the store, since delete mechanics
+    /// are a different ticket's scope.
+    /// </summary>
+    internal Task MarkAgentDeletedAsync(string name)
+        => ExecuteAsync($"UPDATE agents SET deleted_at = '{FakeTime.GetUtcNow():O}' WHERE name = '{name}'");
 
     /// <summary>
     /// Sends a message directly against the store, starting a new thread.
