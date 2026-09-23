@@ -15,4 +15,11 @@ internal static class AgentSessionHarness
     /// A Nitro agent board session.
     /// </summary>
     public const string NitroBoard = "nitro-board";
+
+    /// <summary>
+    /// Returns <c>true</c> when <paramref name="harness"/> is one of the coding agent harnesses
+    /// (<see cref="ClaudeCode"/>, <see cref="Codex"/>, <see cref="Copilot"/> or <see cref="Opencode"/>).
+    /// </summary>
+    public static bool IsAgentHarness(string harness)
+        => harness is ClaudeCode or Codex or Copilot or Opencode;
 }

@@ -40,6 +40,8 @@ internal sealed class AgentStore(
         AgentSessionStartRequest request,
         CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(request.Harness);
+
         var now = timeProvider.GetUtcNow();
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -107,6 +109,8 @@ internal sealed class AgentStore(
 
     public async Task<bool> TouchSessionAsync(string harness, string sessionId, CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(harness);
+
         var now = timeProvider.GetUtcNow();
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -135,6 +139,8 @@ internal sealed class AgentStore(
 
     public async Task<bool> EndSessionAsync(string harness, string sessionId, CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(harness);
+
         var now = timeProvider.GetUtcNow();
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -185,6 +191,8 @@ internal sealed class AgentStore(
     public async Task<AgentRow?> FindBySessionAsync(
         string harness, string sessionId, CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(harness);
+
         await using var connection = await ConnectAsync(cancellationToken);
 
         return await FindBySessionWithinTransactionAsync(connection, null, harness, sessionId, cancellationToken);
@@ -198,6 +206,14 @@ internal sealed class AgentStore(
         command.CommandText = $"SELECT {AgentRow.Columns} FROM agents WHERE deleted_at IS NULL";
 
         return await ReadAllAsync(command, cancellationToken);
+    }
+
+    private static void EnsureAgentHarness(string harness)
+    {
+        if (!AgentSessionHarness.IsAgentHarness(harness))
+        {
+            throw ThrowHelper.UnknownAgentHarness(harness);
+        }
     }
 
     private static async Task<AgentRow?> FindBySessionWithinTransactionAsync(

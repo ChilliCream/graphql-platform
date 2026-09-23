@@ -45,6 +45,8 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
     public Task<AgentSessionStartResult> StartSessionAsync(
         AgentSessionStartRequest request, CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(request.Harness);
+
         var now = timeProvider.GetUtcNow();
         var index = _rows.FindIndex(r => r.Harness == request.Harness && r.SessionId == request.SessionId);
 
@@ -103,6 +105,8 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
 
     public Task<bool> TouchSessionAsync(string harness, string sessionId, CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(harness);
+
         var index = _rows.FindIndex(r => r.Harness == harness && r.SessionId == sessionId && !r.IsDeleted);
 
         if (index < 0)
@@ -132,6 +136,8 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
 
     public Task<bool> EndSessionAsync(string harness, string sessionId, CancellationToken cancellationToken)
     {
+        EnsureAgentHarness(harness);
+
         var index = _rows.FindIndex(r => r.Harness == harness && r.SessionId == sessionId && !r.IsDeleted);
 
         if (index < 0)
@@ -173,10 +179,22 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
     }
 
     public Task<AgentRow?> FindBySessionAsync(string harness, string sessionId, CancellationToken cancellationToken)
-        => Task.FromResult(_rows.FirstOrDefault(r => r.Harness == harness && r.SessionId == sessionId));
+    {
+        EnsureAgentHarness(harness);
+
+        return Task.FromResult(_rows.FirstOrDefault(r => r.Harness == harness && r.SessionId == sessionId));
+    }
 
     public Task<IReadOnlyList<AgentRow>> ListAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<AgentRow>>(_rows.Where(r => !r.IsDeleted).ToList());
+
+    private static void EnsureAgentHarness(string harness)
+    {
+        if (!AgentSessionHarness.IsAgentHarness(harness))
+        {
+            throw ThrowHelper.UnknownAgentHarness(harness);
+        }
+    }
 
     /// <summary>
     /// Picks the first unused name from <see cref="AgentNamePool"/>, then falls back to a
