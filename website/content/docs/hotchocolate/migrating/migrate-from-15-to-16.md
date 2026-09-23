@@ -1553,6 +1553,23 @@ The public `HotChocolate.Data.Projections.ProjectionFeature` record has been rem
 
 Use the existing `IsProjected()` descriptor extension or the `[IsProjected]` attribute to configure projection behavior; reading the feature from a field's `Features` collection is no longer possible.
 
+## Sorting is applied after the resolver's projection
+
+Hot Chocolate 16.0 through 16.6.6 moved a sort in front of the resolver's `Select` projection when it could map the sorted field back to the source, and removed `.DateTime` from `DateTimeOffset` members while doing so. Sorting is now applied to the `IQueryable<T>` that the resolver returns, after its `Select` projection, as in Hot Chocolate 15. This change lands in **16.6.7**.
+
+A sorted field that the projection assigns from `DateTimeOffset.DateTime` is now sorted on `DateTimeOffset.DateTime`:
+
+```csharp
+[UseSorting]
+public static IQueryable<OrderDto> GetOrders(CatalogContext db)
+    => db.Orders.Select(o => new OrderDto { Id = o.Id, PlacedAt = o.PlacedAt.DateTime });
+```
+
+- **SQL Server with EF Core 8, 9, or 10** does not translate `DateTimeOffset.DateTime`, so sorting on `placedAt` fails with EF Core's "could not be translated" error. See [Troubleshooting](../fetching-data/sorting.md#the-linq-expression-could-not-be-translated) for the fixes.
+- **SQL Server with EF Core 11** sorts by the local date and time instead of the UTC instant, which changes the order when rows have different offsets.
+
+`OnAfterSortingApplied` callbacks can call `ThenBy` again when the resolver ends with a `Select` projection.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
