@@ -288,7 +288,7 @@ An operation whose exact compile would exceed `CaseBudget` is, by default (`Case
 
 # Per-Request Cost Options
 
-`FusionCostOptions` apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by calling `ModifyCostOptions` on the `OperationRequestBuilder` or the `RequestContext`. The delegate runs against a copy of the gateway's `FusionCostOptions`, so a value it does not touch keeps the gateway's value for that request, and a value it does set replaces the gateway's value for that request, in either direction: a request can raise a limit above the gateway default or lower it below the gateway default. Calling `ModifyCostOptions` more than once for the same request applies every delegate in registration order. Only `MaxFieldCost`, `MaxTypeCost`, `EnforceCostLimits`, `SkipAnalyzer`, and `MaxResponseSize` take effect when set through `ModifyCostOptions`. Other `FusionCostOptions` values set by a delegate have no effect.
+`FusionCostOptions` apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding gateway value for that request, in either direction: a request can raise a limit above the gateway default or lower it below the gateway default. Attached request options replace all of the gateway's limits for that request, and a `null` `MaxResponseSize` on the request means that request has no response-size limit.
 
 The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for every HTTP request and has access to the authenticated user, letting it pick request options based on group membership before the operation executes:
 
@@ -301,12 +301,13 @@ public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
     {
         if (context.User.IsInRole("developer"))
         {
-            requestBuilder.ModifyCostOptions(o =>
-            {
-                o.MaxFieldCost = 5_000;
-                o.MaxTypeCost = 5_000;
-                o.MaxResponseSize = 50_000;
-            });
+            requestBuilder.SetCostOptions(
+                new FusionRequestCostOptions(
+                    maxFieldCost: 5_000,
+                    maxTypeCost: 5_000,
+                    enforceCostLimits: true,
+                    skipAnalyzer: false,
+                    maxResponseSize: 50_000));
         }
 
         return base.OnCreateAsync(context, requestExecutor, requestBuilder,
@@ -324,13 +325,13 @@ builder.Services
 
 Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the gateway's configured limits, while every other request keeps enforcing the gateway's configured limits.
 
-Response-size analysis itself is an opt-in that is only ever enabled per gateway, by setting `FusionCostOptions.MaxResponseSize`. A request cannot turn the analysis on: if the gateway leaves `MaxResponseSize` unset (`null`) and a request's `ModifyCostOptions` delegate nonetheless sets `MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
+Response-size analysis itself is an opt-in that is only ever enabled per gateway, by setting `FusionCostOptions.MaxResponseSize`. A request cannot turn the analysis on: if the gateway leaves `MaxResponseSize` unset (`null`) and a request nonetheless sets `FusionRequestCostOptions.MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
 
 > The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.
 
 To enable the check, set `FusionCostOptions.MaxResponseSize` on the gateway first; requests may then raise or lower it as needed.
 
-Setting `SkipAnalyzer` from a request's `ModifyCostOptions` delegate bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored.
+Setting `FusionRequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored.
 
 # Accessing the Analysis Result
 

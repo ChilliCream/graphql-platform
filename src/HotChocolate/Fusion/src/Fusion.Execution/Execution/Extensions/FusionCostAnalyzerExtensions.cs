@@ -11,87 +11,47 @@ namespace HotChocolate.Execution;
 public static class FusionCostAnalyzerExtensions
 {
     /// <summary>
-    /// Registers a callback that modifies the cost options for the current request.
+    /// Sets the cost options for the current request.
     /// </summary>
     /// <param name="builder">
     /// The operation request builder.
     /// </param>
-    /// <param name="configure">
-    /// A delegate that modifies a copy of the gateway's <see cref="FusionCostOptions"/> for this
-    /// request. Multiple delegates apply in registration order.
+    /// <param name="options">
+    /// The cost options.
     /// </param>
     /// <returns>
     /// Returns the operation request builder.
     /// </returns>
-    public static OperationRequestBuilder ModifyCostOptions(
+    public static OperationRequestBuilder SetCostOptions(
         this OperationRequestBuilder builder,
-        Action<FusionCostOptions> configure)
+        FusionRequestCostOptions options)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(configure);
+        ArgumentNullException.ThrowIfNull(options);
 
-        var modifiers = builder.Features.Get<FusionCostOptionsModifiers>();
-
-        if (modifiers is null)
-        {
-            modifiers = new FusionCostOptionsModifiers();
-            builder.Features.Set(modifiers);
-        }
-
-        modifiers.Modifiers.Add(configure);
+        builder.Features.Set(options);
         return builder;
     }
 
     /// <summary>
-    /// Registers a callback that modifies the cost options for the current request.
+    /// Sets the cost options for the current request.
     /// </summary>
     /// <param name="context">
     /// The request context.
     /// </param>
-    /// <param name="configure">
-    /// A delegate that modifies a copy of the gateway's <see cref="FusionCostOptions"/> for this
-    /// request. Multiple delegates apply in registration order.
+    /// <param name="options">
+    /// The cost options.
     /// </param>
-    public static void ModifyCostOptions(this RequestContext context, Action<FusionCostOptions> configure)
+    public static void SetCostOptions(this RequestContext context, FusionRequestCostOptions options)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(configure);
+        ArgumentNullException.ThrowIfNull(options);
 
-        var existing = context.Features.Get<FusionCostOptionsModifiers>();
-        var modifiers = new FusionCostOptionsModifiers();
-
-        if (existing is not null)
-        {
-            modifiers.Modifiers.AddRange(existing.Modifiers);
-        }
-
-        modifiers.Modifiers.Add(configure);
-        context.Features.Set(modifiers);
+        context.Features.Set(options);
     }
 
-    /// <summary>
-    /// Gets the cost options in effect for the request: a copy of <paramref name="gatewayOptions"/>
-    /// with every registered <c>ModifyCostOptions</c> delegate applied, or
-    /// <paramref name="gatewayOptions"/> itself when the request registered no delegate.
-    /// </summary>
-    internal static FusionCostOptions GetEffectiveCostOptions(
-        this RequestContext context,
-        FusionCostOptions gatewayOptions)
+    internal static FusionRequestCostOptions? TryGetCostOptions(this RequestContext context)
     {
-        if (!context.Features.TryGet<FusionCostOptionsModifiers>(out var modifiers))
-        {
-            return gatewayOptions;
-        }
-
-        var options = gatewayOptions.Clone();
-
-        foreach (var configure in modifiers.Modifiers)
-        {
-            configure(options);
-        }
-
-        options.MakeReadOnly();
-
-        return options;
+        return context.Features.TryGet<FusionRequestCostOptions>(out var options) ? options : null;
     }
 }

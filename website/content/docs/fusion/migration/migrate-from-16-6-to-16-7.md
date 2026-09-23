@@ -1,6 +1,6 @@
 ---
 title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
-description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header, and override cost limits per request with ModifyCostOptions."
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header, and override cost limits per request with FusionRequestCostOptions."
 ---
 
 Update every Hot Chocolate Fusion package in the application to version 16.7 before applying these changes.
@@ -143,7 +143,7 @@ The deprecated raw overloads continue to work for operations with at most 64 con
 
 ## Per-request cost options
 
-A gateway can override `FusionCostOptions` for a single request by calling `OperationRequestBuilder.ModifyCostOptions`, typically from an `IHttpRequestInterceptor`. See [Per-Request Cost Options](../cost-analysis.md#per-request-cost-options) for the contract.
+A gateway can override `FusionCostOptions` for a single request by attaching a `FusionRequestCostOptions` to it with `OperationRequestBuilder.SetCostOptions`, typically from an `IHttpRequestInterceptor`. See [Per-Request Cost Options](../cost-analysis.md#per-request-cost-options) for the contract.
 
 ## Default maximum type cost is 10,000
 

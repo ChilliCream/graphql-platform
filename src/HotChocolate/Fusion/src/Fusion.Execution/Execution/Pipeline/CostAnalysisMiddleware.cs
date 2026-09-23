@@ -30,7 +30,10 @@ internal sealed class CostAnalysisMiddleware
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var effectiveOptions = context.GetEffectiveCostOptions(_options);
+        var requestOptions = context.TryGetCostOptions();
+        var effectiveOptions = requestOptions is null
+            ? new EffectiveCostOptions(_options)
+            : new EffectiveCostOptions(requestOptions);
         var mode = GetMode(context, effectiveOptions);
 
         if (mode == CostAnalysisMode.Skip)
@@ -39,7 +42,7 @@ internal sealed class CostAnalysisMiddleware
         }
 
         // A request can override the response-size limit only if the gateway enables the analysis.
-        if (effectiveOptions.MaxResponseSize.HasValue && !_options.MaxResponseSize.HasValue)
+        if (requestOptions?.MaxResponseSize.HasValue == true && !_options.MaxResponseSize.HasValue)
         {
             context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
             return default;
@@ -153,7 +156,7 @@ internal sealed class CostAnalysisMiddleware
 
     private static bool TryGetViolation(
         CostEstimate estimate,
-        FusionCostOptions options,
+        EffectiveCostOptions options,
         out CostEstimate? rejectedEstimate,
         out CostLimitKind limitKind,
         out double limit)
@@ -191,7 +194,7 @@ internal sealed class CostAnalysisMiddleware
 
     private static bool TryGetBatchViolation(
         ImmutableArray<CostEstimate> estimates,
-        FusionCostOptions options,
+        EffectiveCostOptions options,
         out CostEstimate? rejectedEstimate,
         out CostLimitKind limitKind,
         out double limit)
@@ -255,7 +258,7 @@ internal sealed class CostAnalysisMiddleware
             : CostResultHelper.AddCost(context.Result, estimates);
     }
 
-    private static CostAnalysisMode GetMode(RequestContext context, FusionCostOptions options)
+    private static CostAnalysisMode GetMode(RequestContext context, EffectiveCostOptions options)
     {
         if (options.SkipAnalyzer)
         {
@@ -280,6 +283,38 @@ internal sealed class CostAnalysisMiddleware
         }
 
         return mode;
+    }
+
+    /// <summary>
+    /// The cost limits in effect for one request: the request-level <see cref="FusionRequestCostOptions"/>
+    /// when the request set one, otherwise the gateway's <see cref="FusionCostOptions"/>.
+    /// </summary>
+    private readonly record struct EffectiveCostOptions(
+        double MaxFieldCost,
+        double MaxTypeCost,
+        bool EnforceCostLimits,
+        bool SkipAnalyzer,
+        double? MaxResponseSize)
+    {
+        public EffectiveCostOptions(FusionCostOptions options)
+            : this(
+                options.MaxFieldCost,
+                options.MaxTypeCost,
+                options.EnforceCostLimits,
+                options.SkipAnalyzer,
+                options.MaxResponseSize)
+        {
+        }
+
+        public EffectiveCostOptions(FusionRequestCostOptions options)
+            : this(
+                options.MaxFieldCost,
+                options.MaxTypeCost,
+                options.EnforceCostLimits,
+                options.SkipAnalyzer,
+                options.MaxResponseSize)
+        {
+        }
     }
 
     public static RequestMiddlewareConfiguration Create()
