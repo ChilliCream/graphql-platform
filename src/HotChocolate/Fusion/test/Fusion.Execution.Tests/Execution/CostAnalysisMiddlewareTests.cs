@@ -703,7 +703,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task RequestCostOptions_Should_ApplyModifiersInOrder_When_ModifyCostOptionsIsCalledTwice()
+    public async Task RequestCostOptions_Should_ApplyEachModifierInOrder_When_ModifyCostOptionsIsCalledTwice()
     {
         // arrange
         var observation = new CostObservation();
@@ -717,8 +717,13 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         var executor = await services.GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         using var request = OperationRequestBuilder.New()
-            .SetDocument("{ costlyLeaf }")
-            .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 1)
+            .SetDocument(ItemsQuery)
+            .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1 })
+            .ModifyCostOptions((FusionCostOptions o) =>
+            {
+                o.MaxFieldCost = 1;
+                o.MaxTypeCost = 1;
+            })
             .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 5000)
             .Build();
 
@@ -726,8 +731,24 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Empty(result.ExpectOperationResult().Errors);
-        Assert.Equal(1, observation.DownstreamCalls);
+        // MaxFieldCost = 5000 from the second modifier clears the field-cost limit, so a rejection
+        // can only come from MaxTypeCost = 1, which only the first modifier set.
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed type cost was exceeded.",
+                  "extensions": {
+                    "code": "HC0047",
+                    "typeCost": 2,
+                    "maxTypeCost": 1
+                  }
+                }
+              ]
+            }
+            """);
+        Assert.Equal(0, observation.DownstreamCalls);
     }
 
     [Fact]

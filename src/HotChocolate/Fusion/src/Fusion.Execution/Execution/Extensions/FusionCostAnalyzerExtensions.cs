@@ -17,9 +17,8 @@ public static class FusionCostAnalyzerExtensions
     /// The operation request builder.
     /// </param>
     /// <param name="configure">
-    /// A delegate that modifies the request's cost options. Values the delegate does not touch
-    /// keep the gateway's <see cref="FusionCostOptions"/> value. Calling this more than once
-    /// applies every delegate in registration order.
+    /// A delegate that modifies a copy of the gateway's <see cref="FusionCostOptions"/> for this
+    /// request. Multiple delegates apply in registration order.
     /// </param>
     /// <returns>
     /// Returns the operation request builder.
@@ -50,9 +49,8 @@ public static class FusionCostAnalyzerExtensions
     /// The request context.
     /// </param>
     /// <param name="configure">
-    /// A delegate that modifies the request's cost options. Values the delegate does not touch
-    /// keep the gateway's <see cref="FusionCostOptions"/> value. Calling this more than once
-    /// applies every delegate in registration order.
+    /// A delegate that modifies a copy of the gateway's <see cref="FusionCostOptions"/> for this
+    /// request. Multiple delegates apply in registration order.
     /// </param>
     public static void ModifyCostOptions(this RequestContext context, Action<FusionCostOptions> configure)
     {
