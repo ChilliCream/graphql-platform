@@ -528,8 +528,8 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     private static async Task SeedActorAsync(SqliteConnection connection, CancellationToken cancellationToken)
         => await ExecuteAsync(
             connection,
-            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES "
-            + $"('{Actor}', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+            + $"('{Actor}', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
             cancellationToken);
 
     private static async Task SeedOutboxAsync(

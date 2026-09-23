@@ -96,36 +96,125 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.DoesNotContain("proc_start", sessionColumns);
     }
 
+    /// <summary>
+    /// Seeds a raw v14-shaped database: the old six-column <c>agents</c> table,
+    /// the (unchanged) <c>agent_sessions</c> table, a task, and a piece of mail
+    /// sent by the seeded agent. InitializeAsync must wipe the agent-domain
+    /// tables, lay the new <c>agents</c> columns, and leave tasks and mail
+    /// untouched.
+    /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_PreserveTasksAndResetIdentityAndMail_When_UpgradingV8()
+    public async Task InitializeAsync_Should_WipeAgentDomainTablesAndPreserveTasksAndMail_When_ExistingVersionIsV14()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-
-        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
         {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
+            await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+                """,
+                cancellationToken);
+            await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, AgentSessionSchema.Create, cancellationToken);
+
             await ExecuteAsync(
                 connection,
                 """
                 INSERT INTO tasks (id, title, created_at, updated_at)
                 VALUES ('task-1', 'Keep me', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-                INSERT INTO agents (name, registered_at, last_seen_at)
-                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code');
+
                 INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
-                VALUES ('mail-1', 'mail-1', 'maya', 'Old mail', 'Discard me', '2026-01-10T12:00:00+00:00');
+                VALUES ('mail-1', 'mail-1', 'maya', 'Old mail', 'Keep me too', '2026-01-10T12:00:00+00:00');
                 INSERT INTO message_recipients (message_id, recipient, ordinal)
                 VALUES ('mail-1', 'maya', 0);
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    role, harness_version
+                ) VALUES (
+                    'claude-code', 'session-v14', 'maya', 'explicit', 'host-a',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
+                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3'
+                );
+
+                PRAGMA user_version = 14;
                 """,
                 cancellationToken);
-            await ExecuteAsync(connection, "PRAGMA user_version = 8", cancellationToken);
         }
 
+        // act
         await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
 
-        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM tasks", cancellationToken));
-        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM messages", cancellationToken));
-        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken));
+        // assert
         Assert.Equal(AgentDatabase.CurrentVersion,
             await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+
+        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM tasks", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM messages", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM message_recipients", cancellationToken));
+
+        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken));
+        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agent_sessions", cancellationToken));
+
+        var columns = (await QueryColumnNamesAsync(upgraded, "agents", cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("harness", columns);
+        Assert.Contains("session_id", columns);
+        Assert.Contains("started_at", columns);
+        Assert.Contains("ended_at", columns);
+        Assert.Contains("deleted_at", columns);
+    }
+
+    /// <summary>
+    /// Opening an already-current database, whether for the first time after
+    /// creation or a second time in a row, never wipes the agents already in it.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_PreserveAgentRows_When_ReopeningACurrentDatabase()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agents (name, registered_at, started_at, last_seen_at, harness, session_id)
+                VALUES ('leia', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                        '2026-01-10T12:00:00+00:00', 'claude-code', 'session-current');
+                """,
+                cancellationToken);
+        }
+
+        // act: open the already-current database twice more.
+        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+        }
+
+        await using var reopened = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(reopened, "PRAGMA user_version", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            reopened, "SELECT COUNT(*) FROM agents WHERE name = 'leia'", cancellationToken));
     }
 
     [Fact]
@@ -254,8 +343,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             upgraded,
             """
-            INSERT INTO agents (name, registered_at, last_seen_at)
-            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO agent_session_identities (
                 harness, session_id, actor, created_at, last_seen_at
             ) VALUES (
@@ -270,721 +359,6 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal("opencode", await QueryScalarStringAsync(
             upgraded,
             "SELECT harness FROM agent_session_identities WHERE session_id = 'session-1'",
-            cancellationToken));
-    }
-
-    /// <summary>
-    /// Seeds a raw v13-shaped <c>agent_sessions</c> table, predating the v14
-    /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns, with
-    /// one populated row. InitializeAsync must add both columns defaulted
-    /// to <c>0</c>, without losing the existing row, and stamp the current
-    /// version.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_AddAnnouncementAndIdlePushColumns_When_ExistingVersionIsV13()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    role TEXT NOT NULL DEFAULT '',
-                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
-                    client TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE TABLE agent_sessions (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
-                    session_id TEXT NOT NULL,
-                    agent_name TEXT NULL REFERENCES agents (name),
-                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
-                    host TEXT NOT NULL,
-                    cwd TEXT NOT NULL,
-                    workspace_path TEXT NOT NULL,
-                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
-                    endpoint_addr TEXT NOT NULL,
-                    endpoint_secret TEXT NULL,
-                    started_at TEXT NOT NULL,
-                    last_beat_at TEXT NOT NULL,
-                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
-                    last_ping_at TEXT NULL,
-                    last_ping_attempt TEXT NULL,
-                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
-                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
-                    role TEXT NOT NULL DEFAULT '',
-                    harness_version TEXT NOT NULL DEFAULT '',
-                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
-                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
-                    PRIMARY KEY (harness, session_id)
-                );
-
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-                ) VALUES (
-                    'opencode', 'session-v13', 'maya', 'explicit', 'host-a',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096',
-                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
-                );
-
-                PRAGMA user_version = 13;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        Assert.Equal(AgentDatabase.CurrentVersion,
-            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
-
-        var columns = (await QueryColumnNamesAsync(upgraded, "agent_sessions", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("announcement_pending", columns);
-        Assert.Contains("idle_push_armed", columns);
-
-        var survivingIdentity = await QueryScalarStringAsync(
-            upgraded,
-            """
-            SELECT agent_name || '|' || host || '|' || endpoint_addr
-            FROM agent_sessions
-            WHERE session_id = 'session-v13'
-            """,
-            cancellationToken);
-        Assert.Equal("maya|host-a|http://127.0.0.1:4096", survivingIdentity);
-
-        var armedFlags = await QueryScalarLongAsync(
-            upgraded,
-            "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v13'",
-            cancellationToken);
-        Assert.Equal(0, armedFlags);
-    }
-
-    /// <summary>
-    /// Tests upgrading a v13 database with Opencode endpoint and announcement
-    /// fields but no takeover tables. Preserves the seeded session and agent values
-    /// while adding takeover tables and stamping the current version.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_AddTakeoverLedgerTables_When_ExistingVersionIsPreMergeBranchStamped13()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    role TEXT NOT NULL DEFAULT '',
-                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
-                    client TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE TABLE agent_sessions (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
-                    session_id TEXT NOT NULL,
-                    agent_name TEXT NULL REFERENCES agents (name),
-                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
-                    host TEXT NOT NULL,
-                    cwd TEXT NOT NULL,
-                    workspace_path TEXT NOT NULL,
-                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
-                    endpoint_addr TEXT NOT NULL,
-                    endpoint_secret TEXT NULL,
-                    started_at TEXT NOT NULL,
-                    last_beat_at TEXT NOT NULL,
-                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
-                    last_ping_at TEXT NULL,
-                    last_ping_attempt TEXT NULL,
-                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
-                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
-                    role TEXT NOT NULL DEFAULT '',
-                    harness_version TEXT NOT NULL DEFAULT '',
-                    announcement_pending INTEGER NOT NULL DEFAULT 0 CHECK (announcement_pending IN (0, 1)),
-                    idle_push_armed INTEGER NOT NULL DEFAULT 0 CHECK (idle_push_armed IN (0, 1)),
-                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
-                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
-                    PRIMARY KEY (harness, session_id)
-                );
-
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
-                    announcement_pending, idle_push_armed
-                ) VALUES (
-                    'opencode', 'session-premerge13', 'maya', 'explicit', 'host-a',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096', 'top-secret',
-                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
-                    1, 1
-                );
-
-                PRAGMA user_version = 13;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        Assert.Equal(AgentDatabase.CurrentVersion,
-            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
-
-        Assert.Equal(1, await QueryScalarLongAsync(
-            upgraded,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
-            cancellationToken));
-        Assert.Equal(1, await QueryScalarLongAsync(
-            upgraded,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
-            cancellationToken));
-
-        var survivingSession = await QueryScalarStringAsync(
-            upgraded,
-            """
-            SELECT agent_name || '|' || endpoint_addr || '|' || endpoint_secret
-            FROM agent_sessions
-            WHERE session_id = 'session-premerge13'
-            """,
-            cancellationToken);
-        Assert.Equal("maya|http://127.0.0.1:4096|top-secret", survivingSession);
-
-        var preservedFlags = await QueryScalarLongAsync(
-            upgraded,
-            "SELECT announcement_pending + idle_push_armed FROM agent_sessions "
-            + "WHERE session_id = 'session-premerge13'",
-            cancellationToken);
-        Assert.Equal(2, preservedFlags);
-
-        var survivingAgent = await QueryScalarStringAsync(
-            upgraded, "SELECT client FROM agents WHERE name = 'maya'", cancellationToken);
-        Assert.Equal("opencode", survivingAgent);
-    }
-
-    /// <summary>
-    /// Tests upgrading a v2 agents table with an existing row to the current schema,
-    /// including default role, implicit, and client values and a session table.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_UpgradeAgentsTableInPlace_When_ExistingVersionIsUpgradable()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL
-                );
-                INSERT INTO agents (name, registered_at, last_seen_at)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-                PRAGMA user_version = 2;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var name = await QueryScalarStringAsync(
-            connection2, "SELECT name FROM agents WHERE name = 'claude'", cancellationToken);
-        var role = await QueryScalarStringAsync(
-            connection2, "SELECT role FROM agents WHERE name = 'claude'", cancellationToken);
-        var isImplicit = await QueryScalarLongAsync(
-            connection2, "SELECT implicit FROM agents WHERE name = 'claude'", cancellationToken);
-        var client = await QueryScalarStringAsync(
-            connection2, "SELECT client FROM agents WHERE name = 'claude'", cancellationToken);
-        Assert.Equal("claude", name);
-        Assert.Equal("", role);
-        Assert.Equal(0, isImplicit);
-        Assert.Equal("", client);
-
-        var agentSessionsTableCount = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'",
-            cancellationToken);
-        Assert.Equal(1, agentSessionsTableCount);
-    }
-
-    /// <summary>
-    /// Tests adding client metadata and a session table to a database stamped v3
-    /// while preserving the existing agent role.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_AddClientColumn_When_ExistingVersionIsCurrentButPredatesClient()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    role TEXT NOT NULL DEFAULT '',
-                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1))
-                );
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0);
-                PRAGMA user_version = 3;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var columns = (await QueryColumnNamesAsync(connection2, "agents", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("client", columns);
-
-        var role = await QueryScalarStringAsync(
-            connection2, "SELECT role FROM agents WHERE name = 'claude'", cancellationToken);
-        var client = await QueryScalarStringAsync(
-            connection2, "SELECT client FROM agents WHERE name = 'claude'", cancellationToken);
-        Assert.Equal("backend", role);
-        Assert.Equal("", client);
-
-        var agentSessionsTableCount = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'",
-            cancellationToken);
-        Assert.Equal(1, agentSessionsTableCount);
-    }
-
-    /// <summary>
-    /// Tests upgrading v4 session metadata with blank role and harness-version
-    /// defaults and no process-scope column. Preserves the session, its delivery
-    /// row, and the bound agent's role.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_UpgradeAgentSessionsMetadataColumns_When_ExistingVersionIsV4()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    role TEXT NOT NULL DEFAULT '',
-                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
-                    client TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE TABLE agent_sessions (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    agent_name TEXT NULL REFERENCES agents (name),
-                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
-                    host TEXT NOT NULL,
-                    pid INTEGER NOT NULL CHECK (pid > 0),
-                    proc_start TEXT NOT NULL,
-                    cwd TEXT NOT NULL,
-                    workspace_path TEXT NOT NULL,
-                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'none')),
-                    endpoint_addr TEXT NOT NULL,
-                    started_at TEXT NOT NULL,
-                    last_beat_at TEXT NOT NULL,
-                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
-                    last_ping_at TEXT NULL,
-                    last_ping_attempt TEXT NULL,
-                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
-                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
-                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
-                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
-                    PRIMARY KEY (harness, session_id)
-                );
-
-                CREATE INDEX idx_agent_sessions_name ON agent_sessions (agent_name);
-                CREATE INDEX idx_agent_sessions_pid ON agent_sessions (host, pid);
-
-                CREATE TABLE session_deliveries (
-                    harness TEXT NOT NULL,
-                    session_id TEXT NOT NULL,
-                    message_id TEXT NOT NULL,
-                    channel TEXT NOT NULL CHECK (channel IN ('digest', 'gate', 'ping')),
-                    delivered_at TEXT NOT NULL,
-                    PRIMARY KEY (harness, session_id, message_id, channel),
-                    FOREIGN KEY (harness, session_id)
-                        REFERENCES agent_sessions (harness, session_id) ON DELETE CASCADE
-                );
-
-                CREATE TABLE ping_leases (
-                    slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 1 AND 4),
-                    attempt_id TEXT NOT NULL,
-                    acquired_at TEXT NOT NULL,
-                    expires_at TEXT NOT NULL
-                );
-
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code');
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-                ) VALUES (
-                    'claude-code', 'session-v4', 'claude', 'explicit', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00'
-                );
-
-                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES ('claude-code', 'session-v4', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
-
-                PRAGMA user_version = 4;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var sessionColumns = (await QueryColumnNamesAsync(connection2, "agent_sessions", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("role", sessionColumns);
-        Assert.Contains("harness_version", sessionColumns);
-        Assert.DoesNotContain("process_scope", sessionColumns);
-
-        var agentName = await QueryScalarStringAsync(
-            connection2, "SELECT agent_name FROM agent_sessions WHERE session_id = 'session-v4'", cancellationToken);
-        Assert.Equal("claude", agentName);
-
-        var role = await QueryScalarStringAsync(
-            connection2, "SELECT role FROM agent_sessions WHERE session_id = 'session-v4'", cancellationToken);
-        var harnessVersion = await QueryScalarStringAsync(
-            connection2,
-            "SELECT harness_version FROM agent_sessions WHERE session_id = 'session-v4'",
-            cancellationToken);
-        Assert.Equal("", role);
-        Assert.Equal("", harnessVersion);
-
-        var deliveryCount = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-v4'",
-            cancellationToken);
-        Assert.Equal(1, deliveryCount);
-
-        var agentRole = await QueryScalarStringAsync(
-            connection2, "SELECT role FROM agents WHERE name = 'claude'", cancellationToken);
-        Assert.Equal("backend", agentRole);
-    }
-
-    /// <summary>
-    /// Tests upgrading a v5 session to the current schema without process-start
-    /// columns, preserving its role and delivery row.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_DropTheProcessColumns_When_ExistingVersionIsV5()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    role TEXT NOT NULL DEFAULT '',
-                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
-                    client TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE TABLE agent_sessions (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    agent_name TEXT NULL REFERENCES agents (name),
-                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
-                    host TEXT NOT NULL,
-                    pid INTEGER NOT NULL CHECK (pid > 0),
-                    proc_start TEXT NOT NULL,
-                    cwd TEXT NOT NULL,
-                    workspace_path TEXT NOT NULL,
-                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'none')),
-                    endpoint_addr TEXT NOT NULL,
-                    started_at TEXT NOT NULL,
-                    last_beat_at TEXT NOT NULL,
-                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
-                    last_ping_at TEXT NULL,
-                    last_ping_attempt TEXT NULL,
-                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
-                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
-                    role TEXT NOT NULL DEFAULT '',
-                    harness_version TEXT NOT NULL DEFAULT '',
-                    process_scope TEXT NOT NULL DEFAULT '',
-                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
-                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
-                    PRIMARY KEY (harness, session_id)
-                );
-
-                CREATE INDEX idx_agent_sessions_name ON agent_sessions (agent_name);
-                CREATE INDEX idx_agent_sessions_pid ON agent_sessions (host, pid);
-
-                CREATE TABLE session_deliveries (
-                    harness TEXT NOT NULL,
-                    session_id TEXT NOT NULL,
-                    message_id TEXT NOT NULL,
-                    channel TEXT NOT NULL CHECK (channel IN ('digest', 'gate', 'ping')),
-                    delivered_at TEXT NOT NULL,
-                    PRIMARY KEY (harness, session_id, message_id, channel),
-                    FOREIGN KEY (harness, session_id)
-                        REFERENCES agent_sessions (harness, session_id) ON DELETE CASCADE
-                );
-
-                CREATE TABLE ping_leases (
-                    slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 1 AND 4),
-                    attempt_id TEXT NOT NULL,
-                    acquired_at TEXT NOT NULL,
-                    expires_at TEXT NOT NULL
-                );
-
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code');
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    role, harness_version, process_scope
-                ) VALUES (
-                    'claude-code', 'session-v5', 'claude', 'explicit', 'host-a', 4242, '2026-01-10T12:00:00.000000+00:00',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3', 'pidns:4242'
-                );
-
-                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES ('claude-code', 'session-v5', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
-
-                PRAGMA user_version = 5;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var sessionColumns = (await QueryColumnNamesAsync(connection2, "agent_sessions", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.DoesNotContain("proc_start", sessionColumns);
-        Assert.DoesNotContain("proc_start_legacy", sessionColumns);
-
-        var role = await QueryScalarStringAsync(
-            connection2, "SELECT role FROM agent_sessions WHERE session_id = 'session-v5'", cancellationToken);
-        Assert.Equal("backend", role);
-
-        var deliveryCount = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-v5'",
-            cancellationToken);
-        Assert.Equal(1, deliveryCount);
-    }
-
-    /// <summary>
-    /// Tests upgrading a v4 ping-result constraint to accept <c>unsupported</c>
-    /// while preserving the session and delivery cascade. Invalid ping results
-    /// remain rejected.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_RebuildAgentSessionsCheckConstraint_When_ExistingV4DatabasePredatesUnsupported()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agents (
-                    name TEXT PRIMARY KEY,
-                    registered_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    role TEXT NOT NULL DEFAULT '',
-                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
-                    client TEXT NOT NULL DEFAULT ''
-                );
-
-                CREATE TABLE agent_sessions (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    agent_name TEXT NULL REFERENCES agents (name),
-                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
-                    host TEXT NOT NULL,
-                    pid INTEGER NOT NULL CHECK (pid > 0),
-                    proc_start TEXT NOT NULL,
-                    cwd TEXT NOT NULL,
-                    workspace_path TEXT NOT NULL,
-                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'none')),
-                    endpoint_addr TEXT NOT NULL,
-                    started_at TEXT NOT NULL,
-                    last_beat_at TEXT NOT NULL,
-                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
-                    last_ping_at TEXT NULL,
-                    last_ping_attempt TEXT NULL,
-                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error') OR last_ping_result IS NULL),
-                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
-                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
-                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
-                    PRIMARY KEY (harness, session_id)
-                );
-
-                CREATE INDEX idx_agent_sessions_name ON agent_sessions (agent_name);
-                CREATE INDEX idx_agent_sessions_pid ON agent_sessions (host, pid);
-
-                CREATE TABLE session_deliveries (
-                    harness TEXT NOT NULL,
-                    session_id TEXT NOT NULL,
-                    message_id TEXT NOT NULL,
-                    channel TEXT NOT NULL CHECK (channel IN ('digest', 'gate', 'ping')),
-                    delivered_at TEXT NOT NULL,
-                    PRIMARY KEY (harness, session_id, message_id, channel),
-                    FOREIGN KEY (harness, session_id)
-                        REFERENCES agent_sessions (harness, session_id) ON DELETE CASCADE
-                );
-
-                CREATE TABLE ping_leases (
-                    slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 1 AND 4),
-                    attempt_id TEXT NOT NULL,
-                    acquired_at TEXT NOT NULL,
-                    expires_at TEXT NOT NULL
-                );
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    last_ping_result
-                ) VALUES (
-                    'claude-code', 'session-old', NULL, 'none', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00', 'ok'
-                );
-
-                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES ('claude-code', 'session-old', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
-
-                PRAGMA user_version = 4;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var existingLastPingResult = await QueryScalarStringAsync(
-            connection2,
-            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-old'",
-            cancellationToken);
-        Assert.Equal("ok", existingLastPingResult);
-
-        var sessionColumns = (await QueryColumnNamesAsync(connection2, "agent_sessions", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.DoesNotContain("pid", sessionColumns);
-        Assert.DoesNotContain("proc_start", sessionColumns);
-
-        var deliveryCount = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-old'",
-            cancellationToken);
-        Assert.Equal(1, deliveryCount);
-
-        await ExecuteAsync(
-            connection2,
-            "UPDATE agent_sessions SET last_ping_result = 'unsupported' WHERE session_id = 'session-old';",
-            cancellationToken);
-        var updatedLastPingResult = await QueryScalarStringAsync(
-            connection2,
-            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-old'",
-            cancellationToken);
-        Assert.Equal("unsupported", updatedLastPingResult);
-
-        // Deleting the session still cascades to its delivery row.
-        await ExecuteAsync(
-            connection2, "DELETE FROM agent_sessions WHERE session_id = 'session-old';", cancellationToken);
-        var deliveryCountAfterCascade = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-old'",
-            cancellationToken);
-        Assert.Equal(0, deliveryCountAfterCascade);
-
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
-            connection2,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                last_ping_result
-            ) VALUES (
-                'claude-code', 'session-invalid', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00', 'not-a-real-result'
-            );
-            """,
             cancellationToken));
     }
 
@@ -1228,8 +602,8 @@ public sealed class AgentDatabaseTests : IDisposable
 
         await ExecuteAsync(
             connection,
-            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES "
-            + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+            + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
             cancellationToken);
 
         await ExecuteAsync(
@@ -1493,7 +867,9 @@ public sealed class AgentDatabaseTests : IDisposable
 
     /// <summary>
     /// Tests adding mail-wake and session-ping-gate tables and indexes to a
-    /// database stamped v6 that lacks them, preserving its seeded rows.
+    /// database stamped v6 that lacks them. Agent-domain rows (agents,
+    /// agent_sessions, session_deliveries, ping_leases) are wiped by the
+    /// blanket agent-domain reset; mail is a non-agent table and survives.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AddMailWakeAndSessionPingGateTables_When_ExistingVersionIsV6()
@@ -1513,9 +889,9 @@ public sealed class AgentDatabaseTests : IDisposable
             await ExecuteAsync(
                 connection,
                 """
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code'),
-                       ('codex', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '', 0, 'codex');
+                INSERT INTO agents (name, registered_at, started_at, last_seen_at, role, implicit, client)
+                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code'),
+                       ('codex', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '', 0, 'codex');
 
                 INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
                 VALUES ('msg-v6', 'thread-v6', 'claude', 'Status', 'Merged.', '2026-01-10T12:00:00+00:00');
@@ -1587,297 +963,12 @@ public sealed class AgentDatabaseTests : IDisposable
         var deliveryCount =
             await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM session_deliveries", cancellationToken);
         var leaseCount = await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM ping_leases", cancellationToken);
-        Assert.Equal(2, agentCount);
+        Assert.Equal(0, agentCount);
         Assert.Equal(1, messageCount);
         Assert.Equal(1, recipientCount);
-        Assert.Equal(1, sessionCount);
-        Assert.Equal(1, deliveryCount);
-        Assert.Equal(1, leaseCount);
-    }
-
-    /// <summary>
-    /// Tests upgrading a v7 session table to accept <c>nitro-board</c> and
-    /// <c>db-watch</c>, preserving session metadata, delivery rows, and their cascade.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_UpgradeAgentSessionsHarnessCheckConstraint_When_ExistingVersionIsV7()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
-            await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, AgentRegistrySchema.Create, cancellationToken);
-            await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
-            await ExecuteAsync(
-                connection,
-                """
-                CREATE TABLE agent_sessions (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    agent_name TEXT NULL REFERENCES agents (name),
-                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
-                    host TEXT NOT NULL,
-                    pid INTEGER NOT NULL CHECK (pid > 0),
-                    proc_start TEXT NOT NULL,
-                    cwd TEXT NOT NULL,
-                    workspace_path TEXT NOT NULL,
-                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'none')),
-                    endpoint_addr TEXT NOT NULL,
-                    started_at TEXT NOT NULL,
-                    last_beat_at TEXT NOT NULL,
-                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
-                    last_ping_at TEXT NULL,
-                    last_ping_attempt TEXT NULL,
-                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
-                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
-                    role TEXT NOT NULL DEFAULT '',
-                    harness_version TEXT NOT NULL DEFAULT '',
-                    process_scope TEXT NOT NULL DEFAULT '',
-                    proc_start_legacy INTEGER NOT NULL DEFAULT 0 CHECK (proc_start_legacy IN (0, 1)),
-                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
-                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
-                    PRIMARY KEY (harness, session_id)
-                );
-
-                CREATE INDEX idx_agent_sessions_name ON agent_sessions (agent_name);
-                CREATE INDEX idx_agent_sessions_pid ON agent_sessions (host, pid);
-
-                CREATE TABLE session_deliveries (
-                    harness TEXT NOT NULL,
-                    session_id TEXT NOT NULL,
-                    message_id TEXT NOT NULL,
-                    channel TEXT NOT NULL CHECK (channel IN ('digest', 'gate', 'ping')),
-                    delivered_at TEXT NOT NULL,
-                    PRIMARY KEY (harness, session_id, message_id, channel),
-                    FOREIGN KEY (harness, session_id)
-                        REFERENCES agent_sessions (harness, session_id) ON DELETE CASCADE
-                );
-
-                CREATE TABLE ping_leases (
-                    slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 1 AND 4),
-                    attempt_id TEXT NOT NULL,
-                    acquired_at TEXT NOT NULL,
-                    expires_at TEXT NOT NULL
-                );
-                """,
-                cancellationToken);
-            await ExecuteAsync(connection, MailWakeSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, SessionPingGateSchema.Create, cancellationToken);
-
-            await ExecuteAsync(
-                connection,
-                """
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code');
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host, pid, proc_start,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    role, harness_version, process_scope, proc_start_legacy
-                ) VALUES (
-                    'claude-code', 'session-v7', 'claude', 'explicit', 'host-a', 4242, '123456',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'claude-peer', 'peer-a', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3', 'pidns:4242', 0
-                );
-
-                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES ('claude-code', 'session-v7', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
-
-                PRAGMA user_version = 7;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var role = await QueryScalarStringAsync(
-            connection2, "SELECT role FROM agent_sessions WHERE session_id = 'session-v7'", cancellationToken);
-        var harnessVersion = await QueryScalarStringAsync(
-            connection2,
-            "SELECT harness_version FROM agent_sessions WHERE session_id = 'session-v7'",
-            cancellationToken);
-        var endpointKind = await QueryScalarStringAsync(
-            connection2, "SELECT endpoint_kind FROM agent_sessions WHERE session_id = 'session-v7'", cancellationToken);
-        Assert.Equal("backend", role);
-        Assert.Equal("1.2.3", harnessVersion);
-        Assert.Equal("claude-peer", endpointKind);
-
-        var deliveryCount = await QueryScalarLongAsync(
-            connection2, "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-v7'", cancellationToken);
-        Assert.Equal(1, deliveryCount);
-
-        // The new harness and endpoint_kind values are now writable.
-        await ExecuteAsync(
-            connection2,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'nitro-board', 'board-1', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'db-watch', 'local', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken);
-
-        var boardSessionCount = await QueryScalarLongAsync(
-            connection2, "SELECT COUNT(*) FROM agent_sessions WHERE harness = 'nitro-board'", cancellationToken);
-        Assert.Equal(1, boardSessionCount);
-
-        // Deleting the session still cascades to its delivery row.
-        await ExecuteAsync(
-            connection2, "DELETE FROM agent_sessions WHERE session_id = 'session-v7';", cancellationToken);
-        var deliveryCountAfterCascade = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-v7'",
-            cancellationToken);
-        Assert.Equal(0, deliveryCountAfterCascade);
-    }
-
-    /// <summary>
-    /// Tests upgrading v7 wake-target and ping-gate tables to accept
-    /// <c>nitro-board</c>, preserving existing rows and the wake-target cascade.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_UpgradeMailWakeTargetsAndSessionPingGatesHarnessCheckConstraint_When_ExistingVersionIsV7()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            await ExecuteAsync(connection, "PRAGMA foreign_keys = ON;", cancellationToken);
-            await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, AgentRegistrySchema.Create, cancellationToken);
-            await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, AgentSessionSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, MailWakeSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, SessionPingGateSchema.Create, cancellationToken);
-
-            // Downgrade mail_wake_targets and session_ping_gates to their pre-v8 harness CHECK constraint.
-            await ExecuteAsync(
-                connection,
-                """
-                DROP TABLE mail_wake_targets;
-                CREATE TABLE mail_wake_targets (
-                    batch_id TEXT NOT NULL REFERENCES mail_wake_batches (batch_id) ON DELETE CASCADE,
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    host TEXT NOT NULL,
-                    pid INTEGER NOT NULL CHECK (pid > 0),
-                    proc_start TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'pending'
-                        CHECK (status IN ('pending', 'delivered', 'satisfied', 'delegated', 'skipped', 'failed')),
-                    offered_generation INTEGER NULL CHECK (offered_generation IS NULL OR offered_generation >= 0),
-                    accepted_generation INTEGER NULL CHECK (accepted_generation IS NULL OR accepted_generation >= 0),
-                    last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
-                    updated_at TEXT NOT NULL,
-                    PRIMARY KEY (batch_id, harness, session_id, host, pid, proc_start)
-                );
-
-                DROP TABLE session_ping_gates;
-                CREATE TABLE session_ping_gates (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    host TEXT NOT NULL,
-                    pid INTEGER NOT NULL CHECK (pid > 0),
-                    proc_start TEXT NOT NULL,
-                    attempt_id TEXT NOT NULL,
-                    acquired_at TEXT NOT NULL,
-                    expires_at TEXT NOT NULL,
-                    PRIMARY KEY (harness, session_id, host, pid, proc_start)
-                );
-                CREATE INDEX idx_session_ping_gates_expires ON session_ping_gates (expires_at);
-                """,
-                cancellationToken);
-
-            await ExecuteAsync(
-                connection,
-                """
-                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code');
-
-                INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
-                VALUES ('instance-a', 'claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-
-                INSERT INTO mail_wake_batches (
-                    batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
-                    status, claimed_at, expires_at
-                ) VALUES (
-                    'batch-v7', 'instance-a', 'claude', 1, 'owner-1', 'attempt-1',
-                    'active', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00'
-                );
-
-                INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, pid, proc_start, status, updated_at)
-                VALUES ('batch-v7', 'claude-code', 'session-v7', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                        'pending', '2026-01-10T12:00:00+00:00');
-
-                INSERT INTO session_ping_gates (harness, session_id, host, pid, proc_start, attempt_id, acquired_at, expires_at)
-                VALUES ('claude-code', 'session-v7', 'host-a', 4242, '2026-01-10T12:00:00+00:00',
-                        'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
-
-                PRAGMA user_version = 7;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-
-        var targetStatus = await QueryScalarStringAsync(
-            connection2,
-            "SELECT status FROM mail_wake_targets WHERE batch_id = 'batch-v7'",
-            cancellationToken);
-        Assert.Equal("pending", targetStatus);
-
-        var gateAttemptId = await QueryScalarStringAsync(
-            connection2,
-            "SELECT attempt_id FROM session_ping_gates WHERE session_id = 'session-v7'",
-            cancellationToken);
-        Assert.Equal("attempt-1", gateAttemptId);
-
-        // The new harness value is now writable on both tables.
-        await ExecuteAsync(
-            connection2,
-            """
-            INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
-            VALUES ('batch-v7', 'nitro-board', 'board-v8', 'host-a', 'pending', '2026-01-10T12:00:00+00:00');
-
-            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
-            VALUES ('nitro-board', 'board-v8', 'host-a', 'attempt-2', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
-            """,
-            cancellationToken);
-
-        var boardTargetCount = await QueryScalarLongAsync(
-            connection2, "SELECT COUNT(*) FROM mail_wake_targets WHERE harness = 'nitro-board'", cancellationToken);
-        var boardGateCount = await QueryScalarLongAsync(
-            connection2, "SELECT COUNT(*) FROM session_ping_gates WHERE harness = 'nitro-board'", cancellationToken);
-        Assert.Equal(1, boardTargetCount);
-        Assert.Equal(1, boardGateCount);
-
-        // Deleting the batch still cascades to its target rows.
-        await ExecuteAsync(
-            connection2, "DELETE FROM mail_wake_batches WHERE batch_id = 'batch-v7';", cancellationToken);
-        var targetCountAfterCascade = await QueryScalarLongAsync(
-            connection2,
-            "SELECT COUNT(*) FROM mail_wake_targets WHERE batch_id = 'batch-v7'",
-            cancellationToken);
-        Assert.Equal(0, targetCountAfterCascade);
+        Assert.Equal(0, sessionCount);
+        Assert.Equal(0, deliveryCount);
+        Assert.Equal(0, leaseCount);
     }
 
     /// <summary>
@@ -1891,8 +982,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
         await ExecuteAsync(
             connection,
-            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES "
-            + "('pascal', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+            + "('pascal', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
             cancellationToken);
         await ExecuteAsync(
             connection,
@@ -1943,8 +1034,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
         await ExecuteAsync(
             connection,
-            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES "
-            + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+            + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
             cancellationToken);
 
         // act & assert
@@ -1971,8 +1062,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             connection,
             """
-            INSERT INTO agents (name, registered_at, last_seen_at) VALUES
-                ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES
+                ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
             VALUES ('instance-a', 'claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_batches (
@@ -2016,8 +1107,8 @@ public sealed class AgentDatabaseTests : IDisposable
         await ExecuteAsync(
             connection,
             """
-            INSERT INTO agents (name, registered_at, last_seen_at) VALUES
-                ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES
+                ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_outbox (nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at)
             VALUES ('instance-a', 'claude', 1, 0, '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
             INSERT INTO mail_wake_batches (

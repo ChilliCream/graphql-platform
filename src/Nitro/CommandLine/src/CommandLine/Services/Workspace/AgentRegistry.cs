@@ -63,8 +63,8 @@ internal sealed class AgentRegistry(
 
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
-            VALUES (@name, @now, @now, @role, @client, 0)
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at, role, client, implicit)
+            VALUES (@name, @now, @now, @now, @role, @client, 0)
             ON CONFLICT (name) DO UPDATE SET
                 last_seen_at = @now,
                 role = @role,
@@ -96,8 +96,8 @@ internal sealed class AgentRegistry(
 
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
-            VALUES (@name, @now, @now, '', '', 0)
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at, role, client, implicit)
+            VALUES (@name, @now, @now, @now, '', '', 0)
             ON CONFLICT (name) DO UPDATE SET
                 last_seen_at = @now,
                 implicit = 0
@@ -145,8 +145,8 @@ internal sealed class AgentRegistry(
         // Existing agent values are preserved.
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
-            VALUES (@name, @now, @now, '', '', 1)
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at, role, client, implicit)
+            VALUES (@name, @now, @now, @now, '', '', 1)
             ON CONFLICT (name) DO UPDATE SET name = excluded.name
             RETURNING
                 name AS Name,

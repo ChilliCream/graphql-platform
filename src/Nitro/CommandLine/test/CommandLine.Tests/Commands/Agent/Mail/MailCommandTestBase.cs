@@ -198,8 +198,8 @@ public abstract class MailCommandTestBase : CommandTestBase
         {
             await using var agentCommand = connection.CreateCommand();
             agentCommand.CommandText =
-                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
-                + "VALUES ($name, $now, $now);";
+                "INSERT OR IGNORE INTO agents (name, registered_at, started_at, last_seen_at) "
+                + "VALUES ($name, $now, $now, $now);";
             agentCommand.Parameters.AddWithValue("$name", agentName);
             agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
             await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);

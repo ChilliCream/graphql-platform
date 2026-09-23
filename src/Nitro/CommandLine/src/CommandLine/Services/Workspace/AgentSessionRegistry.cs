@@ -311,8 +311,8 @@ internal sealed class AgentSessionRegistry(
         CancellationToken cancellationToken)
         => connection.ExecuteAsync(
             """
-            INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
-            VALUES (@actor, @now, @now, '', '', 1)
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at, role, client, implicit)
+            VALUES (@actor, @now, @now, @now, '', '', 1)
             ON CONFLICT (name) DO UPDATE SET name = excluded.name
             """,
             new { actor, now, cancellationToken },
