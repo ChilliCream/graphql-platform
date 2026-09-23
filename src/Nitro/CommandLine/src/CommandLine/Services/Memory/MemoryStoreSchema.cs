@@ -16,6 +16,7 @@ internal static class MemoryStoreSchema
         );
 
         CREATE INDEX IF NOT EXISTS idx_memory_journal_created_at ON memory_journal (created_at);
+        CREATE INDEX IF NOT EXISTS idx_memory_journal_created_by ON memory_journal (created_by);
 
         CREATE TABLE IF NOT EXISTS memory_curated (
             id TEXT PRIMARY KEY,
@@ -32,6 +33,7 @@ internal static class MemoryStoreSchema
 
         CREATE INDEX IF NOT EXISTS idx_memory_curated_updated_at ON memory_curated (updated_at);
         CREATE INDEX IF NOT EXISTS idx_memory_curated_type ON memory_curated (type);
+        CREATE INDEX IF NOT EXISTS idx_memory_curated_created_by ON memory_curated (created_by);
         CREATE UNIQUE INDEX IF NOT EXISTS idx_memory_curated_promoted_from
             ON memory_curated (promoted_from) WHERE promoted_from IS NOT NULL;
 
