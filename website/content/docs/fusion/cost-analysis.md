@@ -35,7 +35,7 @@ Walk a query for a `book` field weighted `10`, returning a `title` and an `autho
 # Field cost: 10 + 0 + 1 + 0 = 11
 ```
 
-Add pagination and the weight of every field below a sized field multiplies by the assumed size. This `books` field is weighted `10` and carries `@listSize(assumedSize: 50, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"])`, evaluated with `first: 50`:
+Add pagination and the weight of every field below a sized field multiplies by the list size. This `books` field is weighted `10` and carries `@listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"])`, evaluated with `first: 50`:
 
 ```graphql
 {
@@ -82,7 +82,7 @@ Type cost counts the weighted objects the response instantiates. The same pagina
 # Type cost: 1 + 1 + 50 + 50 + 50 = 152
 ```
 
-Both examples run in `report` mode against a gateway composed from this source schema, and the reported `fieldCost`/`typeCost` values above match the results in `Fusion.AspNetCore.Tests/DocsExamplesTests.cs`:
+The examples use this source schema:
 
 ```graphql
 directive @cost(
