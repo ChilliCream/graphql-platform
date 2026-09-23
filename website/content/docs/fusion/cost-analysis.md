@@ -178,10 +178,11 @@ public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
 ```csharp
 builder.Services
     .AddGraphQLGatewayServer()
+    .ModifyCostOptions(options => options.MaxResponseSize = 10_000)
     .AddHttpRequestInterceptor<CostOptionsHttpRequestInterceptor>();
 ```
 
-Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the gateway default, while every other request keeps enforcing the gateway's configured limits.
+Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the gateway's configured limits, while every other request keeps enforcing the gateway's configured limits.
 
 Response-size analysis itself is an opt-in that is only ever enabled per gateway, by setting `FusionCostOptions.MaxResponseSize`. A request cannot turn the analysis on: if the gateway leaves `MaxResponseSize` unset (`null`) and a request nonetheless sets `FusionRequestCostOptions.MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
 
