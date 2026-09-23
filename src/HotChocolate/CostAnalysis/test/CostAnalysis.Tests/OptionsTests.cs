@@ -139,7 +139,6 @@ public sealed class OptionsTests
         Assert.Equal(expectedCaseBudgetExceededBehavior, schemaIndex.Options.CaseBudgetExceededBehavior);
     }
 
-#pragma warning disable CS0618 // RequestCostOptions is obsolete; this reflects one of its own members.
     [Theory]
     [InlineData(typeof(FilterCostOptions), "VariableMultiplier")]
     [InlineData(typeof(SortCostOptions), "VariableMultiplier")]
@@ -156,7 +155,6 @@ public sealed class OptionsTests
         Assert.NotNull(obsolete);
         Assert.True(obsolete.IsError);
     }
-#pragma warning restore CS0618
 
     [Theory]
     [InlineData(double.NaN, false)]
@@ -279,7 +277,6 @@ public sealed class OptionsTests
         }
     }
 
-#pragma warning disable CS0618 // RequestCostOptions is obsolete; these validate its own domain checks.
     [Theory]
     [InlineData(double.NaN, false)]
     [InlineData(-1.0, false)]
@@ -391,7 +388,6 @@ public sealed class OptionsTests
             Assert.IsType<ArgumentOutOfRangeException>(withException);
         }
     }
-#pragma warning restore CS0618
 
     private static IRequestExecutorBuilder CreateUnannotatedListRequestExecutorBuilder()
         => new ServiceCollection()

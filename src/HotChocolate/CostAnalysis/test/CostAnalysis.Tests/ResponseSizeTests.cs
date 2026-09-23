@@ -56,11 +56,12 @@ public sealed class ResponseSizeTests
             .AddResolver("Item", "value", _ => 0)
             .ModifyCostOptions(o => o.DefaultResolverCost = null)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var requestOptions = requestExecutor.GetCostOptions();
 
         // The schema has response-size analysis disabled.
         var request = OperationRequestBuilder.New()
             .SetDocument(Operation)
-            .ModifyCostOptions(o => o.MaxResponseSize = 1_000)
+            .SetCostOptions(requestOptions with { MaxResponseSize = 1_000 })
             .Build();
 
         // act
@@ -86,11 +87,12 @@ public sealed class ResponseSizeTests
         var requestExecutor = await CreateRequestExecutorBuilder()
             .ModifyCostOptions(o => o.MaxResponseSize = 100)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var requestOptions = requestExecutor.GetCostOptions();
 
         // The response size of 500 lies between the schema limit and the higher request limit.
         var request = OperationRequestBuilder.New()
             .SetDocument("{ items(limit: 499) { value } }")
-            .ModifyCostOptions(o => o.MaxResponseSize = 1_000)
+            .SetCostOptions(requestOptions with { MaxResponseSize = 1_000 })
             .Build();
 
         // act
@@ -107,11 +109,12 @@ public sealed class ResponseSizeTests
         var requestExecutor = await CreateRequestExecutorBuilder()
             .ModifyCostOptions(o => o.MaxResponseSize = 1_000)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var requestOptions = requestExecutor.GetCostOptions();
 
         // The response size of 500 lies between the lower request limit and the schema limit.
         var request = OperationRequestBuilder.New()
             .SetDocument("{ items(limit: 499) { value } }")
-            .ModifyCostOptions(o => o.MaxResponseSize = 100)
+            .SetCostOptions(requestOptions with { MaxResponseSize = 100 })
             .Build();
 
         // act

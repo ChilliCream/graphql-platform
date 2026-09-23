@@ -397,14 +397,10 @@ An operation whose exact compile would exceed `CaseBudget` is, by default (`Case
 # Per-Request Cost Options
 
 The schema-level `CostOptions` apply to every request by default, but an application can loosen or
-tighten those limits for a particular request or user by adding a `ModifyCostOptions` modifier to the
-request. A modifier receives a per-request copy of the schema's cost options and can change
-`MaxFieldCost`, `MaxTypeCost`, `EnforceCostLimits`, `SkipAnalyzer`, and `MaxResponseSize`, in either
-direction: a modifier can raise a limit above the schema default, lower it below the schema default,
-or leave individual options unset to keep inheriting from the schema. Changes to any other option,
-such as `ApplyCostDefaults`, `CostPlanCacheSize`, `Filtering`, or `Sorting`, have no effect. Those
-settings apply to the schema only. Multiple modifiers added to the same request run in the order they
-were added, each one seeing the changes made by the ones before it.
+tighten those limits for a particular request or user by attaching a `RequestCostOptions` to the
+request. A value set on the request replaces the corresponding schema value for that request, in
+either direction: a request can raise a limit above the schema default, lower it below the schema
+default, or leave individual options unset to keep inheriting from the schema.
 
 The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for
 every HTTP request and already has access to the authenticated user, so it can pick request options
@@ -419,12 +415,13 @@ public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
     {
         if (context.User.IsInRole("developer"))
         {
-            requestBuilder.ModifyCostOptions(options =>
-            {
-                options.MaxFieldCost = 5_000;
-                options.MaxTypeCost = 5_000;
-                options.MaxResponseSize = 50_000;
-            });
+            requestBuilder.SetCostOptions(
+                new RequestCostOptions(
+                    maxFieldCost: 5_000,
+                    maxTypeCost: 5_000,
+                    enforceCostLimits: true,
+                    skipAnalyzer: false,
+                    maxResponseSize: 50_000));
         }
 
         return base.OnCreateAsync(context, requestExecutor, requestBuilder,
@@ -439,7 +436,7 @@ limits.
 
 Response-size analysis itself is an opt-in that is only ever enabled per schema, by setting
 `CostOptions.MaxResponseSize` on the schema. A request cannot turn the analysis on: if the schema
-leaves `MaxResponseSize` unset (`null`) and a request modifier nonetheless sets `MaxResponseSize`,
+leaves `MaxResponseSize` unset (`null`) and a request nonetheless sets `RequestCostOptions.MaxResponseSize`,
 the request fails fast with error code `HC0062` and the message:
 
 > The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.
@@ -448,8 +445,9 @@ This keeps a per-request or per-group rule from silently promising a check that 
 the check, set `CostOptions.MaxResponseSize` on the schema first; requests may then raise or lower it
 as needed.
 
-Setting `SkipAnalyzer` to `true` for a request bypasses the cost analyzer entirely for that request.
-A `MaxResponseSize` set on the same request is ignored. This is not the fail-fast case above.
+Setting `RequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that
+request. In that case, a `MaxResponseSize` set on the same request is ignored silently by design,
+because the analyzer never runs — this is not the fail-fast case above.
 
 # Disabling Cost Enforcement
 

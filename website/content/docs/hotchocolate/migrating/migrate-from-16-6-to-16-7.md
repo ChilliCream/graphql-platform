@@ -192,28 +192,6 @@ At call sites, pass `IncludeConditionFlags` instead of `IncludeFlags` to each ov
 
 The deprecated evaluation overloads continue to work for operations with at most 64 conditions. When an operation has more than 64 conditions of the corresponding kind, the deprecated raw inclusion overloads throw `InvalidOperationException` for every conditional selection and the deprecated raw defer overloads throw for every deferrable selection, including selections whose own conditions are all among the first 64; raw inclusion evaluation does not throw for an unconditional selection, and raw defer evaluation does not throw for a non-deferrable selection. The deprecated `SelectionEnumerator` and projection overloads throw for wider include operations. The deprecated `IncludeFlags` properties expose only the first 64 flags. Releases before 16.7 rejected operations with more than 64 conditions during compilation.
 
-## SetCostOptions and RequestCostOptions replaced by ModifyCostOptions
-
-`OperationRequestBuilder.SetCostOptions` and `RequestContext.SetCostOptions`, together with the `RequestCostOptions` type they take, are marked `[Obsolete]`. Use the new per-request `ModifyCostOptions(Action<CostOptions>)` overloads on `OperationRequestBuilder` and `RequestContext` instead. A modifier receives a per-request copy of the schema's cost options. Modifiers run in the order they were added, on top of the schema options and on top of a legacy `RequestCostOptions` value if the request still sets one.
-
-```diff
- requestBuilder
--    .SetCostOptions(new RequestCostOptions(
--        maxFieldCost: 5_000,
--        maxTypeCost: 5_000,
--        enforceCostLimits: true,
--        skipAnalyzer: false,
--        maxResponseSize: 50_000));
-+    .ModifyCostOptions(options =>
-+    {
-+        options.MaxFieldCost = 5_000;
-+        options.MaxTypeCost = 5_000;
-+        options.MaxResponseSize = 50_000;
-+    });
-```
-
-`SetCostOptions` and `RequestCostOptions` still work and are removed in 17.0.
-
 # Behavioral breaking changes
 
 ## Cost estimates use coerced request values
