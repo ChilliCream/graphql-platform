@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
@@ -51,6 +53,23 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
               nitro agent register --actor {actor}
             """,
             result.StdOut.Trim());
+    }
+
+    [Fact]
+    public async Task Login_Should_AllocateAMoviePoolName_WithNullHarness()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "login");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        var actor = await QueryScalarAsync("SELECT name FROM agents");
+        Assert.NotNull(actor);
+        Assert.Contains(actor, AgentNamePool.Names);
+        Assert.Null(await QueryScalarAsync($"SELECT harness FROM agents WHERE name = '{actor}'"));
     }
 
     [Fact]
