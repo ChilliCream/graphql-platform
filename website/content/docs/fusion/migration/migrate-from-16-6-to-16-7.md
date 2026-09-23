@@ -139,12 +139,3 @@ Replace every deprecated Fusion `Selection` overload as follows:
 
 The deprecated raw overloads continue to work for operations with at most 64 conditions. When an operation has more than 64 conditions of the corresponding kind, the deprecated raw inclusion overloads throw `InvalidOperationException` for every conditional selection and the deprecated raw defer overloads throw for every deferrable selection, including selections whose own conditions are all among the first 64; raw inclusion evaluation does not throw for an unconditional selection, and raw defer evaluation does not throw for a non-deferrable selection. Releases before 16.7 rejected operations with more than 64 conditions during compilation.
 
-# Noteworthy changes
-
-## Per-request cost options
-
-A gateway can override `FusionCostOptions` for a single request by attaching a `FusionRequestCostOptions` to it with `OperationRequestBuilder.SetCostOptions`, typically from an `IHttpRequestInterceptor`. See [Per-Request Cost Options](../cost-analysis.md#per-request-cost-options) for the contract.
-
-## Default maximum type cost is 10,000
-
-The default maximum type cost is `10,000` and the default maximum field cost is `1,000`. See [Cost enforcement is enabled by default](#cost-enforcement-is-enabled-by-default).
