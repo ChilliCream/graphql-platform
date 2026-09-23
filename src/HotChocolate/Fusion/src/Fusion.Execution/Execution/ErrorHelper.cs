@@ -7,6 +7,34 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ErrorHelper
 {
+    public static OperationResult IncrementalDeliveryNotAcceptable()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_IncrementalDeliveryNotAcceptable)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.NotAcceptable);
+
+        return result;
+    }
+
+    public static OperationResult OperationKindNotAllowed(RequestFlags requiredFlag)
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_OperationKindNotAllowed)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.OperationNotAllowed,
+            requiredFlag);
+
+        return result;
+    }
+
     public static OperationResult RequestTimeout(TimeSpan timeout)
     {
         var result = OperationResult.FromError(

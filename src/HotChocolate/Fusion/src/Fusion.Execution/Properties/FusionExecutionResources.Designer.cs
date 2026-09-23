@@ -260,5 +260,17 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("DocumentRewriter_FragmentDoesNotExist", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_OperationKindNotAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationKindNotAllowed", resourceCulture);
+            }
+        }
     }
 }
