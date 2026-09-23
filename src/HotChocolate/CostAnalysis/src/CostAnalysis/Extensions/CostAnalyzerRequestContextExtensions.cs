@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.CostAnalysis;
-using HotChocolate.Features;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -205,11 +204,12 @@ public static class CostAnalyzerRequestContextExtensions
     /// The request context.
     /// </param>
     /// <param name="configure">
-    /// A delegate that mutates the per-request cost options. Changes to
-    /// <see cref="CostOptions.ApplyCostDefaults"/>, <see cref="CostOptions.CostPlanCacheSize"/>,
-    /// <see cref="CostOptions.Filtering"/>, and <see cref="CostOptions.Sorting"/> have no effect,
-    /// those settings apply to the schema only. Modifiers added to the same request run in the
-    /// order they were added.
+    /// A delegate that mutates the per-request cost options. Only
+    /// <see cref="CostOptions.MaxFieldCost"/>, <see cref="CostOptions.MaxTypeCost"/>,
+    /// <see cref="CostOptions.EnforceCostLimits"/>, <see cref="CostOptions.SkipAnalyzer"/>,
+    /// and <see cref="CostOptions.MaxResponseSize"/> apply per request, changes to any other
+    /// option have no effect. Modifiers added to the same request run in the order they were
+    /// added.
     /// </param>
     /// <returns>
     /// Returns the request context.
@@ -224,7 +224,10 @@ public static class CostAnalyzerRequestContextExtensions
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(configure);
 
-        context.Features.GetOrSet<CostOptionsModifiers>().Add(configure);
+        context.Features.Set(
+            context.Features.TryGet<CostOptionsModifiers>(out var existing)
+                ? existing.With(configure)
+                : new CostOptionsModifiers(configure));
         return context;
     }
 
@@ -235,11 +238,12 @@ public static class CostAnalyzerRequestContextExtensions
     /// The operation request builder.
     /// </param>
     /// <param name="configure">
-    /// A delegate that mutates the per-request cost options. Changes to
-    /// <see cref="CostOptions.ApplyCostDefaults"/>, <see cref="CostOptions.CostPlanCacheSize"/>,
-    /// <see cref="CostOptions.Filtering"/>, and <see cref="CostOptions.Sorting"/> have no effect,
-    /// those settings apply to the schema only. Modifiers added to the same request run in the
-    /// order they were added.
+    /// A delegate that mutates the per-request cost options. Only
+    /// <see cref="CostOptions.MaxFieldCost"/>, <see cref="CostOptions.MaxTypeCost"/>,
+    /// <see cref="CostOptions.EnforceCostLimits"/>, <see cref="CostOptions.SkipAnalyzer"/>,
+    /// and <see cref="CostOptions.MaxResponseSize"/> apply per request, changes to any other
+    /// option have no effect. Modifiers added to the same request run in the order they were
+    /// added.
     /// </param>
     /// <returns>
     /// Returns the operation request builder.
@@ -254,7 +258,10 @@ public static class CostAnalyzerRequestContextExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
-        builder.Features.GetOrSet<CostOptionsModifiers>().Add(configure);
+        builder.Features.Set(
+            builder.Features.TryGet<CostOptionsModifiers>(out var existing)
+                ? existing.With(configure)
+                : new CostOptionsModifiers(configure));
         return builder;
     }
 

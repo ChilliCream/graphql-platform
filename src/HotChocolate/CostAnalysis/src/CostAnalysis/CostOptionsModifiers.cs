@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
@@ -5,15 +7,36 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 internal sealed class CostOptionsModifiers
 {
-    private readonly List<Action<CostOptions>> _modifiers = [];
+    private readonly ImmutableArray<Action<CostOptions>> _modifiers;
 
     /// <summary>
-    /// Adds a modifier to the end of the list.
+    /// Creates a new instance holding a single modifier.
     /// </summary>
     /// <param name="configure">
-    /// The modifier to add.
+    /// The modifier to hold.
     /// </param>
-    public void Add(Action<CostOptions> configure) => _modifiers.Add(configure);
+    public CostOptionsModifiers(Action<CostOptions> configure)
+    {
+        _modifiers = [configure];
+    }
+
+    private CostOptionsModifiers(ImmutableArray<Action<CostOptions>> modifiers)
+    {
+        _modifiers = modifiers;
+    }
+
+    /// <summary>
+    /// Creates a new instance with <paramref name="configure"/> appended.
+    /// </summary>
+    /// <param name="configure">
+    /// The modifier to append.
+    /// </param>
+    /// <returns>
+    /// Returns a new instance holding every modifier of this instance, followed by
+    /// <paramref name="configure"/>.
+    /// </returns>
+    public CostOptionsModifiers With(Action<CostOptions> configure)
+        => new(_modifiers.Add(configure));
 
     /// <summary>
     /// Applies every modifier to <paramref name="options"/>, in the order they were added.
