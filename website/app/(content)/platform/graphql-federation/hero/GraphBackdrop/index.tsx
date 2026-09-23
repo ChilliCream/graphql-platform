@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { rgba } from "./color";
 import { buildGraph, type GraphModel, type LayoutMode } from "./graph";
-import { buildScene, capDpr, type Scene } from "./sceneLayout";
+import { capDpr, modeForSize } from "./sceneLayout";
 import { paint, type Rect } from "./paint";
 import { NAVY } from "../palette";
 
@@ -18,16 +18,16 @@ interface Engine {
   w: number;
   h: number;
   mode: LayoutMode | null;
-  scene: Scene;
   graph: GraphModel | null;
   copyRect: Rect | null;
 }
 
-// A static 3D graph backdrop: the whole scene is a still frame, painted
-// once on mount and again on resize (ResizeObserver), never from a
+// A static constellation backdrop: the whole scene is a still frame,
+// painted once on mount and again on resize (ResizeObserver), never from a
 // requestAnimationFrame loop. The layout is always a pure function of the
-// canvas's own measured size, computed in this draw path, never a
-// separate "is this mobile" state that could ship a wrong first paint.
+// canvas's own measured size and the copy block's own measured rect,
+// computed in this draw path, never a separate "is this mobile" state that
+// could ship a wrong first paint.
 export function GraphBackdrop() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -51,7 +51,6 @@ export function GraphBackdrop() {
       w: 0,
       h: 0,
       mode: null,
-      scene: buildScene(1, 1),
       graph: null,
       copyRect: null,
     };
@@ -71,6 +70,19 @@ export function GraphBackdrop() {
       };
     };
 
+    const rebuild = () => {
+      if (engine.w <= 0 || engine.h <= 0) {
+        return;
+      }
+      engine.mode = modeForSize(engine.w, engine.h);
+      engine.graph = buildGraph(
+        engine.w,
+        engine.h,
+        engine.mode,
+        engine.copyRect,
+      );
+    };
+
     const draw = () => {
       if (!engine.graph || engine.w <= 0 || engine.h <= 0) {
         return;
@@ -79,7 +91,6 @@ export function GraphBackdrop() {
         ctx,
         w: engine.w,
         h: engine.h,
-        camera: engine.scene.camera,
         graph: engine.graph,
         copyRect: engine.copyRect,
       });
@@ -97,15 +108,8 @@ export function GraphBackdrop() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       engine.w = w;
       engine.h = h;
-      engine.scene = buildScene(w, h);
-      // Rebuilt on every resize, not only when the landscape/portrait mode
-      // flips: a portrait cluster's own placement depends continuously on
-      // the viewport's aspect (see graph.ts), not just the discrete mode,
-      // and the graph build is cheap enough (well inside the render-cost
-      // budget) to redo on each ResizeObserver callback.
-      engine.mode = engine.scene.mode;
-      engine.graph = buildGraph(engine.mode, w / h);
       measureCopyRect();
+      rebuild();
       draw();
     };
 
@@ -114,6 +118,7 @@ export function GraphBackdrop() {
     const copyRo = copyEl
       ? new ResizeObserver(() => {
           measureCopyRect();
+          rebuild();
           draw();
         })
       : null;
