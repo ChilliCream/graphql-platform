@@ -55,7 +55,8 @@ internal interface IMailStore
         => ReplyMessageAsync(inReplyToId, sender, body, MailWakePolicy.Skip, cancellationToken);
 
     /// <summary>
-    /// Transfers mail participation from one agent to another. Recipient
+    /// Moves the source agent's unread, unarchived recipient rows to the target agent,
+    /// leaving read or archived rows and every message's sender untouched. Recipient
     /// conflicts preserve the target agent's recipient state.
     /// </summary>
     Task<MailTransferResult> TransferParticipationAsync(
@@ -170,6 +171,19 @@ internal interface IMailStore
     Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
         string? agent,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns threads where the agent sent a message or was a to or cc recipient of one,
+    /// one row per thread, ranked by the agent's own newest such message in the thread,
+    /// then thread id descending. A null <paramref name="limit"/> leaves results uncapped;
+    /// otherwise the limit applies to the thread ranking. Unread and archived counts are
+    /// scoped to the agent.
+    /// </summary>
+    Task<IReadOnlyList<MailThreadSummary>> QueryParticipationThreadsAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken)
+        => Task.FromException<IReadOnlyList<MailThreadSummary>>(new NotSupportedException());
 
     /// <summary>
     /// Returns the actor's sent or received messages whose subject, body, or sender

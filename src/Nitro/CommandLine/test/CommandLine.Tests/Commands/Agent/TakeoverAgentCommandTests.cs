@@ -53,7 +53,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess(
-            $"✓ 'nora' took over from 'maya': role 'planner', 2 messages, 1 tasks ({taskId}).");
+            $"✓ 'nora' took over from 'maya': role 'planner', 1 messages, 1 tasks ({taskId}).");
         var state = string.Join(
             "|",
             await QueryScalarAsync("SELECT role FROM agents WHERE name = 'nora'"),
@@ -85,7 +85,6 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
               "to": "nora",
               "role": "planner",
               "recipientsMoved": 0,
-              "sendersMoved": 0,
               "tasks": []
             }
             """);
@@ -194,7 +193,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
                 "SELECT from_actor || ':' || to_actor || ':' || actor || ':' || role || ':' || reason "
                 + "FROM agent_takeovers WHERE reason IS NOT NULL"));
         ledger.MatchInlineSnapshot(
-            "2|3|message_recipient:1,message_sender:1,task:1|0|maya:nora:nora:planner:handoff");
+            "2|2|message_recipient:1,task:1|0|maya:nora:nora:planner:handoff");
     }
 
     [Fact]
