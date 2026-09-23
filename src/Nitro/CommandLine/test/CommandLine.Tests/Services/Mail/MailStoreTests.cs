@@ -56,8 +56,7 @@ public sealed class MailStoreTests : IAsyncDisposable
             new FixedGlobalConfigDirectoryProvider(_workingDirectory));
 
     /// <summary>
-    /// Soft-deletes the named agent directly, bypassing the store, since delete mechanics
-    /// are a different ticket's scope.
+    /// Marks the named agent as deleted.
     /// </summary>
     private async Task MarkDeletedAsync(string name, CancellationToken cancellationToken)
     {
@@ -208,7 +207,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         // act
         await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
 
-        // assert: neither the unknown sender "claude" nor recipient "bob" minted a new row.
+        // assert
+        // Neither the unknown sender "claude" nor recipient "bob" minted a new row.
         var after = await CountAsync("agents", "1 = 1", cancellationToken);
         Assert.Equal(before, after);
         Assert.Null(await _registry.GetAsync("claude", cancellationToken));

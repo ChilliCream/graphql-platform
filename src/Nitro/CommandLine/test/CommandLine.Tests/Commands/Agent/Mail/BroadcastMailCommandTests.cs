@@ -77,7 +77,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task IncludesLegacyImplicitRows_SendsToEveryNonDeletedAgent()
+    public async Task Broadcast_Should_SendToEveryNonDeletedAgent_When_LegacyImplicitRowsExist()
     {
         // arrange
         // The legacy implicit flag no longer gates broadcast recipients.
@@ -101,7 +101,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ExcludesDeletedAgent_SendsOnlyToNonDeleted()
+    public async Task Broadcast_Should_ExcludeDeletedAgent_When_SendingToAll()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -125,7 +125,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task RoleFilter_SendsOnlyToAgentsWithThatRole()
+    public async Task RoleFilter_Should_SendOnlyToMatchingAgents_When_RoleIsSpecified()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -167,7 +167,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task RoleFilter_IncludesAgentWithoutALiveSession()
+    public async Task RoleFilter_Should_IncludeAgent_When_NoLiveSessionExists()
     {
         // arrange
         // Role now comes solely from the durable agents row; no session is required.
@@ -189,13 +189,14 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task RoleFilter_ExcludesADeletedAgent_EvenWhenItsRoleMatches()
+    public async Task RoleFilter_Should_ExcludeDeletedAgent_When_ItsRoleMatches()
     {
         // arrange
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("ghost", "backend");
         await MarkAgentDeletedAsync("ghost");
+        await SeedAgentAsync("zeta", "backend");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -203,14 +204,16 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
             "--subject", "hi", "--body", "hello");
 
         // assert
-        result.AssertError(
-            """
-            No agent with role 'backend' to broadcast to.
+        // Only the live agent with the matching role receives the mail.
+        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{id}' to zeta.
             """);
     }
 
     [Fact]
-    public async Task RoleFilter_ReflectsTheCurrentRole_AfterItChanges()
+    public async Task RoleFilter_Should_ReflectCurrentRole_When_RoleChangesAfterRegistration()
     {
         // arrange
         await InitWorkspaceAsync();

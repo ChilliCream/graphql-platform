@@ -97,8 +97,7 @@ public abstract class MailCommandTestBase : CommandTestBase
         => CreateRegistry().RegisterAsync(name, role, client: "", TestContext.Current.CancellationToken);
 
     /// <summary>
-    /// Soft-deletes the named agent directly, bypassing the store, since delete mechanics
-    /// are a different ticket's scope.
+    /// Marks the named agent as deleted.
     /// </summary>
     internal Task MarkAgentDeletedAsync(string name)
         => ExecuteAsync($"UPDATE agents SET deleted_at = '{FakeTime.GetUtcNow():O}' WHERE name = '{name}'");

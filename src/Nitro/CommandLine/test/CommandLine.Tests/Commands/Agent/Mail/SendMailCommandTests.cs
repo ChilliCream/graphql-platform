@@ -201,7 +201,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task UnknownRecipient_ReturnsError()
+    public async Task Send_Should_ReturnUnknownAgentError_When_ToRecipientUnknown()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -210,7 +210,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync(
             "agent", "mail", "send", "--to", "dave", "--to", "eve", "--subject", "hi", "--body", "yo");
 
-        // assert: the first offending name, in to-then-cc order, is reported.
+        // assert
+        // The first offending name, in to-then-cc order, is reported.
         result.AssertError(
             """
             Unknown agent 'dave'. Look the name up with 'nitro agent list'.
@@ -219,7 +220,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task MixOfKnownAndUnknownRecipients_ReturnsErrorAndWritesNothing()
+    public async Task Send_Should_ReturnUnknownAgentErrorAndWriteNothing_When_RecipientsMixKnownAndUnknown()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -239,7 +240,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task DeletedRecipient_ReturnsError()
+    public async Task Send_Should_ReturnDeletedAgentError_When_ToRecipientDeleted()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -275,7 +276,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task RegisteredRecipient_CanReadInbox()
+    public async Task Send_Should_AllowRecipientToReadInbox_When_RecipientIsRegistered()
     {
         // arrange
         await InitWorkspaceAsync();
