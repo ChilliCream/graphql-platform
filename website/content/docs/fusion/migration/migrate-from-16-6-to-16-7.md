@@ -1,6 +1,6 @@
 ---
 title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
-description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, and review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header."
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header, and override cost limits per request with FusionRequestCostOptions."
 ---
 
 Update every Hot Chocolate Fusion package in the application to version 16.7 before applying these changes.
@@ -77,11 +77,7 @@ Passing `disableDefaultSecurity: true` disables cost enforcement as part of disa
 +services.AddGraphQLGatewayServer(disableDefaultSecurity: true);
 ```
 
-## Default list size is Infinity, and is configured at composition time
-
-The assumed size for a list field that carries no applicable `@listSize` information defaults to unbounded (`Infinity`). With default enforcement enabled, an unannotated, non-paginated composite list is rejected with `HC0047` and a `typeCost` of `"Infinity"`.
-
-This default is a composition setting, not a gateway runtime option: `FusionCostOptions.DefaultListSize` no longer exists. Annotate the source field with `@listSize(assumedSize:)` so composition carries the bound into the composite directive, or set a finite default on the composer's `SourceSchemaMergerOptions.DefaultListSize`. When set, composition writes it onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there:
+The assumed size for a list field that carries no applicable `@listSize` information defaults to unbounded (`Infinity`). With default enforcement enabled, an unannotated, non-paginated composite list is rejected with `HC0047` and a `typeCost` of `"Infinity"`. Annotate the source field with `@listSize(assumedSize:)` so composition carries the bound into the composite directive, or set a finite default on the composer's `SourceSchemaMergerOptions.DefaultListSize`. When set, composition writes it onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there:
 
 ```diff
  var options = new SchemaComposerOptions
@@ -142,3 +138,9 @@ Replace every deprecated Fusion `Selection` overload as follows:
 | `Selection.HasActiveDeliveryGroup(ulong, DeliveryGroup)` | `Selection.HasActiveDeliveryGroup(ConditionFlags, DeliveryGroup)` |
 
 The deprecated raw overloads continue to work for operations with at most 64 conditions. When an operation has more than 64 conditions of the corresponding kind, the deprecated raw inclusion overloads throw `InvalidOperationException` for every conditional selection and the deprecated raw defer overloads throw for every deferrable selection, including selections whose own conditions are all among the first 64; raw inclusion evaluation does not throw for an unconditional selection, and raw defer evaluation does not throw for a non-deferrable selection. Releases before 16.7 rejected operations with more than 64 conditions during compilation.
+
+# Noteworthy changes
+
+## Per-request cost options
+
+A gateway can override `FusionCostOptions` for a single request by attaching a `FusionRequestCostOptions` to it with `OperationRequestBuilder.SetCostOptions`, typically from an `IHttpRequestInterceptor`. See [Per-Request Cost Options](../cost-analysis.md#per-request-cost-options) for the contract.
