@@ -47,17 +47,12 @@ export function project(p: Vec3, cam: Camera): Projected {
 }
 
 /**
- * The inverse of `project`: the world point that projects to exactly
- * (sx, sy) at depth z. Used to place a node at a chosen screen position
- * and a chosen depth -- the node's (x, y, z) is then a real point in the
- * 3D slab, and re-projecting it reproduces the same screen position.
+ * Screen px per world unit at depth `z` -- the forward half of `project`'s
+ * math, with no (x, y). Used to size the world-space sampling volume (how
+ * wide a world slice at this depth needs to be to cover the screen) --
+ * never to place a node at a chosen screen position, which would be the
+ * inverse of `project` and is not used anywhere in this folder.
  */
-export function placeAt(sx: number, sy: number, z: number, cam: Camera): Vec3 {
-  const depth = cam.dist + z;
-  const scale = cam.focal / depth;
-  return {
-    x: (sx - cam.originX) / scale,
-    y: (sy - cam.originY) / scale,
-    z,
-  };
+export function scaleAtDepth(z: number, cam: Camera): number {
+  return cam.focal / (cam.dist + z);
 }

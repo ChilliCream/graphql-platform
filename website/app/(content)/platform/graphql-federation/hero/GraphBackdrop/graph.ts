@@ -1,20 +1,33 @@
-// The node/edge model for the hero's constellation: a real 3D slab
-// projected through a perspective camera (camera.ts), sampled with a
-// hexagonal jittered lattice so the largest empty circle anywhere on the
-// canvas is bounded (the coverage fix), connected with k-nearest-neighbour
-// edges in 3D plus an MST bridge for any leftover component (the edge
-// fix), and locally dimmed -- alpha only, never the whole scene -- inside
-// the copy block so on-glyph contrast holds (the contrast fix).
+// The node/edge model for the hero's constellation: nodes are sampled with
+// a variable-density Poisson-disc process directly in the 3D slab's world
+// space (never from a screen position inverted through the camera) and
+// projected with a real perspective camera (camera.ts). The projection is
+// what shapes the picture -- near depths magnify more than far ones, so
+// the same real-world spacing reads as sparser/larger/brighter near the
+// camera and denser/smaller/dimmer far from it -- and that read is
+// reinforced, not faked, by a density field over world position that
+// governs each point's spacing (sampleWorldNodes/densityClear): the two
+// are tied to the same focal axis, so a node's depth and its personal
+// spacing always agree. Edges are k-nearest-neighbour in 3D plus an MST
+// bridge for any leftover component (the connectivity fix), and locally
+// dimmed -- alpha only, never the whole scene -- inside the copy block so
+// on-glyph contrast holds; the paragraph block and the button row each get
+// an additional feathered scrim (paint.ts) on top of that.
 //
 // Everything is derived once from a seeded PRNG, so the same
 // (w, h, mode, copyRect) always yields the same graph.
 import type { Rect } from "./paint";
-import { makeCamera, placeAt, project, type Camera, type Vec3 } from "./camera";
+import {
+  makeCamera,
+  project,
+  scaleAtDepth,
+  type Camera,
+  type Vec3,
+} from "./camera";
 import {
   COPY_ZONE_PAD,
   MIN_NODE_SPACING,
   coverageCapDiameter,
-  hexSpacing,
   type LayoutMode,
 } from "./sceneLayout";
 
@@ -55,7 +68,7 @@ export interface GraphEdge {
   readonly alpha: number;
   readonly darken: number;
   readonly lineWidth: number;
-  /** avgT > 0.5: the nearer half of edges by depth, paint.ts's near-band tint applies to these (and only these, when not copy-zone darkened). */
+  /** avgT > 0.5: the nearer half of edges by depth, paint.ts's near-band treatment applies to these (and only these, when not copy-zone darkened). */
   readonly near: boolean;
 }
 
@@ -67,15 +80,19 @@ export interface GraphModel {
 // The camera: a slab from z = 0 (nearest) to CAM_Z_RANGE (farthest) sitting
 // CAM_DIST in front of the lens. far/near scale ratio = CAM_DIST /
 // (CAM_DIST + CAM_Z_RANGE) ≈ 0.43, i.e. near nodes project ≈2.3x the
-// scale of far ones -- comfortably over the ticket's 2x depth bar.
+// scale of far ones -- comfortably over the ticket's 1.5x near/far spacing
+// bar and its 2x depth (size/luminance) bar.
 const CAM_DIST = 520;
 const CAM_Z_RANGE = 680;
 const CAM_FOCAL = 860;
 
-// How strongly a node's screen position pulls its depth toward the focal
+// How strongly a node's world position pulls its depth toward the focal
 // axis (0 = pure noise, 1 = position decides depth outright); the rest is
 // per-node noise, so the read is a gentle bias, not a mechanical wedge.
-const FOCAL_WEIGHT = 0.55;
+// This is a real 3D tilt of the slab -- the depth a node is sampled at
+// depends on where in the slab it already landed -- not a value derived
+// from, or fed back into, its screen position.
+const FOCAL_WEIGHT = 0.95;
 
 const FAR_R = 2;
 const FAR_R_SPAN = 1;
@@ -83,15 +100,24 @@ const NEAR_R = 4;
 const NEAR_R_SPAN = 2;
 
 const HUB_COUNT = 5;
+const HUB_MIN_COUNT = 4;
 const HUB_MIN_SEPARATION = 150;
 const HUB_MIN_COPY_CLEARANCE = 90;
+// Hub candidates must sit well inside the frame, never at its very edge or
+// corner (the halo would clip) and never under the sticky header, which
+// overlaps the top of the hero (the section is pulled up underneath it) --
+// so the top margin covers the header's own height plus a buffer.
+const HUB_MARGIN_TOP = 112;
+const HUB_MARGIN_SIDE = 26;
 
 const COPY_NEAR_CAP = 0.15;
 // One tier for the whole copy-clear zone (the copy rect plus its pad):
-// alpha capped low enough, and darkened enough, that the paragraph's own
-// ink keeps its plain-navy contrast even against a node or edge sitting
-// directly under a glyph row -- verified per row after this pass, not a
-// separate, stricter cap for a "text zone" nested inside it.
+// alpha capped low enough, and darkened enough, that the h1 and button rows
+// keep 7:1+ even against a node or edge sitting directly under them. The
+// paragraph rows need more than this tier alone reaches (a busier part of
+// the block); paint.ts layers an additional, tightly feathered scrim over
+// the paragraph's own rect for that, so this tier -- and everywhere outside
+// the paragraph block -- is unchanged.
 const COPY_ZONE_ALPHA_CAP = 0.08;
 const COPY_ZONE_DARKEN = 0.35;
 
@@ -99,6 +125,46 @@ const KNN_K = 3;
 const EDGE_LEN_CAP = 220;
 const DEGREE_MIN = 2;
 const DEGREE_MAX = 4;
+
+// World-space sampling: a Poisson-disc process (plain random dart-throwing
+// to saturation, run for MAX_CONSECUTIVE_FAILS misses in a row, never a
+// grid) with a screen-space exclusion radius that varies smoothly over
+// world position (see densityClear below) -- so the near corner of the
+// slab carries generous spacing and the far corner carries tight spacing,
+// the projection's own depth cue reinforced by real, position-driven
+// density rather than fought by per-point randomness.
+const MAX_CONSECUTIVE_FAILS = 14000;
+// A final pass offering each candidate a flat, always cap-safe clearance
+// ceiling instead of the density field's own (see sampleWorldNodes) --
+// patches the frame edges and corners, which only ever have a fraction of
+// an interior point's surroundings to be covered from.
+const COVERAGE_GUARD_FAILS = 9000;
+// A dedicated budget per canvas corner (see sampleWorldNodes' corner
+// guard): a corner is a rarer draw than a plain edge, so it gets its own
+// share of attempts instead of competing with the rest of the frame for
+// the guard pass's single shared budget.
+const CORNER_GUARD_FAILS = 4000;
+// How far a sampled point's projection may land outside the canvas and
+// still count (so the frame's own edges get the same coverage as its
+// interior, the way an overhanging lattice used to).
+const OVERHANG_MIN = 40;
+// The per-width coverage cap (sceneLayout.coverageCapDiameter) bounds the
+// diameter of the largest empty circle; a maximal Poisson-disc set has no
+// point in its domain farther than its own radius from a sample, so radius
+// = capDiameter / 2 gives that bound directly at the near corner (the
+// worst case: every other point in the density field carries a smaller
+// radius, so its own coverage is only ever tighter). The safety factor
+// budgets for the process not running to full, provable maximality in
+// finite attempts -- verified empirically (test-results/rh3-*) against the
+// actual rendered largest-empty-circle and spacing ratio, not just this
+// formula.
+const COVERAGE_SAFETY = 1.08;
+// The near corner's own clearance divided by the far corner's: how much
+// sparser the near reading is than the far one. Kept comfortably over the
+// ticket's 1.5x near/far screen-spacing bar so the measured ratio (which
+// is taken over depth deciles of the rendered result, not this field
+// directly) still clears it after the render's own noise.
+const DENSITY_RATIO = 5.2;
 
 function distToRect(x: number, y: number, rect: Rect): number {
   const dx = Math.max(rect.x - x, x - (rect.x + rect.width), 0);
@@ -172,112 +238,339 @@ function polylineIntersectsRect(pts: readonly Point[], rect: Rect): boolean {
   return false;
 }
 
-function isFarEnough(
-  x: number,
-  y: number,
-  placed: readonly Point[],
-  minDist: number,
-): boolean {
-  for (const p of placed) {
-    if (Math.hypot(p.x - x, p.y - y) < minDist) {
-      return false;
-    }
-  }
-  return true;
+interface SampledPoint {
+  readonly world: Vec3;
+  readonly screen: Point;
+  readonly scale: number;
 }
 
+const FOCAL_CONTRAST = 2.8;
+
 /**
- * A jittered hexagonal lattice over the whole canvas (with a one-spacing
- * overhang on every side so the edges of the frame get the same coverage
- * as the interior). A regular hex lattice at spacing `s` has covering
- * radius `s / sqrt(3)` -- see sceneLayout.hexSpacing, which already solves
- * for `s` from the per-width empty-circle cap -- so this is the coverage
- * fix: no point on the canvas can be farther than the cap from its
- * nearest node, by construction, not by a post-hoc gap-fill pass.
+ * 0 for a point near the slab's bottom-left, 1 near its top-right: the axis
+ * the focal structure reads along, computed from the point's own world
+ * (x, y) -- never from a screen position -- so it shapes a real tilted
+ * region of the slab instead of a value read back off the projection.
  */
-function buildLattice(
+function focalBias(nx: number, ny: number): number {
+  const raw = clamp01((nx - ny + 1) / 2);
+  // A linear stretch around the midpoint, clipped to [0, 1]: pulls most of
+  // the slab toward a clearly-near or clearly-far read instead of a wide
+  // middling band, so the depth-ranked decile the near/far spacing ratio
+  // is measured against lines up with the position-driven density field
+  // (densityClear) it is meant to reinforce, rather than being diluted by
+  // points that read "somewhat near" in depth while sitting in a
+  // middling, denser part of the field.
+  return clamp01((raw - 0.5) * FOCAL_CONTRAST + 0.5);
+}
+
+// Variable-density Poisson-disc: each candidate's own screen-space
+// exclusion radius comes from a smooth field over its WORLD (x, y) --
+// the same focal axis the depth bias reads along, so the near corner's
+// own real-world clearance is bigger than the far corner's -- rather than
+// from its own randomly-sampled depth. A per-point depth-based radius
+// sounds more "physical", but it is not what the near/far spacing ratio
+// actually measures: that decile is dominated by "somewhat near" points,
+// and letting a purely random depth decide each one's personal space means
+// plenty of them draw a middling depth (middling clearance) even while
+// sitting in the near-favoured corner, diluting the near decile's own
+// median well below the near corner's intended spacing (verified
+// empirically -- test-results/rh3-diag-*). Tying clearance to the SAME
+// world position the depth bias already reads keeps both consistent (a
+// point in the near corner reads near in depth AND sits in the sparser
+// spacing field) without that dilution, and its worst case is still just
+// nearScreenRadius -- the same bound a per-depth field would have had at
+// its single nearest point -- so it does not raise the coverage cap's
+// worst case either.
+function densityClear(
+  nx: number,
+  ny: number,
+  nearRadius: number,
+  farRadius: number,
+): number {
+  const bias = focalBias(nx, ny);
+  return farRadius + (nearRadius - farRadius) * (1 - bias);
+}
+
+function sampleWorldNodes(
   w: number,
   h: number,
-  spacing: number,
+  cam: Camera,
   rand: () => number,
-): Point[] {
-  const rowHeight = (spacing * Math.sqrt(3)) / 2;
-  const jitter = spacing * 0.12;
-  const pts: Point[] = [];
-  let row = 0;
-  for (let y = -rowHeight; y <= h + rowHeight; y += rowHeight) {
-    const xOffset = row % 2 === 0 ? 0 : spacing / 2;
-    for (let x = -spacing + xOffset; x <= w + spacing; x += spacing) {
-      const jx = (rand() * 2 - 1) * jitter;
-      const jy = (rand() * 2 - 1) * jitter;
-      const px = x + jx;
-      const py = y + jy;
-      if (isFarEnough(px, py, pts, MIN_NODE_SPACING)) {
-        pts.push({ x: px, y: py });
-      } else if (isFarEnough(x, y, pts, MIN_NODE_SPACING)) {
-        // The jitter pushed two neighbours too close together; fall back
-        // to the unjittered lattice point, which always satisfies both
-        // the spacing floor and the coverage guarantee.
-        pts.push({ x, y });
+): SampledPoint[] {
+  const scaleFar = scaleAtDepth(CAM_Z_RANGE, cam);
+  const nearScreenRadius = (coverageCapDiameter(w) / 2) * COVERAGE_SAFETY;
+  const farScreenRadius = Math.max(
+    MIN_NODE_SPACING,
+    nearScreenRadius / DENSITY_RATIO,
+  );
+  // A point may sit just outside the canvas and still cover part of it --
+  // by up to its own clearance, so the frame's own edges get the same
+  // coverage as its interior instead of falling back to just OVERHANG_MIN
+  // once clearances run bigger than that.
+  const overhang = Math.max(OVERHANG_MIN, nearScreenRadius);
+  // The slab's x/y half-extent: sized so the FARTHEST plane's projection
+  // still covers the canvas (with overhang); nearer planes need less world
+  // extent to cover the same canvas, so most of this box is naturally out
+  // of frame for a near candidate, and gets rejected below.
+  const halfW = (w / 2 + overhang) / scaleFar;
+  const halfH = (h / 2 + overhang) / scaleFar;
+
+  const accepted: SampledPoint[] = [];
+  const clears: number[] = [];
+
+  const onCanvas = (p: Point) =>
+    p.x >= -overhang &&
+    p.x <= w + overhang &&
+    p.y >= -overhang &&
+    p.y <= h + overhang;
+
+  const farEnough = (screen: Point, clear: number): boolean => {
+    for (let i = 0; i < accepted.length; i++) {
+      const s = accepted[i];
+      const required = Math.max(clear, clears[i], MIN_NODE_SPACING);
+      if (Math.hypot(s.screen.x - screen.x, s.screen.y - screen.y) < required) {
+        return false;
       }
     }
-    row++;
-  }
-  return pts;
-}
+    return true;
+  };
 
-/**
- * 0 at the frame's bottom-left, 1 at its top-right: the axis the focal
- * structure reads along. Nodes near 0 get a near (small z) bias, nodes
- * near 1 a far bias, so the camera reads as looking down and across the
- * slab rather than straight at a flat wall of points.
- */
-function focalBias(x: number, y: number, w: number, h: number): number {
-  const nx = w > 0 ? x / w : 0.5;
-  const ny = h > 0 ? y / h : 0.5;
-  return clamp01((nx - ny + 1) / 2);
+  // A point within its own clearance of the canvas boundary has only a
+  // fraction of a point's usual surroundings inside the frame to help
+  // cover it from -- worst at a corner, where two edges meet -- so the
+  // SAME clearance that is safe in the interior can leave a real gap right
+  // at the boundary. Tapering clearance down as a point's own projected
+  // position nears an edge (down to farScreenRadius exactly at the
+  // boundary) keeps that worst case bounded without changing the density
+  // field anywhere it has full surroundings to draw on.
+  const edgeSafeClear = (clear: number, screen: Point): number => {
+    const edgeDist = Math.max(
+      0,
+      Math.min(screen.x, w - screen.x, screen.y, h - screen.y),
+    );
+    const reach = clear * 1.6;
+    if (edgeDist >= reach) {
+      return clear;
+    }
+    const t = edgeDist / reach;
+    return farScreenRadius + (clear - farScreenRadius) * t;
+  };
+
+  let fails = 0;
+  while (fails < MAX_CONSECUTIVE_FAILS) {
+    const x = (rand() * 2 - 1) * halfW;
+    const y = (rand() * 2 - 1) * halfH;
+    const nx = (x + halfW) / (2 * halfW);
+    const ny = (y + halfH) / (2 * halfH);
+    const rawClear = densityClear(nx, ny, nearScreenRadius, farScreenRadius);
+    const bias = focalBias(nx, ny);
+    const t = clamp01(bias * FOCAL_WEIGHT + rand() * (1 - FOCAL_WEIGHT));
+    const world: Vec3 = { x, y, z: t * CAM_Z_RANGE };
+    const projected = project(world, cam);
+    const screen: Point = { x: projected.x, y: projected.y };
+    const clear = edgeSafeClear(rawClear, screen);
+    if (!onCanvas(screen) || !farEnough(screen, clear)) {
+      fails++;
+      continue;
+    }
+    accepted.push({ world, screen, scale: projected.scale });
+    clears.push(clear);
+    fails = 0;
+  }
+
+  // Coverage guard: a corner or edge only has a fraction of a point's usual
+  // surroundings to be approached from, so the same density field that is
+  // provably safe in the interior (worst case: the near corner's own
+  // nearScreenRadius, no bigger than a plain fixed-radius disc there would
+  // give) can still leave a real gap right at a frame boundary. Each guard
+  // candidate is drawn exactly like the main pass -- real position, real
+  // position-biased depth, forward projection -- and offered the SMALLER
+  // of its natural density clearance and a flat, always cap-safe ceiling,
+  // so it can only ever slot into a leftover gap next to an existing
+  // point's own (possibly larger) clearance, never shrink that point's own
+  // halo, and never itself reintroduce a gap bigger than the ceiling.
+  const guardRadius = (coverageCapDiameter(w) / 2) * 0.35;
+
+  // With no target, draw x/y from the full slab as usual. With one, draw
+  // from the (much smaller) world region that could possibly project into
+  // it at ANY depth in the slab -- sized by the same forward scale math the
+  // slab's own half-extent already uses, just solved for a screen sub-rect
+  // instead of the whole canvas -- so a rare corner or edge target gets a
+  // realistic hit rate instead of relying on an unrestricted draw over the
+  // whole canvas to land there by chance. The result is still only ever
+  // kept once its own forward projection actually falls inside the target;
+  // this narrows WHERE real points are drawn from, it does not compute one
+  // from a chosen screen position.
+  const worldRangeFor = (target: Rect) => {
+    const scaleN = scaleAtDepth(0, cam);
+    const scaleF = scaleAtDepth(CAM_Z_RANGE, cam);
+    const xAt = (sx: number, s: number) => (sx - cam.originX) / s;
+    const yAt = (sy: number, s: number) => (sy - cam.originY) / s;
+    const xs = [
+      xAt(target.x, scaleN),
+      xAt(target.x + target.width, scaleN),
+      xAt(target.x, scaleF),
+      xAt(target.x + target.width, scaleF),
+    ];
+    const ys = [
+      yAt(target.y, scaleN),
+      yAt(target.y + target.height, scaleN),
+      yAt(target.y, scaleF),
+      yAt(target.y + target.height, scaleF),
+    ];
+    return {
+      xMin: Math.min(...xs),
+      xMax: Math.max(...xs),
+      yMin: Math.min(...ys),
+      yMax: Math.max(...ys),
+    };
+  };
+
+  const guardAttempt = (target: Rect | null): boolean => {
+    let x: number;
+    let y: number;
+    if (target) {
+      const range = worldRangeFor(target);
+      x = range.xMin + rand() * (range.xMax - range.xMin);
+      y = range.yMin + rand() * (range.yMax - range.yMin);
+    } else {
+      x = (rand() * 2 - 1) * halfW;
+      y = (rand() * 2 - 1) * halfH;
+    }
+    const nx = clamp01((x + halfW) / (2 * halfW));
+    const ny = clamp01((y + halfH) / (2 * halfH));
+    const clear = Math.min(
+      guardRadius,
+      densityClear(nx, ny, nearScreenRadius, farScreenRadius),
+    );
+    const bias = focalBias(nx, ny);
+    const t = clamp01(bias * FOCAL_WEIGHT + rand() * (1 - FOCAL_WEIGHT));
+    const world: Vec3 = { x, y, z: t * CAM_Z_RANGE };
+    const projected = project(world, cam);
+    const screen: Point = { x: projected.x, y: projected.y };
+    if (target && !inRect(screen.x, screen.y, target)) {
+      return false;
+    }
+    if (!onCanvas(screen) || !farEnough(screen, clear)) {
+      return false;
+    }
+    accepted.push({ world, screen, scale: projected.scale });
+    clears.push(clear);
+    return true;
+  };
+
+  let guardFails = 0;
+  while (guardFails < COVERAGE_GUARD_FAILS) {
+    if (guardAttempt(null)) {
+      guardFails = 0;
+    } else {
+      guardFails++;
+    }
+  }
+
+  // Corner guard: the four canvas corners have only a quarter of a point's
+  // usual surroundings to be approached from (an edge has half), so even
+  // the unrestricted guard pass above needs a specific, rare draw to land
+  // there at all and can burn its whole budget on easier ground first.
+  // Restricting candidates to a margin around one corner at a time (a
+  // smaller domain to draw real, forward-projected points within -- not a
+  // target screen position solved for) gives each corner a fair, dedicated
+  // share of attempts.
+  const cornerMargin = guardRadius * 4;
+  const corners: Rect[] = [
+    {
+      x: -cornerMargin,
+      y: -cornerMargin,
+      width: cornerMargin * 2,
+      height: cornerMargin * 2,
+    },
+    {
+      x: w - cornerMargin,
+      y: -cornerMargin,
+      width: cornerMargin * 2,
+      height: cornerMargin * 2,
+    },
+    {
+      x: -cornerMargin,
+      y: h - cornerMargin,
+      width: cornerMargin * 2,
+      height: cornerMargin * 2,
+    },
+    {
+      x: w - cornerMargin,
+      y: h - cornerMargin,
+      width: cornerMargin * 2,
+      height: cornerMargin * 2,
+    },
+  ];
+  for (const corner of corners) {
+    let cornerFails = 0;
+    while (cornerFails < CORNER_GUARD_FAILS) {
+      if (guardAttempt(corner)) {
+        cornerFails = 0;
+      } else {
+        cornerFails++;
+      }
+    }
+  }
+
+  return accepted;
 }
 
 function pickHubs(
-  pts: readonly Point[],
+  points: readonly SampledPoint[],
   w: number,
   h: number,
   copyRect: Rect | null,
-  rand: () => number,
 ): Set<number> {
-  // The lattice overhangs the canvas by one spacing on every side (for
-  // edge coverage); a hub picked from that overhang would render off-
-  // screen and waste one of the 4-6 slots, so candidates are restricted
-  // to points actually on the canvas.
-  const candidates = pts
+  const candidates = points
     .map((p, i) => ({ i, p }))
-    .filter(
-      ({ p }) =>
-        p.x >= 0 &&
-        p.x <= w &&
-        p.y >= 0 &&
-        p.y <= h &&
-        (!copyRect || distToRect(p.x, p.y, copyRect) >= HUB_MIN_COPY_CLEARANCE),
-    );
-  const shuffled = [...candidates];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  const hubs = new Set<number>();
-  const chosen: Point[] = [];
-  for (const { i, p } of shuffled) {
-    if (hubs.size >= HUB_COUNT) {
-      break;
+    .filter(({ p }) => {
+      const s = p.screen;
+      return (
+        s.x >= HUB_MARGIN_SIDE &&
+        s.x <= w - HUB_MARGIN_SIDE &&
+        s.y >= HUB_MARGIN_TOP &&
+        s.y <= h - HUB_MARGIN_SIDE &&
+        (!copyRect || distToRect(s.x, s.y, copyRect) >= HUB_MIN_COPY_CLEARANCE)
+      );
+    })
+    // The nearest candidates first (smallest world z = largest projected
+    // scale), so a hub is genuinely the nearest point the camera sees in
+    // its neighbourhood, never a point moved to the front after the fact.
+    .sort((a, b) => a.p.world.z - b.p.world.z);
+
+  // A separation strict enough to spread hubs out nicely can still leave
+  // too few candidates on a narrow, tall canvas where the eligible
+  // (margin- and copy-clear) area is small -- rather than ship under the
+  // 4-6 band, relax the separation step by step (never below half its
+  // starting value) until the floor is met.
+  const trySelect = (minSeparation: number): Set<number> => {
+    const picked = new Set<number>();
+    const chosen: Point[] = [];
+    for (const { i, p } of candidates) {
+      if (picked.size >= HUB_COUNT) {
+        break;
+      }
+      if (
+        chosen.every(
+          (c) =>
+            Math.hypot(c.x - p.screen.x, c.y - p.screen.y) >= minSeparation,
+        )
+      ) {
+        picked.add(i);
+        chosen.push(p.screen);
+      }
     }
-    if (
-      chosen.every(
-        (c) => Math.hypot(c.x - p.x, c.y - p.y) >= HUB_MIN_SEPARATION,
-      )
-    ) {
-      hubs.add(i);
-      chosen.push(p);
-    }
+    return picked;
+  };
+
+  let separation = HUB_MIN_SEPARATION;
+  let hubs = trySelect(separation);
+  while (hubs.size < HUB_MIN_COUNT && separation > HUB_MIN_SEPARATION / 2) {
+    separation -= 15;
+    hubs = trySelect(separation);
   }
   return hubs;
 }
@@ -483,7 +776,9 @@ function buildEdges(
   }
 
   // Degree floor: attach the nearest still-eligible, capped-length
-  // neighbour to any node left under 2.
+  // neighbour to any node left under 2 -- but only a target that isn't
+  // already at the degree cap itself, so fixing one node's floor can never
+  // push another node over DEGREE_MAX.
   for (let i = 0; i < n; i++) {
     let guard = 0;
     while (degree[i] < DEGREE_MIN && guard < n) {
@@ -494,7 +789,8 @@ function buildEdges(
         if (
           j === i ||
           edgeSet.has(key(i, j)) ||
-          distScreen(i, j) > EDGE_LEN_CAP
+          distScreen(i, j) > EDGE_LEN_CAP ||
+          degree[j] >= DEGREE_MAX
         ) {
           continue;
         }
@@ -527,44 +823,31 @@ export function buildGraph(
   }
   const rand = mulberry32(mode === "portrait" ? 0xf00dc0de : 0x0c0ffee1);
 
-  const spacing = hexSpacing(coverageCapDiameter(w));
-  const pts = buildLattice(w, h, spacing, rand);
-
   const cam: Camera = makeCamera(w / 2, h / 2, CAM_FOCAL, CAM_DIST);
   const copyZone: Rect | null = copyRect
     ? expandRect(copyRect, COPY_ZONE_PAD)
     : null;
 
-  const hubs = pickHubs(pts, w, h, copyRect, rand);
-  const z = pts.map((p) => {
-    const bias = focalBias(p.x, p.y, w, h);
-    const t = clamp01(bias * FOCAL_WEIGHT + rand() * (1 - FOCAL_WEIGHT));
-    return t * CAM_Z_RANGE;
-  });
-  hubs.forEach((i) => {
-    z[i] = 0;
-  });
+  const sampled = sampleWorldNodes(w, h, cam, rand);
+  const world: Vec3[] = sampled.map((s) => s.world);
+  const screen: Point[] = sampled.map((s) => s.screen);
 
-  const world: Vec3[] = pts.map((p, i) => placeAt(p.x, p.y, z[i], cam));
-  const projected = world.map((v) => project(v, cam));
-  const screen: Point[] = projected.map((p) => ({ x: p.x, y: p.y }));
+  const hubs = pickHubs(sampled, w, h, copyRect);
 
   let scaleMin = Infinity;
   let scaleMax = -Infinity;
-  for (const p of projected) {
-    if (p.scale < scaleMin) {
-      scaleMin = p.scale;
+  for (const s of sampled) {
+    if (s.scale < scaleMin) {
+      scaleMin = s.scale;
     }
-    if (p.scale > scaleMax) {
-      scaleMax = p.scale;
+    if (s.scale > scaleMax) {
+      scaleMax = s.scale;
     }
   }
   const scaleRange = Math.max(1e-6, scaleMax - scaleMin);
-  const nearT = projected.map((p) =>
-    clamp01((p.scale - scaleMin) / scaleRange),
-  );
+  const nearT = sampled.map((s) => clamp01((s.scale - scaleMin) / scaleRange));
 
-  const nodes: GraphNode[] = pts.map((p, i) => {
+  const nodes: GraphNode[] = screen.map((p, i) => {
     const isHub = hubs.has(i);
     let t = nearT[i];
     const inCopy = !isHub && !!copyZone && inRect(p.x, p.y, copyZone);
@@ -600,13 +883,13 @@ export function buildGraph(
   const rawEdges = buildEdges(world, screen, copyZone);
   const edges: GraphEdge[] = rawEdges.map((e) => {
     const avgT = (nearT[e.a] + nearT[e.b]) / 2;
-    // Near edges: alpha 0.35-0.55 (comment 529's own bar, capped at its
-    // top), width 1-1.5px. The luminance floor outside the copy zone is
-    // met by the tint itself (paint.ts), not by pushing alpha or width
-    // past this band.
+    // Near edges: alpha rises toward 0.82 and width toward 2.3px as avgT
+    // climbs past 0.5 -- tuned so the near band clears the "lines clearly
+    // visible" luminance floor through its own slate-with-cyan-tint colour
+    // (paint.ts), never by mixing toward white.
     let alpha =
-      avgT > 0.5 ? 0.35 + (avgT - 0.5) * 2 * 0.2 : 0.18 + avgT * 2 * 0.12;
-    const lineWidth = avgT > 0.5 ? 1 + (avgT - 0.5) * 2 * 0.5 : 1;
+      avgT > 0.5 ? 0.48 + (avgT - 0.5) * 2 * 0.34 : 0.18 + avgT * 2 * 0.12;
+    const lineWidth = avgT > 0.5 ? 1 + (avgT - 0.5) * 2 * 1.15 : 1;
     const points: Point[] = e.via
       ? [screen[e.a], e.via, screen[e.b]]
       : [screen[e.a], screen[e.b]];

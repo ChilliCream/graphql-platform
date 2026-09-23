@@ -28,19 +28,6 @@ export function coverageCapDiameter(w: number): number {
   return 100;
 }
 
-/**
- * A hexagonal lattice's covering radius (the farthest any point in the
- * plane sits from its nearest lattice point) is `spacing / sqrt(3)`; the
- * per-point jitter graph.ts applies can push that worst case out by up to
- * its own diagonal reach, so the 0.72 margin here budgets for the ideal
- * lattice AND that jitter, verified empirically (test-results/rh1-*)
- * against the real largest-empty-circle measurement, not just the
- * unjittered formula.
- */
-export function hexSpacing(capDiameter: number): number {
-  return (capDiameter / 2) * Math.sqrt(3) * 0.72;
-}
-
 const MAX_DPR = 2;
 const MAX_BACKING_PIXELS = 4_000_000;
 
