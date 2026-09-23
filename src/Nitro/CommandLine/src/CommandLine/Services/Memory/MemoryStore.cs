@@ -342,6 +342,48 @@ internal sealed class MemoryStore(
         return new MemoryPromotionOutcome(record, AlreadyPromoted: false);
     }
 
+    public async Task<IReadOnlyList<MemoryParticipationEntry>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<ParticipationRow>(
+            new CommandDefinition(
+                """
+                SELECT id AS Id, 'curated' AS Kind, created_at AS CreatedAt
+                FROM memory_curated
+                WHERE created_by = @agent
+                UNION ALL
+                SELECT j.id AS Id, 'journal' AS Kind, j.created_at AS CreatedAt
+                FROM memory_journal j
+                WHERE j.created_by = @agent
+                  AND NOT EXISTS (SELECT 1 FROM memory_curated c WHERE c.promoted_from = j.id)
+                ORDER BY CreatedAt DESC, Id
+                LIMIT @limit;
+                """,
+                new { agent, limit = limit ?? -1 },
+                cancellationToken: cancellationToken));
+
+        var ordered = rows.ToList();
+        var curatedIds = ordered.Where(row => row.Kind == "curated").Select(row => row.Id).ToList();
+        var journalIds = ordered.Where(row => row.Kind == "journal").Select(row => row.Id).ToList();
+
+        var curatedById = (await LoadCuratedAsync(connection, curatedIds)).ToDictionary(record => record.Id);
+        var journalById = (await LoadJournalAsync(connection, journalIds)).ToDictionary(entry => entry.Id);
+
+        return ordered
+            .Select(row => row.Kind == "curated"
+                ? ToParticipationEntry(curatedById[row.Id])
+                : ToParticipationEntry(journalById[row.Id]))
+            .ToList();
+    }
+
+    private static MemoryParticipationEntry ToParticipationEntry(MemoryRecord record) => new(
+        MemoryParticipationKind.Curated, record.Id, record.Type, record.Tags, record.Body, record.CreatedAt);
+
+    private static MemoryParticipationEntry ToParticipationEntry(MemoryJournalEntry entry) => new(
+        MemoryParticipationKind.Journal, entry.Id, Type: null, Tags: [], entry.Body, entry.CreatedAt);
+
     private static async Task InsertTagsAsync(
         SqliteConnection connection,
         DbTransaction transaction,
@@ -387,6 +429,28 @@ internal sealed class MemoryStore(
         var byId = rows.ToDictionary(row => row.Id, row => row.ToRecord(tagsById));
 
         return ids.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+    }
+
+    /// <summary>
+    /// Returns journal entries for the supplied ids, omitting missing entries.
+    /// Empty input returns an empty result.
+    /// </summary>
+    private static async Task<IReadOnlyList<MemoryJournalEntry>> LoadJournalAsync(
+        SqliteConnection connection,
+        IReadOnlyList<string> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var idList = string.Join(", ", ids.Select(id => $"'{MemoryId.Require(id)}'"));
+
+        var rows = await connection.QueryAsync<JournalRow>(
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            + $"FROM memory_journal WHERE id IN ({idList});");
+
+        return rows.Select(row => row.ToEntry()).ToList();
     }
 
     private static async Task<MemoryRecord?> FindCuratedAsync(
@@ -513,6 +577,13 @@ internal sealed class MemoryStore(
         }
 
         return trimmed;
+    }
+
+    private sealed class ParticipationRow
+    {
+        public required string Id { get; init; }
+        public required string Kind { get; init; }
+        public required string CreatedAt { get; init; }
     }
 
     private sealed class JournalRow

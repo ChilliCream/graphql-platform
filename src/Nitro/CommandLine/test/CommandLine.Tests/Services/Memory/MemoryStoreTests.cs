@@ -374,4 +374,81 @@ public sealed class MemoryStoreTests : MemoryTestBase
         // assert
         Assert.Equal([pending.Id], unpromoted.Select(entry => entry.Id));
     }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_ShowAPromotedJournalEntryOnceAsCurated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var journal = await LogAsync("Investigated the flaky test.");
+        var outcome = await _store.PromoteAsync(journal.Id, "fact", [], cancellationToken);
+
+        // act
+        var participation = await _store.QueryParticipationAsync(
+            "test-agent", limit: null, cancellationToken);
+
+        // assert
+        var entry = Assert.Single(participation);
+        Assert.Equal(MemoryParticipationKind.Curated, entry.Kind);
+        Assert.Equal(outcome.Record.Id, entry.Id);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_SetNullTypeAndEmptyTags_When_TheEntryIsAJournalNote()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var journal = await LogAsync("Raw note.");
+
+        // act
+        var participation = await _store.QueryParticipationAsync(
+            "test-agent", limit: null, cancellationToken);
+
+        // assert
+        var entry = Assert.Single(participation);
+        Assert.Equal(journal.Id, entry.Id);
+        Assert.Null(entry.Type);
+        Assert.Empty(entry.Tags);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_ExcludeAnotherAgentsEntries()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var mine = await SaveAsync("Mine.");
+        await _store.SaveAsync(
+            new MemoryRecordCreation { Text = "Theirs.", Type = "fact", Tags = [], Actor = "other-agent" },
+            cancellationToken);
+        await _store.LogAsync(
+            new MemoryJournalEntryCreation { Text = "Their note.", Actor = "other-agent" },
+            cancellationToken);
+
+        // act
+        var participation = await _store.QueryParticipationAsync(
+            "test-agent", limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([mine.Id], participation.Select(entry => entry.Id));
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_OrderByCreatedAtDescendingAndRespectLimit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var oldest = await LogAsync("Oldest.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        var middle = await SaveAsync("Middle.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        var newest = await LogAsync("Newest.");
+
+        // act
+        var all = await _store.QueryParticipationAsync("test-agent", limit: null, cancellationToken);
+        var limited = await _store.QueryParticipationAsync("test-agent", limit: 2, cancellationToken);
+
+        // assert
+        Assert.Equal([newest.Id, middle.Id, oldest.Id], all.Select(entry => entry.Id));
+        Assert.Equal([newest.Id, middle.Id], limited.Select(entry => entry.Id));
+    }
 }
