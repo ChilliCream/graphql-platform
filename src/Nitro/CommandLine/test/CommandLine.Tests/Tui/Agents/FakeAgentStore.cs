@@ -203,7 +203,7 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
             return Task.FromResult(false);
         }
 
-        var (kind, addr, secret) = NormalizeEndpoint(
+        var (kind, addr, secret) = EndpointAddress.Normalize(
             _rows[index].Harness ?? string.Empty, endpointKind, endpointAddr, endpointSecret);
 
         _rows[index] = _rows[index] with
@@ -360,32 +360,6 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
         _rows[index] = write(_rows[index], false);
 
         return Task.FromResult(true);
-    }
-
-    /// <summary>
-    /// Normalizes invalid or absent endpoints to kind <c>none</c>, an empty address,
-    /// and no credential. Credentials are retained only for valid opencode-server
-    /// endpoints belonging to the opencode harness.
-    /// </summary>
-    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
-        string harness,
-        string endpointKind,
-        string endpointAddr,
-        string? endpointSecret)
-    {
-        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
-        {
-            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
-                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
-                : (AgentSessionEndpointKind.None, string.Empty, null);
-        }
-
-        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
-        {
-            return (AgentSessionEndpointKind.None, string.Empty, null);
-        }
-
-        return (endpointKind, endpointAddr, null);
     }
 
     private static void EnsureAgentHarness(string harness)
