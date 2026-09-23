@@ -63,6 +63,7 @@ internal static class TaskStoreSchema
         );
 
         CREATE INDEX IF NOT EXISTS idx_comments_task ON comments (task_id);
+        CREATE INDEX IF NOT EXISTS idx_comments_author ON comments (author);
 
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,6 +77,7 @@ internal static class TaskStoreSchema
         );
 
         CREATE INDEX IF NOT EXISTS idx_events_task ON events (task_id);
+        CREATE INDEX IF NOT EXISTS idx_events_actor_created ON events (actor, created_at);
 
         CREATE TABLE IF NOT EXISTS config (
             key TEXT PRIMARY KEY,

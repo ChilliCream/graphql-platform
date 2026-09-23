@@ -341,6 +341,46 @@ internal sealed class TaskStore(
         return tasks.ToList();
     }
 
+    public async Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            ["agent"] = agent,
+            ["tombstone"] = TaskStates.Tombstone
+        };
+
+        var sql = $"""
+            SELECT {TaskItem.Columns},
+                   COALESCE(
+                       (SELECT MAX(e.created_at) FROM events e
+                        WHERE e.task_id = tasks.id AND e.actor = @agent),
+                       tasks.updated_at
+                   ) AS RankAt
+            FROM tasks
+            WHERE status != @tombstone
+              AND (
+                  assignee = @agent
+                  OR EXISTS (
+                      SELECT 1 FROM events e2
+                      WHERE e2.task_id = tasks.id AND e2.actor = @agent)
+              )
+            ORDER BY RankAt DESC, id ASC
+            """;
+
+        if (limit is { } sqlLimit)
+        {
+            parameters["limit"] = sqlLimit;
+            sql += " LIMIT @limit";
+        }
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        return await ExecuteTaskQueryAsync(connection, sql, parameters, cancellationToken);
+    }
+
     private static async Task<List<TaskItem>> ExecuteTaskQueryAsync(
         SqliteConnection connection,
         string sql,

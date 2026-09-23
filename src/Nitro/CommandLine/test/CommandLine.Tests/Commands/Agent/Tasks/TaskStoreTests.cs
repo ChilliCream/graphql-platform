@@ -1177,6 +1177,122 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task QueryParticipationAsync_Should_IncludeTask_When_AgentOnlyCommented()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Taking a look.", "felix", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_ExcludeTask_When_AgentHasNoParticipation()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Taking a look.", "someone-else", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Empty(tasks);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_IncludeTask_When_TaskIsClosed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.CloseTaskAsync(["acme-1"], "Done.", "felix", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal(TaskStates.Closed, task.Status);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_ExcludeTask_When_TaskIsTombstone()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Taking a look.", "felix", cancellationToken);
+        await _store.DeleteTaskAsync("acme-1", "No longer needed.", "felix", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Empty(tasks);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_RankAssignedOnlyTask_ByUpdatedAt()
+    {
+        // arrange: acme-1 is assigned to felix by oscar, without felix ever acting on it.
+        // acme-2 carries an older comment by felix, so it must rank behind acme-1's
+        // more recent assignment (its updated_at).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-2", "Early look.", "felix", cancellationToken);
+
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.UpdateTaskAsync(
+            "acme-1",
+            new TaskUpdate { Actor = "oscar", Assignee = "felix", AssigneeGiven = true },
+            cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1", "acme-2"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_RankByAgentsOwnLatestEvent_When_OthersActOnTaskLater()
+    {
+        // arrange: felix comments on acme-1 first; oscar comments on it again later, which
+        // bumps acme-1's updated_at past acme-2's assignment without felix acting again.
+        // Ranking must follow felix's own latest event on acme-1, not the task's updated_at.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Felix's take.", "felix", cancellationToken);
+
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2, assignee: "felix");
+
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+        await _store.AddCommentAsync("acme-1", "Oscar's take.", "oscar", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-2", "acme-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
     public async Task SetConfigAsync_UpsertsValue()
     {
         // arrange
