@@ -20,60 +20,6 @@ interface Engine {
   mode: LayoutMode | null;
   graph: GraphModel | null;
   copyRect: Rect | null;
-  textZones: Rect[];
-}
-
-const TEXT_ZONE_PAD = 24;
-
-function padRect(r: Rect, pad: number): Rect {
-  return {
-    x: r.x - pad,
-    y: r.y - pad,
-    width: r.width + pad * 2,
-    height: r.height + pad * 2,
-  };
-}
-
-/**
- * The per-row rects the contrast fix (F1) is measured against: the h1's
- * own text range, each rendered line of the paragraph (not its bounding
- * box, so a two-line paragraph gives two rows, not one tall one) and each
- * button, all relative to the canvas and padded the same 24px the
- * copy-clear probe uses elsewhere on this site.
- */
-function measureTextZones(
-  canvas: HTMLCanvasElement,
-  copyEl: HTMLElement,
-): Rect[] {
-  const cb = canvas.getBoundingClientRect();
-  const rel = (r: DOMRect): Rect => ({
-    x: r.x - cb.x,
-    y: r.y - cb.y,
-    width: r.width,
-    height: r.height,
-  });
-  const zones: Rect[] = [];
-  const h1 = copyEl.querySelector("h1");
-  if (h1) {
-    const range = document.createRange();
-    range.selectNodeContents(h1);
-    zones.push(padRect(rel(range.getBoundingClientRect()), TEXT_ZONE_PAD));
-  }
-  const p = copyEl.querySelector("p");
-  if (p) {
-    // getClientRects() on the <p> itself would return its one block box;
-    // a Range over its text gives one rect per wrapped line instead, the
-    // real "per glyph row" the contrast fix measures against.
-    const range = document.createRange();
-    range.selectNodeContents(p);
-    for (const line of Array.from(range.getClientRects())) {
-      zones.push(padRect(rel(line), TEXT_ZONE_PAD));
-    }
-  }
-  for (const btn of Array.from(copyEl.querySelectorAll("a"))) {
-    zones.push(padRect(rel(btn.getBoundingClientRect()), TEXT_ZONE_PAD));
-  }
-  return zones;
 }
 
 // A static constellation backdrop: the whole scene is a still frame,
@@ -107,13 +53,11 @@ export function GraphBackdrop() {
       mode: null,
       graph: null,
       copyRect: null,
-      textZones: [],
     };
 
     const measureCopyRect = () => {
       if (!copyEl) {
         engine.copyRect = null;
-        engine.textZones = [];
         return;
       }
       const cb = canvas.getBoundingClientRect();
@@ -124,7 +68,6 @@ export function GraphBackdrop() {
         width: rb.width,
         height: rb.height,
       };
-      engine.textZones = measureTextZones(canvas, copyEl);
     };
 
     const rebuild = () => {
@@ -137,7 +80,6 @@ export function GraphBackdrop() {
         engine.h,
         engine.mode,
         engine.copyRect,
-        engine.textZones,
       );
     };
 

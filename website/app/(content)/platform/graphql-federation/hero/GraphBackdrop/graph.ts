@@ -7,7 +7,7 @@
 // the copy block so on-glyph contrast holds (the contrast fix).
 //
 // Everything is derived once from a seeded PRNG, so the same
-// (w, h, copyRect, textZones) always yields the same graph.
+// (w, h, mode, copyRect) always yields the same graph.
 import type { Rect } from "./paint";
 import { makeCamera, placeAt, project, type Camera, type Vec3 } from "./camera";
 import {
@@ -55,6 +55,8 @@ export interface GraphEdge {
   readonly alpha: number;
   readonly darken: number;
   readonly lineWidth: number;
+  /** avgT > 0.5: the nearer half of edges by depth, paint.ts's near-band tint applies to these (and only these, when not copy-zone darkened). */
+  readonly near: boolean;
 }
 
 export interface GraphModel {
@@ -85,10 +87,13 @@ const HUB_MIN_SEPARATION = 150;
 const HUB_MIN_COPY_CLEARANCE = 90;
 
 const COPY_NEAR_CAP = 0.15;
-const COPY_ZONE_ALPHA_CAP = 0.1;
+// One tier for the whole copy-clear zone (the copy rect plus its pad):
+// alpha capped low enough, and darkened enough, that the paragraph's own
+// ink keeps its plain-navy contrast even against a node or edge sitting
+// directly under a glyph row -- verified per row after this pass, not a
+// separate, stricter cap for a "text zone" nested inside it.
+const COPY_ZONE_ALPHA_CAP = 0.08;
 const COPY_ZONE_DARKEN = 0.35;
-const TEXT_ZONE_ALPHA_CAP = 0.045;
-const TEXT_ZONE_DARKEN = 0.6;
 
 const KNN_K = 3;
 const EDGE_LEN_CAP = 220;
@@ -516,7 +521,6 @@ export function buildGraph(
   h: number,
   mode: LayoutMode,
   copyRect: Rect | null,
-  textZones: readonly Rect[],
 ): GraphModel {
   if (w <= 0 || h <= 0) {
     return { nodes: [], edges: [] };
@@ -578,15 +582,9 @@ export function buildGraph(
         ? 0.8 + 0.2 * (t - 0.5) * 2
         : 0.35 + 0.15 * t * 2;
     let darken = 0;
-    if (!isHub) {
-      const inText = textZones.some((zone) => inRect(p.x, p.y, zone));
-      if (inText) {
-        alpha = Math.min(alpha, TEXT_ZONE_ALPHA_CAP);
-        darken = TEXT_ZONE_DARKEN;
-      } else if (inCopy) {
-        alpha = Math.min(alpha, COPY_ZONE_ALPHA_CAP);
-        darken = COPY_ZONE_DARKEN;
-      }
+    if (!isHub && inCopy) {
+      alpha = Math.min(alpha, COPY_ZONE_ALPHA_CAP);
+      darken = COPY_ZONE_DARKEN;
     }
     return {
       x: p.x,
@@ -602,28 +600,23 @@ export function buildGraph(
   const rawEdges = buildEdges(world, screen, copyZone);
   const edges: GraphEdge[] = rawEdges.map((e) => {
     const avgT = (nearT[e.a] + nearT[e.b]) / 2;
-    // Near edges: alpha 0.4-0.6, width 1-1.5px (comment 529's bars, the
-    // top of each range so a thin 1px stroke's own antialiasing coverage
-    // doesn't quietly dilute it back under the "clearly visible" bar).
+    // Near edges: alpha 0.35-0.55 (comment 529's own bar, capped at its
+    // top), width 1-1.5px. The luminance floor outside the copy zone is
+    // met by the tint itself (paint.ts), not by pushing alpha or width
+    // past this band.
     let alpha =
-      avgT > 0.5 ? 0.5 + (avgT - 0.5) * 2 * 0.24 : 0.18 + avgT * 2 * 0.12;
-    const lineWidth = avgT > 0.5 ? 1 + (avgT - 0.5) * 2 * 1 : 1;
+      avgT > 0.5 ? 0.35 + (avgT - 0.5) * 2 * 0.2 : 0.18 + avgT * 2 * 0.12;
+    const lineWidth = avgT > 0.5 ? 1 + (avgT - 0.5) * 2 * 0.5 : 1;
     const points: Point[] = e.via
       ? [screen[e.a], e.via, screen[e.b]]
       : [screen[e.a], screen[e.b]];
     let darken = 0;
-    const inText = textZones.some((zone) =>
-      polylineIntersectsRect(points, zone),
-    );
     const inCopy = !!copyZone && polylineIntersectsRect(points, copyZone);
-    if (inText) {
-      alpha = Math.min(alpha, TEXT_ZONE_ALPHA_CAP);
-      darken = TEXT_ZONE_DARKEN;
-    } else if (inCopy) {
+    if (inCopy) {
       alpha = Math.min(alpha, COPY_ZONE_ALPHA_CAP);
       darken = COPY_ZONE_DARKEN;
     }
-    return { points, alpha, darken, lineWidth };
+    return { points, alpha, darken, lineWidth, near: avgT > 0.5 };
   });
 
   return { nodes, edges };

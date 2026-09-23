@@ -73,14 +73,26 @@ function paintVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
 export function paint({ ctx, w, h, graph, copyRect }: PaintOptions) {
   ctx.clearRect(0, 0, w, h);
 
-  // Edges first, under every node.
+  // Edges first, under every node. Near edges outside the copy zone get a
+  // white mix on top of the usual cyan tint, keeping the near band's
+  // rendered luminance clearly above the "lines visible" floor even after
+  // a thin, antialiased 1px stroke dilutes its own per-pixel colour below
+  // the nominal alpha composite -- far edges keep the plain tint (so depth
+  // fade still reads), and copy-zone edges never get it (so it can't erode
+  // their contrast).
   ctx.lineCap = "round";
   for (const e of graph.edges) {
     ctx.lineWidth = e.lineWidth;
+    const lightenNear = e.near && e.darken === 0;
     ctx.strokeStyle = rgba(
       SLATE,
       e.alpha,
-      { with: CYAN, ratio: 0.4 },
+      lightenNear
+        ? [
+            { with: CYAN, ratio: 0.4 },
+            { with: WHITE, ratio: 0.72 },
+          ]
+        : { with: CYAN, ratio: 0.4 },
       e.darken,
     );
     ctx.beginPath();
