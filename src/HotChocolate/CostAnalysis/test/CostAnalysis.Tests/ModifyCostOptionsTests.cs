@@ -38,7 +38,14 @@ public sealed class ModifyCostOptionsTests
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(response.ExpectOperationResult().Errors is null or { Count: 0 });
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": []
+              }
+            }
+            """);
     }
 
     [Fact]
@@ -102,18 +109,24 @@ public sealed class ModifyCostOptionsTests
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(response.ExpectOperationResult().Errors is null or { Count: 0 });
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": []
+              }
+            }
+            """);
     }
 
     [Fact]
     public async Task ModifyCostOptions_Should_ApplyModifiersInOrder_When_MultipleModifiersAreAdded()
     {
         // arrange
+        // The second modifier raises the limit above the operation cost (501) only if it sees the first modifier's value (100 + 500 = 600).
         var requestExecutor = await CreateRequestExecutorBuilder(o => o.MaxTypeCost = 10_000)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // The second modifier only raises the limit far enough above the operation cost (501) if it
-        // sees the first modifier's value (100 + 500 = 600); reversed order would leave it at 100.
         var request = OperationRequestBuilder.New()
             .SetDocument(Operation)
             .ModifyCostOptions(o => o.MaxTypeCost = 100)
@@ -124,7 +137,14 @@ public sealed class ModifyCostOptionsTests
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(response.ExpectOperationResult().Errors is null or { Count: 0 });
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": []
+              }
+            }
+            """);
     }
 
     [Fact]
@@ -174,12 +194,8 @@ public sealed class ModifyCostOptionsTests
     }
 
 #pragma warning disable CS0618 // Verifies the obsolete SetCostOptions/RequestCostOptions path.
-    [Theory]
-    [InlineData(false, ErrorCodes.Execution.CostExceeded)]
-    [InlineData(true, null)]
-    public async Task SetCostOptions_Should_StillApply_And_YieldToModifiers_When_BothAreSet(
-        bool addModifier,
-        string? expectedErrorCode)
+    [Fact]
+    public async Task SetCostOptions_Should_StillApply_When_NoModifierIsAdded()
     {
         // arrange
         var requestExecutor = await CreateRequestExecutorBuilder(o => o.MaxTypeCost = 10_000)
@@ -189,11 +205,6 @@ public sealed class ModifyCostOptionsTests
             .SetDocument(Operation)
             .SetCostOptions(new RequestCostOptions(10_000, 100, true, false, (double?)null));
 
-        if (addModifier)
-        {
-            requestBuilder.ModifyCostOptions(o => o.MaxTypeCost = 10_000);
-        }
-
         // act
         var response = await requestExecutor.ExecuteAsync(
             requestBuilder.Build(),
@@ -201,7 +212,35 @@ public sealed class ModifyCostOptionsTests
         var errors = response.ExpectOperationResult().Errors;
 
         // assert
-        Assert.Equal(expectedErrorCode, errors is { Count: > 0 } ? errors[0].Code : null);
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, errors is { Count: > 0 } ? errors[0].Code : null);
+    }
+
+    [Fact]
+    public async Task SetCostOptions_Should_YieldToModifiers_When_ModifierIsAlsoAdded()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder(o => o.MaxTypeCost = 10_000)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var requestBuilder = OperationRequestBuilder.New()
+            .SetDocument(Operation)
+            .SetCostOptions(new RequestCostOptions(10_000, 100, true, false, (double?)null))
+            .ModifyCostOptions(o => o.MaxTypeCost = 10_000);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(
+            requestBuilder.Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": []
+              }
+            }
+            """);
     }
 #pragma warning restore CS0618
 

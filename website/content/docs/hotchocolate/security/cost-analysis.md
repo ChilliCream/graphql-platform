@@ -402,7 +402,7 @@ request. A modifier receives a per-request copy of the schema's cost options and
 `MaxFieldCost`, `MaxTypeCost`, `EnforceCostLimits`, `SkipAnalyzer`, and `MaxResponseSize`, in either
 direction: a modifier can raise a limit above the schema default, lower it below the schema default,
 or leave individual options unset to keep inheriting from the schema. Changes to any other option,
-such as `ApplyCostDefaults`, `CostPlanCacheSize`, `Filtering`, or `Sorting`, have no effect, those
+such as `ApplyCostDefaults`, `CostPlanCacheSize`, `Filtering`, or `Sorting`, have no effect. Those
 settings apply to the schema only. Multiple modifiers added to the same request run in the order they
 were added, each one seeing the changes made by the ones before it.
 
@@ -449,8 +449,7 @@ the check, set `CostOptions.MaxResponseSize` on the schema first; requests may t
 as needed.
 
 Setting `SkipAnalyzer` to `true` for a request bypasses the cost analyzer entirely for that request.
-In that case, a `MaxResponseSize` set on the same request is ignored silently by design, because the
-analyzer never runs. This is not the fail-fast case above.
+A `MaxResponseSize` set on the same request is ignored. This is not the fail-fast case above.
 
 # Disabling Cost Enforcement
 
