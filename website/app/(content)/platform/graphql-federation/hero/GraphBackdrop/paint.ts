@@ -28,10 +28,10 @@ const OMEGA = (Math.PI * 2) / 105; // one revolution in 105s
 const BREATHE_FREQ = (Math.PI * 2) / 7.4;
 const SHIMMER_FREQ = (Math.PI * 2) / 5.2;
 const LIGHT_PERIOD = 15.5;
-const SIZE_K = 0.018;
+const SIZE_K = 0.023;
 const MIN_SCALE_F = 0.45;
 const MAX_SCALE_F = 2.4;
-const GLOW_FRACTION = 0.12;
+const GLOW_FRACTION = 0.17;
 
 function clamp01(v: number) {
   return v < 0 ? 0 : v > 1 ? 1 : v;
@@ -165,7 +165,7 @@ export function paint({
     const fallA = copyFalloff(a.x, a.y, copyRect);
     const fallB = copyFalloff(b.x, b.y, copyRect);
     const shimmer = 0.82 + 0.18 * Math.sin(time * SHIMMER_FREQ + e.phase);
-    const alpha = e.weight * 0.62 * nf * Math.min(fallA, fallB) * shimmer;
+    const alpha = e.weight * 0.78 * nf * Math.min(fallA, fallB) * shimmer;
     if (alpha <= 0.01) {
       continue;
     }
@@ -202,13 +202,13 @@ export function paint({
       continue;
     }
     const breathe = 1 + 0.14 * Math.sin(time * BREATHE_FREQ + n.phase);
-    const baseAlpha = (n.hot ? 0.95 : 0.68) * nf * fall * breathe;
+    const baseAlpha = (n.hot ? 0.95 : 0.8) * nf * fall * breathe;
     const r = Math.max(0.9, n.size * pr.scale * SIZE_K);
     const isNear = pr.scale >= glowThreshold;
     if (isNear || n.hot) {
       const glowR = r * (n.hot ? 9 : 3.4);
       const glow = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, glowR);
-      glow.addColorStop(0, rgba(n.tint, baseAlpha * (n.hot ? 0.55 : 0.4)));
+      glow.addColorStop(0, rgba(n.tint, baseAlpha * (n.hot ? 0.55 : 0.5)));
       glow.addColorStop(1, rgba(n.tint, 0));
       ctx.fillStyle = glow;
       ctx.beginPath();
