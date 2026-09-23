@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -13,8 +12,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Mail;
 /// </summary>
 public sealed class MailStoreTests : IAsyncDisposable
 {
-    private const string InstanceId = "instance-a";
-
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workingDirectory;
     private readonly string _workspaceDirectory;
@@ -42,18 +39,15 @@ public sealed class MailStoreTests : IAsyncDisposable
 
     /// <summary>
     /// Creates a new <see cref="MailStore"/> bound to this test's file
-    /// system, clock, database, and agent store, with a fixed instance id and
-    /// global config directory. Concurrency tests create one of these per
-    /// racing caller.
+    /// system, clock, database, and agent store. Concurrency tests create
+    /// one of these per racing caller.
     /// </summary>
     private MailStore CreateStore()
         => new(
             new TestFileSystem(_workingDirectory),
             _timeProvider,
             _database,
-            _agentStore,
-            new FixedInstanceIdProvider(InstanceId),
-            new FixedGlobalConfigDirectoryProvider(_workingDirectory));
+            _agentStore);
 
     /// <summary>
     /// Marks the named agent as deleted.
@@ -115,8 +109,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     /// Reads one <c>mail_wake_outbox</c> row's generation and due columns
     /// directly, for asserting the transactional side effect
     /// <see cref="MailWakePolicy.Enqueue"/> has no public read surface for.
-    /// Returns null when no row exists for (<see cref="InstanceId"/>,
-    /// <paramref name="actor"/>).
+    /// Returns null when no row exists for <paramref name="actor"/>.
     /// </summary>
     private async Task<(long RequestedGeneration, long SettledGeneration, DateTimeOffset DueAt)?> ReadOutboxRowAsync(
         string actor, CancellationToken cancellationToken)
@@ -127,9 +120,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         command.CommandText =
             """
             SELECT requested_generation, settled_generation, due_at FROM mail_wake_outbox
-            WHERE nitro_instance_id = @instanceId AND actor = @actor
+            WHERE actor = @actor
             """;
-        command.Parameters.AddWithValue("@instanceId", InstanceId);
         command.Parameters.AddWithValue("@actor", actor);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
