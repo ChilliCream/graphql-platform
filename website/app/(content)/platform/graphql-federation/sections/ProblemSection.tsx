@@ -1,41 +1,49 @@
+import { ProblemWindows } from "../visuals/ProblemWindows";
 import { Section } from "./shared";
 
 export function ProblemSection() {
   return (
     <Section id="problem">
-      <div className="max-w-2xl">
-        {/* An h3 so the page keeps exactly four section-level H2s; the
-            classes match SectionHeading's own h2 at size="md". */}
-        <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance">
-          What problem does GraphQL Federation solve?
-        </h3>
-        <div className="text-cc-ink mt-5 space-y-4 text-base">
-          <p>
-            Most GraphQL APIs start as one server with one schema. That works
-            well for a while.
-          </p>
-          <p>
-            Then the API grows, and several teams end up working on different
-            parts of the same schema. Releasing becomes the hard part. Everyone
-            shares one release queue, so every change needs coordination and
-            every team waits on the same bottleneck.
-          </p>
-          <p>
-            GraphQL Federation breaks that one big schema into smaller ones.
-            Each service contributes a source schema, and a service that
-            contributes a source schema is called a subgraph. One per team, or
-            one per domain. Each team owns its subgraph: the source schema, the
-            code, the release schedule.
-          </p>
-          <p>
-            When a team ships a change, composition checks the source schemas
-            against each other and merges them into one composite schema, which
-            is what your gateway serves. If the change conflicts with another
-            subgraph, composition fails at build time and the change never
-            reaches production. Your consumers also known as clients never
-            notice any of this.
-          </p>
+      <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="min-w-0 lg:col-span-5">
+          {/* An h3 so the page keeps exactly four section-level H2s; the
+              classes match SectionHeading's own h2 at size="md". */}
+          <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance">
+            What problem does GraphQL Federation solve?
+          </h3>
+          <div className="text-cc-ink mt-5 space-y-4 text-base">
+            <p>
+              Most GraphQL APIs start as one server with one schema. That works
+              well for a while.
+            </p>
+            <p>
+              Then the API grows, and several teams end up working on different
+              parts of the same schema. Releasing becomes the hard part.
+              Everyone shares one release queue, so every change needs
+              coordination and every team waits on the same bottleneck.
+            </p>
+          </div>
         </div>
+        <div className="min-w-0 lg:col-span-7">
+          <ProblemWindows />
+        </div>
+      </div>
+      <div className="text-cc-ink mt-10 max-w-2xl space-y-4 text-base sm:mt-12">
+        <p>
+          GraphQL Federation breaks that one big schema into smaller ones. Each
+          service contributes a source schema, and a service that contributes a
+          source schema is called a subgraph. One per team, or one per domain.
+          Each team owns its subgraph: the source schema, the code, the release
+          schedule.
+        </p>
+        <p>
+          When a team ships a change, composition checks the source schemas
+          against each other and merges them into one composite schema, which is
+          what your gateway serves. If the change conflicts with another
+          subgraph, composition fails at build time and the change never reaches
+          production. Your consumers also known as clients never notice any of
+          this.
+        </p>
       </div>
     </Section>
   );
