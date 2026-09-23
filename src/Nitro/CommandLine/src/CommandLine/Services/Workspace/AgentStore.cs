@@ -214,6 +214,256 @@ internal sealed class AgentStore(
         return await ReadAllAsync(command, cancellationToken);
     }
 
+    public async Task<bool> SetEndpointAsync(
+        string name,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = connection.BeginTransaction(deferred: false);
+
+        await using var selectCommand = connection.CreateCommand();
+        selectCommand.Transaction = transaction;
+        selectCommand.CommandText = "SELECT harness FROM agents WHERE name = @name AND deleted_at IS NULL";
+        selectCommand.Parameters.AddWithValue("@name", normalizedName);
+
+        var harnessResult = await selectCommand.ExecuteScalarAsync(cancellationToken);
+
+        if (harnessResult is null)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return false;
+        }
+
+        var harness = harnessResult is DBNull ? string.Empty : (string)harnessResult;
+        var (kind, addr, secret) = NormalizeEndpoint(harness, endpointKind, endpointAddr, endpointSecret);
+
+        await using var updateCommand = connection.CreateCommand();
+        updateCommand.Transaction = transaction;
+        updateCommand.CommandText =
+            "UPDATE agents SET endpoint_kind = @kind, endpoint_addr = @addr, endpoint_secret = @secret "
+            + "WHERE name = @name AND deleted_at IS NULL";
+        updateCommand.Parameters.AddWithValue("@kind", kind);
+        updateCommand.Parameters.AddWithValue("@addr", addr);
+        updateCommand.Parameters.AddWithValue("@secret", (object?)secret ?? DBNull.Value);
+        updateCommand.Parameters.AddWithValue("@name", normalizedName);
+
+        await updateCommand.ExecuteNonQueryAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
+    }
+
+    public async Task<int> ResetBlockBudgetAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "UPDATE agents SET block_budget_used = 0 WHERE name = @name AND deleted_at IS NULL",
+                new { name = normalizedName },
+                cancellationToken: cancellationToken));
+
+        return 0;
+    }
+
+    public async Task<int> IncrementBlockBudgetAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
+        var rowsAffected = await connection.ExecuteAsync(
+            new CommandDefinition(
+                "UPDATE agents SET block_budget_used = block_budget_used + 1 "
+                + "WHERE name = @name AND deleted_at IS NULL",
+                new { name = normalizedName },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        if (rowsAffected == 0)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return 0;
+        }
+
+        var updated = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                "SELECT block_budget_used FROM agents WHERE name = @name",
+                new { name = normalizedName },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return updated;
+    }
+
+    public async Task<bool> TryClaimPingCooldownAsync(
+        string name, TimeSpan cooldown, string attemptId, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var now = timeProvider.GetUtcNow();
+        var cutoff = now - cooldown;
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rowsAffected = await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE agents SET
+                    last_ping_at = @now,
+                    last_ping_attempt = @attemptId,
+                    last_ping_result = NULL,
+                    last_ping_detail = NULL
+                WHERE name = @name AND deleted_at IS NULL
+                    AND (last_ping_at IS NULL OR last_ping_at <= @cutoff);
+                """,
+                new { now, attemptId, name = normalizedName, cutoff },
+                cancellationToken: cancellationToken));
+
+        return rowsAffected > 0;
+    }
+
+    public async Task WritePingResultAsync(
+        string name, string attemptId, string result, string? detail, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "UPDATE agents SET last_ping_result = @result, last_ping_detail = @detail "
+                + "WHERE name = @name AND deleted_at IS NULL AND last_ping_attempt = @attemptId",
+                new { result, detail, name = normalizedName, attemptId },
+                cancellationToken: cancellationToken));
+    }
+
+    public Task ArmAnnouncementAsync(string name, CancellationToken cancellationToken)
+        => SetAgentFlagAsync(name, "announcement_pending", value: true, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(string name, CancellationToken cancellationToken)
+        => ClaimAgentFlagAsync(name, "announcement_pending", cancellationToken);
+
+    public Task<bool> IsAnnouncementPendingAsync(string name, CancellationToken cancellationToken)
+        => PeekAgentFlagAsync(name, "announcement_pending", cancellationToken);
+
+    public Task RearmIdlePushAsync(string name, CancellationToken cancellationToken)
+        => SetAgentFlagAsync(name, "idle_push_armed", value: true, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(string name, CancellationToken cancellationToken)
+        => ClaimAgentFlagAsync(name, "idle_push_armed", cancellationToken);
+
+    public async Task<bool> RecordHarnessVersionAsync(
+        string name, string harnessVersion, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rowsAffected = await connection.ExecuteAsync(
+            new CommandDefinition(
+                "UPDATE agents SET harness_version = @harnessVersion "
+                + "WHERE name = @name AND deleted_at IS NULL",
+                new { harnessVersion, name = normalizedName },
+                cancellationToken: cancellationToken));
+
+        return rowsAffected > 0;
+    }
+
+    /// <summary>
+    /// Sets the named flag for the matching agent; a missing or deleted agent is unchanged.
+    /// <paramref name="column"/> must be a trusted agent flag column name.
+    /// </summary>
+    private async Task SetAgentFlagAsync(
+        string name, string column, bool value, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"UPDATE agents SET {column} = @value WHERE name = @name AND deleted_at IS NULL";
+        command.Parameters.AddWithValue("@value", value ? 1 : 0);
+        command.Parameters.AddWithValue("@name", normalizedName);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Clears the named flag for the matching agent and returns whether it was set.
+    /// <paramref name="column"/> must be a trusted agent flag column name.
+    /// </summary>
+    private async Task<bool> ClaimAgentFlagAsync(string name, string column, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agents SET {column} = 0 WHERE name = @name AND deleted_at IS NULL AND {column} = 1";
+        command.Parameters.AddWithValue("@name", normalizedName);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
+    /// <summary>
+    /// Returns whether the named flag is set for the matching agent, or false when none
+    /// matches. <paramref name="column"/> must be a trusted agent flag column name.
+    /// </summary>
+    private async Task<bool> PeekAgentFlagAsync(string name, string column, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT {column} FROM agents WHERE name = @name AND deleted_at IS NULL";
+        command.Parameters.AddWithValue("@name", normalizedName);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        return result is not null && (long)result != 0;
+    }
+
+    /// <summary>
+    /// Normalizes invalid or absent endpoints to kind <c>none</c>, an empty address,
+    /// and no credential. Credentials are retained only for valid opencode-server
+    /// endpoints belonging to the opencode harness.
+    /// </summary>
+    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
+        string harness,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret)
+    {
+        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
+        {
+            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
+                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
+                : (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        {
+            return (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        return (endpointKind, endpointAddr, null);
+    }
+
     private static void EnsureAgentHarness(string harness)
     {
         if (!AgentSessionHarness.IsAgentHarness(harness))

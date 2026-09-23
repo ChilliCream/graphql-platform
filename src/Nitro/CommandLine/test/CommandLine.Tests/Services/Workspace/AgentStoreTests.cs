@@ -601,4 +601,471 @@ public sealed class AgentStoreTests : IDisposable
         // assert
         Assert.Empty(agents);
     }
+
+    [Fact]
+    public async Task SetEndpointAsync_Should_WriteEndpoint_When_KindIsNotOpencodeServer()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+
+        // act
+        var updated = await _store.SetEndpointAsync(
+            minted.Row!.Name, AgentSessionEndpointKind.ClaudePeer, "peer-2", "ignored", cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.True(updated);
+        Assert.Equal(AgentSessionEndpointKind.ClaudePeer, row?.EndpointKind);
+        Assert.Equal("peer-2", row?.EndpointAddr);
+        Assert.Null(row?.EndpointSecret);
+    }
+
+    [Fact]
+    public async Task SetEndpointAsync_Should_KeepCredential_When_OpencodeServerBelongsToOpencodeHarness()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(
+            CreateRequest(harness: AgentSessionHarness.Opencode), cancellationToken);
+
+        // act
+        var updated = await _store.SetEndpointAsync(
+            minted.Row!.Name,
+            AgentSessionEndpointKind.OpencodeServer,
+            "http://127.0.0.1:4096",
+            "server-password",
+            cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.True(updated);
+        Assert.Equal("server-password", row?.EndpointSecret);
+    }
+
+    [Fact]
+    public async Task SetEndpointAsync_Should_DropCredential_When_OpencodeServerBelongsToNonOpencodeHarness()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+
+        // act
+        var updated = await _store.SetEndpointAsync(
+            minted.Row!.Name,
+            AgentSessionEndpointKind.OpencodeServer,
+            "http://127.0.0.1:4096",
+            "server-password",
+            cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.True(updated);
+        Assert.Null(row?.EndpointSecret);
+    }
+
+    [Fact]
+    public async Task SetEndpointAsync_Should_ReturnFalse_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await MarkDeletedAsync(minted.Row!.Name, cancellationToken);
+
+        // act
+        var updated = await _store.SetEndpointAsync(
+            minted.Row.Name, AgentSessionEndpointKind.ClaudePeer, "peer-2", null, cancellationToken);
+
+        // assert
+        Assert.False(updated);
+    }
+
+    [Fact]
+    public async Task ResetBlockBudgetAsync_Should_ResetToZero_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await _store.IncrementBlockBudgetAsync(minted.Row!.Name, cancellationToken);
+        await _store.IncrementBlockBudgetAsync(minted.Row.Name, cancellationToken);
+
+        // act
+        var result = await _store.ResetBlockBudgetAsync(minted.Row.Name, cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Equal(0, result);
+        Assert.Equal(0, row?.BlockBudgetUsed);
+    }
+
+    [Fact]
+    public async Task ResetBlockBudgetAsync_Should_BeNoOp_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await MarkDeletedAsync(minted.Row!.Name, cancellationToken);
+
+        // act
+        var result = await _store.ResetBlockBudgetAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public async Task IncrementBlockBudgetAsync_Should_ReturnIncrementedValue_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+
+        // act
+        var first = await _store.IncrementBlockBudgetAsync(minted.Row!.Name, cancellationToken);
+        var second = await _store.IncrementBlockBudgetAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Equal(1, first);
+        Assert.Equal(2, second);
+    }
+
+    [Fact]
+    public async Task IncrementBlockBudgetAsync_Should_ReturnZero_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await MarkDeletedAsync(minted.Row!.Name, cancellationToken);
+
+        // act
+        var result = await _store.IncrementBlockBudgetAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_Claim_When_NoPriorAttempt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+
+        // act
+        var claimed = await _store.TryClaimPingCooldownAsync(
+            minted.Row!.Name, TimeSpan.FromSeconds(60), "attempt-1", cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.True(claimed);
+        Assert.Equal("attempt-1", row?.LastPingAttempt);
+        Assert.Equal(_timeProvider.GetUtcNow(), row?.LastPingAt);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_ReturnFalse_When_StillWithinCooldown()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await _store.TryClaimPingCooldownAsync(
+            minted.Row!.Name, TimeSpan.FromSeconds(60), "attempt-1", cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromSeconds(30));
+
+        // act
+        var claimed = await _store.TryClaimPingCooldownAsync(
+            minted.Row.Name, TimeSpan.FromSeconds(60), "attempt-2", cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task TryClaimPingCooldownAsync_Should_ReturnFalse_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await MarkDeletedAsync(minted.Row!.Name, cancellationToken);
+
+        // act
+        var claimed = await _store.TryClaimPingCooldownAsync(
+            minted.Row.Name, TimeSpan.FromSeconds(60), "attempt-1", cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task WritePingResultAsync_Should_Write_When_AttemptIdMatches()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await _store.TryClaimPingCooldownAsync(
+            minted.Row!.Name, TimeSpan.FromSeconds(60), "attempt-1", cancellationToken);
+
+        // act
+        await _store.WritePingResultAsync(
+            minted.Row.Name, "attempt-1", AgentPingResult.Ok, "all good", cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, row?.LastPingResult);
+        Assert.Equal("all good", row?.LastPingDetail);
+    }
+
+    [Fact]
+    public async Task WritePingResultAsync_Should_BeANoOp_When_AttemptIdIsStale()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await _store.TryClaimPingCooldownAsync(
+            minted.Row!.Name, TimeSpan.Zero, "attempt-1", cancellationToken);
+        await _store.TryClaimPingCooldownAsync(
+            minted.Row.Name, TimeSpan.Zero, "attempt-2", cancellationToken);
+
+        // act
+        await _store.WritePingResultAsync(
+            minted.Row.Name, "attempt-1", AgentPingResult.Timeout, null, cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Null(row?.LastPingResult);
+    }
+
+    [Fact]
+    public async Task WritePingResultAsync_Should_BeANoOp_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        await _store.TryClaimPingCooldownAsync(
+            minted.Row!.Name, TimeSpan.FromSeconds(60), "attempt-1", cancellationToken);
+        await MarkDeletedAsync(minted.Row.Name, cancellationToken);
+
+        // act
+        await _store.WritePingResultAsync(
+            minted.Row.Name, "attempt-1", AgentPingResult.Ok, null, cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.Null(row?.LastPingResult);
+    }
+
+    [Fact]
+    public async Task ArmAnnouncementAsync_Should_SetPending_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+
+        // act
+        await _store.ArmAnnouncementAsync(agent.Name, cancellationToken);
+        var pending = await _store.IsAnnouncementPendingAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.True(pending);
+    }
+
+    [Fact]
+    public async Task ArmAnnouncementAsync_Should_BeNoOp_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await MarkDeletedAsync(agent.Name, cancellationToken);
+
+        // act
+        await _store.ArmAnnouncementAsync(agent.Name, cancellationToken);
+        var pending = await _store.IsAnnouncementPendingAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.False(pending);
+    }
+
+    [Fact]
+    public async Task ClaimAnnouncementAsync_Should_ClearPendingAndReturnTrue_When_Pending()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await _store.ArmAnnouncementAsync(agent.Name, cancellationToken);
+
+        // act
+        var claimed = await _store.ClaimAnnouncementAsync(agent.Name, cancellationToken);
+        var pending = await _store.IsAnnouncementPendingAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.True(claimed);
+        Assert.False(pending);
+    }
+
+    [Fact]
+    public async Task ClaimAnnouncementAsync_Should_ReturnFalse_When_NothingPending()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+
+        // act
+        var claimed = await _store.ClaimAnnouncementAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task ClaimAnnouncementAsync_Should_ReturnFalse_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await _store.ArmAnnouncementAsync(agent.Name, cancellationToken);
+        await MarkDeletedAsync(agent.Name, cancellationToken);
+
+        // act
+        var claimed = await _store.ClaimAnnouncementAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task IsAnnouncementPendingAsync_Should_ReturnFalse_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await _store.ArmAnnouncementAsync(agent.Name, cancellationToken);
+        await MarkDeletedAsync(agent.Name, cancellationToken);
+
+        // act
+        var pending = await _store.IsAnnouncementPendingAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.False(pending);
+    }
+
+    [Fact]
+    public async Task RearmIdlePushAsync_Should_SetArmed_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+
+        // act
+        await _store.RearmIdlePushAsync(agent.Name, cancellationToken);
+        var claimed = await _store.ClaimIdlePushAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.True(claimed);
+    }
+
+    [Fact]
+    public async Task RearmIdlePushAsync_Should_BeNoOp_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await MarkDeletedAsync(agent.Name, cancellationToken);
+
+        // act
+        await _store.RearmIdlePushAsync(agent.Name, cancellationToken);
+        var claimed = await _store.ClaimIdlePushAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task ClaimIdlePushAsync_Should_ClaimOnceAndReturnFalseAfter_When_Armed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await _store.RearmIdlePushAsync(agent.Name, cancellationToken);
+
+        // act
+        var first = await _store.ClaimIdlePushAsync(agent.Name, cancellationToken);
+        var second = await _store.ClaimIdlePushAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.True(first);
+        Assert.False(second);
+    }
+
+    [Fact]
+    public async Task ClaimIdlePushAsync_Should_ReturnFalse_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await _store.RearmIdlePushAsync(agent.Name, cancellationToken);
+        await MarkDeletedAsync(agent.Name, cancellationToken);
+
+        // act
+        var claimed = await _store.ClaimIdlePushAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.False(claimed);
+    }
+
+    [Fact]
+    public async Task RecordHarnessVersionAsync_Should_WriteVersion_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(harnessVersion: "1.0.0"), cancellationToken);
+
+        // act
+        var updated = await _store.RecordHarnessVersionAsync(minted.Row!.Name, "2.0.0", cancellationToken);
+        var row = await _store.FindAsync(minted.Row.Name, cancellationToken);
+
+        // assert
+        Assert.True(updated);
+        Assert.Equal("2.0.0", row?.HarnessVersion);
+    }
+
+    [Fact]
+    public async Task RecordHarnessVersionAsync_Should_ReturnFalse_When_RowDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(harnessVersion: "1.0.0"), cancellationToken);
+        await MarkDeletedAsync(minted.Row!.Name, cancellationToken);
+
+        // act
+        var updated = await _store.RecordHarnessVersionAsync(minted.Row.Name, "2.0.0", cancellationToken);
+
+        // assert
+        Assert.False(updated);
+    }
 }

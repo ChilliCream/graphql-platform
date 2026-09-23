@@ -230,6 +230,27 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Migrate_Should_RewriteAgentsWorkspacePath_When_WorkspaceMoves()
+    {
+        // arrange
+        // Seed an agent with the workspace path that will be migrated.
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await QueryScalarAsync(
+            $"UPDATE agents SET workspace_path = '{WorkspaceDirectory}' WHERE name = 'maya';");
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("1", await QueryScalarAsync(
+            $"SELECT COUNT(*) FROM agents WHERE name = 'maya' AND workspace_path = '{GitWorkspaceDirectory}'",
+            GitDatabasePath));
+    }
+
+    [Fact]
     public async Task Migrate_JsonOutput_ReportsFromAndTo()
     {
         // arrange

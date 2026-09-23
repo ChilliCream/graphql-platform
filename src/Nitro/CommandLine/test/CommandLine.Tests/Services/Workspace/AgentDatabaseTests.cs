@@ -926,6 +926,115 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
+    /// The partial unique index <c>idx_agents_session</c> rejects a second row
+    /// that claims the same (harness, session_id) pair.
+    /// </summary>
+    [Fact]
+    public async Task AgentsTable_Should_RejectDuplicateHarnessSessionId_When_PartialUniqueIndexFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at, harness, session_id)
+            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                    '2026-01-10T12:00:00+00:00', 'claude-code', 'session-dup');
+            """,
+            cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at, harness, session_id)
+            VALUES ('nora', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                    '2026-01-10T12:00:00+00:00', 'claude-code', 'session-dup');
+            """,
+            cancellationToken));
+
+        // assert
+        Assert.Equal(2067, exception.SqliteExtendedErrorCode);
+    }
+
+    /// <summary>
+    /// <c>idx_agents_session</c> only covers rows with a non-null harness, so
+    /// any number of login-only rows (both columns null) coexist.
+    /// </summary>
+    [Fact]
+    public async Task AgentsTable_Should_AllowMultipleLoginOnlyRows_When_HarnessIsNull()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act
+        await ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES ('codex', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            """,
+            cancellationToken);
+
+        // assert
+        var loginOnlyCount = await QueryScalarLongAsync(
+            connection, "SELECT COUNT(*) FROM agents WHERE harness IS NULL", cancellationToken);
+        Assert.Equal(2, loginOnlyCount);
+    }
+
+    /// <summary>
+    /// <c>agent_deliveries.agent</c> references <c>agents (name)</c>; an unknown
+    /// agent name is rejected.
+    /// </summary>
+    [Fact]
+    public async Task AgentDeliveriesTable_Should_RejectUnknownAgent_When_ForeignKeyFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at)
+            VALUES ('ghost', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
+            """,
+            cancellationToken));
+
+        // assert
+        Assert.Equal(787, exception.SqliteExtendedErrorCode);
+    }
+
+    /// <summary>
+    /// <c>agent_ping_gates.agent</c> references <c>agents (name)</c>; an unknown
+    /// agent name is rejected.
+    /// </summary>
+    [Fact]
+    public async Task AgentPingGatesTable_Should_RejectUnknownAgent_When_ForeignKeyFires()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+            connection,
+            """
+            INSERT INTO agent_ping_gates (agent, attempt_id, acquired_at, expires_at)
+            VALUES ('ghost', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
+            """,
+            cancellationToken));
+
+        // assert
+        Assert.Equal(787, exception.SqliteExtendedErrorCode);
+    }
+
+    /// <summary>
     /// Proves the unified workspace: a task created through
     /// <see cref="ITaskStore"/> and a message sent through
     /// <see cref="IMailStore"/> land in the same database file, both visible

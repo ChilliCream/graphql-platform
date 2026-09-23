@@ -33,7 +33,7 @@ public sealed class AgentActorAllocatorTests : IDisposable
     // ---------- Pool ----------
 
     [Fact]
-    public void BaseActors_Should_ContainAtLeast300DistinctValidNames()
+    public void BaseActors_Should_ContainAtLeast300DistinctValidNames_When_PoolIsRead()
     {
         // arrange
         var names = AgentActorAllocator.BaseActors;
@@ -48,7 +48,7 @@ public sealed class AgentActorAllocatorTests : IDisposable
     }
 
     [Fact]
-    public void BaseActors_Should_ExcludeRoleWords()
+    public void BaseActors_Should_ExcludeRoleWords_When_PoolIsRead()
     {
         // act
         var collisions = AgentActorAllocator.BaseActors.Intersect(s_roleWords, StringComparer.Ordinal);
