@@ -11,5 +11,5 @@ public sealed class OperationPlannerFeature
 
     public Version Version { get; }
 
-    public string? PlanningFingerprint { get; init; }
+    public string? ConfigurationFingerprint { get; init; }
 }
