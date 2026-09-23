@@ -11,17 +11,17 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     : MailCommandTestBase(fixture)
 {
     [Fact]
-    public async Task NudgeAsync_Should_ReturnNormally_When_ParticipantDiscoveryThrows()
+    public async Task NudgeAsync_Should_ReturnNormally_When_AgentLookupThrows()
     {
         // arrange
-        var sessions = new Mock<IAgentSessionRegistry>();
-        sessions
-            .Setup(registry => registry.ListParticipantsAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("participant discovery failed"));
+        var agentStore = new Mock<IAgentStore>();
+        agentStore
+            .Setup(store => store.FindAsync("bob", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("agent lookup failed"));
         var nudge = new MailNudge(
-            sessions.Object,
+            agentStore.Object,
             Mock.Of<IMailStore>(),
-            Mock.Of<ISessionDeliveryLedger>(),
+            Mock.Of<IAgentDeliveryLedger>(),
             Mock.Of<IClaudePeerClient>(),
             Mock.Of<ICodexQueueClient>(),
             TimeProvider.System);
@@ -30,9 +30,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
 
         // assert
-        sessions.Verify(
-            registry => registry.ListParticipantsAsync(It.IsAny<CancellationToken>()),
-            Times.Once);
+        agentStore.Verify(store => store.FindAsync("bob", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -143,9 +141,11 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task SingleRecipient_Should_SendBodyToEachLiveSession_When_ActorHasTwoSessions()
+    public async Task SingleRecipient_Should_SendBodyToItsCurrentSession_When_AnEarlierSessionWasSuperseded()
     {
         // arrange
+        // One agent row per actor means a later session supersedes an
+        // earlier one for the same actor rather than adding a second target.
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         SetupInstanceId("host-send-two-sessions-test");
@@ -164,13 +164,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
-        Assert.Equal(
-            new[]
-            {
-                ("thread-bob-1", id!, "All good."),
-                ("thread-bob-2", id!, "All good.")
-            },
-            queueClient.Calls.Select(ReadDigestCall).OrderBy(call => call.ThreadId).ToArray());
+        var call = Assert.Single(queueClient.Calls);
+        Assert.Equal(("thread-bob-2", id!, "All good."), ReadDigestCall(call));
     }
 
     [Fact]

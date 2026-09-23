@@ -50,18 +50,6 @@ public abstract class MailCommandTestBase : CommandTestBase
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateAgentStore());
 
     /// <summary>
-    /// Creates an <see cref="IMailStore"/> like <see cref="CreateStore"/>,
-    /// additionally wired with the instance id and global config directory
-    /// providers <see cref="MailWakePolicy.Enqueue"/> requires, pinned to
-    /// <paramref name="instanceId"/> so a directly-enqueued generation lines
-    /// up with a command run under the matching <see cref="CommandTestBase.SetupInstanceId"/>.
-    /// </summary>
-    internal MailStore CreateWakeStore(string instanceId)
-        => new(
-            new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateAgentStore(),
-            new FixedInstanceIdProvider(instanceId), new FixedGlobalConfigDirectoryProvider(WorkingDirectory));
-
-    /// <summary>
     /// Creates an <see cref="IAgentRegistry"/> bound to this test's workspace
     /// and clock, for seeding agents without going through the CLI.
     /// </summary>
@@ -161,9 +149,9 @@ public abstract class MailCommandTestBase : CommandTestBase
         var database = new AgentDatabase();
 
         return new MailNudge(
-            CreateSessions(host),
+            CreateAgentStore(),
             CreateStore(),
-            new SessionDeliveryLedger(fileSystem, database),
+            new AgentDeliveryLedger(fileSystem, database),
             new FakeClaudePeerClient(),
             queueClient,
             FakeTime);
@@ -209,11 +197,28 @@ public abstract class MailCommandTestBase : CommandTestBase
 
         if (agentName is not null)
         {
+            // Also stamps the unified agents row's harness, session, and endpoint
+            // fields, so IAgentStore-based readers (the wake dispatcher, MailNudge)
+            // see the same live session as the legacy agent_sessions row below.
             await using var agentCommand = connection.CreateCommand();
             agentCommand.CommandText =
-                "INSERT OR IGNORE INTO agents (name, registered_at, started_at, last_seen_at) "
-                + "VALUES ($name, $now, $now, $now);";
+                """
+                INSERT INTO agents (
+                    name, harness, session_id, endpoint_kind, endpoint_addr,
+                    registered_at, started_at, last_seen_at
+                )
+                VALUES ($name, 'codex', $sessionId, $endpointKind, $endpointAddr, $now, $now, $now)
+                ON CONFLICT (name) DO UPDATE SET
+                    harness = excluded.harness,
+                    session_id = excluded.session_id,
+                    endpoint_kind = excluded.endpoint_kind,
+                    endpoint_addr = excluded.endpoint_addr,
+                    last_seen_at = excluded.last_seen_at;
+                """;
             agentCommand.Parameters.AddWithValue("$name", agentName);
+            agentCommand.Parameters.AddWithValue("$sessionId", sessionId);
+            agentCommand.Parameters.AddWithValue("$endpointKind", endpointKind);
+            agentCommand.Parameters.AddWithValue("$endpointAddr", endpointAddr);
             agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
             await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
         }
