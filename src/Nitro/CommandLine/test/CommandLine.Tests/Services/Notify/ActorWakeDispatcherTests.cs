@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
@@ -12,33 +11,25 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Exercises <see cref="ActorWakeDispatcher"/> against a real workspace
 /// database, with a scriptable <see cref="FakePingSessionExecutor"/>
 /// standing in for the real transports: the claim/no-outstanding-work
-/// branch, the no-live-session and mail-already-read fast paths, per-target
-/// failure mapping (session gone, no endpoint, unsupported, terminal
-/// transport failure), the access-denied offer-and-retain-siblings
-/// contract, more than four targets never exceeding four concurrent
-/// transports, and losing the batch's own lease renewal mid-dispatch
-/// (cancelling in-flight/not-yet-started targets without asserting their
-/// outcome) followed by a clean reclaim on the next dispatch.
+/// branch, the offline and mail-already-read fast paths, per-target failure
+/// mapping (unsupported, terminal transport failure), the access-denied
+/// offer-and-retain-siblings contract, and losing the batch's own lease
+/// renewal mid-dispatch (cancelling an in-flight target without asserting
+/// its outcome) followed by a clean reclaim on the next dispatch.
 /// </summary>
 public sealed class ActorWakeDispatcherTests : IDisposable
 {
-    private const string Actor = "codex-worker";
-    private const string InstanceId = "host-1";
-
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
     private readonly TestFileSystem _fileSystem;
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
-    private readonly AgentRegistry _agentRegistry;
-    private readonly AgentSessionRegistry _sessions;
+    private readonly AgentStore _agentStore;
     private readonly MailStore _mail;
     private readonly MailWakeBatchStore _batches;
-    private readonly SessionPingGateStore _gates;
+    private readonly AgentPingGateStore _gates;
     private readonly PingLeaseStore _leases;
     private readonly SessionGateCoordinator _gateCoordinator;
-    private readonly FixedInstanceIdProvider _instanceIdProvider = new(InstanceId);
-    private readonly FixedGlobalConfigDirectoryProvider _globalConfigDirectoryProvider;
 
     public ActorWakeDispatcherTests()
     {
@@ -48,21 +39,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _fileSystem = new TestFileSystem(_tempRoot.FullName);
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
-        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
-        _sessions = new AgentSessionRegistry(
-            _fileSystem,
-            _timeProvider,
-            _database,
-            _agentRegistry,
-            _instanceIdProvider,
-            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
-        _globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName);
-        _mail = new MailStore(
-            _fileSystem, _timeProvider, _database,
-            new AgentStore(_fileSystem, _timeProvider, _database), _instanceIdProvider,
-            _globalConfigDirectoryProvider);
+        _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
+        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
         _batches = new MailWakeBatchStore(_fileSystem, _database);
-        _gates = new SessionPingGateStore(_fileSystem, _database);
+        _gates = new AgentPingGateStore(_fileSystem, _database);
         _leases = new PingLeaseStore(_fileSystem, _database);
         _gateCoordinator = new SessionGateCoordinator(_gates, _leases);
     }
@@ -72,42 +52,42 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_ReturnNull_When_NothingIsOutstanding()
     {
-        // arrange: no mail was ever sent with MailWakePolicy.Enqueue, so the
+        // arrange
+        // no mail was ever sent with MailWakePolicy.Enqueue, so the
         // actor has no mail_wake_outbox row at all.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
         var dispatcher = CreateDispatcher(new FakePingSessionExecutor());
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Null(receipt);
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_CompleteAsSkipped_When_TheActorHasNoLiveSession()
+    public async Task DispatchAsync_Should_OfferPendingWithOfflineReason_When_TheActorIsOffline()
     {
-        // arrange: mail enqueued, but the actor never claimed a live
-        // session at all.
+        // arrange
+        // a login-only agent, stale well past the online window.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _agentRegistry.RegisterAsync(Actor, role: "", client: "", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = (await _agentStore.LoginAsync(cancellationToken)).Name;
+        _timeProvider.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var dispatcher = CreateDispatcher(new FakePingSessionExecutor());
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
-        Assert.Equal(MailWakeTargetStatus.Skipped, receipt.Status);
-        Assert.Empty(receipt.Targets);
-
-        // the generation settled (nothing durable is left behind): a fresh
-        // dispatch with still no live session finds nothing outstanding.
-        var again = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        Assert.Null(again);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(
+            (MailWakeTargetStatus.Pending, actor, MailWakeTargetStatus.Pending, "offline"),
+            (receipt.Status, target.Target, target.Status, target.LastError));
     }
 
     [Fact]
@@ -116,21 +96,22 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        var message = await SendEnqueuedMailAsync(cancellationToken);
-        await _mail.MarkReadAsync([message.Id], Actor, cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        var message = await SendEnqueuedMailAsync(actor, cancellationToken);
+        await _mail.MarkReadAsync([message.Id], actor, cancellationToken);
         var executor = new FakePingSessionExecutor();
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
-        // assert: satisfied, zero, no transport ever attempted, and no
+        // assert
+        // satisfied, zero, no transport ever attempted, and no
         // second message row was written.
         Assert.NotNull(receipt);
         Assert.Equal(MailWakeTargetStatus.Satisfied, receipt.Status);
         var target = Assert.Single(receipt.Targets);
-        Assert.Equal(generation, target.Target);
+        Assert.Equal(actor, target.Target);
         Assert.Equal(MailWakeTargetStatus.Satisfied, target.Status);
         Assert.Equal("mail-already-read", target.LastError);
         Assert.Empty(executor.Calls);
@@ -144,48 +125,25 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new FakePingSessionExecutor();
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
         Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
         var target = Assert.Single(receipt.Targets);
-        Assert.Equal(generation, target.Target);
+        Assert.Equal(actor, target.Target);
         Assert.Equal(MailWakeTargetStatus.Delivered, target.Status);
         Assert.Single(executor.Calls);
 
         // the batch settled: nothing left outstanding for a fresh dispatch.
-        var again = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var again = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
         Assert.Null(again);
-    }
-
-    [Fact]
-    public async Task DispatchAsync_Should_RecordFailed_When_TheEndpointIsNone()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await SeedLiveSessionAsync(AgentSessionEndpointKind.None, "", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
-        var executor = new FakePingSessionExecutor();
-        var dispatcher = CreateDispatcher(executor);
-
-        // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-
-        // assert
-        Assert.NotNull(receipt);
-        Assert.Equal(MailWakeTargetStatus.Failed, receipt.Status);
-        var target = Assert.Single(receipt.Targets);
-        Assert.Equal(MailWakeTargetStatus.Failed, target.Status);
-        Assert.Equal("no-endpoint", target.LastError);
-        Assert.Empty(executor.Calls);
     }
 
     [Fact]
@@ -194,13 +152,13 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new FakePingSessionExecutor { NextReason = PingAttemptReason.Timeout };
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -211,91 +169,20 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_RecordFailed_When_TheFrozenTargetDisappearedBeforeDispatch()
-    {
-        // arrange
-        // The session is gone by the time the target loop re-resolves it.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
-        var executor = new FakePingSessionExecutor();
-        var dispatcher = new ActorWakeDispatcher(
-            _batches,
-            new AlwaysGoneSessionRegistryDecorator(_sessions),
-            _gateCoordinator,
-            executor,
-            _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
-            _timeProvider);
-
-        // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-
-        // assert
-        Assert.NotNull(receipt);
-        Assert.Equal(MailWakeTargetStatus.Failed, receipt.Status);
-        var target = Assert.Single(receipt.Targets);
-        Assert.Equal(MailWakeTargetStatus.Failed, target.Status);
-        Assert.Equal("session-gone", target.LastError);
-        Assert.Empty(executor.Calls);
-    }
-
-    [Fact]
-    public async Task DispatchAsync_Should_RecordFailed_And_LeaveTheReboundGenerationUntouched_When_TheFrozenTargetFullyRebounds()
-    {
-        // arrange
-        // The decorator replaces the frozen session with the same session id on another host.
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var frozen = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        var rebound = frozen with { Host = "host-other" };
-        await SendEnqueuedMailAsync(cancellationToken);
-        var executor = new FakePingSessionExecutor();
-        var dispatcher = new ActorWakeDispatcher(
-            _batches,
-            new ReboundOnFindSessionRegistryDecorator(_sessions, frozen, rebound, Actor),
-            _gateCoordinator,
-            executor,
-            _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
-            _timeProvider);
-
-        // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-
-        // assert
-        Assert.NotNull(receipt);
-        Assert.Equal(MailWakeTargetStatus.Failed, receipt.Status);
-        var target = Assert.Single(receipt.Targets);
-        Assert.Equal(frozen, target.Target);
-        Assert.Equal(MailWakeTargetStatus.Failed, target.Status);
-        Assert.Equal("session-gone", target.LastError);
-        Assert.Empty(executor.Calls);
-
-        var reboundSession = await _sessions.FindByGenerationAsync(rebound, cancellationToken);
-        Assert.NotNull(reboundSession);
-        Assert.Equal(Actor, reboundSession.AgentName);
-        Assert.Equal(0, reboundSession.BlockBudgetUsed);
-    }
-
-    [Fact]
     public async Task DispatchAsync_Should_ClampTheAttemptDeadline_When_TheSharedDeadlineIsAlreadyWithinTheHandoffReserve()
     {
         // arrange
         // A deadline 200ms out, inside WakeDispatchPolicy.HandoffObservationReserve (500ms).
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new FakePingSessionExecutor();
         var dispatcher = CreateDispatcher(executor);
         var tightDeadline = _timeProvider.GetUtcNow() + TimeSpan.FromMilliseconds(200);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, tightDeadline, cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, tightDeadline, cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -310,17 +197,17 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     public async Task DispatchAsync_Should_AbandonInFlightTargets_When_TheBatchLeaseRenewalIsLost_And_AllowReclaimOnTheNextDispatch()
     {
         // arrange
-        // A single live session whose transport call hangs until cancelled.
+        // A single live agent whose transport call hangs until cancelled.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var hangingExecutor = new FakePingSessionExecutor { HangUntilCancelled = true };
         var dispatcher = CreateDispatcher(hangingExecutor);
 
         // act
         // Wait for transport entry, then advance past the batch lease expiry.
-        var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var dispatchTask = dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
 
@@ -334,11 +221,11 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // An expired batch can be reclaimed by a fresh dispatch.
         var freshExecutor = new FakePingSessionExecutor();
         var freshDispatcher = CreateDispatcher(freshExecutor);
-        var reclaimed = await freshDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var reclaimed = await freshDispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         Assert.NotNull(reclaimed);
         Assert.Equal(MailWakeTargetStatus.Delivered, reclaimed.Status);
-        Assert.Equal(generation, Assert.Single(reclaimed.Targets).Target);
+        Assert.Equal(actor, Assert.Single(reclaimed.Targets).Target);
     }
 
     [Fact]
@@ -348,22 +235,20 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // TryRenewAsync throws instead of returning false.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var hangingExecutor = new FakePingSessionExecutor { HangUntilCancelled = true };
         var dispatcher = new ActorWakeDispatcher(
             new ThrowingRenewMailWakeBatchStore(_batches),
-            _sessions,
+            _agentStore,
             _gateCoordinator,
             hangingExecutor,
             _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
             _timeProvider);
 
         // act
         // Wait for transport entry, then advance past the renew interval but not the lease expiry.
-        var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var dispatchTask = dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchRenewInterval + TimeSpan.FromSeconds(1));
 
@@ -378,42 +263,11 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration);
         var freshExecutor = new FakePingSessionExecutor();
         var freshDispatcher = CreateDispatcher(freshExecutor);
-        var reclaimed = await freshDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var reclaimed = await freshDispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         Assert.NotNull(reclaimed);
         Assert.Equal(MailWakeTargetStatus.Delivered, reclaimed.Status);
-        Assert.Equal(generation, Assert.Single(reclaimed.Targets).Target);
-    }
-
-    [Fact]
-    public async Task DispatchAsync_Should_ReturnNull_And_LeaveTheOtherInstancesWorkUntouched_When_TheNitroInstanceIdDiffers()
-    {
-        // arrange
-        // Enqueue wake work for this instance ("host-1").
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
-        var otherInstanceDispatcher = new ActorWakeDispatcher(
-            _batches,
-            _sessions,
-            _gateCoordinator,
-            new FakePingSessionExecutor(),
-            _mail,
-            new FixedInstanceIdProvider("host-2"),
-            _globalConfigDirectoryProvider,
-            _timeProvider);
-
-        // act
-        var receipt = await otherInstanceDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-
-        // assert
-        Assert.Null(receipt);
-
-        var hostOneDispatcher = CreateDispatcher(new FakePingSessionExecutor());
-        var hostOneReceipt = await hostOneDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        Assert.NotNull(hostOneReceipt);
-        Assert.Equal(MailWakeTargetStatus.Delivered, hostOneReceipt.Status);
+        Assert.Equal(actor, Assert.Single(reclaimed.Targets).Target);
     }
 
     [Fact]
@@ -423,22 +277,20 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // The decorator records Delivered immediately before forwarding the failure write.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new FakePingSessionExecutor { NextReason = PingAttemptReason.Timeout };
-        var racingBatches = new RacingAcceptanceMailWakeBatchStoreDecorator(_batches, generation, acceptedGeneration: 1);
+        var racingBatches = new RacingAcceptanceMailWakeBatchStoreDecorator(_batches, actor, acceptedGeneration: 1);
         var dispatcher = new ActorWakeDispatcher(
             racingBatches,
-            _sessions,
+            _agentStore,
             _gateCoordinator,
             executor,
             _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
             _timeProvider);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -449,77 +301,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT status FROM mail_wake_targets WHERE session_id = @sessionId";
-        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.CommandText = "SELECT status FROM mail_wake_targets WHERE agent = @agent";
+        command.Parameters.AddWithValue("@agent", actor);
         var status = (string)(await command.ExecuteScalarAsync(cancellationToken))!;
         Assert.Equal(MailWakeTargetStatus.Failed, status);
-    }
-
-    /// <summary>
-    /// A board process may run the fallback dispatcher, but is not itself a
-    /// recipient target. The one coding session still receives the wake.
-    /// </summary>
-    [Fact]
-    public async Task DispatchAsync_Should_PingOnlyTheCodexTarget_When_TheActorAlsoHasABoardSession()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-
-        var boardGeneration = new AgentSessionGeneration(
-            AgentSessionHarness.NitroBoard, "board-1", InstanceId);
-        await _sessions.StartAsync(
-            boardGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.DbWatch, "local",
-            envActor: "pascal", cancellationToken);
-
-        var codexGeneration = new AgentSessionGeneration(
-            AgentSessionHarness.Codex, "codex-session", InstanceId);
-        await _sessions.StartAsync(
-            codexGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
-            envActor: "pascal", cancellationToken);
-
-        var message = await _mail.SendMessageAsync(
-            new MailMessageCreation
-            {
-                Sender = "codex-worker",
-                Subject = "status",
-                Body = "check",
-                To = ["pascal"],
-                WakePolicy = MailWakePolicy.Enqueue
-            },
-            cancellationToken);
-
-        var queueClient = new FakeCodexQueueClient();
-        var ledger = new SessionDeliveryLedger(_fileSystem, _database);
-        var executor = new PingSessionExecutor(
-            _mail, ledger, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
-            new NoopOpencodeServerClient());
-        var dispatcher = new ActorWakeDispatcher(
-            _batches,
-            _sessions,
-            _gateCoordinator,
-            executor,
-            _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
-            _timeProvider);
-
-        // act
-        var dispatchReceipt = await dispatcher.DispatchAsync("pascal", Deadline(), cancellationToken);
-
-        // assert
-        Assert.NotNull(dispatchReceipt);
-        var codexTarget = Assert.Single(dispatchReceipt.Targets);
-        Assert.Equal(codexGeneration, codexTarget.Target);
-        Assert.Equal(MailWakeTargetStatus.Delivered, codexTarget.Status);
-
-        var call = Assert.Single(queueClient.Calls);
-        using var document = System.Text.Json.JsonDocument.Parse(
-            call.Message[(call.Message.IndexOf('\n') + 1)..]);
-        var item = document.RootElement.GetProperty("items")[0];
-        Assert.Equal(
-            ("thread-1", message.Id, "check"),
-            (call.ThreadId, item.GetProperty("id").GetString(), item.GetProperty("body").GetString()));
     }
 
     [Fact]
@@ -528,29 +313,27 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var queueClient = new FakeCodexQueueClient();
         var executor = new PingSessionExecutor(
-            _mail, new SessionDeliveryLedger(_fileSystem, _database), queueClient, new NoopClaudePeerClient(),
-            _sessions, _leases, _timeProvider, new NoopOpencodeServerClient());
+            _mail, new AgentDeliveryLedger(_fileSystem, _database), queueClient, new NoopClaudePeerClient(),
+            _agentStore, _leases, _timeProvider, new NoopOpencodeServerClient());
         var dispatcher = new ActorWakeDispatcher(
             _batches,
-            _sessions,
+            _agentStore,
             _gateCoordinator,
             executor,
             _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
             _timeProvider);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
         Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
-        var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        var row = await _agentStore.FindAsync(actor, cancellationToken);
         Assert.NotNull(row!.LastPingAttempt);
         Assert.Equal(AgentPingResult.Ok, row.LastPingResult);
     }
@@ -561,28 +344,26 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new PingSessionExecutor(
-            new NoUnreadMailStoreDecorator(_mail), new SessionDeliveryLedger(_fileSystem, _database),
-            new FakeCodexQueueClient(), new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
+            new NoUnreadMailStoreDecorator(_mail), new AgentDeliveryLedger(_fileSystem, _database),
+            new FakeCodexQueueClient(), new NoopClaudePeerClient(), _agentStore, _leases, _timeProvider,
             new NoopOpencodeServerClient());
         var dispatcher = new ActorWakeDispatcher(
             _batches,
-            _sessions,
+            _agentStore,
             _gateCoordinator,
             executor,
             _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
             _timeProvider);
 
         // act
         // The dispatcher sees unread mail; the executor's digest lookup returns none.
-        var firstReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        var firstRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        var firstReceipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var firstRow = await _agentStore.FindAsync(actor, cancellationToken);
 
         // assert
         Assert.NotNull(firstRow!.LastPingAttempt);
@@ -592,11 +373,11 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // Rearm the idle-push gate, advance past cooldown, and enqueue another message.
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
-        await SendEnqueuedMailAsync(cancellationToken);
-        var secondReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
-        var secondRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        var secondReceipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var secondRow = await _agentStore.FindAsync(actor, cancellationToken);
 
         // assert
         Assert.NotNull(secondRow!.LastPingAttempt);
@@ -612,15 +393,15 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // RearmIdlePushAsync arms the idle-push gate.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new FakePingSessionExecutor();
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -632,25 +413,27 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_SuppressTheSecondPush_When_TheOpencodeIdleTransitionWasNeverRearmed()
     {
-        // arrange: a first dispatch already spent the one-shot idle-push
+        // arrange
+        // a first dispatch already spent the one-shot idle-push
         // claim (see DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed).
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
-        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(Actor, Deadline(), cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, Deadline(), cancellationToken);
 
         // act
         // Advance past the gate's cooldown, then dispatch a second wake with no fresh rearm.
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
-        await SendEnqueuedMailAsync(cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var suppressedExecutor = new FakePingSessionExecutor();
         var suppressedReceipt = await CreateDispatcher(suppressedExecutor)
-            .DispatchAsync(Actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, Deadline(), cancellationToken);
 
-        // assert: suppressed rather than pushed again.
+        // assert
+        // suppressed rather than pushed again.
         Assert.NotNull(suppressedReceipt);
         var suppressedTarget = Assert.Single(suppressedReceipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, suppressedTarget.Status);
@@ -665,16 +448,17 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // A session whose idle-push gate was never armed.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var executor = new FakePingSessionExecutor();
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
-        // assert: offered, not failed, and no transport was ever attempted.
+        // assert
+        // offered, not failed, and no transport was ever attempted.
         Assert.NotNull(receipt);
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
@@ -689,18 +473,19 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // A first dispatch already offered the target as idle-not-armed.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
-        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(Actor, Deadline(), cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, Deadline(), cancellationToken);
 
-        // act: once a genuine prompt rearms the gate and the retry becomes
+        // act
+        // once a genuine prompt rearms the gate and the retry becomes
         // due, the same still-unread mail is delivered.
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var rearmedExecutor = new FakePingSessionExecutor();
         var rearmedReceipt = await CreateDispatcher(rearmedExecutor)
-            .DispatchAsync(Actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(rearmedReceipt);
@@ -712,20 +497,21 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     public async Task DispatchAsync_Should_LeaveTheIdlePushClaimArmed_When_TheOpencodeSessionGateWasBusy()
     {
         // arrange
-        // The session ping gate is held by an unrelated attempt.
+        // The agent's ping gate is held by an unrelated attempt.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         await _gates.TryAcquireAsync(
-            generation, "external-holder", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+            actor, "external-holder", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
         var busyExecutor = new FakePingSessionExecutor();
 
-        // act: the gate is busy, so the target is offered rather than
+        // act
+        // the gate is busy, so the target is offered rather than
         // failed, and no transport is ever attempted.
-        var busyReceipt = await CreateDispatcher(busyExecutor).DispatchAsync(Actor, Deadline(), cancellationToken);
+        var busyReceipt = await CreateDispatcher(busyExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal("busy", Assert.Single(busyReceipt!.Targets).LastError);
@@ -733,11 +519,11 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // Release the gate and let the offered retry become due.
-        await _gates.ReleaseAsync(generation, "external-holder", cancellationToken);
+        await _gates.ReleaseAsync(actor, "external-holder", cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
-            .DispatchAsync(Actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
@@ -750,24 +536,25 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var failingExecutor = new FakePingSessionExecutor { NextReason = PingAttemptReason.EndpointGone };
 
-        // act: the transport fails outright.
-        var failedReceipt = await CreateDispatcher(failingExecutor).DispatchAsync(Actor, Deadline(), cancellationToken);
+        // act
+        // the transport fails outright.
+        var failedReceipt = await CreateDispatcher(failingExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Failed, failedReceipt?.Status);
 
         // act
         // New mail arrives after the failed attempt already rearmed the claim.
-        await SendEnqueuedMailAsync(cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
-            .DispatchAsync(Actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
@@ -781,15 +568,15 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // The executor reports a successful ping that pushed nothing (PingSessionExecutor.HealthOnlyDetail).
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var healthOnlyExecutor = new FakePingSessionExecutor { NextDetail = PingSessionExecutor.HealthOnlyDetail };
 
         // act
         var healthOnlyReceipt = await CreateDispatcher(healthOnlyExecutor)
-            .DispatchAsync(Actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, healthOnlyReceipt?.Status);
@@ -797,9 +584,9 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // act
         // Advance past the gate's cooldown, then dispatch again with the rearmed claim.
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
-        await SendEnqueuedMailAsync(cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var pushExecutor = new FakePingSessionExecutor();
-        var pushReceipt = await CreateDispatcher(pushExecutor).DispatchAsync(Actor, Deadline(), cancellationToken);
+        var pushReceipt = await CreateDispatcher(pushExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, pushReceipt?.Status);
@@ -813,16 +600,16 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // The idle-push claim is spent, then the transport call hangs.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var generation = await SeedLiveSessionAsync(
+        var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
-        await _sessions.RearmIdlePushAsync(generation, cancellationToken);
-        await SendEnqueuedMailAsync(cancellationToken);
+        await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var hangingExecutor = new FakePingSessionExecutor { HangUntilCancelled = true };
         var dispatcher = CreateDispatcher(hangingExecutor);
 
         // act
         // Wait for transport entry, then advance past the batch lease expiry.
-        var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
+        var dispatchTask = dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
@@ -834,10 +621,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // New mail arrives after the aborted attempt already rearmed the claim.
-        await SendEnqueuedMailAsync(cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
-            .DispatchAsync(Actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
@@ -862,15 +649,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     private DateTimeOffset Deadline() => _timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;
 
     private ActorWakeDispatcher CreateDispatcher(FakePingSessionExecutor executor)
-        => new(
-            _batches,
-            _sessions,
-            _gateCoordinator,
-            executor,
-            _mail,
-            _instanceIdProvider,
-            _globalConfigDirectoryProvider,
-            _timeProvider);
+        => new(_batches, _agentStore, _gateCoordinator, executor, _mail, _timeProvider);
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
@@ -879,36 +658,47 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         }
     }
 
-    private async Task<AgentSessionGeneration> SeedLiveSessionAsync(
+    /// <summary>
+    /// Mints an agent row with a live harness session and endpoint,
+    /// returning its allocated name.
+    /// </summary>
+    private async Task<string> SeedLiveSessionAsync(
         string endpointKind,
         string endpointAddr,
         CancellationToken cancellationToken,
         string sessionId = "session-1")
     {
-        // Start a fresh session on the current Nitro instance.
         var harness = endpointKind switch
         {
             AgentSessionEndpointKind.ClaudePeer => AgentSessionHarness.ClaudeCode,
             AgentSessionEndpointKind.OpencodeServer => AgentSessionHarness.Opencode,
             _ => AgentSessionHarness.Codex
         };
-        var generation = new AgentSessionGeneration(harness, sessionId, InstanceId);
 
-        await _sessions.StartAsync(
-            generation, "/work", "/work/.nitro/agents", endpointKind, endpointAddr,
-            envActor: Actor, cancellationToken);
+        var result = await _agentStore.StartSessionAsync(
+            new AgentSessionStartRequest
+            {
+                Harness = harness,
+                SessionId = sessionId,
+                HarnessVersion = "1.0.0",
+                Cwd = "/work",
+                WorkspacePath = "/work/.nitro/agents",
+                EndpointKind = endpointKind,
+                EndpointAddr = endpointAddr
+            },
+            cancellationToken);
 
-        return generation;
+        return result.Row!.Name;
     }
 
-    private async Task<MailMessage> SendEnqueuedMailAsync(CancellationToken cancellationToken)
+    private async Task<MailMessage> SendEnqueuedMailAsync(string actor, CancellationToken cancellationToken)
         => await _mail.SendMessageAsync(
             new MailMessageCreation
             {
                 Sender = "pascal",
                 Subject = "status",
                 Body = "check",
-                To = [Actor],
+                To = [actor],
                 WakePolicy = MailWakePolicy.Enqueue
             },
             cancellationToken);

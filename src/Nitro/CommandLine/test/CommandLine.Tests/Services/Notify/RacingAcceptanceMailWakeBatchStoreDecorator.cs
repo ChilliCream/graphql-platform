@@ -9,15 +9,15 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Delegates all other <see cref="IMailWakeBatchStore"/> calls to <paramref name="inner"/>.
 /// </summary>
 internal sealed class RacingAcceptanceMailWakeBatchStoreDecorator(
-    IMailWakeBatchStore inner, AgentSessionGeneration racedTarget, long acceptedGeneration) : IMailWakeBatchStore
+    IMailWakeBatchStore inner, string racedTarget, long acceptedGeneration) : IMailWakeBatchStore
 {
     private bool _raced;
 
     public Task<MailWakeBatchClaim?> TryClaimAsync(
-        string nitroInstanceId, string actor, string ownerId, string attemptId,
-        IReadOnlyList<AgentSessionGeneration> targets, DateTimeOffset now, TimeSpan leaseDuration,
+        string actor, string ownerId, string attemptId,
+        IReadOnlyList<string> targets, DateTimeOffset now, TimeSpan leaseDuration,
         CancellationToken cancellationToken)
-        => inner.TryClaimAsync(nitroInstanceId, actor, ownerId, attemptId, targets, now, leaseDuration, cancellationToken);
+        => inner.TryClaimAsync(actor, ownerId, attemptId, targets, now, leaseDuration, cancellationToken);
 
     public Task<bool> TryRenewAsync(
         string batchId, string ownerId, string attemptId, DateTimeOffset now, TimeSpan leaseDuration,
@@ -34,7 +34,7 @@ internal sealed class RacingAcceptanceMailWakeBatchStoreDecorator(
         => inner.TryReleaseAsync(batchId, ownerId, attemptId, now, retryAt, lastError, cancellationToken);
 
     public async Task<bool> TryRecordTargetOutcomeAsync(
-        string batchId, AgentSessionGeneration target, string ownerId, string attemptId, string status,
+        string batchId, string target, string ownerId, string attemptId, string status,
         long? offeredGeneration, long? acceptedGeneration_, string? lastError, DateTimeOffset now,
         CancellationToken cancellationToken)
     {
