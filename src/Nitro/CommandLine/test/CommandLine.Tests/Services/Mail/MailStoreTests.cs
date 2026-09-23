@@ -1315,7 +1315,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task QueryParticipationThreadsAsync_Should_ApplyLimit_ToTenNewest()
+    public async Task QueryParticipationThreadsAsync_Should_ReturnTenNewestThreads_When_LimitIsTen()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1360,7 +1360,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task QueryParticipationThreadsAsync_Should_ScopeUnreadAndArchivedCounts_ToAgent()
+    public async Task QueryParticipationThreadsAsync_Should_ScopeUnreadAndArchivedCounts_When_MultipleAgentsShareThread()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
