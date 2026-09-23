@@ -30,7 +30,7 @@ public sealed class OptionsTests
 
         // assert
         Assert.Equal(1_000, options.MaxFieldCost);
-        Assert.Equal(1_000, options.MaxTypeCost);
+        Assert.Equal(10_000, options.MaxTypeCost);
         Assert.Equal(PagingDefaults.MaxPageSize, options.DefaultListSize);
     }
 
@@ -212,7 +212,7 @@ public sealed class OptionsTests
         else
         {
             Assert.IsType<ArgumentOutOfRangeException>(exception);
-            Assert.Equal(1_000, options.MaxTypeCost);
+            Assert.Equal(10_000, options.MaxTypeCost);
         }
     }
 

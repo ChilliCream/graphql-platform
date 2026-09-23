@@ -190,7 +190,9 @@ public class CostReportingTests : FusionTestBase
     {
         // arrange
         using var server = CreateSourceSchema("A", Schema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
         var request = new OperationRequest(ExpensiveQuery);
 
         // act
@@ -792,7 +794,7 @@ public class CostReportingTests : FusionTestBase
                 "Message": "The maximum allowed type cost was exceeded.",
                 "Code": "HC0047",
                 "TypeCost": "Infinity",
-                "MaxTypeCost": 1000.0,
+                "MaxTypeCost": 10000.0,
                 "OperationCost": {
                   "Field": "Infinity",
                   "Type": "Infinity"
@@ -871,7 +873,9 @@ public class CostReportingTests : FusionTestBase
     {
         // arrange
         using var server = CreateSourceSchema("A", Schema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
 
         // act
         using var response = await SendRawAsync(gateway, "application/graphql-response+json");
@@ -885,7 +889,9 @@ public class CostReportingTests : FusionTestBase
     {
         // arrange
         using var server = CreateSourceSchema("A", Schema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
 
         // act
         using var response = await SendRawAsync(gateway, "application/json");

@@ -35,7 +35,7 @@ public sealed class FusionCostOptions
 
     /// <summary>
     /// Gets or sets the maximum allowed type cost.
-    /// <c>1000</c> by default.
+    /// <c>10000</c> by default.
     /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
@@ -55,7 +55,7 @@ public sealed class FusionCostOptions
 
             field = value;
         }
-    } = 1_000;
+    } = 10_000;
 
     /// <summary>
     /// Gets or sets whether to enforce field-cost, type-cost, and response-size limits.

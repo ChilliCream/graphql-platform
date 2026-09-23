@@ -271,7 +271,11 @@ public class DefaultSecurityTests : FusionTestBase
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server1)],
-            configureGatewayBuilder: b => b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>(),
+            configureGatewayBuilder: b =>
+            {
+                b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>();
+                b.ModifyCostOptions(o => o.MaxTypeCost = 1_000);
+            },
             environmentName: environment);
 
         // act

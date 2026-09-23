@@ -17,7 +17,7 @@ public class FusionCostOptionsTests : FusionTestBase
             """
             {
               "MaxFieldCost": 1000.0,
-              "MaxTypeCost": 1000.0,
+              "MaxTypeCost": 10000.0,
               "EnforceCostLimits": true,
               "SkipAnalyzer": false,
               "MaxResponseSize": null,
