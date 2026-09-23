@@ -1,21 +1,21 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
-public sealed class ListAgentCommandTests : AgentCommandTestBase
+/// <summary>
+/// Covers <c>agent list</c> against the unified agents table: role filtering, board-style
+/// ordering, and the Name/Role/Harness/Started/Last Seen/Online columns.
+/// </summary>
+public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
-    private const string FixedHost = "host-list-agent-tests";
-
-    public ListAgentCommandTests(NitroCommandFixture fixture) : base(fixture)
-    {
-        SetupInstanceId(FixedHost);
-    }
-
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
+        // arrange & act
         var result = await ExecuteCommandAsync("agent", "list", "--help");
 
+        // assert
         result.AssertHelpOutput(
             """
             Description:
@@ -36,146 +36,188 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
     }
 
     [Fact]
-    public async Task Execute_Should_PrintNoActors_When_NoIdentitiesExist()
+    public async Task Execute_Should_PrintNoActors_When_NoAgentsExist()
     {
+        // arrange
         await InitWorkspaceAsync();
 
+        // act
         var result = await ExecuteCommandAsync("agent", "list");
 
+        // assert
         result.AssertSuccess("No actors.");
     }
 
     [Fact]
-    public async Task Execute_Should_ListTheActor_When_ItHasNoSession()
+    public async Task Execute_Should_FilterByRole_When_RoleIsGiven()
     {
+        // arrange
         await InitWorkspaceAsync();
-        await SeedAgentAsync("alpha");
+        await SeedAgentAsync("maya", "orchestrator");
+        await SeedAgentAsync("nova", "planner");
 
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        result.AssertSuccess("alpha  offline  no session  last heard 2026-01-01 00:00");
-    }
-
-    [Fact]
-    public async Task Execute_Should_ListIdentityAsOffline_When_NoConnectionExists()
-    {
-        await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1", role: "planner");
-
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.StartsWith("maya  offline  claude-code  role planner", line);
-    }
-
-    [Fact]
-    public async Task Execute_Should_IgnoreConnection_When_ItHasNoIdentity()
-    {
-        await InitWorkspaceAsync();
-        await InsertAliveSessionRowAsync(FixedHost, "session-1", agentName: null, bindingKind: "none");
-
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        result.AssertSuccess("No actors.");
-    }
-
-    [Fact]
-    public async Task Execute_Should_ShowOnlineStateAndVersion_When_LiveConnectionExists()
-    {
-        await InitWorkspaceAsync();
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-1",
-            "maya",
-            endpointKind: AgentSessionEndpointKind.ClaudePeer,
-            endpointAddr: "maya-peer",
-            harnessVersion: "2.1.241");
-        await InsertSessionIdentityAsync("maya", "session-1");
-
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.StartsWith("maya  online  claude-code 2.1.241", line);
-    }
-
-    [Fact]
-    public async Task Execute_Should_ShowRemoteState_When_ConnectionBelongsToAnotherHost()
-    {
-        await InitWorkspaceAsync();
-        await InsertAliveSessionRowAsync("other-host", "session-1", "maya");
-        await InsertSessionIdentityAsync("maya", "session-1");
-
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        Assert.Contains("maya  remote", result.StdOut);
-    }
-
-    [Fact]
-    public async Task Execute_Should_KeepIdentityOffline_When_StaleConnectionIsReaped()
-    {
-        await InitWorkspaceAsync();
-        await InsertStaleSessionRowAsync(FixedHost, "session-1", "maya");
-        await InsertSessionIdentityAsync("maya", "session-1");
-
-        var result = await ExecuteCommandAsync("agent", "list");
-
-        Assert.Contains("maya  offline", result.StdOut);
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agent_session_identities"));
-    }
-
-    [Fact]
-    public async Task Execute_Should_FilterByIdentityRole_When_IdentityIsOffline()
-    {
-        await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1", role: "orchestrator");
-        await InsertSessionIdentityAsync(
-            "nova", "session-2", harness: AgentSessionHarness.Codex, role: "planner");
-
+        // act
         var result = await ExecuteCommandAsync("agent", "list", "--role", "orchestrator");
 
-        var line = Assert.Single(result.StdOut.Split('\n'));
-        Assert.StartsWith("maya  offline", line);
+        // assert
+        var line = Assert.Single(result.StdOut.Trim().Split('\n'));
+        Assert.StartsWith("maya", line);
     }
 
     [Fact]
-    public async Task Execute_Should_OmitConnectionDiagnostics_When_IdentityIsOffline()
+    public async Task Execute_Should_PrintTheBoardColumns_When_AgentsAreInEveryState()
     {
+        // arrange: an online hook agent, a login-only (unreachable) agent, an ended agent,
+        // and a deleted agent that must not appear at all.
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-offline", role: "planner");
-        SetupInteractionMode(InteractionMode.JsonOutput);
+        await SeedBoardScenarioAsync();
 
+        // act
         var result = await ExecuteCommandAsync("agent", "list");
 
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var item = Assert.Single(document.RootElement.GetProperty("items").EnumerateArray());
-        Assert.Equal("maya", item.GetProperty("actor").GetString());
-        Assert.Equal("session-offline", item.GetProperty("sessionId").GetString());
-        Assert.False(item.GetProperty("online").GetBoolean());
-        Assert.Equal("offline", item.GetProperty("state").GetString());
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, item.GetProperty("host").ValueKind);
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, item.GetProperty("endpointKind").ValueKind);
+        // assert: online first, then unreachable, then offline; the deleted agent is absent.
+        result.AssertSuccess(
+            """
+            maya  orchestrator  Claude Code  30m  10m  yes
+            nova  -             -            30m  10m  no
+            ada   researcher    Codex        30m  10m  no
+            """);
     }
 
     [Fact]
-    public async Task Execute_Should_IncludeConnectionDiagnostics_When_IdentityIsOnline()
+    public async Task JsonOutput_Should_PrintTheBoardColumns_When_AgentsAreInEveryState()
     {
+        // arrange: same scenario as the human-readable rendering, so the JSON and text
+        // outputs are verified against the same fixture.
         await InitWorkspaceAsync();
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-online",
+        await SeedBoardScenarioAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [
+                {
+                  "name": "maya",
+                  "role": "orchestrator",
+                  "harness": "claude-code",
+                  "startedAt": "2026-01-01T00:00:00+00:00",
+                  "lastSeenAt": "2026-01-01T00:20:00+00:00",
+                  "online": true
+                },
+                {
+                  "name": "nova",
+                  "role": "",
+                  "harness": null,
+                  "startedAt": "2026-01-01T00:00:00+00:00",
+                  "lastSeenAt": "2026-01-01T00:20:00+00:00",
+                  "online": false
+                },
+                {
+                  "name": "ada",
+                  "role": "researcher",
+                  "harness": "codex",
+                  "startedAt": "2026-01-01T00:00:00+00:00",
+                  "lastSeenAt": "2026-01-01T00:20:00+00:00",
+                  "online": false
+                }
+              ]
+            }
+            """);
+    }
+
+    /// <summary>
+    /// Seeds one online Claude Code hook agent ("maya"), one login-only agent with no
+    /// harness or session ("nova", unreachable since it has no endpoint), one Codex agent
+    /// whose session already ended ("ada", offline regardless of its endpoint), and one
+    /// deleted agent ("zoe") that <c>agent list</c> must never show. All four start at the
+    /// same time and are last seen 20 minutes later; the command runs 30 minutes after they
+    /// started, so "started" reads 30m and "last seen" reads 10m for every visible row.
+    /// </summary>
+    private async Task SeedBoardScenarioAsync()
+    {
+        var startedAt = FakeTime.GetUtcNow();
+        var lastSeenAt = startedAt.AddMinutes(20);
+
+        await InsertAgentRowAsync(
             "maya",
+            role: "orchestrator",
+            harness: AgentSessionHarness.ClaudeCode,
+            sessionId: "session-maya",
             endpointKind: AgentSessionEndpointKind.ClaudePeer,
-            endpointAddr: "maya-peer");
-        await InsertSessionIdentityAsync("maya", "session-online");
-        SetupInteractionMode(InteractionMode.JsonOutput);
+            startedAt: startedAt,
+            lastSeenAt: lastSeenAt);
 
-        var result = await ExecuteCommandAsync("agent", "list");
+        await InsertAgentRowAsync(
+            "nova",
+            startedAt: startedAt,
+            lastSeenAt: lastSeenAt);
 
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var item = Assert.Single(document.RootElement.GetProperty("items").EnumerateArray());
-        Assert.True(item.GetProperty("online").GetBoolean());
-        Assert.Equal(FixedHost, item.GetProperty("host").GetString());
-        Assert.Equal("maya-peer", item.GetProperty("endpointAddr").GetString());
+        await InsertAgentRowAsync(
+            "ada",
+            role: "researcher",
+            harness: AgentSessionHarness.Codex,
+            sessionId: "session-ada",
+            endpointKind: AgentSessionEndpointKind.CodexThread,
+            startedAt: startedAt,
+            lastSeenAt: lastSeenAt,
+            endedAt: lastSeenAt);
+
+        await InsertAgentRowAsync(
+            "zoe",
+            startedAt: startedAt,
+            lastSeenAt: lastSeenAt,
+            deletedAt: lastSeenAt);
+
+        FakeTime.Advance(TimeSpan.FromMinutes(30));
+    }
+
+    /// <summary>
+    /// Inserts one row directly into the unified <c>agents</c> table, bypassing
+    /// <see cref="IAgentStore"/> so the row's name, timestamps, and state are fully
+    /// controlled by the caller instead of coming from the actor name pool.
+    /// </summary>
+    private async Task InsertAgentRowAsync(
+        string name,
+        string role = "",
+        string? harness = null,
+        string? sessionId = null,
+        string endpointKind = AgentSessionEndpointKind.None,
+        DateTimeOffset? startedAt = null,
+        DateTimeOffset? lastSeenAt = null,
+        DateTimeOffset? endedAt = null,
+        DateTimeOffset? deletedAt = null)
+    {
+        var now = FakeTime.GetUtcNow();
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (
+                name, role, harness, session_id, endpoint_kind,
+                registered_at, started_at, last_seen_at, ended_at, deleted_at
+            ) VALUES (
+                $name, $role, $harness, $sessionId, $endpointKind,
+                $now, $startedAt, $lastSeenAt, $endedAt, $deletedAt
+            );
+            """;
+        command.Parameters.AddWithValue("$name", name);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$harness", (object?)harness ?? DBNull.Value);
+        command.Parameters.AddWithValue("$sessionId", (object?)sessionId ?? DBNull.Value);
+        command.Parameters.AddWithValue("$endpointKind", endpointKind);
+        command.Parameters.AddWithValue("$now", now);
+        command.Parameters.AddWithValue("$startedAt", startedAt ?? now);
+        command.Parameters.AddWithValue("$lastSeenAt", lastSeenAt ?? now);
+        command.Parameters.AddWithValue("$endedAt", (object?)endedAt ?? DBNull.Value);
+        command.Parameters.AddWithValue("$deletedAt", (object?)deletedAt ?? DBNull.Value);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 }
