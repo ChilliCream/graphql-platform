@@ -72,7 +72,8 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
 
-        // assert: omitting --role touches the beat only, the stored role survives.
+        // assert
+        // Omitting --role touches the beat only, the stored role survives.
         result.AssertSuccess("✓ Actor 'maya', role 'planner'.");
         Assert.Equal("planner", await QueryScalarAsync("SELECT role FROM agents WHERE name = 'maya'"));
     }
