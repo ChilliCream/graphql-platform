@@ -66,6 +66,23 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
+    /// Soft-deletes the named agent directly, bypassing the store, since delete mechanics
+    /// are a separate ticket.
+    /// </summary>
+    protected async Task MarkAgentDeletedAsync(string name)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agents SET deleted_at = $now WHERE name = $name";
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        command.Parameters.AddWithValue("$name", name);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Inserts a session on <paramref name="host"/> with fresh start and heartbeat timestamps
     /// and the supplied endpoint and ping state. A null <paramref name="agentName"/>
     /// leaves the session without an associated agent.

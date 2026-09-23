@@ -35,8 +35,8 @@ internal sealed class TakeoverAgentCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
-        var agents = services.GetRequiredService<IAgentRegistry>();
-        var sessions = services.GetRequiredService<IAgentSessionRegistry>();
+        var agents = services.GetRequiredService<IAgentStore>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
         var mail = services.GetRequiredService<IMailStore>();
         var tasks = services.GetRequiredService<ITaskStore>();
         var ledger = services.GetRequiredService<ITakeoverLedger>();
@@ -48,27 +48,35 @@ internal sealed class TakeoverAgentCommand : Command
         var force = parseResult.GetValue(Opt<ForceActorTakeoverOption>.Instance);
         var reason = parseResult.GetValue(Opt<TakeoverReasonOption>.Instance);
 
-        var source = await agents.GetAsync(from, cancellationToken)
+        var source = await agents.FindAsync(from, cancellationToken)
             ?? throw UnknownActor(from);
-        var target = await agents.GetAsync(to, cancellationToken)
+        var target = await agents.FindAsync(to, cancellationToken)
             ?? throw UnknownActor(to);
+
+        if (target.IsDeleted)
+        {
+            throw new ExitException($"Agent '{target.Name}' was deleted.");
+        }
 
         if (from == to)
         {
             throw new ExitException("The source and target actors must be different.");
         }
 
-        if (!force
-            && (await sessions.FindLiveClaimedByAgentNameAsync(from, cancellationToken)).Count > 0)
+        var now = timeProvider.GetUtcNow();
+        var sourceState = AgentStateResolver.Resolve(source, now);
+
+        if (!force && sourceState == AgentState.Online)
         {
             throw new ExitException(
-                $"Actor '{from}' still has a live session; pass --force to take over anyway.");
+                $"Actor '{from}' is {sourceState}; pass --force to take over anyway.");
         }
 
         var role = target.Role;
         if (role.Length == 0 && source.Role.Length > 0)
         {
-            target = await agents.RegisterAsync(to, source.Role, target.Client, cancellationToken);
+            target = await agents.SetRoleAsync(to, source.Role, cancellationToken)
+                ?? throw new ExitException($"Agent '{to}' was deleted.");
             role = target.Role;
         }
 
