@@ -179,7 +179,8 @@ public sealed class ClaudeHookExecutorTests
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
             var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var mail = new MailStore(
+                fileSystem, timeProvider, database, new AgentStore(fileSystem, timeProvider, database));
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
@@ -197,6 +198,7 @@ public sealed class ClaudeHookExecutorTests
 
             var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
             await handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
+            await agentRegistry.RegisterAsync("alice", role: "", client: "", cancellationToken);
             await mail.SendMessageAsync(
                 new MailMessageCreation { Sender = "bob", Subject = "status", Body = "check", To = ["alice"] },
                 cancellationToken);
@@ -263,7 +265,8 @@ public sealed class ClaudeHookExecutorTests
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
             var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var mail = new MailStore(
+                fileSystem, timeProvider, database, new AgentStore(fileSystem, timeProvider, database));
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,

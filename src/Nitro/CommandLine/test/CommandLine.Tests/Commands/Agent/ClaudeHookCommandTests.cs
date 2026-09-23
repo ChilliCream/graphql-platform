@@ -253,7 +253,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
             new TestFileSystem(WorkingDirectory),
             FakeTime,
             new AgentDatabase(),
-            new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
+            new AgentStore(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
 
         return await store.SendMessageAsync(
             new MailMessageCreation

@@ -299,7 +299,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
             new TestFileSystem(WorkingDirectory),
             FakeTime,
             new AgentDatabase(),
-            new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
+            new AgentStore(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
 
         return await store.SendMessageAsync(
             new MailMessageCreation

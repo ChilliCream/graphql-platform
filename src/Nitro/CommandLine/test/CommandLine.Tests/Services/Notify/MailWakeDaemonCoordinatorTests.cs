@@ -65,7 +65,8 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
         _globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName);
         _mail = new MailStore(
-            _fileSystem, TimeProvider.System, _database, _agentRegistry, _instanceIdProvider,
+            _fileSystem, TimeProvider.System, _database,
+            new AgentStore(_fileSystem, TimeProvider.System, _database), _instanceIdProvider,
             _globalConfigDirectoryProvider);
         _batches = new MailWakeBatchStore(_fileSystem, _database);
         var gates = new SessionPingGateStore(_fileSystem, _database);

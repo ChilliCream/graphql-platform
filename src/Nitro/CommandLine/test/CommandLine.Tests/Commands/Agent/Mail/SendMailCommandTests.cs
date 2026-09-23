@@ -201,7 +201,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task UnknownRecipients_SendsAndWarnsInFirstOccurrenceOrder()
+    public async Task Send_Should_ReturnUnknownAgentError_When_ToRecipientUnknown()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -211,23 +211,16 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "send", "--to", "dave", "--to", "eve", "--subject", "hi", "--body", "yo");
 
         // assert
-        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
-        result.AssertSuccess(
-            $"""
-            ✓ Sent '{id}' to dave, eve.
-            note: 'dave' has never registered.
-            note: 'eve' has never registered.
+        // The first offending name, in to-then-cc order, is reported.
+        result.AssertError(
+            """
+            Unknown agent 'dave'. Look the name up with 'nitro agent list'.
             """);
-        Assert.Equal(
-            "1",
-            await QueryScalarAsync("SELECT implicit FROM agents WHERE name = 'dave'"));
-        Assert.Equal(
-            "1",
-            await QueryScalarAsync("SELECT implicit FROM agents WHERE name = 'eve'"));
+        Assert.Null(await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'"));
     }
 
     [Fact]
-    public async Task MixOfKnownAndUnknownRecipients_WarnsOnlyOnUnknown()
+    public async Task Send_Should_ReturnUnknownAgentErrorAndWriteNothing_When_RecipientsMixKnownAndUnknown()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -239,11 +232,29 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "send", "--to", "bob", "--to", "dave", "--subject", "hi", "--body", "yo");
 
         // assert
-        var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'");
-        result.AssertSuccess(
-            $"""
-            ✓ Sent '{id}' to bob, dave.
-            note: 'dave' has never registered.
+        result.AssertError(
+            """
+            Unknown agent 'dave'. Look the name up with 'nitro agent list'.
+            """);
+        Assert.Null(await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'hi'"));
+    }
+
+    [Fact]
+    public async Task Send_Should_ReturnDeletedAgentError_When_ToRecipientDeleted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("dave");
+        await MarkAgentDeletedAsync("dave");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "send", "--to", "dave", "--subject", "hi", "--body", "yo");
+
+        // assert
+        result.AssertError(
+            """
+            Agent 'dave' was deleted. Look the name up with 'nitro agent list'.
             """);
     }
 
@@ -265,28 +276,21 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ImplicitRecipient_CanReadInbox_AndCanRegister()
+    public async Task Send_Should_AllowRecipientToReadInbox_When_RecipientIsRegistered()
     {
         // arrange
         await InitWorkspaceAsync();
-        await ExecuteCommandAsync(
+        await SeedAgentAsync("dave");
+
+        // act
+        var sendResult = await ExecuteCommandAsync(
             "agent", "mail", "send", "--to", "dave", "--subject", "hi", "--body", "yo");
-
-        // act
-        var beforeRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
+        var inbox = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
 
         // assert
-        Assert.Equal(0, beforeRegister.ExitCode);
-        Assert.Contains("hi", beforeRegister.StdOut);
-
-        // act
-        var registerResult = await ExecuteCommandAsync("agent", "register", "--actor", "dave");
-        var afterRegister = await ExecuteCommandAsync("agent", "mail", "inbox", "--actor", "dave");
-
-        // assert
-        Assert.Equal(0, registerResult.ExitCode);
-        Assert.Equal(0, afterRegister.ExitCode);
-        Assert.Contains("hi", afterRegister.StdOut);
+        Assert.Equal(0, sendResult.ExitCode);
+        Assert.Equal(0, inbox.ExitCode);
+        Assert.Contains("hi", inbox.StdOut);
     }
 
     [Fact]
@@ -315,29 +319,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
         Assert.Equal("Status", root.GetProperty("subject").GetString());
         Assert.True(root.TryGetProperty("createdAt", out _));
-        Assert.Empty(root.GetProperty("unregistered").EnumerateArray());
         Assert.True(root.GetProperty("messageStored").GetBoolean());
-    }
-
-    [Fact]
-    public async Task JsonOutput_ReturnsUnregisteredRecipients()
-    {
-        // arrange
-        await InitWorkspaceAsync();
-        SetupInteractionMode(InteractionMode.JsonOutput);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "agent", "mail", "send", "--to", "dave", "--subject", "Status", "--body", "All good.");
-
-        // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
-
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal(
-            ["dave"], root.GetProperty("unregistered").EnumerateArray().Select(e => e.GetString()!).ToArray());
     }
 
     [Fact]

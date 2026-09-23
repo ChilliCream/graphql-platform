@@ -1050,7 +1050,8 @@ public sealed class AgentDatabaseTests : IDisposable
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
         var taskStore = new TaskStore(fileSystem, timeProvider, _database);
         var agentRegistry = new AgentRegistry(fileSystem, timeProvider, _database);
-        var mailStore = new MailStore(fileSystem, timeProvider, _database, agentRegistry);
+        var agentStore = new AgentStore(fileSystem, timeProvider, _database);
+        var mailStore = new MailStore(fileSystem, timeProvider, _database, agentStore);
 
         await taskStore.InitializeWorkspaceAsync(_workspaceDirectory, "acme", cancellationToken);
 

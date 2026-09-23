@@ -45,7 +45,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
         _ledger = new SessionDeliveryLedger(_fileSystem, _database);
-        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
+        _mail = new MailStore(
+            _fileSystem, _timeProvider, _database, new AgentStore(_fileSystem, _timeProvider, _database));
         _environmentVariables = new FixedEnvironmentVariableProvider();
         _handler = new OpencodeHookHandler(
             _fileSystem,
