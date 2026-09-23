@@ -51,7 +51,5 @@ public static class FusionCostAnalyzerExtensions
     }
 
     internal static FusionRequestCostOptions? TryGetCostOptions(this RequestContext context)
-    {
-        return context.Features.TryGet<FusionRequestCostOptions>(out var options) ? options : null;
-    }
+        => context.Features.TryGet<FusionRequestCostOptions>(out var options) ? options : null;
 }
