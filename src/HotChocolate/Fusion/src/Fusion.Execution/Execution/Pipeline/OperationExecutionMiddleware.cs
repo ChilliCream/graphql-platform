@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,6 +28,22 @@ internal sealed class OperationExecutionMiddleware
         {
             throw new InvalidOperationException(
                 "There is no operation plan available to be executed.");
+        }
+
+        var operation = operationPlan.Operation;
+
+        // the incremental delivery constraint comes from the accepted response content types
+        // alone, so it is evaluated before the operation kind.
+        if (!IsIncrementalDeliveryAllowed(operation, context.Request))
+        {
+            context.Result = ErrorHelper.IncrementalDeliveryNotAcceptable();
+            return;
+        }
+
+        if (!IsOperationKindAllowed(operation, context.Request))
+        {
+            context.Result = ErrorHelper.OperationKindNotAllowed(GetRequiredFlag(operation));
+            return;
         }
 
         using (_diagnosticEvents.ExecuteOperation(context))
@@ -99,6 +116,37 @@ internal sealed class OperationExecutionMiddleware
 
         await next(context);
     }
+
+    private static bool IsIncrementalDeliveryAllowed(Operation operation, IOperationRequest request)
+    {
+        if (request.Flags is RequestFlags.AllowAll || !operation.HasIncrementalParts)
+        {
+            return true;
+        }
+
+        return (request.Flags & RequestFlags.AllowStreams) == RequestFlags.AllowStreams;
+    }
+
+    private static bool IsOperationKindAllowed(Operation operation, IOperationRequest request)
+    {
+        if (request.Flags is RequestFlags.AllowAll)
+        {
+            return true;
+        }
+
+        var requiredFlag = GetRequiredFlag(operation);
+
+        return requiredFlag is RequestFlags.None || (request.Flags & requiredFlag) == requiredFlag;
+    }
+
+    private static RequestFlags GetRequiredFlag(Operation operation)
+        => operation.Definition.Operation switch
+        {
+            OperationType.Query => RequestFlags.AllowQuery,
+            OperationType.Mutation => RequestFlags.AllowMutation,
+            OperationType.Subscription => RequestFlags.AllowSubscription,
+            _ => RequestFlags.None
+        };
 
     public static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(
