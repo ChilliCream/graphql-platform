@@ -147,4 +147,4 @@ A gateway can override `FusionCostOptions` for a single request by attaching a `
 
 ## Default maximum type cost raised to 10,000
 
-The default maximum type cost is now `10,000`, up from `1,000`. The maximum field cost stays `1,000`.
+The default maximum type cost is `10,000` and the default maximum field cost is `1,000`. See [Cost enforcement is enabled by default](#cost-enforcement-is-enabled-by-default).
