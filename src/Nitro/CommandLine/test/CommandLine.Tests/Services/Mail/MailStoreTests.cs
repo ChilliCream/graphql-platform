@@ -864,11 +864,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         var sourceInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken);
 
         // assert
-        Assert.Equal(1, result.RecipientsMoved);
-        Assert.Equal(0, result.Dropped);
-        Assert.Equal(message.Id, Assert.Single(result.RecipientMessageIds));
-        Assert.Equal(message.Id, Assert.Single(targetInbox).Id);
-        Assert.Empty(sourceInbox);
+        ($"{result.RecipientsMoved}|{result.Dropped}|{string.Join(",", result.RecipientMessageIds)}|{string.Join(",", targetInbox.Select(t => t.Id))}|{string.Join(",", sourceInbox.Select(t => t.Id))}")
+            .MatchInlineSnapshot($"1|0|{message.Id}|{message.Id}|");
     }
 
     [Fact]
