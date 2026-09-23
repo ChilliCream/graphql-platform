@@ -68,9 +68,7 @@ internal sealed class ListAttributeValuesCommand : Command
             items,
             total: null,
             page.HasNextPage,
-            "attribute values",
-            AttributeValueListJsonContext.Default.AttributeValueListItem,
-            new TelemetryListColumn<AttributeValueListItem>("Value", item => item.Value));
+            AttributeValueListJsonContext.Default.AttributeValueListItem);
 
         return ExitCodes.Success;
     }

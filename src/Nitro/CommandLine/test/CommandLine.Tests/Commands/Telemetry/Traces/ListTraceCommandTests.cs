@@ -131,7 +131,12 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             "list");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            """
+            {"items":[
+            {"start":"2025-12-31T23:30:00.123+00:00","service":"products","name":"GET /products","durationMs":125.5,"status":"Error","traceId":"trace-1","spanId":"span-1","seeker":"seeker-1"}
+            ],"returned":1,"total":null,"hasMore":false}
+            """);
         Assert.Equal(
             [OpenTelemetrySpanKind.Server, OpenTelemetrySpanKind.Consumer],
             (IReadOnlyList<OpenTelemetrySpanKind>)TelemetryClientMock.Invocations.Single().Arguments[3]!);
@@ -163,7 +168,10 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             .Arguments[1];
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            """
+            {"items":[],"returned":0,"total":null,"hasMore":false}
+            """);
         JsonSerializer.Serialize(filter, s_jsonSerializerOptions).MatchInlineSnapshot(
             """
             {"and":[{"attribute":{"condition":{"gte":{"int":500}},"key":"http.status_code"}},{"attribute":{"condition":{"eq":{"string":"error"}},"key":"status"}},{"attribute":{"condition":{"gte":{"int":100}},"key":"duration"}},{"attribute":{"condition":{"matches":"*timeout*"},"key":"span.name"}},{"attribute":{"condition":{"eq":{"string":"checkout"}},"key":"service.name","kind":"Resource"}}]}
@@ -188,7 +196,12 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             "producer");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            """
+            {"items":[
+            {"start":"2025-12-31T23:30:00.123+00:00","service":"products","name":"GET /products","durationMs":125.5,"status":"Error","traceId":"trace-1","spanId":"span-1","seeker":"seeker-1"}
+            ],"returned":1,"total":null,"hasMore":false}
+            """);
         Assert.Equal(
             [OpenTelemetrySpanKind.Client, OpenTelemetrySpanKind.Producer],
             (IReadOnlyList<OpenTelemetrySpanKind>)TelemetryClientMock.Invocations.Single().Arguments[3]!);
@@ -213,23 +226,11 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess(
-            mode switch
-            {
-                InteractionMode.Interactive =>
-                    """
-                    ┌──────────────┬──────────┬───────────────┬───────────────┬────────┬──────────┐
-                    │ Start        │ Service  │ Name          │ Duration (ms) │ Status │ Trace ID │
-                    ├──────────────┼──────────┼───────────────┼───────────────┼────────┼──────────┤
-                    │ 23:30:00.123 │ products │ GET /products │ 125.5         │ Error  │ trace-1  │
-                    └──────────────┴──────────┴───────────────┴───────────────┴────────┴──────────┘
-                    """,
-                _ =>
-                    """
-                    {"items":[
-                    {"start":"2025-12-31T23:30:00.123+00:00","service":"products","name":"GET /products","durationMs":125.5,"status":"Error","traceId":"trace-1","spanId":"span-1","seeker":"seeker-1"}
-                    ],"returned":1,"total":null,"hasMore":false}
-                    """
-            });
+            """
+            {"items":[
+            {"start":"2025-12-31T23:30:00.123+00:00","service":"products","name":"GET /products","durationMs":125.5,"status":"Error","traceId":"trace-1","spanId":"span-1","seeker":"seeker-1"}
+            ],"returned":1,"total":null,"hasMore":false}
+            """);
     }
 
     [Fact]

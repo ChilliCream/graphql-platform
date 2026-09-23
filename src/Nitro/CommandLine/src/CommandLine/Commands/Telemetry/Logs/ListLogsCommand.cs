@@ -100,14 +100,8 @@ internal sealed class ListLogsCommand : Command
             items,
             total: null,
             page.HasNextPage,
-            "logs",
             LogListJsonContext.Default.LogListItem,
-            emptyResultHint,
-            new TelemetryListColumn<LogListItem>("Time", item => LogPresentation.FormatTime(item.Epoch)),
-            new TelemetryListColumn<LogListItem>("Severity", item => item.SeverityText),
-            new TelemetryListColumn<LogListItem>("Service", item => item.ServiceName),
-            new TelemetryListColumn<LogListItem>("Message", item => item.Body),
-            new TelemetryListColumn<LogListItem>("Trace ID", item => item.TraceId));
+            emptyResultHint);
 
         return ExitCodes.Success;
     }

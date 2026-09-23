@@ -83,12 +83,8 @@ internal sealed class ListServicesCommand : Command
             items,
             total: null,
             page.HasNextPage,
-            "services",
             ServiceListJsonContext.Default.ServiceListItem,
-            emptyResultHint,
-            new TelemetryListColumn<ServiceListItem>("Name", item => item.Name),
-            new TelemetryListColumn<ServiceListItem>("Environments", item => item.Environments),
-            new TelemetryListColumn<ServiceListItem>("Last version", item => item.LastVersion));
+            emptyResultHint);
 
         return ExitCodes.Success;
     }

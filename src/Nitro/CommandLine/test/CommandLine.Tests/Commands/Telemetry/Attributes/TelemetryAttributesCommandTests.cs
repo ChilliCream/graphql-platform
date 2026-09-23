@@ -98,7 +98,7 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Values_Should_ReturnEmptyResult_When_NoValuesExist()
+    public async Task Values_Should_WriteEmptyEnvelope_When_NoValuesExist()
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
@@ -117,7 +117,7 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            No attribute values found.
+            {"items":[],"returned":0,"total":null,"hasMore":false}
             """);
     }
 }

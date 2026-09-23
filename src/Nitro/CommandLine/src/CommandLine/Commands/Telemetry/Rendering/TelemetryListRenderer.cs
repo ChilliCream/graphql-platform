@@ -1,16 +1,12 @@
-using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using ChilliCream.Nitro.CommandLine.Results;
 using HotChocolate.Buffers;
-using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 
 internal sealed class TelemetryListRenderer(INitroConsole console)
 {
-    private const int MaximumTableValueLength = 120;
     private const string NarrowingHint = "narrow with --since, --service or --filter, or raise --limit";
     private static readonly JsonWriterOptions s_jsonWriterOptions = new() { Indented = false };
 
@@ -18,31 +14,21 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
         IReadOnlyList<TItem> items,
         int? total,
         bool hasMore,
-        string things,
-        JsonTypeInfo<TItem> jsonTypeInfo,
-        params TelemetryListColumn<TItem>[] columns)
-        => Render(items, total, hasMore, things, jsonTypeInfo, emptyResultHint: null, columns);
+        JsonTypeInfo<TItem> jsonTypeInfo)
+        => Render(items, total, hasMore, jsonTypeInfo, emptyResultHint: null);
 
     public void Render<TItem>(
         IReadOnlyList<TItem> items,
         int? total,
         bool hasMore,
-        string things,
         JsonTypeInfo<TItem> jsonTypeInfo,
-        string? emptyResultHint,
-        params TelemetryListColumn<TItem>[] columns)
+        string? emptyResultHint)
     {
         var hint = items.Count == 0 && emptyResultHint is not null
             ? emptyResultHint
             : CreateHint(items.Count, total, hasMore);
 
-        if (console.IsAgentMode || console.OutputFormat is OutputFormat.Json)
-        {
-            RenderJsonEnvelope(items, total, hasMore, hint, jsonTypeInfo);
-            return;
-        }
-
-        RenderTable(items, things, columns, hint, emptyResultHint);
+        RenderJsonEnvelope(items, total, hasMore, hint, jsonTypeInfo);
     }
 
     private static string? CreateHint(int returned, int? total, bool hasMore)
@@ -131,57 +117,5 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
         }
 
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
-    }
-
-    private void RenderTable<TItem>(
-        IReadOnlyList<TItem> items,
-        string things,
-        IReadOnlyList<TelemetryListColumn<TItem>> columns,
-        string? hint,
-        string? emptyResultHint)
-    {
-        if (items.Count == 0)
-        {
-            console.WriteLine($"No {things} found.");
-
-            if (emptyResultHint is not null)
-            {
-                console.WriteLine(emptyResultHint);
-            }
-
-            return;
-        }
-
-        var table = new Table();
-
-        foreach (var column in columns)
-        {
-            table.AddColumn(column.Header);
-        }
-
-        foreach (var item in items)
-        {
-            table.AddRow(
-                columns
-                    .Select(column => (IRenderable)new Text(Truncate(column.Value(item))))
-                    .ToArray());
-        }
-
-        console.Write(table);
-
-        if (hint is not null)
-        {
-            console.WriteLine(hint);
-        }
-    }
-
-    internal static string Truncate(string? value)
-    {
-        if (string.IsNullOrEmpty(value) || value.Length <= MaximumTableValueLength)
-        {
-            return value ?? string.Empty;
-        }
-
-        return string.Concat(value.AsSpan(0, MaximumTableValueLength - 1), "…");
     }
 }

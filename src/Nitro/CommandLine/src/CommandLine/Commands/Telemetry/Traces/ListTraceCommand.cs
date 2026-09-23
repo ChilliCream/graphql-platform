@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry;
@@ -110,15 +109,8 @@ internal sealed class ListTraceCommand : Command
             items,
             total: null,
             page.HasNextPage,
-            "traces",
             TraceListJsonContext.Default.TraceListItem,
-            emptyResultHint,
-            new TelemetryListColumn<TraceListItem>("Start", item => FormatStart(item.Start)),
-            new TelemetryListColumn<TraceListItem>("Service", item => item.Service),
-            new TelemetryListColumn<TraceListItem>("Name", item => item.Name),
-            new TelemetryListColumn<TraceListItem>("Duration (ms)", item => FormatDuration(item.DurationMs)),
-            new TelemetryListColumn<TraceListItem>("Status", item => item.Status),
-            new TelemetryListColumn<TraceListItem>("Trace ID", item => item.TraceId));
+            emptyResultHint);
 
         return ExitCodes.Success;
     }
@@ -210,12 +202,6 @@ internal sealed class ListTraceCommand : Command
                 + "or `@resource.service.name:checkout`"));
         console.Error.WriteLine();
     }
-
-    private static string FormatStart(DateTimeOffset start)
-        => start.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
-
-    private static string FormatDuration(double durationMs)
-        => durationMs.ToString("0.###", CultureInfo.InvariantCulture);
 
     private static OpenTelemetrySpanKind MapSpanKind(TelemetrySpanKind spanKind)
         => spanKind switch

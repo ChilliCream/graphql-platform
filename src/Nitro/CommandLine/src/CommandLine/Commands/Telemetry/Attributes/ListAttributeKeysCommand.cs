@@ -65,10 +65,7 @@ internal sealed class ListAttributeKeysCommand : Command
             items,
             total: null,
             page.HasNextPage,
-            "attribute keys",
-            AttributeKeyListJsonContext.Default.AttributeKeyListItem,
-            new TelemetryListColumn<AttributeKeyListItem>("Key", item => item.Key),
-            new TelemetryListColumn<AttributeKeyListItem>("Kind", item => item.Kind));
+            AttributeKeyListJsonContext.Default.AttributeKeyListItem);
 
         return ExitCodes.Success;
     }

@@ -29,9 +29,7 @@ public sealed class TelemetryOutputFormatRendererTests
                 [new Sample("first", "First")],
                 total: 1,
                 hasMore: false,
-                things: "traces",
-                TelemetryOutputFormatRendererJsonContext.Default.Sample,
-                new TelemetryListColumn<Sample>("Id", item => item.Id));
+                TelemetryOutputFormatRendererJsonContext.Default.Sample);
 
             return Task.FromResult(ExitCodes.Success);
         });

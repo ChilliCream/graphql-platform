@@ -23,10 +23,7 @@ public sealed class TelemetryListRendererTests
             [new Sample("first", "First"), new Sample("second", "Second")],
             total: 3,
             hasMore: true,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Id", item => item.Id),
-            new TelemetryListColumn<Sample>("Name", item => item.Name));
+            TelemetryListRendererJsonContext.Default.Sample);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
@@ -52,9 +49,7 @@ public sealed class TelemetryListRendererTests
             [item],
             total: 1,
             hasMore: false,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Name", value => value.Name));
+            TelemetryListRendererJsonContext.Default.Sample);
 
         // assert
         using var document = JsonDocument.Parse(output.ToString());
@@ -62,49 +57,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Truncate_Should_UseEllipsis_When_TableValueExceedsMaximumLength()
-    {
-        // arrange
-        var value = new string('a', 121);
-
-        // act
-        var truncated = TelemetryListRenderer.Truncate(value);
-
-        // assert
-        truncated.MatchInlineSnapshot(
-            """
-            aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…
-            """);
-    }
-
-    [Fact]
-    public void Render_Should_TruncateValues_When_RenderingTable()
-    {
-        // arrange
-        var (console, output, _) = CreateConsole();
-        var renderer = new TelemetryListRenderer(console);
-        var name = new string('a', 121);
-
-        // act
-        renderer.Render(
-            [new Sample("first", name)],
-            total: 1,
-            hasMore: false,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Name", item => item.Name));
-
-        // assert
-        var row = Assert.Single(
-            output
-                .ToString()
-                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries),
-            line => line.Contains('…'));
-        Assert.Equal($"│ {TelemetryListRenderer.Truncate(name)} │", row);
-    }
-
-    [Fact]
-    public void Render_Should_WriteHintLine_When_TtyOutputHasMoreItems()
+    public void Render_Should_WriteEnvelope_When_InteractiveOutputHasMoreItems()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -115,17 +68,14 @@ public sealed class TelemetryListRendererTests
             [new Sample("first", "First")],
             total: null,
             hasMore: true,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Id", item => item.Id));
+            TelemetryListRendererJsonContext.Default.Sample);
 
         // assert
-        var lines = output
-            .ToString()
-            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        lines[^1].MatchInlineSnapshot(
+        output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            showing 1 (more), narrow with --since, --service or --filter, or raise --limit
+            {"items":[
+            {"id":"first","name":"First"}
+            ],"returned":1,"total":null,"hasMore":true,"hint":"showing 1 (more), narrow with --since, --service or --filter, or raise --limit"}
             """);
     }
 
@@ -141,9 +91,7 @@ public sealed class TelemetryListRendererTests
             Array.Empty<Sample>(),
             total: 0,
             hasMore: false,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Id", item => item.Id));
+            TelemetryListRendererJsonContext.Default.Sample);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
@@ -153,7 +101,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_Should_WriteEmptyMessage_When_TtyHasNoItems()
+    public void Render_Should_WriteEmptyEnvelope_When_InteractiveModeHasNoItems()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -164,14 +112,12 @@ public sealed class TelemetryListRendererTests
             Array.Empty<Sample>(),
             total: 0,
             hasMore: false,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Id", item => item.Id));
+            TelemetryListRendererJsonContext.Default.Sample);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            No traces found.
+            {"items":[],"returned":0,"total":0,"hasMore":false}
             """);
     }
 

@@ -5,12 +5,6 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Logs;
 
 internal static class LogPresentation
 {
-    public static string FormatTime(double epoch)
-        => DateTimeOffset
-            .FromUnixTimeMilliseconds((long)epoch)
-            .ToUniversalTime()
-            .ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
-
     public static string FormatTimestamp(double epoch)
         => DateTimeOffset
             .FromUnixTimeMilliseconds((long)epoch)

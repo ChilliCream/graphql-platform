@@ -94,7 +94,10 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
             "warn");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            """
+            {"items":[],"returned":0,"total":null,"hasMore":false}
+            """);
     }
 
     [Fact]
@@ -122,7 +125,10 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
             "trace-1");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            """
+            {"items":[],"returned":0,"total":null,"hasMore":false}
+            """);
     }
 
     [Theory]
@@ -143,7 +149,12 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
             "list");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            """
+            {"items":[
+            {"id":"log-1","epoch":1767225600123,"severityText":"ERROR","severityNumber":17,"serviceName":"products","body":"Request failed","traceId":"trace-1","spanId":"span-1"}
+            ],"returned":1,"total":null,"hasMore":false}
+            """);
     }
 
     [Fact]
@@ -163,7 +174,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            No logs found.
+            {"items":[],"returned":0,"total":null,"hasMore":false}
             """);
     }
 
@@ -192,8 +203,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            No logs found.
-            no results; unknown key 'http.statuscode', did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal logs to list keys.
+            {"items":[],"returned":0,"total":null,"hasMore":false,"hint":"no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal logs to list keys."}
             """);
         TelemetryClientMock.Verify(
             x => x.ListAttributeKeysAsync(
@@ -262,7 +272,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            No logs found.
+            {"items":[],"returned":0,"total":null,"hasMore":false}
             """);
     }
 
