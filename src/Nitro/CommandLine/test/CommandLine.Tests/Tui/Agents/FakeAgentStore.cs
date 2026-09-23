@@ -188,6 +188,206 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
     public Task<IReadOnlyList<AgentRow>> ListAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<AgentRow>>(_rows.Where(r => !r.IsDeleted).ToList());
 
+    public Task<bool> SetEndpointAsync(
+        string name,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index < 0)
+        {
+            return Task.FromResult(false);
+        }
+
+        var (kind, addr, secret) = NormalizeEndpoint(
+            _rows[index].Harness ?? string.Empty, endpointKind, endpointAddr, endpointSecret);
+
+        _rows[index] = _rows[index] with
+        {
+            EndpointKind = kind,
+            EndpointAddr = addr,
+            EndpointSecret = secret
+        };
+
+        return Task.FromResult(true);
+    }
+
+    public Task<int> ResetBlockBudgetAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index >= 0)
+        {
+            _rows[index] = _rows[index] with { BlockBudgetUsed = 0 };
+        }
+
+        return Task.FromResult(0);
+    }
+
+    public Task<int> IncrementBlockBudgetAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index < 0)
+        {
+            return Task.FromResult(0);
+        }
+
+        var updated = _rows[index] with { BlockBudgetUsed = _rows[index].BlockBudgetUsed + 1 };
+        _rows[index] = updated;
+
+        return Task.FromResult(updated.BlockBudgetUsed);
+    }
+
+    public Task<bool> TryClaimPingCooldownAsync(
+        string name, TimeSpan cooldown, string attemptId, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index < 0)
+        {
+            return Task.FromResult(false);
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var existing = _rows[index];
+
+        if (existing.LastPingAt is { } lastPingAt && lastPingAt > now - cooldown)
+        {
+            return Task.FromResult(false);
+        }
+
+        _rows[index] = existing with
+        {
+            LastPingAt = now,
+            LastPingAttempt = attemptId,
+            LastPingResult = null,
+            LastPingDetail = null
+        };
+
+        return Task.FromResult(true);
+    }
+
+    public Task WritePingResultAsync(
+        string name, string attemptId, string result, string? detail, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(
+            r => r.Name == normalizedName && !r.IsDeleted && r.LastPingAttempt == attemptId);
+
+        if (index >= 0)
+        {
+            _rows[index] = _rows[index] with { LastPingResult = result, LastPingDetail = detail };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task ArmAnnouncementAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index >= 0)
+        {
+            _rows[index] = _rows[index] with { AnnouncementPending = true };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> ClaimAnnouncementAsync(string name, CancellationToken cancellationToken)
+        => ClaimFlag(name, row => row.AnnouncementPending, (row, cleared) => row with { AnnouncementPending = cleared });
+
+    public Task<bool> IsAnnouncementPendingAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var row = _rows.FirstOrDefault(r => r.Name == normalizedName && !r.IsDeleted);
+
+        return Task.FromResult(row?.AnnouncementPending ?? false);
+    }
+
+    public Task RearmIdlePushAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index >= 0)
+        {
+            _rows[index] = _rows[index] with { IdlePushArmed = true };
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<bool> ClaimIdlePushAsync(string name, CancellationToken cancellationToken)
+        => ClaimFlag(name, row => row.IdlePushArmed, (row, cleared) => row with { IdlePushArmed = cleared });
+
+    public Task<bool> RecordHarnessVersionAsync(
+        string name, string harnessVersion, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index < 0)
+        {
+            return Task.FromResult(false);
+        }
+
+        _rows[index] = _rows[index] with { HarnessVersion = harnessVersion };
+
+        return Task.FromResult(true);
+    }
+
+    private Task<bool> ClaimFlag(
+        string name, Func<AgentRow, bool> read, Func<AgentRow, bool, AgentRow> write)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index < 0 || !read(_rows[index]))
+        {
+            return Task.FromResult(false);
+        }
+
+        _rows[index] = write(_rows[index], false);
+
+        return Task.FromResult(true);
+    }
+
+    /// <summary>
+    /// Normalizes invalid or absent endpoints to kind <c>none</c>, an empty address,
+    /// and no credential. Credentials are retained only for valid opencode-server
+    /// endpoints belonging to the opencode harness.
+    /// </summary>
+    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
+        string harness,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret)
+    {
+        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
+        {
+            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
+                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
+                : (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        {
+            return (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        return (endpointKind, endpointAddr, null);
+    }
+
     private static void EnsureAgentHarness(string harness)
     {
         if (!AgentSessionHarness.IsAgentHarness(harness))
