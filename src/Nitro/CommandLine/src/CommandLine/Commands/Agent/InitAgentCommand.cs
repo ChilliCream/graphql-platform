@@ -415,6 +415,15 @@ internal sealed class InitAgentCommand : Command
                 workspacePath = workspaceDirectory,
                 previousWorkspacePath = previousWorkspaceDirectory
             });
+
+        await connection.ExecuteAsync(
+            "UPDATE agents SET workspace_path = @workspacePath "
+            + "WHERE workspace_path = @previousWorkspacePath;",
+            new
+            {
+                workspacePath = workspaceDirectory,
+                previousWorkspacePath = previousWorkspaceDirectory
+            });
     }
 
     private static int WriteMigrateResult(

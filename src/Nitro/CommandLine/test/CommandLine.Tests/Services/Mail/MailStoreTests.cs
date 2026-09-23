@@ -1348,7 +1348,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         await using var connection = await SeedAsync(cancellationToken);
         await ExecuteAsync(
             connection,
-            "INSERT INTO agents (name, registered_at, last_seen_at) VALUES (@n, @t, @t)",
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES (@n, @t, @t, @t)",
             ("@n", "claude"), ("@t", "2026-01-10T12:00:00+00:00"));
 
         // act & assert

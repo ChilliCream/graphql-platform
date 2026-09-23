@@ -166,7 +166,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Equal(
             AgentActorAllocator.BaseActors.Order(StringComparer.Ordinal),
             actors.Take(AgentActorAllocator.BaseActors.Count).Order(StringComparer.Ordinal));
-        Assert.EndsWith("-1", actors[^1], StringComparison.Ordinal);
+        Assert.EndsWith("-2", actors[^1], StringComparison.Ordinal);
         Assert.Contains(actors[^1][..^2], AgentActorAllocator.BaseActors);
     }
 

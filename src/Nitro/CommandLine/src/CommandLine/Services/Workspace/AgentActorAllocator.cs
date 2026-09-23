@@ -7,22 +7,14 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 internal static class AgentActorAllocator
 {
-    private static readonly string[] s_baseActors =
-    [
-        "alex", "jamie", "sam", "max", "leo", "maya", "nina", "theo", "eli", "luca",
-        "mia", "nora", "ben", "adam", "noah", "lena", "eva", "zoe", "ryan", "jack",
-        "anna", "emma", "sara", "dani", "chris", "robin", "taylor", "jordan", "casey", "morgan",
-        "riley", "jesse", "quinn", "avery", "logan", "dylan", "owen", "clara", "lucy", "sophie",
-        "hugo", "felix", "oscar", "henry", "louis", "ella", "grace", "kate", "tom", "will"
-    ];
-
-    internal static IReadOnlyList<string> BaseActors => s_baseActors;
+    internal static IReadOnlyList<string> BaseActors => AgentNamePool.Names;
 
     public static async Task<string> AllocateAsync(
         SqliteConnection connection,
         DbTransaction transaction)
     {
-        // Names in either the agent registry or durable session identities are unavailable.
+        // A name is unavailable once it has ever been minted: agent rows (including
+        // tombstones, whose deleted_at is set) and durable session identities.
         var occupied = (await connection.QueryAsync<string>(
                 """
                 SELECT actor FROM agent_session_identities
@@ -31,7 +23,8 @@ internal static class AgentActorAllocator
                 """,
                 transaction: transaction))
             .ToHashSet(StringComparer.Ordinal);
-        var order = Enumerable.Range(0, s_baseActors.Length).ToArray();
+        var names = AgentNamePool.Names;
+        var order = Enumerable.Range(0, names.Count).ToArray();
 
         for (var i = order.Length - 1; i > 0; i--)
         {
@@ -39,11 +32,21 @@ internal static class AgentActorAllocator
             (order[i], order[swap]) = (order[swap], order[i]);
         }
 
-        for (var suffix = 0; ; suffix++)
+        foreach (var index in order)
+        {
+            if (!occupied.Contains(names[index]))
+            {
+                return names[index];
+            }
+        }
+
+        // The pool is exhausted: every name is already in use, so append a numeric suffix to a
+        // shuffled pick, starting at 2, until one is free.
+        for (var suffix = 2; ; suffix++)
         {
             foreach (var index in order)
             {
-                var actor = suffix == 0 ? s_baseActors[index] : $"{s_baseActors[index]}-{suffix}";
+                var actor = $"{names[index]}-{suffix}";
 
                 if (!occupied.Contains(actor))
                 {
