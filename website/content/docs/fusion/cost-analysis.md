@@ -147,9 +147,9 @@ An operation whose exact compile would exceed `CaseBudget` is, by default (`Case
 
 # Per-Request Cost Options
 
-`FusionCostOptions` apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding gateway value for that request, in either direction: a request can raise a limit above the gateway default or lower it below the gateway default.
+`FusionCostOptions` apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding gateway value for that request, in either direction: a request can raise a limit above the gateway default or lower it below the gateway default. Attached request options replace all of the gateway's limits for that request, and a `null` `MaxResponseSize` on the request means that request has no response-size limit.
 
-The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for every HTTP request and already has access to the authenticated user, so it can pick request options based on group membership before the operation executes:
+The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for every HTTP request and has access to the authenticated user, letting it pick request options based on group membership before the operation executes:
 
 ```csharp
 public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -190,7 +190,7 @@ Response-size analysis itself is an opt-in that is only ever enabled per gateway
 
 To enable the check, set `FusionCostOptions.MaxResponseSize` on the gateway first; requests may then raise or lower it as needed.
 
-Setting `FusionRequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored, because the analyzer never runs for that request.
+Setting `FusionRequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored.
 
 # Accessing the Analysis Result
 
