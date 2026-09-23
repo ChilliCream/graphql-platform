@@ -832,7 +832,15 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, preserveOrder: false, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedActor,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
@@ -878,7 +886,15 @@ internal sealed class MailStore(
                 """,
                 new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, preserveOrder: false, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedActor,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
@@ -903,7 +919,15 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, preserveOrder: false, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedActor,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
@@ -946,7 +970,15 @@ internal sealed class MailStore(
                 new { agent = normalizedAgent, cancellationToken });
 
         // Workspace summaries omit per-actor unread and archived counts.
-        return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, preserveOrder: false, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            unreadActor: null,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QueryParticipationThreadsAsync(
@@ -991,96 +1023,270 @@ internal sealed class MailStore(
             return [];
         }
 
-        // Reads one rollup per ranked thread id, in ranking order, rather than a
-        // single IN-list query: the thread's true message count and last-message
-        // time (any sender), unlike the ranking key above.
-        var rollups = new List<ThreadRollupRow>(rankedThreadIds.Count);
+        // Thread ids are our own generated ids (never external input), so they are
+        // inlined directly into an IN-list rather than bound as a parameter: a dynamic
+        // thread count cannot be expanded by Dapper.AOT's compile-time query analysis.
+        var threadIdList = string.Join(", ", rankedThreadIds.Select(id => $"'{id.Replace("'", "''")}'"));
 
-        foreach (var threadId in rankedThreadIds)
+        // Reads the true message count and last-message time (any sender) for every
+        // ranked thread in a single IN-list query, unlike the ranking key above.
+        var rollupByThreadId = new Dictionary<string, ThreadRollupRow>();
+
+        await using (var rollupCommand = connection.CreateCommand())
         {
-            rollups.Add(await connection.QueryFirstAsync<ThreadRollupRow>(
-                """
-                SELECT
-                    thread_id AS ThreadId,
-                    COUNT(*) AS MessageCount,
-                    MAX(created_at) AS LastMessageAt
+            rollupCommand.CommandText =
+                $"""
+                SELECT thread_id, COUNT(*), MAX(created_at)
                 FROM messages
-                WHERE thread_id = @threadId
+                WHERE thread_id IN ({threadIdList})
                 GROUP BY thread_id
-                """,
-                new { threadId, cancellationToken }));
+                """;
+
+            await using var reader = await rollupCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var row = new ThreadRollupRow
+                {
+                    ThreadId = reader.GetString(0),
+                    MessageCount = reader.GetInt32(1),
+                    LastMessageAt = reader.GetString(2)
+                };
+
+                rollupByThreadId[row.ThreadId] = row;
+            }
         }
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedAgent, preserveOrder: true, cancellationToken);
+        var rollups = rankedThreadIds.Select(id => rollupByThreadId[id]).ToList();
+
+        // Reads the last message for every ranked thread in a single windowed query
+        // instead of a LIMIT 1 query per thread.
+        var lastMessageByThreadId = new Dictionary<string, MailMessageRow>();
+
+        await using (var lastMessageCommand = connection.CreateCommand())
+        {
+            lastMessageCommand.CommandText =
+                $"""
+                SELECT id, thread_id, in_reply_to, sender, subject, body, created_at
+                FROM (
+                    SELECT *, ROW_NUMBER() OVER (
+                        PARTITION BY thread_id ORDER BY created_at DESC, id DESC
+                    ) AS rn
+                    FROM messages
+                    WHERE thread_id IN ({threadIdList})
+                )
+                WHERE rn = 1
+                """;
+
+            await using var reader = await lastMessageCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var row = new MailMessageRow
+                {
+                    Id = reader.GetString(0),
+                    ThreadId = reader.GetString(1),
+                    InReplyTo = reader.IsDBNull(2) ? null : reader.GetString(2),
+                    Sender = reader.GetString(3),
+                    Subject = reader.GetString(4),
+                    Body = reader.GetString(5),
+                    CreatedAt = reader.GetString(6)
+                };
+
+                lastMessageByThreadId[row.ThreadId] = row;
+            }
+        }
+
+        // Reads per-agent unread and archived counts for every ranked thread in a single
+        // grouped query instead of two COUNT(*) queries per thread.
+        var countsByThreadId = new Dictionary<string, (int Unread, int Archived)>();
+
+        await using (var countsCommand = connection.CreateCommand())
+        {
+            countsCommand.CommandText =
+                $"""
+                SELECT
+                    m.thread_id,
+                    SUM(CASE WHEN mr.read_at IS NULL THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN mr.archived_at IS NOT NULL THEN 1 ELSE 0 END)
+                FROM message_recipients mr
+                JOIN messages m ON m.id = mr.message_id
+                WHERE mr.recipient = @agent AND m.thread_id IN ({threadIdList})
+                GROUP BY m.thread_id
+                """;
+
+            countsCommand.Parameters.AddWithValue("@agent", normalizedAgent);
+
+            await using var reader = await countsCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                countsByThreadId[reader.GetString(0)] = (reader.GetInt32(1), reader.GetInt32(2));
+            }
+        }
+
+        // Reads the recipients of every ranked thread's last message in a single query
+        // instead of one query per thread.
+        var recipientNamesByMessageId = new Dictionary<string, List<string>>();
+
+        if (lastMessageByThreadId.Count > 0)
+        {
+            var lastMessageIdList = string.Join(
+                ", ",
+                lastMessageByThreadId.Values.Select(m => $"'{m.Id.Replace("'", "''")}'"));
+
+            await using var recipientsCommand = connection.CreateCommand();
+
+            recipientsCommand.CommandText =
+                $"""
+                SELECT message_id AS MessageId, {MailRecipient.Columns}
+                FROM message_recipients
+                WHERE message_id IN ({lastMessageIdList})
+                ORDER BY message_id, ordinal
+                """;
+
+            await using var reader = await recipientsCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var messageId = reader.GetString(0);
+                var name = reader.GetString(1);
+
+                if (!recipientNamesByMessageId.TryGetValue(messageId, out var names))
+                {
+                    names = [];
+                    recipientNamesByMessageId[messageId] = names;
+                }
+
+                names.Add(name);
+            }
+        }
+
+        var recipientsByMessageId = recipientNamesByMessageId.ToDictionary(
+            entry => entry.Key,
+            entry => (IReadOnlyList<string>)entry.Value);
+
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedAgent,
+            preserveOrder: true,
+            lastMessagesByThreadId: lastMessageByThreadId,
+            countsByThreadId: countsByThreadId,
+            recipientsByMessageId: recipientsByMessageId,
+            cancellationToken: cancellationToken);
     }
 
     /// <summary>
-    /// Returns thread summaries ordered by last-message time and thread id, newest first,
-    /// or in <paramref name="rollups"/> order when <paramref name="preserveOrder"/> is true.
-    /// Unread and archived counts are null when <paramref name="unreadActor"/> is null.
+    /// Builds thread summaries from <paramref name="rollups"/>, ordered by last-message time
+    /// and thread id newest first, or in rollup order when <paramref name="preserveOrder"/> is
+    /// true. <paramref name="lastMessagesByThreadId"/>, <paramref name="countsByThreadId"/>, and
+    /// <paramref name="recipientsByMessageId"/> each supply their per-thread data when non-null;
+    /// unread and archived counts are null when <paramref name="unreadActor"/> is null.
     /// </summary>
     private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
         SqliteConnection connection,
         IEnumerable<ThreadRollupRow> rollups,
         string? unreadActor,
         bool preserveOrder,
+        IReadOnlyDictionary<string, MailMessageRow>? lastMessagesByThreadId,
+        IReadOnlyDictionary<string, (int Unread, int Archived)>? countsByThreadId,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? recipientsByMessageId,
         CancellationToken cancellationToken)
     {
         var summaries = new List<MailThreadSummary>();
 
         foreach (var rollup in rollups)
         {
-            var root = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
-                $"SELECT {MailMessage.Columns} FROM messages WHERE id = @id",
-                new { id = rollup.ThreadId, cancellationToken });
+            string subject;
+            MailMessageRow? lastMessage;
 
-            var lastMessage = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
-                $"""
-                SELECT {MailMessage.Columns} FROM messages
-                WHERE thread_id = @threadId
-                ORDER BY created_at DESC, id DESC
-                LIMIT 1
-                """,
-                new { threadId = rollup.ThreadId, cancellationToken });
+            if (lastMessagesByThreadId is not null)
+            {
+                lastMessagesByThreadId.TryGetValue(rollup.ThreadId, out lastMessage);
+                subject = lastMessage?.Subject ?? "";
+            }
+            else
+            {
+                var root = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
+                    $"SELECT {MailMessage.Columns} FROM messages WHERE id = @id",
+                    new { id = rollup.ThreadId, cancellationToken });
 
-            IReadOnlyList<string> lastRecipients = lastMessage is null
-                ? []
-                : (await GetRecipientsAsync(connection, lastMessage.Id, cancellationToken))
+                lastMessage = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
+                    $"""
+                    SELECT {MailMessage.Columns} FROM messages
+                    WHERE thread_id = @threadId
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 1
+                    """,
+                    new { threadId = rollup.ThreadId, cancellationToken });
+
+                subject = root?.Subject ?? "";
+            }
+
+            IReadOnlyList<string> lastRecipients;
+
+            if (lastMessage is null)
+            {
+                lastRecipients = [];
+            }
+            else if (recipientsByMessageId is not null)
+            {
+                lastRecipients = recipientsByMessageId.TryGetValue(lastMessage.Id, out var names)
+                    ? names
+                    : [];
+            }
+            else
+            {
+                lastRecipients = (await GetRecipientsAsync(connection, lastMessage.Id, cancellationToken))
                     .Select(r => r.Name)
                     .ToArray();
+            }
 
             int? unreadCount = null;
             int? archivedCount = null;
 
             if (unreadActor is not null)
             {
-                unreadCount = await connection.ExecuteScalarAsync<int>(
-                    """
-                    SELECT COUNT(*)
-                    FROM message_recipients mr
-                    JOIN messages m ON m.id = mr.message_id
-                    WHERE m.thread_id = @threadId
-                        AND mr.recipient = @actor
-                        AND mr.read_at IS NULL
-                    """,
-                    new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+                if (countsByThreadId is not null)
+                {
+                    var (unread, archived) = countsByThreadId.TryGetValue(rollup.ThreadId, out var counts)
+                        ? counts
+                        : (0, 0);
 
-                archivedCount = await connection.ExecuteScalarAsync<int>(
-                    """
-                    SELECT COUNT(*)
-                    FROM message_recipients mr
-                    JOIN messages m ON m.id = mr.message_id
-                    WHERE m.thread_id = @threadId
-                        AND mr.recipient = @actor
-                        AND mr.archived_at IS NOT NULL
-                    """,
-                    new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+                    unreadCount = unread;
+                    archivedCount = archived;
+                }
+                else
+                {
+                    unreadCount = await connection.ExecuteScalarAsync<int>(
+                        """
+                        SELECT COUNT(*)
+                        FROM message_recipients mr
+                        JOIN messages m ON m.id = mr.message_id
+                        WHERE m.thread_id = @threadId
+                            AND mr.recipient = @actor
+                            AND mr.read_at IS NULL
+                        """,
+                        new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+
+                    archivedCount = await connection.ExecuteScalarAsync<int>(
+                        """
+                        SELECT COUNT(*)
+                        FROM message_recipients mr
+                        JOIN messages m ON m.id = mr.message_id
+                        WHERE m.thread_id = @threadId
+                            AND mr.recipient = @actor
+                            AND mr.archived_at IS NOT NULL
+                        """,
+                        new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+                }
             }
 
             summaries.Add(new MailThreadSummary
             {
                 ThreadId = rollup.ThreadId,
-                Subject = root?.Subject ?? "",
+                Subject = subject,
                 MessageCount = rollup.MessageCount,
                 LastMessageAt = DateTimeOffset.Parse(rollup.LastMessageAt, CultureInfo.InvariantCulture),
                 LastSender = lastMessage?.Sender ?? "",

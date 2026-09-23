@@ -1315,7 +1315,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task QueryParticipationThreadsAsync_Should_ApplyLimit_ToTenNewest()
+    public async Task QueryParticipationThreadsAsync_Should_ReturnTenNewestThreads_When_LimitIsTen()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1360,7 +1360,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task QueryParticipationThreadsAsync_Should_ScopeUnreadAndArchivedCounts_ToAgent()
+    public async Task QueryParticipationThreadsAsync_Should_ScopeUnreadAndArchivedCounts_When_MultipleAgentsShareThread()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1377,6 +1377,60 @@ public sealed class MailStoreTests : IAsyncDisposable
         // assert
         Assert.Equal(0, Assert.Single(bobThreads).UnreadCount);
         Assert.Equal(1, Assert.Single(carolThreads).UnreadCount);
+    }
+
+    [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_ReturnCompleteSummaries_When_ThreadsHaveRepliesCcReadAndArchived()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var first = await SendAsync("claude", "thread one", ["bob"], ["carol"], cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await _store.ReplyMessageAsync(first.Id, "carol", "reply body", cancellationToken);
+        await _store.MarkReadAsync([first.Id], "bob", cancellationToken);
+        await _store.ArchiveAsync([first.Id], "bob", cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SendAsync("bob", "thread two", ["carol"], null, cancellationToken);
+
+        // act
+        var threads = await _store.QueryParticipationThreadsAsync("bob", limit: null, cancellationToken);
+
+        // assert
+        threads.MatchInlineSnapshot(
+            """
+            [
+              {
+                "ThreadId": "m-9vcfyl",
+                "Subject": "thread two",
+                "MessageCount": 1,
+                "LastMessageAt": "2026-01-10T12:02:00+00:00",
+                "LastSender": "bob",
+                "LastRecipients": [
+                  "carol"
+                ],
+                "BodyPreview": "body",
+                "UnreadCount": 0,
+                "ArchivedCount": 0
+              },
+              {
+                "ThreadId": "m-4hjiuu",
+                "Subject": "thread one",
+                "MessageCount": 2,
+                "LastMessageAt": "2026-01-10T12:01:00+00:00",
+                "LastSender": "carol",
+                "LastRecipients": [
+                  "claude",
+                  "bob"
+                ],
+                "BodyPreview": "reply body",
+                "UnreadCount": 1,
+                "ArchivedCount": 1
+              }
+            ]
+            """);
     }
 
     [Fact]
@@ -1494,22 +1548,31 @@ public sealed class MailStoreTests : IAsyncDisposable
             ("@body", "body"), ("@createdAt", "2026-01-10T12:00:00+00:00")));
     }
 
+    /// <summary>
+    /// The schema keeps sender and recipient as plain text with no foreign
+    /// key to <c>agents</c>, so an unknown or since-deleted name never
+    /// orphans a row when the agents table is dropped and recreated on a
+    /// schema upgrade. Recipient validity is enforced by the send path.
+    /// </summary>
     [Fact]
-    public async Task Schema_Should_RejectUnknownSender_ViaForeignKey()
+    public async Task Schema_Should_AcceptUnknownSender_When_NoForeignKeyToAgents()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+        // act
+        await ExecuteAsync(
             connection,
             """
             INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
             VALUES (@id, @id, @sender, @subject, @body, @createdAt)
             """,
             ("@id", "m-orphan"), ("@sender", "ghost"), ("@subject", "hi"),
-            ("@body", "body"), ("@createdAt", "2026-01-10T12:00:00+00:00")));
+            ("@body", "body"), ("@createdAt", "2026-01-10T12:00:00+00:00"));
+
+        // assert
+        Assert.Equal(1L, await CountAsync("messages", "id = 'm-orphan'", cancellationToken));
     }
 
     [Fact]
