@@ -190,6 +190,7 @@ internal sealed class FusionRequestExecutorManager
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
+            configuration,
             options,
             requestOptions,
             parserOptions);
@@ -330,6 +331,7 @@ internal sealed class FusionRequestExecutorManager
 
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
+        FusionConfiguration configuration,
         FusionOptions options,
         FusionRequestOptions requestOptions,
         ParserOptions parserOptions)
@@ -343,7 +345,10 @@ internal sealed class FusionRequestExecutorManager
         features.Set(parserOptions);
         features.Set(CreateTypeResolverInterceptors(options));
         features.Set(new SchemaCancellationFeature());
-        features.Set(new OperationPlannerFeature(OperationPlanner.Version));
+        features.Set(new OperationPlannerFeature(OperationPlanner.Version)
+        {
+            ConfigurationFingerprint = configuration.PlanningFingerprint
+        });
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -692,6 +697,7 @@ internal sealed class FusionRequestExecutorManager
         private FusionConfiguration _currentConfiguration;
         private ulong _documentHash;
         private ulong _settingsHash;
+        private string? _planningFingerprint;
         private bool _disposed;
 
         public RequestExecutorRegistration(
@@ -706,6 +712,7 @@ internal sealed class FusionRequestExecutorManager
             _currentConfiguration = configuration;
             _documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.Schema.ToString()));
             _settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
+            _planningFingerprint = configuration.PlanningFingerprint;
 
             _documentProviderSubscription = documentProvider.Subscribe(
                 onNext: OnDocumentChanged,
@@ -737,13 +744,16 @@ internal sealed class FusionRequestExecutorManager
                 var documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.Schema.ToString()));
                 var settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
-                if (documentHash == _documentHash && settingsHash == _settingsHash)
+                if (documentHash == _documentHash
+                    && settingsHash == _settingsHash
+                    && configuration.PlanningFingerprint == _planningFingerprint)
                 {
                     continue;
                 }
 
                 _documentHash = documentHash;
                 _settingsHash = settingsHash;
+                _planningFingerprint = configuration.PlanningFingerprint;
 
                 var previousExecutor = Executor;
                 var previousConfiguration = _currentConfiguration;
