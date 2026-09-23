@@ -14,13 +14,21 @@ internal sealed class AgentDatabase
     /// <summary>
     /// The current unified schema version.
     /// </summary>
-    public const int CurrentVersion = 15;
+    public const int CurrentVersion = 16;
+
+    /// <summary>
+    /// The schema version at which <c>messages.sender</c> and
+    /// <c>message_recipients.recipient</c> stopped referencing <c>agents (name)</c>
+    /// as a foreign key. A database below this version has its mail tables
+    /// rebuilt without that constraint before the rest of the upgrade runs.
+    /// </summary>
+    private const int MailForeignKeysRemovedVersion = 16;
 
     /// <summary>
     /// Schema versions <see cref="InitializeAsync"/> upgrades in place
     /// instead of rejecting.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -59,6 +67,11 @@ internal sealed class AgentDatabase
         {
             await connection.DisposeAsync();
             throw;
+        }
+
+        if (version > 0 && version < MailForeignKeysRemovedVersion)
+        {
+            await RemoveMailAgentForeignKeysAsync(connection, cancellationToken);
         }
 
         if (version < CurrentVersion)
@@ -125,6 +138,83 @@ internal sealed class AgentDatabase
                 DROP TABLE IF EXISTS agent_deliveries;
                 DROP TABLE IF EXISTS agent_ping_gates;
                 DROP TABLE IF EXISTS agents;
+                """,
+                transaction: transaction);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        finally
+        {
+            await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds <c>messages</c> and <c>message_recipients</c> without their
+    /// foreign keys to <c>agents</c>, preserving every row. Mail keeps the
+    /// sender and recipient names as plain text, so a message from an agent
+    /// that no longer exists must survive the agent-domain rebuild that runs
+    /// on every schema bump. A no-op when the mail tables do not exist yet.
+    /// </summary>
+    private static async Task RemoveMailAgentForeignKeysAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var mailTablesExist = await connection.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'messages';") > 0;
+
+        if (!mailTablesExist)
+        {
+            return;
+        }
+
+        await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
+
+        try
+        {
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            await connection.ExecuteAsync(
+                """
+                CREATE TABLE messages_new (
+                    id TEXT PRIMARY KEY,
+                    thread_id TEXT NOT NULL,
+                    in_reply_to TEXT REFERENCES messages (id),
+                    sender TEXT NOT NULL,
+                    subject TEXT NOT NULL CHECK (length(subject) BETWEEN 1 AND 500),
+                    body TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+
+                INSERT INTO messages_new (id, thread_id, in_reply_to, sender, subject, body, created_at)
+                SELECT id, thread_id, in_reply_to, sender, subject, body, created_at FROM messages;
+
+                CREATE TABLE message_recipients_new (
+                    message_id TEXT NOT NULL REFERENCES messages (id) ON DELETE CASCADE,
+                    recipient TEXT NOT NULL,
+                    kind TEXT NOT NULL DEFAULT 'to' CHECK (kind IN ('to', 'cc')),
+                    ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
+                    read_at TEXT,
+                    archived_at TEXT,
+                    PRIMARY KEY (message_id, recipient),
+                    UNIQUE (message_id, ordinal)
+                );
+
+                INSERT INTO message_recipients_new (message_id, recipient, kind, ordinal, read_at, archived_at)
+                SELECT message_id, recipient, kind, ordinal, read_at, archived_at FROM message_recipients;
+
+                DROP TABLE message_recipients;
+                DROP TABLE messages;
+
+                ALTER TABLE messages_new RENAME TO messages;
+                ALTER TABLE message_recipients_new RENAME TO message_recipients;
+
+                CREATE INDEX idx_messages_thread_id ON messages (thread_id);
+                CREATE INDEX idx_messages_created_at ON messages (created_at);
+                CREATE INDEX idx_messages_sender ON messages (sender);
+
+                CREATE INDEX idx_message_recipients_recipient
+                    ON message_recipients (recipient);
                 """,
                 transaction: transaction);
 

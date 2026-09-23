@@ -179,7 +179,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 15,
+              "Version": 16,
               "Tasks": 1,
               "Messages": 1,
               "MessageRecipients": 1,
@@ -211,6 +211,91 @@ public sealed class AgentDatabaseTests : IDisposable
                 "implicit",
                 "client"
               ]
+            }
+            """);
+    }
+
+    /// <summary>
+    /// Seeds a raw v15-shaped database: mail tables still built with the old
+    /// <c>REFERENCES agents (name)</c> constraints, holding a message from an
+    /// agent that no longer exists (what the agent-domain rebuild that runs
+    /// on every schema bump used to leave behind as a foreign key orphan).
+    /// InitializeAsync must rebuild the mail tables without those foreign
+    /// keys, and the pre-existing message and its read state must survive
+    /// untouched.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_RemoveMailForeignKeysAndPreserveOrphanedMail_When_ExistingVersionIsV15()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA foreign_keys = OFF;", cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE messages (
+                    id TEXT PRIMARY KEY,
+                    thread_id TEXT NOT NULL,
+                    in_reply_to TEXT REFERENCES messages (id),
+                    sender TEXT NOT NULL REFERENCES agents (name),
+                    subject TEXT NOT NULL CHECK (length(subject) BETWEEN 1 AND 500),
+                    body TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+
+                CREATE TABLE message_recipients (
+                    message_id TEXT NOT NULL REFERENCES messages (id) ON DELETE CASCADE,
+                    recipient TEXT NOT NULL REFERENCES agents (name),
+                    kind TEXT NOT NULL DEFAULT 'to' CHECK (kind IN ('to', 'cc')),
+                    ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
+                    read_at TEXT,
+                    archived_at TEXT,
+                    PRIMARY KEY (message_id, recipient),
+                    UNIQUE (message_id, ordinal)
+                );
+
+                INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
+                VALUES ('mail-1', 'mail-1', 'ghost', 'Old mail', 'Keep me', '2026-01-10T12:00:00+00:00');
+                INSERT INTO message_recipients (message_id, recipient, ordinal, read_at)
+                VALUES ('mail-1', 'ghost', 0, '2026-01-11T09:00:00+00:00');
+
+                PRAGMA user_version = 15;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var orphanCount = await QueryScalarLongAsync(
+            upgraded, "SELECT COUNT(*) FROM pragma_foreign_key_check", cancellationToken);
+        Assert.Equal(0, orphanCount);
+
+        var state = new
+        {
+            Version = await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken),
+            Sender = await QueryScalarStringAsync(
+                upgraded, "SELECT sender FROM messages WHERE id = 'mail-1'", cancellationToken),
+            Subject = await QueryScalarStringAsync(
+                upgraded, "SELECT subject FROM messages WHERE id = 'mail-1'", cancellationToken),
+            ReadAt = await QueryScalarStringAsync(
+                upgraded,
+                "SELECT read_at FROM message_recipients WHERE message_id = 'mail-1' AND recipient = 'ghost'",
+                cancellationToken)
+        };
+
+        state.MatchInlineSnapshot(
+            """
+            {
+              "Version": 16,
+              "Sender": "ghost",
+              "Subject": "Old mail",
+              "ReadAt": "2026-01-11T09:00:00+00:00"
             }
             """);
     }

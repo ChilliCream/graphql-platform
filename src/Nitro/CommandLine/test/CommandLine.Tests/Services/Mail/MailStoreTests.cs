@@ -1494,22 +1494,31 @@ public sealed class MailStoreTests : IAsyncDisposable
             ("@body", "body"), ("@createdAt", "2026-01-10T12:00:00+00:00")));
     }
 
+    /// <summary>
+    /// The schema keeps sender and recipient as plain text with no foreign
+    /// key to <c>agents</c>, so an unknown or since-deleted name never
+    /// orphans a row when the agents table is dropped and recreated on a
+    /// schema upgrade. Recipient validity is enforced by the send path.
+    /// </summary>
     [Fact]
-    public async Task Schema_Should_RejectUnknownSender_ViaForeignKey()
+    public async Task Schema_Should_AcceptUnknownSender_When_NoForeignKeyToAgents()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+        // act
+        await ExecuteAsync(
             connection,
             """
             INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
             VALUES (@id, @id, @sender, @subject, @body, @createdAt)
             """,
             ("@id", "m-orphan"), ("@sender", "ghost"), ("@subject", "hi"),
-            ("@body", "body"), ("@createdAt", "2026-01-10T12:00:00+00:00")));
+            ("@body", "body"), ("@createdAt", "2026-01-10T12:00:00+00:00"));
+
+        // assert
+        Assert.Equal(1L, await CountAsync("messages", "id = 'm-orphan'", cancellationToken));
     }
 
     [Fact]
