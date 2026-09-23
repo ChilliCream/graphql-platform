@@ -10,7 +10,7 @@ internal sealed class ListAgentCommand : Command
 {
     public ListAgentCommand() : base("list")
     {
-        Description = "List the actors this workspace knows, with their session when they have one.";
+        Description = "Lists the agents in the workspace.";
 
         Options.Add(Opt<RoleAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);

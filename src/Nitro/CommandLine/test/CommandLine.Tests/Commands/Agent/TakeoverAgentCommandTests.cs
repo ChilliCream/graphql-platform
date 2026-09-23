@@ -95,7 +95,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Takeover_Should_RefuseOnlineSource_UnlessForced()
+    public async Task Takeover_Should_RefuseOnlineSource_When_ForceIsOmitted()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -116,10 +116,10 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Takeover_Should_AcceptEndedSource_WithoutForce()
+    public async Task Takeover_Should_AcceptEndedSource_When_ForceIsOmitted()
     {
-        // arrange: a source whose session already ended is Offline even though its
-        // endpoint still looks live, so no --force is required.
+        // arrange
+        // An ended session is Offline, so no --force is needed.
         await InitWorkspaceAsync();
         await SeedAgentAsync("maya");
         await SeedAgentAsync("nora");
@@ -135,7 +135,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Takeover_Should_AcceptDeletedSource_WithoutForce()
+    public async Task Takeover_Should_AcceptDeletedSource_When_ForceIsOmitted()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -152,7 +152,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Takeover_Should_RefuseDeletedTarget()
+    public async Task Takeover_Should_Refuse_When_TargetWasDeleted()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -169,7 +169,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Takeover_Should_MoveOnlyUnreadMail_And_LeaveReadMailWithSource()
+    public async Task Takeover_Should_MoveUnreadMailOnly_When_SourceHasReadAndUnreadMail()
     {
         // arrange
         await InitWorkspaceAsync();

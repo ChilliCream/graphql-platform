@@ -19,7 +19,7 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
         result.AssertHelpOutput(
             """
             Description:
-              List the actors this workspace knows, with their session when they have one.
+              Lists the agents in the workspace.
 
             Usage:
               nitro agent list [options]
@@ -67,15 +67,16 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task Execute_Should_PrintTheBoardColumns_When_AgentsAreInEveryState()
     {
-        // arrange: an online hook agent, a login-only (unreachable) agent, an ended agent,
-        // and a deleted agent that must not appear at all.
+        // arrange
+        // Online, login-only, ended and deleted agents; the deleted one must not appear.
         await InitWorkspaceAsync();
         await SeedBoardScenarioAsync();
 
         // act
         var result = await ExecuteCommandAsync("agent", "list");
 
-        // assert: online first, then unreachable, then offline; the deleted agent is absent.
+        // assert
+        // Online first, then unreachable, then offline; the deleted agent is absent.
         result.AssertSuccess(
             """
             maya  orchestrator  Claude Code  30m  10m  yes
@@ -87,8 +88,8 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task JsonOutput_Should_PrintTheBoardColumns_When_AgentsAreInEveryState()
     {
-        // arrange: same scenario as the human-readable rendering, so the JSON and text
-        // outputs are verified against the same fixture.
+        // arrange
+        // Same board scenario as the human-readable rendering.
         await InitWorkspaceAsync();
         await SeedBoardScenarioAsync();
         SetupInteractionMode(InteractionMode.JsonOutput);

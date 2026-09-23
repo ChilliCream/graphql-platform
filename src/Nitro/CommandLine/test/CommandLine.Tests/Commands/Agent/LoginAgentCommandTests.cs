@@ -56,7 +56,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task Login_Should_AllocateAMoviePoolName_WithNullHarness()
+    public async Task Login_Should_AllocateAMoviePoolName_When_HarnessIsNull()
     {
         // arrange
         await InitWorkspaceAsync();
