@@ -2,34 +2,36 @@
 
 import { useEffect, useRef } from "react";
 
-import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
-
+import { rgba } from "./color";
 import { buildGraph, type GraphModel, type LayoutMode } from "./graph";
 import { buildScene, capDpr, type Scene } from "./sceneLayout";
 import { paint, type Rect } from "./paint";
-import { useInViewAndVisible } from "./useGating";
+import { NAVY } from "../palette";
+
+// A CSS-only vignette so that with JS disabled (no canvas paint at all)
+// the hero still reads as an intentional dark scene -- the page's own navy
+// background plus a soft radial darkening at the corners -- instead of a
+// flat, broken-looking rectangle.
+const FALLBACK_VIGNETTE = `radial-gradient(ellipse at 50% 50%, ${rgba(NAVY, 0)} 45%, ${rgba(NAVY, 0.55)} 100%)`;
 
 interface Engine {
   w: number;
   h: number;
-  dpr: number;
   mode: LayoutMode | null;
   scene: Scene;
   graph: GraphModel | null;
   copyRect: Rect | null;
-  raf: number;
-  start: number;
 }
 
+// A static 3D graph backdrop: the whole scene is a still frame, painted
+// once on mount and again on resize (ResizeObserver), never from a
+// requestAnimationFrame loop. The layout is always a pure function of the
+// canvas's own measured size, computed in this draw path, never a
+// separate "is this mobile" state that could ship a wrong first paint.
 export function GraphBackdrop() {
-  const [rootRef, active] = useInViewAndVisible<HTMLDivElement>();
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const engineRef = useRef<Engine | null>(null);
-  const reduced = useReducedMotionPreference();
 
-  // Mount-once: canvas sizing, graph build and the static-frame draw path
-  // all live here, keyed only to the canvas's own measured size, never a
-  // separate "is this mobile" state.
   useEffect(() => {
     const root = rootRef.current;
     const canvas = canvasRef.current;
@@ -48,15 +50,11 @@ export function GraphBackdrop() {
     const engine: Engine = {
       w: 0,
       h: 0,
-      dpr: 1,
       mode: null,
       scene: buildScene(1, 1),
       graph: null,
       copyRect: null,
-      raf: 0,
-      start: 0,
     };
-    engineRef.current = engine;
 
     const measureCopyRect = () => {
       if (!copyEl) {
@@ -73,7 +71,7 @@ export function GraphBackdrop() {
       };
     };
 
-    const drawStatic = () => {
+    const draw = () => {
       if (!engine.graph || engine.w <= 0 || engine.h <= 0) {
         return;
       }
@@ -83,7 +81,6 @@ export function GraphBackdrop() {
         h: engine.h,
         camera: engine.scene.camera,
         graph: engine.graph,
-        time: 0,
         copyRect: engine.copyRect,
       });
     };
@@ -100,14 +97,16 @@ export function GraphBackdrop() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       engine.w = w;
       engine.h = h;
-      engine.dpr = dpr;
       engine.scene = buildScene(w, h);
-      if (engine.scene.mode !== engine.mode) {
-        engine.mode = engine.scene.mode;
-        engine.graph = buildGraph(engine.mode);
-      }
+      // Rebuilt on every resize, not only when the landscape/portrait mode
+      // flips: a portrait cluster's own placement depends continuously on
+      // the viewport's aspect (see graph.ts), not just the discrete mode,
+      // and the graph build is cheap enough (well inside the render-cost
+      // budget) to redo on each ResizeObserver callback.
+      engine.mode = engine.scene.mode;
+      engine.graph = buildGraph(engine.mode, w / h);
       measureCopyRect();
-      drawStatic();
+      draw();
     };
 
     const ro = new ResizeObserver(resize);
@@ -115,7 +114,7 @@ export function GraphBackdrop() {
     const copyRo = copyEl
       ? new ResizeObserver(() => {
           measureCopyRect();
-          drawStatic();
+          draw();
         })
       : null;
     if (copyEl && copyRo) {
@@ -124,74 +123,17 @@ export function GraphBackdrop() {
     resize();
 
     return () => {
-      cancelAnimationFrame(engine.raf);
       ro.disconnect();
       copyRo?.disconnect();
-      engineRef.current = null;
     };
-  }, [rootRef]);
-
-  // Runs (or freezes) the RAF loop as the in-view/visible/reduced-motion
-  // gate changes, without rebuilding the canvas or the graph model.
-  useEffect(() => {
-    const engine = engineRef.current;
-    const canvas = canvasRef.current;
-    if (!engine || !canvas) {
-      return;
-    }
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-
-    cancelAnimationFrame(engine.raf);
-
-    if (reduced || !active) {
-      if (engine.graph && engine.w > 0 && engine.h > 0) {
-        paint({
-          ctx,
-          w: engine.w,
-          h: engine.h,
-          camera: engine.scene.camera,
-          graph: engine.graph,
-          time: 0,
-          copyRect: engine.copyRect,
-        });
-      }
-      return;
-    }
-
-    engine.start = 0;
-    const loop = (t: number) => {
-      if (!engine.start) {
-        engine.start = t;
-      }
-      const time = (t - engine.start) / 1000;
-      if (engine.graph && engine.w > 0 && engine.h > 0) {
-        paint({
-          ctx,
-          w: engine.w,
-          h: engine.h,
-          camera: engine.scene.camera,
-          graph: engine.graph,
-          time,
-          copyRect: engine.copyRect,
-        });
-      }
-      engine.raf = requestAnimationFrame(loop);
-    };
-    engine.raf = requestAnimationFrame(loop);
-
-    return () => {
-      cancelAnimationFrame(engine.raf);
-    };
-  }, [active, reduced]);
+  }, []);
 
   return (
     <div
       ref={rootRef}
       aria-hidden="true"
       className="absolute inset-0 overflow-hidden"
+      style={{ backgroundImage: FALLBACK_VIGNETTE }}
     >
       <canvas
         ref={canvasRef}

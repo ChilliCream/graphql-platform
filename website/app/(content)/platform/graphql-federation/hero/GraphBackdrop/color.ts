@@ -1,18 +1,37 @@
-// One local helper turning a palette hex string (or the words "white" /
-// "black") into an rgba() string, so the folder itself holds no hex
-// literals: every colour value flows through here from hero/palette.ts.
-export function rgba(color: string, alpha: number): string {
+// The single local colour helper: every colour value the folder paints
+// flows through here from hero/palette.ts (plus the words "white"/"black"),
+// so the folder itself holds no hex literals. An optional `mix` blends a
+// second palette colour in at a low ratio, which is how service tints stay
+// a faint wash on the structural colour instead of a second saturated hue.
+export function rgba(
+  color: string,
+  alpha: number,
+  mix?: { readonly with: string; readonly ratio: number },
+): string {
+  let [r, g, b] = toRgb(color);
+  if (mix && mix.ratio > 0) {
+    const [r1, g1, b1] = toRgb(mix.with);
+    const t = mix.ratio;
+    r = r + (r1 - r) * t;
+    g = g + (g1 - g) * t;
+    b = b + (b1 - b) * t;
+  }
+  return `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${alpha})`;
+}
+
+function toRgb(color: string): readonly [number, number, number] {
   if (color === "white") {
-    return `rgba(255,255,255,${alpha})`;
+    return [255, 255, 255];
   }
   if (color === "black") {
-    return `rgba(0,0,0,${alpha})`;
+    return [0, 0, 0];
   }
   const hex = color.replace("#", "");
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+  return [
+    parseInt(hex.slice(0, 2), 16),
+    parseInt(hex.slice(2, 4), 16),
+    parseInt(hex.slice(4, 6), 16),
+  ];
 }
 
 export const WHITE = "white";

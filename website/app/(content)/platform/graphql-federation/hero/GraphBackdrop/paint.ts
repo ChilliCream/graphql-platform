@@ -1,11 +1,13 @@
-// The per-frame draw: rotate the graph about the vertical axis, project it
-// through the camera, depth-sort (edges, then nodes, back to front), paint
-// glow on the near nodes only, a soft travelling light on a few edges, the
-// copy-clear scrim and the outer vignette.
+// The one-shot draw: project the static graph through the camera, depth-
+// sort (edges, then nodes, back to front), paint a soft depth-of-field blur
+// on the far layer, a restrained glow on the near nodes and the gateway's
+// coral core, a soft radial scrim behind the copy and an outer vignette.
+// Nothing here reads a clock -- this is a still frame, called once on mount
+// and once per resize, never from a loop.
 import { project, ringPoint, type Camera } from "./camera";
 import { rgba, WHITE } from "./color";
-import type { DustPoint, GraphModel, GraphNode } from "./graph";
-import { NAVY, SLATE } from "../palette";
+import type { DustPoint, GraphModel } from "./graph";
+import { CYAN, NAVY, SLATE } from "../palette";
 
 export interface Rect {
   readonly x: number;
@@ -20,18 +22,15 @@ export interface PaintOptions {
   readonly h: number;
   readonly camera: Camera;
   readonly graph: GraphModel;
-  readonly time: number;
   readonly copyRect: Rect | null;
 }
 
-const OMEGA = (Math.PI * 2) / 105; // one revolution in 105s
-const BREATHE_FREQ = (Math.PI * 2) / 7.4;
-const SHIMMER_FREQ = (Math.PI * 2) / 5.2;
-const LIGHT_PERIOD = 15.5;
-const SIZE_K = 0.023;
 const MIN_SCALE_F = 0.45;
 const MAX_SCALE_F = 2.4;
-const GLOW_FRACTION = 0.17;
+const FAR_R = 1.1;
+const NEAR_R = 6.5;
+const HOT_R = 7;
+const TIER_MULT = [0.6, 0.85, 1.15] as const;
 
 function clamp01(v: number) {
   return v < 0 ? 0 : v > 1 ? 1 : v;
@@ -49,14 +48,18 @@ interface Projected {
   readonly depth: number;
 }
 
-function projectNode(n: GraphNode, theta: number, cam: Camera): Projected {
-  const p = ringPoint(n.radius, n.angle0 + theta, n.y);
-  return project(p, cam);
+function project3(radius: number, angle: number, y: number, cam: Camera) {
+  return project(ringPoint(radius, angle, y), cam);
 }
 
-function projectDust(n: DustPoint, theta: number, cam: Camera): Projected {
-  const p = ringPoint(n.radius, n.angle0 + theta, n.y);
-  return project(p, cam);
+/** 0 (farthest allowed) .. 1 (nearest allowed) depth read for a projection. */
+function depthFactor(pr: Projected, baseScale: number) {
+  const nf = clamp01(
+    (Math.max(MIN_SCALE_F, Math.min(MAX_SCALE_F, pr.scale / baseScale)) -
+      MIN_SCALE_F) /
+      (MAX_SCALE_F - MIN_SCALE_F),
+  );
+  return nf;
 }
 
 function copyFalloff(x: number, y: number, rect: Rect | null): number {
@@ -69,7 +72,7 @@ function copyFalloff(x: number, y: number, rect: Rect | null): number {
   const halfH = rect.height / 2 + 24;
   const dx = Math.abs(x - cx) / halfW;
   const dy = Math.abs(y - cy) / halfH;
-  return smoothstep(0.75, 1.35, Math.max(dx, dy));
+  return smoothstep(0.85, 1.2, Math.max(dx, dy));
 }
 
 function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
@@ -80,79 +83,77 @@ function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   const h = rect.height + pad * 2;
   const cx = x + w / 2;
   const cy = y + h / 2;
-  // A soft ellipse hugging the padded rect's own aspect, fading out over
-  // ~125px beyond it, instead of a circle sized off the rect's diagonal
-  // (which used to balloon out to the full viewport height on a wide,
-  // short copy block).
-  const extend = 125;
+  const extend = 150;
   const rx = w / 2 + extend;
   const ry = h / 2 + extend;
-  const innerFrac = (w / 2 / rx + h / 2 / ry) / 2;
+  // The flat, fully-opaque zone must cover the padded rect's own corners,
+  // not just its edge midpoints, so it is sized off the corner's distance
+  // in the gradient's local (scaled) space -- never a hard rectangle on
+  // top, only a soft radial fade the whole way out.
+  const cornerFrac = Math.hypot(w / 2 / rx, h / 2 / ry);
   ctx.save();
   ctx.translate(cx, cy);
   ctx.scale(rx, ry);
-  const grad = ctx.createRadialGradient(0, 0, innerFrac, 0, 0, 1);
-  grad.addColorStop(0, rgba(NAVY, 0.8));
+  const grad = ctx.createRadialGradient(0, 0, cornerFrac, 0, 0, 1);
+  grad.addColorStop(0, rgba(NAVY, 0.82));
   grad.addColorStop(1, rgba(NAVY, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(0, 0, 1, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  ctx.fillStyle = rgba(NAVY, 0.8);
-  ctx.fillRect(x, y, w, h);
 }
 
 function paintVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const cx = w / 2;
-  const cy = h * 0.44;
+  const cy = h / 2;
   const r = Math.hypot(w, h) * 0.62;
-  const g = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r);
+  const g = ctx.createRadialGradient(cx, cy, r * 0.48, cx, cy, r);
   g.addColorStop(0, rgba(NAVY, 0));
-  g.addColorStop(1, rgba(NAVY, 0.55));
+  g.addColorStop(1, rgba(NAVY, 0.58));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 }
 
-export function paint({
-  ctx,
-  w,
-  h,
-  camera,
-  graph,
-  time,
-  copyRect,
-}: PaintOptions) {
+export function paint({ ctx, w, h, camera, graph, copyRect }: PaintOptions) {
   ctx.clearRect(0, 0, w, h);
-  const theta = time * OMEGA;
   const baseScale = camera.baseScale;
 
-  // Fine-scale dust layer, drawn first and dimmest (the third scale of
-  // detail beyond the clusters and the individual nodes/edges).
+  // Dust: the finest, farthest texture layer, drawn first, dimmest and
+  // with a gentle blur standing in for depth-of-field softness.
   ctx.globalCompositeOperation = "source-over";
+  const dustBuckets: [DustPoint[], DustPoint[]] = [[], []];
   for (const d of graph.dust) {
-    const pr = projectDust(d, theta, camera);
+    const pr = project3(d.radius, d.angle, d.y, camera);
     if (pr.depth <= 1) {
       continue;
     }
-    const nf = Math.max(
-      MIN_SCALE_F,
-      Math.min(MAX_SCALE_F, pr.scale / baseScale),
-    );
-    const fall = copyFalloff(pr.x, pr.y, copyRect);
-    const alpha =
-      0.16 * nf * fall * (0.7 + 0.3 * Math.sin(time * BREATHE_FREQ + d.phase));
-    if (alpha <= 0.008) {
-      continue;
-    }
-    const r = Math.max(0.35, d.size * pr.scale * SIZE_K);
-    ctx.fillStyle = rgba(SLATE, alpha);
-    ctx.beginPath();
-    ctx.arc(pr.x, pr.y, r, 0, Math.PI * 2);
-    ctx.fill();
+    const df = depthFactor(pr, baseScale);
+    dustBuckets[df > 0.55 ? 1 : 0].push(d);
   }
+  for (const [bucketIdx, points] of dustBuckets.entries()) {
+    ctx.filter = bucketIdx === 0 ? "blur(1.1px)" : "blur(0.4px)";
+    for (const d of points) {
+      const pr = project3(d.radius, d.angle, d.y, camera);
+      const df = depthFactor(pr, baseScale);
+      const fall = copyFalloff(pr.x, pr.y, copyRect);
+      const alpha = 0.14 * (0.35 + 0.65 * df) * fall;
+      if (alpha <= 0.006) {
+        continue;
+      }
+      const r = FAR_R * 0.55 * d.size * (0.6 + 0.5 * df);
+      ctx.fillStyle = rgba(SLATE, alpha, { with: d.tint, ratio: d.tintRatio });
+      ctx.beginPath();
+      ctx.arc(pr.x, pr.y, Math.max(0.3, r), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.filter = "none";
 
-  const nodeProj = graph.nodes.map((n) => projectNode(n, theta, camera));
+  const nodeProj = graph.nodes.map((n) =>
+    project3(n.radius, n.angle, n.y, camera),
+  );
+
   const edgeOrder = graph.edges
     .map((e, i) => ({
       i,
@@ -168,19 +169,17 @@ export function paint({
     if (a.depth <= 1 || b.depth <= 1) {
       continue;
     }
-    const nf = Math.max(
-      MIN_SCALE_F,
-      Math.min(MAX_SCALE_F, (a.scale + b.scale) / 2 / baseScale),
-    );
+    const dfA = depthFactor(a, baseScale);
+    const dfB = depthFactor(b, baseScale);
+    const df = (dfA + dfB) / 2;
     const fallA = copyFalloff(a.x, a.y, copyRect);
     const fallB = copyFalloff(b.x, b.y, copyRect);
-    const shimmer = 0.82 + 0.18 * Math.sin(time * SHIMMER_FREQ + e.phase);
-    const alpha = e.weight * 0.78 * nf * Math.min(fallA, fallB) * shimmer;
-    if (alpha <= 0.01) {
+    const alpha = e.weight * 0.5 * (0.3 + 0.7 * df) * Math.min(fallA, fallB);
+    if (alpha <= 0.008) {
       continue;
     }
     ctx.strokeStyle = rgba(e.tint, alpha);
-    ctx.lineWidth = Math.max(0.5, 0.7 * nf);
+    ctx.lineWidth = Math.max(0.4, 0.55 * (0.4 + 0.6 * df));
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
@@ -188,13 +187,8 @@ export function paint({
   }
 
   const nodeOrder = graph.nodes
-    .map((n, i) => ({ i, depth: nodeProj[i].depth, scale: nodeProj[i].scale }))
+    .map((n, i) => ({ i, depth: nodeProj[i].depth }))
     .sort((x, y) => y.depth - x.depth);
-  const glowCount = Math.ceil(nodeOrder.length * GLOW_FRACTION);
-  const glowThreshold = [...nodeOrder]
-    .sort((x, y) => y.scale - x.scale)
-    .slice(0, glowCount)
-    .reduce((min, n) => Math.min(min, n.scale), Infinity);
 
   ctx.globalCompositeOperation = "lighter";
   for (const { i } of nodeOrder) {
@@ -203,67 +197,73 @@ export function paint({
     if (pr.depth <= 1) {
       continue;
     }
-    const nf = Math.max(
-      MIN_SCALE_F,
-      Math.min(MAX_SCALE_F, pr.scale / baseScale),
-    );
+    // The gateway core is the scene's one deliberate hot point: it always
+    // reads at strong presence, not subject to the same depth roll-off as
+    // the decorative cluster nodes (which is what a literal depth read
+    // would otherwise do to a node placed a little further from camera).
+    const rawDf = depthFactor(pr, baseScale);
+    const df = n.hot ? Math.max(0.85, rawDf) : rawDf;
     const fall = copyFalloff(pr.x, pr.y, copyRect);
     if (fall <= 0.02) {
       continue;
     }
-    const breathe = 1 + 0.14 * Math.sin(time * BREATHE_FREQ + n.phase);
-    const baseAlpha = (n.hot ? 0.95 : 0.8) * nf * fall * breathe;
-    const r = Math.max(0.9, n.size * pr.scale * SIZE_K);
-    const isNear = pr.scale >= glowThreshold;
+    // A low floor here (rather than a shallow 0.4-1.0 ramp) is what gives
+    // the depth read its contrast: the farthest nodes should read as
+    // genuinely dim, not just a little dimmer than the nearest ones.
+    const baseAlpha = (n.hot ? 0.95 : 0.62) * (0.16 + 0.84 * df) * fall;
+    const tierMult = TIER_MULT[n.tier];
+    const baseR = FAR_R + (NEAR_R - FAR_R) * df;
+    const r = n.hot
+      ? Math.min(HOT_R, baseR * 1.05)
+      : Math.min(NEAR_R, baseR * tierMult);
+    const isNear = df > 0.62;
     if (isNear || n.hot) {
-      const glowR = r * (n.hot ? 9 : 3.4);
+      const glowR = r * (n.hot ? 6.5 : 3.2);
       const glow = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, glowR);
-      glow.addColorStop(0, rgba(n.tint, baseAlpha * (n.hot ? 0.55 : 0.5)));
+      const glowAlpha = baseAlpha * (n.hot ? 0.32 : 0.16);
+      glow.addColorStop(
+        0,
+        rgba(n.tint, glowAlpha, {
+          with: SLATE,
+          ratio: n.hot ? 0 : 1 - n.tintRatio,
+        }),
+      );
       glow.addColorStop(1, rgba(n.tint, 0));
       ctx.fillStyle = glow;
       ctx.beginPath();
       ctx.arc(pr.x, pr.y, glowR, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.fillStyle = rgba(n.tint, Math.min(1, baseAlpha));
+    ctx.fillStyle = rgba(SLATE, Math.min(1, baseAlpha), {
+      with: n.tint,
+      ratio: n.tintRatio,
+    });
     ctx.beginPath();
     ctx.arc(pr.x, pr.y, r, 0, Math.PI * 2);
     ctx.fill();
     if (n.hot) {
-      ctx.fillStyle = rgba(WHITE, Math.min(1, baseAlpha * 0.85));
+      ctx.fillStyle = rgba(WHITE, Math.min(1, baseAlpha * 0.8));
       ctx.beginPath();
-      ctx.arc(pr.x, pr.y, r * 0.42, 0, Math.PI * 2);
+      ctx.arc(pr.x, pr.y, r * 0.4, 0, Math.PI * 2);
       ctx.fill();
     }
   }
 
-  for (const idx of graph.lightEdges) {
-    const e = graph.edges[idx];
-    if (!e) {
-      continue;
-    }
-    const a = nodeProj[e.a];
-    const b = nodeProj[e.b];
-    if (a.depth <= 1 || b.depth <= 1) {
-      continue;
-    }
-    const u = (((time / LIGHT_PERIOD + idx * 0.37) % 1) + 1) % 1;
-    const fade = Math.min(smoothstep(0, 0.12, u), 1 - smoothstep(0.88, 1, u));
-    if (fade <= 0.01) {
-      continue;
-    }
-    const x = a.x + (b.x - a.x) * u;
-    const y = a.y + (b.y - a.y) * u;
-    const fall = copyFalloff(x, y, copyRect);
-    const rr = 22;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, rr);
-    g.addColorStop(0, rgba(e.tint, 0.42 * fade * fall));
-    g.addColorStop(1, rgba(e.tint, 0));
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(x, y, rr, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // A soft, low-alpha cyan wash reads as "one dominant light" behind the
+  // busiest part of the scene without drawing anything shaped like a node.
+  ctx.globalCompositeOperation = "screen";
+  const ambient = ctx.createRadialGradient(
+    w / 2,
+    h * 0.42,
+    0,
+    w / 2,
+    h * 0.42,
+    Math.max(w, h) * 0.55,
+  );
+  ambient.addColorStop(0, rgba(CYAN, 0.05));
+  ambient.addColorStop(1, rgba(CYAN, 0));
+  ctx.fillStyle = ambient;
+  ctx.fillRect(0, 0, w, h);
 
   ctx.globalCompositeOperation = "source-over";
   if (copyRect) {
