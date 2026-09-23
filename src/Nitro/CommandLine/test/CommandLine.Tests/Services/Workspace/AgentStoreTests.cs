@@ -831,7 +831,8 @@ public sealed class AgentStoreTests : IDisposable
     [Fact]
     public async Task TryClaimPingCooldownAsync_Should_HaveExactlyOneWinner_When_ConcurrentClaimsRaceTheSameRow()
     {
-        // arrange: each call opens its own connection against the same agent row.
+        // arrange
+        // each call opens its own connection against the same agent row
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
