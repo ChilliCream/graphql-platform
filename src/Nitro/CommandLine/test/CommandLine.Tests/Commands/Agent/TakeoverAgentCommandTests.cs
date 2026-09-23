@@ -1,3 +1,6 @@
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
@@ -92,14 +95,13 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Takeover_Should_RefuseLiveSourceSession_UnlessForced()
+    public async Task Takeover_Should_RefuseOnlineSource_UnlessForced()
     {
         // arrange
-        SetupInstanceId("local-instance");
         await InitWorkspaceAsync();
         await SeedAgentAsync("maya");
         await SeedAgentAsync("nora");
-        await InsertAliveSessionRowAsync("local-instance", "session-1", "maya");
+        await MarkAgentOnlineAsync("maya");
 
         // act
         var refused = await ExecuteCommandAsync(
@@ -108,10 +110,130 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
             "agent", "takeover", "--from", "maya", "--actor", "nora", "--force");
 
         // assert
-        refused.AssertError(
-            "Actor 'maya' still has a live session; pass --force to take over anyway.");
+        refused.AssertError("Actor 'maya' is Online; pass --force to take over anyway.");
         forced.AssertSuccess("✓ 'nora' took over from 'maya': role '', 0 messages, no tasks.");
         Assert.Equal("1", await QueryScalarAsync("SELECT forced FROM agent_takeovers"));
+    }
+
+    [Fact]
+    public async Task Takeover_Should_AcceptEndedSource_WithoutForce()
+    {
+        // arrange: a source whose session already ended is Offline even though its
+        // endpoint still looks live, so no --force is required.
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await SeedAgentAsync("nora");
+        await MarkAgentOnlineAsync("maya");
+        await MarkAgentEndedAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "takeover", "--from", "maya", "--actor", "nora");
+
+        // assert
+        result.AssertSuccess("✓ 'nora' took over from 'maya': role '', 0 messages, no tasks.");
+    }
+
+    [Fact]
+    public async Task Takeover_Should_AcceptDeletedSource_WithoutForce()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await SeedAgentAsync("nora");
+        await MarkAgentDeletedAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "takeover", "--from", "maya", "--actor", "nora");
+
+        // assert
+        result.AssertSuccess("✓ 'nora' took over from 'maya': role '', 0 messages, no tasks.");
+    }
+
+    [Fact]
+    public async Task Takeover_Should_RefuseDeletedTarget()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await SeedAgentAsync("nora");
+        await MarkAgentDeletedAsync("nora");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "takeover", "--from", "maya", "--actor", "nora");
+
+        // assert
+        result.AssertError("Agent 'nora' was deleted.");
+    }
+
+    [Fact]
+    public async Task Takeover_Should_MoveOnlyUnreadMail_And_LeaveReadMailWithSource()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya", "planner");
+        await SeedAgentAsync("nora");
+        await SeedAgentAsync("sender");
+        await SendMailAsync("sender", "maya", "unread");
+        await SendMailAsync("sender", "maya", "read");
+        var readId = (await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'read'"))!;
+        var readResult = await ExecuteCommandAsync(
+            "agent", "mail", "read", "--message", readId, "--actor", "maya");
+        Assert.Equal(0, readResult.ExitCode);
+        var taskId = await CreateTaskAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "takeover", "--from", "maya", "--actor", "nora");
+
+        // assert
+        result.AssertSuccess(
+            $"✓ 'nora' took over from 'maya': role 'planner', 1 messages, 1 tasks ({taskId}).");
+        var state = string.Join(
+            "|",
+            await QueryScalarAsync($"SELECT recipient FROM message_recipients WHERE message_id = '{readId}'"),
+            await QueryScalarAsync(
+                "SELECT recipient FROM message_recipients WHERE message_id = "
+                + "(SELECT id FROM messages WHERE subject = 'unread')"),
+            await QueryScalarAsync($"SELECT assignee FROM tasks WHERE id = '{taskId}'"));
+        state.MatchInlineSnapshot("maya|nora|nora");
+    }
+
+    /// <summary>
+    /// Gives the named agent a live-looking harness session and a fresh beat, so it
+    /// resolves as <see cref="AgentState.Online"/>.
+    /// </summary>
+    private async Task MarkAgentOnlineAsync(string name)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agents SET harness = $harness, session_id = $sessionId, "
+            + "endpoint_kind = $endpointKind, last_seen_at = $now WHERE name = $name";
+        command.Parameters.AddWithValue("$harness", AgentSessionHarness.ClaudeCode);
+        command.Parameters.AddWithValue("$sessionId", $"session-{name}");
+        command.Parameters.AddWithValue("$endpointKind", AgentSessionEndpointKind.ClaudePeer);
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        command.Parameters.AddWithValue("$name", name);
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Stamps the named agent's session as ended, so it resolves as
+    /// <see cref="AgentState.Offline"/> regardless of its endpoint.
+    /// </summary>
+    private async Task MarkAgentEndedAsync(string name)
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agents SET ended_at = $now WHERE name = $name";
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        command.Parameters.AddWithValue("$name", name);
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 
     [Theory]
