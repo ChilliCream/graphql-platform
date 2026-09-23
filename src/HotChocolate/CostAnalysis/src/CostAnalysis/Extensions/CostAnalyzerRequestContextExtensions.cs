@@ -111,7 +111,11 @@ public static class CostAnalyzerRequestContextExtensions
     /// <returns>
     /// Returns the cost options.
     /// </returns>
-#pragma warning disable CS0618 // RequestCostOptions is obsolete but this reader stays for backward compatibility.
+#pragma warning disable CS0618 // RequestCostOptions and the members below are obsolete but kept for backward compatibility.
+    [Obsolete(
+        "Use RequestContext.TryGetCostAnalysisResult to read the cost analysis outcome, or "
+        + "ModifyCostOptions to change the per-request cost options. Removed in 17.0. This "
+        + "getter never reflects ModifyCostOptions modifiers.")]
     public static RequestCostOptions GetCostOptions(this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -133,6 +137,10 @@ public static class CostAnalyzerRequestContextExtensions
     /// <returns>
     /// Returns the global cost options.
     /// </returns>
+    [Obsolete(
+        "Use RequestContext.TryGetCostAnalysisResult to read the cost analysis outcome, or "
+        + "ModifyCostOptions to change the per-request cost options. Removed in 17.0. This "
+        + "getter never reflects ModifyCostOptions modifiers.")]
     public static RequestCostOptions GetCostOptions(this IRequestExecutor executor)
     {
         ArgumentNullException.ThrowIfNull(executor);
