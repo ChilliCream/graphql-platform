@@ -145,6 +145,52 @@ An operation whose exact compile would exceed `CaseBudget` is, by default (`Case
 
 > **Note:** The assumed size for a list without applicable `@listSize` metadata is not a gateway runtime option. It is a composition setting configured on the composer (`SourceSchemaMergerOptions.DefaultListSize`) and carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive; see [Composition](./composition.md) for details. Without this setting, an unannotated list is unbounded, and a list whose element type has a positive weight exceeds any finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` in its source schema or configure a finite `DefaultListSize` at composition time.
 
+# Per-Request Cost Options
+
+`FusionCostOptions` apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding gateway value for that request, in either direction: a request can raise a limit above the gateway default or lower it below the gateway default.
+
+The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for every HTTP request and already has access to the authenticated user, so it can pick request options based on group membership before the operation executes:
+
+```csharp
+public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
+{
+    public override ValueTask OnCreateAsync(HttpContext context,
+        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        if (context.User.IsInRole("developer"))
+        {
+            requestBuilder.SetCostOptions(
+                new FusionRequestCostOptions(
+                    maxFieldCost: 5_000,
+                    maxTypeCost: 5_000,
+                    enforceCostLimits: true,
+                    skipAnalyzer: false,
+                    maxResponseSize: 50_000));
+        }
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+            cancellationToken);
+    }
+}
+```
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .AddHttpRequestInterceptor<CostOptionsHttpRequestInterceptor>();
+```
+
+Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the gateway default, while every other request keeps enforcing the gateway's configured limits.
+
+Response-size analysis itself is an opt-in that is only ever enabled per gateway, by setting `FusionCostOptions.MaxResponseSize`. A request cannot turn the analysis on: if the gateway leaves `MaxResponseSize` unset (`null`) and a request nonetheless sets `FusionRequestCostOptions.MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
+
+> The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.
+
+To enable the check, set `FusionCostOptions.MaxResponseSize` on the gateway first; requests may then raise or lower it as needed.
+
+Setting `FusionRequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored, because the analyzer never runs for that request.
+
 # Accessing the Analysis Result
 
 `RequestContext.TryGetCostAnalysisResult` provides the compiled `CostPlan` and every estimate for the request. Read the result after the cost middleware has completed:
