@@ -30,15 +30,15 @@ internal sealed class OperationExecutionMiddleware
                 "There is no operation plan available to be executed.");
         }
 
-        var operation = operationPlan.Operation;
-
-        // the incremental delivery constraint comes from the accepted response content types
-        // alone, so it is evaluated before the operation kind.
-        if (!IsIncrementalDeliveryAllowed(operation, context.Request))
+        // the incremental delivery check depends on the accepted response content types alone
+        // and runs before the operation kind check.
+        if (!IsIncrementalDeliveryAllowed(operationPlan, context.Request))
         {
             context.Result = ErrorHelper.IncrementalDeliveryNotAcceptable();
             return;
         }
+
+        var operation = operationPlan.Operation;
 
         if (!IsOperationKindAllowed(operation, context.Request))
         {
@@ -117,9 +117,11 @@ internal sealed class OperationExecutionMiddleware
         await next(context);
     }
 
-    private static bool IsIncrementalDeliveryAllowed(Operation operation, IOperationRequest request)
+    private static bool IsIncrementalDeliveryAllowed(
+        OperationPlan operationPlan,
+        IOperationRequest request)
     {
-        if (request.Flags is RequestFlags.AllowAll || !operation.HasIncrementalParts)
+        if (request.Flags is RequestFlags.AllowAll || operationPlan.IncrementalPlans.IsEmpty)
         {
             return true;
         }

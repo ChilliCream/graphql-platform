@@ -87,6 +87,32 @@ public class OperationKindTests : FusionTestBase
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
+    [Fact]
+    public async Task Query_Should_ReturnNotAcceptable_When_DeferIsSentWithoutStreamingAccept()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Query>().AddMutationType<Mutation>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.EnableQueryRequests = true),
+            includeOperationPlan: false);
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = CreateRequest(
+            s_queryMethod,
+            """{ "query": "{ profile { name ... @defer { bio } } }" }""");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The client does not accept a response content type that supports incremental delivery."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
     private static HttpRequestMessage CreateRequest(HttpMethod method, string body)
     {
         var request = new HttpRequestMessage(method, new Uri("http://localhost:5000/graphql"))
@@ -102,10 +128,14 @@ public class OperationKindTests : FusionTestBase
     public class Query
     {
         public string Greeting() => "Hello";
+
+        public Profile Profile() => new("Ada", "Writes GraphQL servers.");
     }
 
     public class Mutation
     {
         public string SetGreeting(string greeting) => greeting;
     }
+
+    public record Profile(string Name, string Bio);
 }

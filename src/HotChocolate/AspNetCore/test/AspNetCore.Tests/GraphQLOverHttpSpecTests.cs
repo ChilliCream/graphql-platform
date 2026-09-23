@@ -26,14 +26,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     private const string NotWellFormedRequest = """{ "query": 123 }""";
     private const string EmptyBatchRequest = "[]";
-    private const string GraphQLResponseAndEventStream =
-        "application/graphql-response+json, text/event-stream";
     private const string NonObjectBatchRequest = "[1]";
     private const string AmbiguousOperationRequest =
         """{ "query": "query A { __typename } query B { __typename }" }""";
     private const string VariablesNotJsonQuery = "?query=%7B%20__typename%20%7D&variables=%7B";
     private const string ExtensionsNotJsonQuery = "?query=%7B%20__typename%20%7D&extensions=%7B";
     private const string ExtensionsOnlyNotJsonQuery = "?extensions=%7B";
+    private const string GraphQLResponseAndEventStream =
+        "application/graphql-response+json, text/event-stream";
     private const string InvalidVariableRequest =
         """
         {
