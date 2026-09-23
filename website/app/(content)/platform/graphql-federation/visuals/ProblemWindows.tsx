@@ -1,10 +1,18 @@
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { AppWindow } from "@/src/components/AppWindow";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { CrossGlyph } from "@/src/icons/CrossGlyph";
-import { RingGlyph } from "@/src/icons/RingGlyph";
+
+/** Static ring for a row waiting its turn; unlike SpinnerGlyph it never rotates. */
+function RingGlyph(props: ComponentPropsWithoutRef<"svg">) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth={2} />
+    </svg>
+  );
+}
 
 type RowStatus = "pass" | "fail" | "waiting";
 
