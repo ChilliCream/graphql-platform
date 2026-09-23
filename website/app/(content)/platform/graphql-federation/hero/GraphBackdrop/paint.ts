@@ -1,8 +1,8 @@
 // The one-shot draw: a sparse constellation of clean discs and thin lines,
 // a vignette and a soft scrim behind the copy. Nothing here reads a clock
 // -- this is a still frame, painted once on mount and once per resize,
-// never from a loop. No dust layer, no blur, no glow beyond each cluster's
-// one hub halo: restraint is the point.
+// never from a loop. Node/edge size, alpha and colour are all resolved by
+// graph.ts; this file only draws them.
 import type { GraphModel } from "./graph";
 import { rgba, WHITE } from "./color";
 import { CYAN, NAVY, SLATE, TEAL } from "../palette";
@@ -22,12 +22,17 @@ export interface PaintOptions {
   readonly copyRect: Rect | null;
 }
 
-const FAR_R = 2;
-const FAR_R_SPAN = 1;
-const NEAR_R = 4;
-const NEAR_R_SPAN = 2;
 const HUB_HALO_R = 14;
+const TINTS = [CYAN, TEAL] as const;
 
+/**
+ * A soft scrim hugging the copy rect -- not the whole viewport -- so at a
+ * narrow, tall viewport it covers only the copy band and the graph keeps
+ * its near alpha everywhere else (the portrait fix). Its reach is a
+ * fraction of the rect's own size plus a small fixed pad, instead of one
+ * fixed pad that overwhelms a short, narrow rect on desktop or undershoots
+ * a tall one on mobile.
+ */
 function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   const pad = 24;
   const x = rect.x - pad;
@@ -36,15 +41,16 @@ function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   const h = rect.height + pad * 2;
   const cx = x + w / 2;
   const cy = y + h / 2;
-  const extend = 150;
-  const rx = w / 2 + extend;
-  const ry = h / 2 + extend;
+  const extendX = Math.min(90, w * 0.22);
+  const extendY = Math.min(90, h * 0.22);
+  const rx = w / 2 + extendX;
+  const ry = h / 2 + extendY;
   const cornerFrac = Math.hypot(w / 2 / rx, h / 2 / ry);
   ctx.save();
   ctx.translate(cx, cy);
   ctx.scale(rx, ry);
   const grad = ctx.createRadialGradient(0, 0, cornerFrac, 0, 0, 1);
-  grad.addColorStop(0, rgba(NAVY, 0.7));
+  grad.addColorStop(0, rgba(NAVY, 0.55));
   grad.addColorStop(1, rgba(NAVY, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -69,9 +75,14 @@ export function paint({ ctx, w, h, graph, copyRect }: PaintOptions) {
 
   // Edges first, under every node.
   ctx.lineCap = "round";
-  ctx.lineWidth = 1;
   for (const e of graph.edges) {
-    ctx.strokeStyle = rgba(SLATE, e.alpha, { with: CYAN, ratio: 0.4 });
+    ctx.lineWidth = e.lineWidth;
+    ctx.strokeStyle = rgba(
+      SLATE,
+      e.alpha,
+      { with: CYAN, ratio: 0.4 },
+      e.darken,
+    );
     ctx.beginPath();
     ctx.moveTo(e.points[0].x, e.points[0].y);
     for (let k = 1; k < e.points.length; k++) {
@@ -81,22 +92,12 @@ export function paint({ ctx, w, h, graph, copyRect }: PaintOptions) {
   }
 
   const nodeOrder = graph.nodes
-    .map((n, i) => ({ i, depth: n.depth }))
-    .sort((a, b) => a.depth - b.depth);
+    .map((n, i) => ({ i, alpha: n.alpha }))
+    .sort((a, b) => a.alpha - b.alpha);
 
   for (const { i } of nodeOrder) {
     const n = graph.nodes[i];
-    const tint = i % 2 === 0 ? CYAN : TEAL;
-    const r = n.hub
-      ? NEAR_R + NEAR_R_SPAN
-      : n.depth > 0.5
-        ? NEAR_R + NEAR_R_SPAN * (n.depth - 0.5) * 2
-        : FAR_R + FAR_R_SPAN * n.depth * 2;
-    const alpha = n.hub
-      ? 1
-      : n.depth > 0.5
-        ? 0.8 + 0.2 * (n.depth - 0.5) * 2
-        : 0.35 + 0.15 * n.depth * 2;
+    const tint = TINTS[n.tint];
 
     if (n.hub) {
       const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, HUB_HALO_R);
@@ -108,15 +109,15 @@ export function paint({ ctx, w, h, graph, copyRect }: PaintOptions) {
       ctx.fill();
     }
 
-    ctx.fillStyle = rgba(tint, alpha);
+    ctx.fillStyle = rgba(tint, n.alpha, undefined, n.darken);
     ctx.beginPath();
-    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
     ctx.fill();
 
     if (n.hub) {
       ctx.fillStyle = rgba(WHITE, 0.9);
       ctx.beginPath();
-      ctx.arc(n.x, n.y, r * 0.42, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, n.r * 0.42, 0, Math.PI * 2);
       ctx.fill();
     }
   }

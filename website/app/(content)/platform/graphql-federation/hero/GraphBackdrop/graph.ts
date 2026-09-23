@@ -1,17 +1,20 @@
-// The node/edge model for the hero's constellation: one continuous graph
-// scattered across the whole frame (comment 540), thinner but never empty
-// behind the copy block, with a handful of hub nodes and short-to-medium
-// proximity edges that keep the whole thing one connected component.
-// Positions are plain canvas-pixel coordinates; "depth" is a single 0..1
-// value per node that only drives size and alpha -- the cheap read of
-// "near nodes bigger and brighter, far nodes small and dim" a still frame
-// needs. Everything is derived once from a seeded PRNG, so the same
-// (w, h, copyRect) always yields the same graph.
+// The node/edge model for the hero's constellation: a real 3D slab
+// projected through a perspective camera (camera.ts), sampled with a
+// hexagonal jittered lattice so the largest empty circle anywhere on the
+// canvas is bounded (the coverage fix), connected with k-nearest-neighbour
+// edges in 3D plus an MST bridge for any leftover component (the edge
+// fix), and locally dimmed -- alpha only, never the whole scene -- inside
+// the copy block so on-glyph contrast holds (the contrast fix).
+//
+// Everything is derived once from a seeded PRNG, so the same
+// (w, h, copyRect, textZones) always yields the same graph.
 import type { Rect } from "./paint";
+import { makeCamera, placeAt, project, type Camera, type Vec3 } from "./camera";
 import {
   COPY_ZONE_PAD,
-  MAX_NEIGHBOUR_GAP,
   MIN_NODE_SPACING,
+  coverageCapDiameter,
+  hexSpacing,
   type LayoutMode,
 } from "./sceneLayout";
 
@@ -27,14 +30,8 @@ function mulberry32(seed: number) {
   };
 }
 
-export interface GraphNode {
-  readonly x: number;
-  readonly y: number;
-  /** 0 = farthest allowed, 1 = nearest -- drives size and alpha only. */
-  readonly depth: number;
-  readonly hub: boolean;
-  /** Inside the padded copy-clear zone: capped dim, never a hub. */
-  readonly behindCopy: boolean;
+function clamp01(t: number): number {
+  return t < 0 ? 0 : t > 1 ? 1 : t;
 }
 
 export interface Point {
@@ -42,11 +39,22 @@ export interface Point {
   readonly y: number;
 }
 
+export interface GraphNode {
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+  readonly alpha: number;
+  readonly hub: boolean;
+  readonly tint: 0 | 1;
+  /** 0..1 blend toward black, how the copy-zone contrast fix stays visible without brightening past the glyph rows. */
+  readonly darken: number;
+}
+
 export interface GraphEdge {
-  readonly a: number;
-  readonly b: number;
   readonly points: readonly Point[];
   readonly alpha: number;
+  readonly darken: number;
+  readonly lineWidth: number;
 }
 
 export interface GraphModel {
@@ -54,21 +62,38 @@ export interface GraphModel {
   readonly edges: readonly GraphEdge[];
 }
 
-// 1440x900 baseline: 100-180 nodes (comment 540); 140 sits comfortably in
-// the middle. Scaled by frame area for other landscape sizes, and to ~60%
-// of that for portrait, same convention as every other number in this
-// spec.
-const BASE_TARGET = 140;
-const BASE_AREA = 1440 * 900;
-const PORTRAIT_SCALE = 0.6;
+// The camera: a slab from z = 0 (nearest) to CAM_Z_RANGE (farthest) sitting
+// CAM_DIST in front of the lens. far/near scale ratio = CAM_DIST /
+// (CAM_DIST + CAM_Z_RANGE) ≈ 0.43, i.e. near nodes project ≈2.3x the
+// scale of far ones -- comfortably over the ticket's 2x depth bar.
+const CAM_DIST = 520;
+const CAM_Z_RANGE = 680;
+const CAM_FOCAL = 860;
 
-function targetCount(w: number, h: number, mode: LayoutMode): number {
-  const scaled = Math.round((BASE_TARGET * (w * h)) / BASE_AREA);
-  const landscapeEquivalent = Math.max(100, Math.min(240, scaled));
-  return mode === "portrait"
-    ? Math.round(landscapeEquivalent * PORTRAIT_SCALE)
-    : landscapeEquivalent;
-}
+// How strongly a node's screen position pulls its depth toward the focal
+// axis (0 = pure noise, 1 = position decides depth outright); the rest is
+// per-node noise, so the read is a gentle bias, not a mechanical wedge.
+const FOCAL_WEIGHT = 0.55;
+
+const FAR_R = 2;
+const FAR_R_SPAN = 1;
+const NEAR_R = 4;
+const NEAR_R_SPAN = 2;
+
+const HUB_COUNT = 5;
+const HUB_MIN_SEPARATION = 150;
+const HUB_MIN_COPY_CLEARANCE = 90;
+
+const COPY_NEAR_CAP = 0.15;
+const COPY_ZONE_ALPHA_CAP = 0.1;
+const COPY_ZONE_DARKEN = 0.35;
+const TEXT_ZONE_ALPHA_CAP = 0.045;
+const TEXT_ZONE_DARKEN = 0.6;
+
+const KNN_K = 3;
+const EDGE_LEN_CAP = 220;
+const DEGREE_MIN = 2;
+const DEGREE_MAX = 4;
 
 function distToRect(x: number, y: number, rect: Rect): number {
   const dx = Math.max(rect.x - x, x - (rect.x + rect.width), 0);
@@ -76,25 +101,70 @@ function distToRect(x: number, y: number, rect: Rect): number {
   return dx > 0 && dy > 0 ? Math.hypot(dx, dy) : Math.max(dx, dy);
 }
 
-function smoothstep(t: number): number {
-  const c = t < 0 ? 0 : t > 1 ? 1 : t;
-  return c * c * (3 - 2 * c);
+function inRect(x: number, y: number, rect: Rect): boolean {
+  return (
+    x >= rect.x &&
+    x <= rect.x + rect.width &&
+    y >= rect.y &&
+    y <= rect.y + rect.height
+  );
 }
 
-const DENSITY_FALLOFF = 260;
-const MIN_DENSITY = 0.16;
+function expandRect(rect: Rect, pad: number): Rect {
+  return {
+    x: rect.x - pad,
+    y: rect.y - pad,
+    width: rect.width + pad * 2,
+    height: rect.height + pad * 2,
+  };
+}
 
-/** Keep-probability for a candidate point: full density away from the
- * copy block, thinning smoothly toward (but never reaching zero at) the
- * copy rect itself, so the graph reads as one continuous field with
- * "gentle density variation" rather than a hole. */
-function densityWeight(x: number, y: number, copyRect: Rect | null): number {
-  if (!copyRect) {
-    return 1;
+/** Liang-Barsky segment/rect intersection: does this edge pass through the rect at all (not just touch it at an endpoint)? */
+function segIntersectsRect(p: Point, q: Point, r: Rect): boolean {
+  let t0 = 0;
+  let t1 = 1;
+  const dx = q.x - p.x;
+  const dy = q.y - p.y;
+  const checks: [number, number][] = [
+    [-dx, p.x - r.x],
+    [dx, r.x + r.width - p.x],
+    [-dy, p.y - r.y],
+    [dy, r.y + r.height - p.y],
+  ];
+  for (const [pp, qq] of checks) {
+    if (pp === 0) {
+      if (qq < 0) {
+        return false;
+      }
+      continue;
+    }
+    const t = qq / pp;
+    if (pp < 0) {
+      if (t > t1) {
+        return false;
+      }
+      if (t > t0) {
+        t0 = t;
+      }
+    } else {
+      if (t < t0) {
+        return false;
+      }
+      if (t < t1) {
+        t1 = t;
+      }
+    }
   }
-  const d = distToRect(x, y, copyRect);
-  const t = smoothstep(d / DENSITY_FALLOFF);
-  return MIN_DENSITY + (1 - MIN_DENSITY) * t;
+  return true;
+}
+
+function polylineIntersectsRect(pts: readonly Point[], rect: Rect): boolean {
+  for (let i = 1; i < pts.length; i++) {
+    if (segIntersectsRect(pts[i - 1], pts[i], rect)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function isFarEnough(
@@ -111,97 +181,79 @@ function isFarEnough(
   return true;
 }
 
-function scatter(
+/**
+ * A jittered hexagonal lattice over the whole canvas (with a one-spacing
+ * overhang on every side so the edges of the frame get the same coverage
+ * as the interior). A regular hex lattice at spacing `s` has covering
+ * radius `s / sqrt(3)` -- see sceneLayout.hexSpacing, which already solves
+ * for `s` from the per-width empty-circle cap -- so this is the coverage
+ * fix: no point on the canvas can be farther than the cap from its
+ * nearest node, by construction, not by a post-hoc gap-fill pass.
+ */
+function buildLattice(
   w: number,
   h: number,
-  copyRect: Rect | null,
-  target: number,
+  spacing: number,
   rand: () => number,
 ): Point[] {
+  const rowHeight = (spacing * Math.sqrt(3)) / 2;
+  const jitter = spacing * 0.12;
   const pts: Point[] = [];
-  const maxAttempts = target * 60;
-  let attempts = 0;
-  while (pts.length < target && attempts < maxAttempts) {
-    attempts++;
-    const x = rand() * w;
-    const y = rand() * h;
-    if (rand() > densityWeight(x, y, copyRect)) {
-      continue;
+  let row = 0;
+  for (let y = -rowHeight; y <= h + rowHeight; y += rowHeight) {
+    const xOffset = row % 2 === 0 ? 0 : spacing / 2;
+    for (let x = -spacing + xOffset; x <= w + spacing; x += spacing) {
+      const jx = (rand() * 2 - 1) * jitter;
+      const jy = (rand() * 2 - 1) * jitter;
+      const px = x + jx;
+      const py = y + jy;
+      if (isFarEnough(px, py, pts, MIN_NODE_SPACING)) {
+        pts.push({ x: px, y: py });
+      } else if (isFarEnough(x, y, pts, MIN_NODE_SPACING)) {
+        // The jitter pushed two neighbours too close together; fall back
+        // to the unjittered lattice point, which always satisfies both
+        // the spacing floor and the coverage guarantee.
+        pts.push({ x, y });
+      }
     }
-    if (isFarEnough(x, y, pts, MIN_NODE_SPACING)) {
-      pts.push({ x, y });
-    }
+    row++;
   }
   return pts;
 }
 
-/** Bounds the nearest-neighbour gap for every point to ~MAX_NEIGHBOUR_GAP
- * by inserting a bridging point near any node whose nearest neighbour is
- * too far away -- what keeps the field from reading as "islands with an
- * empty band" once density thins out behind the copy. */
-function fillGaps(
-  pts: Point[],
-  w: number,
-  h: number,
-  rand: () => number,
-): void {
-  for (let round = 0; round < 6; round++) {
-    let changedAny = false;
-    const n = pts.length;
-    for (let i = 0; i < n; i++) {
-      let nearest = Infinity;
-      for (let j = 0; j < pts.length; j++) {
-        if (j === i) {
-          continue;
-        }
-        const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
-        if (d < nearest) {
-          nearest = d;
-        }
-      }
-      if (nearest <= MAX_NEIGHBOUR_GAP) {
-        continue;
-      }
-      for (let attempt = 0; attempt < 24; attempt++) {
-        const angle = rand() * Math.PI * 2;
-        const dist = MIN_NODE_SPACING + rand() * (MAX_NEIGHBOUR_GAP * 0.55);
-        const x = Math.min(
-          w - 4,
-          Math.max(4, pts[i].x + Math.cos(angle) * dist),
-        );
-        const y = Math.min(
-          h - 4,
-          Math.max(4, pts[i].y + Math.sin(angle) * dist),
-        );
-        if (isFarEnough(x, y, pts, MIN_NODE_SPACING)) {
-          pts.push({ x, y });
-          changedAny = true;
-          break;
-        }
-      }
-    }
-    if (!changedAny) {
-      break;
-    }
-  }
+/**
+ * 0 at the frame's bottom-left, 1 at its top-right: the axis the focal
+ * structure reads along. Nodes near 0 get a near (small z) bias, nodes
+ * near 1 a far bias, so the camera reads as looking down and across the
+ * slab rather than straight at a flat wall of points.
+ */
+function focalBias(x: number, y: number, w: number, h: number): number {
+  const nx = w > 0 ? x / w : 0.5;
+  const ny = h > 0 ? y / h : 0.5;
+  return clamp01((nx - ny + 1) / 2);
 }
-
-const HUB_COUNT = 5;
-const HUB_MIN_SEPARATION = 150;
-const HUB_MIN_COPY_CLEARANCE = 90;
 
 function pickHubs(
   pts: readonly Point[],
+  w: number,
+  h: number,
   copyRect: Rect | null,
   rand: () => number,
 ): Set<number> {
+  // The lattice overhangs the canvas by one spacing on every side (for
+  // edge coverage); a hub picked from that overhang would render off-
+  // screen and waste one of the 4-6 slots, so candidates are restricted
+  // to points actually on the canvas.
   const candidates = pts
     .map((p, i) => ({ i, p }))
     .filter(
       ({ p }) =>
-        !copyRect || distToRect(p.x, p.y, copyRect) >= HUB_MIN_COPY_CLEARANCE,
+        p.x >= 0 &&
+        p.x <= w &&
+        p.y >= 0 &&
+        p.y <= h &&
+        (!copyRect || distToRect(p.x, p.y, copyRect) >= HUB_MIN_COPY_CLEARANCE),
     );
-  // Shuffle deterministically, then greedily take well-separated ones.
   const shuffled = [...candidates];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -249,37 +301,67 @@ function makeUnionFind(n: number): UnionFind {
   return { find, union };
 }
 
-/** k-nearest-neighbour proximity edges, then bridge any leftover separate
- * components (a scattered point cloud's k-NN graph is very likely already
- * one component, but this guarantees it regardless of seed or viewport). */
+interface RawEdge {
+  readonly a: number;
+  readonly b: number;
+  readonly bridge: boolean;
+  readonly via?: Point;
+}
+
+/**
+ * k-nearest-neighbour edges by 3D distance (the edge fix's first half),
+ * each capped at EDGE_LEN_CAP once projected to screen space. Any
+ * remaining separate components are then joined by an MST over the
+ * component graph -- repeatedly adding the globally cheapest 3D edge that
+ * connects two still-different components, which is Kruskal's rule -- so
+ * those bridge edges are exempt from the length cap but are the shortest
+ * possible connectors, and get routed around the copy zone if they'd
+ * cross it.
+ */
 function buildEdges(
-  pts: readonly Point[],
-  rand: () => number,
-): { a: number; b: number }[] {
-  const n = pts.length;
-  const k = 2;
+  world: readonly Vec3[],
+  screen: readonly Point[],
+  copyZone: Rect | null,
+): RawEdge[] {
+  const n = world.length;
+  const dist3 = (i: number, j: number) =>
+    Math.hypot(
+      world[i].x - world[j].x,
+      world[i].y - world[j].y,
+      world[i].z - world[j].z,
+    );
+  const distScreen = (i: number, j: number) =>
+    Math.hypot(screen[i].x - screen[j].x, screen[i].y - screen[j].y);
+
   const edgeSet = new Set<string>();
-  const edges: { a: number; b: number }[] = [];
-  const addEdge = (a: number, b: number) => {
+  const edges: RawEdge[] = [];
+  const key = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+  const addEdge = (a: number, b: number, bridge: boolean, via?: Point) => {
     if (a === b) {
       return;
     }
-    const key = a < b ? `${a}-${b}` : `${b}-${a}`;
-    if (edgeSet.has(key)) {
+    const k = key(a, b);
+    if (edgeSet.has(k)) {
       return;
     }
-    edgeSet.add(key);
-    edges.push({ a, b });
+    edgeSet.add(k);
+    edges.push({ a, b, bridge, via });
   };
 
   for (let i = 0; i < n; i++) {
-    const dists = pts
-      .map((p, j) => ({ j, d: Math.hypot(p.x - pts[i].x, p.y - pts[i].y) }))
-      .filter((e) => e.j !== i)
-      .sort((x, y) => x.d - y.d)
-      .slice(0, k);
-    for (const { j } of dists) {
-      addEdge(i, j);
+    const candidates = [];
+    for (let j = 0; j < n; j++) {
+      if (j === i) {
+        continue;
+      }
+      if (distScreen(i, j) > EDGE_LEN_CAP) {
+        continue;
+      }
+      candidates.push({ j, d: dist3(i, j) });
+    }
+    candidates.sort((x, y) => x.d - y.d);
+    for (const { j } of candidates.slice(0, KNN_K)) {
+      addEdge(i, j, false);
     }
   }
 
@@ -287,52 +369,68 @@ function buildEdges(
   for (const e of edges) {
     uf.union(e.a, e.b);
   }
-  // Bridge stray components: connect each component's closest pair of
-  // nodes to the main body.
-  const byRoot = new Map<number, number[]>();
-  for (let i = 0; i < n; i++) {
-    const r = uf.find(i);
-    const list = byRoot.get(r);
-    if (list) {
-      list.push(i);
-    } else {
-      byRoot.set(r, [i]);
+  const routeVia = (a: number, b: number): Point | undefined => {
+    if (!copyZone) {
+      return undefined;
     }
-  }
-  const roots = [...byRoot.keys()];
-  for (let i = 1; i < roots.length; i++) {
-    const groupA = byRoot.get(roots[0])!;
-    const groupB = byRoot.get(roots[i])!;
-    let best = { a: groupA[0], b: groupB[0], d: Infinity };
-    for (const a of groupA) {
-      for (const b of groupB) {
-        const d = Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y);
-        if (d < best.d) {
-          best = { a, b, d };
+    const pa = screen[a];
+    const pb = screen[b];
+    if (!segIntersectsRect(pa, pb, copyZone)) {
+      return undefined;
+    }
+    const midX = (pa.x + pb.x) / 2;
+    const above = { x: midX, y: copyZone.y - 20 };
+    const below = { x: midX, y: copyZone.y + copyZone.height + 20 };
+    const cost = (v: Point) =>
+      Math.hypot(pa.x - v.x, pa.y - v.y) + Math.hypot(pb.x - v.x, pb.y - v.y);
+    return cost(above) <= cost(below) ? above : below;
+  };
+
+  // Bridge stray components: an MST over the component graph, cheapest
+  // 3D edge first, until one component remains.
+  for (;;) {
+    const byRoot = new Map<number, number[]>();
+    for (let i = 0; i < n; i++) {
+      const r = uf.find(i);
+      const list = byRoot.get(r);
+      if (list) {
+        list.push(i);
+      } else {
+        byRoot.set(r, [i]);
+      }
+    }
+    const roots = [...byRoot.keys()];
+    if (roots.length <= 1) {
+      break;
+    }
+    let best = { a: -1, b: -1, d: Infinity };
+    for (let x = 0; x < roots.length; x++) {
+      for (let y = x + 1; y < roots.length; y++) {
+        for (const a of byRoot.get(roots[x])!) {
+          for (const b of byRoot.get(roots[y])!) {
+            const d = dist3(a, b);
+            if (d < best.d) {
+              best = { a, b, d };
+            }
+          }
         }
       }
     }
-    addEdge(best.a, best.b);
+    addEdge(best.a, best.b, true, routeVia(best.a, best.b));
     uf.union(best.a, best.b);
-    groupA.push(...groupB);
   }
 
-  // Degree 2-4: trim the longest edges off any node over the cap, but only
-  // when an alternate path still connects its two endpoints afterward --
-  // otherwise trimming could turn a bridge edge into a second component.
+  // Degree 2-4, checked on both ends: trim the longest non-bridge edges
+  // off any over-cap node, but only when a walk still connects its two
+  // endpoints afterward, so a trim can never fracture the one component
+  // the k-NN + MST step built. Bridge edges are never trimmed.
   const degree = new Array(n).fill(0);
   for (const e of edges) {
     degree[e.a]++;
     degree[e.b]++;
   }
-  const byLength = [...edges].sort(
-    (x, y) =>
-      Math.hypot(pts[y.a].x - pts[y.b].x, pts[y.a].y - pts[y.b].y) -
-      Math.hypot(pts[x.a].x - pts[x.b].x, pts[x.a].y - pts[x.b].y),
-  );
-  const keptEdges: { a: number; b: number }[] = [...edges];
   const adjacency: Set<number>[] = Array.from({ length: n }, () => new Set());
-  for (const e of keptEdges) {
+  for (const e of edges) {
     adjacency[e.a].add(e.b);
     adjacency[e.b].add(e.a);
   }
@@ -356,11 +454,15 @@ function buildEdges(
     }
     return false;
   };
-  for (const e of byLength) {
-    if (degree[e.a] <= 4 && degree[e.b] <= 4) {
+  const byLengthDesc = edges
+    .filter((e) => !e.bridge)
+    .sort((x, y) => distScreen(y.a, y.b) - distScreen(x.a, x.b));
+  const kept = [...edges];
+  for (const e of byLengthDesc) {
+    if (degree[e.a] <= DEGREE_MAX && degree[e.b] <= DEGREE_MAX) {
       continue;
     }
-    if (degree[e.a] <= 2 || degree[e.b] <= 2) {
+    if (degree[e.a] <= DEGREE_MIN || degree[e.b] <= DEGREE_MIN) {
       continue;
     }
     adjacency[e.a].delete(e.b);
@@ -368,29 +470,45 @@ function buildEdges(
     if (stillConnected(e.a, e.b)) {
       degree[e.a]--;
       degree[e.b]--;
-      const idx = keptEdges.indexOf(e);
-      keptEdges.splice(idx, 1);
+      kept.splice(kept.indexOf(e), 1);
     } else {
       adjacency[e.a].add(e.b);
       adjacency[e.b].add(e.a);
     }
   }
-  const finalEdges = keptEdges;
+
+  // Degree floor: attach the nearest still-eligible, capped-length
+  // neighbour to any node left under 2.
   for (let i = 0; i < n; i++) {
-    let tries = 0;
-    while (degree[i] < 2 && tries < n) {
-      const j = Math.floor(rand() * n);
-      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-      if (j !== i && !edgeSet.has(key)) {
-        finalEdges.push({ a: i, b: j });
-        edgeSet.add(key);
-        degree[i]++;
-        degree[j]++;
+    let guard = 0;
+    while (degree[i] < DEGREE_MIN && guard < n) {
+      guard++;
+      let target = -1;
+      let bestD = Infinity;
+      for (let j = 0; j < n; j++) {
+        if (
+          j === i ||
+          edgeSet.has(key(i, j)) ||
+          distScreen(i, j) > EDGE_LEN_CAP
+        ) {
+          continue;
+        }
+        const d = dist3(i, j);
+        if (d < bestD) {
+          bestD = d;
+          target = j;
+        }
       }
-      tries++;
+      if (target < 0) {
+        break;
+      }
+      addEdge(i, target, false);
+      kept.push({ a: i, b: target, bridge: false });
+      degree[i]++;
+      degree[target]++;
     }
   }
-  return finalEdges;
+  return kept;
 }
 
 export function buildGraph(
@@ -398,49 +516,114 @@ export function buildGraph(
   h: number,
   mode: LayoutMode,
   copyRect: Rect | null,
+  textZones: readonly Rect[],
 ): GraphModel {
+  if (w <= 0 || h <= 0) {
+    return { nodes: [], edges: [] };
+  }
   const rand = mulberry32(mode === "portrait" ? 0xf00dc0de : 0x0c0ffee1);
-  const target = targetCount(w, h, mode);
-  const pts = scatter(w, h, copyRect, target, rand);
-  fillGaps(pts, w, h, rand);
 
-  const padded: Rect | null = copyRect
-    ? {
-        x: copyRect.x - COPY_ZONE_PAD,
-        y: copyRect.y - COPY_ZONE_PAD,
-        width: copyRect.width + COPY_ZONE_PAD * 2,
-        height: copyRect.height + COPY_ZONE_PAD * 2,
-      }
+  const spacing = hexSpacing(coverageCapDiameter(w));
+  const pts = buildLattice(w, h, spacing, rand);
+
+  const cam: Camera = makeCamera(w / 2, h / 2, CAM_FOCAL, CAM_DIST);
+  const copyZone: Rect | null = copyRect
+    ? expandRect(copyRect, COPY_ZONE_PAD)
     : null;
-  const hubs = pickHubs(pts, copyRect, rand);
 
-  const nodes: GraphNode[] = pts.map((p, i) => {
-    const behindCopy = !!padded && distToRect(p.x, p.y, padded) <= 0;
-    const isHub = hubs.has(i);
-    const depth = isHub
-      ? 0.92 + rand() * 0.08
-      : behindCopy
-        ? rand() * 0.28
-        : rand();
-    return { x: p.x, y: p.y, depth, hub: isHub, behindCopy };
+  const hubs = pickHubs(pts, w, h, copyRect, rand);
+  const z = pts.map((p) => {
+    const bias = focalBias(p.x, p.y, w, h);
+    const t = clamp01(bias * FOCAL_WEIGHT + rand() * (1 - FOCAL_WEIGHT));
+    return t * CAM_Z_RANGE;
+  });
+  hubs.forEach((i) => {
+    z[i] = 0;
   });
 
-  const edgePairs = buildEdges(pts, rand);
-  const edges: GraphEdge[] = edgePairs.map(({ a, b }) => {
-    const avgDepth = (nodes[a].depth + nodes[b].depth) / 2;
-    const alpha =
-      avgDepth > 0.5
-        ? 0.35 + (avgDepth - 0.5) * 2 * 0.2
-        : 0.18 + avgDepth * 2 * 0.12;
+  const world: Vec3[] = pts.map((p, i) => placeAt(p.x, p.y, z[i], cam));
+  const projected = world.map((v) => project(v, cam));
+  const screen: Point[] = projected.map((p) => ({ x: p.x, y: p.y }));
+
+  let scaleMin = Infinity;
+  let scaleMax = -Infinity;
+  for (const p of projected) {
+    if (p.scale < scaleMin) {
+      scaleMin = p.scale;
+    }
+    if (p.scale > scaleMax) {
+      scaleMax = p.scale;
+    }
+  }
+  const scaleRange = Math.max(1e-6, scaleMax - scaleMin);
+  const nearT = projected.map((p) =>
+    clamp01((p.scale - scaleMin) / scaleRange),
+  );
+
+  const nodes: GraphNode[] = pts.map((p, i) => {
+    const isHub = hubs.has(i);
+    let t = nearT[i];
+    const inCopy = !isHub && !!copyZone && inRect(p.x, p.y, copyZone);
+    if (inCopy) {
+      t = Math.min(t, COPY_NEAR_CAP);
+    }
+    const r = isHub
+      ? NEAR_R + NEAR_R_SPAN
+      : t > 0.5
+        ? NEAR_R + NEAR_R_SPAN * (t - 0.5) * 2
+        : FAR_R + FAR_R_SPAN * t * 2;
+    let alpha = isHub
+      ? 1
+      : t > 0.5
+        ? 0.8 + 0.2 * (t - 0.5) * 2
+        : 0.35 + 0.15 * t * 2;
+    let darken = 0;
+    if (!isHub) {
+      const inText = textZones.some((zone) => inRect(p.x, p.y, zone));
+      if (inText) {
+        alpha = Math.min(alpha, TEXT_ZONE_ALPHA_CAP);
+        darken = TEXT_ZONE_DARKEN;
+      } else if (inCopy) {
+        alpha = Math.min(alpha, COPY_ZONE_ALPHA_CAP);
+        darken = COPY_ZONE_DARKEN;
+      }
+    }
     return {
-      a,
-      b,
-      points: [
-        { x: nodes[a].x, y: nodes[a].y },
-        { x: nodes[b].x, y: nodes[b].y },
-      ],
+      x: p.x,
+      y: p.y,
+      r,
       alpha,
+      hub: isHub,
+      tint: (i % 2) as 0 | 1,
+      darken,
     };
+  });
+
+  const rawEdges = buildEdges(world, screen, copyZone);
+  const edges: GraphEdge[] = rawEdges.map((e) => {
+    const avgT = (nearT[e.a] + nearT[e.b]) / 2;
+    // Near edges: alpha 0.4-0.6, width 1-1.5px (comment 529's bars, the
+    // top of each range so a thin 1px stroke's own antialiasing coverage
+    // doesn't quietly dilute it back under the "clearly visible" bar).
+    let alpha =
+      avgT > 0.5 ? 0.5 + (avgT - 0.5) * 2 * 0.24 : 0.18 + avgT * 2 * 0.12;
+    const lineWidth = avgT > 0.5 ? 1 + (avgT - 0.5) * 2 * 1 : 1;
+    const points: Point[] = e.via
+      ? [screen[e.a], e.via, screen[e.b]]
+      : [screen[e.a], screen[e.b]];
+    let darken = 0;
+    const inText = textZones.some((zone) =>
+      polylineIntersectsRect(points, zone),
+    );
+    const inCopy = !!copyZone && polylineIntersectsRect(points, copyZone);
+    if (inText) {
+      alpha = Math.min(alpha, TEXT_ZONE_ALPHA_CAP);
+      darken = TEXT_ZONE_DARKEN;
+    } else if (inCopy) {
+      alpha = Math.min(alpha, COPY_ZONE_ALPHA_CAP);
+      darken = COPY_ZONE_DARKEN;
+    }
+    return { points, alpha, darken, lineWidth };
   });
 
   return { nodes, edges };
