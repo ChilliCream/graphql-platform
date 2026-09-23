@@ -108,6 +108,8 @@ internal sealed class TakeoverLedger(
 
         if (filter.MessageId is not null)
         {
+            // message_sender items only exist on takeovers recorded before senders
+            // stopped moving; they stay in this filter so old ledger rows still match.
             where.Add(
                 """
                 EXISTS (

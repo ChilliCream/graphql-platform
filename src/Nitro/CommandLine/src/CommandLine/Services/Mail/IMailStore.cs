@@ -55,7 +55,8 @@ internal interface IMailStore
         => ReplyMessageAsync(inReplyToId, sender, body, MailWakePolicy.Skip, cancellationToken);
 
     /// <summary>
-    /// Transfers mail participation from one agent to another. Recipient
+    /// Moves the source agent's unread, unarchived recipient rows to the target agent,
+    /// leaving read or archived rows and every message's sender untouched. Recipient
     /// conflicts preserve the target agent's recipient state.
     /// </summary>
     Task<MailTransferResult> TransferParticipationAsync(

@@ -259,15 +259,14 @@ internal sealed class MailStore(
             throw new ExitException($"Target agent '{target}' does not exist.");
         }
 
-        var senderMessageIds = (await connection.QueryAsync<string>(
-            "SELECT id FROM messages WHERE sender = @source ORDER BY id",
-            new { source, cancellationToken },
-            transaction)).ToArray();
-
+        // Only unread, unarchived recipient rows move; read or archived mail stays
+        // with the source, and a message's sender is never rewritten.
         var dropped = await connection.ExecuteAsync(
             """
             DELETE FROM message_recipients AS source
             WHERE source.recipient = @source
+                AND source.read_at IS NULL
+                AND source.archived_at IS NULL
                 AND EXISTS (
                     SELECT 1
                     FROM message_recipients AS target
@@ -278,7 +277,11 @@ internal sealed class MailStore(
             transaction);
 
         var recipientMessageIds = (await connection.QueryAsync<string>(
-            "SELECT message_id FROM message_recipients WHERE recipient = @source ORDER BY message_id",
+            """
+            SELECT message_id FROM message_recipients
+            WHERE recipient = @source AND read_at IS NULL AND archived_at IS NULL
+            ORDER BY message_id
+            """,
             new { source, cancellationToken },
             transaction)).ToArray();
 
@@ -287,24 +290,16 @@ internal sealed class MailStore(
             UPDATE message_recipients
             SET recipient = @target
             WHERE recipient = @source
-            """,
-            new { source, target, cancellationToken },
-            transaction);
-
-        var sendersMoved = await connection.ExecuteAsync(
-            """
-            UPDATE messages
-            SET sender = @target
-            WHERE sender = @source
+                AND read_at IS NULL
+                AND archived_at IS NULL
             """,
             new { source, target, cancellationToken },
             transaction);
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new MailTransferResult(recipientsMoved, sendersMoved, dropped)
+        return new MailTransferResult(recipientsMoved, dropped)
         {
-            SenderMessageIds = senderMessageIds,
             RecipientMessageIds = recipientMessageIds
         };
     }

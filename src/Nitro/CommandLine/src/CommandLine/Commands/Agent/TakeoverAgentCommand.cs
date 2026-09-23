@@ -102,7 +102,6 @@ internal sealed class TakeoverAgentCommand : Command
                     to,
                     role,
                     mailTransfer.RecipientsMoved,
-                    mailTransfer.SendersMoved,
                     taskIds)));
 
             return ExitCodes.Success;
@@ -114,7 +113,7 @@ internal sealed class TakeoverAgentCommand : Command
         console.OkLine(
             $"'{to.EscapeMarkup()}' took over from '{from.EscapeMarkup()}': "
             + $"role '{role.EscapeMarkup()}', "
-            + $"{mailTransfer.RecipientsMoved + mailTransfer.SendersMoved} messages, {taskSummary}.");
+            + $"{mailTransfer.RecipientsMoved} messages, {taskSummary}.");
 
         return ExitCodes.Success;
     }
@@ -127,11 +126,8 @@ internal sealed class TakeoverAgentCommand : Command
         IReadOnlyList<string> taskIds)
     {
         var items = new List<TakeoverItem>(
-            mailTransfer.SenderMessageIds.Count
-            + mailTransfer.RecipientMessageIds.Count
+            mailTransfer.RecipientMessageIds.Count
             + taskIds.Count);
-        items.AddRange(mailTransfer.SenderMessageIds.Select(
-            id => new TakeoverItem { Kind = TakeoverItemKinds.MessageSender, ItemId = id }));
         items.AddRange(mailTransfer.RecipientMessageIds.Select(
             id => new TakeoverItem { Kind = TakeoverItemKinds.MessageRecipient, ItemId = id }));
         items.AddRange(taskIds.Select(
@@ -146,6 +142,5 @@ internal sealed class TakeoverAgentCommand : Command
         string To,
         string Role,
         int RecipientsMoved,
-        int SendersMoved,
         IReadOnlyList<string> Tasks);
 }
