@@ -163,23 +163,56 @@ public sealed class AgentDatabaseTests : IDisposable
         await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
 
         // assert
-        Assert.Equal(AgentDatabase.CurrentVersion,
-            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        var state = new
+        {
+            Version = await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken),
+            Tasks = await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM tasks", cancellationToken),
+            Messages = await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM messages", cancellationToken),
+            MessageRecipients =
+                await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM message_recipients", cancellationToken),
+            Agents = await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken),
+            AgentSessions =
+                await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agent_sessions", cancellationToken),
+            AgentColumns = await QueryColumnNamesAsync(upgraded, "agents", cancellationToken)
+        };
 
-        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM tasks", cancellationToken));
-        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM messages", cancellationToken));
-        Assert.Equal(1, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM message_recipients", cancellationToken));
-
-        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken));
-        Assert.Equal(0, await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agent_sessions", cancellationToken));
-
-        var columns = (await QueryColumnNamesAsync(upgraded, "agents", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("harness", columns);
-        Assert.Contains("session_id", columns);
-        Assert.Contains("started_at", columns);
-        Assert.Contains("ended_at", columns);
-        Assert.Contains("deleted_at", columns);
+        state.MatchInlineSnapshot(
+            """
+            {
+              "Version": 15,
+              "Tasks": 1,
+              "Messages": 1,
+              "MessageRecipients": 1,
+              "Agents": 0,
+              "AgentSessions": 0,
+              "AgentColumns": [
+                "name",
+                "role",
+                "harness",
+                "harness_version",
+                "session_id",
+                "cwd",
+                "workspace_path",
+                "registered_at",
+                "started_at",
+                "last_seen_at",
+                "ended_at",
+                "deleted_at",
+                "endpoint_kind",
+                "endpoint_addr",
+                "endpoint_secret",
+                "block_budget_used",
+                "last_ping_at",
+                "last_ping_attempt",
+                "last_ping_result",
+                "last_ping_detail",
+                "announcement_pending",
+                "idle_push_armed",
+                "implicit",
+                "client"
+              ]
+            }
+            """);
     }
 
     /// <summary>
