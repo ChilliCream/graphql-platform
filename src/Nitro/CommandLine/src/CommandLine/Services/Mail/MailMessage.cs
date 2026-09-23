@@ -32,4 +32,10 @@ internal sealed record MailMessage
     /// <see cref="MailWakePolicy.Enqueue"/>. Other operations leave this empty.
     /// </summary>
     public IReadOnlyList<MailWakeReceipt> WakeReceipts { get; init; } = [];
+
+    /// <summary>
+    /// Names dropped from a reply-all because the agent is unknown or was deleted.
+    /// Empty for a send, a direct reply, or a reply-all where every participant is usable.
+    /// </summary>
+    public IReadOnlyList<string> Skipped { get; init; } = [];
 }

@@ -154,7 +154,7 @@ internal sealed class MailStore(
         var actor = MailAgentName.Normalize(sender);
         var now = timeProvider.GetUtcNow();
 
-        var (original, root, recipients) =
+        var (original, root, recipients, skipped) =
             await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
 
         // Refreshes the replying actor's presence after participant validation.
@@ -220,7 +220,8 @@ internal sealed class MailStore(
             Body = body,
             CreatedAt = now,
             Recipients = recipients,
-            WakeReceipts = wakeReceipts
+            WakeReceipts = wakeReceipts,
+            Skipped = skipped
         };
     }
 
@@ -330,14 +331,16 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Returns the original message, thread root, and computed reply recipients.
-    /// Throws <see cref="ExitException"/> when the message is missing, the actor is not
-    /// a participant, or no recipients remain.
+    /// Returns the original message, thread root, computed reply recipients, and the
+    /// names dropped for being unknown or deleted. Throws <see cref="ExitException"/>
+    /// when the message is missing, the actor is not a participant or is unusable, a
+    /// lone remaining recipient is unusable, or every remaining recipient is unusable.
     /// </summary>
-    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients)> ResolveReplyAsync(
-        string inReplyToId,
-        string actor,
-        CancellationToken cancellationToken)
+    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)>
+        ResolveReplyAsync(
+            string inReplyToId,
+            string actor,
+            CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -357,11 +360,15 @@ internal sealed class MailStore(
                 $"'{actor}' is not the sender or a recipient of '{inReplyToId}' and cannot reply to it.");
         }
 
+        // Second line of defense behind the --actor resolver: a caller that reaches the
+        // store directly (a hook, the TUI) can still pass an unusable actor.
+        await EnsureAgentUsableAsync(actor, cancellationToken);
+
         var candidates = new List<string> { original.Sender };
         candidates.AddRange(original.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var recipients = new List<MailRecipient>();
+        var candidateNames = new List<string>();
 
         foreach (var name in candidates)
         {
@@ -370,24 +377,75 @@ internal sealed class MailStore(
                 continue;
             }
 
-            recipients.Add(new MailRecipient
-            {
-                Name = name,
-                Kind = MailRecipientKinds.To,
-                Ordinal = recipients.Count
-            });
+            candidateNames.Add(name);
         }
 
-        if (recipients.Count == 0)
+        if (candidateNames.Count == 0)
         {
             throw new ExitException(
                 $"Replying to '{inReplyToId}' as '{actor}' would leave no recipients.");
         }
 
+        var (recipients, skipped) = candidateNames.Count == 1
+            ? await ResolveDirectReplyRecipientAsync(candidateNames[0], cancellationToken)
+            : await ResolveReplyAllRecipientsAsync(candidateNames, cancellationToken);
+
         var root = await GetMessageAsync(connection, original.ThreadId, cancellationToken)
             ?? original;
 
-        return (original, root, recipients);
+        return (original, root, recipients, skipped);
+    }
+
+    /// <summary>
+    /// Resolves a direct reply's single recipient, rejecting it outright with the same
+    /// message as an unusable send recipient rather than dropping it to no recipients.
+    /// </summary>
+    private async Task<(List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)> ResolveDirectReplyRecipientAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await EnsureAgentUsableAsync(name, cancellationToken);
+
+        return ([new MailRecipient { Name = name, Kind = MailRecipientKinds.To, Ordinal = 0 }], []);
+    }
+
+    /// <summary>
+    /// Resolves a reply-all's recipients, dropping every unknown or deleted participant
+    /// and reporting the drops in <c>Skipped</c>. Throws <see cref="ExitException"/> when
+    /// every candidate is unusable.
+    /// </summary>
+    private async Task<(List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)> ResolveReplyAllRecipientsAsync(
+        IReadOnlyList<string> candidateNames,
+        CancellationToken cancellationToken)
+    {
+        var recipients = new List<MailRecipient>();
+        var skipped = new List<(string Name, bool WasDeleted)>();
+
+        foreach (var name in candidateNames)
+        {
+            var availability = await CheckParticipantAsync(name, cancellationToken);
+
+            if (availability == MailParticipantAvailability.Usable)
+            {
+                recipients.Add(new MailRecipient
+                {
+                    Name = name,
+                    Kind = MailRecipientKinds.To,
+                    Ordinal = recipients.Count
+                });
+            }
+            else
+            {
+                skipped.Add((name, availability == MailParticipantAvailability.Deleted));
+            }
+        }
+
+        if (recipients.Count == 0)
+        {
+            throw ThrowHelper.NoReplyRecipientsRemaining(skipped);
+        }
+
+        return (recipients, skipped.Select(s => s.Name).ToArray());
     }
 
     public async Task<MailMessage?> GetMessageAsync(
@@ -1442,18 +1500,45 @@ internal sealed class MailStore(
     {
         foreach (var recipient in recipients)
         {
-            var agent = await agentStore.FindAsync(recipient.Name, cancellationToken);
-
-            if (agent is null)
-            {
-                throw ThrowHelper.UnknownMailRecipient(recipient.Name);
-            }
-
-            if (agent.IsDeleted)
-            {
-                throw ThrowHelper.DeletedMailRecipient(recipient.Name);
-            }
+            await EnsureAgentUsableAsync(recipient.Name, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Throws <see cref="ExitException"/> when the named agent does not exist or was
+    /// deleted, using the same messages as a rejected send recipient.
+    /// </summary>
+    private async Task EnsureAgentUsableAsync(string name, CancellationToken cancellationToken)
+    {
+        var agent = await agentStore.FindAsync(name, cancellationToken);
+
+        if (agent is null)
+        {
+            throw ThrowHelper.UnknownMailRecipient(name);
+        }
+
+        if (agent.IsDeleted)
+        {
+            throw ThrowHelper.DeletedMailRecipient(name);
+        }
+    }
+
+    /// <summary>
+    /// Classifies the named agent as usable, unknown, or deleted, without throwing,
+    /// for callers that drop rather than reject an unusable participant.
+    /// </summary>
+    private async Task<MailParticipantAvailability> CheckParticipantAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        var agent = await agentStore.FindAsync(name, cancellationToken);
+
+        if (agent is null)
+        {
+            return MailParticipantAvailability.Unknown;
+        }
+
+        return agent.IsDeleted ? MailParticipantAvailability.Deleted : MailParticipantAvailability.Usable;
     }
 
     private static async Task InsertRecipientsAsync(
@@ -1539,6 +1624,16 @@ internal sealed class MailStore(
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
+    /// <summary>
+    /// Whether a reply-all participant is usable, unknown, or deleted.
+    /// </summary>
+    private enum MailParticipantAvailability
+    {
+        Usable,
+        Unknown,
+        Deleted
+    }
 
     internal sealed class MailMessageRow
     {

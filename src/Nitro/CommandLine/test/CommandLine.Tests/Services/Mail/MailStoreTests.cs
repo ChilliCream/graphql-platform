@@ -271,6 +271,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
         await SeedAgentAsync("carol", cancellationToken);
         var original = await SendAsync("claude", "hello", ["bob"], ["carol"], cancellationToken);
@@ -316,12 +317,92 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ReplyMessageAsync_Should_DropDeletedParticipant_AndReportSkip_When_ReplyingAllToMultipleParticipants()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var original = await SendAsync("claude", "hello", ["bob"], ["carol"], cancellationToken);
+        await MarkDeletedAsync("carol", cancellationToken);
+
+        // act
+        var reply = await _store.ReplyMessageAsync(original.Id, "bob", "reply body", cancellationToken);
+
+        // assert
+        Assert.Equal(["claude"], reply.Recipients.Select(r => r.Name));
+        Assert.Equal(["carol"], reply.Skipped);
+    }
+
+    [Fact]
+    public async Task ReplyMessageAsync_Should_Throw_When_EveryReplyAllParticipantIsDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var original = await SendAsync("claude", "hello", ["bob"], ["carol"], cancellationToken);
+        await MarkDeletedAsync("claude", cancellationToken);
+        await MarkDeletedAsync("carol", cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReplyMessageAsync(original.Id, "bob", "reply body", cancellationToken));
+
+        // assert
+        Assert.Equal(
+            "No recipients left: 'claude' was deleted, 'carol' was deleted.", exception.Message);
+    }
+
+    [Fact]
+    public async Task ReplyMessageAsync_Should_Throw_WithSendStyleText_When_DirectReplyRecipientIsDeleted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("alice", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var original = await SendAsync("alice", "hello", ["bob"], null, cancellationToken);
+        await MarkDeletedAsync("alice", cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReplyMessageAsync(original.Id, "bob", "reply body", cancellationToken));
+
+        // assert
+        Assert.Equal("Agent 'alice' was deleted. Look the name up with 'nitro agent list'.", exception.Message);
+    }
+
+    [Fact]
+    public async Task ReplyMessageAsync_Should_Throw_When_ActorHasNoAgentRow()
+    {
+        // arrange
+        // "claude" sent the original message but was never registered: send does not validate its own sender.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var original = await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReplyMessageAsync(original.Id, "claude", "reply body", cancellationToken));
+
+        // assert
+        Assert.Equal("Unknown agent 'claude'. Look the name up with 'nitro agent list'.", exception.Message);
+    }
+
+    [Fact]
     public async Task ReplyMessageAsync_Should_InheritSubjectFromThreadRoot_ThroughMultipleReplies()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var original = await SendAsync("claude", "root subject", ["bob"], null, cancellationToken);
         var firstReply = await _store.ReplyMessageAsync(original.Id, "bob", "reply 1", cancellationToken);
 
@@ -560,6 +641,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var original = await SendAsync("claude", "root", ["bob"], null, cancellationToken);
         _timeProvider.Advance(TimeSpan.FromMinutes(1));
         var reply = await _store.ReplyMessageAsync(original.Id, "bob", "reply", cancellationToken);
@@ -922,6 +1004,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("old", cancellationToken);
         await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var message = await SendAsync("claude", "received", ["old"], null, cancellationToken);
         await _store.TransferParticipationAsync("old", "target", cancellationToken);
 
@@ -1154,6 +1237,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var first = await SendAsync("claude", "for bob", ["bob"], null, cancellationToken);
         var reply = await _store.ReplyMessageAsync(first.Id, "claude", "following up", cancellationToken);
         await _store.ArchiveAsync([first.Id], "bob", cancellationToken);
@@ -1387,6 +1471,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
         await SeedAgentAsync("carol", cancellationToken);
+        await SeedAgentAsync("claude", cancellationToken);
         var first = await SendAsync("claude", "thread one", ["bob"], ["carol"], cancellationToken);
         _timeProvider.Advance(TimeSpan.FromMinutes(1));
         await _store.ReplyMessageAsync(first.Id, "carol", "reply body", cancellationToken);

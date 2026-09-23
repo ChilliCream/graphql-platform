@@ -34,8 +34,11 @@ internal interface IMailStore
     /// <summary>
     /// Replies in the original thread with its root subject, addressing the original
     /// sender and recipients as To recipients except the replying actor, and applying
-    /// <paramref name="wakePolicy"/>. Throws <see cref="ExitException"/> if the message
-    /// is missing, the actor is not a participant, or no recipients remain.
+    /// <paramref name="wakePolicy"/>. The actor must exist and not be deleted; among
+    /// several remaining recipients an unknown or deleted one is dropped and reported
+    /// in <see cref="MailMessage.Skipped"/>, but a lone remaining recipient must be
+    /// usable. Throws <see cref="ExitException"/> if the message is missing, the actor
+    /// is not a participant or is unusable, or no usable recipient remains.
     /// </summary>
     Task<MailMessage> ReplyMessageAsync(
         string inReplyToId,

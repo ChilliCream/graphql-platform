@@ -63,6 +63,50 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task ReplyAll_Should_DropDeletedParticipant_AndPrintSkipLine_When_OneParticipantIsDeleted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("alice");
+        await SeedAgentAsync("bob");
+        await SeedAgentAsync("carol");
+        var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
+        await MarkAgentDeletedAsync("carol");
+        await SetupSuccessfulWakeAsync("host-reply-skip-test", "alice");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
+
+        // assert
+        var replyId = await QueryScalarAsync(
+            "SELECT id FROM messages WHERE in_reply_to = '" + originalId + "'");
+        result.AssertSuccess(
+            $"""
+            ✓ Sent '{replyId}' to alice.
+            Skipped deleted or unknown agents: carol.
+            """);
+    }
+
+    [Fact]
+    public async Task DirectReply_Should_ReturnError_When_LoneRecipientIsDeleted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("alice");
+        await SeedAgentAsync("bob");
+        var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
+        await MarkAgentDeletedAsync("alice");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "reply", "--message", originalId, "--body", "x", "--actor", "bob");
+
+        // assert
+        result.AssertError("Agent 'alice' was deleted. Look the name up with 'nitro agent list'.");
+    }
+
+    [Fact]
     public async Task SelfOnlyReply_ReturnsError()
     {
         // arrange
