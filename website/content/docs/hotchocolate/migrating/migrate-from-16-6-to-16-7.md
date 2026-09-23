@@ -214,8 +214,6 @@ The deprecated evaluation overloads continue to work for operations with at most
 
 `SetCostOptions` and `RequestCostOptions` still work and are removed in 17.0.
 
-`CostAnalyzerRequestContextExtensions.GetCostOptions(RequestContext)` and `GetCostOptions(IRequestExecutor)` are also marked `[Obsolete]`. Neither getter reflects `ModifyCostOptions` modifiers. Use `RequestContext.TryGetCostAnalysisResult` to read the cost analysis outcome, or `ModifyCostOptions` to change the per-request cost options. Both getters still work and are removed in 17.0.
-
 # Behavioral breaking changes
 
 ## Cost estimates use coerced request values
