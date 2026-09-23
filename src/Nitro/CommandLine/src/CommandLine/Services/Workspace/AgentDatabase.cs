@@ -150,11 +150,9 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
-    /// Rebuilds <c>messages</c> and <c>message_recipients</c> without their
-    /// foreign keys to <c>agents</c>, preserving every row. Mail keeps the
-    /// sender and recipient names as plain text, so a message from an agent
-    /// that no longer exists must survive the agent-domain rebuild that runs
-    /// on every schema bump. A no-op when the mail tables do not exist yet.
+    /// Rebuilds <c>messages</c> and <c>message_recipients</c> so neither
+    /// column carries a foreign key to <c>agents</c>, preserving every row.
+    /// A no-op when the mail tables do not exist yet.
     /// </summary>
     private static async Task RemoveMailAgentForeignKeysAsync(
         SqliteConnection connection,
