@@ -47,12 +47,14 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
         services.TryAddSingleton<ITakeoverLedger, TakeoverLedger>();
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
+        services.TryAddSingleton<IAgentDeliveryLedger, AgentDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
         services.TryAddSingleton<IOpencodeServerClient, OpencodeServerClient>();
         services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
         services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
         services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
+        services.TryAddSingleton<IAgentPingGateStore, AgentPingGateStore>();
         services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
         services.TryAddSingleton<IMailNudge, MailNudge>();
         services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
