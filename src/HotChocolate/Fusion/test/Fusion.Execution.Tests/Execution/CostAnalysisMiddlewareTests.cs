@@ -468,12 +468,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
         using var request = OperationRequestBuilder.New()
             .SetDocument("{ costlyLeaf }")
-            .SetCostOptions(new FusionRequestCostOptions(
-                maxFieldCost: 5000,
-                maxTypeCost: double.PositiveInfinity,
-                enforceCostLimits: true,
-                skipAnalyzer: false,
-                maxResponseSize: null))
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 5000)
             .Build();
 
         // act
@@ -500,12 +495,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
         using var request = OperationRequestBuilder.New()
             .SetDocument("{ costlyLeaf }")
-            .SetCostOptions(new FusionRequestCostOptions(
-                maxFieldCost: 1,
-                maxTypeCost: double.PositiveInfinity,
-                enforceCostLimits: true,
-                skipAnalyzer: false,
-                maxResponseSize: null))
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 1)
             .Build();
 
         // act
@@ -531,7 +521,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task RequestCostOptions_Should_UseGatewayLimit_When_RequestDoesNotSetCostOptions()
+    public async Task RequestCostOptions_Should_UseGatewayLimit_When_RequestDoesNotModifyCostOptions()
     {
         // arrange
         var observation = new CostObservation();
@@ -567,12 +557,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         using var request = OperationRequestBuilder.New()
             .SetDocument(ItemsQuery)
             .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1 })
-            .SetCostOptions(new FusionRequestCostOptions(
-                maxFieldCost: 1000,
-                maxTypeCost: 1000,
-                enforceCostLimits: true,
-                skipAnalyzer: false,
-                maxResponseSize: 100))
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxResponseSize = 100)
             .Build();
 
         // act
@@ -604,12 +589,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
         using var request = OperationRequestBuilder.New()
             .SetDocument("{ costlyLeaf }")
-            .SetCostOptions(new FusionRequestCostOptions(
-                maxFieldCost: 0,
-                maxTypeCost: 0,
-                enforceCostLimits: true,
-                skipAnalyzer: true,
-                maxResponseSize: 100))
+            .ModifyCostOptions((FusionCostOptions o) => o.SkipAnalyzer = true)
             .Build();
 
         // act
@@ -639,12 +619,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         using var request = OperationRequestBuilder.New()
             .SetDocument(ItemsQuery)
             .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1000 })
-            .SetCostOptions(new FusionRequestCostOptions(
-                maxFieldCost: double.PositiveInfinity,
-                maxTypeCost: double.PositiveInfinity,
-                enforceCostLimits: true,
-                skipAnalyzer: false,
-                maxResponseSize: 500))
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxResponseSize = 500)
             .Build();
 
         // act
@@ -687,12 +662,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         using var request = OperationRequestBuilder.New()
             .SetDocument(ItemsQuery)
             .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1000 })
-            .SetCostOptions(new FusionRequestCostOptions(
-                maxFieldCost: double.PositiveInfinity,
-                maxTypeCost: double.PositiveInfinity,
-                enforceCostLimits: true,
-                skipAnalyzer: false,
-                maxResponseSize: 2000))
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxResponseSize = 2000)
             .Build();
 
         // act
@@ -701,6 +671,142 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         // assert
         Assert.Empty(result.ExpectOperationResult().Errors);
         Assert.Equal(1, observation.DownstreamCalls);
+    }
+
+    [Fact]
+    public async Task RequestCostOptions_Should_InheritGatewayFieldCost_When_ModifierOnlyTouchesTypeCost()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = 1;
+                options.MaxTypeCost = double.PositiveInfinity;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument("{ costlyLeaf }")
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxTypeCost = 5000)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, error.Code);
+        Assert.Equal(1d, error.Extensions!["maxFieldCost"]);
+        Assert.Equal(0, observation.DownstreamCalls);
+    }
+
+    [Fact]
+    public async Task RequestCostOptions_Should_ApplyEachModifierInOrder_When_ModifyCostOptionsIsCalledTwice()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = double.PositiveInfinity;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(ItemsQuery)
+            .SetVariableValues(new Dictionary<string, object?> { ["n"] = 1 })
+            .ModifyCostOptions((FusionCostOptions o) =>
+            {
+                o.MaxFieldCost = 1;
+                o.MaxTypeCost = 1;
+            })
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 5000)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        // MaxFieldCost = 5000 from the second modifier clears the field-cost limit, so a rejection
+        // can only come from MaxTypeCost = 1, which only the first modifier set.
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed type cost was exceeded.",
+                  "extensions": {
+                    "code": "HC0047",
+                    "typeCost": 2,
+                    "maxTypeCost": 1
+                  }
+                }
+              ]
+            }
+            """);
+        Assert.Equal(0, observation.DownstreamCalls);
+    }
+
+    [Fact]
+    public async Task RequestCostOptions_Should_ApplyContextModifierOncePerExecution_When_RequestIsExecutedTwice()
+    {
+        // arrange
+        var callCount = 0;
+        var services = new ServiceCollection();
+        var builder = services
+            .AddGraphQLGateway()
+            .UseDefaultPipeline();
+
+        builder
+            .ModifyCostOptions(options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = double.PositiveInfinity;
+            })
+            .UseRequest(
+                (_, next) => context =>
+                {
+                    context.ModifyCostOptions((FusionCostOptions o) =>
+                    {
+                        callCount++;
+                        o.MaxTypeCost = 5000;
+                    });
+                    return next(context);
+                },
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => context =>
+                {
+                    context.Result = CreateProbeResult();
+                    return default;
+                },
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true);
+
+        builder.AddInMemoryConfiguration(ComposeSchemaDocument(defaultListSize: 1, Schema));
+
+        await using var provider = services.BuildServiceProvider();
+        var executor = await provider.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        using var request = OperationRequestBuilder.New()
+            .SetDocument("{ costlyLeaf }")
+            .ModifyCostOptions((FusionCostOptions o) => o.MaxFieldCost = 5000)
+            .Build();
+
+        // act
+        var firstResult = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var secondResult = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, callCount);
+        Assert.Empty(firstResult.ExpectOperationResult().Errors);
+        Assert.Empty(secondResult.ExpectOperationResult().Errors);
     }
 
     [Fact]
