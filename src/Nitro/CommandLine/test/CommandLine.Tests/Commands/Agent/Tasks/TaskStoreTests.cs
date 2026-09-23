@@ -1320,7 +1320,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task QueryParticipationAsync_Should_RankAssignedOnlyTask_ByUpdatedAt()
+    public async Task QueryParticipationAsync_Should_RankByUpdatedAt_When_TaskIsAssignedOnly()
     {
         // arrange: acme-1 is assigned to felix by oscar, without felix ever acting on it.
         // acme-2 carries an older comment by felix, so it must rank behind acme-1's
