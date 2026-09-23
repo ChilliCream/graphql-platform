@@ -849,41 +849,53 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task TransferParticipationAsync_Should_MoveRecipientAndPreserveReadState()
+    public async Task TransferParticipationAsync_Should_MoveRecipientRow_When_MessageIsUnread()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("old", cancellationToken);
         await SeedAgentAsync("target", cancellationToken);
-        var targetMessage = await SendAsync("claude", "target", ["target"], null, cancellationToken);
-        var unreadMessage = await SendAsync("claude", "unread", ["old"], null, cancellationToken);
-        var readMessage = await SendAsync("claude", "read", ["old"], null, cancellationToken);
-        await _store.MarkReadAsync([targetMessage.Id], "target", cancellationToken);
-        await _store.MarkReadAsync([readMessage.Id], "old", cancellationToken);
+        var message = await SendAsync("claude", "unread", ["old"], null, cancellationToken);
 
         // act
         var result = await _store.TransferParticipationAsync("OLD", "TARGET", cancellationToken);
-        var inbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "target" }, cancellationToken);
+        var targetInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "target" }, cancellationToken);
         var sourceInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken);
 
         // assert
-        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
-            + $"{string.Join(",", result.SenderMessageIds)}|"
-            + string.Join(",", result.RecipientMessageIds))
-            .MatchInlineSnapshot(
-                $"2|0|0||{string.Join(",", new[] { readMessage.Id, unreadMessage.Id }.Order())}");
-        Assert.Equal(
-            new[] { readMessage.Id, targetMessage.Id, unreadMessage.Id }.Order(),
-            inbox.Select(t => t.Id).Order());
-        Assert.Equal(
-            [true, true, false],
-            inbox.OrderBy(t => t.Subject).Select(t => t.Recipients.Single().ReadAt is not null));
+        Assert.Equal(1, result.RecipientsMoved);
+        Assert.Equal(0, result.Dropped);
+        Assert.Equal(message.Id, Assert.Single(result.RecipientMessageIds));
+        Assert.Equal(message.Id, Assert.Single(targetInbox).Id);
         Assert.Empty(sourceInbox);
     }
 
     [Fact]
-    public async Task TransferParticipationAsync_Should_AllowThirdPartyReplyToTransferredSentMessage()
+    public async Task TransferParticipationAsync_Should_KeepRecipientRowWithSource_When_MessageIsRead()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var message = await SendAsync("claude", "read", ["old"], null, cancellationToken);
+        await _store.MarkReadAsync([message.Id], "old", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+        var sourceInbox = await _store.QueryInboxAsync(
+            new MailInboxFilter { Actor = "old", UnreadOnly = false }, cancellationToken);
+        var targetInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "target" }, cancellationToken);
+
+        // assert
+        Assert.Equal(new MailTransferResult(0, 0), result);
+        Assert.Equal(message.Id, Assert.Single(sourceInbox).Id);
+        Assert.Empty(targetInbox);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_KeepSender_When_SourceSentMessage()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -892,18 +904,16 @@ public sealed class MailStoreTests : IAsyncDisposable
         await SeedAgentAsync("target", cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
         var message = await SendAsync("old", "sent", ["bob"], null, cancellationToken);
-        var transfer = await _store.TransferParticipationAsync("old", "target", cancellationToken);
 
         // act
+        var transfer = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+        var reloaded = await _store.GetRequiredMessageAsync(message.Id, cancellationToken);
         var reply = await _store.ReplyMessageAsync(message.Id, "bob", "reply", cancellationToken);
 
         // assert
-        ($"{transfer.RecipientsMoved}|{transfer.SendersMoved}|{transfer.Dropped}|"
-            + $"{string.Join(",", transfer.SenderMessageIds)}|"
-            + string.Join(",", transfer.RecipientMessageIds))
-            .MatchInlineSnapshot($"0|1|0|{message.Id}|");
-        Assert.Equal("bob", reply.Sender);
-        Assert.Equal(["target"], reply.Recipients.Select(t => t.Name));
+        Assert.Equal(new MailTransferResult(0, 0), transfer);
+        Assert.Equal("old", reloaded.Sender);
+        Assert.Equal(["old"], reply.Recipients.Select(t => t.Name));
         Assert.Equal(message.ThreadId, reply.ThreadId);
     }
 
@@ -943,10 +953,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var reloaded = await _store.GetRequiredMessageAsync(message.Id, cancellationToken);
 
         // assert
-        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
-            + $"{string.Join(",", result.SenderMessageIds)}|"
-            + string.Join(",", result.RecipientMessageIds))
-            .MatchInlineSnapshot("0|0|1||");
+        Assert.Equal(new MailTransferResult(0, 1), result);
         var recipient = Assert.Single(reloaded.Recipients);
         Assert.Equal("target", recipient.Name);
         Assert.NotNull(recipient.ReadAt);
@@ -961,7 +968,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         await SeedAgentAsync("old", cancellationToken);
         await SeedAgentAsync("target", cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
-        var sent = await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        await SendAsync("old", "sent", ["bob"], null, cancellationToken);
         var received = await SendAsync("claude", "received", ["old"], null, cancellationToken);
         await _store.TransferParticipationAsync("old", "target", cancellationToken);
 
@@ -969,9 +976,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         var threads = await _store.QueryThreadsAsync("target", cancellationToken);
 
         // assert
-        Assert.Equal(2, threads.Count);
-        Assert.Contains(threads, t => t.ThreadId == sent.ThreadId);
-        Assert.Contains(threads, t => t.ThreadId == received.ThreadId);
+        var thread = Assert.Single(threads);
+        Assert.Equal(received.ThreadId, thread.ThreadId);
     }
 
     [Fact]
@@ -983,7 +989,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         await SeedAgentAsync("old", cancellationToken);
         await SeedAgentAsync("target", cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
-        var sent = await SendAsync("old", "matching", ["bob"], null, cancellationToken);
+        await SendAsync("old", "matching", ["bob"], null, cancellationToken);
         var received = await SendAsync("claude", "matching", ["old"], null, cancellationToken);
         await _store.TransferParticipationAsync("old", "target", cancellationToken);
 
@@ -991,9 +997,8 @@ public sealed class MailStoreTests : IAsyncDisposable
         var results = await _store.SearchAsync("target", "matching", cancellationToken);
 
         // assert
-        Assert.Equal(2, results.Count);
-        Assert.Contains(results, m => m.Id == sent.Id);
-        Assert.Contains(results, m => m.Id == received.Id);
+        var result = Assert.Single(results);
+        Assert.Equal(received.Id, result.Id);
     }
 
     [Fact]
@@ -1013,7 +1018,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var result = await _store.TransferParticipationAsync("old", "target", cancellationToken);
 
         // assert
-        Assert.Equal(new MailTransferResult(0, 0, 0), result);
+        Assert.Equal(new MailTransferResult(0, 0), result);
     }
 
     [Fact]
