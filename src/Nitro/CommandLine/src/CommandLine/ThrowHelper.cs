@@ -26,4 +26,7 @@ internal static class ThrowHelper
 
     public static ArgumentOutOfRangeException NegativeLimit(int limit)
         => new(nameof(limit), limit, "Limit must be zero or greater.");
+
+    public static ArgumentException UnknownAgentHarness(string harness)
+        => new($"'{harness}' is not an agent harness.", nameof(harness));
 }
