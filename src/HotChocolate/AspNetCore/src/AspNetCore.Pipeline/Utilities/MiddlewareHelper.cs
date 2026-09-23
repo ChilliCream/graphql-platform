@@ -178,8 +178,9 @@ internal static class MiddlewareHelper
     }
 
     /// <summary>
-    /// Parses a request body that must carry exactly one GraphQL request. A body that carries a
-    /// request batch is refused as an invalid request.
+    /// Parses a request body that must carry exactly one GraphQL request. A body without a
+    /// request is answered as not well-formed, and a body with more than one request as a
+    /// refused batch.
     /// </summary>
     public static async Task<ParseRequestResult> ParseSingleRequestFromBodyAsync(
         HttpContext context,
@@ -219,7 +220,12 @@ internal static class MiddlewareHelper
             context.Response.RegisterForDispose(request);
         }
 
-        if (requests.Length != 1)
+        if (requests.Length == 0)
+        {
+            return CreateEmptyRequestArrayResult(context, executorSession);
+        }
+
+        if (requests.Length > 1)
         {
             return CreateBatchingRefusedResult(
                 ErrorHelper.RequestBatchingNotSupportedForQuery(),
@@ -243,6 +249,26 @@ internal static class MiddlewareHelper
         var error = executorSession.Handle(ErrorHelper.InvalidRequest());
 
         return new ParseRequestResult(OperationResult.FromError(error), HttpStatusCode.BadRequest);
+    }
+
+    /// <summary>
+    /// Creates the result for a request array without elements. The response carries the generic
+    /// invalid-request error marked as not well-formed, and the reason is reported to diagnostics.
+    /// </summary>
+    public static ParseRequestResult CreateEmptyRequestArrayResult(
+        HttpContext context,
+        ExecutorSession executorSession)
+    {
+        executorSession.DiagnosticEvents.HttpRequestError(
+            context,
+            executorSession.Handle(ErrorHelper.RequestBodyHasNoRequestForQuery()));
+        var error = executorSession.Handle(ErrorHelper.InvalidRequest());
+        var result = OperationResult.FromError(error);
+        result.ContextData = result.ContextData.Add(
+            HttpResultContextData.RequestNotWellFormed,
+            null);
+
+        return new ParseRequestResult(result, HttpStatusCode.BadRequest);
     }
 
     /// <summary>

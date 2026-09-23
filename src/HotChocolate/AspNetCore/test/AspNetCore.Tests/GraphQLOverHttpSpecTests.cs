@@ -26,6 +26,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     private const string NotWellFormedRequest = """{ "query": 123 }""";
     private const string EmptyBatchRequest = "[]";
+    private const string GraphQLResponseAndEventStream =
+        "application/graphql-response+json, text/event-stream";
     private const string NonObjectBatchRequest = "[1]";
     private const string AmbiguousOperationRequest =
         """{ "query": "query A { __typename } query B { __typename }" }""";
@@ -1414,11 +1416,32 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
+    // A QUERY request runs query operations only. A subscription is refused before execution
+    // with 422, which the application/json rule of the older revisions turns into 200.
     [Theory]
-    [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(
+        Legacy,
+        GraphQLResponseAndEventStream,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Legacy, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20250508,
+        GraphQLResponseAndEventStream,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20250508, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20260903,
+        GraphQLResponseAndEventStream,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
     public async Task Query_Should_ReturnUnprocessableContent_When_SubscriptionIsSent(
-        HttpTransportVersion transportVersion)
+        HttpTransportVersion transportVersion,
+        string acceptHeader,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
     {
         // arrange
         var client = GetQueryClient(transportVersion);
@@ -1429,15 +1452,42 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             """{ "query": "subscription { delay(count: 1, delay: 15000) }" }""",
             Encoding.UTF8,
             "application/json");
-        AddAcceptHeader(request, "application/graphql-response+json, text/event-stream");
+        AddAcceptHeader(request, acceptHeader);
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(UnprocessableContent, response.StatusCode);
-        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Empty(response.Content.Headers.Allow);
         Assert.Equal(
             """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // An empty request array is read but is not a well-formed GraphQL over HTTP request.
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_BodyIsEmptyArray(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(EmptyBatchRequest, Encoding.UTF8, "application/json");
+        AddAcceptHeader(request, ContentType.GraphQLResponse);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(
+            """{"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}""",
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 

@@ -128,4 +128,10 @@ internal static class ErrorHelper
             .SetMessage(ErrorHelper_VariableBatchingNotSupportedForQuery)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
+
+    public static IError RequestBodyHasNoRequestForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequestBodyHasNoRequestForQuery)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
 }

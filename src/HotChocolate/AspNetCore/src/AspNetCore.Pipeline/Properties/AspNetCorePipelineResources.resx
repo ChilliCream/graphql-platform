@@ -150,4 +150,7 @@
   <data name="ErrorHelper_VariableBatchingNotSupportedForQuery" xml:space="preserve">
     <value>Variable batching is not supported for HTTP QUERY requests.</value>
   </data>
+  <data name="ErrorHelper_RequestBodyHasNoRequestForQuery" xml:space="preserve">
+    <value>The HTTP QUERY request body contains no GraphQL request.</value>
+  </data>
 </root>

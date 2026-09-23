@@ -188,6 +188,41 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
     }
 
     [Fact]
+    public async Task Query_Should_ReturnBadRequest_When_BodyIsEmptyArray()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener),
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest("[]");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The HTTP QUERY request body contains no GraphQL request.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
     public async Task Query_Should_ReturnBadRequest_When_BatchOperationsIsSet()
     {
         // arrange
