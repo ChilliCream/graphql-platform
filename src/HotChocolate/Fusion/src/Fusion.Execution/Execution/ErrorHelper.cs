@@ -81,6 +81,13 @@ internal static class ErrorHelper
                 .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
 
+    public static OperationResult ResponseSizeAnalysisNotEnabled()
+        => RequestError(
+            ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_ResponseSizeAnalysisNotEnabled)
+                .SetCode(ErrorCodes.Execution.ResponseSizeAnalysisNotEnabled)
+                .Build());
+
     public static OperationResult MaxFieldCostReached(
         CostEstimate estimate,
         double maxFieldCost)

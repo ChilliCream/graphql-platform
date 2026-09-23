@@ -135,6 +135,9 @@
   <data name="ErrorHelper_MaxResponseSizeReached" xml:space="preserve">
     <value>The maximum allowed response size was exceeded.</value>
   </data>
+  <data name="ErrorHelper_ResponseSizeAnalysisNotEnabled" xml:space="preserve">
+    <value>The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.</value>
+  </data>
   <data name="ErrorHelper_IncrementalDeliveryNotAcceptable" xml:space="preserve">
     <value>The client does not accept a response content type that supports incremental delivery.</value>
   </data>
