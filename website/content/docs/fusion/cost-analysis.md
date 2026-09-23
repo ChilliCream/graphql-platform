@@ -7,6 +7,147 @@ Fusion estimates an operation's field cost and type cost before operation planni
 
 Cost metadata comes from the public `@cost` and `@listSize` directives in the execution schema. Fusion composition derives these directives from source-schema metadata as described in [Cost Metadata Derivation](./composition.md#cost-metadata-derivation).
 
+# How Cost Is Calculated
+
+The analyzer produces these metrics:
+
+- **Field cost** represents resolver and input-processing work.
+- **Type cost** represents the weighted objects in the response.
+- **Maximum response size** represents the maximum number of response-object fields when `MaxResponseSize` is enabled.
+
+Weights come from the public `@cost` directive that composition derives for each coordinate. An unannotated coordinate falls back to its default weight; see [Cost Metadata Derivation](./composition.md#cost-metadata-derivation) for the default per coordinate kind.
+
+## Field Cost Example
+
+Walk a query for a `book` field weighted `10`, returning a `title` and an `author`:
+
+```graphql
+{
+  book {
+    # 10 (weight: "10")
+    title # 0 (scalar, unannotated)
+    author {
+      # 1 (object field, unannotated)
+      name # 0 (scalar, unannotated)
+    }
+  }
+}
+# Field cost: 10 + 0 + 1 + 0 = 11
+```
+
+Add pagination and the weight of every field below a sized field multiplies by the assumed size. This `books` field is weighted `10` and carries `@listSize(assumedSize: 50, slicingArguments: ["first", "last"], sizedFields: ["edges", "nodes"])`, evaluated with `first: 50`:
+
+```graphql
+{
+  books(first: 50) {
+    # 10 (weight: "10")
+    edges {
+      # 1 (object field, paid once)
+      node {
+        # 1 x 50 (object field, once per edge)
+        title # 0 x 50 (scalar)
+        author {
+          # 1 x 50 (object field, once per node)
+          name # 0 x 50 (scalar)
+        }
+      }
+    }
+  }
+}
+# Field cost: 10 + 1 + 1 x 50 + 0 x 50 + 1 x 50 + 0 x 50 = 111
+```
+
+## Type Cost Example
+
+Type cost counts the weighted objects the response instantiates. The same paginated query instantiates one `BooksConnection`, fifty `BooksEdge` objects, fifty `Book` objects, and fifty `Author` objects, on top of the root `Query` object:
+
+```graphql
+{
+  # 1 Query
+  books(first: 50) {
+    # 1 BooksConnection
+    edges {
+      # 50 BooksEdges
+      node {
+        # 50 Books
+        title
+        author {
+          # 50 Authors
+          name
+        }
+      }
+    }
+  }
+}
+# Type cost: 1 + 1 + 50 + 50 + 50 = 152
+```
+
+Both examples run in `report` mode against a gateway composed from this source schema, and the reported `fieldCost`/`typeCost` values above match the results in `Fusion.AspNetCore.Tests/DocsExamplesTests.cs`:
+
+```graphql
+directive @cost(
+  weight: String!
+) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+directive @listSize(
+  assumedSize: Int
+  slicingArguments: [String!]
+  sizedFields: [String!]
+  requireOneSlicingArgument: Boolean = true
+  slicingArgumentDefaultValue: Int
+) on FIELD_DEFINITION
+
+type Query {
+  book: Book @cost(weight: "10")
+  books(first: Int, last: Int): BooksConnection
+    @cost(weight: "10")
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+    )
+}
+
+type Book {
+  title: String
+  author: Author
+}
+
+type Author {
+  name: String
+}
+
+type BooksConnection {
+  edges: [BooksEdge]
+  nodes: [Book]
+}
+
+type BooksEdge {
+  node: Book
+}
+```
+
+## Pricing Rules
+
+- Complementary `@include` and `@skip` branches are mutually exclusive.
+- Fields are collected by response name before signed weights are applied, and clamping to zero happens after the field-call sum and the per-instance type sum are calculated.
+- An interface or union return weight is the signed maximum of its member object-type weights.
+- A field selected through an interface is priced through each possible object type's field metadata.
+- Costs on arguments of directives used in the operation contribute to field cost.
+- Negative slicing-argument values clamp to `0`. A slicing value of `0` remains `0`, and the field-call cost is still paid once.
+
+# List Size
+
+The analyzer selects the assumed size for a list field in this order:
+
+1. An inherited size from a parent `@listSize(sizedFields:)` annotation. The inherited size takes priority over the child field's own `@listSize`.
+2. The maximum slicing-argument value present after coercion, including a schema argument default.
+3. `slicingArgumentDefaultValue`, only when no slicing argument is present.
+4. `assumedSize`.
+5. The default list size configured at composition time. Without a composed default, the list is unbounded.
+
+An explicit `null` slicing argument is not a slicing value and suppresses that argument's schema default. An undefined slicing variable behaves as an absent argument, so a schema default can apply before the remaining fallbacks. See [Default List Size](./composition.md#default-list-size) for configuring the composed default.
+
 # Default Enforcement
 
 `AddGraphQLGatewayServer()` enables cost enforcement in every hosting environment with these limits:
@@ -93,7 +234,7 @@ In `report` mode, a rejected response also contains `extensions.operationCost`. 
 
 One request is one invocation of the request pipeline, and a variable batch is one request. Cost enforcement sums the field cost and type cost across all variable sets and compares those sums with `MaxFieldCost` and `MaxTypeCost`. If either sum exceeds its limit, the whole request is rejected before any variable set executes, with one `HC0047` result and the HTTP status shown above. Maximum response size remains enforced per variable set. `MaxResponseSize` is checked per variable set, not summed. If any set exceeds `MaxResponseSize`, the whole request is likewise rejected before any set executes, with one `HC0047` result. When multiple sets violate this limit, the first violating set determines the reported `maxResponseSize`.
 
-Summing the costs prevents a client from splitting an expensive workload among variable sets that each stay under the limit. Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
+Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
 # Pipeline Placement
 
@@ -110,7 +251,7 @@ The predefined Fusion pipelines run these stages in order:
 9. Concurrency Gate
 10. Operation Execution
 
-Cost enforcement runs before the operation-plan cache and before operation planning. A rejected request never enters the planner's single-flight coalescing and does not create an operation-plan cache entry or an in-flight planning entry, so an attacker cannot pin planner resources with an operation that is expensive enough to be rejected. Document normalization, i.e. expanding fragments and removing statically excluded selections, is not a pipeline stage; it is resolved once per request by the first stage that needs it, which is variable coercion, cached by operation id and rewritten only on a cache miss, and cost analysis and operation planning then read it from the operation document info instead of re-normalizing it. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to plan regardless of their variables.
+Cost enforcement runs before the operation-plan cache and before operation planning. A rejected request never enters the planner's single-flight coalescing and does not create an operation-plan cache entry or an in-flight planning entry. Document normalization, i.e. expanding fragments and removing statically excluded selections, is not a pipeline stage; it is resolved once per request by the first stage that needs it, which is variable coercion, cached by operation id and rewritten only on a cache miss, and cost analysis and operation planning then read it from the operation document info instead of re-normalizing it. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to plan regardless of their variables.
 
 A custom pipeline must place `UseOperationVariableCoercion()` before `UseCostAnalysis()`, and place `UseCostAnalysis()` before `UseOperationPlanCache()`.
 
@@ -143,7 +284,7 @@ builder.Services
 
 An operation whose exact compile would exceed `CaseBudget` is, by default (`CaseBudgetExceededBehavior.EvaluatePerRequest`), evaluated exactly per request instead of from a compiled plan: slower for that operation, but never over-estimated. `CaseBudgetExceededBehavior.Overestimate` restores the compiled, sound over-estimate for the unaffordable remainder instead.
 
-> **Note:** The assumed size for a list without applicable `@listSize` metadata is not a gateway runtime option. It is a composition setting configured on the composer (`SourceSchemaMergerOptions.DefaultListSize`) and carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive; see [Composition](./composition.md) for details. Without this setting, an unannotated list is unbounded, and a list whose element type has a positive weight exceeds any finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` in its source schema or configure a finite `DefaultListSize` at composition time.
+> **Note:** The default list size from [List Size](#list-size) step 5 is not a gateway runtime option. It is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there. See [Composition](./composition.md) for details.
 
 # Per-Request Cost Options
 
