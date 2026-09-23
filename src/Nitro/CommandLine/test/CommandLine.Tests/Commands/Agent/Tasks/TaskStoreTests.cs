@@ -746,11 +746,17 @@ public sealed class TaskStoreTests : IAsyncDisposable
         var untouched = await _store.GetRequiredTaskAsync("acme-3", cancellationToken);
 
         // assert
-        Assert.Equal(2, count);
-        Assert.Equal(["acme-1", "acme-2"], ready.Select(task => task.Id).Order(StringComparer.Ordinal));
-        Assert.All(ready, task => Assert.Null(task.Assignee));
-        Assert.Equal(TaskStates.InProgress, untouched.Status);
-        Assert.Equal("oscar", untouched.Assignee);
+        Snapshot.Create()
+            .Add(count, "Released Count")
+            .Add(
+                ready
+                    .OrderBy(task => task.Id, StringComparer.Ordinal)
+                    .Select(task => new { task.Id, task.Status, task.Assignee }),
+                "Released Tasks")
+            .Add(
+                new { untouched.Id, untouched.Status, untouched.Assignee },
+                "Untouched Task")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]
