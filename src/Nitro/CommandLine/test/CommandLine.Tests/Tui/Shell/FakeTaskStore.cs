@@ -48,6 +48,10 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => Task.FromResult(Tasks.GetValueOrDefault(id));
 
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<string>>(Labels.GetValueOrDefault(taskId) ?? []);
 
@@ -78,6 +82,9 @@ internal sealed class FakeTaskStore : ITaskStore
         task.Status = TaskStates.Tombstone;
         return Task.FromResult(task);
     }
+
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 
     public Task<TaskUpdateResult> UpdateTaskAsync(string id, TaskUpdate update, CancellationToken cancellationToken)
     {
