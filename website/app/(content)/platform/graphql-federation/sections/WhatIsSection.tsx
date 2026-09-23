@@ -1,18 +1,82 @@
 import Link from "next/link";
 
 import { CardGrid } from "@/src/components/CardGrid";
+import { FeatureRow } from "@/src/components/FeatureRow";
+import LayeredDiagram from "@/src/components/LayeredDiagram/index";
+import { CLIENT_NODES } from "@/src/components/LayeredDiagram/diagram";
+import type {
+  Request,
+  TierNode,
+} from "@/src/components/LayeredDiagram/diagram";
+import { specTag } from "@/src/components/LayeredDiagram/palette";
 import { Card } from "@/src/design-system/Card";
 
 import { COMPARISONS } from "../comparisons";
 import { FEDERATION_DEFINITION } from "../terms";
-import {
-  Intro,
-  InPractice,
-  LINK_CLASS,
-  Section,
-  SubHeading,
-  Table,
-} from "./shared";
+import { InPractice, LINK_CLASS, Section, SubHeading, Table } from "./shared";
+
+const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
+
+/**
+ * The generic architecture the specification describes: five subgraphs
+ * behind one gateway, no product name, both federation specs represented
+ * (this is the definition drawn, not the Fusion product).
+ */
+const WHAT_IS_TIERS: readonly TierNode[] = [
+  {
+    name: "Catalog",
+    language: "TypeScript",
+    badge: specTag("GraphQL Federation"),
+    spec: "GraphQL Federation",
+  },
+  {
+    name: "Billing",
+    language: "Java",
+    badge: specTag("Apollo Federation"),
+    spec: "Apollo Federation",
+  },
+  {
+    name: "Ordering",
+    language: "Go",
+    badge: specTag("GraphQL Federation"),
+    spec: "GraphQL Federation",
+  },
+  {
+    name: "Shipping",
+    language: "Ruby",
+    badge: specTag("GraphQL Federation"),
+    spec: "GraphQL Federation",
+  },
+  {
+    name: "Inventory",
+    language: "Kotlin",
+    badge: specTag("Apollo Federation"),
+    spec: "Apollo Federation",
+  },
+];
+
+const WHAT_IS_REQUESTS: readonly Request[] = [
+  {
+    client: 0,
+    operation: "query Storefront",
+    targets: ["Catalog", "Inventory"],
+  },
+  {
+    client: 1,
+    operation: "query Checkout",
+    targets: ["Catalog", "Ordering", "Billing"],
+  },
+  {
+    client: 2,
+    operation: "query Fulfillment",
+    targets: ["Ordering", "Shipping"],
+  },
+  {
+    client: 3,
+    operation: "query AccountSummary",
+    targets: ["Billing", "Inventory"],
+  },
+];
 
 const ALTERNATIVES: readonly (readonly string[])[] = [
   [
@@ -86,28 +150,45 @@ function ComparisonCard({
 export function WhatIsSection() {
   return (
     <Section id="what-is">
-      <Intro title="What is GraphQL Federation?">
-        <p>
-          {FEDERATION_DEFINITION} A GraphQL API describes the data it offers in
-          a schema, a typed document, and answers one query with exactly the
-          fields the client asked for.
-        </p>
-        <p>
-          In a large organization, no single team owns all of that data.
-          Checkout, catalog, and accounts are separate services with separate
-          owners. Federation lets each team publish only the piece of the API it
-          owns, as a source schema. A build step called composition then
-          validates those schemas together and produces one composite schema.
-          Clients see one API and never learn which team owns which field.
-        </p>
-        <p>
-          The services themselves stay where they are. Each team keeps its own
-          codebase, its own database, and its own release schedule; a service
-          joins by describing what it owns in its schema. A client sends one
-          query to the gateway, and the gateway fetches from every subgraph the
-          query touches and returns one response.
-        </p>
-      </Intro>
+      <FeatureRow
+        title="What is GraphQL Federation?"
+        body={
+          <>
+            {FEDERATION_DEFINITION} A GraphQL API describes the data it offers
+            in a schema, a typed document, and answers one query with exactly
+            the fields the client asked for.
+          </>
+        }
+        visual={
+          <div className={`${PANEL_CLASS} overflow-hidden`}>
+            <LayeredDiagram
+              gatewayLabel="GATEWAY"
+              compositionLine="Composite schema · 5 subgraphs · one endpoint"
+              clients={CLIENT_NODES}
+              tiers={WHAT_IS_TIERS}
+              requests={WHAT_IS_REQUESTS}
+            />
+          </div>
+        }
+      >
+        <div className="text-cc-ink mt-5 space-y-4 text-base">
+          <p>
+            In a large organization, no single team owns all of that data.
+            Checkout, catalog, and accounts are separate services with separate
+            owners. Federation lets each team publish only the piece of the API
+            it owns, as a source schema. A build step called composition then
+            validates those schemas together and produces one composite schema.
+            Clients see one API and never learn which team owns which field.
+          </p>
+          <p>
+            The services themselves stay where they are. Each team keeps its own
+            codebase, its own database, and its own release schedule; a service
+            joins by describing what it owns in its schema. A client sends one
+            query to the gateway, and the gateway fetches from every subgraph
+            the query touches and returns one response.
+          </p>
+        </div>
+      </FeatureRow>
 
       <div className="mt-16 sm:mt-24">
         <SubHeading id="comparisons">
