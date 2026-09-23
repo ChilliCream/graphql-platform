@@ -78,7 +78,7 @@ Performs reachability analysis. Starting from the root types, the pipeline walks
 
 Fusion composition records each compatible source usage as an internal `@fusion__cost` or `@fusion__listSize` provenance entry, folds the source values, and projects the result as a public directive. A public `@cost` or `@listSize` directive is emitted only when at least one source has a compatible usage. The internal entries identify the source schema and preserve its declared values. An unannotated serving source contributes the coordinate default to the public `@cost` fold without adding an internal provenance entry.
 
-Both folds only consider serving sources: a source schema that resolves the field itself. A source that provides the field only as partial (for example an Apollo Federation `@external` field returned through `@provides`) is not a serving source for either fold, so an unannotated partial member contributes neither the coordinate's default weight nor a gap that widens the `@listSize` bound — sources that only provide the field through `@provides` do not widen the bound. Its own `@cost` or `@listSize` usage, when declared, still folds in and is still recorded as its own provenance entry.
+Both folds only consider serving sources: a source schema that resolves the field itself. A source that provides the field only as partial (for example an Apollo Federation `@external` field returned through `@provides`) is not a serving source for either fold, so an unannotated partial member contributes neither the coordinate's default weight nor a gap that widens the `@listSize` bound. Its own `@cost` or `@listSize` usage, when declared, still folds in and is still recorded as its own provenance entry.
 
 A usage without a local directive definition receives the canonical definition during composition. A locally declared definition can use a compatible subset of the canonical arguments.
 
@@ -93,7 +93,41 @@ For `@cost`, the public weight is the maximum effective weight across every serv
 | Argument or input field with an input-object value    | `1`            |
 | Argument or input field with a scalar, enum, or ID    | `0`            |
 
-For example, a composite-typed coordinate with weight `-7` in one source and no declared weight in another source derives the public weight `1`.
+For example, a composite-typed coordinate with weight `-7` in one source and no declared weight in another source derives the public weight `1`. Given these two source schemas:
+
+```graphql
+# Schema A
+type Query {
+  book: Book @cost(weight: "-7")
+}
+
+type Book {
+  id: ID
+}
+```
+
+```graphql
+# Schema B
+type Query {
+  book: Book
+}
+
+type Book {
+  id: ID
+}
+```
+
+Composition folds `Query.book` to the public weight `1` and records schema A's declared value as its own provenance entry; schema B contributes the coordinate default without one:
+
+```graphql
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  book: Book
+    @cost(weight: "1")
+    @fusion__cost(schema: A, weight: "-7")
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+}
+```
 
 The public `@listSize` directive applies these folds:
 
@@ -105,6 +139,35 @@ The public `@listSize` directive applies these folds:
 | `slicingArgumentDefaultValue`        | Maximum over sources that declare it.                                  |
 
 The name unions are preserved as declared. A name that does not match an argument or child field in the composite schema contributes no runtime value, and list-size selection continues through its remaining fallbacks.
+
+For `assumedSize`, given these two source schemas:
+
+```graphql
+# Schema A
+type Query {
+  field: [Int] @listSize(assumedSize: 10)
+}
+```
+
+```graphql
+# Schema B
+type Query {
+  field: [Int] @listSize(assumedSize: 5)
+}
+```
+
+Composition folds `assumedSize` to the maximum of the two, `10`, and records both declared values as provenance entries:
+
+```graphql
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  field: [Int]
+    @listSize(assumedSize: 10)
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+    @fusion__listSize(schema: A, assumedSize: 10)
+    @fusion__listSize(schema: B, assumedSize: 5)
+}
+```
 
 The `slicingArgumentDefaultValue` argument is optional. A source can use a spec-only `@listSize` definition that omits this ChilliCream extension, and it composes without a warning. If every source omits the value, the public directive omits it too.
 
