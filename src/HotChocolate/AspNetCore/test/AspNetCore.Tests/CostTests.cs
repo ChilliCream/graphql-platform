@@ -411,8 +411,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
             OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
-            var costOptions = requestExecutor.GetCostOptions();
-            requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 1 });
+            requestBuilder.ModifyCostOptions(o => o.MaxTypeCost = 1);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
@@ -424,8 +423,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
             OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
-            var costOptions = requestExecutor.GetCostOptions();
-            requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 2 });
+            requestBuilder.ModifyCostOptions(o => o.MaxTypeCost = 2);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
@@ -442,8 +440,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         {
             if (context.Request.Headers.ContainsKey(OverrideHeader))
             {
-                var costOptions = requestExecutor.GetCostOptions();
-                requestBuilder.SetCostOptions(costOptions with { MaxResponseSize = 1_000 });
+                requestBuilder.ModifyCostOptions(o => o.MaxResponseSize = 1_000);
             }
 
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
