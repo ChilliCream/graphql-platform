@@ -48,6 +48,11 @@ internal sealed class TakeoverAgentCommand : Command
         var force = parseResult.GetValue(Opt<ForceActorTakeoverOption>.Instance);
         var reason = parseResult.GetValue(Opt<TakeoverReasonOption>.Instance);
 
+        if (from == to)
+        {
+            throw new ExitException("The source and target actors must be different.");
+        }
+
         var source = await agents.FindAsync(from, cancellationToken)
             ?? throw UnknownActor(from);
         var target = await agents.FindAsync(to, cancellationToken)
@@ -55,12 +60,7 @@ internal sealed class TakeoverAgentCommand : Command
 
         if (target.IsDeleted)
         {
-            throw new ExitException($"Agent '{target.Name}' was deleted.");
-        }
-
-        if (from == to)
-        {
-            throw new ExitException("The source and target actors must be different.");
+            throw DeletedActor(target.Name);
         }
 
         var now = timeProvider.GetUtcNow();
@@ -76,7 +76,7 @@ internal sealed class TakeoverAgentCommand : Command
         if (role.Length == 0 && source.Role.Length > 0)
         {
             target = await agents.SetRoleAsync(to, source.Role, cancellationToken)
-                ?? throw new ExitException($"Agent '{to}' was deleted.");
+                ?? throw DeletedActor(to);
             role = target.Role;
         }
 
@@ -128,6 +128,9 @@ internal sealed class TakeoverAgentCommand : Command
 
     private static ExitException UnknownActor(string actor)
         => new($"Unknown actor '{actor}'. Run `nitro agent list` to see the actors this workspace knows.");
+
+    private static ExitException DeletedActor(string actor)
+        => new($"Agent '{actor}' was deleted.");
 
     private static IReadOnlyList<TakeoverItem> CreateItems(
         MailTransferResult mailTransfer,
