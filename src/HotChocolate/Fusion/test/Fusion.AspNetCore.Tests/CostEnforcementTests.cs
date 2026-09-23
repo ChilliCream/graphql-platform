@@ -2,12 +2,14 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using HotChocolate.AspNetCore;
 using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -137,6 +139,28 @@ public class CostEnforcementTests : FusionTestBase
     }
 
     [Fact]
+    public async Task OverCostRequest_Should_Execute_When_RequestCostOptionsRaiseTypeCostLimit()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", OverCostSchema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: builder =>
+                builder.AddHttpRequestInterceptor<RaiseTypeCostLimitInterceptor>());
+        var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response);
+    }
+
+    [Fact]
     public async Task OverCostRequest_Should_Execute_When_DefaultSecurityIsDisabled()
     {
         // arrange
@@ -165,5 +189,25 @@ public class CostEnforcementTests : FusionTestBase
         return (
             executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>(),
             executor.Schema.Services.GetRequiredService<Cache<CostPlan>>());
+    }
+
+    private sealed class RaiseTypeCostLimitInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            requestBuilder.SetCostOptions(
+                new FusionRequestCostOptions(
+                    maxFieldCost: 5_000,
+                    maxTypeCost: 5_000,
+                    enforceCostLimits: true,
+                    skipAnalyzer: false,
+                    maxResponseSize: null));
+
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+        }
     }
 }

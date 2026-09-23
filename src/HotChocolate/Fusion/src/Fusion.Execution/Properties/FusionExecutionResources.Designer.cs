@@ -279,6 +279,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string ErrorHelper_ResponseSizeAnalysisNotEnabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseSizeAnalysisNotEnabled", resourceCulture);
+            }
+        }
+
         internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
             get {
                 return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);

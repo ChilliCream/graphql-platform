@@ -30,11 +30,22 @@ internal sealed class CostAnalysisMiddleware
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var mode = GetMode(context);
+        var requestOptions = context.TryGetCostOptions();
+        var effectiveOptions = requestOptions is null
+            ? new EffectiveCostOptions(_options)
+            : new EffectiveCostOptions(requestOptions);
+        var mode = GetMode(context, effectiveOptions);
 
         if (mode == CostAnalysisMode.Skip)
         {
             return next(context);
+        }
+
+        // A request can override the response-size limit only if the gateway enables the analysis.
+        if (requestOptions?.MaxResponseSize.HasValue == true && !_options.MaxResponseSize.HasValue)
+        {
+            context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
+            return default;
         }
 
         // Cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
@@ -92,6 +103,7 @@ internal sealed class CostAnalysisMiddleware
                 {
                     TryGetViolation(
                         estimates[0],
+                        effectiveOptions,
                         out rejectedEstimate,
                         out rejectedLimitKind,
                         out rejectedLimit);
@@ -100,6 +112,7 @@ internal sealed class CostAnalysisMiddleware
                 {
                     TryGetBatchViolation(
                         estimates,
+                        effectiveOptions,
                         out rejectedEstimate,
                         out rejectedLimitKind,
                         out rejectedLimit);
@@ -141,29 +154,30 @@ internal sealed class CostAnalysisMiddleware
         return default;
     }
 
-    private bool TryGetViolation(
+    private static bool TryGetViolation(
         CostEstimate estimate,
+        EffectiveCostOptions options,
         out CostEstimate? rejectedEstimate,
         out CostLimitKind limitKind,
         out double limit)
     {
-        if (estimate.FieldCost > _options.MaxFieldCost)
+        if (estimate.FieldCost > options.MaxFieldCost)
         {
             rejectedEstimate = estimate;
             limitKind = CostLimitKind.FieldCost;
-            limit = _options.MaxFieldCost;
+            limit = options.MaxFieldCost;
             return true;
         }
 
-        if (estimate.TypeCost > _options.MaxTypeCost)
+        if (estimate.TypeCost > options.MaxTypeCost)
         {
             rejectedEstimate = estimate;
             limitKind = CostLimitKind.TypeCost;
-            limit = _options.MaxTypeCost;
+            limit = options.MaxTypeCost;
             return true;
         }
 
-        if (_options.MaxResponseSize is { } maxResponseSize
+        if (options.MaxResponseSize is { } maxResponseSize
             && estimate.MaxResponseSize > maxResponseSize)
         {
             rejectedEstimate = estimate;
@@ -178,8 +192,9 @@ internal sealed class CostAnalysisMiddleware
         return false;
     }
 
-    private bool TryGetBatchViolation(
+    private static bool TryGetBatchViolation(
         ImmutableArray<CostEstimate> estimates,
+        EffectiveCostOptions options,
         out CostEstimate? rejectedEstimate,
         out CostLimitKind limitKind,
         out double limit)
@@ -193,23 +208,23 @@ internal sealed class CostAnalysisMiddleware
             summedTypeCost += estimate.TypeCost;
         }
 
-        if (summedFieldCost > _options.MaxFieldCost)
+        if (summedFieldCost > options.MaxFieldCost)
         {
             rejectedEstimate = new CostEstimate(summedFieldCost, summedTypeCost, null);
             limitKind = CostLimitKind.FieldCost;
-            limit = _options.MaxFieldCost;
+            limit = options.MaxFieldCost;
             return true;
         }
 
-        if (summedTypeCost > _options.MaxTypeCost)
+        if (summedTypeCost > options.MaxTypeCost)
         {
             rejectedEstimate = new CostEstimate(summedFieldCost, summedTypeCost, null);
             limitKind = CostLimitKind.TypeCost;
-            limit = _options.MaxTypeCost;
+            limit = options.MaxTypeCost;
             return true;
         }
 
-        if (_options.MaxResponseSize is { } maxResponseSize)
+        if (options.MaxResponseSize is { } maxResponseSize)
         {
             foreach (var estimate in estimates)
             {
@@ -243,9 +258,9 @@ internal sealed class CostAnalysisMiddleware
             : CostResultHelper.AddCost(context.Result, estimates);
     }
 
-    private CostAnalysisMode GetMode(RequestContext context)
+    private static CostAnalysisMode GetMode(RequestContext context, EffectiveCostOptions options)
     {
-        if (_options.SkipAnalyzer)
+        if (options.SkipAnalyzer)
         {
             return CostAnalysisMode.Skip;
         }
@@ -257,7 +272,7 @@ internal sealed class CostAnalysisMiddleware
 
         var mode = CostAnalysisMode.Analyze | CostAnalysisMode.Execute;
 
-        if (_options.EnforceCostLimits)
+        if (options.EnforceCostLimits)
         {
             mode |= CostAnalysisMode.Enforce;
         }
@@ -268,6 +283,38 @@ internal sealed class CostAnalysisMiddleware
         }
 
         return mode;
+    }
+
+    /// <summary>
+    /// The cost limits in effect for one request: the request-level <see cref="FusionRequestCostOptions"/>
+    /// when the request set one, otherwise the gateway's <see cref="FusionCostOptions"/>.
+    /// </summary>
+    private readonly record struct EffectiveCostOptions(
+        double MaxFieldCost,
+        double MaxTypeCost,
+        bool EnforceCostLimits,
+        bool SkipAnalyzer,
+        double? MaxResponseSize)
+    {
+        public EffectiveCostOptions(FusionCostOptions options)
+            : this(
+                options.MaxFieldCost,
+                options.MaxTypeCost,
+                options.EnforceCostLimits,
+                options.SkipAnalyzer,
+                options.MaxResponseSize)
+        {
+        }
+
+        public EffectiveCostOptions(FusionRequestCostOptions options)
+            : this(
+                options.MaxFieldCost,
+                options.MaxTypeCost,
+                options.EnforceCostLimits,
+                options.SkipAnalyzer,
+                options.MaxResponseSize)
+        {
+        }
     }
 
     public static RequestMiddlewareConfiguration Create()
