@@ -240,7 +240,7 @@ internal sealed class AgentStore(
         }
 
         var harness = harnessResult is DBNull ? string.Empty : (string)harnessResult;
-        var (kind, addr, secret) = NormalizeEndpoint(harness, endpointKind, endpointAddr, endpointSecret);
+        var (kind, addr, secret) = EndpointAddress.Normalize(harness, endpointKind, endpointAddr, endpointSecret);
 
         await using var updateCommand = connection.CreateCommand();
         updateCommand.Transaction = transaction;
@@ -436,32 +436,6 @@ internal sealed class AgentStore(
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
         return result is not null && (long)result != 0;
-    }
-
-    /// <summary>
-    /// Normalizes invalid or absent endpoints to kind <c>none</c>, an empty address,
-    /// and no credential. Credentials are retained only for valid opencode-server
-    /// endpoints belonging to the opencode harness.
-    /// </summary>
-    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
-        string harness,
-        string endpointKind,
-        string endpointAddr,
-        string? endpointSecret)
-    {
-        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
-        {
-            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
-                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
-                : (AgentSessionEndpointKind.None, string.Empty, null);
-        }
-
-        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
-        {
-            return (AgentSessionEndpointKind.None, string.Empty, null);
-        }
-
-        return (endpointKind, endpointAddr, null);
     }
 
     private static void EnsureAgentHarness(string harness)
