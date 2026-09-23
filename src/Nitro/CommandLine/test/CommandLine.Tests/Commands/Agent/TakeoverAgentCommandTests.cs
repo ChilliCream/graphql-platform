@@ -119,8 +119,7 @@ public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)
     public async Task Takeover_Should_AcceptEndedSource_When_ForceIsOmitted()
     {
         // arrange
-        // A source whose session already ended is Offline even though its
-        // endpoint still looks live, so no --force is required.
+        // An ended session is Offline, so no --force is needed.
         await InitWorkspaceAsync();
         await SeedAgentAsync("maya");
         await SeedAgentAsync("nora");

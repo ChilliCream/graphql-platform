@@ -68,8 +68,7 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
     public async Task Execute_Should_PrintTheBoardColumns_When_AgentsAreInEveryState()
     {
         // arrange
-        // An online hook agent, a login-only (unreachable) agent, an ended agent,
-        // and a deleted agent that must not appear at all.
+        // Online, login-only, ended and deleted agents; the deleted one must not appear.
         await InitWorkspaceAsync();
         await SeedBoardScenarioAsync();
 
@@ -90,8 +89,7 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
     public async Task JsonOutput_Should_PrintTheBoardColumns_When_AgentsAreInEveryState()
     {
         // arrange
-        // Same scenario as the human-readable rendering, so the JSON and text
-        // outputs are verified against the same fixture.
+        // Same board scenario as the human-readable rendering.
         await InitWorkspaceAsync();
         await SeedBoardScenarioAsync();
         SetupInteractionMode(InteractionMode.JsonOutput);
