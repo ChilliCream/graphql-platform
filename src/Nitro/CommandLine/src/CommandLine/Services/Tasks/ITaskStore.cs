@@ -20,11 +20,10 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the tasks an agent participated in: tasks with at least one event whose
-    /// actor is the agent, and tasks currently assigned to the agent. Tombstones are
-    /// excluded; every other status is included. Ordered by the agent's latest event on
-    /// the task, falling back to the task's updated_at for a task that is only assigned,
-    /// newest first then by id. A null limit returns every matching task.
+    /// Returns the non-tombstone tasks an agent participated in, either through an event
+    /// whose actor is the agent or through a current assignment, ordered by the agent's
+    /// latest event on the task (falling back to updated_at when only assigned), newest
+    /// first then by id. A null limit returns every matching task.
     /// </summary>
     Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
         string agent,
