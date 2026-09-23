@@ -1131,6 +1131,85 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Query_Should_ApplyVariables_When_RequestUriStringIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query($episode: Episode!) {
+              hero(episode: $episode) {
+                name
+              }
+            }
+            """;
+
+        var variables = new Dictionary<string, object?> { ["episode"] = "JEDI" };
+
+        // act
+        using var response = await client.QueryAsync(
+            query,
+            variables,
+            CreateUrl("/graphql"),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ApplyVariables_When_BaseAddressIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query($episode: Episode!) {
+              hero(episode: $episode) {
+                name
+              }
+            }
+            """;
+
+        var variables = new Dictionary<string, object?> { ["episode"] = "JEDI" };
+
+        // act
+        using var response = await client.QueryAsync(query, variables, cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Query_Should_SendQueryMethodWithJsonBody_When_RequestIsBuilt()
     {
         // arrange
