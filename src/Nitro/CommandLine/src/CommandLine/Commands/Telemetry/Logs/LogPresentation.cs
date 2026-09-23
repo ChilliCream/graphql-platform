@@ -5,12 +5,6 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Logs;
 
 internal static class LogPresentation
 {
-    public static string FormatTimestamp(double epoch)
-        => DateTimeOffset
-            .FromUnixTimeMilliseconds((long)epoch)
-            .ToUniversalTime()
-            .ToString("yyyy-MM-dd HH:mm:ss.fff 'UTC'", CultureInfo.InvariantCulture);
-
     public static string GetServiceName(IReadOnlyList<TelemetryAttribute> resourceAttributes)
         => resourceAttributes
             .FirstOrDefault(static attribute => attribute.Key == "service.name")

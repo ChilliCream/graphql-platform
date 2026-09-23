@@ -64,23 +64,7 @@ internal sealed class ShowServiceCommand : Command
 
         var detail = ServiceDetail.From(service);
 
-        if (console.IsAgentMode || !console.IsHumanReadable)
-        {
-            console.WriteRawLine(JsonSerializer.Serialize(detail, ServiceDetailJsonContext.Default.ServiceDetail));
-            return ExitCodes.Success;
-        }
-
-        var table = new Table();
-        table.AddColumn("Name");
-        table.AddColumn("Environments");
-        table.AddColumn("Version markers");
-        table.AddRow(
-            detail.Name,
-            string.Join(", ", detail.Environments),
-            string.Join(
-                Environment.NewLine,
-                detail.VersionMarkers.Select(static marker => $"{marker.Version} ({marker.FirstSeenAt:u})")));
-        console.Write(table);
+        console.WriteRawLine(JsonSerializer.Serialize(detail, ServiceDetailJsonContext.Default.ServiceDetail));
 
         return ExitCodes.Success;
     }

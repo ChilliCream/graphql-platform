@@ -276,11 +276,14 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
             """);
     }
 
-    [Fact]
-    public async Task Show_Should_WriteExceptionDetails_When_LogContainsAnException()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_WriteLogDetailAsJson_When_LogContainsAnException(InteractionMode mode)
     {
         // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupGetLog(CreateLog());
 
@@ -294,22 +297,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            2026-01-01 00:00:00.123 UTC ERROR products Request failed [CheckoutHandler.Handle src/CheckoutHandler.cs:42]
-            code.function: CheckoutHandler.Handle
-            code.filepath: src/CheckoutHandler.cs
-            code.lineno: 42
-            exception.type: System.TimeoutException
-            exception.message: The operation timed out.
-            exception.stacktrace: at CheckoutHandler.Handle()
-               at Program.Main()
-            service.name: products
-            deployment.environment: production
-            scope: OpenTelemetry.Instrumentation
-            scope.version: 1.0.0
-            scope.schema_url: https://opentelemetry.io/schemas/1.0.0
-            scope.scope.attribute: scope-value
-            trace id: trace-1
-            span id: span-1
+            {"id":"log-1","epoch":1767225600123,"severityText":"ERROR","severityNumber":17,"serviceName":"products","body":"Request failed","traceId":"trace-1","spanId":"span-1","bodyDetail":{"json":null,"kind":"String","message":"Request failed"},"attributes":[{"key":"code.function","value":"CheckoutHandler.Handle"},{"key":"code.filepath","value":"src/CheckoutHandler.cs"},{"key":"code.lineno","value":"42"},{"key":"exception.type","value":"System.TimeoutException"},{"key":"exception.message","value":"The operation timed out."},{"key":"exception.stacktrace","value":"at CheckoutHandler.Handle()\n   at Program.Main()"}],"resourceAttributes":[{"key":"service.name","value":"products"},{"key":"deployment.environment","value":"production"}],"scope":{"name":"OpenTelemetry.Instrumentation","schemaUrl":"https://opentelemetry.io/schemas/1.0.0","version":"1.0.0","attributes":[{"key":"scope.attribute","value":"scope-value"}]},"codeFunction":"CheckoutHandler.Handle","codeFilePath":"src/CheckoutHandler.cs","codeLineNumber":42}
             """);
     }
 

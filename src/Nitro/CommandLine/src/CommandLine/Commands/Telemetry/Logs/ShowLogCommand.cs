@@ -51,20 +51,7 @@ internal sealed class ShowLogCommand : Command
 
         var detail = LogDetail.From(log);
 
-        if (console.IsAgentMode || !console.IsHumanReadable)
-        {
-            console.WriteRawLine(JsonSerializer.Serialize(detail, LogDetailJsonContext.Default.LogDetail));
-            return ExitCodes.Success;
-        }
-
-        var renderedDetail = new LogDetailRenderer().Render(detail);
-        if (renderedDetail.Length > 0)
-        {
-            foreach (var line in renderedDetail.Split(Environment.NewLine, StringSplitOptions.None))
-            {
-                console.WriteRawLine(line);
-            }
-        }
+        console.WriteRawLine(JsonSerializer.Serialize(detail, LogDetailJsonContext.Default.LogDetail));
 
         return ExitCodes.Success;
     }

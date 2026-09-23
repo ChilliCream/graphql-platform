@@ -272,11 +272,14 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
             """);
     }
 
-    [Fact]
-    public async Task Show_Should_WriteServiceDetail_When_JsonOutputIsRequested()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_WriteServiceDetailAsJson_When_ServiceExists(InteractionMode mode)
     {
         // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupGetService(CreateService());
 
