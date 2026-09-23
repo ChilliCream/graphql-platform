@@ -14,7 +14,7 @@ internal sealed class AgentDatabase
     /// <summary>
     /// The current unified schema version.
     /// </summary>
-    public const int CurrentVersion = 16;
+    public const int CurrentVersion = 17;
 
     /// <summary>
     /// The schema version at which <c>messages.sender</c> and
@@ -28,7 +28,7 @@ internal sealed class AgentDatabase
     /// Schema versions <see cref="InitializeAsync"/> upgrades in place
     /// instead of rejecting.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in

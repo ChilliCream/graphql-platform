@@ -6,11 +6,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase database) : IMailWakeBatchStore
 {
     public async Task<MailWakeBatchClaim?> TryClaimAsync(
-        string nitroInstanceId,
         string actor,
         string ownerId,
         string attemptId,
-        IReadOnlyList<AgentSessionGeneration> targets,
+        IReadOnlyList<string> targets,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken)
@@ -23,9 +22,9 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             SELECT requested_generation AS RequestedGeneration, settled_generation AS SettledGeneration,
                    due_at AS DueAt
             FROM mail_wake_outbox
-            WHERE nitro_instance_id = @nitroInstanceId AND actor = @actor
+            WHERE actor = @actor
             """,
-            new { nitroInstanceId, actor, cancellationToken },
+            new { actor, cancellationToken },
             transaction);
 
         if (outbox is null
@@ -40,18 +39,17 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await connection.ExecuteAsync(
             """
             UPDATE mail_wake_batches SET status = 'released', last_error = 'lease expired'
-            WHERE nitro_instance_id = @nitroInstanceId AND actor = @actor AND status = 'active'
-              AND expires_at <= @now
+            WHERE actor = @actor AND status = 'active' AND expires_at <= @now
             """,
-            new { nitroInstanceId, actor, now, cancellationToken },
+            new { actor, now, cancellationToken },
             transaction);
 
         var activeBatchCount = await connection.ExecuteScalarAsync<long>(
             """
             SELECT COUNT(*) FROM mail_wake_batches
-            WHERE nitro_instance_id = @nitroInstanceId AND actor = @actor AND status = 'active'
+            WHERE actor = @actor AND status = 'active'
             """,
-            new { nitroInstanceId, actor, cancellationToken },
+            new { actor, cancellationToken },
             transaction);
 
         if (activeBatchCount > 0)
@@ -66,17 +64,16 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await connection.ExecuteAsync(
             """
             INSERT INTO mail_wake_batches (
-                batch_id, nitro_instance_id, actor, claimed_generation, owner_id, attempt_id,
+                batch_id, actor, claimed_generation, owner_id, attempt_id,
                 status, claimed_at, expires_at
             ) VALUES (
-                @batchId, @nitroInstanceId, @actor, @claimedGeneration, @ownerId, @attemptId,
+                @batchId, @actor, @claimedGeneration, @ownerId, @attemptId,
                 'active', @now, @expiresAt
             )
             """,
             new
             {
                 batchId,
-                nitroInstanceId,
                 actor,
                 claimedGeneration = outbox.RequestedGeneration,
                 ownerId,
@@ -91,18 +88,10 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         {
             await connection.ExecuteAsync(
                 """
-                INSERT INTO mail_wake_targets (batch_id, harness, session_id, host, status, updated_at)
-                VALUES (@batchId, @harness, @sessionId, @host, 'pending', @now)
+                INSERT INTO mail_wake_targets (batch_id, agent, status, updated_at)
+                VALUES (@batchId, @target, 'pending', @now)
                 """,
-                new
-                {
-                    batchId,
-                    harness = target.Harness,
-                    sessionId = target.SessionId,
-                    host = target.Host,
-                    now,
-                    cancellationToken
-                },
+                new { batchId, target, now, cancellationToken },
                 transaction);
         }
 
@@ -148,7 +137,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             UPDATE mail_wake_batches SET status = 'completed', completed_at = @now
             WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
               AND status = 'active' AND expires_at > @now
-            RETURNING nitro_instance_id AS NitroInstanceId, actor AS Actor, claimed_generation AS ClaimedGeneration
+            RETURNING actor AS Actor, claimed_generation AS ClaimedGeneration
             """,
             new { batchId, ownerId, attemptId, now, cancellationToken },
             transaction);
@@ -164,13 +153,12 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             """
             UPDATE mail_wake_outbox
             SET settled_generation = MAX(settled_generation, @claimedGeneration), updated_at = @now
-            WHERE nitro_instance_id = @nitroInstanceId AND actor = @actor
+            WHERE actor = @actor
             """,
             new
             {
                 claimedGeneration = completed.ClaimedGeneration,
                 now,
-                nitroInstanceId = completed.NitroInstanceId,
                 actor = completed.Actor,
                 cancellationToken
             },
@@ -197,7 +185,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             UPDATE mail_wake_batches SET status = 'released', last_error = @lastError
             WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
               AND status = 'active' AND expires_at > @now
-            RETURNING nitro_instance_id AS NitroInstanceId, actor AS Actor
+            RETURNING actor AS Actor
             """,
             new { batchId, ownerId, attemptId, now, lastError, cancellationToken },
             transaction);
@@ -213,16 +201,9 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             await connection.ExecuteAsync(
                 """
                 UPDATE mail_wake_outbox SET due_at = @retryAt, updated_at = @now
-                WHERE nitro_instance_id = @nitroInstanceId AND actor = @actor
+                WHERE actor = @actor
                 """,
-                new
-                {
-                    retryAt = retryAtValue,
-                    now,
-                    nitroInstanceId = released.NitroInstanceId,
-                    actor = released.Actor,
-                    cancellationToken
-                },
+                new { retryAt = retryAtValue, now, actor = released.Actor, cancellationToken },
                 transaction);
         }
 
@@ -232,7 +213,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
 
     public async Task<bool> TryRecordTargetOutcomeAsync(
         string batchId,
-        AgentSessionGeneration target,
+        string target,
         string ownerId,
         string attemptId,
         string status,
@@ -252,8 +233,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                 accepted_generation = @acceptedGeneration,
                 last_error = @lastError,
                 updated_at = @now
-            WHERE batch_id = @batchId AND harness = @harness AND session_id = @sessionId
-              AND host = @host
+            WHERE batch_id = @batchId AND agent = @target
               AND EXISTS (
                   SELECT 1 FROM mail_wake_batches
                   WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
@@ -264,9 +244,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             new
             {
                 batchId,
-                harness = target.Harness,
-                sessionId = target.SessionId,
-                host = target.Host,
+                target,
                 status,
                 offeredGeneration,
                 acceptedGeneration,
@@ -297,14 +275,12 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
 
     internal sealed class CompletedBatchRow
     {
-        public required string NitroInstanceId { get; init; }
         public required string Actor { get; init; }
         public required long ClaimedGeneration { get; init; }
     }
 
     internal sealed class ReleasedBatchRow
     {
-        public required string NitroInstanceId { get; init; }
         public required string Actor { get; init; }
     }
 }

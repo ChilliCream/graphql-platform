@@ -6,80 +6,63 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal sealed class MailWakeDaemonLeaderStore(
     IFileSystem fileSystem, AgentDatabase database) : IMailWakeDaemonLeaderStore
 {
-    public async Task<long?> TryAcquireAsync(
-        string nitroInstanceId,
-        string ownerId,
+    public async Task<bool> TryAcquireAsync(
+        string token,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        return await connection.QueryFirstOrDefaultAsync<long?>(
+        var acquired = await connection.QueryFirstOrDefaultAsync<string>(
             """
-            INSERT INTO mail_wake_daemons (nitro_instance_id, owner_id, epoch, leased_at, expires_at)
-            VALUES (@nitroInstanceId, @ownerId, 1, @now, @expiresAt)
-            ON CONFLICT (nitro_instance_id) DO UPDATE SET
-                owner_id = excluded.owner_id,
-                epoch = mail_wake_daemons.epoch + 1,
-                leased_at = excluded.leased_at,
+            INSERT INTO mail_wake_daemons (id, owner_token, acquired_at, heartbeat_at, expires_at)
+            VALUES (1, @token, @now, @now, @expiresAt)
+            ON CONFLICT (id) DO UPDATE SET
+                owner_token = excluded.owner_token,
+                acquired_at = excluded.acquired_at,
+                heartbeat_at = excluded.heartbeat_at,
                 expires_at = excluded.expires_at
             WHERE mail_wake_daemons.expires_at <= @now
-            RETURNING epoch
+            RETURNING owner_token
             """,
-            new { nitroInstanceId, ownerId, now, expiresAt = now + leaseDuration, cancellationToken });
+            new { token, now, expiresAt = now + leaseDuration, cancellationToken });
+
+        return acquired is not null;
     }
 
     public async Task<bool> TryRenewAsync(
-        string nitroInstanceId,
-        string ownerId,
-        long epoch,
+        string token,
         DateTimeOffset now,
         TimeSpan leaseDuration,
-        string? lastError,
         CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var renewedEpoch = await connection.QueryFirstOrDefaultAsync<long?>(
+        var renewed = await connection.QueryFirstOrDefaultAsync<string>(
             """
-            UPDATE mail_wake_daemons SET expires_at = @expiresAt, leased_at = @now, last_error = @lastError
-            WHERE nitro_instance_id = @nitroInstanceId AND owner_id = @ownerId AND epoch = @epoch
-              AND expires_at > @now
-            RETURNING epoch
+            UPDATE mail_wake_daemons SET expires_at = @expiresAt, heartbeat_at = @now
+            WHERE id = 1 AND owner_token = @token AND expires_at > @now
+            RETURNING owner_token
             """,
-            new
-            {
-                nitroInstanceId,
-                ownerId,
-                epoch,
-                now,
-                expiresAt = now + leaseDuration,
-                lastError,
-                cancellationToken
-            });
+            new { token, now, expiresAt = now + leaseDuration, cancellationToken });
 
-        return renewedEpoch is not null;
+        return renewed is not null;
     }
 
-    public async Task<bool> TryReleaseAsync(
-        string nitroInstanceId,
-        string ownerId,
-        long epoch,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
+    public async Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var releasedEpoch = await connection.QueryFirstOrDefaultAsync<long?>(
+        var released = await connection.QueryFirstOrDefaultAsync<string>(
             """
             UPDATE mail_wake_daemons SET expires_at = @now
-            WHERE nitro_instance_id = @nitroInstanceId AND owner_id = @ownerId AND epoch = @epoch
-            RETURNING epoch
+            WHERE id = 1 AND owner_token = @token
+            RETURNING owner_token
             """,
-            new { nitroInstanceId, ownerId, epoch, now, cancellationToken });
+            new { token, now, cancellationToken });
 
-        return releasedEpoch is not null;
+        return released is not null;
     }
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)

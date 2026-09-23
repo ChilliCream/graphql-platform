@@ -7,23 +7,22 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// it only applies when the caller still holds the exact claim it is acting
 /// on, so a renewal or completion lost to a fresher claimant becomes a
 /// silent no-op rather than corrupting state a new owner has since taken
-/// over. Does not decide which actor to claim next, which sessions belong in
+/// over. Does not decide which actor to claim next, which agents belong in
 /// a batch, or how to react to a target's outcome; those policies belong to
 /// the caller (the direct-first wake dispatcher).
 /// </summary>
 internal interface IMailWakeBatchStore
 {
     /// <summary>
-    /// Claims due, unsettled work for the instance and actor, replacing any expired
+    /// Claims due, unsettled work for the actor, replacing any expired
     /// batch and recording the current requested generation and supplied targets.
     /// Returns null when no work is due or an unexpired active batch exists.
     /// </summary>
     Task<MailWakeBatchClaim?> TryClaimAsync(
-        string nitroInstanceId,
         string actor,
         string ownerId,
         string attemptId,
-        IReadOnlyList<AgentSessionGeneration> targets,
+        IReadOnlyList<string> targets,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken);
@@ -77,7 +76,7 @@ internal interface IMailWakeBatchStore
     /// </summary>
     Task<bool> TryRecordTargetOutcomeAsync(
         string batchId,
-        AgentSessionGeneration target,
+        string target,
         string ownerId,
         string attemptId,
         string status,
