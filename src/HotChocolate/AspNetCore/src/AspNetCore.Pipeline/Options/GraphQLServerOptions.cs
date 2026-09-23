@@ -39,6 +39,11 @@ public sealed class GraphQLServerOptions
     public bool EnforceGetRequestsPreflightHeader { get; set; }
 
     /// <summary>
+    /// Defines if GraphQL HTTP QUERY requests are allowed.
+    /// </summary>
+    public bool EnableQueryRequests { get; set; }
+
+    /// <summary>
     /// Defines if GraphQL HTTP Multipart requests are allowed.
     /// </summary>
     public bool EnableMultipartRequests { get; set; } = true;
@@ -91,6 +96,7 @@ public sealed class GraphQLServerOptions
             EnableSchemaFileSupport = EnableSchemaFileSupport,
             EnableGetRequests = EnableGetRequests,
             EnforceGetRequestsPreflightHeader = EnforceGetRequestsPreflightHeader,
+            EnableQueryRequests = EnableQueryRequests,
             EnableMultipartRequests = EnableMultipartRequests,
             EnforceMultipartRequestsPreflightHeader = EnforceMultipartRequestsPreflightHeader,
             EnforceNullVariableValuesForMultipartFileUpload = EnforceNullVariableValuesForMultipartFileUpload,

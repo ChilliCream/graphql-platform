@@ -1,6 +1,6 @@
 ---
 title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
-description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, and configure wide operation limits."
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, and review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header."
 ---
 
 Update every Hot Chocolate Fusion package in the application to version 16.7 before applying these changes.
@@ -94,6 +94,16 @@ This default is a composition setting, not a gateway runtime option: `FusionCost
 ```
 
 See [Composition](../composition.md#default-list-size) for details.
+
+## The gateway refuses operations the request does not allow
+
+The gateway now applies the same request checks as a Hot Chocolate server before it executes an operation:
+
+- A mutation sent over HTTP GET has a `405 Method Not Allowed` status code with `Allow: POST`. Previously the gateway executed it. `AllowedGetOperations` controls which operation kinds GET accepts.
+- A subscription, or an operation that uses `@defer` or `@stream`, whose `Accept` header names no media type that supports incremental delivery has a `406 Not Acceptable` status code. Previously the gateway executed the operation.
+- When `EnableQueryRequests` is `true`, a mutation or subscription sent over HTTP QUERY has a `422 Unprocessable Content` status code.
+
+Send mutations over POST, or set `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation` to keep accepting them over GET. Send an `Accept` header that includes `multipart/mixed` or `text/event-stream` with operations that use incremental delivery.
 
 # Deprecations
 

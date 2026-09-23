@@ -2,6 +2,8 @@ namespace HotChocolate.AspNetCore;
 
 internal static class HttpHeaderValues
 {
+    public const string AcceptQueryMediaTypes = "application/json";
+
     public const string IncludeOperationPlan = "1";
 
     public const string NoCache = "no-cache";

@@ -22,7 +22,7 @@ When the client sends `Accept: application/json`, the response `Content-Type` is
 
 # Types of Requests
 
-GraphQL requests over HTTP can be performed via either the POST or GET HTTP verb.
+GraphQL requests over HTTP can be performed via the POST, GET, or QUERY HTTP verb.
 
 ## POST Requests
 
@@ -106,6 +106,35 @@ Content-Type: application/json
 > \{query\} and \{operationName\} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the \{operationName\} being the string "null". If a literal null is desired, the parameter (e.g. \{operationName\}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
+
+## QUERY Requests
+
+GraphQL can also be served through an HTTP QUERY request, the method defined in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html). A QUERY request carries the same JSON body as a POST request. HTTP defines QUERY as safe, idempotent, and cacheable.
+
+QUERY requests are disabled by default. Enable them with `EnableQueryRequests`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyServerOptions(o => o.EnableQueryRequests = true);
+```
+
+```http
+QUERY /graphql
+Content-Type: application/json
+Accept: application/graphql-response+json
+
+{
+  "query": "query($id: ID!) { user(id: $id) { name } }",
+  "variables": { "id": "QVBJcy5ndXJ1" }
+}
+```
+
+A QUERY request executes a single query operation. A mutation or subscription is refused with status code `422 Unprocessable Content`. A request batch, an operation batch (`?batchOperations=`), or a variable batch is refused with status code `400 Bad Request`. Incremental delivery (`@defer` and `@stream`) works as it does for GET requests.
+
+The request body must be `application/json`. Under `Draft20260903`, a QUERY request with another `Content-Type` has a `415 Unsupported Media Type` status code, the `Allow` header of the `405 Method Not Allowed` and `OPTIONS` responses lists `QUERY`, and the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, which advertises the method and the body media type it accepts.
+
+QUERY support follows the [proposed addition](https://github.com/graphql/graphql-over-http/pull/411) to the GraphQL over HTTP specification, which is not yet merged.
 
 # DefaultHttpResponseFormatter
 
@@ -355,6 +384,7 @@ A value outside this list throws an `ArgumentOutOfRangeException` when the forma
 - A result that carries both `data` and `errors` has a `294` status code. Under `Draft20250508`, it has a `200` status code.
 - A request the server read but cannot execute has a `422` status code: a request that is not a well-formed GraphQL over HTTP request, a document that fails validation, an operation that cannot be determined, and variables that cannot be coerced. Under `Draft20250508`, these requests have a `400` status code for `application/graphql-response+json`; for `application/json`, only the request that is not well-formed has a `400` status code and the others have `200`. A request body that is not valid JSON has a `400` status code under both. A GraphQL document that cannot be parsed has a `400` status code under both for `application/graphql-response+json`, and a `200` status code under `Draft20250508` for `application/json`.
 - A request on the GraphQL endpoint whose method the endpoint does not support has a `405` status code and an `Allow` header listing the supported methods, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, all three have a `404` status code.
+- When `EnableQueryRequests` is `true`, the `Allow` header lists `QUERY`, the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, and a `QUERY` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, that request has a `404` status code.
 
 > [!NOTE]
 > `294` is not registered with IANA. Clients and intermediaries that do not recognize it treat it as `200` per RFC 9110, and it is not heuristically cacheable, so a response without cache headers is not stored. Infrastructure that acts on a fixed list of status codes can still treat it differently from `200`. nginx's `add_header` directive, for example, emits headers only for a fixed list of codes unless the `always` flag is set, so CORS and security headers added that way are missing on a `294` response. Before enabling `Draft20260903`, verify that headers and caching behave as intended for `294` through your own infrastructure.
