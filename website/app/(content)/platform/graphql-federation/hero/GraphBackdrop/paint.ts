@@ -80,16 +80,26 @@ function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   const h = rect.height + pad * 2;
   const cx = x + w / 2;
   const cy = y + h / 2;
-  const inner = Math.hypot(w, h) / 2;
-  const outer = inner + 190;
-  const grad = ctx.createRadialGradient(cx, cy, inner * 0.8, cx, cy, outer);
-  grad.addColorStop(0, rgba(NAVY, 0.88));
+  // A soft ellipse hugging the padded rect's own aspect, fading out over
+  // ~125px beyond it, instead of a circle sized off the rect's diagonal
+  // (which used to balloon out to the full viewport height on a wide,
+  // short copy block).
+  const extend = 125;
+  const rx = w / 2 + extend;
+  const ry = h / 2 + extend;
+  const innerFrac = (w / 2 / rx + h / 2 / ry) / 2;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(rx, ry);
+  const grad = ctx.createRadialGradient(0, 0, innerFrac, 0, 0, 1);
+  grad.addColorStop(0, rgba(NAVY, 0.8));
   grad.addColorStop(1, rgba(NAVY, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(cx, cy, outer, 0, Math.PI * 2);
+  ctx.arc(0, 0, 1, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = rgba(NAVY, 0.97);
+  ctx.restore();
+  ctx.fillStyle = rgba(NAVY, 0.8);
   ctx.fillRect(x, y, w, h);
 }
 

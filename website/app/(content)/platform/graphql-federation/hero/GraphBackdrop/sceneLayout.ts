@@ -21,15 +21,17 @@ export function modeForSize(w: number): LayoutMode {
 export function buildScene(w: number, h: number): Scene {
   const mode = modeForSize(w);
   const originX = w / 2;
+  // The camera looks at the viewport's own vertical centre in both modes
+  // (matching the vertically centred copy); the gateway and the cluster
+  // bands carry their own world-space Y offset in graph.ts instead of the
+  // whole camera being shifted, which used to push the upper cluster band
+  // off the top of the frame.
+  const originY = h / 2;
   if (mode === "portrait") {
-    // Shifted down so the gateway's coral core clears the copy block
-    // (rendered above it) instead of sitting dead-centre behind the text.
-    const originY = h / 2 + h * 0.12;
-    const camera = makeCamera(originX, originY, Math.max(w, h) * 0.66, 6.8, 6);
+    const camera = makeCamera(originX, originY, Math.max(w, h) * 0.66, 5.5, 6);
     return { camera, mode };
   }
-  const originY = h / 2 + h * 0.27;
-  const camera = makeCamera(originX, originY, Math.max(w, h) * 0.6, 8.5, 9);
+  const camera = makeCamera(originX, originY, Math.max(w, h) * 0.6, 6.5, 9);
   return { camera, mode };
 }
 

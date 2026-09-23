@@ -62,12 +62,18 @@ export function buildGraph(mode: LayoutMode): GraphModel {
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
 
+  // With the camera now centred on the viewport (sceneLayout.ts), the
+  // gateway region carries its own downward world-space offset so its
+  // coral core lands just below the button row, fully outside the
+  // copy-clear zone, instead of dead-centre behind the copy.
+  const gatewayY = mode === "portrait" ? -3.3 : -2.0;
+
   const gatewayStart = nodes.length;
   for (let i = 0; i < GATEWAY_NODES; i++) {
     const isCore = i === 0;
     const r = isCore ? 0 : 0.35 + rand() * 0.5;
     const theta = rand() * Math.PI * 2;
-    const y = isCore ? 0 : (rand() - 0.5) * 0.6;
+    const y = gatewayY + (isCore ? 0 : (rand() - 0.5) * 0.6);
     nodes.push({
       cluster: -1,
       radius: r,
@@ -89,8 +95,17 @@ export function buildGraph(mode: LayoutMode): GraphModel {
     });
   }
 
-  const clusterRadius = mode === "portrait" ? 2.7 : 3.15;
+  const clusterRadius = mode === "portrait" ? 2.5 : 3.6;
   const clusterSpread = mode === "portrait" ? 1.5 : 1.15;
+  // World-Y bands above and below the (now vertically centred) copy: the
+  // camera's near/far perspective swing displaces the upper band more
+  // than the lower one for the same world offset, so the two magnitudes
+  // are tuned (not identical) to both keep every cluster's centre inside
+  // the 5-95% frame-height band across a full rotation and read as
+  // symmetric strips above and below the copy.
+  const bandBaseUpper = mode === "portrait" ? 1.1 : 0.55;
+  const bandBaseLower = mode === "portrait" ? 1.3 : 0.8;
+  const bandJitter = mode === "portrait" ? 0.2 : 0.08;
   const entryNodes: number[] = [];
 
   for (let c = 0; c < CLUSTER_COUNT; c++) {
@@ -99,18 +114,10 @@ export function buildGraph(mode: LayoutMode): GraphModel {
     // only in portrait), so the ring reads as filling the viewport's
     // height instead of hugging the copy's own horizontal band.
     const band = c % 2 === 0 ? -1 : 1;
-    // The upper band needs a much larger world offset than the lower one:
-    // the copy block eats most of the portrait viewport's top half, so
-    // the cluster above it has to sit much further out to clear the
-    // copy-clear zone and land in the narrow strip under the header.
     const centerY =
-      mode === "portrait"
-        ? band === 1
-          ? 4.6 + rand() * 0.9
-          : -(1.5 + rand() * 0.4)
-        : band === 1
-          ? 2.3 + rand() * 0.6 // upper band, toward the header
-          : -(1.5 + rand() * 0.4); // lower band, toward the gateway
+      band === 1
+        ? bandBaseUpper + rand() * bandJitter // upper band, toward the header
+        : -(bandBaseLower + rand() * bandJitter); // lower band, toward the gateway
     const tint = CLUSTER_TINTS[c % CLUSTER_TINTS.length];
     const start = nodes.length;
     for (let i = 0; i < NODES_PER_CLUSTER; i++) {
