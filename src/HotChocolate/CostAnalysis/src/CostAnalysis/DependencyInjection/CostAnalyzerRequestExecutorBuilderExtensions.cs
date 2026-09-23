@@ -75,6 +75,9 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                             schemaIndexOptions);
                     });
 
+                    // RequestCostOptions is obsolete but GetCostOptions() still needs a schema-level
+                    // value for backward compatibility.
+#pragma warning disable CS0618
                     services.TryAddSingleton(sp =>
                     {
                         var requestOptions = sp.GetRequiredService<CostOptions>();
@@ -85,6 +88,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                             requestOptions.SkipAnalyzer,
                             requestOptions.MaxResponseSize);
                     });
+#pragma warning restore CS0618
                 })
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()

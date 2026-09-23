@@ -13,7 +13,7 @@ namespace HotChocolate.CostAnalysis;
 
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
-    [SchemaService] RequestCostOptions options,
+    [SchemaService] CostOptions costOptions,
     [SchemaService] Schema schema,
     [SchemaService] CostSchemaIndex schemaIndex,
     [SchemaService] CostPlanCache cache,
@@ -22,8 +22,8 @@ internal sealed class CostAnalyzerMiddleware(
 {
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        var requestOptions = context.TryGetCostOptions() ?? options;
-        var mode = context.GetCostAnalyzerMode(requestOptions);
+        var requestOptions = ResolveRequestOptions(context);
+        var mode = context.GetCostAnalyzerMode(requestOptions.SkipAnalyzer, requestOptions.EnforceCostLimits);
 
         if (mode == CostAnalyzerMode.Skip)
         {
@@ -32,7 +32,7 @@ internal sealed class CostAnalyzerMiddleware(
         }
 
         // A request can override the response-size limit only if the schema enables the analysis.
-        if (requestOptions.MaxResponseSize.HasValue && !options.MaxResponseSize.HasValue)
+        if (requestOptions.MaxResponseSize.HasValue && !costOptions.MaxResponseSize.HasValue)
         {
             context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
             return;
@@ -70,7 +70,7 @@ internal sealed class CostAnalyzerMiddleware(
 
                     var analyses = CostAnalyses.Cost;
 
-                    if (options.MaxResponseSize.HasValue)
+                    if (costOptions.MaxResponseSize.HasValue)
                     {
                         analyses |= CostAnalyses.ResponseSize;
                     }
@@ -178,8 +178,39 @@ internal sealed class CostAnalyzerMiddleware(
         return builder.MoveToImmutable();
     }
 
+    /// <summary>
+    /// Resolves the effective cost options for the request: a copy of the schema's cost options
+    /// with the legacy <see cref="RequestCostOptions"/> value (if the request set one) applied,
+    /// followed by every ModifyCostOptions modifier added to the request, in order.
+    /// </summary>
+    private CostOptions ResolveRequestOptions(RequestContext context)
+    {
+        var legacyOptions = context.TryGetCostOptions();
+        var hasModifiers = context.TryGetCostOptionsModifiers(out var modifiers);
+
+        if (legacyOptions is null && !hasModifiers)
+        {
+            return costOptions;
+        }
+
+        var effectiveOptions = costOptions.Copy();
+
+        if (legacyOptions is not null)
+        {
+            effectiveOptions.MaxFieldCost = legacyOptions.MaxFieldCost;
+            effectiveOptions.MaxTypeCost = legacyOptions.MaxTypeCost;
+            effectiveOptions.EnforceCostLimits = legacyOptions.EnforceCostLimits;
+            effectiveOptions.SkipAnalyzer = legacyOptions.SkipAnalyzer;
+            effectiveOptions.MaxResponseSize = legacyOptions.MaxResponseSize;
+        }
+
+        modifiers?.Apply(effectiveOptions);
+
+        return effectiveOptions;
+    }
+
     private static bool TryCreateVariableBatchEnforcementError(
-        RequestCostOptions requestOptions,
+        CostOptions requestOptions,
         ImmutableArray<CostMetrics> costMetrics,
         bool reportMetrics,
         [NotNullWhen(true)]
@@ -241,7 +272,7 @@ internal sealed class CostAnalyzerMiddleware(
     }
 
     private static bool TryCreateEnforcementError(
-        RequestCostOptions requestOptions,
+        CostOptions requestOptions,
         CostMetrics costMetrics,
         bool reportMetrics,
         [NotNullWhen(true)]
@@ -286,7 +317,7 @@ internal sealed class CostAnalyzerMiddleware(
         return new RequestMiddlewareConfiguration(
             (core, next) =>
             {
-                var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
+                var costOptions = core.SchemaServices.GetRequiredService<CostOptions>();
                 var schema = core.SchemaServices.GetRequiredService<Schema>();
                 var schemaIndex = core.SchemaServices.GetRequiredService<CostSchemaIndex>();
                 var cache = core.SchemaServices.GetRequiredService<CostPlanCache>();
@@ -295,7 +326,7 @@ internal sealed class CostAnalyzerMiddleware(
 
                 var middleware = new CostAnalyzerMiddleware(
                     next,
-                    options,
+                    costOptions,
                     schema,
                     schemaIndex,
                     cache,

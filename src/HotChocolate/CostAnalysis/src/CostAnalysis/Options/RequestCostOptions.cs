@@ -3,6 +3,9 @@ namespace HotChocolate.CostAnalysis;
 /// <summary>
 /// Request options for cost analysis.
 /// </summary>
+[Obsolete(
+    "Use ModifyCostOptions(Action<CostOptions>) on OperationRequestBuilder or RequestContext "
+    + "instead. Removed in 17.0.")]
 public record RequestCostOptions
 {
     private bool _enforceCostLimits;

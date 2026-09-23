@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.CostAnalysis;
+using HotChocolate.Features;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -70,12 +71,12 @@ public static class CostAnalyzerRequestContextExtensions
 
     internal static CostAnalyzerMode GetCostAnalyzerMode(
         this RequestContext context,
-        RequestCostOptions options)
+        bool skipAnalyzer,
+        bool enforceCostLimits)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(options);
 
-        if (options.SkipAnalyzer)
+        if (skipAnalyzer)
         {
             return CostAnalyzerMode.Skip;
         }
@@ -87,7 +88,7 @@ public static class CostAnalyzerRequestContextExtensions
 
         var flags = CostAnalyzerMode.Analyze;
 
-        if (options.EnforceCostLimits)
+        if (enforceCostLimits)
         {
             flags |= CostAnalyzerMode.Enforce;
         }
@@ -111,6 +112,7 @@ public static class CostAnalyzerRequestContextExtensions
     /// <returns>
     /// Returns the cost options.
     /// </returns>
+#pragma warning disable CS0618 // RequestCostOptions is obsolete but this reader stays for backward compatibility.
     public static RequestCostOptions GetCostOptions(this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -158,6 +160,9 @@ public static class CostAnalyzerRequestContextExtensions
     /// <param name="options">
     /// The cost options.
     /// </param>
+    [Obsolete(
+        "Use ModifyCostOptions(Action<CostOptions>) instead. Removed in 17.0. If the request "
+        + "also has ModifyCostOptions modifiers, the modifiers are applied on top of this value.")]
     public static void SetCostOptions(this RequestContext context, RequestCostOptions options)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -178,6 +183,9 @@ public static class CostAnalyzerRequestContextExtensions
     /// <returns>
     /// Returns the operation request builder.
     /// </returns>
+    [Obsolete(
+        "Use ModifyCostOptions(Action<CostOptions>) instead. Removed in 17.0. If the request "
+        + "also has ModifyCostOptions modifiers, the modifiers are applied on top of this value.")]
     public static OperationRequestBuilder SetCostOptions(
         this OperationRequestBuilder builder,
         RequestCostOptions options)
@@ -188,4 +196,70 @@ public static class CostAnalyzerRequestContextExtensions
         builder.Features.Set(options);
         return builder;
     }
+#pragma warning restore CS0618
+
+    /// <summary>
+    /// Adds a modifier that mutates a per-request copy of the schema's cost options.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate that mutates the per-request cost options. Changes to
+    /// <see cref="CostOptions.ApplyCostDefaults"/>, <see cref="CostOptions.CostPlanCacheSize"/>,
+    /// <see cref="CostOptions.Filtering"/>, and <see cref="CostOptions.Sorting"/> have no effect,
+    /// those settings apply to the schema only. Modifiers added to the same request run in the
+    /// order they were added.
+    /// </param>
+    /// <returns>
+    /// Returns the request context.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="configure"/> is <see langword="null"/>.
+    /// </exception>
+    public static RequestContext ModifyCostOptions(
+        this RequestContext context,
+        Action<CostOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        context.Features.GetOrSet<CostOptionsModifiers>().Add(configure);
+        return context;
+    }
+
+    /// <summary>
+    /// Adds a modifier that mutates a per-request copy of the schema's cost options.
+    /// </summary>
+    /// <param name="builder">
+    /// The operation request builder.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate that mutates the per-request cost options. Changes to
+    /// <see cref="CostOptions.ApplyCostDefaults"/>, <see cref="CostOptions.CostPlanCacheSize"/>,
+    /// <see cref="CostOptions.Filtering"/>, and <see cref="CostOptions.Sorting"/> have no effect,
+    /// those settings apply to the schema only. Modifiers added to the same request run in the
+    /// order they were added.
+    /// </param>
+    /// <returns>
+    /// Returns the operation request builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configure"/> is <see langword="null"/>.
+    /// </exception>
+    public static OperationRequestBuilder ModifyCostOptions(
+        this OperationRequestBuilder builder,
+        Action<CostOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Features.GetOrSet<CostOptionsModifiers>().Add(configure);
+        return builder;
+    }
+
+    internal static bool TryGetCostOptionsModifiers(
+        this RequestContext context,
+        [NotNullWhen(true)] out CostOptionsModifiers? modifiers)
+        => context.Features.TryGet(out modifiers);
 }

@@ -174,4 +174,38 @@ public sealed class CostOptions
     /// (<see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/>).
     /// </summary>
     public CaseBudgetExceededBehavior? CaseBudgetExceededBehavior { get; set; }
+
+    /// <summary>
+    /// Creates a copy of these cost options.
+    /// </summary>
+    /// <returns>
+    /// Returns a new <see cref="CostOptions"/> with the same values.
+    /// </returns>
+    internal CostOptions Copy()
+    {
+        var copy = new CostOptions
+        {
+            MaxFieldCost = MaxFieldCost,
+            MaxTypeCost = MaxTypeCost,
+            EnforceCostLimits = EnforceCostLimits,
+            SkipAnalyzer = SkipAnalyzer,
+            ApplyCostDefaults = ApplyCostDefaults,
+            ApplySlicingArgumentDefaultValue = ApplySlicingArgumentDefaultValue,
+            DefaultResolverCost = DefaultResolverCost,
+            DefaultListSize = DefaultListSize,
+            CostPlanCacheSize = CostPlanCacheSize,
+            MaxResponseSize = MaxResponseSize,
+            CaseBudget = CaseBudget,
+            CaseBudgetExceededBehavior = CaseBudgetExceededBehavior
+        };
+
+        copy.Filtering.DefaultFilterArgumentCost = Filtering.DefaultFilterArgumentCost;
+        copy.Filtering.DefaultFilterOperationCost = Filtering.DefaultFilterOperationCost;
+        copy.Filtering.DefaultExpensiveFilterOperationCost = Filtering.DefaultExpensiveFilterOperationCost;
+
+        copy.Sorting.DefaultSortArgumentCost = Sorting.DefaultSortArgumentCost;
+        copy.Sorting.DefaultSortOperationCost = Sorting.DefaultSortOperationCost;
+
+        return copy;
+    }
 }
