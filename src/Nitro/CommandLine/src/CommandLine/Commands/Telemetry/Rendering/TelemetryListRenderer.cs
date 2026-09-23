@@ -36,12 +36,6 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
             ? emptyResultHint
             : CreateHint(items.Count, total, hasMore);
 
-        if (console.OutputFormat is OutputFormat.Ndjson)
-        {
-            RenderNdjson(items, jsonTypeInfo);
-            return;
-        }
-
         if (console.IsAgentMode || console.OutputFormat is OutputFormat.Json)
         {
             RenderJsonEnvelope(items, total, hasMore, hint, jsonTypeInfo);
@@ -63,16 +57,6 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
             : $"showing {returned} (more)";
 
         return $"{shown}, {NarrowingHint}";
-    }
-
-    private void RenderNdjson<TItem>(
-        IReadOnlyList<TItem> items,
-        JsonTypeInfo<TItem> jsonTypeInfo)
-    {
-        foreach (var item in items)
-        {
-            console.WriteRawLine(Serialize(item, jsonTypeInfo));
-        }
     }
 
     private void RenderJsonEnvelope<TItem>(

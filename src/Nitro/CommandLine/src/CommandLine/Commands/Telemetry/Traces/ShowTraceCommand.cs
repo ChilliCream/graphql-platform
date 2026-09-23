@@ -27,7 +27,7 @@ internal sealed class ShowTraceCommand : Command
         Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
         Options.Add(Opt<OptionalCloudUrlOption>.Instance);
         Options.Add(Opt<OptionalApiKeyOption>.Instance);
-        Options.Add(Opt<TelemetryOutputFormatOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples("telemetry traces show \"<trace-id>\"");
 
@@ -42,16 +42,6 @@ internal sealed class ShowTraceCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
-
-        ConfigureOutput(console, parseResult);
-
-        if (console.OutputFormat is OutputFormat.Ndjson)
-        {
-            return TelemetryErrorRenderer.Render(
-                console,
-                "The traces show command does not support ndjson output.",
-                "use --output json or omit --output.");
-        }
 
         if (!TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
@@ -99,14 +89,6 @@ internal sealed class ShowTraceCommand : Command
         }
 
         return ExitCodes.Success;
-    }
-
-    private static void ConfigureOutput(INitroConsole console, ParseResult parseResult)
-    {
-        if (parseResult.GetValue(Opt<TelemetryOutputFormatOption>.Instance) is { } output)
-        {
-            console.SetOutputFormat(output);
-        }
     }
 
     private static bool TryGetWorkspaceId(

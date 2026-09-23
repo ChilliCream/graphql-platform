@@ -4,6 +4,7 @@ using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
@@ -179,20 +180,6 @@ public sealed class ShowTraceCommandTests
     }
 
     [Fact]
-    public async Task Execute_Should_RejectNdjsonOutput()
-    {
-        // arrange
-        var client = CreateClient(CreateTrace());
-
-        // act
-        var result = await ExecuteAsync(client, commandArguments: ["--output", "ndjson"]);
-
-        // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Contains("does not support ndjson", result.StdErr, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public async Task Execute_Should_ReportOverviewDisplayCap()
     {
         // arrange
@@ -304,6 +291,11 @@ public sealed class ShowTraceCommandTests
         var arguments = new List<string> { "traces", "show", "trace-id", "--api-key", "key", "--workspace-id", "workspace" };
         arguments.AddRange(commandArguments);
         var parseResult = root.Parse(arguments.ToArray());
+        if (parseResult.GetValue(Opt<OptionalOutputFormatOption>.Instance) is { } outputFormat)
+        {
+            console.SetOutputFormat(outputFormat);
+        }
+
         var exitCode = await parseResult.InvokeAsync(
             new InvocationConfiguration
             {

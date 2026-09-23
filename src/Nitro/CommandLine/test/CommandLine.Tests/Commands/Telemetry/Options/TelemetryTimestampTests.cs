@@ -273,7 +273,6 @@ public sealed class TelemetryTimestampTests
         command.Options.Add(new TelemetrySeverityOption());
         command.Options.Add(new TelemetryTraceIdOption());
         command.Options.Add(new TelemetrySearchOption());
-        command.Options.Add(new TelemetryOutputFormatOption());
 
         // act
         var result = command.Parse(
@@ -291,8 +290,7 @@ public sealed class TelemetryTimestampTests
             "--span-kind", "CLIENT",
             "--severity", "warn",
             "--trace-id", "trace-1",
-            "--search", "checkout",
-            "--output", "ndjson"
+            "--search", "checkout"
         ]);
 
         // assert

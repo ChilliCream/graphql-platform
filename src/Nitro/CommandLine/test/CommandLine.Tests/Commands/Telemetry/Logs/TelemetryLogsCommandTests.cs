@@ -147,28 +147,6 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task List_Should_WriteAllLogFieldsAsNdjson_When_Requested()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        SetupListLogs(logs: [CreateLogRow()]);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--output",
-            "ndjson");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {"id":"log-1","epoch":1767225600123,"severityText":"ERROR","severityNumber":17,"serviceName":"products","body":"Request failed","traceId":"trace-1","spanId":"span-1"}
-            """);
-    }
-
-    [Fact]
     public async Task List_Should_WriteEmptyResult_When_NoLogsExist()
     {
         // arrange

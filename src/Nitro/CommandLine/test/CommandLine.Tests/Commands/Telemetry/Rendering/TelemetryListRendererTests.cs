@@ -39,31 +39,6 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_Should_WriteOneItemPerLine_When_OutputIsNdjson()
-    {
-        // arrange
-        var (console, output, _) = CreateConsole();
-        console.SetOutputFormat(OutputFormat.Ndjson);
-        var renderer = new TelemetryListRenderer(console);
-
-        // act
-        renderer.Render(
-            [new Sample("first", "First"), new Sample("second", "Second")],
-            total: 2,
-            hasMore: false,
-            things: "traces",
-            TelemetryListRendererJsonContext.Default.Sample,
-            new TelemetryListColumn<Sample>("Id", item => item.Id));
-
-        // assert
-        output.ToString().TrimEnd().MatchInlineSnapshot(
-            """
-            {"id":"first","name":"First"}
-            {"id":"second","name":"Second"}
-            """);
-    }
-
-    [Fact]
     public void Render_Should_WriteEnvelope_When_OutputIsJson()
     {
         // arrange

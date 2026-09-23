@@ -35,7 +35,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
               --limit <limit>          The maximum number of results to show [env: NITRO_LIMIT]
               --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json|ndjson>   The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
             Example:
@@ -170,28 +170,6 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
             status:!
                    ^
             hint: status:error http.status_code:>=500; -service.version:"1.0.0" duration:>=1000; @event.exception.type:"TimeoutError"
-            """);
-    }
-
-    [Fact]
-    public async Task List_Should_WriteNdjson_When_Requested()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        SetupListServices(services: [CreateService()]);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list",
-            "--output",
-            "ndjson");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {"name":"products","environments":"production","lastVersion":"1.1.0"}
             """);
     }
 

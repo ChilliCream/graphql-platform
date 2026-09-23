@@ -37,8 +37,6 @@ internal sealed class ShowServiceCommand : Command
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
-        TelemetryCommandOptions.ConfigureOutput(console, parseResult);
-
         if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
             return ExitCodes.Error;

@@ -33,7 +33,7 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
               --limit <limit>                    The maximum number of results to show [env: NITRO_LIMIT]
               --cloud-url <cloud-url>            The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json|ndjson>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              --output <json>                    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                     Show help and usage information
 
             Example:
@@ -94,37 +94,6 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
             {"items":[
             {"key":"service.name","kind":"Resource"}
             ],"returned":1,"total":null,"hasMore":true,"hint":"showing 1 (more), narrow with --since, --service or --filter, or raise --limit"}
-            """);
-    }
-
-    [Fact]
-    public async Task Values_Should_WriteNdjson_When_Requested()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        SetupListAttributeValues(
-            values:
-            [
-                new AttributeValue(null, null, null, "products"),
-                new AttributeValue(null, null, 42, null)
-            ]);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "attributes",
-            "values",
-            "service.name",
-            "--signal",
-            "traces",
-            "--output",
-            "ndjson");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {"value":"products"}
-            {"value":"42"}
             """);
     }
 

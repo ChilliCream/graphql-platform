@@ -1,7 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Attributes;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Services;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 #if !NET9_0_OR_GREATER
@@ -33,15 +33,7 @@ internal static class TelemetryCommandOptions
     {
         command.Options.Add(Opt<OptionalCloudUrlOption>.Instance);
         command.Options.Add(Opt<OptionalApiKeyOption>.Instance);
-        command.Options.Add(Opt<TelemetryOutputFormatOption>.Instance);
-    }
-
-    public static void ConfigureOutput(INitroConsole console, ParseResult parseResult)
-    {
-        if (parseResult.GetValue(Opt<TelemetryOutputFormatOption>.Instance) is { } output)
-        {
-            console.SetOutputFormat(output);
-        }
+        command.Options.Add(Opt<OptionalOutputFormatOption>.Instance);
     }
 
     public static bool TryGetWorkspaceId(
