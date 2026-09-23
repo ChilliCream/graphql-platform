@@ -95,7 +95,7 @@ builder
 | Property                           | Type                          | Default   | Description                                                                                                              |
 | ---------------------------------- | ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `MaxFieldCost`                     | `double`                      | `1_000`   | Maximum allowed field cost.                                                                                              |
-| `MaxTypeCost`                      | `double`                      | `1_000`   | Maximum allowed type cost.                                                                                               |
+| `MaxTypeCost`                      | `double`                      | `10_000`  | Maximum allowed type cost.                                                                                               |
 | `EnforceCostLimits`                | `bool`                        | `true`    | Rejects operations that exceed a configured limit.                                                                       |
 | `SkipAnalyzer`                     | `bool`                        | `false`   | Bypasses cost analysis and reporting.                                                                                    |
 | `ApplyCostDefaults`                | `bool`                        | `true`    | Applies Hot Chocolate cost metadata to the schema.                                                                       |

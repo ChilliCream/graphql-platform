@@ -68,7 +68,7 @@ Direct implementations of `IFusionExecutionDiagnosticEvents` or `IFusionExecutio
 
 ## Cost enforcement is enabled by default
 
-Fusion now enforces a maximum field cost of `1,000` and a maximum type cost of `1,000` in every hosting environment. A request that exceeds either limit returns error code `HC0047` before operation planning.
+Fusion now enforces a maximum field cost of `1,000` and a maximum type cost of `10,000` in every hosting environment. A request that exceeds either limit returns error code `HC0047` before operation planning.
 
 Passing `disableDefaultSecurity: true` disables cost enforcement as part of disabling the gateway's default security. Cost analysis and `GraphQL-Cost` reporting remain available:
 
@@ -144,3 +144,7 @@ The deprecated raw overloads continue to work for operations with at most 64 con
 ## Per-request cost options
 
 A gateway can override `FusionCostOptions` for a single request by attaching a `FusionRequestCostOptions` to it with `OperationRequestBuilder.SetCostOptions`, typically from an `IHttpRequestInterceptor`. See [Per-Request Cost Options](../cost-analysis.md#per-request-cost-options) for the contract.
+
+## Default maximum type cost raised to 10,000
+
+The default maximum type cost is now `10,000`, up from `1,000`. The maximum field cost stays `1,000`.

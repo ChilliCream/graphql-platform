@@ -101,7 +101,7 @@ Type cost counts the weighted objects the response instantiates. The same pagina
 # Type cost: 1 + 1 + 50 + 50 + 50 = 152
 ```
 
-Compare these totals against `MaxFieldCost` and `MaxTypeCost`, both `1_000` by default: an operation whose evaluated field cost or type cost exceeds its limit is rejected with error code `HC0047`, shown under [Rejections and HTTP Status](#rejections-and-http-status).
+Compare these totals against `MaxFieldCost` (`1_000` by default) and `MaxTypeCost` (`10_000` by default): an operation whose evaluated field cost or type cost exceeds its limit is rejected with error code `HC0047`, shown under [Rejections and HTTP Status](#rejections-and-http-status).
 
 ## Variable-Aware Evaluation
 
@@ -348,20 +348,20 @@ Summing the costs prevents a client from splitting an expensive workload among v
 
 ## Cost Options
 
-| Option                             | Default | Contract                                                                                                                                                             |
-| ---------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MaxFieldCost`                     | `1_000` | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                                                   |
-| `MaxTypeCost`                      | `1_000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                                                    |
-| `EnforceCostLimits`                | `true`  | Reject operations that exceed a configured limit.                                                                                                                    |
-| `SkipAnalyzer`                     | `false` | Bypass cost analysis and reporting.                                                                                                                                  |
-| `ApplyCostDefaults`                | `true`  | Apply Hot Chocolate cost metadata to the schema.                                                                                                                     |
-| `ApplySlicingArgumentDefaultValue` | `true`  | Apply the paging default to argument-less evaluated requests.                                                                                                        |
-| `DefaultResolverCost`              | `10.0`  | Weight applied to fields without a pure resolver. `null` disables the default.                                                                                       |
-| `DefaultListSize`                  | `50`    | Size used for list fields without applicable `@listSize` metadata, sourced from `PagingDefaults.MaxPageSize`. Valid range: non-negative finite values or `Infinity`. |
-| `CostPlanCacheSize`                | `256`   | Maximum compiled cost plans cached per schema.                                                                                                                       |
-| `MaxResponseSize`                  | `null`  | Maximum response-object-field count. `null` disables the check and metric. Valid range: `null`, non-negative finite values, or `Infinity`.                           |
-| `CaseBudget`                       | `null`  | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                                          |
-| `CaseBudgetExceededBehavior`       | `null`  | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                                         |
+| Option                             | Default  | Contract                                                                                                                                                             |
+| ---------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxFieldCost`                     | `1_000`  | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                                                   |
+| `MaxTypeCost`                      | `10_000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                                                    |
+| `EnforceCostLimits`                | `true`   | Reject operations that exceed a configured limit.                                                                                                                    |
+| `SkipAnalyzer`                     | `false`  | Bypass cost analysis and reporting.                                                                                                                                  |
+| `ApplyCostDefaults`                | `true`   | Apply Hot Chocolate cost metadata to the schema.                                                                                                                     |
+| `ApplySlicingArgumentDefaultValue` | `true`   | Apply the paging default to argument-less evaluated requests.                                                                                                        |
+| `DefaultResolverCost`              | `10.0`   | Weight applied to fields without a pure resolver. `null` disables the default.                                                                                       |
+| `DefaultListSize`                  | `50`     | Size used for list fields without applicable `@listSize` metadata, sourced from `PagingDefaults.MaxPageSize`. Valid range: non-negative finite values or `Infinity`. |
+| `CostPlanCacheSize`                | `256`    | Maximum compiled cost plans cached per schema.                                                                                                                       |
+| `MaxResponseSize`                  | `null`   | Maximum response-object-field count. `null` disables the check and metric. Valid range: `null`, non-negative finite values, or `Infinity`.                           |
+| `CaseBudget`                       | `null`   | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                                          |
+| `CaseBudgetExceededBehavior`       | `null`   | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                                         |
 
 ```csharp
 builder
