@@ -86,7 +86,7 @@ In 16.6, the default order was `OperationCache -> OperationResolver -> SkipWarmu
      .UseOperationExecution();
 ```
 
-`OperationVariableCoercion` and `CostAnalyzer` no longer special-case warmup requests: `SkipWarmupExecution` is the only stage that checks whether a request is a warmup request, so a warmup request is coerced and cost-analyzed exactly like any other request before that stage stops it from executing. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables fails with the ordinary variable-coercion error. The assumed bound is not exposed through the request pipeline.
+`OperationVariableCoercion` and `CostAnalyzer` no longer special-case warmup requests: `SkipWarmupExecution` is the only stage that checks whether a request is a warmup request, so a warmup request is coerced and cost-analyzed exactly like any other request before that stage stops it from executing. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report`; a `validate` request without required variables fails with the ordinary variable-coercion error.
 
 ## Omitted list-size requirement now enforces
 
@@ -253,7 +253,7 @@ The default maximum type cost is now `10,000`, up from `1,000`. The maximum fiel
 
 ## Reporting and result access
 
-`GraphQL-Cost: validate` always coerces variables and reports the evaluated cost, exactly like `execute`/`report` (2026-09-14 user ruling; the value changes from an earlier 16.7 preview, where `validate` without variables reported the assumed bound instead of coercing). A required variable that is not supplied fails the request with the ordinary variable-coercion error. Coercion succeeding, `validate` does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
+`GraphQL-Cost: validate` always coerces variables and reports the evaluated cost, exactly like `execute`/`report`. A required variable that is not supplied fails the request with the ordinary variable-coercion error. Coercion succeeding, `validate` does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
 
 Positive infinite values in `extensions.operationCost` and cost error extensions are serialized as the JSON string `"Infinity"`. A `GraphQL-Cost: report` rejection includes `operationCost` alongside the error. For a rejected variable batch, the single rejection result contains one `operationCost`: its `fieldCost` and `typeCost` are the sums across all variable sets, and it contains `maxResponseSize` only for a response-size rejection, using the first violating set's value.
 
