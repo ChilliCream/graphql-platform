@@ -144,8 +144,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     public async Task SingleRecipient_Should_SendBodyToItsCurrentSession_When_AnEarlierSessionWasSuperseded()
     {
         // arrange
-        // One agent row per actor means a later session supersedes an
-        // earlier one for the same actor rather than adding a second target.
+        // One agent row per actor, so a later session supersedes an earlier one.
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         SetupInstanceId("host-send-two-sessions-test");

@@ -147,8 +147,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
 
         // assert
-        // exactly one became ready, the other stayed standby, and
-        // their owner tokens never both lead at once.
+        // Exactly one became ready, and the other stayed standby.
         var states = new[] { coordinatorA.Status.State, coordinatorB.Status.State };
         Assert.Single(states, s => s == MailWakeDaemonState.Ready);
         Assert.Single(states, s => s == MailWakeDaemonState.Standby);
@@ -195,8 +194,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     public async Task RunningLeader_Should_DegradeAndReleaseLeadership_When_ItsOwnDispatchIsAccessDenied()
     {
         // arrange
-        // the daemon's own attempt at the only live target is
-        // itself denied Claude socket access.
+        // The only live target denies Claude socket access.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.ClaudePeer, "peer-a", cancellationToken);
@@ -210,8 +208,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Degraded, cancellationToken);
 
         // assert
-        // degraded with the denial recorded, and it does not flap
-        // back to ready on its own within a few more poll cycles.
+        // Degraded with the denial recorded, and it does not flap back to ready.
         Assert.Equal("access-denied", coordinator.Status.LastError);
         await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
         Assert.NotEqual(MailWakeDaemonState.Ready, coordinator.Status.State);
@@ -290,8 +287,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Standby, cancellationToken);
 
         // assert
-        // demoted, and the hung dispatch never got to record a
-        // delivery for the target it was cancelled mid-flight on.
+        // Demoted, and the hung dispatch never recorded a delivery.
         var status = await ReadTargetStatusAsync(actor, cancellationToken);
         Assert.NotEqual(MailWakeTargetStatus.Delivered, status);
         Assert.Null(coordinator.Status.OwnerToken);
@@ -304,8 +300,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     public async Task RunningLeader_Should_AdmitASecondActor_While_TheFirstActorsTransportIsBlocked()
     {
         // arrange
-        // two actors, each with a live session and enqueued mail;
-        // every transport call hangs until cancelled.
+        // Two actors with enqueued mail, and every transport call hangs until cancelled.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var firstActor = await SeedLiveSessionAsync(
@@ -332,8 +327,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         }
 
         // assert
-        // both actors were admitted concurrently, well within
-        // 500 ms of the first call, while neither transport had completed.
+        // Both actors were admitted concurrently, while neither transport had completed.
         Assert.Equal(2, executor.Calls.Select(c => c.ActorName).Distinct().Count());
 
         await coordinator.StopAsync(cancellationToken);
@@ -343,8 +337,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     public async Task StartAsync_Should_BecomeReady_When_TheLeaderStoreIsBusyTwice()
     {
         // arrange
-        // the leader store throws SQLITE_BUSY on the first two
-        // acquire attempts, then succeeds.
+        // The leader store throws SQLITE_BUSY on the first two acquire attempts.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var busyStore = new BusyLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database), busyAcquireCalls: 2);
@@ -355,8 +348,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
 
         // assert
-        // retried through both busy attempts and became ready on the
-        // third, without recording an error.
+        // Retried through both busy attempts and became ready on the third.
         Assert.Equal(3, busyStore.AcquireCalls);
         Assert.Null(coordinator.Status.LastError);
 
@@ -381,8 +373,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             timeout: TimeSpan.FromSeconds(10));
 
         // assert
-        // five attempts exhausted the first tick's busy retries, and
-        // a sixth attempt on the next standby poll succeeded.
+        // Five attempts exhausted the first tick, and a sixth succeeded on the next poll.
         Assert.Equal(6, busyStore.AcquireCalls);
         Assert.Null(coordinator.Status.LastError);
 
@@ -509,8 +500,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await WaitUntilAsync(() => dispatcher.CompletedActors.Distinct().Count() >= actors.Length, cancellationToken);
 
         // assert
-        // the gate's own capacity was actually reached, and never
-        // exceeded, while draining all five actors.
+        // The gate's capacity was reached, and never exceeded, while draining all five actors.
         Assert.Equal(s_fastPolicy.MaxConcurrentActorExecutions, dispatcher.MaxObservedConcurrency);
 
         await coordinator.StopAsync(cancellationToken);

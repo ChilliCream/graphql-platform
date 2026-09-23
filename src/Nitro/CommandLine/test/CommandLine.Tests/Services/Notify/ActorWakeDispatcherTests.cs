@@ -53,8 +53,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     public async Task DispatchAsync_Should_ReturnNull_When_NothingIsOutstanding()
     {
         // arrange
-        // no mail was ever sent with MailWakePolicy.Enqueue, so the
-        // actor has no mail_wake_outbox row at all.
+        // No mail was ever sent, so the actor has no mail_wake_outbox row at all.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -106,8 +105,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert
-        // satisfied, zero, no transport ever attempted, and no
-        // second message row was written.
+        // Satisfied, zero, no transport attempted, and no second message row written.
         Assert.NotNull(receipt);
         Assert.Equal(MailWakeTargetStatus.Satisfied, receipt.Status);
         var target = Assert.Single(receipt.Targets);
@@ -414,8 +412,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     public async Task DispatchAsync_Should_SuppressTheSecondPush_When_TheOpencodeIdleTransitionWasNeverRearmed()
     {
         // arrange
-        // a first dispatch already spent the one-shot idle-push
-        // claim (see DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed).
+        // A first dispatch already spent the one-shot idle-push claim.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await SeedLiveSessionAsync(
@@ -479,8 +476,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, Deadline(), cancellationToken);
 
         // act
-        // once a genuine prompt rearms the gate and the retry becomes
-        // due, the same still-unread mail is delivered.
+        // A genuine prompt rearms the gate, and the retry becomes due.
         await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var rearmedExecutor = new FakePingSessionExecutor();
@@ -509,8 +505,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var busyExecutor = new FakePingSessionExecutor();
 
         // act
-        // the gate is busy, so the target is offered rather than
-        // failed, and no transport is ever attempted.
+        // The gate is busy, so the target is offered rather than failed.
         var busyReceipt = await CreateDispatcher(busyExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
 
         // assert

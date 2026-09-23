@@ -94,8 +94,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        // the slot is free again, so a fresh attempt reclaims the
-        // exact same slot number.
+        // The slot is free again, so a fresh attempt reclaims the exact same slot number.
         var reacquired = await _leases.TryAcquireAsync("attempt-next", now, TimeSpan.FromSeconds(30), cancellationToken);
         Assert.Equal(slot, reacquired);
     }
@@ -221,8 +220,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             actor, "peer-session", attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        // the coarse CHECK-compatible result stays "error", but the
-        // typed reason and detail stay specific.
+        // The coarse CHECK-compatible result stays "error", but the reason and detail stay specific.
         Assert.Equal(AgentPingResult.Error, outcome.Result);
         Assert.Equal(PingAttemptReason.AccessDenied, outcome.Reason);
         Assert.False(outcome.Retryable);
@@ -382,8 +380,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         var executor = CreateExecutor();
 
         // act
-        // startup latency across the process boundary already ate the
-        // whole budget by the time this attempt runs.
+        // Startup latency already ate the whole budget by the time this attempt runs.
         var outcome = await executor.ExecuteCodexThreadAsync(
             actor, ThreadId, attemptId, slot!.Value,
             _timeProvider.GetUtcNow() - TimeSpan.FromSeconds(1), cancellationToken);
@@ -416,8 +413,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        // the pushed payload says unread, the message is still in the
-        // unread inbox, and the unread count is unchanged.
+        // The pushed payload says unread, the message stays in the unread inbox.
         var call = Assert.Single(_queueClient.Calls);
         Assert.False(DigestRead(call.Message));
         var unread = await _mail.QueryInboxAsync(
@@ -549,8 +545,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     public async Task ExecuteOpencodeServerAsync_Should_PingWithoutPushing_When_NoUnreadMailExists()
     {
         // arrange
-        // the mail that triggered this attempt was already read by
-        // the time it ran, so this is a health-only ping, not a delivery.
+        // The mail that triggered this attempt was already read, so this is a health-only ping.
         var cancellationToken = TestContext.Current.CancellationToken;
         var actor = await InitializeOpencodeAgentAsync(secret: null, cancellationToken);
         var attemptId = await ClaimAttemptAsync(actor, cancellationToken);
@@ -624,8 +619,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     public async Task ExecuteOpencodeServerAsync_Should_RecordTimeout_When_ThePushSignalsATimeout()
     {
         // arrange
-        // proves the ok/timeout/error result vocabulary maps
-        // through unchanged for the opencode transport too.
+        // The ok/timeout/error result vocabulary maps through unchanged for opencode too.
         var cancellationToken = TestContext.Current.CancellationToken;
         var actor = await InitializeOpencodeAgentAsync(secret: null, cancellationToken);
         await _mail.SendMessageAsync(
@@ -697,8 +691,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        // the first health-only ping always writes, since there is
-        // no prior recorded state to compare it against.
+        // The first health-only ping always writes, since there is no prior state to compare.
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var row = await _agentStore.FindAsync(actor, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);

@@ -80,8 +80,7 @@ public sealed class SessionGateCoordinatorTests : IDisposable
     public async Task TryReserveAsync_Should_ReturnCapacityDropped_And_ReleaseTheGate_When_EveryLeaseSlotIsHeld()
     {
         // arrange
-        // every one of the four shared lease slots is already held
-        // by unrelated attempts.
+        // Every one of the four shared lease slots is already held by unrelated attempts.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -123,8 +122,7 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         await _coordinator.CompleteAsync(reserved.Reservation!, success: true, now, cancellationToken);
 
         // assert
-        // a fresh attempt against the same target, immediately
-        // after, finds the gate still busy (the cooldown), not free.
+        // A fresh attempt against the same target immediately after finds the gate still busy.
         var retry = await _coordinator.TryReserveAsync(TargetA, "attempt-2", now, cancellationToken);
         Assert.Null(retry.Reservation);
         Assert.Equal(WakeReservationFailure.GateBusy, retry.Failure);
