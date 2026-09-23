@@ -40,7 +40,9 @@ function WindowRow({ status, name, detail, delayClassName }: WindowRowProps) {
   const { node, color } = STATUS[status];
   return (
     <div className="border-cc-card-border flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
-      <span className={`flex h-5 w-5 items-center justify-center ${color}`}>
+      <span
+        className={`flex h-5 w-5 shrink-0 items-center justify-center ${color}`}
+      >
         <RevealOnScroll
           className={`flex ${delayClassName}`}
           hiddenClassName="scale-50 opacity-0 motion-reduce:scale-100"
@@ -70,7 +72,7 @@ function WindowFooter({ ok, children }: WindowFooterProps) {
         ok ? "text-cc-success" : "text-cc-danger"
       }`}
     >
-      <Glyph width={10} height={10} />
+      <Glyph width={10} height={10} className="shrink-0" />
       <span>{children}</span>
     </div>
   );
@@ -147,12 +149,12 @@ const AFTER_ROWS: readonly WindowRowSpec[] = [
 /**
  * Before/after windows for the Problem section, in the release-safety
  * AppWindow style: one release queue on one schema versus subgraphs composed
- * into one composite schema. Stacked by default, side by side from `xl` once
- * there is room for both at 11 px labels.
+ * into one composite schema. Stacked at every width so every row keeps its
+ * 11 px labels on one line.
  */
 export function ProblemWindows() {
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
+    <div className="grid gap-6">
       <StatusWindow
         title="release queue · schema.graphql · one server"
         rows={BEFORE_ROWS}
