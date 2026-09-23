@@ -145,6 +145,6 @@ The deprecated raw overloads continue to work for operations with at most 64 con
 
 A gateway can override `FusionCostOptions` for a single request by attaching a `FusionRequestCostOptions` to it with `OperationRequestBuilder.SetCostOptions`, typically from an `IHttpRequestInterceptor`. See [Per-Request Cost Options](../cost-analysis.md#per-request-cost-options) for the contract.
 
-## Default maximum type cost raised to 10,000
+## Default maximum type cost is 10,000
 
 The default maximum type cost is `10,000` and the default maximum field cost is `1,000`. See [Cost enforcement is enabled by default](#cost-enforcement-is-enabled-by-default).
