@@ -18,14 +18,16 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var outbox = await connection.QueryFirstOrDefaultAsync<OutboxDueRow>(
-            """
-            SELECT requested_generation AS RequestedGeneration, settled_generation AS SettledGeneration,
-                   due_at AS DueAt
-            FROM mail_wake_outbox
-            WHERE actor = @actor
-            """,
-            new { actor, cancellationToken },
-            transaction);
+            new CommandDefinition(
+                """
+                SELECT requested_generation AS RequestedGeneration, settled_generation AS SettledGeneration,
+                       due_at AS DueAt
+                FROM mail_wake_outbox
+                WHERE actor = @actor
+                """,
+                new { actor },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         if (outbox is null
             || outbox.SettledGeneration >= outbox.RequestedGeneration
@@ -37,20 +39,24 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
 
         // Expired active batches are released before another batch is claimed.
         await connection.ExecuteAsync(
-            """
-            UPDATE mail_wake_batches SET status = 'released', last_error = 'lease expired'
-            WHERE actor = @actor AND status = 'active' AND expires_at <= @now
-            """,
-            new { actor, now, cancellationToken },
-            transaction);
+            new CommandDefinition(
+                """
+                UPDATE mail_wake_batches SET status = 'released', last_error = 'lease expired'
+                WHERE actor = @actor AND status = 'active' AND expires_at <= @now
+                """,
+                new { actor, now },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         var activeBatchCount = await connection.ExecuteScalarAsync<long>(
-            """
-            SELECT COUNT(*) FROM mail_wake_batches
-            WHERE actor = @actor AND status = 'active'
-            """,
-            new { actor, cancellationToken },
-            transaction);
+            new CommandDefinition(
+                """
+                SELECT COUNT(*) FROM mail_wake_batches
+                WHERE actor = @actor AND status = 'active'
+                """,
+                new { actor },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         if (activeBatchCount > 0)
         {
@@ -62,37 +68,40 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         var expiresAt = now + leaseDuration;
 
         await connection.ExecuteAsync(
-            """
-            INSERT INTO mail_wake_batches (
-                batch_id, actor, claimed_generation, owner_id, attempt_id,
-                status, claimed_at, expires_at
-            ) VALUES (
-                @batchId, @actor, @claimedGeneration, @ownerId, @attemptId,
-                'active', @now, @expiresAt
-            )
-            """,
-            new
-            {
-                batchId,
-                actor,
-                claimedGeneration = outbox.RequestedGeneration,
-                ownerId,
-                attemptId,
-                now,
-                expiresAt,
-                cancellationToken
-            },
-            transaction);
+            new CommandDefinition(
+                """
+                INSERT INTO mail_wake_batches (
+                    batch_id, actor, claimed_generation, owner_id, attempt_id,
+                    status, claimed_at, expires_at
+                ) VALUES (
+                    @batchId, @actor, @claimedGeneration, @ownerId, @attemptId,
+                    'active', @now, @expiresAt
+                )
+                """,
+                new
+                {
+                    batchId,
+                    actor,
+                    claimedGeneration = outbox.RequestedGeneration,
+                    ownerId,
+                    attemptId,
+                    now,
+                    expiresAt
+                },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         foreach (var target in targets)
         {
             await connection.ExecuteAsync(
-                """
-                INSERT INTO mail_wake_targets (batch_id, agent, status, updated_at)
-                VALUES (@batchId, @target, 'pending', @now)
-                """,
-                new { batchId, target, now, cancellationToken },
-                transaction);
+                new CommandDefinition(
+                    """
+                    INSERT INTO mail_wake_targets (batch_id, agent, status, updated_at)
+                    VALUES (@batchId, @target, 'pending', @now)
+                    """,
+                    new { batchId, target, now },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken));
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -111,13 +120,15 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await using var connection = await ConnectAsync(cancellationToken);
 
         var renewedBatchId = await connection.QueryFirstOrDefaultAsync<string>(
-            """
-            UPDATE mail_wake_batches SET expires_at = @expiresAt
-            WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
-              AND status = 'active' AND expires_at > @now
-            RETURNING batch_id
-            """,
-            new { batchId, ownerId, attemptId, now, expiresAt = now + leaseDuration, cancellationToken });
+            new CommandDefinition(
+                """
+                UPDATE mail_wake_batches SET expires_at = @expiresAt
+                WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
+                  AND status = 'active' AND expires_at > @now
+                RETURNING batch_id
+                """,
+                new { batchId, ownerId, attemptId, now, expiresAt = now + leaseDuration },
+                cancellationToken: cancellationToken));
 
         return renewedBatchId is not null;
     }
@@ -133,14 +144,16 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var completed = await connection.QueryFirstOrDefaultAsync<CompletedBatchRow>(
-            """
-            UPDATE mail_wake_batches SET status = 'completed', completed_at = @now
-            WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
-              AND status = 'active' AND expires_at > @now
-            RETURNING actor AS Actor, claimed_generation AS ClaimedGeneration
-            """,
-            new { batchId, ownerId, attemptId, now, cancellationToken },
-            transaction);
+            new CommandDefinition(
+                """
+                UPDATE mail_wake_batches SET status = 'completed', completed_at = @now
+                WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
+                  AND status = 'active' AND expires_at > @now
+                RETURNING actor AS Actor, claimed_generation AS ClaimedGeneration
+                """,
+                new { batchId, ownerId, attemptId, now },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         if (completed is null)
         {
@@ -150,19 +163,20 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
 
         // Completion settles through the claimed generation without lowering existing settlement.
         await connection.ExecuteAsync(
-            """
-            UPDATE mail_wake_outbox
-            SET settled_generation = MAX(settled_generation, @claimedGeneration), updated_at = @now
-            WHERE actor = @actor
-            """,
-            new
-            {
-                claimedGeneration = completed.ClaimedGeneration,
-                now,
-                actor = completed.Actor,
-                cancellationToken
-            },
-            transaction);
+            new CommandDefinition(
+                """
+                UPDATE mail_wake_outbox
+                SET settled_generation = MAX(settled_generation, @claimedGeneration), updated_at = @now
+                WHERE actor = @actor
+                """,
+                new
+                {
+                    claimedGeneration = completed.ClaimedGeneration,
+                    now,
+                    actor = completed.Actor
+                },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         await transaction.CommitAsync(cancellationToken);
         return true;
@@ -181,14 +195,16 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var released = await connection.QueryFirstOrDefaultAsync<ReleasedBatchRow>(
-            """
-            UPDATE mail_wake_batches SET status = 'released', last_error = @lastError
-            WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
-              AND status = 'active' AND expires_at > @now
-            RETURNING actor AS Actor
-            """,
-            new { batchId, ownerId, attemptId, now, lastError, cancellationToken },
-            transaction);
+            new CommandDefinition(
+                """
+                UPDATE mail_wake_batches SET status = 'released', last_error = @lastError
+                WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
+                  AND status = 'active' AND expires_at > @now
+                RETURNING actor AS Actor
+                """,
+                new { batchId, ownerId, attemptId, now, lastError },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
         if (released is null)
         {
@@ -199,12 +215,14 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         if (retryAt is { } retryAtValue)
         {
             await connection.ExecuteAsync(
-                """
-                UPDATE mail_wake_outbox SET due_at = @retryAt, updated_at = @now
-                WHERE actor = @actor
-                """,
-                new { retryAt = retryAtValue, now, actor = released.Actor, cancellationToken },
-                transaction);
+                new CommandDefinition(
+                    """
+                    UPDATE mail_wake_outbox SET due_at = @retryAt, updated_at = @now
+                    WHERE actor = @actor
+                    """,
+                    new { retryAt = retryAtValue, now, actor = released.Actor },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken));
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -226,34 +244,35 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         await using var connection = await ConnectAsync(cancellationToken);
 
         var updatedBatchId = await connection.QueryFirstOrDefaultAsync<string>(
-            """
-            UPDATE mail_wake_targets SET
-                status = @status,
-                offered_generation = @offeredGeneration,
-                accepted_generation = @acceptedGeneration,
-                last_error = @lastError,
-                updated_at = @now
-            WHERE batch_id = @batchId AND agent = @target
-              AND EXISTS (
-                  SELECT 1 FROM mail_wake_batches
-                  WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
-                    AND status = 'active' AND expires_at > @now
-              )
-            RETURNING batch_id
-            """,
-            new
-            {
-                batchId,
-                target,
-                status,
-                offeredGeneration,
-                acceptedGeneration,
-                lastError,
-                now,
-                ownerId,
-                attemptId,
-                cancellationToken
-            });
+            new CommandDefinition(
+                """
+                UPDATE mail_wake_targets SET
+                    status = @status,
+                    offered_generation = @offeredGeneration,
+                    accepted_generation = @acceptedGeneration,
+                    last_error = @lastError,
+                    updated_at = @now
+                WHERE batch_id = @batchId AND agent = @target
+                  AND EXISTS (
+                      SELECT 1 FROM mail_wake_batches
+                      WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
+                        AND status = 'active' AND expires_at > @now
+                  )
+                RETURNING batch_id
+                """,
+                new
+                {
+                    batchId,
+                    target,
+                    status,
+                    offeredGeneration,
+                    acceptedGeneration,
+                    lastError,
+                    now,
+                    ownerId,
+                    attemptId
+                },
+                cancellationToken: cancellationToken));
 
         return updatedBatchId is not null;
     }
