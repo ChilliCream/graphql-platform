@@ -116,9 +116,11 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            "UPDATE agents SET last_seen_at = @now "
-            + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
-            new { now, harness, sessionId, cancellationToken });
+            new CommandDefinition(
+                "UPDATE agents SET last_seen_at = @now "
+                + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
+                new { now, harness, sessionId },
+                cancellationToken: cancellationToken));
 
         return rowsAffected > 0;
     }
@@ -131,8 +133,10 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            "UPDATE agents SET last_seen_at = @now WHERE name = @name AND deleted_at IS NULL",
-            new { now, name = normalizedName, cancellationToken });
+            new CommandDefinition(
+                "UPDATE agents SET last_seen_at = @now WHERE name = @name AND deleted_at IS NULL",
+                new { now, name = normalizedName },
+                cancellationToken: cancellationToken));
 
         return rowsAffected > 0;
     }
@@ -146,9 +150,11 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            "UPDATE agents SET ended_at = @now "
-            + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
-            new { now, harness, sessionId, cancellationToken });
+            new CommandDefinition(
+                "UPDATE agents SET ended_at = @now "
+                + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
+                new { now, harness, sessionId },
+                cancellationToken: cancellationToken));
 
         return rowsAffected > 0;
     }
