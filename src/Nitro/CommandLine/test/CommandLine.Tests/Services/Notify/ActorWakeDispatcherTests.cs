@@ -58,7 +58,9 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
         _globalConfigDirectoryProvider = new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName);
         _mail = new MailStore(
-            _fileSystem, _timeProvider, _database, _agentRegistry, _instanceIdProvider, _globalConfigDirectoryProvider);
+            _fileSystem, _timeProvider, _database,
+            new AgentStore(_fileSystem, _timeProvider, _database), _instanceIdProvider,
+            _globalConfigDirectoryProvider);
         _batches = new MailWakeBatchStore(_fileSystem, _database);
         _gates = new SessionPingGateStore(_fileSystem, _database);
         _leases = new PingLeaseStore(_fileSystem, _database);
@@ -90,6 +92,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // session at all.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.RegisterAsync(Actor, role: "", client: "", cancellationToken);
         await SendEnqueuedMailAsync(cancellationToken);
         var dispatcher = CreateDispatcher(new FakePingSessionExecutor());
 

@@ -55,7 +55,8 @@ public sealed class PingSessionExecutorTests : IDisposable
             _agentRegistry,
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
-        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
+        _mail = new MailStore(
+            _fileSystem, _timeProvider, _database, new AgentStore(_fileSystem, _timeProvider, _database));
         _ledger = new SessionDeliveryLedger(_fileSystem, _database);
         _leases = new PingLeaseStore(_fileSystem, _database);
         _queueClient = new FakeCodexQueueClient();

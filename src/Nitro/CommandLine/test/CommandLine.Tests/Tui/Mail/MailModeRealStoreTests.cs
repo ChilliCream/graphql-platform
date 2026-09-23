@@ -36,7 +36,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
             new TestFileSystem(_workingDirectory),
             _timeProvider,
             new AgentDatabase(),
-            _registry,
+            new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase()),
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workingDirectory));
     }
@@ -156,7 +156,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ComposeForm_Submit_Should_CreateImplicitRow_When_RecipientIsUnknown()
+    public async Task ComposeForm_Submit_Should_ShowErrorToast_When_RecipientIsUnknown()
     {
         // arrange
         // Compose a message to an unregistered recipient.
@@ -176,11 +176,13 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
         // act
-        await WaitForOutcomeToastAsync(mode, cancellationToken);
+        var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
 
         // assert
+        Assert.Equal(ToastStyle.Error, toast.Style);
+        Assert.Equal("Unknown agent 'ghost'. Look the name up with 'nitro agent list'.", toast.Text);
         var ghost = await _registry.GetAsync("ghost", cancellationToken);
-        Assert.True(ghost?.Implicit);
+        Assert.Null(ghost);
     }
 
     [Fact]

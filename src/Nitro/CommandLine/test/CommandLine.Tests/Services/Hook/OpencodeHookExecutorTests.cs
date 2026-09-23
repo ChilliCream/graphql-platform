@@ -199,7 +199,8 @@ public sealed class OpencodeHookExecutorTests
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
             var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var mail = new MailStore(
+                fileSystem, timeProvider, database, new AgentStore(fileSystem, timeProvider, database));
             var environmentVariables = new FixedEnvironmentVariableProvider();
             var handler = new OpencodeHookHandler(
                 fileSystem,
@@ -286,7 +287,8 @@ public sealed class OpencodeHookExecutorTests
                 new FixedInstanceIdProvider("host-1"),
                 new FixedGlobalConfigDirectoryProvider(workspaceRoot));
             var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var mail = new MailStore(
+                fileSystem, timeProvider, database, new AgentStore(fileSystem, timeProvider, database));
             var handler = new OpencodeHookHandler(
                 fileSystem,
                 timeProvider,
