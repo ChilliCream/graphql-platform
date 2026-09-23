@@ -207,13 +207,11 @@ public class CostEnforcementTests : FusionTestBase
             OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
-            requestBuilder.SetCostOptions(
-                new FusionRequestCostOptions(
-                    maxFieldCost: 5_000,
-                    maxTypeCost: 5_000,
-                    enforceCostLimits: true,
-                    skipAnalyzer: false,
-                    maxResponseSize: null));
+            requestBuilder.ModifyCostOptions((FusionCostOptions o) =>
+            {
+                o.MaxFieldCost = 5_000;
+                o.MaxTypeCost = 5_000;
+            });
 
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
