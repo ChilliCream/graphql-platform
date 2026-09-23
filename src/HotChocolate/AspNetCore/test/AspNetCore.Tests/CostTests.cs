@@ -416,6 +416,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
+
     public class VariableBatchCostInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
