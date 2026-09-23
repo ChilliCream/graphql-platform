@@ -1380,6 +1380,60 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task QueryParticipationThreadsAsync_Should_ReturnCompleteSummaries_When_ThreadsHaveRepliesCcReadAndArchived()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
+        var first = await SendAsync("claude", "thread one", ["bob"], ["carol"], cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await _store.ReplyMessageAsync(first.Id, "carol", "reply body", cancellationToken);
+        await _store.MarkReadAsync([first.Id], "bob", cancellationToken);
+        await _store.ArchiveAsync([first.Id], "bob", cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SendAsync("bob", "thread two", ["carol"], null, cancellationToken);
+
+        // act
+        var threads = await _store.QueryParticipationThreadsAsync("bob", limit: null, cancellationToken);
+
+        // assert
+        threads.MatchInlineSnapshot(
+            """
+            [
+              {
+                "ThreadId": "m-9vcfyl",
+                "Subject": "thread two",
+                "MessageCount": 1,
+                "LastMessageAt": "2026-01-10T12:02:00+00:00",
+                "LastSender": "bob",
+                "LastRecipients": [
+                  "carol"
+                ],
+                "BodyPreview": "body",
+                "UnreadCount": 0,
+                "ArchivedCount": 0
+              },
+              {
+                "ThreadId": "m-4hjiuu",
+                "Subject": "thread one",
+                "MessageCount": 2,
+                "LastMessageAt": "2026-01-10T12:01:00+00:00",
+                "LastSender": "carol",
+                "LastRecipients": [
+                  "claude",
+                  "bob"
+                ],
+                "BodyPreview": "reply body",
+                "UnreadCount": 1,
+                "ArchivedCount": 1
+              }
+            ]
+            """);
+    }
+
+    [Fact]
     public async Task ThreadRollup_Should_CollapseWhitespaceAndTruncate_InBodyPreview()
     {
         // arrange
