@@ -8,7 +8,7 @@
  * its own.
  */
 
-import { BRAND, CC } from "@/app/(content)/products/fusion/tokens";
+import { BRAND, CC } from "./tokens";
 
 export const MC = {
   /** Ops-room floor: the page background, so a scene never darkens the page. */

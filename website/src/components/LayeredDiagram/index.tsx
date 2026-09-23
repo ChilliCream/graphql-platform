@@ -2,18 +2,17 @@
 
 import { useRef } from "react";
 
-import { BRAND, TYPE } from "@/app/(content)/products/fusion/tokens";
 import { anim, useCycle, useElementMotion } from "./hooks";
 import { MC, specTag } from "./palette";
 import type { StationSpec } from "./palette";
+import { BRAND, TYPE } from "./tokens";
 import {
   BUS_Y,
   PHASE_LABEL,
   PHASE_MS,
-  REQUESTS,
-  REST_STEP,
   SPEC_LEGEND,
   columnLanes,
+  restStep,
 } from "./diagram";
 import type { BandFlow, ClientNode, Request, TierNode } from "./diagram";
 import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
@@ -37,8 +36,8 @@ interface LayeredDiagramProps {
   readonly compositionLine: string;
   readonly clients: readonly ClientNode[];
   readonly tiers: readonly TierNode[];
-  /** Request script the diagram replays; defaults to the Fusion script. */
-  readonly requests?: readonly Request[];
+  /** Request script the diagram replays; every caller passes its own. */
+  readonly requests: readonly Request[];
 }
 
 /** Column counts per tier, stacked (below the container query) and wide. */
@@ -157,12 +156,12 @@ export default function LayeredDiagram({
   compositionLine,
   clients,
   tiers,
-  requests = REQUESTS,
+  requests,
 }: LayeredDiagramProps) {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
   const steps = requests.length * PHASE_LABEL.length;
-  const step = useCycle(running, steps, PHASE_MS, REST_STEP);
+  const step = useCycle(running, steps, PHASE_MS, restStep(requests.length));
 
   const phase = step % PHASE_LABEL.length;
   const request = requests[Math.floor(step / PHASE_LABEL.length)];

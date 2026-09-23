@@ -107,12 +107,18 @@ export const REQUESTS: readonly Request[] = [
 export const PHASE_LABEL = ["Receive", "Fan out", "Merge"] as const;
 
 export const PHASE_MS = 1200;
+
 /**
- * Rest frame: the Checkout fan-out. The server render, the reduced-motion
- * render and the off-screen render all show one client asking, the gateway
- * planning and the three subgraphs that query needs lit up.
+ * Rest frame: the second request's fan-out phase (index 1, phase 1), the one
+ * the diagram has always parked on for its server render, its reduced-motion
+ * render and its off-screen render. A caller's request script is never
+ * assumed to have a second entry, so this clamps to the last request it
+ * actually has instead of indexing past the end.
  */
-export const REST_STEP = 1 * PHASE_LABEL.length + 1;
+export function restStep(requestCount: number): number {
+  const index = Math.min(1, Math.max(0, requestCount - 1));
+  return index * PHASE_LABEL.length + 1;
+}
 
 /** Grid gap between cards, in px; `gap-2` on both tiers. */
 export const CARD_GAP = 8;
