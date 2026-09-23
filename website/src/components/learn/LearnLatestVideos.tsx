@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { youTubePosterFallback } from "@/src/components/youTubePosterUrl";
 import type { ProductKey } from "@/src/data/learn/facets";
-import { findHub, hubHref, primaryHubForLearnItem, type HubKey } from "@/src/data/learn/hubs";
+import {
+  findHub,
+  hubHref,
+  primaryHubForLearnItem,
+  type HubKey,
+} from "@/src/data/learn/hubs";
 import { topicLabelForProduct } from "./editorial";
 
 export interface LatestVideoRailItem {
@@ -42,7 +47,9 @@ export function LearnLatestVideos({ videos }: LearnLatestVideosProps) {
   }
   return (
     <div>
-      <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Latest videos</h2>
+      <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
+        Latest videos
+      </h2>
       <div className="mt-2 flex flex-col">
         {videos.map((video) => {
           const hub = primaryHubForLearnItem(video);

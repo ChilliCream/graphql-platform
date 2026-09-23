@@ -20,7 +20,12 @@ type VideoFacadeProps = {
  * play button and only mounts the embed iframe once clicked, so no YouTube
  * player code loads during the initial render. Used by <YouTubeVideo> and <LearnVideoPlayer>.
  */
-export function VideoFacade({ videoId, playlabel = "Play video", location = "embed", children }: VideoFacadeProps) {
+export function VideoFacade({
+  videoId,
+  playlabel = "Play video",
+  location = "embed",
+  children,
+}: VideoFacadeProps) {
   const [active, setActive] = useState(false);
 
   function handlePlay() {
@@ -52,9 +57,17 @@ export function VideoFacade({ videoId, playlabel = "Play video", location = "emb
       className="group bg-cc-black relative block aspect-video w-full cursor-pointer overflow-hidden border-0 p-0"
     >
       {children}
-      <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 flex items-center justify-center"
+      >
         <span className="bg-cc-black/70 text-cc-white group-hover:bg-cc-youtube flex h-12 w-17 items-center justify-center rounded-[14%] transition-colors">
-          <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="h-7 w-7"
+            aria-hidden="true"
+          >
             <path d="M8 5v14l11-7z" />
           </svg>
         </span>

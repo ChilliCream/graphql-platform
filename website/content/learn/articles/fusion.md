@@ -134,8 +134,16 @@ type Review
 type User
   @variable(subgraph: "Reviews", name: "User_id", select: "id")
   @variable(subgraph: "Account", name: "User_id", select: "id")
-  @resolver(subgraph: "Reviews", select: "{ userById(id: $id) }", arguments: [{ name: "User_id", type: "ID!" }])
-  @resolver(subgraph: "Account", select: "{ userById(id: $id) }", arguments: [{ name: "User_id", type: "ID!" }]) {
+  @resolver(
+    subgraph: "Reviews"
+    select: "{ userById(id: $id) }"
+    arguments: [{ name: "User_id", type: "ID!" }]
+  )
+  @resolver(
+    subgraph: "Account"
+    select: "{ userById(id: $id) }"
+    arguments: [{ name: "User_id", type: "ID!" }]
+  ) {
   id: ID! @source(subgraph: "Reviews") @source(subgraph: "Account")
   name: String! @source(subgraph: "Reviews") @source(subgraph: "Account")
   email: String! @source(subgraph: "Account")
@@ -155,14 +163,30 @@ type Product
 type Query {
   reviews: [Review!] @resolver(subgraph: "Reviews", select: "{ reviews }")
   userById(id: ID!): User
-    @resolver(subgraph: "Reviews", select: "{ userById(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
-    @resolver(subgraph: "Account", select: "{ userById(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
+    @resolver(
+      subgraph: "Reviews"
+      select: "{ userById(id: $id) }"
+      arguments: [{ name: "id", type: "ID!" }]
+    )
+    @resolver(
+      subgraph: "Account"
+      select: "{ userById(id: $id) }"
+      arguments: [{ name: "id", type: "ID!" }]
+    )
 
   reviewById(id: ID!): Review
-    @resolver(subgraph: "Reviews", select: "{ reviewById(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
+    @resolver(
+      subgraph: "Reviews"
+      select: "{ reviewById(id: $id) }"
+      arguments: [{ name: "id", type: "ID!" }]
+    )
 
   productBySKU(sku: String!): Product
-    @resolver(subgraph: "Reviews", select: "{ productBySKU(id: $id) }", arguments: [{ name: "id", type: "ID!" }])
+    @resolver(
+      subgraph: "Reviews"
+      select: "{ productBySKU(id: $id) }"
+      arguments: [{ name: "id", type: "ID!" }]
+    )
 }
 ```
 
@@ -383,7 +407,10 @@ input ProductDimensionInput {
 }
 
 type Product {
-  deliveryEstimate(zip: String!, dimension: ProductDimensionInput! @require(field: "dimension")): Int!
+  deliveryEstimate(
+    zip: String!
+    dimension: ProductDimensionInput! @require(field: "dimension")
+  ): Int!
 }
 ```
 

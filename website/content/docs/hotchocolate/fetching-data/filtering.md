@@ -140,7 +140,11 @@ Every filter input type includes `and` and `or` fields for composing multiple co
 
 ```graphql
 query {
-  users(where: { or: [{ name: { contains: "Alice" } }, { name: { contains: "Bob" } }] }) {
+  users(
+    where: {
+      or: [{ name: { contains: "Alice" } }, { name: { contains: "Bob" } }]
+    }
+  ) {
     name
   }
 }

@@ -49,6 +49,13 @@ export function listArticleSlugs(): { slug: string; rel: string }[] {
 
 /** Resolve a `/learn/articles/[slug]` URL slug to a file path relative to {@link ARTICLES_ROOT}, or null if not found. */
 export function resolveArticleFile(slug: string): string | null {
-  const candidates = [`${slug}.md`, `${slug}.mdx`, `${slug}/${slug}.md`, `${slug}/${slug}.mdx`];
-  return candidates.find((c) => fs.existsSync(path.join(ARTICLES_ROOT, c))) ?? null;
+  const candidates = [
+    `${slug}.md`,
+    `${slug}.mdx`,
+    `${slug}/${slug}.md`,
+    `${slug}/${slug}.mdx`,
+  ];
+  return (
+    candidates.find((c) => fs.existsSync(path.join(ARTICLES_ROOT, c))) ?? null
+  );
 }

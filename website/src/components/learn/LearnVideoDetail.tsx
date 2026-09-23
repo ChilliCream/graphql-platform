@@ -48,7 +48,9 @@ function TopicsDetail({ video }: { readonly video: VideoItem }) {
   }
   return (
     <div>
-      <dt className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">Topics</dt>
+      <dt className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">
+        Topics
+      </dt>
       <dd className="text-cc-heading mt-1 flex flex-wrap gap-x-3 gap-y-1">
         {hubs.map((hub) => (
           <Link key={hub.key} href={hubHref(hub.key)}>
@@ -73,11 +75,18 @@ function VideoRail({ video }: { readonly video: VideoItem }) {
     <div className="border-cc-card-border bg-cc-card-bg overflow-hidden rounded-2xl border backdrop-blur-sm">
       <div className="p-5">
         <dl className="space-y-4 text-sm">
-          {video.publishedAt && <Detail label="Published" value={formatDate(video.publishedAt)} />}
+          {video.publishedAt && (
+            <Detail label="Published" value={formatDate(video.publishedAt)} />
+          )}
           {video.duration && <Detail label="Duration" value={video.duration} />}
-          {video.level && <Detail label="Level" value={video.level} className="capitalize" />}
+          {video.level && (
+            <Detail label="Level" value={video.level} className="capitalize" />
+          )}
           <TopicsDetail video={video} />
-          <Detail label="Products" value={video.products.map(productLabel).join(", ")} />
+          <Detail
+            label="Products"
+            value={video.products.map(productLabel).join(", ")}
+          />
         </dl>
         <div className="mt-5">
           <ArrowLink href={video.url} target="_blank" rel="noopener noreferrer">
@@ -132,13 +141,17 @@ export function LearnVideoDetail({ video, related }: LearnVideoDetailProps) {
           <VideoRail video={video} />
         </div>
         {description && (
-          <div className="order-3 min-w-0 lg:order-none lg:col-start-1 lg:row-start-2">{description}</div>
+          <div className="order-3 min-w-0 lg:order-none lg:col-start-1 lg:row-start-2">
+            {description}
+          </div>
         )}
       </div>
 
       {related.length > 0 && (
         <section className="border-cc-card-border border-t py-8 sm:py-10">
-          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">More to watch</h2>
+          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">
+            More to watch
+          </h2>
           <div className="mt-8">
             <CardGrid cols={3} step="progressive" itemsStretch>
               {related.map((item) => (

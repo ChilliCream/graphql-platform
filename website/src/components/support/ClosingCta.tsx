@@ -19,7 +19,10 @@ export function ClosingCta() {
       <ButtonRow align="center" className="mt-8">
         <SolidButton
           href="/services/support/contact"
-          track={{ name: "contact_sales_click", params: { location: "support_closing" } }}
+          track={{
+            name: "contact_sales_click",
+            params: { location: "support_closing" },
+          }}
         >
           Contact sales
         </SolidButton>

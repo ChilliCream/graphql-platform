@@ -1,4 +1,5 @@
-const GITHUB_CONTRIBUTORS_API = "https://api.github.com/repos/ChilliCream/graphql-platform/contributors?per_page=40";
+const GITHUB_CONTRIBUTORS_API =
+  "https://api.github.com/repos/ChilliCream/graphql-platform/contributors?per_page=40";
 
 export interface GitHubContributor {
   readonly login: string;
@@ -16,13 +17,17 @@ export async function getGitHubContributors(): Promise<ReadonlyArray<GitHubContr
     const response = await fetch(GITHUB_CONTRIBUTORS_API, {
       headers: {
         Accept: "application/vnd.github+json",
-        ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+        ...(process.env.GITHUB_TOKEN
+          ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+          : {}),
       },
       signal: AbortSignal.timeout(10_000),
     });
 
     if (response.status !== 200) {
-      console.warn(`getGitHubContributors: request failed with status ${response.status}`);
+      console.warn(
+        `getGitHubContributors: request failed with status ${response.status}`,
+      );
       return null;
     }
 

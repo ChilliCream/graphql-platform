@@ -46,9 +46,13 @@ export function IconFeatureCard({
     return (
       <Card as="article" variant="panel" className="flex h-full flex-col gap-4">
         <div className="flex items-center gap-3">
-          <span className="text-cc-accent flex-none [&>svg]:h-7 [&>svg]:w-7">{icon}</span>
+          <span className="text-cc-accent flex-none [&>svg]:h-7 [&>svg]:w-7">
+            {icon}
+          </span>
           <div>
-            <h3 className="font-heading text-cc-heading text-lg font-semibold">{title}</h3>
+            <h3 className="font-heading text-cc-heading text-lg font-semibold">
+              {title}
+            </h3>
             {subtitle && (
               <Eyebrow as="span" size="2xs">
                 {subtitle}
@@ -57,7 +61,11 @@ export function IconFeatureCard({
           </div>
         </div>
         <p className="text-cc-ink text-sm leading-relaxed">{copy}</p>
-        {footnote && <p className="text-cc-ink-dim mt-auto text-xs leading-relaxed italic">{footnote}</p>}
+        {footnote && (
+          <p className="text-cc-ink-dim mt-auto text-xs leading-relaxed italic">
+            {footnote}
+          </p>
+        )}
       </Card>
     );
   }
@@ -75,12 +83,20 @@ export function IconFeatureCard({
           {eyebrow}
         </Eyebrow>
       )}
-      <span className={`text-cc-accent ${STACKED_ICON_SIZE[size]}`}>{icon}</span>
-      <Heading className={`font-heading text-cc-heading font-semibold ${size === "lg" ? "text-xl" : "text-base"}`}>
+      <span className={`text-cc-accent ${STACKED_ICON_SIZE[size]}`}>
+        {icon}
+      </span>
+      <Heading
+        className={`font-heading text-cc-heading font-semibold ${size === "lg" ? "text-xl" : "text-base"}`}
+      >
         {title}
       </Heading>
       <p className="text-cc-ink text-sm leading-relaxed">{copy}</p>
-      {footnote && <p className="text-cc-ink-dim mt-auto text-xs leading-relaxed italic">{footnote}</p>}
+      {footnote && (
+        <p className="text-cc-ink-dim mt-auto text-xs leading-relaxed italic">
+          {footnote}
+        </p>
+      )}
     </Card>
   );
 }

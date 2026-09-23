@@ -29,18 +29,28 @@ export function LearnExplainerList({ articles }: LearnExplainerListProps) {
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
-        <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Explainers</h2>
+        <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">
+          Explainers
+        </h2>
       </div>
       <ul className="m-0 grid list-none grid-cols-1 gap-x-10 p-0 lg:grid-cols-2">
         {articles.map((article) => (
-          <li key={article.slug} className="border-cc-card-border border-b py-5 first:pt-0">
-            <Link href={article.href} className="group/row flex flex-col gap-2 no-underline">
+          <li
+            key={article.slug}
+            className="border-cc-card-border border-b py-5 first:pt-0"
+          >
+            <Link
+              href={article.href}
+              className="group/row flex flex-col gap-2 no-underline"
+            >
               <ContentTypeBadge type={article.kind} />
               <span className="font-heading text-h6 text-cc-heading group-hover/row:text-cc-accent font-semibold transition-colors">
                 {article.title}
               </span>
               {article.description ? (
-                <span className="text-cc-ink-dim line-clamp-1 text-sm">{article.description}</span>
+                <span className="text-cc-ink-dim line-clamp-1 text-sm">
+                  {article.description}
+                </span>
               ) : null}
             </Link>
           </li>

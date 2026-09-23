@@ -61,7 +61,10 @@ export function createPageShareCardImage(page: PageModule) {
   return async function Image() {
     enableSatoriHooks();
 
-    const [pageTitle, fonts] = await Promise.all([resolvePageTitle(page), loadShareCardFonts()]);
+    const [pageTitle, fonts] = await Promise.all([
+      resolvePageTitle(page),
+      loadShareCardFonts(),
+    ]);
 
     return new ImageResponse(<ShareCard pageTitle={pageTitle} />, {
       ...shareCardSize,

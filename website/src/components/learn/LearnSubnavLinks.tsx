@@ -1,7 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { NAV_LINKS, LearnSubnavLinkList } from "@/src/components/learn/LearnSubnavLinkList";
+import {
+  NAV_LINKS,
+  LearnSubnavLinkList,
+} from "@/src/components/learn/LearnSubnavLinkList";
 
 /**
  * Client-only piece of `LearnSubnav`: reads the pathname to find which single

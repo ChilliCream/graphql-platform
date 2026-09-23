@@ -1,5 +1,8 @@
 import type { ComponentPropsWithoutRef } from "react";
-import { Typography, type TypographyVariant } from "@/src/design-system/Typography";
+import {
+  Typography,
+  type TypographyVariant,
+} from "@/src/design-system/Typography";
 import { HeadingTags } from "./HeadingTags";
 
 interface DocHeadingProps extends ComponentPropsWithoutRef<"h2"> {
@@ -29,7 +32,9 @@ export function DocHeading({
       anchor
       // Tagged headings lay their parts out in a row so the badges stay
       // centered against the heading text whatever its height.
-      className={[hasTags ? "flex flex-wrap items-center" : "", className ?? ""].filter(Boolean).join(" ")}
+      className={[hasTags ? "flex flex-wrap items-center" : "", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
       adornment={<HeadingTags since={since} requiresNitro={requiresNitro} />}
       {...rest}
     />

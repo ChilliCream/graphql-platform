@@ -14,13 +14,19 @@ export function ClosingCta() {
       <ButtonRow align="center" className="mt-9">
         <SolidButton
           href="https://nitro.chillicream.com"
-          track={{ name: "nitro_signup_click", params: { location: "platform_analytics_closing" } }}
+          track={{
+            name: "nitro_signup_click",
+            params: { location: "platform_analytics_closing" },
+          }}
         >
           Start for Free
         </SolidButton>
         <OutlineButton
           href="/docs/nitro/open-telemetry/operation-monitoring"
-          track={{ name: "docs_cta_click", params: { location: "platform_analytics_closing" } }}
+          track={{
+            name: "docs_cta_click",
+            params: { location: "platform_analytics_closing" },
+          }}
         >
           Read the Docs
         </OutlineButton>

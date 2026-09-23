@@ -43,7 +43,10 @@ export default async function ArticlesPageN({ params }: PageProps) {
 
   return (
     <div className="cc-content-dark">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+      />
       <Typography variant="h1">Articles</Typography>
       <div className="mt-8 sm:mt-10">
         <LearnArticleRows posts={slice.posts} />
@@ -51,7 +54,9 @@ export default async function ArticlesPageN({ params }: PageProps) {
       <Pagination
         currentPage={slice.currentPage}
         totalPages={slice.totalPages}
-        hrefForPage={(p) => (p === 1 ? "/learn/articles" : `/learn/articles/page/${p}`)}
+        hrefForPage={(p) =>
+          p === 1 ? "/learn/articles" : `/learn/articles/page/${p}`
+        }
       />
     </div>
   );

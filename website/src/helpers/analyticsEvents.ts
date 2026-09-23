@@ -64,7 +64,9 @@ const EVENT_NAMES: readonly string[] = Object.keys(ANALYTICS_EVENTS);
 export const TRACK_PARAM_PREFIX = "data-track-";
 
 /** Narrows an arbitrary `data-track` value to a known key event name. */
-export function isAnalyticsEventName(value: string | undefined): value is AnalyticsEventName {
+export function isAnalyticsEventName(
+  value: string | undefined,
+): value is AnalyticsEventName {
   return value !== undefined && EVENT_NAMES.includes(value);
 }
 
@@ -76,7 +78,10 @@ export function isAnalyticsEventName(value: string | undefined): value is Analyt
  * gate them; this no-ops only when the Cookiebot id is unset, since then no
  * shim exists at all.
  */
-export function trackEvent<TName extends AnalyticsEventName>(name: TName, params: AnalyticsEventParams<TName>): void {
+export function trackEvent<TName extends AnalyticsEventName>(
+  name: TName,
+  params: AnalyticsEventParams<TName>,
+): void {
   window.gtag?.("event", name, {
     ...params,
     page_path: window.location.pathname,
@@ -92,7 +97,9 @@ export function trackEvent<TName extends AnalyticsEventName>(name: TName, params
 export function trackAttributes(event: AnalyticsEvent): Record<string, string> {
   const attributes: Record<string, string> = { "data-track": event.name };
 
-  for (const [key, value] of Object.entries(event.params as Record<string, string>)) {
+  for (const [key, value] of Object.entries(
+    event.params as Record<string, string>,
+  )) {
     attributes[TRACK_PARAM_PREFIX + key.replace(/_/g, "-")] = value;
   }
 
@@ -110,7 +117,9 @@ export interface TrackAttribute {
  * The `data-track` attribute itself (the event name) is not a parameter and is
  * skipped, as is a bare `data-track-` with no parameter name.
  */
-export function getTrackParams(attributes: readonly TrackAttribute[]): Record<string, string> {
+export function getTrackParams(
+  attributes: readonly TrackAttribute[],
+): Record<string, string> {
   const params: Record<string, string> = {};
 
   for (const { name, value } of attributes) {

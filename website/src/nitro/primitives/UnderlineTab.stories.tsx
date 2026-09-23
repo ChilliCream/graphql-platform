@@ -63,7 +63,13 @@ export const ColumnHeaderTitle: Story = {
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      <UnderlineTab label="Request" active fontSize={14} fontWeight={600} height="100%" />
+      <UnderlineTab
+        label="Request"
+        active
+        fontSize={14}
+        fontWeight={600}
+        height="100%"
+      />
     </div>
   ),
 };
@@ -81,7 +87,12 @@ export const SectionLabel: Story = {
         fontSize: 12,
       }}
     >
-      <UnderlineTab label="GraphQL Variables" active fontSize={12} underlineOffset={-8} />
+      <UnderlineTab
+        label="GraphQL Variables"
+        active
+        fontSize={12}
+        underlineOffset={-8}
+      />
       <span style={{ color: token.textSecondary }}>HTTP Headers</span>
     </div>
   ),
@@ -98,7 +109,13 @@ export const FlyoutIndicator: Story = {
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      <UnderlineTab label="Details" active color={token.active} underlineInset={6} style={{ padding: "0 12px" }} />
+      <UnderlineTab
+        label="Details"
+        active
+        color={token.active}
+        underlineInset={6}
+        style={{ padding: "0 12px" }}
+      />
       <UnderlineTab
         label="History"
         active={false}

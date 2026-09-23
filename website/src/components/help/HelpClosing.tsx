@@ -9,7 +9,12 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
  */
 export function HelpClosing() {
   return (
-    <Band skin="spectrum" layout="centered" className="py-16 sm:py-20" labelledBy="help-closing-heading">
+    <Band
+      skin="spectrum"
+      layout="centered"
+      className="py-16 sm:py-20"
+      labelledBy="help-closing-heading"
+    >
       <SectionHeading
         align="center"
         size="lg"
@@ -19,7 +24,9 @@ export function HelpClosing() {
       />
       <ButtonRow align="center" className="mt-8">
         <SolidButton href="/services/advisory">Explore advisory</SolidButton>
-        <OutlineButton href="/services/support">Explore support plans</OutlineButton>
+        <OutlineButton href="/services/support">
+          Explore support plans
+        </OutlineButton>
       </ButtonRow>
     </Band>
   );

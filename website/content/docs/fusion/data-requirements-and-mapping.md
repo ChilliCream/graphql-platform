@@ -175,7 +175,11 @@ You can annotate multiple arguments with `@require` on the same field. Each one 
 # Inventory subgraph
 type Product {
   id: ID!
-  shippingEstimate(zip: String!, weight: Float! @require(field: "weight"), price: Float! @require(field: "price")): Int!
+  shippingEstimate(
+    zip: String!
+    weight: Float! @require(field: "weight")
+    price: Float! @require(field: "price")
+  ): Int!
 }
 ```
 

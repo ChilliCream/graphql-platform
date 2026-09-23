@@ -127,12 +127,24 @@ export interface WorkshopItem extends LearnItemBase {
   readonly body?: readonly DetailSection[];
 }
 
-export type LearnItem = TemplateItem | VideoItem | TutorialItem | ExampleItem | WorkshopItem;
+export type LearnItem =
+  | TemplateItem
+  | VideoItem
+  | TutorialItem
+  | ExampleItem
+  | WorkshopItem;
 
-export type LearnItemOfType<T extends LearnContentType> = Extract<LearnItem, { type: T }>;
+export type LearnItemOfType<T extends LearnContentType> = Extract<
+  LearnItem,
+  { type: T }
+>;
 
 /** The content types with a shared `LearnDetail` detail page (every catalog type except video, which has its own layout). */
-export type DetailItem = TemplateItem | TutorialItem | ExampleItem | WorkshopItem;
+export type DetailItem =
+  | TemplateItem
+  | TutorialItem
+  | ExampleItem
+  | WorkshopItem;
 
 export type TemplateSummary = Pick<
   TemplateItem,
@@ -150,4 +162,9 @@ export type TemplateSummary = Pick<
 >;
 
 /** Summary shapes shown on the /learn hub grid. Non-template payloads are already minimal, so their summary is the full item. */
-export type LearnItemSummary = TemplateSummary | VideoItem | TutorialItem | ExampleItem | WorkshopItem;
+export type LearnItemSummary =
+  | TemplateSummary
+  | VideoItem
+  | TutorialItem
+  | ExampleItem
+  | WorkshopItem;

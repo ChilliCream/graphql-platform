@@ -152,7 +152,9 @@ If the serialization and the value type are identical, you can just use the `Sca
 _schema.extensions.graphql_
 
 ```graphql
-extend scalar PositiveInt @serializationType(name: "global::System.Int32") @runtimeType(name: "global::System.Int32")
+extend scalar PositiveInt
+  @serializationType(name: "global::System.Int32")
+  @runtimeType(name: "global::System.Int32")
 ```
 
 _serializer_
@@ -234,7 +236,9 @@ _schema.extensions.graphql_
 ```graphql
 extend scalar X509Certificate
   @serializationType(name: "global::System.String")
-  @runtimeType(name: "global::System.Security.Cryptography.X509Certificates.X509Certificate2")
+  @runtimeType(
+    name: "global::System.Security.Cryptography.X509Certificates.X509Certificate2"
+  )
 ```
 
 _serializer_

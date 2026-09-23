@@ -15,15 +15,25 @@ interface TemplateStackArtProps {
  * accent product's colors. The product list is the picture, so adding a
  * template needs no new art.
  */
-export function TemplateStackArt({ products, drinkBase = 64, className }: TemplateStackArtProps) {
+export function TemplateStackArt({
+  products,
+  drinkBase = 64,
+  className,
+}: TemplateStackArtProps) {
   const accent = PRODUCT_ART[accentProduct(products)];
   return (
     <div
       aria-hidden="true"
       className={`bg-cc-surface relative flex h-full w-full items-end justify-center overflow-hidden ${className ?? ""}`}
     >
-      <div className="absolute inset-0" style={{ backgroundImage: ART_DOT_GRID, backgroundSize: "18px 18px" }} />
-      <div className="absolute inset-0" style={{ backgroundImage: accent.glow }} />
+      <div
+        className="absolute inset-0"
+        style={{ backgroundImage: ART_DOT_GRID, backgroundSize: "18px 18px" }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ backgroundImage: accent.glow }}
+      />
       <div className="relative flex items-end gap-6 pb-[12%]">
         {products.slice(0, 3).map((product) => {
           const art = PRODUCT_ART[product];

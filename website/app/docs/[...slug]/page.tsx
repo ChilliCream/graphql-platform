@@ -49,7 +49,9 @@ export function generateStaticParams(): Params[] {
 }
 
 /** Builds the secondary link for a 404 slug, or `null` if it is not one. */
-function notFoundSecondary(slug: string[]): { href: string; label: string } | null {
+function notFoundSecondary(
+  slug: string[],
+): { href: string; label: string } | null {
   if (slug[slug.length - 1] !== NOT_FOUND_SEGMENT) {
     return null;
   }
@@ -60,7 +62,9 @@ function notFoundSecondary(slug: string[]): { href: string; label: string } | nu
   return { href: "/docs", label: "Browse the docs" };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   if (notFoundSecondary(slug) !== null) {
     return { title: "Page not found", robots: { index: false, follow: false } };
@@ -69,8 +73,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (rel === null) {
     return {};
   }
-  const { title, metaTitle, description, tags } = readFrontmatter(path.join(CONTENT_ROOT, rel));
-  const docTags = Array.isArray(tags) ? tags.filter((t): t is string => typeof t === "string" && t.length > 0) : [];
+  const { title, metaTitle, description, tags } = readFrontmatter(
+    path.join(CONTENT_ROOT, rel),
+  );
+  const docTags = Array.isArray(tags)
+    ? tags.filter((t): t is string => typeof t === "string" && t.length > 0)
+    : [];
   const gitMeta = await getGitMetadata(path.join(CONTENT_ROOT, rel));
 
   // Surface the product in the title tag ("OpenAPI Adapter - Hot Chocolate"),
@@ -79,7 +87,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // may set `metaTitle` to override the tag verbatim (no product suffix) while
   // keeping a terse on-page heading.
   const product = docBreadcrumbs(slug.slice(0, 1))[0]?.name;
-  const pageTitle = metaTitle ?? (title && product && title !== product ? `${title} - ${product}` : title);
+  const pageTitle =
+    metaTitle ??
+    (title && product && title !== product ? `${title} - ${product}` : title);
 
   const canonical = `/docs/${slug.join("/")}`;
 
@@ -135,13 +145,19 @@ export default async function DocPage({ params }: PageProps) {
   }
 
   const absolutePath = path.join(CONTENT_ROOT, rel);
-  const { content, frontmatter, toc, tags: pageTags } = await compileDoc(absolutePath);
+  const {
+    content,
+    frontmatter,
+    toc,
+    tags: pageTags,
+  } = await compileDoc(absolutePath);
   const gitMeta = await getGitMetadata(absolutePath);
 
   const pageHref = `/docs/${slug.join("/")}`;
-  const crumbs = [{ name: "Docs", href: "/docs" }, ...docBreadcrumbs(slug)].filter(
-    (c, i, all) => c.href !== null || i === all.length - 1,
-  );
+  const crumbs = [
+    { name: "Docs", href: "/docs" },
+    ...docBreadcrumbs(slug),
+  ].filter((c, i, all) => c.href !== null || i === all.length - 1);
   // Pages that exist on disk but are not (yet) referenced in the navigation
   // tree still get a leaf crumb, named by their frontmatter title.
   if (crumbs[crumbs.length - 1]?.href !== pageHref) {
@@ -155,7 +171,9 @@ export default async function DocPage({ params }: PageProps) {
       "@context": "https://schema.org",
       "@type": "TechArticle",
       headline: frontmatter.title,
-      ...(frontmatter.description ? { description: frontmatter.description } : {}),
+      ...(frontmatter.description
+        ? { description: frontmatter.description }
+        : {}),
       dateModified: gitMeta.isoDate,
       publisher: { "@id": `${SITE_URL}/#organization` },
       mainEntityOfPage: toAbsoluteUrl(`/docs/${slug.join("/")}`),
@@ -167,7 +185,9 @@ export default async function DocPage({ params }: PageProps) {
         "@type": "ListItem",
         position: i + 1,
         name: c.name,
-        ...(c.href && i < crumbs.length - 1 ? { item: toAbsoluteUrl(c.href) } : {}),
+        ...(c.href && i < crumbs.length - 1
+          ? { item: toAbsoluteUrl(c.href) }
+          : {}),
       })),
     },
   ];
@@ -186,7 +206,11 @@ export default async function DocPage({ params }: PageProps) {
           {frontmatter.title ? (
             <Typography
               variant="h1"
-              className={(pageTags.since ?? pageTags.requiresNitro) ? "flex flex-wrap items-center" : ""}
+              className={
+                (pageTags.since ?? pageTags.requiresNitro)
+                  ? "flex flex-wrap items-center"
+                  : ""
+              }
               adornment={<HeadingTags {...pageTags} />}
             >
               {frontmatter.title}
@@ -197,7 +221,11 @@ export default async function DocPage({ params }: PageProps) {
 
           <EditOnGitHub href={githubEditUrl(`content/docs/${rel}`)} />
 
-          <DocPageMeta isoDate={gitMeta.isoDate} displayDate={gitMeta.displayDate} author={gitMeta.author} />
+          <DocPageMeta
+            isoDate={gitMeta.isoDate}
+            displayDate={gitMeta.displayDate}
+            author={gitMeta.author}
+          />
         </article>
       </main>
       <TableOfContents items={toc} />

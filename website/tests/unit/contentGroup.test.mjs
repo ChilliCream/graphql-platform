@@ -42,7 +42,9 @@ test("getContentGroup maps every section route to its content group", () => {
 
 test("getContentGroup falls back to Other for unmapped routes", () => {
   // act
-  const groups = ["/blog", "/blog/rss.xml", "/tv", "/whatever"].map((route) => getContentGroup(route));
+  const groups = ["/blog", "/blog/rss.xml", "/tv", "/whatever"].map((route) =>
+    getContentGroup(route),
+  );
 
   // assert
   assert.deepEqual(groups, ["Other", "Other", "Other", "Other"]);

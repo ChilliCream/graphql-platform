@@ -9,7 +9,8 @@ import { breadcrumbList } from "@/src/helpers/structuredData";
 
 export const metadata = pageMetadata({
   title: "Articles",
-  description: "All ChilliCream articles: announcements, deep dives, and how-tos, from the /learn hub.",
+  description:
+    "All ChilliCream articles: announcements, deep dives, and how-tos, from the /learn hub.",
   path: "/learn/articles",
 });
 
@@ -26,7 +27,10 @@ export default function ArticlesIndex() {
 
   return (
     <div className="cc-content-dark">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+      />
       <Typography variant="h1">Articles</Typography>
       {featured ? (
         <LearnFeaturedStory
@@ -43,7 +47,9 @@ export default function ArticlesIndex() {
         <Pagination
           currentPage={slice.currentPage}
           totalPages={slice.totalPages}
-          hrefForPage={(p) => (p === 1 ? "/learn/articles" : `/learn/articles/page/${p}`)}
+          hrefForPage={(p) =>
+            p === 1 ? "/learn/articles" : `/learn/articles/page/${p}`
+          }
         />
       ) : null}
     </div>

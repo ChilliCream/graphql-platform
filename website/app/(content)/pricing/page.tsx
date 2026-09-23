@@ -48,13 +48,19 @@ function Hero() {
         <ButtonRow align="center">
           <SolidButton
             href="https://nitro.chillicream.com"
-            track={{ name: "nitro_signup_click", params: { location: "pricing_hero" } }}
+            track={{
+              name: "nitro_signup_click",
+              params: { location: "pricing_hero" },
+            }}
           >
             Start for Free
           </SolidButton>
           <OutlineButton
             href="/services/support/contact?subject=Sales"
-            track={{ name: "contact_sales_click", params: { location: "pricing_hero" } }}
+            track={{
+              name: "contact_sales_click",
+              params: { location: "pricing_hero" },
+            }}
           >
             Talk to Sales
           </OutlineButton>

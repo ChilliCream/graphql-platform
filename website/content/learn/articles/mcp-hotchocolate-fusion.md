@@ -206,7 +206,11 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         align-items: center;
         gap: 12px;
         padding: 12px;
-        border: 1px solid var(--color-border-primary, color-mix(in srgb, CanvasText 15%, transparent));
+        border: 1px solid
+          var(
+            --color-border-primary,
+            color-mix(in srgb, CanvasText 15%, transparent)
+          );
         border-radius: var(--border-radius-md, 8px);
       }
       img {
@@ -217,7 +221,10 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         flex: 1;
       }
       span {
-        color: var(--color-text-secondary, color-mix(in srgb, CanvasText 60%, transparent));
+        color: var(
+          --color-text-secondary,
+          color-mix(in srgb, CanvasText 60%, transparent)
+        );
         font-variant-numeric: tabular-nums;
       }
     </style>
@@ -253,7 +260,8 @@ Drop a sibling `.html` file next to your `.graphql` file. The basename matches t
         if (ctx.theme) {
           document.documentElement.style.colorScheme = ctx.theme;
         }
-        if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
+        if (ctx.styles?.variables)
+          applyHostStyleVariables(ctx.styles.variables);
         if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
       };
 

@@ -40,9 +40,21 @@ const REQUIRED_PROPS = {
  * somewhere in the page's combined `@graph` (across all ld+json blocks).
  */
 const ROUTES = [
-  { path: "/", type: "root layout (Organization/WebSite)", expect: ["Organization", "WebSite"] },
-  { path: "/learn", type: "learn landing", expect: ["BreadcrumbList", "ItemList", "WebPage"] },
-  { path: "/learn/browse", type: "learn browse", expect: ["BreadcrumbList", "ItemList"] },
+  {
+    path: "/",
+    type: "root layout (Organization/WebSite)",
+    expect: ["Organization", "WebSite"],
+  },
+  {
+    path: "/learn",
+    type: "learn landing",
+    expect: ["BreadcrumbList", "ItemList", "WebPage"],
+  },
+  {
+    path: "/learn/browse",
+    type: "learn browse",
+    expect: ["BreadcrumbList", "ItemList"],
+  },
   {
     path: "/learn/articles/fusion-16-5",
     type: "article page (blog post)",
@@ -53,9 +65,21 @@ const ROUTES = [
     type: "article page (comparison)",
     expect: ["BreadcrumbList", "Article"],
   },
-  { path: "/learn/articles", type: "articles index", expect: ["BreadcrumbList"] },
-  { path: "/learn/articles/page/2", type: "articles index (page 2)", expect: ["BreadcrumbList"] },
-  { path: "/learn/articles/tags/fusion", type: "articles tag index", expect: ["BreadcrumbList"] },
+  {
+    path: "/learn/articles",
+    type: "articles index",
+    expect: ["BreadcrumbList"],
+  },
+  {
+    path: "/learn/articles/page/2",
+    type: "articles index (page 2)",
+    expect: ["BreadcrumbList"],
+  },
+  {
+    path: "/learn/articles/tags/fusion",
+    type: "articles tag index",
+    expect: ["BreadcrumbList"],
+  },
   {
     path: "/learn/templates/fusion-3-service-federation",
     type: "template page",
@@ -129,14 +153,18 @@ for (const route of ROUTES) {
     }
     html = await res.text();
   } catch (err) {
-    console.error(`FAIL ${route.type} (${route.path}): fetch error ${err.message}`);
+    console.error(
+      `FAIL ${route.type} (${route.path}): fetch error ${err.message}`,
+    );
     failures++;
     continue;
   }
 
   const nodes = extractNodes(html);
   if (nodes.length === 0) {
-    console.error(`FAIL ${route.type} (${route.path}): no ld+json blocks found`);
+    console.error(
+      `FAIL ${route.type} (${route.path}): no ld+json blocks found`,
+    );
     failures++;
     continue;
   }
@@ -144,7 +172,9 @@ for (const route of ROUTES) {
   for (const expectedType of route.expect) {
     const node = nodes.find((n) => n["@type"] === expectedType);
     if (!node) {
-      console.error(`FAIL ${route.type} (${route.path}): missing @type "${expectedType}"`);
+      console.error(
+        `FAIL ${route.type} (${route.path}): missing @type "${expectedType}"`,
+      );
       failures++;
       continue;
     }
@@ -152,17 +182,23 @@ for (const route of ROUTES) {
     const required = REQUIRED_PROPS[expectedType] ?? [];
     for (const prop of required) {
       if (!(prop in node) || node[prop] === null || node[prop] === undefined) {
-        console.error(`FAIL ${route.type} (${route.path}): ${expectedType} missing required property "${prop}"`);
+        console.error(
+          `FAIL ${route.type} (${route.path}): ${expectedType} missing required property "${prop}"`,
+        );
         failures++;
       }
     }
   }
 
-  console.log(`OK   ${route.type} (${route.path}): found ${nodes.map((n) => n["@type"]).join(", ")}`);
+  console.log(
+    `OK   ${route.type} (${route.path}): found ${nodes.map((n) => n["@type"]).join(", ")}`,
+  );
 }
 
 console.log("");
-console.log(`Checked ${ROUTES.length} routes, ${checkedGraphNodes} required @type assertions.`);
+console.log(
+  `Checked ${ROUTES.length} routes, ${checkedGraphNodes} required @type assertions.`,
+);
 if (failures > 0) {
   console.log(`${failures} assertion(s) FAILED.`);
   process.exit(1);

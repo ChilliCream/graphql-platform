@@ -7,7 +7,10 @@ import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { SlackIcon } from "@/src/icons/Slack";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
-import { type AnalyticsEvent, trackAttributes } from "@/src/helpers/analyticsEvents";
+import {
+  type AnalyticsEvent,
+  trackAttributes,
+} from "@/src/helpers/analyticsEvents";
 
 const tools = {
   blog: "/blog",
@@ -76,7 +79,10 @@ export default function Footer() {
             </LinkColumn>
             <LinkColumn title="Company">
               <NavLink href="/services/support/contact">Contact</NavLink>
-              <NavLink href={tools.shop} track={{ name: "store_click", params: { location: "footer" } }}>
+              <NavLink
+                href={tools.shop}
+                track={{ name: "store_click", params: { location: "footer" } }}
+              >
                 Shop
               </NavLink>
               {basicPages.map((page) => (
@@ -89,28 +95,51 @@ export default function Footer() {
         </Section>
         <Section>
           <nav className="text-cc-ink-dim flex flex-row gap-4">
-            <SocialLink href={tools.blog} label="ChilliCream Blog" channel="blog">
+            <SocialLink
+              href={tools.blog}
+              label="ChilliCream Blog"
+              channel="blog"
+            >
               <BlogIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.github} label="ChilliCream on GitHub" channel="github">
+            <SocialLink
+              href={tools.github}
+              label="ChilliCream on GitHub"
+              channel="github"
+            >
               <GitHubIcon className="h-7 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.slack} label="ChilliCream Slack Community" channel="slack">
+            <SocialLink
+              href={tools.slack}
+              label="ChilliCream Slack Community"
+              channel="slack"
+            >
               <SlackIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.youtube} label="ChilliCream YouTube Channel" channel="youtube">
+            <SocialLink
+              href={tools.youtube}
+              label="ChilliCream YouTube Channel"
+              channel="youtube"
+            >
               <YouTubeIcon className="h-6 w-auto fill-current" />
             </SocialLink>
             <SocialLink href={tools.x} label="ChilliCream on X" channel="x">
               <XIcon className="h-6 w-auto fill-current" />
             </SocialLink>
-            <SocialLink href={tools.linkedIn} label="ChilliCream on LinkedIn" channel="linkedin">
+            <SocialLink
+              href={tools.linkedIn}
+              label="ChilliCream on LinkedIn"
+              channel="linkedin"
+            >
               <LinkedInIcon className="h-6 w-auto fill-current" />
             </SocialLink>
           </nav>
         </Section>
         <Section>
-          <p className="text-cc-ink-dim">© {new Date().getFullYear()} ChilliCream, Inc. ・ All Rights Reserved</p>
+          <p className="text-cc-ink-dim">
+            © {new Date().getFullYear()} ChilliCream, Inc. ・ All Rights
+            Reserved
+          </p>
         </Section>
       </div>
     </footer>
@@ -121,17 +150,34 @@ function Section({ children }: { children: ReactNode }) {
   return <div className="flex flex-col gap-8 lg:flex-row">{children}</div>;
 }
 
-function LinkColumn({ title, children }: { title: string; children: ReactNode }) {
+function LinkColumn({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <div className="flex min-w-36 flex-col gap-6">
-      <h3 className="text-cc-heading flex h-8 items-end text-base font-semibold">{title}</h3>
+      <h3 className="text-cc-heading flex h-8 items-end text-base font-semibold">
+        {title}
+      </h3>
       <nav className="flex flex-col gap-2.5">{children}</nav>
     </div>
   );
 }
 
-function NavLink({ href, children, track }: { href: string; children: ReactNode; track?: AnalyticsEvent }) {
-  const className = "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
+function NavLink({
+  href,
+  children,
+  track,
+}: {
+  href: string;
+  children: ReactNode;
+  track?: AnalyticsEvent;
+}) {
+  const className =
+    "text-cc-ink-dim no-underline transition-colors hover:text-cc-heading";
   const trackProps = track ? trackAttributes(track) : undefined;
 
   if (href.startsWith("/")) {
@@ -151,7 +197,13 @@ function NavLink({ href, children, track }: { href: string; children: ReactNode;
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={className} {...trackProps}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      {...trackProps}
+    >
       {children}
     </a>
   );
@@ -172,12 +224,21 @@ function SocialLink({
   channel: string;
   children: ReactNode;
 }) {
-  const className = "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
-  const trackProps = trackAttributes({ name: "subscribe_click", params: { channel } });
+  const className =
+    "inline-flex items-center justify-center transition-colors hover:text-cc-heading";
+  const trackProps = trackAttributes({
+    name: "subscribe_click",
+    params: { channel },
+  });
 
   if (href.startsWith("/")) {
     return (
-      <Link href={href} aria-label={label} className={className} {...trackProps}>
+      <Link
+        href={href}
+        aria-label={label}
+        className={className}
+        {...trackProps}
+      >
         {children}
         <span className="sr-only">{label}</span>
       </Link>
@@ -185,7 +246,14 @@ function SocialLink({
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className={className} {...trackProps}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className={className}
+      {...trackProps}
+    >
       {children}
       <span className="sr-only">{label}</span>
     </a>

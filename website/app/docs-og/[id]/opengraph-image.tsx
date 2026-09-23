@@ -1,7 +1,13 @@
 import path from "node:path";
 import { ImageResponse } from "next/og";
 import { PRODUCTS } from "@/src/data/products";
-import { CONTENT_ROOT, decodeDocId, encodeDocId, listDocSlugs, resolveFile } from "@/src/helpers/docsParams";
+import {
+  CONTENT_ROOT,
+  decodeDocId,
+  encodeDocId,
+  listDocSlugs,
+  resolveFile,
+} from "@/src/helpers/docsParams";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { DocsShareCard } from "@/src/og/DocsShareCard";
 import { loadShareCardFonts } from "@/src/og/fonts";
@@ -32,7 +38,9 @@ export default async function Image({ params }: { params: Promise<Params> }) {
   const { id } = await params;
   const slug = decodeDocId(id);
   const rel = resolveFile(slug);
-  const frontmatter = rel ? readFrontmatter(path.join(CONTENT_ROOT, rel)) : null;
+  const frontmatter = rel
+    ? readFrontmatter(path.join(CONTENT_ROOT, rel))
+    : null;
 
   const productSlug = slug[0];
   const product = PRODUCTS.find((p) => p.slug === productSlug);
@@ -41,8 +49,15 @@ export default async function Image({ params }: { params: Promise<Params> }) {
 
   const fonts = await loadShareCardFonts();
 
-  return new ImageResponse(<DocsShareCard eyebrow={eyebrow} title={title} productSlug={product?.slug} />, {
-    ...size,
-    fonts,
-  });
+  return new ImageResponse(
+    <DocsShareCard
+      eyebrow={eyebrow}
+      title={title}
+      productSlug={product?.slug}
+    />,
+    {
+      ...size,
+      fonts,
+    },
+  );
 }

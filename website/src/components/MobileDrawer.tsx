@@ -113,7 +113,9 @@ export function MobileDrawer({
     // Portal to <body> so the overlay escapes any ancestor `backdrop-filter`,
     // which would otherwise create a containing block that clips `position: fixed`.
     return createPortal(
-      <div className={`bg-cc-surface fixed inset-0 z-50 flex flex-col ${breakpoint}:hidden ${panelClassName ?? ""}`}>
+      <div
+        className={`bg-cc-surface fixed inset-0 z-50 flex flex-col ${breakpoint}:hidden ${panelClassName ?? ""}`}
+      >
         {closeHeader}
         <div onClick={handleContentClick} className="contents">
           {children}
@@ -135,7 +137,10 @@ export function MobileDrawer({
         };
 
   return (
-    <div className={`fixed inset-0 z-50 ${breakpoint}:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
+    <div
+      className={`fixed inset-0 z-50 ${breakpoint}:hidden ${open ? "" : "pointer-events-none"}`}
+      aria-hidden={!open}
+    >
       <div
         className={`bg-cc-black/40 absolute inset-0 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
         onClick={() => onOpenChange(false)}

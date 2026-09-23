@@ -26,10 +26,16 @@ export interface ChartPanelProps {
   style?: CSSProperties;
 }
 
-function topFrac(v: number, [min, max]: [number, number], log: boolean): number {
+function topFrac(
+  v: number,
+  [min, max]: [number, number],
+  log: boolean,
+): number {
   if (log) {
     const lo = Math.max(min, 0.0001);
-    const f = Math.log10(Math.max(v, lo) / lo) / Math.log10(Math.max(max, lo * 10) / lo);
+    const f =
+      Math.log10(Math.max(v, lo) / lo) /
+      Math.log10(Math.max(max, lo * 10) / lo);
     return clamp(1 - f, 0, 1);
   }
   return clamp(1 - (v - min) / (max - min || 1), 0, 1);
@@ -100,10 +106,18 @@ export function ChartPanel({
           >
             {title}
           </div>
-          {subtitle && <div style={{ fontSize: 11, color: token.textSecondary, marginTop: 2 }}>{subtitle}</div>}
+          {subtitle && (
+            <div
+              style={{ fontSize: 11, color: token.textSecondary, marginTop: 2 }}
+            >
+              {subtitle}
+            </div>
+          )}
         </div>
         {legend && <Legend items={legend} style={{ marginLeft: "auto" }} />}
-        {action && <div style={{ marginLeft: legend ? 12 : "auto" }}>{action}</div>}
+        {action && (
+          <div style={{ marginLeft: legend ? 12 : "auto" }}>{action}</div>
+        )}
       </div>
 
       <div style={{ display: "flex" }}>
@@ -174,7 +188,12 @@ export function ChartPanel({
                 flex: 1,
                 fontSize: 10,
                 color: token.textSecondary,
-                textAlign: i === 0 ? "left" : i === xTicks.length - 1 ? "right" : "center",
+                textAlign:
+                  i === 0
+                    ? "left"
+                    : i === xTicks.length - 1
+                      ? "right"
+                      : "center",
               }}
             >
               {tk}

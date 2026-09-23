@@ -45,9 +45,16 @@ export type ArticleSummary = {
  */
 export function listArticleSummaries(): ArticleSummary[] {
   const articles = listArticleSlugs().map(({ slug, rel }) => {
-    const fm = readFrontmatter(path.join(ARTICLES_ROOT, rel)) as Record<string, unknown>;
+    const fm = readFrontmatter(path.join(ARTICLES_ROOT, rel)) as Record<
+      string,
+      unknown
+    >;
 
-    if (fm.kind !== "comparison" && fm.kind !== "explainer" && fm.kind !== "article") {
+    if (
+      fm.kind !== "comparison" &&
+      fm.kind !== "explainer" &&
+      fm.kind !== "article"
+    ) {
       throw new Error(
         `[articles] "${slug}" has frontmatter kind "${String(fm.kind)}"; expected "comparison", "explainer", or "article".`,
       );
@@ -60,26 +67,41 @@ export function listArticleSummaries(): ArticleSummary[] {
     }
 
     const stringArray = (value: unknown): string[] =>
-      Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.length > 0) : [];
+      Array.isArray(value)
+        ? value.filter(
+            (v): v is string => typeof v === "string" && v.length > 0,
+          )
+        : [];
 
-    const featuredImageRaw = typeof fm.featuredImage === "string" ? fm.featuredImage : null;
+    const featuredImageRaw =
+      typeof fm.featuredImage === "string" ? fm.featuredImage : null;
 
     return {
       slug,
       href: `/learn/articles/${slug}`,
       kind: fm.kind as ArticleKind,
       title: fm.title,
-      description: typeof fm.description === "string" && fm.description.length > 0 ? fm.description : null,
+      description:
+        typeof fm.description === "string" && fm.description.length > 0
+          ? fm.description
+          : null,
       date: fm.date,
-      updated: typeof fm.updated === "string" && fm.updated.length > 0 ? fm.updated : null,
-      category: typeof fm.category === "string" && fm.category.length > 0 ? fm.category : null,
+      updated:
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? fm.updated
+          : null,
+      category:
+        typeof fm.category === "string" && fm.category.length > 0
+          ? fm.category
+          : null,
       topics: stringArray(fm.topics),
       products: stringArray(fm.products) as ProductKey[],
       tags: stringArray(fm.tags),
       featuredImage: resolveFeaturedImage(slug, featuredImageRaw),
       author: typeof fm.author === "string" ? fm.author : null,
       authorUrl: typeof fm.authorUrl === "string" ? fm.authorUrl : null,
-      authorImageUrl: typeof fm.authorImageUrl === "string" ? fm.authorImageUrl : null,
+      authorImageUrl:
+        typeof fm.authorImageUrl === "string" ? fm.authorImageUrl : null,
     };
   });
 

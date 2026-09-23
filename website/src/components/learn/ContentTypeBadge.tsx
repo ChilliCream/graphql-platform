@@ -13,7 +13,10 @@ interface ContentTypeBadgeProps {
  * `flex flex-col` parent, where `align-items: stretch` would otherwise
  * blockify it to the column's full width (D1).
  */
-export function ContentTypeBadge({ type, className = "" }: ContentTypeBadgeProps) {
+export function ContentTypeBadge({
+  type,
+  className = "",
+}: ContentTypeBadgeProps) {
   const meta = CONTENT_TYPE_META[type];
   return (
     <span

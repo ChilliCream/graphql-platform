@@ -31,10 +31,22 @@ interface FeatureComparisonProps {
  * renders the value. The table scrolls horizontally on narrow screens. Shared by
  * the pricing tiers and the support plans.
  */
-export function FeatureComparison({ id, className, eyebrow, heading, columns, groups }: FeatureComparisonProps) {
+export function FeatureComparison({
+  id,
+  className,
+  eyebrow,
+  heading,
+  columns,
+  groups,
+}: FeatureComparisonProps) {
   return (
     <section aria-labelledby={`${id}-heading`} className={className} id={id}>
-      <SectionHeading align="center" eyebrow={eyebrow} title={heading} titleId={`${id}-heading`} />
+      <SectionHeading
+        align="center"
+        eyebrow={eyebrow}
+        title={heading}
+        titleId={`${id}-heading`}
+      />
 
       <Card variant="panel" className="mt-10">
         <div
@@ -55,7 +67,11 @@ export function FeatureComparison({ id, className, eyebrow, heading, columns, gr
                   </Eyebrow>
                 </th>
                 {columns.map((name) => (
-                  <th key={name} scope="col" className="text-cc-heading font-heading px-5 py-4 text-sm font-semibold">
+                  <th
+                    key={name}
+                    scope="col"
+                    className="text-cc-heading font-heading px-5 py-4 text-sm font-semibold"
+                  >
                     {name}
                   </th>
                 ))}
@@ -63,16 +79,28 @@ export function FeatureComparison({ id, className, eyebrow, heading, columns, gr
             </thead>
             {groups.map((group, groupIndex) => (
               <tbody key={group.title}>
-                <tr className={`bg-cc-card-bg/60 ${groupIndex === 0 ? "" : "border-cc-card-border border-t"}`}>
-                  <th scope="colgroup" colSpan={columns.length + 1} className="px-5 py-3 text-left">
+                <tr
+                  className={`bg-cc-card-bg/60 ${groupIndex === 0 ? "" : "border-cc-card-border border-t"}`}
+                >
+                  <th
+                    scope="colgroup"
+                    colSpan={columns.length + 1}
+                    className="px-5 py-3 text-left"
+                  >
                     <Eyebrow size="2xs" color="ink-dim">
                       {group.title}
                     </Eyebrow>
                   </th>
                 </tr>
                 {group.rows.map((row) => (
-                  <tr key={row.label} className="border-cc-ink-faint border-b last:border-0">
-                    <th scope="row" className="text-cc-ink px-5 py-3 align-top text-sm font-medium">
+                  <tr
+                    key={row.label}
+                    className="border-cc-ink-faint border-b last:border-0"
+                  >
+                    <th
+                      scope="row"
+                      className="text-cc-ink px-5 py-3 align-top text-sm font-medium"
+                    >
                       {row.label}
                     </th>
                     {row.cells.map((value, index) => (
@@ -108,5 +136,9 @@ function CompareCell({ value }: { readonly value: Cell }) {
       </td>
     );
   }
-  return <td className="text-cc-ink px-5 py-3 align-top font-mono text-xs">{value}</td>;
+  return (
+    <td className="text-cc-ink px-5 py-3 align-top font-mono text-xs">
+      {value}
+    </td>
+  );
 }

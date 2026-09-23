@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-export type AdmonitionKind = "note" | "tip" | "warning" | "caution" | "experimental";
+export type AdmonitionKind =
+  | "note"
+  | "tip"
+  | "warning"
+  | "caution"
+  | "experimental";
 
 const config: Record<
   AdmonitionKind,
@@ -136,7 +141,9 @@ export function Admonition({ kind, children }: AdmonitionProps) {
         <span className="shrink-0">{icon}</span>
         <span>{label}</span>
       </div>
-      <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">{children}</div>
+      <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+        {children}
+      </div>
     </div>
   );
 }

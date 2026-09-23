@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnDetail } from "@/src/components/learn/LearnDetail";
 import { productLabel } from "@/src/data/learn/facets";
-import { findRelatedCatalogItems, WORKSHOP_ITEMS } from "@/src/data/learn/content";
+import {
+  findRelatedCatalogItems,
+  WORKSHOP_ITEMS,
+} from "@/src/data/learn/content";
 import type { WorkshopItem } from "@/src/data/learn/types";
 import { ORGANIZATION_ID } from "@/src/helpers/structuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -22,7 +25,9 @@ function findWorkshop(slug: string): WorkshopItem | undefined {
   return WORKSHOP_ITEMS.find((workshop) => workshop.slug === slug);
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const workshop = findWorkshop(slug);
   if (!workshop) {
@@ -46,8 +51,18 @@ const structuredData = (workshop: WorkshopItem) => ({
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: "Learn", item: `${SITE_URL}/learn` },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${SITE_URL}/`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Learn",
+          item: `${SITE_URL}/learn`,
+        },
         { "@type": "ListItem", position: 3, name: workshop.title },
       ],
     },
@@ -72,7 +87,9 @@ export default async function WorkshopPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(workshop)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData(workshop)),
+        }}
       />
       <LearnDetail item={workshop} related={related} />
     </>

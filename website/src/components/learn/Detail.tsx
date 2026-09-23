@@ -12,7 +12,9 @@ interface DetailProps {
 export function Detail({ label, value, className = "" }: DetailProps) {
   return (
     <div>
-      <dt className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">{label}</dt>
+      <dt className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">
+        {label}
+      </dt>
       <dd className={`text-cc-heading mt-1 ${className}`.trim()}>{value}</dd>
     </div>
   );

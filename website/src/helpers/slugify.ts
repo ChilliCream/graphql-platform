@@ -11,7 +11,9 @@ export function getText(node: ReactNode): string {
     return node.map(getText).join("");
   }
   if (typeof node === "object" && "props" in node) {
-    return getText((node as { props: { children?: ReactNode } }).props.children);
+    return getText(
+      (node as { props: { children?: ReactNode } }).props.children,
+    );
   }
   return "";
 }

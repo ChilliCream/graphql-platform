@@ -9,8 +9,8 @@ export function LearnClosing() {
           Build on the foundations, not from scratch.
         </h2>
         <p className="text-cc-ink-dim mt-3 max-w-2xl">
-          Explore the documentation to combine Hot Chocolate, Fusion, Mocha, Strawberry Shake, and Nitro for your
-          architecture.
+          Explore the documentation to combine Hot Chocolate, Fusion, Mocha,
+          Strawberry Shake, and Nitro for your architecture.
         </p>
       </div>
       <SolidButton href="/docs">Explore the docs</SolidButton>

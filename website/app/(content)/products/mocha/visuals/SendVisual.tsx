@@ -12,7 +12,15 @@ import {
   pointAt,
   ramp,
 } from "@/src/components/mocha/geometry";
-import { CORAL, CORAL_SOFT, CYAN, GREEN, MONO_FONT, NAVY, SLATE } from "@/src/components/mocha/palette";
+import {
+  CORAL,
+  CORAL_SOFT,
+  CYAN,
+  GREEN,
+  MONO_FONT,
+  NAVY,
+  SLATE,
+} from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
@@ -164,7 +172,10 @@ export function SendVisual() {
         const el = E.get(k);
         if (el) {
           el.setAttribute("opacity", o.toFixed(3));
-          el.setAttribute("transform", `translate(0 ${((1 - rise) * 5).toFixed(2)})`);
+          el.setAttribute(
+            "transform",
+            `translate(0 ${((1 - rise) * 5).toFixed(2)})`,
+          );
         }
       };
 
@@ -192,7 +203,13 @@ export function SendVisual() {
         el.setAttribute("opacity", (0.5 * (1 - s)).toFixed(3));
       };
 
-      const placePulse = (p: string, poly: Polyline, u: number, op: number, coreR: number) => {
+      const placePulse = (
+        p: string,
+        poly: Polyline,
+        u: number,
+        op: number,
+        coreR: number,
+      ) => {
         const g = E.get(p);
         if (!g) {
           return;
@@ -313,7 +330,13 @@ export function SendVisual() {
       <circle ref={set(p + "t3")} r={1.4} fill={main} opacity={0} />
       <circle ref={set(p + "t2")} r={1.7} fill={main} opacity={0} />
       <circle ref={set(p + "t1")} r={2} fill={main} opacity={0} />
-      <circle ref={set(p + "glow")} r={6} fill={main} opacity={0.22} filter="url(#send-soft)" />
+      <circle
+        ref={set(p + "glow")}
+        r={6}
+        fill={main}
+        opacity={0.22}
+        filter="url(#send-soft)"
+      />
       <circle ref={set(p + "core")} r={2.5} fill={main} />
       <circle ref={set(p + "in")} r={1.1} fill={soft} />
     </g>
@@ -330,23 +353,57 @@ export function SendVisual() {
       className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[360px]"
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
-        <svg viewBox={`0 0 ${lw} ${H}`} width="100%" height={(H * w) / lw} className="block">
+        <svg
+          viewBox={`0 0 ${lw} ${H}`}
+          width="100%"
+          height={(H * w) / lw}
+          className="block"
+        >
           <defs>
             <filter id="send-soft" x="-60%" y="-60%" width="220%" height="220%">
               <feGaussianBlur stdDeviation="2.4" />
             </filter>
-            <pattern id="send-pcb-grid" width={28} height={28} patternUnits="userSpaceOnUse">
+            <pattern
+              id="send-pcb-grid"
+              width={28}
+              height={28}
+              patternUnits="userSpaceOnUse"
+            >
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
           </defs>
 
           <rect width={lw} height={H} fill="url(#send-pcb-grid)" />
 
-          <path d={L.lane1D} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} />
-          <path d={L.lane2D} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
-          <path d={L.lane3D} fill="none" stroke={LANE_STROKE} strokeWidth={1.5} strokeLinejoin="round" />
+          <path
+            d={L.lane1D}
+            fill="none"
+            stroke={LANE_STROKE}
+            strokeWidth={1.5}
+          />
+          <path
+            d={L.lane2D}
+            fill="none"
+            stroke={LANE_STROKE}
+            strokeWidth={1.5}
+            strokeLinejoin="round"
+          />
+          <path
+            d={L.lane3D}
+            fill="none"
+            stroke={LANE_STROKE}
+            strokeWidth={1.5}
+            strokeLinejoin="round"
+          />
 
-          <circle cx={L.slotR} cy={LANE_Y} r={2.5} fill={NAVY} stroke={VIA_STROKE} strokeWidth={1} />
+          <circle
+            cx={L.slotR}
+            cy={LANE_Y}
+            r={2.5}
+            fill={NAVY}
+            stroke={VIA_STROKE}
+            strokeWidth={1}
+          />
 
           <rect
             x={L.slotL}
@@ -369,7 +426,14 @@ export function SendVisual() {
           >
             reserve-inventory
           </text>
-          <circle ref={set("qdot")} cx={L.front} cy={LANE_Y} r={2.5} fill={CORAL} opacity={0.95} />
+          <circle
+            ref={set("qdot")}
+            cx={L.front}
+            cy={LANE_Y}
+            r={2.5}
+            fill={CORAL}
+            opacity={0.95}
+          />
 
           <rect
             x={L.px1}
@@ -384,11 +448,32 @@ export function SendVisual() {
           <circle cx={L.px1 + 5.5} cy={PANEL_Y + 5.5} r={1.2} fill={SILK} />
           {[-5, 0, 5].map((dy) => (
             <g key={dy}>
-              <rect x={L.px1 - 1} y={LANE_Y + dy - 1.75} width={2} height={3.5} fill={PAD_FILL} />
-              <rect x={L.px1 + PW1 - 1} y={LANE_Y + dy - 1.75} width={2} height={3.5} fill={PAD_FILL} />
+              <rect
+                x={L.px1 - 1}
+                y={LANE_Y + dy - 1.75}
+                width={2}
+                height={3.5}
+                fill={PAD_FILL}
+              />
+              <rect
+                x={L.px1 + PW1 - 1}
+                y={LANE_Y + dy - 1.75}
+                width={2}
+                height={3.5}
+                fill={PAD_FILL}
+              />
             </g>
           ))}
-          <rect ref={set("pw1")} x={L.px1} y={PANEL_Y} width={PW1} height={PANEL_H} rx={3} fill={CYAN} opacity={0} />
+          <rect
+            ref={set("pw1")}
+            x={L.px1}
+            y={PANEL_Y}
+            width={PW1}
+            height={PANEL_H}
+            rx={3}
+            fill={CYAN}
+            opacity={0}
+          />
           <rect
             ref={set("pe1")}
             x={L.px1}
@@ -401,10 +486,23 @@ export function SendVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          <text x={L.px1 + 12} y={PANEL_Y + 18} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.16em" fill={SILK}>
+          <text
+            x={L.px1 + 12}
+            y={PANEL_Y + 18}
+            fontFamily={MONO_FONT}
+            fontSize={10}
+            letterSpacing="0.16em"
+            fill={SILK}
+          >
             ORDERS SERVICE
           </text>
-          <circle cx={L.px1 + PW1 - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
+          <circle
+            cx={L.px1 + PW1 - 10}
+            cy={PANEL_Y + 10}
+            r={2}
+            fill={SILK}
+            opacity={0.25}
+          />
           <circle
             ref={set("ph1")}
             cx={L.px1 + PW1 - 10}
@@ -416,7 +514,14 @@ export function SendVisual() {
             filter="url(#send-soft)"
             opacity={0}
           />
-          <circle ref={set("pl1")} cx={L.px1 + PW1 - 10} cy={PANEL_Y + 10} r={2} fill={CYAN} opacity={0} />
+          <circle
+            ref={set("pl1")}
+            cx={L.px1 + PW1 - 10}
+            cy={PANEL_Y + 10}
+            r={2}
+            fill={CYAN}
+            opacity={0}
+          />
           <rect
             x={L.rowX1}
             y={ROW_TOP}
@@ -427,9 +532,30 @@ export function SendVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect x={L.rowX1} y={ROW_TOP} width={L.rowW1} height={ROW_H} rx={5} fill={CYAN} opacity={0.05} />
-          <rect x={L.rowX1} y={ROW_TOP + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
-          <text x={L.rowX1 + 13} y={ROW_TOP + 21} fontFamily={MONO_FONT} fontSize={10} fill={INK}>
+          <rect
+            x={L.rowX1}
+            y={ROW_TOP}
+            width={L.rowW1}
+            height={ROW_H}
+            rx={5}
+            fill={CYAN}
+            opacity={0.05}
+          />
+          <rect
+            x={L.rowX1}
+            y={ROW_TOP + 5}
+            width={3}
+            height={ROW_H - 10}
+            rx={1.5}
+            fill={CYAN}
+          />
+          <text
+            x={L.rowX1 + 13}
+            y={ROW_TOP + 21}
+            fontFamily={MONO_FONT}
+            fontSize={10}
+            fill={INK}
+          >
             PlaceOrderHandler
           </text>
           <text
@@ -468,9 +594,25 @@ export function SendVisual() {
           />
           <circle cx={L.px2 + 5.5} cy={PANEL_Y + 5.5} r={1.2} fill={SILK} />
           {[-5, 0, 5].map((dy) => (
-            <rect key={dy} x={L.px2 - 1} y={LANE_Y + dy - 1.75} width={2} height={3.5} fill={PAD_FILL} />
+            <rect
+              key={dy}
+              x={L.px2 - 1}
+              y={LANE_Y + dy - 1.75}
+              width={2}
+              height={3.5}
+              fill={PAD_FILL}
+            />
           ))}
-          <rect ref={set("pw2")} x={L.px2} y={PANEL_Y} width={PW2} height={PANEL_H} rx={3} fill={CORAL} opacity={0} />
+          <rect
+            ref={set("pw2")}
+            x={L.px2}
+            y={PANEL_Y}
+            width={PW2}
+            height={PANEL_H}
+            rx={3}
+            fill={CORAL}
+            opacity={0}
+          />
           <rect
             ref={set("pe2")}
             x={L.px2}
@@ -483,10 +625,23 @@ export function SendVisual() {
             strokeWidth={1.2}
             opacity={0}
           />
-          <text x={L.px2 + 12} y={PANEL_Y + 18} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.16em" fill={SILK}>
+          <text
+            x={L.px2 + 12}
+            y={PANEL_Y + 18}
+            fontFamily={MONO_FONT}
+            fontSize={10}
+            letterSpacing="0.16em"
+            fill={SILK}
+          >
             INVENTORY SERVICE
           </text>
-          <circle cx={L.px2 + PW2 - 10} cy={PANEL_Y + 10} r={2} fill={SILK} opacity={0.25} />
+          <circle
+            cx={L.px2 + PW2 - 10}
+            cy={PANEL_Y + 10}
+            r={2}
+            fill={SILK}
+            opacity={0.25}
+          />
           <circle
             ref={set("ph2")}
             cx={L.px2 + PW2 - 10}
@@ -498,7 +653,14 @@ export function SendVisual() {
             filter="url(#send-soft)"
             opacity={0}
           />
-          <circle ref={set("pl2")} cx={L.px2 + PW2 - 10} cy={PANEL_Y + 10} r={2} fill={CORAL} opacity={0} />
+          <circle
+            ref={set("pl2")}
+            cx={L.px2 + PW2 - 10}
+            cy={PANEL_Y + 10}
+            r={2}
+            fill={CORAL}
+            opacity={0}
+          />
           <rect
             x={L.rowX2}
             y={ROW_TOP}
@@ -509,9 +671,30 @@ export function SendVisual() {
             stroke={HAIR}
             strokeWidth={1}
           />
-          <rect x={L.rowX2} y={ROW_TOP} width={L.rowW2} height={ROW_H} rx={5} fill={CYAN} opacity={0.05} />
-          <rect x={L.rowX2} y={ROW_TOP + 5} width={3} height={ROW_H - 10} rx={1.5} fill={CYAN} />
-          <text x={L.rowX2 + 13} y={ROW_TOP + 21} fontFamily={MONO_FONT} fontSize={10} fill={INK}>
+          <rect
+            x={L.rowX2}
+            y={ROW_TOP}
+            width={L.rowW2}
+            height={ROW_H}
+            rx={5}
+            fill={CYAN}
+            opacity={0.05}
+          />
+          <rect
+            x={L.rowX2}
+            y={ROW_TOP + 5}
+            width={3}
+            height={ROW_H - 10}
+            rx={1.5}
+            fill={CYAN}
+          />
+          <text
+            x={L.rowX2 + 13}
+            y={ROW_TOP + 21}
+            fontFamily={MONO_FONT}
+            fontSize={10}
+            fill={INK}
+          >
             ReserveInventoryHandler
           </text>
           <text
@@ -597,7 +780,14 @@ export function SendVisual() {
             opacity={0}
           />
 
-          <text x={CL_X} y={chipTop - 10} fontFamily={MONO_FONT} fontSize={10} letterSpacing="0.22em" fill={SILK}>
+          <text
+            x={CL_X}
+            y={chipTop - 10}
+            fontFamily={MONO_FONT}
+            fontSize={10}
+            letterSpacing="0.22em"
+            fill={SILK}
+          >
             CLIENT
           </text>
           <rect
@@ -625,7 +815,14 @@ export function SendVisual() {
           />
           <circle cx={CL_X + 4.5} cy={chipTop + 4.5} r={1.2} fill={SILK} />
           {[-5, 0, 5].map((dy) => (
-            <rect key={dy} x={chipR - 1} y={LANE_Y + dy - 1.75} width={2} height={3.5} fill={PAD_FILL} />
+            <rect
+              key={dy}
+              x={chipR - 1}
+              y={LANE_Y + dy - 1.75}
+              width={2}
+              height={3.5}
+              fill={PAD_FILL}
+            />
           ))}
           <rect
             ref={set("clLit")}

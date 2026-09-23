@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 
-import { CONSULTING_MAILTO, CONTACT_FORM } from "@/src/components/advisory/advisoryLinks";
+import {
+  CONSULTING_MAILTO,
+  CONTACT_FORM,
+} from "@/src/components/advisory/advisoryLinks";
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CheckListItem } from "@/src/components/CheckListItem";

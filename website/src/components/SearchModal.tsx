@@ -9,6 +9,8 @@ import type { ComponentProps } from "react";
  * DocSearch CSS) live in a separate chunk. Loaded via `next/dynamic` only when
  * the user actually opens search, keeping it out of every page's first load.
  */
-export default function SearchModal(props: ComponentProps<typeof DocSearchModal>) {
+export default function SearchModal(
+  props: ComponentProps<typeof DocSearchModal>,
+) {
   return <DocSearchModal {...props} />;
 }

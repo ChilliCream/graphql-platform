@@ -1,7 +1,10 @@
 import NextLink from "next/link";
 import type { ReactNode } from "react";
 
-import { type AnalyticsEvent, trackAttributes } from "@/src/helpers/analyticsEvents";
+import {
+  type AnalyticsEvent,
+  trackAttributes,
+} from "@/src/helpers/analyticsEvents";
 
 export type ButtonProps = {
   children: ReactNode;
@@ -29,11 +32,22 @@ const BASE_CLASSES =
 const SOLID_CLASSES = "bg-cc-heading text-cc-surface hover:bg-cc-white";
 
 // Outlined pill: hairline border that brightens on hover.
-const OUTLINE_CLASSES = "border border-cc-card-border text-cc-ink hover:border-cc-card-border-hover";
+const OUTLINE_CLASSES =
+  "border border-cc-card-border text-cc-ink hover:border-cc-card-border-hover";
 
 function renderButton(variantClasses: string, props: ButtonProps) {
-  const { children, href, className, type = "button", disabled, download, track } = props;
-  const cls = [BASE_CLASSES, variantClasses, className ?? ""].filter(Boolean).join(" ");
+  const {
+    children,
+    href,
+    className,
+    type = "button",
+    disabled,
+    download,
+    track,
+  } = props;
+  const cls = [BASE_CLASSES, variantClasses, className ?? ""]
+    .filter(Boolean)
+    .join(" ");
   const trackProps = track ? trackAttributes(track) : undefined;
 
   if (href === undefined) {
@@ -52,7 +66,11 @@ function renderButton(variantClasses: string, props: ButtonProps) {
     );
   }
 
-  if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
+  if (
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  ) {
     return (
       <a href={href} download={download} className={cls} {...trackProps}>
         {children}
@@ -61,7 +79,14 @@ function renderButton(variantClasses: string, props: ButtonProps) {
   }
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" download={download} className={cls} {...trackProps}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      download={download}
+      className={cls}
+      {...trackProps}
+    >
       {children}
     </a>
   );

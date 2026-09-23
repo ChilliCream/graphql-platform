@@ -20,10 +20,21 @@ interface FaqSectionProps {
  * toggles the answer open, and clicking anywhere on the open answer collapses
  * it again. Shared across the marketing pages.
  */
-export function FaqSection({ id, className, eyebrow, heading, items }: FaqSectionProps) {
+export function FaqSection({
+  id,
+  className,
+  eyebrow,
+  heading,
+  items,
+}: FaqSectionProps) {
   return (
     <section aria-labelledby={`${id}-heading`} className={className} id={id}>
-      <SectionHeading align="center" eyebrow={eyebrow} title={heading} titleId={`${id}-heading`} />
+      <SectionHeading
+        align="center"
+        eyebrow={eyebrow}
+        title={heading}
+        titleId={`${id}-heading`}
+      />
 
       <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4">
         {items.map((item) => (
@@ -34,7 +45,11 @@ export function FaqSection({ id, className, eyebrow, heading, items }: FaqSectio
   );
 }
 
-function FaqItem({ item }: { readonly item: { readonly question: string; readonly answer: string } }) {
+function FaqItem({
+  item,
+}: {
+  readonly item: { readonly question: string; readonly answer: string };
+}) {
   return (
     <Card className="bg-cc-card-bg/60" hoverBorder>
       <details className="group">

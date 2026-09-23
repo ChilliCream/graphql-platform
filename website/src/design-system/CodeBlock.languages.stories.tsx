@@ -74,7 +74,11 @@ const samples: ReadonlyArray<{
 export const AllLanguages: Story = {
   loaders: [
     async () => ({
-      blocks: await Promise.all(samples.map(({ language, code, meta }) => renderBlock(language, code, meta))),
+      blocks: await Promise.all(
+        samples.map(({ language, code, meta }) =>
+          renderBlock(language, code, meta),
+        ),
+      ),
     }),
   ],
   render: (_args, ctx) => (

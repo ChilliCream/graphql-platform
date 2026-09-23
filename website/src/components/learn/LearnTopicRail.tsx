@@ -23,7 +23,9 @@ const cardKicker = (
     return { text: ARTICLE_LABEL, href: undefined };
   }
   const kicker = hubKickerForPost(post);
-  return kicker.href === moreHref ? { text: ARTICLE_LABEL, href: undefined } : kicker;
+  return kicker.href === moreHref
+    ? { text: ARTICLE_LABEL, href: undefined }
+    : kicker;
 };
 
 interface LearnTopicRailProps {
@@ -47,7 +49,11 @@ interface LearnTopicRailProps {
  * Catalog items do not appear inside topic sections; they are reachable
  * through the section's "More" link and the collection band.
  */
-export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps) {
+export function LearnTopicRail({
+  heading,
+  moreHref,
+  posts,
+}: LearnTopicRailProps) {
   if (posts.length === 0) {
     return null;
   }
@@ -57,7 +63,9 @@ export function LearnTopicRail({ heading, moreHref, posts }: LearnTopicRailProps
   return (
     <section className="py-8 sm:py-10">
       <div className="mb-8 flex items-center justify-between gap-4">
-        <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{heading}</h2>
+        <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">
+          {heading}
+        </h2>
         <ArrowLink href={moreHref}>{`More ${heading}`}</ArrowLink>
       </div>
       <LearnArticleCard

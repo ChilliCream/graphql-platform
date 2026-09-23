@@ -1,4 +1,9 @@
-import { Children, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import {
+  Children,
+  isValidElement,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { codeToHtml, type BundledTheme } from "shiki";
 import { LANGUAGES, STEP_PALETTE } from "./languages";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
@@ -35,7 +40,11 @@ function extract(children: ReactNode): ExtractedCode | null {
   return { code, language, meta };
 }
 
-export async function CodeBlock({ children, className = "", theme = DEFAULT_THEME }: CodeBlockProps) {
+export async function CodeBlock({
+  children,
+  className = "",
+  theme = DEFAULT_THEME,
+}: CodeBlockProps) {
   const extracted = extract(children);
   if (!extracted) {
     return <pre className={className}>{children}</pre>;
@@ -56,7 +65,10 @@ export async function CodeBlock({ children, className = "", theme = DEFAULT_THEM
         {
           line(node, line) {
             if (parsed.highlightedLines.has(line)) {
-              const existing = typeof node.properties.class === "string" ? node.properties.class : "";
+              const existing =
+                typeof node.properties.class === "string"
+                  ? node.properties.class
+                  : "";
               node.properties.class = `${existing} line-highlighted`.trim();
             }
             const stepsForLine = parsed.steps.filter((s) => s.line === line);
@@ -80,12 +92,16 @@ export async function CodeBlock({ children, className = "", theme = DEFAULT_THEM
               }
               const palette = STEP_PALETTE[match.step] ?? STEP_PALETTE[1];
               const leading = rawText.match(/^\s*/)?.[0] ?? "";
-              const trailing = rawText.slice(leading.length).match(/\s*$/)?.[0] ?? "";
+              const trailing =
+                rawText.slice(leading.length).match(/\s*$/)?.[0] ?? "";
               const coreLen = rawText.length - leading.length - trailing.length;
               if (coreLen <= 0) {
                 continue;
               }
-              const core = rawText.slice(leading.length, leading.length + coreLen);
+              const core = rawText.slice(
+                leading.length,
+                leading.length + coreLen,
+              );
               const innerSpan = {
                 type: "element" as const,
                 tagName: "span",
@@ -130,10 +146,15 @@ export async function CodeBlock({ children, className = "", theme = DEFAULT_THEM
           ) : (
             <span className="text-cc-ink-dim font-mono">{language}</span>
           )}
-          {parsed.filename ? <span className="text-cc-ink-dim font-mono">{parsed.filename}</span> : null}
+          {parsed.filename ? (
+            <span className="text-cc-ink-dim font-mono">{parsed.filename}</span>
+          ) : null}
         </figcaption>
       )}
-      <div className="shiki-wrapper overflow-x-auto text-sm leading-6" dangerouslySetInnerHTML={{ __html: html }} />
+      <div
+        className="shiki-wrapper overflow-x-auto text-sm leading-6"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </figure>
   );
 }

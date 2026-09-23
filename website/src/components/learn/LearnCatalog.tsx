@@ -3,7 +3,11 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CardGrid } from "@/src/components/CardGrid";
-import type { FilterAxisDef, LearnContentType, ProductKey } from "@/src/data/learn/facets";
+import type {
+  FilterAxisDef,
+  LearnContentType,
+  ProductKey,
+} from "@/src/data/learn/facets";
 import {
   clientLabel,
   CONTENT_TYPE_OPTIONS,
@@ -30,17 +34,28 @@ import { LearnFeatureCard } from "./LearnFeatureCard";
 // Template-only axes, excluding product mix: product has its own
 // always-visible row (section 3.2 of the design spec), even though it lives
 // inside TEMPLATE_FILTER_AXES in the data model.
-const TEMPLATE_AXES: readonly FilterAxisDef[] = TEMPLATE_FILTER_AXES.filter((axis) => axis.key !== "product");
+const TEMPLATE_AXES: readonly FilterAxisDef[] = TEMPLATE_FILTER_AXES.filter(
+  (axis) => axis.key !== "product",
+);
 
-const VALID_CONTENT_TYPES = new Set<string>(CONTENT_TYPE_OPTIONS.map((option) => option.key));
-const VALID_PRODUCT_KEYS = new Set<string>(PRODUCT_OPTIONS.map((option) => option.key));
+const VALID_CONTENT_TYPES = new Set<string>(
+  CONTENT_TYPE_OPTIONS.map((option) => option.key),
+);
+const VALID_PRODUCT_KEYS = new Set<string>(
+  PRODUCT_OPTIONS.map((option) => option.key),
+);
 
 type AxisSelection = Readonly<Record<string, readonly string[]>>;
 
 const emptyAxisSelection = (): AxisSelection =>
-  Object.fromEntries(TEMPLATE_AXES.map((axis) => [axis.key, [] as readonly string[]]));
+  Object.fromEntries(
+    TEMPLATE_AXES.map((axis) => [axis.key, [] as readonly string[]]),
+  );
 
-const axisValues = (item: LearnItemSummary, axisKey: string): readonly string[] => {
+const axisValues = (
+  item: LearnItemSummary,
+  axisKey: string,
+): readonly string[] => {
   if (item.type !== "template") {
     return [];
   }
@@ -60,7 +75,10 @@ const axisValues = (item: LearnItemSummary, axisKey: string): readonly string[] 
   }
 };
 
-const matchesAxes = (item: LearnItemSummary, selection: AxisSelection): boolean =>
+const matchesAxes = (
+  item: LearnItemSummary,
+  selection: AxisSelection,
+): boolean =>
   TEMPLATE_AXES.every((axis) => {
     const selected = selection[axis.key] ?? [];
     if (selected.length === 0) {
@@ -69,11 +87,19 @@ const matchesAxes = (item: LearnItemSummary, selection: AxisSelection): boolean 
     return selected.some((key) => axisValues(item, axis.key).includes(key));
   });
 
-const matchesProducts = (item: LearnItemSummary, selected: readonly ProductKey[]): boolean =>
+const matchesProducts = (
+  item: LearnItemSummary,
+  selected: readonly ProductKey[],
+): boolean =>
   selected.length === 0 || selected.some((key) => item.products.includes(key));
 
 const searchHaystack = (item: LearnItemSummary): string => {
-  const parts = [item.title, item.tagline, contentTypeLabel(item.type), ...item.products.map(productLabel)];
+  const parts = [
+    item.title,
+    item.tagline,
+    contentTypeLabel(item.type),
+    ...item.products.map(productLabel),
+  ];
   if (item.type === "template") {
     parts.push(
       topologyLabel(item.topology),
@@ -111,21 +137,26 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
   const searchParams = useSearchParams();
 
   const rawType = searchParams.get("type");
-  const contentType: ContentTypeSelection = VALID_CONTENT_TYPES.has(rawType ?? "")
+  const contentType: ContentTypeSelection = VALID_CONTENT_TYPES.has(
+    rawType ?? "",
+  )
     ? (rawType as LearnContentType)
     : "all";
 
   const productSelection: readonly ProductKey[] = useMemo(
     () =>
-      (searchParams.get("product")?.split(",").filter(Boolean) ?? []).filter((key): key is ProductKey =>
-        VALID_PRODUCT_KEYS.has(key),
+      (searchParams.get("product")?.split(",").filter(Boolean) ?? []).filter(
+        (key): key is ProductKey => VALID_PRODUCT_KEYS.has(key),
       ),
     [searchParams],
   );
 
   const axisSelection: AxisSelection = useMemo(() => {
-    const fromParam = (axisKey: string) => searchParams.get(axisKey)?.split(",").filter(Boolean) ?? [];
-    return Object.fromEntries(TEMPLATE_AXES.map((axis) => [axis.key, fromParam(axis.key)]));
+    const fromParam = (axisKey: string) =>
+      searchParams.get(axisKey)?.split(",").filter(Boolean) ?? [];
+    return Object.fromEntries(
+      TEMPLATE_AXES.map((axis) => [axis.key, fromParam(axis.key)]),
+    );
   }, [searchParams]);
 
   const queryParam = searchParams.get("q") ?? "";
@@ -162,7 +193,9 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
       params.set("q", nextQuery.trim());
     }
     const encoded = params.toString();
-    router.replace(encoded ? `${pathname}?${encoded}` : pathname, { scroll: false });
+    router.replace(encoded ? `${pathname}?${encoded}` : pathname, {
+      scroll: false,
+    });
   };
 
   // Debounce typing into the URL; selection changes apply immediately.
@@ -170,13 +203,21 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
     if (query === queryParam) {
       return;
     }
-    const handle = setTimeout(() => applyToUrl(contentType, productSelection, axisSelection, query), 250);
+    const handle = setTimeout(
+      () => applyToUrl(contentType, productSelection, axisSelection, query),
+      250,
+    );
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- applyToUrl/selection are derived from the same params snapshot
   }, [query, queryParam]);
 
   const setContentType = (next: ContentTypeSelection) =>
-    applyToUrl(next, productSelection, next === "template" ? axisSelection : emptyAxisSelection(), query);
+    applyToUrl(
+      next,
+      productSelection,
+      next === "template" ? axisSelection : emptyAxisSelection(),
+      query,
+    );
 
   const toggleProduct = (key: ProductKey) => {
     const next = productSelection.includes(key)
@@ -195,7 +236,12 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
         : current.includes(key)
           ? []
           : [key];
-    applyToUrl(contentType, productSelection, { ...axisSelection, [axis.key]: next }, query);
+    applyToUrl(
+      contentType,
+      productSelection,
+      { ...axisSelection, [axis.key]: next },
+      query,
+    );
   };
 
   const clearAll = () => {
@@ -231,7 +277,10 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
     items.filter(
       (item) =>
         (contentType === "all" || item.type === contentType) &&
-        matchesProducts(item, [...productSelection.filter((selected) => selected !== key), key]) &&
+        matchesProducts(item, [
+          ...productSelection.filter((selected) => selected !== key),
+          key,
+        ]) &&
         (contentType !== "template" || matchesAxes(item, axisSelection)) &&
         matchesQuery(item, query),
     ).length;
@@ -248,10 +297,14 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
   const activeFilterCount =
     (contentType !== "all" ? 1 : 0) +
     productSelection.length +
-    TEMPLATE_AXES.reduce((sum, axis) => sum + (axisSelection[axis.key]?.length ?? 0), 0) +
+    TEMPLATE_AXES.reduce(
+      (sum, axis) => sum + (axisSelection[axis.key]?.length ?? 0),
+      0,
+    ) +
     (query.trim() ? 1 : 0);
 
-  const typeHasAnyItems = contentType === "all" || items.some((item) => item.type === contentType);
+  const typeHasAnyItems =
+    contentType === "all" || items.some((item) => item.type === contentType);
   const showFeatureRow = activeFilterCount === 0 && featuredCount > 0;
 
   return (
@@ -286,7 +339,10 @@ export function LearnCatalog({ items, featuredCount = 0 }: LearnCatalogProps) {
           <CardGrid cols={4} step="progressive" itemsStretch>
             {visibleItems.map((item, index) =>
               showFeatureRow && index < featuredCount ? (
-                <div key={`${item.type}-${item.slug}`} className="sm:col-span-2">
+                <div
+                  key={`${item.type}-${item.slug}`}
+                  className="sm:col-span-2"
+                >
                   <LearnFeatureCard item={item} />
                 </div>
               ) : (

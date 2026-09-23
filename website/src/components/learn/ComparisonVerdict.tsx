@@ -25,8 +25,14 @@ export function ComparisonVerdict({ options }: ComparisonVerdictProps) {
   return (
     <CardGrid cols={cols} itemsStretch>
       {options.map((option) => (
-        <HighlightCard key={option.name} highlight={option.ours} badgeLabel="Our take">
-          <h3 className="font-heading text-cc-heading text-lg font-semibold">Choose {option.name} when</h3>
+        <HighlightCard
+          key={option.name}
+          highlight={option.ours}
+          badgeLabel="Our take"
+        >
+          <h3 className="font-heading text-cc-heading text-lg font-semibold">
+            Choose {option.name} when
+          </h3>
           <CheckList items={option.reasons} />
         </HighlightCard>
       ))}

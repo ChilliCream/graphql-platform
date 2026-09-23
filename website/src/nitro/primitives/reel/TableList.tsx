@@ -17,7 +17,13 @@ export interface TableListProps {
   titleColor?: string;
 }
 
-export function TableList({ title, rows, progress, playWindow, titleColor }: TableListProps) {
+export function TableList({
+  title,
+  rows,
+  progress,
+  playWindow,
+  titleColor,
+}: TableListProps) {
   const [w0, w1] = playWindow;
   const headerOpacity = useTransform(progress, [w0, w0 + 0.02], [0, 1], {
     clamp: true,
@@ -51,7 +57,15 @@ export function TableList({ title, rows, progress, playWindow, titleColor }: Tab
   );
 }
 
-function Row({ row, progress, at }: { row: TableRow; progress: MotionValue<number>; at: number }) {
+function Row({
+  row,
+  progress,
+  at,
+}: {
+  row: TableRow;
+  progress: MotionValue<number>;
+  at: number;
+}) {
   const opacity = useTransform(progress, [at, at + 0.03], [0, 1], {
     clamp: true,
   });

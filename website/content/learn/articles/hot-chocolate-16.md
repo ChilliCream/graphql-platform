@@ -244,7 +244,11 @@ public class Product
 We also extended the proposal. Hot Chocolate lets you declare feature stability at the schema level and expose it through introspection with `__schema.optInFeatures`, `__schema.optInFeatureStability`, and `includeOptIn`.
 
 ```graphql
-schema @optInFeatureStability(feature: "product-recommendations", stability: "experimental") {
+schema
+  @optInFeatureStability(
+    feature: "product-recommendations"
+    stability: "experimental"
+  ) {
   query: Query
 }
 

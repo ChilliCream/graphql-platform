@@ -13,7 +13,9 @@ export const dynamicParams = false;
 
 export function generateStaticParams(): Params[] {
   const tags = listTags(listBlogPostSummaries());
-  return tags.length > 0 ? tags.map((tag) => ({ tag })) : [{ tag: "__empty__" }];
+  return tags.length > 0
+    ? tags.map((tag) => ({ tag }))
+    : [{ tag: "__empty__" }];
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -47,11 +49,15 @@ export default async function ArticleTagIndex({ params }: PageProps) {
 
   return (
     <div className="cc-content-dark">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <header className="flex flex-col gap-1">
         <Typography variant="h1">#{tag}</Typography>
         <p className="text-cc-ink-dim text-sm">
-          {tagged.length} {tagged.length === 1 ? "post" : "posts"} tagged “{tag}”.
+          {tagged.length} {tagged.length === 1 ? "post" : "posts"} tagged “{tag}
+          ”.
         </p>
       </header>
       <div className="mt-8 sm:mt-10">
@@ -60,7 +66,11 @@ export default async function ArticleTagIndex({ params }: PageProps) {
       <Pagination
         currentPage={slice.currentPage}
         totalPages={slice.totalPages}
-        hrefForPage={(p) => (p === 1 ? `/learn/articles/tags/${tag}` : `/learn/articles/tags/${tag}/${p}`)}
+        hrefForPage={(p) =>
+          p === 1
+            ? `/learn/articles/tags/${tag}`
+            : `/learn/articles/tags/${tag}/${p}`
+        }
       />
     </div>
   );

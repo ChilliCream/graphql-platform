@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   animate,
   AnimatePresence,
@@ -44,7 +51,10 @@ export function TabReel({
   ariaLabel = "Nitro product reel",
   tabsOverlay = false,
 }: TabReelProps) {
-  const total = useMemo(() => tabs.reduce((s, t) => s + t.durationMs, 0), [tabs]);
+  const total = useMemo(
+    () => tabs.reduce((s, t) => s + t.durationMs, 0),
+    [tabs],
+  );
   const ends = useMemo(() => {
     const out: number[] = [];
     let acc = 0;
@@ -118,7 +128,9 @@ export function TabReel({
     setLiveIndex((prev) => (prev === i ? prev : i));
   });
 
-  const activeIndex = staticMode ? Math.min(staticTab!, tabs.length - 1) : liveIndex;
+  const activeIndex = staticMode
+    ? Math.min(staticTab!, tabs.length - 1)
+    : liveIndex;
   const frozenLocal = useMotionValue(staticProgress ?? 0);
 
   const selectTab = useCallback(
@@ -324,7 +336,9 @@ function TabButton({
   onSelect?: () => void;
 }) {
   const zero = useMotionValue(0);
-  const fromGlobal = useTransform(global, (p) => (isActive ? localFor(p, index, ends) : 0));
+  const fromGlobal = useTransform(global, (p) =>
+    isActive ? localFor(p, index, ends) : 0,
+  );
   const fill = staticMode ? (isActive ? staticLocal : zero) : fromGlobal;
 
   return (

@@ -25,7 +25,11 @@
 
 import type { ProductKey, UseCaseKey } from "./facets";
 
-export type HubKey = "graphql-federation" | "messaging" | "tooling-observability" | "agents";
+export type HubKey =
+  | "graphql-federation"
+  | "messaging"
+  | "tooling-observability"
+  | "agents";
 
 export interface Hub {
   readonly key: HubKey;
@@ -49,7 +53,8 @@ export const HUBS: readonly Hub[] = [
     key: "messaging",
     label: "Messaging",
     tagline: "Message-driven services with Mocha",
-    description: "Message buses, sagas, and the transactional outbox pattern for services that talk asynchronously.",
+    description:
+      "Message buses, sagas, and the transactional outbox pattern for services that talk asynchronously.",
     browseHref: "/learn/browse?product=mocha",
   },
   {
@@ -64,12 +69,14 @@ export const HUBS: readonly Hub[] = [
     key: "agents",
     label: "Agents",
     tagline: "GraphQL APIs for LLMs and agent tooling",
-    description: "MCP, semantic introspection, and building agent-ready APIs that LLMs and autonomous tools can use.",
+    description:
+      "MCP, semantic introspection, and building agent-ready APIs that LLMs and autonomous tools can use.",
     browseHref: "/learn/browse?type=template&use=llm-mcp",
   },
 ];
 
-export const findHub = (key: string): Hub | undefined => HUBS.find((hub) => hub.key === key);
+export const findHub = (key: string): Hub | undefined =>
+  HUBS.find((hub) => hub.key === key);
 
 export const hubHref = (key: HubKey): string => `/learn/topics/${key}`;
 
@@ -115,7 +122,9 @@ export function hubsForLearnItem(item: HubbableLearnItem): readonly HubKey[] {
 }
 
 /** The single hub a catalog item is chiefly about: `hubsForLearnItem(item)[0]`. */
-export function primaryHubForLearnItem(item: HubbableLearnItem): HubKey | undefined {
+export function primaryHubForLearnItem(
+  item: HubbableLearnItem,
+): HubKey | undefined {
   return hubsForLearnItem(item)[0];
 }
 
@@ -192,7 +201,10 @@ export const ARTICLE_LABEL = "Article";
  * category fall back to their primary tag-derived hub, and posts with
  * neither fall back to the plain-text `Article` kicker.
  */
-export function hubKickerForPost(post: HubbablePost): { readonly text: string; readonly href: string | undefined } {
+export function hubKickerForPost(post: HubbablePost): {
+  readonly text: string;
+  readonly href: string | undefined;
+} {
   if (post.category && post.category !== "AI") {
     return { text: post.category, href: undefined };
   }

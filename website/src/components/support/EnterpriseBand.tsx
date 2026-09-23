@@ -34,7 +34,10 @@ export function EnterpriseBand() {
       }
       aside={
         <ButtonRow align="stacked">
-          <SolidButton href="/services/support/contact?plan=Enterprise" className="w-full">
+          <SolidButton
+            href="/services/support/contact?plan=Enterprise"
+            className="w-full"
+          >
             Talk to us about Enterprise
           </SolidButton>
           <OutlineButton href="/services/advisory" className="w-full">

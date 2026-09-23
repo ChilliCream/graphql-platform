@@ -3,7 +3,8 @@ kind: article
 date: "2024-10-30"
 title: "Newsletter October"
 description: "Hot Chocolate 14 is released, BCP is now Nitro and there is a new DDD Workshop"
-tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+tags:
+  ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
 category: "Newsletter"
 featuredImage: "header.png"
 author: Pascal Senn

@@ -46,7 +46,8 @@ const graphqlServerTemplate: TemplateItem = {
   type: "template",
   slug: "graphql-server",
   title: "Hot Chocolate GraphQL Server",
-  tagline: "The dotnet new graphql starter: a minimal, source-generated Hot Chocolate server.",
+  tagline:
+    "The dotnet new graphql starter: a minimal, source-generated Hot Chocolate server.",
   topology: "solo",
   useCases: ["starter"],
   language: "dotnet",
@@ -54,12 +55,21 @@ const graphqlServerTemplate: TemplateItem = {
   products: ["hot-chocolate"],
   stack: [],
   agentReady: false,
-  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/templates/server",
+  githubUrl:
+    "https://github.com/ChilliCream/graphql-platform/tree/main/templates/server",
   license: "MIT",
   updatedRelative: "over a week ago",
   cli: [
-    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
-    { key: "new", label: "scaffold project", code: "dotnet new graphql --name MyGraphQLServer" },
+    {
+      key: "install",
+      label: "install template",
+      code: "dotnet new install HotChocolate.Templates",
+    },
+    {
+      key: "new",
+      label: "scaffold project",
+      code: "dotnet new graphql --name MyGraphQLServer",
+    },
   ],
   body: [
     {
@@ -99,7 +109,8 @@ const graphqlGatewayTemplate: TemplateItem = {
   type: "template",
   slug: "graphql-gateway",
   title: "Hot Chocolate Fusion Gateway",
-  tagline: "The dotnet new graphql-gateway starter: a Fusion gateway ready to load a composed schema.",
+  tagline:
+    "The dotnet new graphql-gateway starter: a Fusion gateway ready to load a composed schema.",
   topology: "federation",
   useCases: ["starter"],
   language: "dotnet",
@@ -107,12 +118,21 @@ const graphqlGatewayTemplate: TemplateItem = {
   products: ["hot-chocolate", "fusion"],
   stack: [],
   agentReady: false,
-  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/templates/gateway",
+  githubUrl:
+    "https://github.com/ChilliCream/graphql-platform/tree/main/templates/gateway",
   license: "MIT",
   updatedRelative: "over a week ago",
   cli: [
-    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
-    { key: "new", label: "scaffold project", code: "dotnet new graphql-gateway --name MyGateway" },
+    {
+      key: "install",
+      label: "install template",
+      code: "dotnet new install HotChocolate.Templates",
+    },
+    {
+      key: "new",
+      label: "scaffold project",
+      code: "dotnet new graphql-gateway --name MyGateway",
+    },
   ],
   body: [
     {
@@ -148,7 +168,8 @@ const graphqlAzureFunctionTemplate: TemplateItem = {
   type: "template",
   slug: "graphql-azure-function",
   title: "Hot Chocolate GraphQL Azure Function",
-  tagline: "The dotnet new graphql-azf starter: a Hot Chocolate server on the isolated-worker Azure Functions model.",
+  tagline:
+    "The dotnet new graphql-azf starter: a Hot Chocolate server on the isolated-worker Azure Functions model.",
   topology: "solo",
   useCases: ["starter"],
   language: "dotnet",
@@ -156,12 +177,21 @@ const graphqlAzureFunctionTemplate: TemplateItem = {
   products: ["hot-chocolate"],
   stack: [],
   agentReady: false,
-  githubUrl: "https://github.com/ChilliCream/graphql-platform/tree/main/templates/azure-function",
+  githubUrl:
+    "https://github.com/ChilliCream/graphql-platform/tree/main/templates/azure-function",
   license: "MIT",
   updatedRelative: "over a week ago",
   cli: [
-    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
-    { key: "new", label: "scaffold project", code: "dotnet new graphql-azf --name MyGraphQLFunction" },
+    {
+      key: "install",
+      label: "install template",
+      code: "dotnet new install HotChocolate.Templates",
+    },
+    {
+      key: "new",
+      label: "scaffold project",
+      code: "dotnet new graphql-azf --name MyGraphQLFunction",
+    },
   ],
   body: [
     {
@@ -207,7 +237,8 @@ const graphqlObservabilityVideo: VideoItem = {
   type: "video",
   slug: "graphql-observability-elastic-opentelemetry",
   title: "GraphQL Observability with Elastic and OpenTelemetry",
-  tagline: "Michael Staib instruments a Hot Chocolate server with OpenTelemetry and traces it through Elastic.",
+  tagline:
+    "Michael Staib instruments a Hot Chocolate server with OpenTelemetry and traces it through Elastic.",
   products: ["hot-chocolate"],
   // Subject is observability, not the server itself; `products` alone would
   // only place it in GraphQL & Federation (see src/data/learn/hubs.ts).
@@ -222,7 +253,8 @@ const getStartedGraphqlBlazorVideo: VideoItem = {
   type: "video",
   slug: "getting-started-graphql-blazor",
   title: "Getting Started with GraphQL and Blazor",
-  tagline: "A walkthrough of wiring a Strawberry Shake GraphQL client into a Blazor WebAssembly app.",
+  tagline:
+    "A walkthrough of wiring a Strawberry Shake GraphQL client into a Blazor WebAssembly app.",
   products: ["strawberry-shake"],
   level: "beginner",
   url: "https://www.youtube.com/watch?v=-oq7YEciouM",
@@ -263,7 +295,8 @@ const efCoreProjectionsVideo: VideoItem = {
   type: "video",
   slug: "ef-core-projections-graphql-performance",
   title: "Boost GraphQL Performance with EF Core Projections",
-  tagline: "Michael Staib tours Hot Chocolate's new EF Core projections engine for faster, smarter GraphQL queries.",
+  tagline:
+    "Michael Staib tours Hot Chocolate's new EF Core projections engine for faster, smarter GraphQL queries.",
   description:
     "In this episode, we're taking a look at the new projections engine in Hot Chocolate: what's changed, what's new, and how it can help you write smarter, faster GraphQL queries with EF Core.\n\nSo buckle up, and let's jump in!\n\nCourses: https://courses.chillicream.com/youtube/dYSqssul4jY\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.3",
   products: ["hot-chocolate"],
@@ -278,7 +311,8 @@ const openTelemetryForServicesVideo: VideoItem = {
   type: "video",
   slug: "opentelemetry-for-services",
   title: "Open Telemetry for All Your Services (and More!)",
-  tagline: "Michael Staib wires up OpenTelemetry across your services for unified tracing in Hot Chocolate.",
+  tagline:
+    "Michael Staib wires up OpenTelemetry across your services for unified tracing in Hot Chocolate.",
   // Subject is observability, not the server itself; `products` alone would
   // only place it in GraphQL & Federation (see src/data/learn/hubs.ts).
   hubs: ["tooling-observability"],
@@ -296,7 +330,8 @@ const relativeCursorsVsOffsetPaginationVideo: VideoItem = {
   type: "video",
   slug: "relative-cursors-vs-offset-pagination",
   title: "Offset Pagination is Dead! Meet Relative Cursors",
-  tagline: "Michael Staib introduces Hot Chocolate 15.1's relative-cursor paging, replacing offset pagination.",
+  tagline:
+    "Michael Staib introduces Hot Chocolate 15.1's relative-cursor paging, replacing offset pagination.",
   description:
     "In this episode, we will have a look at the new paging capabilities that come with Hot Chocolate 15.1, which will make offset pagination obsolete.\n\nSo buckle up and jump in!\n\nCourses: https://courses.chillicream.com/youtube/ZHq1pBjo0Qk\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.7",
   products: ["hot-chocolate"],
@@ -311,7 +346,8 @@ const dataLoaderInLayeredArchitectureVideo: VideoItem = {
   type: "video",
   slug: "dataloader-in-layered-architecture",
   title: "Master DataLoader in Layered Architecture!",
-  tagline: "Michael Staib shows how to use DataLoader in your business layer with zero dependency on Hot Chocolate.",
+  tagline:
+    "Michael Staib shows how to use DataLoader in your business layer with zero dependency on Hot Chocolate.",
   description:
     "In this episode, have a look at how we can use DataLoader in our business layer without having any dependencies on Hot Chocolate.\n\nSo buckle up and jump in!\n\nCourses: https://courses.chillicream.com/youtube/ZHq1pBjo0Qk\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.7",
   products: ["hot-chocolate"],
@@ -342,7 +378,8 @@ const dataLoaderExplainedVideo: VideoItem = {
   type: "video",
   slug: "dataloader-explained",
   title: "DataLoader Explained: What, Why & Where It Belongs!",
-  tagline: "Michael Staib explains what DataLoader is, why you need it, and where it belongs in your project.",
+  tagline:
+    "Michael Staib explains what DataLoader is, why you need it, and where it belongs in your project.",
   description:
     "In this episode, we will take a peek at DataLoader with Green Donut and Hot Chocolate 15. We will look at what they are, why you should use them, and where you should put them in your project.\n\nSo buckle up, join me!\n\nCourses: https://courses.chillicream.com/youtube/e0CKt3MVUfI\n\nHot Chocolate GraphQL .NET server version used in this video: https://www.nuget.org/packages/HotChocolate/15.1.0-p.3",
   products: ["hot-chocolate"],
@@ -366,7 +403,11 @@ export const VIDEO_ITEMS: readonly VideoItem[] = [
   dataLoaderInLayeredArchitectureVideo,
   greenDonutInActionVideo,
   dataLoaderExplainedVideo,
-].map((video) => (video.youtubeId ? { ...video, poster: resolveYouTubePoster(video.youtubeId) } : video));
+].map((video) =>
+  video.youtubeId
+    ? { ...video, poster: resolveYouTubePoster(video.youtubeId) }
+    : video,
+);
 
 // -----------------------------------------------------------------------------
 // Tutorials
@@ -376,14 +417,23 @@ const getStartedNetCoreTutorial: TutorialItem = {
   type: "tutorial",
   slug: "get-started-with-graphql-in-net-core",
   title: "Getting Started with GraphQL in .NET Core",
-  tagline: "Scaffold a Hot Chocolate server from the project template and run your first query in Nitro.",
+  tagline:
+    "Scaffold a Hot Chocolate server from the project template and run your first query in Nitro.",
   products: ["hot-chocolate", "nitro"],
   level: "beginner",
   externalUrl: "/docs/hotchocolate/get-started-with-graphql-in-net-core",
   updatedRelative: "2 months ago",
   cli: [
-    { key: "install", label: "install template", code: "dotnet new install HotChocolate.Templates" },
-    { key: "new", label: "scaffold project", code: "dotnet new graphql --name GettingStarted" },
+    {
+      key: "install",
+      label: "install template",
+      code: "dotnet new install HotChocolate.Templates",
+    },
+    {
+      key: "new",
+      label: "scaffold project",
+      code: "dotnet new graphql --name GettingStarted",
+    },
   ],
   body: [
     {
@@ -421,14 +471,23 @@ const getStartedFederationTutorial: TutorialItem = {
   type: "tutorial",
   slug: "getting-started-with-graphql-federation",
   title: "Getting Started with GraphQL Federation",
-  tagline: "Build two subgraphs, compose them with Fusion, and query the unified API through the gateway.",
+  tagline:
+    "Build two subgraphs, compose them with Fusion, and query the unified API through the gateway.",
   products: ["hot-chocolate", "fusion"],
   level: "intermediate",
   externalUrl: "/docs/fusion/getting-started",
   updatedRelative: "2 weeks ago",
   cli: [
-    { key: "nitro", label: "install Nitro CLI", code: "dotnet tool install -g ChilliCream.Nitro.CommandLine" },
-    { key: "new", label: "scaffold a subgraph", code: "dotnet new graphql -n Products" },
+    {
+      key: "nitro",
+      label: "install Nitro CLI",
+      code: "dotnet tool install -g ChilliCream.Nitro.CommandLine",
+    },
+    {
+      key: "new",
+      label: "scaffold a subgraph",
+      code: "dotnet new graphql -n Products",
+    },
   ],
   body: [
     {
@@ -468,14 +527,23 @@ const strawberryShakeBlazorTutorial: TutorialItem = {
   type: "tutorial",
   slug: "strawberry-shake-blazor-get-started",
   title: "Add a Strawberry Shake Client to Blazor",
-  tagline: "Generate a typed GraphQL client and fetch data from a Blazor WebAssembly component.",
+  tagline:
+    "Generate a typed GraphQL client and fetch data from a Blazor WebAssembly component.",
   products: ["strawberry-shake"],
   level: "beginner",
   externalUrl: "/docs/strawberryshake/get-started",
   updatedRelative: "2 months ago",
   cli: [
-    { key: "manifest", label: "create a tool manifest", code: "dotnet new tool-manifest" },
-    { key: "tools", label: "install the tools", code: "dotnet tool install StrawberryShake.Tools --local" },
+    {
+      key: "manifest",
+      label: "create a tool manifest",
+      code: "dotnet new tool-manifest",
+    },
+    {
+      key: "tools",
+      label: "install the tools",
+      code: "dotnet tool install StrawberryShake.Tools --local",
+    },
     {
       key: "init",
       label: "generate a client",
@@ -531,15 +599,24 @@ const fusionDemoExample: ExampleItem = {
   type: "example",
   slug: "fusion-demo",
   title: "Fusion Demo",
-  tagline: "An end-to-end Fusion setup: subgraphs, Aspire composition, and the gateway in action.",
+  tagline:
+    "An end-to-end Fusion setup: subgraphs, Aspire composition, and the gateway in action.",
   products: ["hot-chocolate", "fusion"],
   level: "intermediate",
   externalUrl: "https://github.com/ChilliCream/fusion-demo",
   githubUrl: "https://github.com/ChilliCream/fusion-demo",
   updatedRelative: "this week",
   cli: [
-    { key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/fusion-demo && cd fusion-demo" },
-    { key: "run", label: "run the AppHost", code: "dotnet run --project src/AppHost/Demo.AppHost.csproj" },
+    {
+      key: "git",
+      label: "git clone",
+      code: "git clone https://github.com/ChilliCream/fusion-demo && cd fusion-demo",
+    },
+    {
+      key: "run",
+      label: "run the AppHost",
+      code: "dotnet run --project src/AppHost/Demo.AppHost.csproj",
+    },
   ],
   body: [
     {
@@ -636,7 +713,13 @@ const graphqlFederationSubgraphExample: ExampleItem = {
   externalUrl: "https://github.com/ChilliCream/graphql-federation-subgraph",
   githubUrl: "https://github.com/ChilliCream/graphql-federation-subgraph",
   updatedRelative: "over a week ago",
-  cli: [{ key: "install", label: "npm install", code: "npm install graphql-federation-subgraph graphql" }],
+  cli: [
+    {
+      key: "install",
+      label: "npm install",
+      code: "npm install graphql-federation-subgraph graphql",
+    },
+  ],
   body: [
     {
       heading: "Overview",
@@ -744,15 +827,18 @@ const bookshopCleanArchitectureExample: ExampleItem = {
   type: "example",
   slug: "bookshop-clean-architecture",
   title: "Bookshop Clean Architecture",
-  tagline: "A runnable GraphQL bookshop demonstrating domain-driven design and clean architecture.",
+  tagline:
+    "A runnable GraphQL bookshop demonstrating domain-driven design and clean architecture.",
   products: ["hot-chocolate", "mocha"],
   // Pins the primary hub regardless of `products` ordering, since
   // Mocha.Mediator is used in-process for commands/queries here, not
   // Mocha's message bus (see src/data/learn/hubs.ts).
   hubs: ["graphql-federation"],
   level: "advanced",
-  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
-  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
+  externalUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
+  githubUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Architecture/Bookshop",
   updatedRelative: "this week",
   cli: [
     {
@@ -760,7 +846,11 @@ const bookshopCleanArchitectureExample: ExampleItem = {
       label: "clone the examples repo",
       code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Architecture/Bookshop",
     },
-    { key: "postgres", label: "start PostgreSQL", code: "docker compose up -d" },
+    {
+      key: "postgres",
+      label: "start PostgreSQL",
+      code: "docker compose up -d",
+    },
     {
       key: "run",
       label: "run the host",
@@ -813,8 +903,10 @@ const mochaEcommerceDemoExample: ExampleItem = {
     "Three services (Catalog, Billing, Shipping) wired with Mocha messaging, sagas, and the transactional outbox, orchestrated with .NET Aspire.",
   products: ["mocha"],
   level: "advanced",
-  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo",
-  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo",
+  externalUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo",
+  githubUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/Demo",
   updatedRelative: "this week",
   cli: [
     {
@@ -822,7 +914,11 @@ const mochaEcommerceDemoExample: ExampleItem = {
       label: "clone the examples repo",
       code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/Demo",
     },
-    { key: "run", label: "run the AppHost", code: "dotnet run --project Demo.AppHost" },
+    {
+      key: "run",
+      label: "run the AppHost",
+      code: "dotnet run --project Demo.AppHost",
+    },
   ],
   body: [
     {
@@ -858,13 +954,20 @@ const hotChocolateExamplesExample: ExampleItem = {
   type: "example",
   slug: "hotchocolate-examples",
   title: "Hot Chocolate Examples",
-  tagline: "Runnable Hot Chocolate samples, including websocket authentication for subscriptions.",
+  tagline:
+    "Runnable Hot Chocolate samples, including websocket authentication for subscriptions.",
   products: ["hot-chocolate"],
   level: "intermediate",
   externalUrl: "https://github.com/ChilliCream/hotchocolate-examples",
   githubUrl: "https://github.com/ChilliCream/hotchocolate-examples",
   updatedRelative: "over a year ago",
-  cli: [{ key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/hotchocolate-examples" }],
+  cli: [
+    {
+      key: "git",
+      label: "git clone",
+      code: "git clone https://github.com/ChilliCream/hotchocolate-examples",
+    },
+  ],
   body: [
     {
       heading: "Overview",
@@ -880,7 +983,9 @@ const hotChocolateExamplesExample: ExampleItem = {
     },
     {
       heading: "How to run it",
-      paragraphs: ["Clone the repo, open the sample folder for the topic you need, and dotnet run that project."],
+      paragraphs: [
+        "Clone the repo, open the sample folder for the topic you need, and dotnet run that project.",
+      ],
     },
   ],
 };
@@ -889,11 +994,14 @@ const mochaPostgresTransportExample: ExampleItem = {
   type: "example",
   slug: "mocha-postgres-transport",
   title: "Mocha PostgreSQL Transport",
-  tagline: "Publish, send, and request/reply over Mocha's Postgres-based message queue, wired up with .NET Aspire.",
+  tagline:
+    "Publish, send, and request/reply over Mocha's Postgres-based message queue, wired up with .NET Aspire.",
   products: ["mocha"],
   level: "intermediate",
-  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport",
-  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport",
+  externalUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport",
+  githubUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/PostgresTransport",
   updatedRelative: "this week",
   cli: [
     {
@@ -901,7 +1009,11 @@ const mochaPostgresTransportExample: ExampleItem = {
       label: "clone the examples repo",
       code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/PostgresTransport",
     },
-    { key: "run", label: "run the AppHost", code: "dotnet run --project PostgresTransport.AppHost" },
+    {
+      key: "run",
+      label: "run the AppHost",
+      code: "dotnet run --project PostgresTransport.AppHost",
+    },
   ],
   body: [
     {
@@ -929,11 +1041,14 @@ const mochaAotExample: ExampleItem = {
   type: "example",
   slug: "mocha-aot-example",
   title: "Mocha Native AOT Example",
-  tagline: "Publish/subscribe, request/reply, and a saga over RabbitMQ, all in AOT-compiled, trim-compatible services.",
+  tagline:
+    "Publish/subscribe, request/reply, and a saga over RabbitMQ, all in AOT-compiled, trim-compatible services.",
   products: ["mocha"],
   level: "advanced",
-  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/AotExample",
-  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/AotExample",
+  externalUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/AotExample",
+  githubUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/AotExample",
   updatedRelative: "this week",
   cli: [
     {
@@ -942,7 +1057,11 @@ const mochaAotExample: ExampleItem = {
       code: "git clone https://github.com/ChilliCream/platform-examples.git && cd platform-examples/examples/Mocha/AotExample",
     },
     { key: "rabbitmq", label: "start RabbitMQ", code: "docker compose up -d" },
-    { key: "run-order", label: "run OrderService", code: "dotnet run --project AotExample.OrderService" },
+    {
+      key: "run-order",
+      label: "run OrderService",
+      code: "dotnet run --project AotExample.OrderService",
+    },
     {
       key: "run-fulfillment",
       label: "run FulfillmentService",
@@ -979,8 +1098,10 @@ const mochaExceptionPoliciesExample: ExampleItem = {
     "Dead-lettering, discarding, retrying, redelivering, and chained resilience policies keyed on exception state.",
   products: ["mocha"],
   level: "intermediate",
-  externalUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
-  githubUrl: "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
+  externalUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
+  githubUrl:
+    "https://github.com/ChilliCream/platform-examples/tree/main/examples/Mocha/ExceptionPolicies",
   updatedRelative: "this week",
   cli: [
     {
@@ -1060,7 +1181,9 @@ const fullstackWorkshop: WorkshopItem = {
     },
     {
       heading: "Next steps",
-      paragraphs: ["Questions before booking go to contact@chillicream.com or the ChilliCream Slack."],
+      paragraphs: [
+        "Questions before booking go to contact@chillicream.com or the ChilliCream Slack.",
+      ],
     },
   ],
 };
@@ -1069,13 +1192,20 @@ const graphqlWorkshop: WorkshopItem = {
   type: "workshop",
   slug: "graphql-workshop",
   title: "Getting started with GraphQL on ASP.NET Core and Hot Chocolate",
-  tagline: "A self-paced, hands-on workshop repo building a conference-planner GraphQL server, one session at a time.",
+  tagline:
+    "A self-paced, hands-on workshop repo building a conference-planner GraphQL server, one session at a time.",
   products: ["hot-chocolate"],
   level: "beginner",
   externalUrl: "https://github.com/ChilliCream/graphql-workshop",
   githubUrl: "https://github.com/ChilliCream/graphql-workshop",
   updatedRelative: "3 months ago",
-  cli: [{ key: "git", label: "git clone", code: "git clone https://github.com/ChilliCream/graphql-workshop" }],
+  cli: [
+    {
+      key: "git",
+      label: "git clone",
+      code: "git clone https://github.com/ChilliCream/graphql-workshop",
+    },
+  ],
   body: [
     {
       heading: "What you build",
@@ -1104,7 +1234,10 @@ const graphqlWorkshop: WorkshopItem = {
   ],
 };
 
-export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [fullstackWorkshop, graphqlWorkshop];
+export const WORKSHOP_ITEMS: readonly WorkshopItem[] = [
+  fullstackWorkshop,
+  graphqlWorkshop,
+];
 
 export const LEARN_ITEMS: readonly LearnItem[] = [
   ...TEMPLATE_ITEMS,
@@ -1114,21 +1247,34 @@ export const LEARN_ITEMS: readonly LearnItem[] = [
   ...WORKSHOP_ITEMS,
 ];
 
-export const TEMPLATE_SUMMARIES: readonly TemplateSummary[] = TEMPLATE_ITEMS.map(
-  ({ type, slug, title, tagline, topology, useCases, language, clients, products, stack, agentReady }) => ({
-    type,
-    slug,
-    title,
-    tagline,
-    topology,
-    useCases,
-    language,
-    clients,
-    products,
-    stack,
-    agentReady,
-  }),
-);
+export const TEMPLATE_SUMMARIES: readonly TemplateSummary[] =
+  TEMPLATE_ITEMS.map(
+    ({
+      type,
+      slug,
+      title,
+      tagline,
+      topology,
+      useCases,
+      language,
+      clients,
+      products,
+      stack,
+      agentReady,
+    }) => ({
+      type,
+      slug,
+      title,
+      tagline,
+      topology,
+      useCases,
+      language,
+      clients,
+      products,
+      stack,
+      agentReady,
+    }),
+  );
 
 /** Summaries for the /learn hub grid, across every content type. */
 export const LEARN_SUMMARIES: readonly LearnItemSummary[] = [
@@ -1139,9 +1285,11 @@ export const LEARN_SUMMARIES: readonly LearnItemSummary[] = [
   ...WORKSHOP_ITEMS,
 ];
 
-export const findTemplate = (slug: string): TemplateItem | undefined => TEMPLATE_ITEMS.find((t) => t.slug === slug);
+export const findTemplate = (slug: string): TemplateItem | undefined =>
+  TEMPLATE_ITEMS.find((t) => t.slug === slug);
 
-export const findLearnItem = (slug: string): LearnItem | undefined => LEARN_ITEMS.find((i) => i.slug === slug);
+export const findLearnItem = (slug: string): LearnItem | undefined =>
+  LEARN_ITEMS.find((i) => i.slug === slug);
 
 // The single template promoted as the /templates index-page hero. Falls back
 // to the first non-Starter entry if no template is flagged, and to
@@ -1152,18 +1300,25 @@ export const findFeaturedTemplate = (): TemplateItem | undefined => {
   if (flagged) {
     return flagged;
   }
-  const nonStarter = TEMPLATE_ITEMS.find((t) => !t.useCases.includes("starter"));
+  const nonStarter = TEMPLATE_ITEMS.find(
+    (t) => !t.useCases.includes("starter"),
+  );
   return nonStarter ?? TEMPLATE_ITEMS[0];
 };
 
 // Related = same topology first, then same product mix overlap, then anything.
 // Capped at 3 to match the Vercel pattern: lateral exploration without
 // overwhelming the reader.
-export const findRelatedTemplates = (template: TemplateItem, max: number = 3): readonly TemplateItem[] => {
+export const findRelatedTemplates = (
+  template: TemplateItem,
+  max: number = 3,
+): readonly TemplateItem[] => {
   const others = TEMPLATE_ITEMS.filter((t) => t.slug !== template.slug);
   const sameTopology = others.filter((t) => t.topology === template.topology);
   const productOverlap = others.filter(
-    (t) => !sameTopology.includes(t) && t.products.some((p) => template.products.includes(p)),
+    (t) =>
+      !sameTopology.includes(t) &&
+      t.products.some((p) => template.products.includes(p)),
   );
   return [...sameTopology, ...productOverlap, ...others].slice(0, max);
 };
@@ -1180,14 +1335,21 @@ export const findRelatedCatalogItems = (
 ): readonly LearnItemSummary[] => {
   const others = LEARN_SUMMARIES.filter((i) => i.slug !== item.slug);
   const sameType = others.filter((i) => i.type === item.type);
-  const sameTypeProductOverlap = sameType.filter((i) => i.products.some((p) => item.products.includes(p)));
-  const primary = (sameTypeProductOverlap.length > 0 ? sameTypeProductOverlap : sameType).slice(0, max);
+  const sameTypeProductOverlap = sameType.filter((i) =>
+    i.products.some((p) => item.products.includes(p)),
+  );
+  const primary = (
+    sameTypeProductOverlap.length > 0 ? sameTypeProductOverlap : sameType
+  ).slice(0, max);
   if (primary.length >= max) {
     return primary;
   }
   const usedSlugs = new Set([item.slug, ...primary.map((i) => i.slug)]);
   const otherType = others.filter(
-    (i) => i.type !== item.type && !usedSlugs.has(i.slug) && i.products.some((p) => item.products.includes(p)),
+    (i) =>
+      i.type !== item.type &&
+      !usedSlugs.has(i.slug) &&
+      i.products.some((p) => item.products.includes(p)),
   );
   return [...primary, ...otherType].slice(0, max);
 };

@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { XmarkIcon } from "@/src/icons/Xmark";
 
@@ -19,10 +26,20 @@ const LIGHTBOX_BUTTON_CLASS =
   "absolute flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20";
 
 function isPlainPrimaryClick(event: MouseEvent) {
-  return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+  return (
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey
+  );
 }
 
-export function PhotoLightbox({ images, children, className }: PhotoLightboxProps) {
+export function PhotoLightbox({
+  images,
+  children,
+  className,
+}: PhotoLightboxProps) {
   const gridRef = useRef<HTMLUListElement>(null);
   const [index, setIndex] = useState<number | null>(null);
   const current = index === null ? null : (images[index] ?? null);
@@ -31,7 +48,9 @@ export function PhotoLightbox({ images, children, className }: PhotoLightboxProp
   const close = useCallback(() => setIndex(null), []);
   const go = useCallback(
     (step: number) => {
-      setIndex((i) => (i === null ? i : (i + step + images.length) % images.length));
+      setIndex((i) =>
+        i === null ? i : (i + step + images.length) % images.length,
+      );
     },
     [images.length],
   );
@@ -42,7 +61,9 @@ export function PhotoLightbox({ images, children, className }: PhotoLightboxProp
         return;
       }
 
-      const anchor = event.target.closest<HTMLAnchorElement>("a[data-photo-index]");
+      const anchor = event.target.closest<HTMLAnchorElement>(
+        "a[data-photo-index]",
+      );
       const grid = gridRef.current;
       if (!anchor || !grid?.contains(anchor)) {
         return;
@@ -116,7 +137,10 @@ export function PhotoLightbox({ images, children, className }: PhotoLightboxProp
               }}
               className={`${LIGHTBOX_BUTTON_CLASS} top-1/2 left-2 -translate-y-1/2 sm:left-5`}
             >
-              <ChevronDownIcon className="h-5 w-5 rotate-90 fill-current" aria-hidden="true" />
+              <ChevronDownIcon
+                className="h-5 w-5 rotate-90 fill-current"
+                aria-hidden="true"
+              />
             </button>
           ) : null}
 
@@ -138,7 +162,10 @@ export function PhotoLightbox({ images, children, className }: PhotoLightboxProp
               }}
               className={`${LIGHTBOX_BUTTON_CLASS} top-1/2 right-2 -translate-y-1/2 sm:right-5`}
             >
-              <ChevronDownIcon className="h-5 w-5 -rotate-90 fill-current" aria-hidden="true" />
+              <ChevronDownIcon
+                className="h-5 w-5 -rotate-90 fill-current"
+                aria-hidden="true"
+              />
             </button>
           ) : null}
 

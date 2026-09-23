@@ -1,6 +1,10 @@
 import { Image } from "@/src/design-system/Image";
 import { getOptimizedImage } from "@/src/image-optimization/manifest";
-import { YOUTUBE_ID_RE, youTubePosterFallback, youTubePosterKey } from "./youTubePosterUrl";
+import {
+  YOUTUBE_ID_RE,
+  youTubePosterFallback,
+  youTubePosterKey,
+} from "./youTubePosterUrl";
 
 // Re-exported for existing callers; the definitions live in
 // `youTubePosterUrl.ts` so a client component can import just the URL
@@ -9,7 +13,8 @@ import { YOUTUBE_ID_RE, youTubePosterFallback, youTubePosterKey } from "./youTub
 export { YOUTUBE_ID_RE, youTubePosterFallback, youTubePosterKey };
 
 const POSTER_SIZES = "(min-width: 768px) 768px, 100vw";
-const POSTER_CLASS = "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]";
+const POSTER_CLASS =
+  "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]";
 
 /**
  * Self-hosted optimized poster URL for a video id, resolved from the same
@@ -34,7 +39,10 @@ interface YouTubePosterProps {
  * back to the external `hqdefault` thumbnail otherwise. Shared by every
  * click-to-load YouTube facade on the site.
  */
-export function YouTubePoster({ videoId, className = POSTER_CLASS }: YouTubePosterProps) {
+export function YouTubePoster({
+  videoId,
+  className = POSTER_CLASS,
+}: YouTubePosterProps) {
   const posterUrl = youTubePosterKey(videoId);
   const opt = getOptimizedImage(posterUrl);
 

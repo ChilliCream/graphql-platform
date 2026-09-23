@@ -53,7 +53,9 @@ export function LearnFeaturedStory({
         </div>
       ) : null}
       <div className={isSplit ? "lg:min-w-0 lg:flex-1" : undefined}>
-        <div className={`flex flex-wrap items-center gap-3 ${featuredImage ? "mt-6" : ""} ${isSplit ? "lg:mt-0" : ""}`}>
+        <div
+          className={`flex flex-wrap items-center gap-3 ${featuredImage ? "mt-6" : ""} ${isSplit ? "lg:mt-0" : ""}`}
+        >
           <Eyebrow as="span" color="accent">
             Featured
           </Eyebrow>
@@ -62,7 +64,11 @@ export function LearnFeaturedStory({
         <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 group-hover/featured:text-cc-accent mt-5 font-semibold text-balance transition-colors">
           {post.title}
         </h2>
-        {post.description ? <p className="text-cc-ink-dim mt-4 line-clamp-3 text-lg">{post.description}</p> : null}
+        {post.description ? (
+          <p className="text-cc-ink-dim mt-4 line-clamp-3 text-lg">
+            {post.description}
+          </p>
+        ) : null}
         <div className="text-cc-ink-dim mt-8 flex items-center gap-3 text-sm">
           {post.author ? (
             <>
@@ -80,7 +86,13 @@ export function LearnFeaturedStory({
               <span aria-hidden="true">·</span>
             </>
           ) : null}
-          <span>{formatDate(post.date, { month: "short", day: "numeric", year: "numeric" })}</span>
+          <span>
+            {formatDate(post.date, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </span>
         </div>
       </div>
     </Link>

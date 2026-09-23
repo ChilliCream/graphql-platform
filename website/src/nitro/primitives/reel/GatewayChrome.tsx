@@ -69,7 +69,9 @@ export function GatewayChrome({ activeView }: { activeView: GatewayView }) {
           }}
         >
           <IconApiGateway size={12} color={token.icObject} />
-          <span style={{ fontSize: 12.5, whiteSpace: "nowrap" }}>EShops Gateway</span>
+          <span style={{ fontSize: 12.5, whiteSpace: "nowrap" }}>
+            EShops Gateway
+          </span>
           <span style={{ color: token.textSecondary, display: "flex" }}>
             <IconClose size={11} color="currentColor" />
           </span>
@@ -103,7 +105,15 @@ export function GatewayChrome({ activeView }: { activeView: GatewayView }) {
       >
         {VIEWS.map((v) => {
           const on = v === activeView;
-          return <UnderlineTab key={v} testId={`gw-view-${v}`} label={v} active={on} height="100%" />;
+          return (
+            <UnderlineTab
+              key={v}
+              testId={`gw-view-${v}`}
+              label={v}
+              active={on}
+              height="100%"
+            />
+          );
         })}
         <span
           style={{

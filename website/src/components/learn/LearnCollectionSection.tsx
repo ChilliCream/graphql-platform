@@ -24,7 +24,11 @@ interface LearnCollectionSectionProps {
  * `border-t` seam, and a uniform `LearnCard` grid (website-kbx.21: the
  * former full-width lead card made the section too heavy).
  */
-export function LearnCollectionSection({ items, subLinks, browseHref = "/learn/browse" }: LearnCollectionSectionProps) {
+export function LearnCollectionSection({
+  items,
+  subLinks,
+  browseHref = "/learn/browse",
+}: LearnCollectionSectionProps) {
   if (items.length === 0) {
     return null;
   }
@@ -40,7 +44,9 @@ export function LearnCollectionSection({ items, subLinks, browseHref = "/learn/b
     <section className="bg-cc-card-bg relative left-1/2 w-screen -translate-x-1/2 px-5 py-10 sm:px-12 sm:py-12">
       <div className="max-w-8xl mx-auto">
         <div className="mb-8 flex items-center justify-between gap-4">
-          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">Start building</h2>
+          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">
+            Start building
+          </h2>
           <ArrowLink href={browseHref}>Browse the catalog</ArrowLink>
         </div>
         <CardGrid cols={3} step="progressive" itemsStretch>

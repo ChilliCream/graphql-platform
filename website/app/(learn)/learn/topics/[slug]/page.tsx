@@ -10,7 +10,15 @@ import { LearnVideoSection } from "@/src/components/learn/LearnVideoSection";
 import { learnItemHref } from "@/src/components/learn/learnItemHref";
 import { contentTypeLabel } from "@/src/data/learn/facets";
 import { LEARN_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
-import { findHub, HUBS, hubHref, hubsForLearnItem, hubsForPost, type Hub, type HubKey } from "@/src/data/learn/hubs";
+import {
+  findHub,
+  HUBS,
+  hubHref,
+  hubsForLearnItem,
+  hubsForPost,
+  type Hub,
+  type HubKey,
+} from "@/src/data/learn/hubs";
 import type { LearnItemSummary, VideoItem } from "@/src/data/learn/types";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -27,7 +35,9 @@ export function generateStaticParams(): { slug: string }[] {
   return HUBS.map((hub) => ({ slug: hub.key }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const hub = findHub(slug);
   if (!hub) {
@@ -55,7 +65,11 @@ function buildStructuredData(hub: Hub, items: readonly LearnItemSummary[]) {
         description: hub.description,
         isPartOf: { "@id": WEBSITE_ID },
       },
-      breadcrumbList([{ name: "Home", path: "/" }, { name: "Learn", path: "/learn" }, { name: hub.label }]),
+      breadcrumbList([
+        { name: "Home", path: "/" },
+        { name: "Learn", path: "/learn" },
+        { name: hub.label },
+      ]),
       {
         "@type": "ItemList",
         name: `${hub.label} on the Learn hub`,
@@ -73,7 +87,9 @@ function buildStructuredData(hub: Hub, items: readonly LearnItemSummary[]) {
 
 /** Latest 4 videos scoped to the hub, newest `publishedAt` first (mirrors /learn's `selectLatestVideos`). */
 function selectVideos(videos: readonly VideoItem[]): readonly VideoItem[] {
-  return [...videos].sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "")).slice(0, 4);
+  return [...videos]
+    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
+    .slice(0, 4);
 }
 
 /**
@@ -82,9 +98,13 @@ function selectVideos(videos: readonly VideoItem[]): readonly VideoItem[] {
  * since the rail links to the internal `/learn/videos/<slug>` page, newest
  * `publishedAt` first, capped at 2 per the kbx.5 hero-band composition.
  */
-function selectRailVideos(videos: readonly VideoItem[]): readonly LatestVideoRailItem[] {
+function selectRailVideos(
+  videos: readonly VideoItem[],
+): readonly LatestVideoRailItem[] {
   return videos
-    .filter((video): video is VideoItem & { youtubeId: string } => Boolean(video.youtubeId))
+    .filter((video): video is VideoItem & { youtubeId: string } =>
+      Boolean(video.youtubeId),
+    )
     .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
     .slice(0, 2)
     .map(({ slug, title, youtubeId, duration, poster, products, hubs }) => ({
@@ -111,7 +131,10 @@ function typeSubLinks(
   return types.map((type) => {
     const params = new URLSearchParams(query);
     params.set("type", type);
-    return { label: contentTypeLabel(type), href: `${path}?${params.toString()}` };
+    return {
+      label: contentTypeLabel(type),
+      href: `${path}?${params.toString()}`,
+    };
   });
 }
 
@@ -129,7 +152,9 @@ export default async function LearnHubPage({ params }: PageProps) {
   // posts, videos, and tags instead of the sitewide pool. Mirrors /learn's
   // own featured/latestPosts split (page.tsx): the newest post leads as
   // Featured, the next up to 5 fill the Latest column.
-  const posts = listBlogPostSummaries().filter((post) => hubsForPost(post).includes(hubKey));
+  const posts = listBlogPostSummaries().filter((post) =>
+    hubsForPost(post).includes(hubKey),
+  );
   const [featuredPost = null, ...restPosts] = posts;
   const latestPosts = restPosts.slice(0, 5);
 
@@ -137,7 +162,9 @@ export default async function LearnHubPage({ params }: PageProps) {
     (item): item is Exclude<LearnItemSummary, VideoItem> =>
       item.type !== "video" && hubsForLearnItem(item).includes(hubKey),
   );
-  const hubVideos = VIDEO_ITEMS.filter((video) => hubsForLearnItem(video).includes(hubKey));
+  const hubVideos = VIDEO_ITEMS.filter((video) =>
+    hubsForLearnItem(video).includes(hubKey),
+  );
   const railVideos = selectRailVideos(hubVideos);
   const railVideoSlugs = new Set(railVideos.map((video) => video.slug));
   const tags = popularTags(posts);
@@ -147,7 +174,10 @@ export default async function LearnHubPage({ params }: PageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <LearnMasthead title={hub.label} />
       <LearnEditorialBand
         latestPosts={latestPosts}
@@ -161,7 +191,11 @@ export default async function LearnHubPage({ params }: PageProps) {
         subLinks={typeSubLinks(hub, collectionItems)}
         browseHref={hub.browseHref}
       />
-      <LearnVideoSection videos={selectVideos(hubVideos.filter((video) => !railVideoSlugs.has(video.slug)))} />
+      <LearnVideoSection
+        videos={selectVideos(
+          hubVideos.filter((video) => !railVideoSlugs.has(video.slug)),
+        )}
+      />
       <LearnSubscribeBand />
     </>
   );

@@ -43,11 +43,20 @@ function HeaderMeta({ item }: LearnCardProps) {
   // A video with a youtubeId already states its duration as an overlay on
   // its thumbnail (VideoThumb); the header meta slot is only the duration's
   // second appearance for the two legacy, thumbnail-less entries.
-  const meta = item.type === "video" ? (item.youtubeId ? undefined : item.duration) : item.level;
+  const meta =
+    item.type === "video"
+      ? item.youtubeId
+        ? undefined
+        : item.duration
+      : item.level;
   if (!meta) {
     return null;
   }
-  return <span className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">{meta}</span>;
+  return (
+    <span className="text-cc-ink-dim font-mono text-[0.6875rem] tracking-wider uppercase">
+      {meta}
+    </span>
+  );
 }
 
 /**
@@ -106,19 +115,27 @@ export function LearnCard({ item }: LearnCardProps) {
   const inner = (
     <>
       {hasThumbnail && item.type === "video" && item.youtubeId && (
-        <VideoThumb videoId={item.youtubeId} duration={item.duration} poster={item.poster} />
+        <VideoThumb
+          videoId={item.youtubeId}
+          duration={item.duration}
+          poster={item.poster}
+        />
       )}
       <div className="flex items-start justify-between gap-3">
         <ContentTypeBadge type={item.type} />
         <HeaderMeta item={item} />
       </div>
-      <h3 className="font-heading text-cc-heading text-h6 mt-3 font-semibold">{item.title}</h3>
+      <h3 className="font-heading text-cc-heading text-h6 mt-3 font-semibold">
+        {item.title}
+      </h3>
       {hasThumbnail && item.type === "video" ? (
         <span className="text-cc-ink-dim mt-1 block font-mono text-xs tracking-wider uppercase">
           {topicLabelForProduct(item.products)}
         </span>
       ) : null}
-      <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">{item.tagline}</p>
+      <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">
+        {item.tagline}
+      </p>
       <div className="mt-auto flex items-center justify-between gap-3 pt-4">
         <span className="flex items-end gap-2 grayscale transition-[filter] duration-200 group-hover:grayscale-0">
           <span className="flex items-end gap-1.5">
@@ -165,19 +182,32 @@ export function LearnCard({ item }: LearnCardProps) {
     "border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover group flex h-full flex-col rounded-2xl border p-6 no-underline backdrop-blur-sm transition-[border-color,transform] duration-200 hover:-translate-y-1";
   const techLabels = [
     ...item.products.map(productLabel),
-    ...(item.type === "template" ? item.stack.map((key) => STACK_ICONS[key].label) : []),
+    ...(item.type === "template"
+      ? item.stack.map((key) => STACK_ICONS[key].label)
+      : []),
   ];
   const ariaLabel = `Open: ${item.title}${techLabels.length > 0 ? ` (${techLabels.join(", ")})` : ""}`;
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" aria-label={ariaLabel} className={className}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={ariaLabel}
+        className={className}
+      >
         {inner}
       </a>
     );
   }
   return (
-    <Link href={href} prefetch={false} aria-label={ariaLabel} className={className}>
+    <Link
+      href={href}
+      prefetch={false}
+      aria-label={ariaLabel}
+      className={className}
+    >
       {inner}
     </Link>
   );

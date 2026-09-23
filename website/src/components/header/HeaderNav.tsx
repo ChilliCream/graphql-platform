@@ -5,7 +5,12 @@ import { type MouseEvent, type ReactNode, useState } from "react";
 import { formatDate } from "@/src/helpers/formatDate";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
-import { NAV_ITEMS, type NavItem, type SubGroup, type SubLink } from "./navData";
+import {
+  NAV_ITEMS,
+  type NavItem,
+  type SubGroup,
+  type SubLink,
+} from "./navData";
 
 type NavigateHandler = (e: MouseEvent<HTMLAnchorElement>) => void;
 
@@ -35,7 +40,12 @@ export function HeaderNav({ latestBlog, blogImage }: HeaderNavProps) {
       <ol className="m-0 flex h-full list-none items-stretch p-0">
         {NAV_ITEMS.map((item) =>
           item.groups ? (
-            <NavWithSubmenu key={item.href} item={item} latestBlog={latestBlog} blogImage={blogImage} />
+            <NavWithSubmenu
+              key={item.href}
+              item={item}
+              latestBlog={latestBlog}
+              blogImage={blogImage}
+            />
           ) : (
             <NavSimple key={item.href} item={item} />
           ),
@@ -77,7 +87,10 @@ function NavWithSubmenu({
   };
 
   return (
-    <li className="group/nav flex items-stretch" onMouseLeave={() => setClosed(false)}>
+    <li
+      className="group/nav flex items-stretch"
+      onMouseLeave={() => setClosed(false)}
+    >
       <Link
         href={item.href}
         prefetch={false}
@@ -114,7 +127,11 @@ function SubmenuPanel({
 }) {
   const aside =
     item.aside === "blog" && latestBlog ? (
-      <LatestBlogPanel post={latestBlog} image={blogImage} onNavigate={onNavigate} />
+      <LatestBlogPanel
+        post={latestBlog}
+        image={blogImage}
+        onNavigate={onNavigate}
+      />
     ) : item.aside === "get-in-touch" ? (
       <GetInTouchPanel />
     ) : item.aside === "help" ? (
@@ -126,7 +143,9 @@ function SubmenuPanel({
     <div
       className={[
         "pointer-events-none invisible absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200",
-        closed ? "" : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
+        closed
+          ? ""
+          : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
       ].join(" ")}
     >
       <div
@@ -137,10 +156,18 @@ function SubmenuPanel({
         ].join(" ")}
       >
         <div
-          className={(item.groups?.length ?? 0) > 1 ? "grid grid-cols-2 gap-x-8 gap-y-6" : "grid grid-cols-1 gap-y-6"}
+          className={
+            (item.groups?.length ?? 0) > 1
+              ? "grid grid-cols-2 gap-x-8 gap-y-6"
+              : "grid grid-cols-1 gap-y-6"
+          }
         >
           {item.groups!.map((group) => (
-            <SubGroupBlock key={group.title} group={group} onNavigate={onNavigate} />
+            <SubGroupBlock
+              key={group.title}
+              group={group}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
         {aside}
@@ -149,7 +176,13 @@ function SubmenuPanel({
   );
 }
 
-function SubGroupBlock({ group, onNavigate }: { group: SubGroup; onNavigate: NavigateHandler }) {
+function SubGroupBlock({
+  group,
+  onNavigate,
+}: {
+  group: SubGroup;
+  onNavigate: NavigateHandler;
+}) {
   return (
     <div>
       <div
@@ -170,9 +203,17 @@ function SubGroupBlock({ group, onNavigate }: { group: SubGroup; onNavigate: Nav
   );
 }
 
-function SubLinkRow({ link, onNavigate }: { link: SubLink; onNavigate: NavigateHandler }) {
+function SubLinkRow({
+  link,
+  onNavigate,
+}: {
+  link: SubLink;
+  onNavigate: NavigateHandler;
+}) {
   const isExternal = link.href.startsWith("http");
-  const linkProps = isExternal ? { target: "_blank" as const, rel: "noopener noreferrer" as const } : {};
+  const linkProps = isExternal
+    ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
+    : {};
   const Icon = link.icon;
 
   return (
@@ -190,7 +231,11 @@ function SubLinkRow({ link, onNavigate }: { link: SubLink; onNavigate: NavigateH
       )}
       <div>
         <div className="text-cc-ink text-sm font-medium">{link.label}</div>
-        {link.description && <div className="text-cc-ink-dim text-xs font-normal">{link.description}</div>}
+        {link.description && (
+          <div className="text-cc-ink-dim text-xs font-normal">
+            {link.description}
+          </div>
+        )}
       </div>
     </Link>
   );
@@ -207,7 +252,11 @@ function LatestBlogPanel({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div role="heading" aria-level={2} className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase">
+      <div
+        role="heading"
+        aria-level={2}
+        className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase"
+      >
         Latest Blog Post
       </div>
       <Link
@@ -216,9 +265,15 @@ function LatestBlogPanel({
         onClick={onNavigate}
         className="group/blog text-cc-ink flex flex-col gap-2 rounded-md no-underline"
       >
-        {image && <div className="border-cc-white/10 overflow-hidden rounded-md border">{image}</div>}
+        {image && (
+          <div className="border-cc-white/10 overflow-hidden rounded-md border">
+            {image}
+          </div>
+        )}
         <div className="text-cc-ink-dim text-xs">{formatDate(post.date)}</div>
-        <div className="text-cc-ink group-hover/blog:text-cc-accent text-sm leading-snug font-medium">{post.title}</div>
+        <div className="text-cc-ink group-hover/blog:text-cc-accent text-sm leading-snug font-medium">
+          {post.title}
+        </div>
       </Link>
     </div>
   );
@@ -227,11 +282,17 @@ function LatestBlogPanel({
 function HelpPanel({ onNavigate }: { onNavigate: NavigateHandler }) {
   return (
     <div className="flex flex-col gap-3">
-      <div role="heading" aria-level={2} className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase">
+      <div
+        role="heading"
+        aria-level={2}
+        className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase"
+      >
         Help
       </div>
       <div className="border-cc-white/10 flex h-45 flex-col items-center justify-center gap-3 rounded-md border bg-(image:--cc-promo-gradient) px-4 text-center">
-        <p className="text-cc-ink text-sm leading-snug font-medium">Stuck? Our team is one message away.</p>
+        <p className="text-cc-ink text-sm leading-snug font-medium">
+          Stuck? Our team is one message away.
+        </p>
         <Link
           href="/help"
           prefetch={false}
@@ -248,7 +309,11 @@ function HelpPanel({ onNavigate }: { onNavigate: NavigateHandler }) {
 function GetInTouchPanel() {
   return (
     <div className="flex flex-col gap-3">
-      <div role="heading" aria-level={2} className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase">
+      <div
+        role="heading"
+        aria-level={2}
+        className="text-cc-ink-dim text-xs font-semibold tracking-[0.18em] uppercase"
+      >
         Get in touch
       </div>
       <div className="border-cc-white/10 flex h-45 items-center justify-center rounded-md border bg-(image:--cc-promo-gradient)">
@@ -259,8 +324,9 @@ function GetInTouchPanel() {
         </div>
       </div>
       <p className="text-cc-ink-dim text-xs leading-relaxed">
-        <span className="text-cc-ink font-semibold">ChilliCream</span> helps you unlock your full potential, delivering
-        on its promise to transform your business.
+        <span className="text-cc-ink font-semibold">ChilliCream</span> helps you
+        unlock your full potential, delivering on its promise to transform your
+        business.
       </p>
     </div>
   );

@@ -57,7 +57,11 @@ export function getLatestBlogPost(): BlogPostSummary | null {
  * `date` desc. Returns at most `limit` posts (default 3), excluding the
  * reference post itself and posts with zero tag overlap.
  */
-export function findSimilarPosts(reference: BlogPostSummary, pool: BlogPostSummary[], limit = 3): BlogPostSummary[] {
+export function findSimilarPosts(
+  reference: BlogPostSummary,
+  pool: BlogPostSummary[],
+  limit = 3,
+): BlogPostSummary[] {
   const referenceTags = new Set(reference.tags);
   if (referenceTags.size === 0) {
     return [];

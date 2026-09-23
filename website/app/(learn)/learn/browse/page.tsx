@@ -16,7 +16,13 @@ export const metadata = pageMetadata({
   description:
     "Templates, videos, tutorials, examples, and workshops for building with Hot Chocolate, Fusion, and the rest of the platform.",
   path: "/learn/browse",
-  keywords: ["GraphQL templates", "Hot Chocolate", "Fusion", "GraphQL tutorials", ".NET"],
+  keywords: [
+    "GraphQL templates",
+    "Hot Chocolate",
+    "Fusion",
+    "GraphQL tutorials",
+    ".NET",
+  ],
 });
 
 // Default catalog order: templates flagged `featured` first, then by content
@@ -26,7 +32,9 @@ export const metadata = pageMetadata({
 // items and applying the resulting order to the summaries, rather than
 // widening the summary type. See website-5yo.3 review notes.
 const FEATURED_TEMPLATE_SLUGS = new Set(
-  LEARN_ITEMS.filter((item) => item.type === "template" && item.featured).map((item) => item.slug),
+  LEARN_ITEMS.filter((item) => item.type === "template" && item.featured).map(
+    (item) => item.slug,
+  ),
 );
 
 function defaultOrder(a: LearnItemSummary, b: LearnItemSummary): number {
@@ -35,15 +43,21 @@ function defaultOrder(a: LearnItemSummary, b: LearnItemSummary): number {
   if (aFeatured !== bFeatured) {
     return aFeatured - bFeatured;
   }
-  const aTypeIndex = CONTENT_TYPE_OPTIONS.findIndex((option) => option.key === a.type);
-  const bTypeIndex = CONTENT_TYPE_OPTIONS.findIndex((option) => option.key === b.type);
+  const aTypeIndex = CONTENT_TYPE_OPTIONS.findIndex(
+    (option) => option.key === a.type,
+  );
+  const bTypeIndex = CONTENT_TYPE_OPTIONS.findIndex(
+    (option) => option.key === b.type,
+  );
   if (aTypeIndex !== bTypeIndex) {
     return aTypeIndex - bTypeIndex;
   }
   return a.title.localeCompare(b.title);
 }
 
-const ORDERED_SUMMARIES: readonly LearnItemSummary[] = [...LEARN_SUMMARIES].sort(defaultOrder);
+const ORDERED_SUMMARIES: readonly LearnItemSummary[] = [
+  ...LEARN_SUMMARIES,
+].sort(defaultOrder);
 
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
@@ -51,8 +65,18 @@ const STRUCTURED_DATA = {
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: "Learn", item: `${SITE_URL}/learn` },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${SITE_URL}/`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Learn",
+          item: `${SITE_URL}/learn`,
+        },
         { "@type": "ListItem", position: 3, name: "Browse" },
       ],
     },
@@ -73,13 +97,19 @@ const STRUCTURED_DATA = {
 export default function LearnBrowsePage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+      />
       <LearnMasthead
         title="Browse the catalog"
         teaser="Templates, videos, tutorials, examples, and workshops for building with Hot Chocolate, Fusion, and the rest of the platform."
       />
       <Suspense fallback={<CatalogFallback />}>
-        <LearnCatalog items={ORDERED_SUMMARIES} featuredCount={FEATURED_TEMPLATE_SLUGS.size} />
+        <LearnCatalog
+          items={ORDERED_SUMMARIES}
+          featuredCount={FEATURED_TEMPLATE_SLUGS.size}
+        />
       </Suspense>
       <LearnClosing />
     </>
@@ -92,14 +122,20 @@ function CatalogFallback() {
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2.5">
           {Array.from({ length: 6 }).map((_, index) => (
-            <span key={index} className="bg-cc-hover h-8 w-24 animate-pulse rounded-full" />
+            <span
+              key={index}
+              className="bg-cc-hover h-8 w-24 animate-pulse rounded-full"
+            />
           ))}
         </div>
         <span className="bg-cc-hover h-10 w-full animate-pulse rounded-lg lg:w-72" />
       </div>
       <div className="mb-8 flex flex-wrap gap-2.5">
         {Array.from({ length: 5 }).map((_, index) => (
-          <span key={index} className="bg-cc-hover h-8 w-28 animate-pulse rounded-full" />
+          <span
+            key={index}
+            className="bg-cc-hover h-8 w-28 animate-pulse rounded-full"
+          />
         ))}
       </div>
       <div className="bg-cc-hover mb-4 h-4 w-20 animate-pulse rounded" />

@@ -66,13 +66,23 @@ export function Offering({
         </div>
       )}
 
-      <Heading className="font-heading text-cc-heading text-xl font-semibold">{title}</Heading>
-      {description && <p className="text-cc-ink-dim mt-1 font-mono text-xs">{description}</p>}
+      <Heading className="font-heading text-cc-heading text-xl font-semibold">
+        {title}
+      </Heading>
+      {description && (
+        <p className="text-cc-ink-dim mt-1 font-mono text-xs">{description}</p>
+      )}
 
       {price && (
         <div className="mt-5 flex items-baseline gap-2">
-          <span className="font-heading text-cc-heading text-h3 font-semibold">{price}</span>
-          {priceNote && <span className="text-cc-ink-dim font-mono text-xs">{priceNote}</span>}
+          <span className="font-heading text-cc-heading text-h3 font-semibold">
+            {price}
+          </span>
+          {priceNote && (
+            <span className="text-cc-ink-dim font-mono text-xs">
+              {priceNote}
+            </span>
+          )}
         </div>
       )}
 
@@ -85,7 +95,11 @@ export function Offering({
         </ul>
 
         {callToAction && (
-          <CallToActionButton href={callToAction.link} track={callToAction.track} className="mt-7 w-full">
+          <CallToActionButton
+            href={callToAction.link}
+            track={callToAction.track}
+            className="mt-7 w-full"
+          >
             {callToAction.title}
           </CallToActionButton>
         )}
@@ -95,5 +109,10 @@ export function Offering({
 }
 
 function Dots({ className = "" }: { readonly className?: string }) {
-  return <div aria-hidden="true" className={`border-cc-ink-faint my-5 border-t border-dashed ${className}`} />;
+  return (
+    <div
+      aria-hidden="true"
+      className={`border-cc-ink-faint my-5 border-t border-dashed ${className}`}
+    />
+  );
 }

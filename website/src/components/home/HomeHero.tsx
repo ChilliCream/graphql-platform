@@ -11,7 +11,11 @@ import {
 import { PageSection } from "@/src/components/PageSection";
 import { Swirl } from "@/src/icons/Swirl";
 
-function position(left: string, top: string, extra: CSSProperties): CSSProperties {
+function position(
+  left: string,
+  top: string,
+  extra: CSSProperties,
+): CSSProperties {
   return { left, top, transform: "translate(-50%, -50%)", ...extra };
 }
 
@@ -27,7 +31,10 @@ export function HomeHero() {
     <PageSection className="relative isolate flex min-h-[34rem] flex-col items-center justify-center py-20 text-center sm:min-h-[40rem] lg:min-h-[46rem]">
       {/* Decorative scatter, behind the headline. Trimmed corner composition on
           phones, full scatter from the `sm` breakpoint up. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 select-none sm:hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 select-none sm:hidden"
+      >
         {HERO_DRINKS_MOBILE.map(({ Drink, left, top, width, rotate }) => (
           <Drink
             key={left + top}
@@ -47,7 +54,10 @@ export function HomeHero() {
           />
         ))}
       </div>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 hidden select-none sm:block">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 hidden select-none sm:block"
+      >
         {HERO_DRINKS.map(({ Drink, left, top, heroWidth, rotate }) => (
           <Drink
             key={left + top}
@@ -79,8 +89,9 @@ export function HomeHero() {
       </h1>
 
       <p className="text-cc-ink mt-6 max-w-2xl text-base text-pretty sm:text-xl">
-        Unify all your APIs into a comprehensive company graph, streamlining data accessibility and enhancing
-        integration. Transform the way you manage and interact with your data.
+        Unify all your APIs into a comprehensive company graph, streamlining
+        data accessibility and enhancing integration. Transform the way you
+        manage and interact with your data.
       </p>
     </PageSection>
   );

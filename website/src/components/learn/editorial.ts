@@ -8,7 +8,12 @@ import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { productLabel } from "@/src/data/learn/facets";
 import type { ProductKey } from "@/src/data/learn/facets";
 
-export type TopicKey = "graphql" | "hot-chocolate" | "federation" | "tooling" | "ai";
+export type TopicKey =
+  | "graphql"
+  | "hot-chocolate"
+  | "federation"
+  | "tooling"
+  | "ai";
 
 export interface Topic {
   readonly key: TopicKey;
@@ -25,11 +30,23 @@ export interface Topic {
 
 export const TOPICS: readonly Topic[] = [
   { key: "graphql", label: "GraphQL fundamentals", browseQuery: null },
-  { key: "hot-chocolate", label: "Hot Chocolate", browseQuery: "product=hot-chocolate" },
+  {
+    key: "hot-chocolate",
+    label: "Hot Chocolate",
+    browseQuery: "product=hot-chocolate",
+  },
   // `browseQuery` filters on `product=fusion` only; mocha is deliberately
   // excluded from this browse filter (review note from .10).
-  { key: "federation", label: "Federation and Fusion", browseQuery: "product=fusion" },
-  { key: "tooling", label: "Tooling and observability", browseQuery: "product=nitro" },
+  {
+    key: "federation",
+    label: "Federation and Fusion",
+    browseQuery: "product=fusion",
+  },
+  {
+    key: "tooling",
+    label: "Tooling and observability",
+    browseQuery: "product=nitro",
+  },
   { key: "ai", label: "AI and agents", browseQuery: null },
 ];
 
@@ -72,7 +89,9 @@ const TAG_TOPIC: Record<string, TopicKey> = {
 };
 
 /** Topics a blog post belongs to, derived from its tags plus the `AI` category as a fallback (strategy section 3). */
-export function topicsForBlogPost(post: Pick<BlogPostSummary, "tags" | "category">): readonly TopicKey[] {
+export function topicsForBlogPost(
+  post: Pick<BlogPostSummary, "tags" | "category">,
+): readonly TopicKey[] {
   const keys = new Set<TopicKey>();
   for (const tag of post.tags) {
     const topic = TAG_TOPIC[tag];
@@ -88,13 +107,20 @@ export function topicsForBlogPost(post: Pick<BlogPostSummary, "tags" | "category
 
 /** Topic kicker for a catalog item by product (learn-editorial.md section 20.2): the label of the first `TOPICS` entry whose `browseQuery` targets one of `products`, falling back to the `productLabel` of the first product. */
 export function topicLabelForProduct(products: readonly ProductKey[]): string {
-  const topic = TOPICS.find((t) => t.browseQuery && products.some((product) => t.browseQuery === `product=${product}`));
+  const topic = TOPICS.find(
+    (t) =>
+      t.browseQuery &&
+      products.some((product) => t.browseQuery === `product=${product}`),
+  );
   const first = products[0];
   return topic?.label ?? (first ? productLabel(first) : "");
 }
 
 /** Most frequent tags across `posts`, ranked by frequency desc then alphabetically, capped at `limit` (section 14.4's "Most popular" rail unit). */
-export function popularTags(posts: readonly BlogPostSummary[], limit = 12): string[] {
+export function popularTags(
+  posts: readonly BlogPostSummary[],
+  limit = 12,
+): string[] {
   const counts = new Map<string, number>();
   for (const post of posts) {
     for (const tag of post.tags) {
@@ -102,7 +128,9 @@ export function popularTags(posts: readonly BlogPostSummary[], limit = 12): stri
     }
   }
   return [...counts.entries()]
-    .sort(([aTag, aCount], [bTag, bCount]) => (bCount !== aCount ? bCount - aCount : aTag.localeCompare(bTag)))
+    .sort(([aTag, aCount], [bTag, bCount]) =>
+      bCount !== aCount ? bCount - aCount : aTag.localeCompare(bTag),
+    )
     .slice(0, limit)
     .map(([tag]) => tag);
 }

@@ -17,7 +17,12 @@ export function Sidebar({
       <nav className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <ul className="flex flex-col gap-1">
           {tree.map((node, i) => (
-            <NodeView key={`${node.href ?? node.title}-${i}`} node={node} depth={0} currentPath={currentPath} />
+            <NodeView
+              key={`${node.href ?? node.title}-${i}`}
+              node={node}
+              depth={0}
+              currentPath={currentPath}
+            />
           ))}
         </ul>
       </nav>
@@ -25,7 +30,15 @@ export function Sidebar({
   );
 }
 
-function NodeView({ node, depth, currentPath }: { node: TreeNode; depth: number; currentPath: string }) {
+function NodeView({
+  node,
+  depth,
+  currentPath,
+}: {
+  node: TreeNode;
+  depth: number;
+  currentPath: string;
+}) {
   const hasChildren = node.children.length > 0;
   const containsCurrent = subtreeContains(node, currentPath);
   const childMatchesCurrent = node.children.some((c) => c.href === currentPath);

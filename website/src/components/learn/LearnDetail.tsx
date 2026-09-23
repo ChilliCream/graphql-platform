@@ -1,5 +1,11 @@
 import { CopyCommand } from "@/src/components/CopyCommand";
-import { clientLabel, languageLabel, productLabel, topologyLabel, useCaseLabel } from "@/src/data/learn/facets";
+import {
+  clientLabel,
+  languageLabel,
+  productLabel,
+  topologyLabel,
+  useCaseLabel,
+} from "@/src/data/learn/facets";
 import type { DetailItem, LearnItemSummary } from "@/src/data/learn/types";
 import { CodeBlock } from "@/src/design-system/CodeBlock";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -18,7 +24,10 @@ interface LearnDetailProps {
 }
 
 /** Primary hero CTA label for non-template types that fall back to `externalUrl` (no `githubUrl`). */
-const EXTERNAL_CTA_LABEL: Record<Exclude<DetailItem["type"], "template">, string> = {
+const EXTERNAL_CTA_LABEL: Record<
+  Exclude<DetailItem["type"], "template">,
+  string
+> = {
   tutorial: "Read the tutorial",
   example: "View the example",
   workshop: "Read the workshop",
@@ -45,7 +54,11 @@ function primaryLink(item: DetailItem): PrimaryLink | undefined {
     return { href: item.githubUrl, label: "View source", isGithub: true };
   }
   if (item.externalUrl) {
-    return { href: item.externalUrl, label: EXTERNAL_CTA_LABEL[item.type], isGithub: false };
+    return {
+      href: item.externalUrl,
+      label: EXTERNAL_CTA_LABEL[item.type],
+      isGithub: false,
+    };
   }
   return undefined;
 }
@@ -56,10 +69,21 @@ function DetailFacts({ item }: { readonly item: DetailItem }) {
     return (
       <>
         <Detail label="Language" value={languageLabel(item.language)} />
-        <Detail label="Use cases" value={item.useCases.map(useCaseLabel).join(", ")} />
-        <Detail label="Clients" value={item.clients.map(clientLabel).join(", ")} />
-        <Detail label="Products" value={item.products.map(productLabel).join(", ")} />
-        {item.stack.length > 0 && <Detail label="Stack" value={item.stack.map(stackLabel).join(", ")} />}
+        <Detail
+          label="Use cases"
+          value={item.useCases.map(useCaseLabel).join(", ")}
+        />
+        <Detail
+          label="Clients"
+          value={item.clients.map(clientLabel).join(", ")}
+        />
+        <Detail
+          label="Products"
+          value={item.products.map(productLabel).join(", ")}
+        />
+        {item.stack.length > 0 && (
+          <Detail label="Stack" value={item.stack.map(stackLabel).join(", ")} />
+        )}
         <Detail label="License" value={item.license} />
         <Detail label="Updated" value={item.updatedRelative} />
       </>
@@ -67,8 +91,13 @@ function DetailFacts({ item }: { readonly item: DetailItem }) {
   }
   return (
     <>
-      <Detail label="Products" value={item.products.map(productLabel).join(", ")} />
-      {item.level && <Detail label="Level" value={item.level} className="capitalize" />}
+      <Detail
+        label="Products"
+        value={item.products.map(productLabel).join(", ")}
+      />
+      {item.level && (
+        <Detail label="Level" value={item.level} className="capitalize" />
+      )}
       <Detail label="Updated" value={item.updatedRelative} />
     </>
   );
@@ -99,16 +128,24 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <ContentTypeBadge type={item.type} />
-              {item.type === "template" && <Tag>{topologyLabel(item.topology)}</Tag>}
-              {item.type === "template" && item.agentReady && (
-                <Tag className="border-cc-warning/40 text-cc-warning">Agent-ready</Tag>
+              {item.type === "template" && (
+                <Tag>{topologyLabel(item.topology)}</Tag>
               )}
-              {item.type !== "template" && item.level && <Tag className="capitalize">{item.level}</Tag>}
+              {item.type === "template" && item.agentReady && (
+                <Tag className="border-cc-warning/40 text-cc-warning">
+                  Agent-ready
+                </Tag>
+              )}
+              {item.type !== "template" && item.level && (
+                <Tag className="capitalize">{item.level}</Tag>
+              )}
             </div>
             <h1 className="font-heading text-cc-heading text-h3 mt-6 font-semibold tracking-[-0.02em] text-balance">
               {item.title}
             </h1>
-            <p className="text-cc-prose mt-5 text-lg leading-relaxed">{item.tagline}</p>
+            <p className="text-cc-prose mt-5 text-lg leading-relaxed">
+              {item.tagline}
+            </p>
             <div className="mt-8 flex flex-wrap gap-3">
               {cta && (
                 <SolidButton
@@ -117,16 +154,24 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
                     cta.isGithub
                       ? {
                           name: "repo_click",
-                          params: { repo_url: cta.href, item_type: item.type, item_slug: item.slug },
+                          params: {
+                            repo_url: cta.href,
+                            item_type: item.type,
+                            item_slug: item.slug,
+                          },
                         }
                       : undefined
                   }
                 >
-                  {cta.isGithub && <GitHubIcon className="mr-2 size-4 fill-current" />}
+                  {cta.isGithub && (
+                    <GitHubIcon className="mr-2 size-4 fill-current" />
+                  )}
                   {cta.label}
                 </SolidButton>
               )}
-              {item.type === "template" && item.demoUrl && <OutlineButton href={item.demoUrl}>Live demo</OutlineButton>}
+              {item.type === "template" && item.demoUrl && (
+                <OutlineButton href={item.demoUrl}>Live demo</OutlineButton>
+              )}
             </div>
           </div>
           <div className="overflow-hidden rounded-2xl">
@@ -139,24 +184,33 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
 
       <div
         className={`border-cc-card-border border-t py-12 ${
-          hasBody ? "grid gap-12 lg:grid-cols-[1fr_19rem] lg:gap-16" : "flex justify-start"
+          hasBody
+            ? "grid gap-12 lg:grid-cols-[1fr_19rem] lg:gap-16"
+            : "flex justify-start"
         }`}
       >
         {hasBody && (
           <article className="min-w-0">
             {body.map((section) => (
               <section key={section.heading} className="mb-14 last:mb-0">
-                <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">{section.heading}</h2>
+                <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">
+                  {section.heading}
+                </h2>
                 <div className="mt-5 space-y-4">
                   {section.paragraphs.map((paragraph) => (
-                    <p key={paragraph} className="text-cc-prose text-lg leading-8">
+                    <p
+                      key={paragraph}
+                      className="text-cc-prose text-lg leading-8"
+                    >
                       {paragraph}
                     </p>
                   ))}
                 </div>
                 {section.code && (
                   <CodeBlock>
-                    <code className={`language-${section.code.language}`}>{section.code.code}</code>
+                    <code className={`language-${section.code.language}`}>
+                      {section.code.code}
+                    </code>
                   </CodeBlock>
                 )}
               </section>
@@ -169,7 +223,9 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
             <div className="p-5">
               {cli.length > 0 && (
                 <>
-                  <p className="text-cc-heading font-heading text-lg font-semibold">Get started</p>
+                  <p className="text-cc-heading font-heading text-lg font-semibold">
+                    Get started
+                  </p>
                   <div className="mt-4 space-y-3">
                     {cli.map((command) => (
                       <div key={command.key}>
@@ -180,14 +236,19 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
                           command={command.code}
                           size="sm"
                           className="bg-cc-code-bg"
-                          track={{ commandKey: command.key, itemSlug: item.slug }}
+                          track={{
+                            commandKey: command.key,
+                            itemSlug: item.slug,
+                          }}
                         />
                       </div>
                     ))}
                   </div>
                 </>
               )}
-              <dl className={`space-y-4 text-sm ${cli.length > 0 ? "border-cc-card-border mt-6 border-t pt-5" : ""}`}>
+              <dl
+                className={`space-y-4 text-sm ${cli.length > 0 ? "border-cc-card-border mt-6 border-t pt-5" : ""}`}
+              >
                 <DetailFacts item={item} />
               </dl>
             </div>
@@ -197,7 +258,9 @@ export function LearnDetail({ item, related }: LearnDetailProps) {
 
       {related.length > 0 && (
         <section className="border-cc-card-border border-t py-8 sm:py-10">
-          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">More from Learn</h2>
+          <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 font-semibold">
+            More from Learn
+          </h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {leadRelated ? <LearnFeatureCard item={leadRelated} /> : null}
             {restRelated.length > 0 ? (

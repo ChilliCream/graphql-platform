@@ -39,7 +39,13 @@ function Swatch({ item }: { item: LegendItem }) {
   );
 }
 
-export function Legend({ items, style }: { items: LegendItem[]; style?: CSSProperties }) {
+export function Legend({
+  items,
+  style,
+}: {
+  items: LegendItem[];
+  style?: CSSProperties;
+}) {
   return (
     <div
       style={{
@@ -51,7 +57,10 @@ export function Legend({ items, style }: { items: LegendItem[]; style?: CSSPrope
       }}
     >
       {items.map((it) => (
-        <span key={it.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span
+          key={it.label}
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
+        >
           <Swatch item={it} />
           <span
             style={{

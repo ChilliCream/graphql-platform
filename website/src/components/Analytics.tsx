@@ -3,7 +3,10 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import { getTrackParams, isAnalyticsEventName } from "@/src/helpers/analyticsEvents";
+import {
+  getTrackParams,
+  isAnalyticsEventName,
+} from "@/src/helpers/analyticsEvents";
 import { getContentGroup } from "@/src/helpers/contentGroup";
 
 /**

@@ -31,7 +31,10 @@ export function RegulatedBand() {
           <ButtonRow align="start" className="mt-6">
             <SolidButton
               href="/services/support/contact?subject=Sales"
-              track={{ name: "contact_sales_click", params: { location: "pricing_regulated" } }}
+              track={{
+                name: "contact_sales_click",
+                params: { location: "pricing_regulated" },
+              }}
             >
               Talk to Sales
             </SolidButton>

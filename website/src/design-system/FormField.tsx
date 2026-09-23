@@ -24,7 +24,13 @@ interface FormFieldProps {
  * Wraps a form control with an optional label (with a required marker) and an
  * error message. Used by `Input` and `TextArea` to keep their chrome in sync.
  */
-export function FormField({ htmlFor, label, required, error, children }: FormFieldProps) {
+export function FormField({
+  htmlFor,
+  label,
+  required,
+  error,
+  children,
+}: FormFieldProps) {
   return (
     <div className="flex flex-col gap-1">
       {label && (

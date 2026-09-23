@@ -17,7 +17,12 @@ interface LearnVideoPlayerProps {
  */
 export function LearnVideoPlayer({ videoId, title }: LearnVideoPlayerProps) {
   if (!YOUTUBE_ID_RE.test(videoId)) {
-    return <BrokenMedia message="This video couldn't be loaded." className="aspect-video w-full rounded-2xl" />;
+    return (
+      <BrokenMedia
+        message="This video couldn't be loaded."
+        className="aspect-video w-full rounded-2xl"
+      />
+    );
   }
 
   return (

@@ -50,7 +50,12 @@ export function TeamSection() {
       <div className="mt-10">
         <CardGrid cols={3} gap={6}>
           {CREDENTIALS.map((column) => (
-            <PerkCard key={column.title} title={column.title} intro={column.body} items={column.bullets} />
+            <PerkCard
+              key={column.title}
+              title={column.title}
+              intro={column.body}
+              items={column.bullets}
+            />
           ))}
         </CardGrid>
       </div>

@@ -33,5 +33,10 @@ const STRUCTURED_DATA = {
 };
 
 export function StructuredData() {
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }} />;
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+    />
+  );
 }

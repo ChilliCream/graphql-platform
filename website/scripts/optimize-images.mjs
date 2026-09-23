@@ -45,7 +45,8 @@ function listFeaturedArticleImages() {
     const file = path.join(root, entry.name);
     try {
       const { data } = matter(fs.readFileSync(file, "utf8"));
-      const raw = typeof data.featuredImage === "string" ? data.featuredImage : "";
+      const raw =
+        typeof data.featuredImage === "string" ? data.featuredImage : "";
       if (!raw) {
         continue;
       }
@@ -84,7 +85,9 @@ function render({ phase, done, total }) {
     const width = 30;
     const filled = Math.round((done / total) * width);
     const bar = "█".repeat(filled) + "░".repeat(width - filled);
-    process.stdout.write(`\r[image-opt] ${label} ${bar} ${done}/${total} (${pct}%)`);
+    process.stdout.write(
+      `\r[image-opt] ${label} ${bar} ${done}/${total} (${pct}%)`,
+    );
     if (done === total) {
       process.stdout.write("\n");
     }

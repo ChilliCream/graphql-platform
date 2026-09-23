@@ -32,7 +32,9 @@ export function SidebarDrawer({
       // updated" <footer> inside the article, which would otherwise shrink the
       // rail prematurely.
       const footer = document.querySelector("body > footer");
-      const footerTop = footer ? footer.getBoundingClientRect().top : Number.POSITIVE_INFINITY;
+      const footerTop = footer
+        ? footer.getBoundingClientRect().top
+        : Number.POSITIVE_INFINITY;
       const intrusion = Math.max(0, window.innerHeight - footerTop);
       root.style.setProperty("--docs-rail-bottom", `${intrusion}px`);
     };

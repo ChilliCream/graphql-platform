@@ -5,7 +5,10 @@ import dynamic from "next/dynamic";
 import "@xyflow/react/dist/style.css";
 
 const FusionSubscriptionsDiagramInner = dynamic(
-  () => import("./FusionSubscriptionsDiagramInner").then((m) => m.FusionSubscriptionsDiagramInner),
+  () =>
+    import("./FusionSubscriptionsDiagramInner").then(
+      (m) => m.FusionSubscriptionsDiagramInner,
+    ),
   { ssr: false },
 );
 
@@ -120,8 +123,17 @@ export const FusionSubscriptionsDiagram: FC = () => {
 
   return (
     <>
-      <div style={{ ...containerStyle, cursor: "pointer" }} onClick={open} title="Click to expand diagram">
-        <button style={iconButtonStyle} onClick={open} title="Expand diagram" aria-label="Expand diagram">
+      <div
+        style={{ ...containerStyle, cursor: "pointer" }}
+        onClick={open}
+        title="Click to expand diagram"
+      >
+        <button
+          style={iconButtonStyle}
+          onClick={open}
+          title="Expand diagram"
+          aria-label="Expand diagram"
+        >
           <ExpandIcon />
         </button>
         {/* Capture clicks so the inline diagram opens the popup instead of panning. */}
@@ -132,7 +144,12 @@ export const FusionSubscriptionsDiagram: FC = () => {
       {expanded && (
         <div style={overlayStyle} onClick={close}>
           <div style={popupStyle} onClick={(e) => e.stopPropagation()}>
-            <button style={iconButtonStyle} onClick={close} title="Close" aria-label="Close diagram">
+            <button
+              style={iconButtonStyle}
+              onClick={close}
+              title="Close"
+              aria-label="Close diagram"
+            >
               <CloseIcon />
             </button>
             <FusionSubscriptionsDiagramInner expanded={true} />

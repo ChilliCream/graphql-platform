@@ -34,11 +34,18 @@ export function LearnSubnavLinkList({ activeHref }: LearnSubnavLinkListProps) {
             href={link.href}
             aria-current={active ? "page" : undefined}
             className={`relative flex shrink-0 items-center text-sm whitespace-nowrap no-underline transition-colors ${
-              active ? "text-cc-heading" : "text-cc-ink-dim hover:text-cc-heading"
+              active
+                ? "text-cc-heading"
+                : "text-cc-ink-dim hover:text-cc-heading"
             }`}
           >
             {link.label}
-            {active && <span aria-hidden="true" className="bg-cc-accent absolute inset-x-0 bottom-0 h-0.5" />}
+            {active && (
+              <span
+                aria-hidden="true"
+                className="bg-cc-accent absolute inset-x-0 bottom-0 h-0.5"
+              />
+            )}
           </Link>
         );
       })}

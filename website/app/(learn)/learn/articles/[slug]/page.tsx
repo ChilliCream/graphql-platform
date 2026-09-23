@@ -6,13 +6,20 @@ import { CardGrid } from "@/src/components/CardGrid";
 import { SimilarPosts } from "@/src/components/SimilarPosts";
 import { ArticleLayout } from "@/src/components/learn/ArticleLayout";
 import { LearnCard } from "@/src/components/learn/LearnCard";
-import { ARTICLES_ROOT, listArticleSlugs, resolveArticleFile } from "@/src/helpers/articlePaths";
+import {
+  ARTICLES_ROOT,
+  listArticleSlugs,
+  resolveArticleFile,
+} from "@/src/helpers/articlePaths";
 import { findArticleSummary } from "@/src/helpers/articles";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
-import { findSimilarPosts, listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  findSimilarPosts,
+  listBlogPostSummaries,
+} from "@/src/helpers/blogPosts";
 import { LEARN_SUMMARIES, TEMPLATE_SUMMARIES } from "@/src/data/learn/content";
 import type { ProductKey } from "@/src/data/learn/facets";
 import type { LearnItemSummary } from "@/src/data/learn/types";
@@ -29,7 +36,9 @@ export function generateStaticParams(): { slug: string }[] {
   return listArticleSlugs().map(({ slug }) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const article = findArticleSummary(slug);
   if (!article) {
@@ -44,18 +53,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 /** Related items for an article: templates and other catalog items sharing a product, capped at {@link MAX_RELATED}. */
-function findRelated(products: readonly ProductKey[]): readonly LearnItemSummary[] {
+function findRelated(
+  products: readonly ProductKey[],
+): readonly LearnItemSummary[] {
   if (products.length === 0) {
     return [];
   }
-  const overlap = (item: LearnItemSummary) => item.products.some((p) => products.includes(p));
+  const overlap = (item: LearnItemSummary) =>
+    item.products.some((p) => products.includes(p));
   const templates = TEMPLATE_SUMMARIES.filter(overlap).slice(0, MAX_RELATED);
   if (templates.length >= MAX_RELATED) {
     return templates;
   }
   const usedSlugs = new Set(templates.map((t) => t.slug));
   const others = LEARN_SUMMARIES.filter(
-    (item) => item.type !== "template" && !usedSlugs.has(item.slug) && overlap(item),
+    (item) =>
+      item.type !== "template" && !usedSlugs.has(item.slug) && overlap(item),
   );
   return [...templates, ...others].slice(0, MAX_RELATED);
 }
@@ -69,7 +82,10 @@ export default async function ArticlePage({ params }: PageProps) {
   }
 
   const absPath = path.join(ARTICLES_ROOT, rel);
-  const [{ content, toc }, raw] = await Promise.all([compileDoc(absPath), fs.readFile(absPath, "utf-8")]);
+  const [{ content, toc }, raw] = await Promise.all([
+    compileDoc(absPath),
+    fs.readFile(absPath, "utf-8"),
+  ]);
   const readingTime = estimateReadingTime(raw).text;
   const isBlogArticle = article.kind === "article";
   const related = isBlogArticle ? [] : findRelated(article.products);
@@ -90,8 +106,12 @@ export default async function ArticlePage({ params }: PageProps) {
         headline: article.title,
         ...(article.description ? { description: article.description } : {}),
         datePublished: toSchemaDate(article.date),
-        ...(article.updated ? { dateModified: toSchemaDate(article.updated) } : {}),
-        ...(article.featuredImage ? { image: toAbsoluteUrl(article.featuredImage) } : {}),
+        ...(article.updated
+          ? { dateModified: toSchemaDate(article.updated) }
+          : {}),
+        ...(article.featuredImage
+          ? { image: toAbsoluteUrl(article.featuredImage) }
+          : {}),
         ...(article.author
           ? {
               author: {
@@ -108,7 +128,12 @@ export default async function ArticlePage({ params }: PageProps) {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Learn", item: `${SITE_URL}/learn` },
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Learn",
+            item: `${SITE_URL}/learn`,
+          },
           { "@type": "ListItem", position: 2, name: article.title },
         ],
       },
@@ -120,14 +145,22 @@ export default async function ArticlePage({ params }: PageProps) {
       <script
         type="application/ld+json"
         // Escape `<` so content text can never close the script tag (XSS).
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <ArticleLayout
-        kind={article.kind === "comparison" || article.kind === "explainer" ? article.kind : undefined}
+        kind={
+          article.kind === "comparison" || article.kind === "explainer"
+            ? article.kind
+            : undefined
+        }
         title={article.title}
         // Blog posts skip the standfirst: their description is meta-only
         // (learn-editorial.md section 4.1 item 5).
-        standfirst={isBlogArticle ? undefined : (article.description ?? undefined)}
+        standfirst={
+          isBlogArticle ? undefined : (article.description ?? undefined)
+        }
         meta={{
           author: article.author ?? undefined,
           authorUrl: article.authorUrl ?? undefined,
@@ -145,7 +178,9 @@ export default async function ArticlePage({ params }: PageProps) {
             <SimilarPosts posts={similarPosts} />
           ) : related.length > 0 ? (
             <section className="border-cc-card-border mt-10 border-t pt-10 sm:mt-12 sm:pt-12 print:hidden">
-              <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 m-0 mb-6 font-semibold">Related</h2>
+              <h2 className="font-heading text-cc-heading text-h5 sm:text-h4 m-0 mb-6 font-semibold">
+                Related
+              </h2>
               <CardGrid cols={3} itemsStretch>
                 {related.map((item) => (
                   <LearnCard key={item.slug} item={item} />

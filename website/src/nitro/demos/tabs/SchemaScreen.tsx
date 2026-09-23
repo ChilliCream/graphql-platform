@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { motion, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
+import {
+  motion,
+  useMotionValueEvent,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { Stage } from "../../primitives/reel/Stage";
 import { AppFrame } from "../../primitives/reel/AppFrame";
 import { Cursor } from "../../primitives/reel/Cursor";
@@ -67,7 +72,9 @@ const DEPRECATED = ALL_COORDS.filter((c) => c.deprecated);
 const byName = (a: Coord, b: Coord) => a.coord.localeCompare(b.coord);
 const ALL_BY_NAME = [...ALL_COORDS].sort(byName);
 const DEPRECATED_BY_NAME = [...DEPRECATED].sort(byName);
-const DEPRECATED_BY_REQ = [...DEPRECATED].sort((a, b) => b.requests - a.requests);
+const DEPRECATED_BY_REQ = [...DEPRECATED].sort(
+  (a, b) => b.requests - a.requests,
+);
 const HERO = "Product.inStock";
 
 const HERO_DETAIL: [string, string][] = [
@@ -141,8 +148,10 @@ export interface SchemaScreenProps {
 }
 
 export function SchemaScreen({ progress }: SchemaScreenProps) {
-  const phaseAt = (p: number) => (p >= ORDER_PICK ? 2 : p >= FILTER_PICK ? 1 : 0);
-  const listPhaseAt = (p: number) => (p >= ORDER_PICK + LOAD ? 2 : p >= FILTER_PICK + LOAD ? 1 : 0);
+  const phaseAt = (p: number) =>
+    p >= ORDER_PICK ? 2 : p >= FILTER_PICK ? 1 : 0;
+  const listPhaseAt = (p: number) =>
+    p >= ORDER_PICK + LOAD ? 2 : p >= FILTER_PICK + LOAD ? 1 : 0;
   const stageAt = (p: number) => (p >= CLIENT_SELECT ? 2 : p >= SELECT ? 1 : 0);
   const [phase, setPhase] = useState(() => phaseAt(progress.get()));
   const [listPhase, setListPhase] = useState(() => listPhaseAt(progress.get()));
@@ -153,11 +162,31 @@ export function SchemaScreen({ progress }: SchemaScreenProps) {
     setStage(stageAt(p));
   });
 
-  const T = [0, 0.1, 0.14, 0.16, 0.22, 0.24, 0.31, 0.33, 0.4, 0.42, 0.52, 0.56, 0.58, 0.78, 0.8, 1];
+  const T = [
+    0, 0.1, 0.14, 0.16, 0.22, 0.24, 0.31, 0.33, 0.4, 0.42, 0.52, 0.56, 0.58,
+    0.78, 0.8, 1,
+  ];
   const cx = useTransform(
     progress,
     T,
-    [320, 320, 102, 102, 135, 135, 288, 288, 255, 255, 255, 200, 200, CLIENT_X, CLIENT_X, CLIENT_X],
+    [
+      320,
+      320,
+      102,
+      102,
+      135,
+      135,
+      288,
+      288,
+      255,
+      255,
+      255,
+      200,
+      200,
+      CLIENT_X,
+      CLIENT_X,
+      CLIENT_X,
+    ],
     { ease: ease.inOut },
   );
   const cy = useTransform(
@@ -196,7 +225,14 @@ export function SchemaScreen({ progress }: SchemaScreenProps) {
           x={cx}
           y={cy}
           progress={progress}
-          clickTimes={[FILTER_OPEN, FILTER_PICK, ORDER_OPEN, ORDER_PICK, SELECT, CLIENT_SELECT]}
+          clickTimes={[
+            FILTER_OPEN,
+            FILTER_PICK,
+            ORDER_OPEN,
+            ORDER_PICK,
+            SELECT,
+            CLIENT_SELECT,
+          ]}
           pointerWindows={[[0.7, CLIENT_SELECT]]}
         />
       }
@@ -214,7 +250,11 @@ export function SchemaScreen({ progress }: SchemaScreenProps) {
           <GatewayViewNav />
           <SchemaToolbar />
           <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
-            <CoordinatesColumn phase={phase} listPhase={listPhase} progress={progress} />
+            <CoordinatesColumn
+              phase={phase}
+              listPhase={listPhase}
+              progress={progress}
+            />
             {stage === 0 ? (
               <NoCoordinate />
             ) : (
@@ -363,7 +403,9 @@ function GatewayViewNav() {
 }
 
 function SchemaToolbar() {
-  const tab = (t: string, on?: boolean) => <UnderlineTab label={t} active={!!on} height="100%" />;
+  const tab = (t: string, on?: boolean) => (
+    <UnderlineTab label={t} active={!!on} height="100%" />
+  );
   return (
     <div
       style={{
@@ -416,7 +458,11 @@ function SchemaToolbar() {
               borderLeft: i ? `1px solid ${token.border}` : "none",
             }}
           >
-            <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>{v}</span>
+            <span
+              style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
+            >
+              {v}
+            </span>
             <span
               style={{
                 fontSize: 10,
@@ -442,12 +488,19 @@ function CoordinatesColumn({
   listPhase: number;
   progress: MotionValue<number>;
 }) {
-  const list = listPhase === 0 ? ALL_BY_NAME : listPhase === 1 ? DEPRECATED_BY_NAME : DEPRECATED_BY_REQ;
+  const list =
+    listPhase === 0
+      ? ALL_BY_NAME
+      : listPhase === 1
+        ? DEPRECATED_BY_NAME
+        : DEPRECATED_BY_REQ;
   const loadWindows: [number, number][] = [
     [FILTER_PICK, FILTER_PICK + LOAD],
     [ORDER_PICK, ORDER_PICK + LOAD],
   ];
-  const listDim = useTransform(progress, (p): number => (loadWindows.some(([a, b]) => p >= a && p <= b) ? 0.4 : 1));
+  const listDim = useTransform(progress, (p): number =>
+    loadWindows.some(([a, b]) => p >= a && p <= b) ? 0.4 : 1,
+  );
   return (
     <div
       style={{
@@ -511,14 +564,23 @@ function CoordinatesColumn({
       >
         <ControlButton
           active={phase >= 1}
-          icon={<IconWarning size={13} color={phase >= 1 ? ORANGE : "currentColor"} />}
+          icon={
+            <IconWarning
+              size={13}
+              color={phase >= 1 ? ORANGE : "currentColor"}
+            />
+          }
           label={phase === 0 ? "View all" : "Deprecated"}
         />
         <span style={{ flex: 1 }} />
         <ControlButton
           active={phase >= 2}
           icon={
-            phase >= 2 ? <IconChevronDown size={13} color={ORANGE} /> : <IconChevronUp size={13} color="currentColor" />
+            phase >= 2 ? (
+              <IconChevronDown size={13} color={ORANGE} />
+            ) : (
+              <IconChevronUp size={13} color="currentColor" />
+            )
           }
           label={phase === 2 ? "Requests" : "Name"}
         />
@@ -546,14 +608,16 @@ function CoordinatesColumn({
                   gap: 8,
                   height: ROW_H,
                   padding: "0 12px",
-                  background: hero && listPhase === 2 ? token.highlight : "transparent",
+                  background:
+                    hero && listPhase === 2 ? token.highlight : "transparent",
                 }}
               >
                 <IconField size={14} />
                 <span
                   style={{
                     fontSize: 12.5,
-                    color: hero && listPhase === 2 ? token.textStrong : token.text,
+                    color:
+                      hero && listPhase === 2 ? token.textStrong : token.text,
                     flex: 1,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -562,7 +626,9 @@ function CoordinatesColumn({
                 >
                   {c.coord}
                 </span>
-                {c.deprecated && <IconWarning size={12} color={token.warning} />}
+                {c.deprecated && (
+                  <IconWarning size={12} color={token.warning} />
+                )}
                 <span
                   style={{
                     fontSize: 12,
@@ -582,10 +648,19 @@ function CoordinatesColumn({
   );
 }
 
-function ListLoadingBar({ progress, windows }: { progress: MotionValue<number>; windows: [number, number][] }) {
-  const opacity = useTransform(progress, (p): number => (windows.some(([a, b]) => p >= a && p <= b) ? 1 : 0));
+function ListLoadingBar({
+  progress,
+  windows,
+}: {
+  progress: MotionValue<number>;
+  windows: [number, number][];
+}) {
+  const opacity = useTransform(progress, (p): number =>
+    windows.some(([a, b]) => p >= a && p <= b) ? 1 : 0,
+  );
   const left = useTransform(progress, (p): string => {
-    for (const [a, b] of windows) if (p >= a && p <= b) return `${((p - a) / (b - a)) * 130 - 30}%`;
+    for (const [a, b] of windows)
+      if (p >= a && p <= b) return `${((p - a) / (b - a)) * 130 - 30}%`;
     return "-30%";
   });
   return (
@@ -616,7 +691,15 @@ function ListLoadingBar({ progress, windows }: { progress: MotionValue<number>; 
   );
 }
 
-function ControlButton({ active, icon, label }: { active?: boolean; icon: React.ReactNode; label: string }) {
+function ControlButton({
+  active,
+  icon,
+  label,
+}: {
+  active?: boolean;
+  icon: React.ReactNode;
+  label: string;
+}) {
   return (
     <span
       style={{
@@ -654,7 +737,12 @@ function Menu({
   width: number;
   children: React.ReactNode;
 }) {
-  const opacity = useTransform(progress, [show, show + 0.015, hide - 0.015, hide], [0, 1, 1, 0], { clamp: true });
+  const opacity = useTransform(
+    progress,
+    [show, show + 0.015, hide - 0.015, hide],
+    [0, 1, 1, 0],
+    { clamp: true },
+  );
   const sy = useTransform(progress, [show, show + 0.02], [-4, 0], {
     clamp: true,
   });
@@ -719,7 +807,9 @@ function MenuItem({
         color: token.text,
       }}
     >
-      <span style={{ width: 14, display: "flex" }}>{checked ? <IconCheck size={13} color={ORANGE} /> : icon}</span>
+      <span style={{ width: 14, display: "flex" }}>
+        {checked ? <IconCheck size={13} color={ORANGE} /> : icon}
+      </span>
       {text}
     </div>
   );
@@ -728,16 +818,27 @@ function FilterMenu({ progress }: { progress: MotionValue<number> }) {
   const [picked, setPicked] = useState(() => progress.get() >= FILTER_PICK);
   useMotionValueEvent(progress, "change", (p) => setPicked(p >= FILTER_PICK));
   return (
-    <Menu progress={progress} show={FILTER_OPEN - 0.01} hide={FILTER_PICK + 0.03} x={RAIL + 12} width={186}>
+    <Menu
+      progress={progress}
+      show={FILTER_OPEN - 0.01}
+      hide={FILTER_PICK + 0.03}
+      x={RAIL + 12}
+      width={186}
+    >
       <MenuHeader text="Deprecation" />
-      <MenuItem text="Hide deprecated" icon={<IconWarning size={12} color={token.textSecondary} />} />
+      <MenuItem
+        text="Hide deprecated"
+        icon={<IconWarning size={12} color={token.textSecondary} />}
+      />
       <MenuItem
         text="Show deprecated"
         checked={picked}
         highlight
         icon={<IconWarning size={12} color={token.warning} />}
       />
-      <div style={{ borderTop: `1px solid ${token.border}`, margin: "4px 0" }} />
+      <div
+        style={{ borderTop: `1px solid ${token.border}`, margin: "4px 0" }}
+      />
       <MenuHeader text="Coordinate Kinds" />
       <MenuItem text="Fields" icon={<IconField size={12} />} />
     </Menu>
@@ -747,11 +848,19 @@ function OrderMenu({ progress }: { progress: MotionValue<number> }) {
   const [picked, setPicked] = useState(() => progress.get() >= ORDER_PICK);
   useMotionValueEvent(progress, "change", (p) => setPicked(p >= ORDER_PICK));
   return (
-    <Menu progress={progress} show={ORDER_OPEN - 0.01} hide={ORDER_PICK + 0.03} x={RAIL + 120} width={180}>
+    <Menu
+      progress={progress}
+      show={ORDER_OPEN - 0.01}
+      hide={ORDER_PICK + 0.03}
+      x={RAIL + 120}
+      width={180}
+    >
       <MenuHeader text="Order Direction" />
       <MenuItem text="Ascending" />
       <MenuItem text="Descending" checked={picked} />
-      <div style={{ borderTop: `1px solid ${token.border}`, margin: "4px 0" }} />
+      <div
+        style={{ borderTop: `1px solid ${token.border}`, margin: "4px 0" }}
+      />
       <MenuHeader text="Order by Metric" />
       <MenuItem text="Name" />
       <MenuItem text="Requests" checked={picked} highlight />
@@ -776,8 +885,12 @@ function NoCoordinate() {
       }}
     >
       <IconField size={28} color={token.textDim} />
-      <div style={{ fontSize: 14, fontWeight: 600, color: token.text }}>No coordinate selected</div>
-      <div style={{ fontSize: 12.5 }}>Select a coordinate to see its production usage.</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: token.text }}>
+        No coordinate selected
+      </div>
+      <div style={{ fontSize: 12.5 }}>
+        Select a coordinate to see its production usage.
+      </div>
     </div>
   );
 }
@@ -797,7 +910,11 @@ function DetailsColumn() {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <IconField size={16} />
-        <span style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}>Product.inStock</span>
+        <span
+          style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}
+        >
+          Product.inStock
+        </span>
       </div>
       <div
         style={{
@@ -820,8 +937,14 @@ function DetailsColumn() {
         <span style={{ color: token.synKeyword }}>Boolean</span>
         <span style={{ color: token.synPunct }}>!</span>
       </div>
-      <div style={{ fontSize: 12, color: token.textSecondary, lineHeight: 1.5 }}>
-        Deprecation reason: use <span style={{ fontFamily: token.mono, color: token.text }}>availability</span> instead.
+      <div
+        style={{ fontSize: 12, color: token.textSecondary, lineHeight: 1.5 }}
+      >
+        Deprecation reason: use{" "}
+        <span style={{ fontFamily: token.mono, color: token.text }}>
+          availability
+        </span>{" "}
+        instead.
       </div>
       <div style={{ marginTop: 4 }}>
         {HERO_DETAIL.map(([k, v], i) => (
@@ -836,7 +959,9 @@ function DetailsColumn() {
             }}
           >
             <span style={{ color: token.textSecondary }}>{k}</span>
-            <span style={{ color: token.text, fontFamily: token.mono }}>{v}</span>
+            <span style={{ color: token.text, fontFamily: token.mono }}>
+              {v}
+            </span>
           </div>
         ))}
       </div>
@@ -848,7 +973,12 @@ function UsageView({ progress }: { progress: MotionValue<number> }) {
   const fade = useTransform(progress, [SELECT, SELECT + 0.015], [0, 1], {
     clamp: true,
   });
-  const reveal = useTransform(progress, [SELECT + 0.05, SELECT + 0.13], [0, 1], { clamp: true });
+  const reveal = useTransform(
+    progress,
+    [SELECT + 0.05, SELECT + 0.13],
+    [0, 1],
+    { clamp: true },
+  );
   return (
     <motion.div
       style={{
@@ -885,14 +1015,31 @@ function UsageView({ progress }: { progress: MotionValue<number> }) {
         >
           <CoordinateUsage progress={progress} />
         </motion.div>
-        <LoadingSpinner progress={progress} show={SELECT + 0.005} hide={SELECT + 0.045} />
+        <LoadingSpinner
+          progress={progress}
+          show={SELECT + 0.005}
+          hide={SELECT + 0.045}
+        />
       </div>
     </motion.div>
   );
 }
 
-function LoadingSpinner({ progress, show, hide }: { progress: MotionValue<number>; show: number; hide: number }) {
-  const opacity = useTransform(progress, [show, show + 0.006, hide - 0.006, hide], [0, 1, 1, 0], { clamp: true });
+function LoadingSpinner({
+  progress,
+  show,
+  hide,
+}: {
+  progress: MotionValue<number>;
+  show: number;
+  hide: number;
+}) {
+  const opacity = useTransform(
+    progress,
+    [show, show + 0.006, hide - 0.006, hide],
+    [0, 1, 1, 0],
+    { clamp: true },
+  );
   const rotate = useTransform(progress, [show, hide], [0, 540]);
   return (
     <motion.div
@@ -914,7 +1061,12 @@ function LoadingSpinner({ progress, show, hide }: { progress: MotionValue<number
 }
 
 function CoordinateUsage({ progress }: { progress: MotionValue<number> }) {
-  const chevRot = useTransform(progress, [CLIENT_SELECT - 0.02, CLIENT_SELECT + 0.03], [-90, 0], { clamp: true });
+  const chevRot = useTransform(
+    progress,
+    [CLIENT_SELECT - 0.02, CLIENT_SELECT + 0.03],
+    [-90, 0],
+    { clamp: true },
+  );
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", gap: 12 }}>
@@ -926,8 +1078,21 @@ function CoordinateUsage({ progress }: { progress: MotionValue<number> }) {
           value="1,058"
           area
         />
-        <ChartTile title="Latency" values={SERIES.latency} color={token.chLatency} unit="ms" value="9.2" area />
-        <ChartTile title="Errors" values={SERIES.errors} color={token.error} unit="%" value="0.04" />
+        <ChartTile
+          title="Latency"
+          values={SERIES.latency}
+          color={token.chLatency}
+          unit="ms"
+          value="9.2"
+          area
+        />
+        <ChartTile
+          title="Errors"
+          values={SERIES.errors}
+          color={token.error}
+          unit="%"
+          value="0.04"
+        />
       </div>
       <PanelTile title="Clients" borderStrong bodyPadding="0">
         {CLIENTS.map((c, i) => (
@@ -952,7 +1117,9 @@ function CoordinateUsage({ progress }: { progress: MotionValue<number> }) {
                 >
                   {c.name}
                 </div>
-                <div style={{ fontSize: 11.5, color: token.textSecondary }}>{c.ops}</div>
+                <div style={{ fontSize: 11.5, color: token.textSecondary }}>
+                  {c.ops}
+                </div>
               </div>
               <div style={{ textAlign: "right" }}>
                 <div
@@ -1011,7 +1178,10 @@ function ChartTile({
 }) {
   const maxV = Math.max(...values);
   const max = maxV * 1.18 || 1;
-  const pts: Pt[] = values.map((v, i) => [(i / (values.length - 1)) * 100, 100 - (v / max) * 84 - 10]);
+  const pts: Pt[] = values.map((v, i) => [
+    (i / (values.length - 1)) * 100,
+    100 - (v / max) * 84 - 10,
+  ]);
   const line = smoothLinePath(pts, 0.5);
   const areaD = areaFromLine(line, pts, 100);
   const gid = `cg-${title}`;
@@ -1035,12 +1205,18 @@ function ChartTile({
           >
             {value}
           </span>
-          <span style={{ fontSize: 10.5, color: token.textSecondary }}>{unit}</span>
+          <span style={{ fontSize: 10.5, color: token.textSecondary }}>
+            {unit}
+          </span>
         </span>
       }
       style={{ minWidth: 0 }}
     >
-      <div style={{ fontSize: 10, color: token.textSecondary, marginBottom: 6 }}>avg over 7 days</div>
+      <div
+        style={{ fontSize: 10, color: token.textSecondary, marginBottom: 6 }}
+      >
+        avg over 7 days
+      </div>
       <div style={{ position: "relative", height: 88 }}>
         <span
           style={{
@@ -1108,7 +1284,13 @@ function ChartTile({
                 <path d={areaD} fill={`url(#${gid})`} />
               </>
             )}
-            <path d={line} fill="none" stroke={color} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+            <path
+              d={line}
+              fill="none"
+              stroke={color}
+              strokeWidth={1.5}
+              vectorEffect="non-scaling-stroke"
+            />
           </svg>
           <span
             style={{
@@ -1144,7 +1326,15 @@ function ChartTile({
   );
 }
 
-function GridCol({ w, children, right }: { w: number | string; children: React.ReactNode; right?: boolean }) {
+function GridCol({
+  w,
+  children,
+  right,
+}: {
+  w: number | string;
+  children: React.ReactNode;
+  right?: boolean;
+}) {
   return (
     <span
       style={{
@@ -1162,15 +1352,34 @@ function ExpandedOps({ progress }: { progress: MotionValue<number> }) {
   const HEAD = 28;
   const ROWH = 36;
   const OPS_H = HEAD + OPERATIONS.length * ROWH;
-  const height = useTransform(progress, [CLIENT_SELECT, CLIENT_SELECT + 0.05], [0, OPS_H], { clamp: true });
+  const height = useTransform(
+    progress,
+    [CLIENT_SELECT, CLIENT_SELECT + 0.05],
+    [0, OPS_H],
+    { clamp: true },
+  );
   const spinOp = useTransform(
     progress,
-    [CLIENT_SELECT + 0.005, CLIENT_SELECT + 0.02, CLIENT_SELECT + 0.05, CLIENT_SELECT + 0.06],
+    [
+      CLIENT_SELECT + 0.005,
+      CLIENT_SELECT + 0.02,
+      CLIENT_SELECT + 0.05,
+      CLIENT_SELECT + 0.06,
+    ],
     [0, 1, 1, 0],
     { clamp: true },
   );
-  const spin = useTransform(progress, [CLIENT_SELECT, CLIENT_SELECT + 0.06], [0, 400]);
-  const rowsOp = useTransform(progress, [CLIENT_SELECT + 0.06, CLIENT_SELECT + 0.11], [0, 1], { clamp: true });
+  const spin = useTransform(
+    progress,
+    [CLIENT_SELECT, CLIENT_SELECT + 0.06],
+    [0, 400],
+  );
+  const rowsOp = useTransform(
+    progress,
+    [CLIENT_SELECT + 0.06, CLIENT_SELECT + 0.11],
+    [0, 1],
+    { clamp: true },
+  );
   return (
     <motion.div style={{ height, overflow: "hidden", background: token.bg }}>
       <div style={{ position: "relative", minHeight: OPS_H }}>
@@ -1227,7 +1436,13 @@ function ExpandedOps({ progress }: { progress: MotionValue<number> }) {
             >
               <GridCol w="1">
                 <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                  <Badge square letter="Q" size="xs" border={token.icQuery} color={token.icQuery} />
+                  <Badge
+                    square
+                    letter="Q"
+                    size="xs"
+                    border={token.icQuery}
+                    color={token.icQuery}
+                  />
                   <span
                     style={{
                       fontSize: 13,

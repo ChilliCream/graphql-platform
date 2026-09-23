@@ -3,7 +3,16 @@ kind: article
 date: "2026-06-24"
 title: "Agents, Federation, and a Community"
 description: "Notes from GraphQLConf 2026 and Working Group Day at Meta: AI agents meeting GraphQL schemas, the Composite Schema federation standard, and a community building what comes next."
-tags: ["graphql", "graphqlconf", "community", "ai", "agents", "federation", "fusion"]
+tags:
+  [
+    "graphql",
+    "graphqlconf",
+    "community",
+    "ai",
+    "agents",
+    "federation",
+    "fusion",
+  ]
 author: Salome Ruckstuhl
 authorUrl: https://github.com/sal-ome
 authorImageUrl: https://avatars.githubusercontent.com/u/67280421?v=4

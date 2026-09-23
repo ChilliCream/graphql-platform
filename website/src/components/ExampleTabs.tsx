@@ -47,7 +47,9 @@ export const ExampleTabs: FC<ExampleTabsProps> = ({ children }) => {
     }
   }
 
-  const tabs = ORDER.filter((type) => byType.has(type)).filter((type) => showSchema || type !== "schema");
+  const tabs = ORDER.filter((type) => byType.has(type)).filter(
+    (type) => showSchema || type !== "schema",
+  );
 
   return (
     <Tabs>

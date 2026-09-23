@@ -40,12 +40,28 @@ export type LearnContentType =
 
 // Template-only axes.
 export type TopologyKey = "solo" | "federation" | "polyglot";
-export type UseCaseKey = "starter" | "cqrs" | "realtime" | "observability" | "llm-mcp" | "auth" | "multi-tenant";
+export type UseCaseKey =
+  | "starter"
+  | "cqrs"
+  | "realtime"
+  | "observability"
+  | "llm-mcp"
+  | "auth"
+  | "multi-tenant";
 export type LanguageKey = "dotnet" | "ts-node" | "mixed";
-export type ClientKey = "none" | "react-strawberry-shake" | "blazor-strawberry-shake" | "nextjs";
+export type ClientKey =
+  | "none"
+  | "react-strawberry-shake"
+  | "blazor-strawberry-shake"
+  | "nextjs";
 
 // Shared axis: every LearnItem carries a product mix.
-export type ProductKey = "hot-chocolate" | "mocha" | "fusion" | "nitro" | "strawberry-shake";
+export type ProductKey =
+  | "hot-chocolate"
+  | "mocha"
+  | "fusion"
+  | "nitro"
+  | "strawberry-shake";
 
 export interface FilterOption<TKey extends string = string> {
   readonly key: TKey;
@@ -144,17 +160,23 @@ export const TEMPLATE_FILTER_AXES = [
   } as const,
 ] as const;
 
-export type TemplateFilterAxisKey = (typeof TEMPLATE_FILTER_AXES)[number]["key"];
+export type TemplateFilterAxisKey =
+  (typeof TEMPLATE_FILTER_AXES)[number]["key"];
 
 export const contentTypeLabel = (key: LearnContentType): string =>
   CONTENT_TYPE_OPTIONS.find((c) => c.key === key)?.label ?? key;
 
-export const productLabel = (key: ProductKey): string => PRODUCT_OPTIONS.find((p) => p.key === key)?.label ?? key;
+export const productLabel = (key: ProductKey): string =>
+  PRODUCT_OPTIONS.find((p) => p.key === key)?.label ?? key;
 
-export const topologyLabel = (key: TopologyKey): string => TOPOLOGY_OPTIONS.find((p) => p.key === key)?.label ?? key;
+export const topologyLabel = (key: TopologyKey): string =>
+  TOPOLOGY_OPTIONS.find((p) => p.key === key)?.label ?? key;
 
-export const useCaseLabel = (key: UseCaseKey): string => USE_CASE_OPTIONS.find((p) => p.key === key)?.label ?? key;
+export const useCaseLabel = (key: UseCaseKey): string =>
+  USE_CASE_OPTIONS.find((p) => p.key === key)?.label ?? key;
 
-export const languageLabel = (key: LanguageKey): string => LANGUAGE_OPTIONS.find((p) => p.key === key)?.label ?? key;
+export const languageLabel = (key: LanguageKey): string =>
+  LANGUAGE_OPTIONS.find((p) => p.key === key)?.label ?? key;
 
-export const clientLabel = (key: ClientKey): string => CLIENT_OPTIONS.find((p) => p.key === key)?.label ?? key;
+export const clientLabel = (key: ClientKey): string =>
+  CLIENT_OPTIONS.find((p) => p.key === key)?.label ?? key;

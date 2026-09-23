@@ -54,11 +54,15 @@ test("getTrackParams returns an empty object when nothing is tracked", () => {
 test("trackAttributes and getTrackParams round-trip every declared parameter", () => {
   for (const [name, parameterNames] of Object.entries(ANALYTICS_EVENTS)) {
     // arrange
-    const params = Object.fromEntries(parameterNames.map((parameter) => [parameter, `value-${parameter}`]));
+    const params = Object.fromEntries(
+      parameterNames.map((parameter) => [parameter, `value-${parameter}`]),
+    );
 
     // act
     const attributes = trackAttributes({ name, params });
-    const roundTripped = getTrackParams(Object.entries(attributes).map(([key, value]) => ({ name: key, value })));
+    const roundTripped = getTrackParams(
+      Object.entries(attributes).map(([key, value]) => ({ name: key, value })),
+    );
 
     // assert
     assert.deepEqual(roundTripped, params, `round-trip failed for ${name}`);
@@ -68,9 +72,13 @@ test("trackAttributes and getTrackParams round-trip every declared parameter", (
 test("isAnalyticsEventName accepts declared events and rejects everything else", () => {
   // assert
   assert.deepEqual(
-    ["contact_form_submit", "nitro_download", "made_up_event", "", undefined].map((value) =>
-      isAnalyticsEventName(value),
-    ),
+    [
+      "contact_form_submit",
+      "nitro_download",
+      "made_up_event",
+      "",
+      undefined,
+    ].map((value) => isAnalyticsEventName(value)),
     [true, true, false, false, false],
   );
 });

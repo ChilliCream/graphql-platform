@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { motion, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
+import {
+  motion,
+  useMotionValueEvent,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { Stage } from "../../primitives/reel/Stage";
 import { AppFrame } from "../../primitives/reel/AppFrame";
 import { Cursor } from "../../primitives/reel/Cursor";
@@ -12,7 +17,13 @@ import { token } from "../../lib/tokens";
 import { ease } from "../../lib/motion";
 import { timeline } from "../../lib/timeline";
 import { smoothSeries } from "../../lib/data/tabs";
-import { smoothLinePath, areaFromLine, logScale, compact, type Pt } from "../../lib/scale";
+import {
+  smoothLinePath,
+  areaFromLine,
+  logScale,
+  compact,
+  type Pt,
+} from "../../lib/scale";
 import { CodeBlock } from "../../primitives/CodeBlock";
 import {
   IconDatabase,
@@ -410,9 +421,20 @@ const SEC_OVERVIEW_H =
   INSIGHTS_COL_H +
   6 * GRID_ROW_H +
   16;
-const INSIGHTS_TOP_IN_OV = OV_PAD_TOP + LAT_TILE_H + TILE_GAP + TP_TILE_H + TILE_GAP + FAIL_TILE_H + TILE_GAP;
+const INSIGHTS_TOP_IN_OV =
+  OV_PAD_TOP +
+  LAT_TILE_H +
+  TILE_GAP +
+  TP_TILE_H +
+  TILE_GAP +
+  FAIL_TILE_H +
+  TILE_GAP;
 const gridRowYInOv = (i: number) =>
-  INSIGHTS_TOP_IN_OV + INSIGHTS_HEAD_H + INSIGHTS_COL_H + i * GRID_ROW_H + GRID_ROW_H / 2;
+  INSIGHTS_TOP_IN_OV +
+  INSIGHTS_HEAD_H +
+  INSIGHTS_COL_H +
+  i * GRID_ROW_H +
+  GRID_ROW_H / 2;
 const OV_ROW_CAL = 50;
 
 const SEC_OP_H = 470;
@@ -465,7 +487,8 @@ const logTimeMs = (log: (typeof TRACE.logs)[number]) => {
   const sp = TRACE.spans.find((s) => s.id === log.spanId)!;
   return sp.startMs + sp.durationMs * 0.5;
 };
-const logLeftPct = (log: (typeof TRACE.logs)[number]) => (logTimeMs(log) / TRACE.totalMs) * 100;
+const logLeftPct = (log: (typeof TRACE.logs)[number]) =>
+  (logTimeMs(log) / TRACE.totalMs) * 100;
 const HOVER_LOG_X = WF_LEFT + logXInArea(logTimeMs(HOVER_LOG));
 const LOG_DOT_YIN_COL = DB_ROW_YIN_COL - 16;
 
@@ -475,29 +498,58 @@ export function TraceScreen({ progress }: TraceScreenProps) {
   const [view, setView] = useState(() => viewAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setView(viewAt(p)));
 
-  const ovOpacity = useTransform(progress, [TL.start("pageOut"), TL.end("pageOut")], [1, 0], {
-    ease: ease.inOut,
-    clamp: true,
-  });
-  const ovX = useTransform(progress, [TL.start("pageOut"), TL.end("pageOut")], [0, -40], {
-    ease: ease.inOut,
-    clamp: true,
-  });
-  const opPageOpacity = useTransform(progress, [TL.start("pageIn"), TL.end("pageIn")], [0, 1], {
-    ease: ease.inOut,
-    clamp: true,
-  });
-  const opPageX = useTransform(progress, [TL.start("pageIn"), TL.end("pageIn")], [44, 0], {
-    ease: ease.inOut,
-    clamp: true,
-  });
+  const ovOpacity = useTransform(
+    progress,
+    [TL.start("pageOut"), TL.end("pageOut")],
+    [1, 0],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
+  const ovX = useTransform(
+    progress,
+    [TL.start("pageOut"), TL.end("pageOut")],
+    [0, -40],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
+  const opPageOpacity = useTransform(
+    progress,
+    [TL.start("pageIn"), TL.end("pageIn")],
+    [0, 1],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
+  const opPageX = useTransform(
+    progress,
+    [TL.start("pageIn"), TL.end("pageIn")],
+    [44, 0],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
   const loadOpacity = useTransform(
     progress,
-    [TL.start("pageOut"), TL.at("opLoad", 0.1), TL.at("opLoad", 0.9), TL.end("pageIn")],
+    [
+      TL.start("pageOut"),
+      TL.at("opLoad", 0.1),
+      TL.at("opLoad", 0.9),
+      TL.end("pageIn"),
+    ],
     [0, 1, 1, 0],
     { clamp: true },
   );
-  const loadRot = useTransform(progress, [TL.start("pageOut"), TL.end("pageIn")], [0, 720]);
+  const loadRot = useTransform(
+    progress,
+    [TL.start("pageOut"), TL.end("pageIn")],
+    [0, 720],
+  );
 
   const ovMaxScroll = Math.max(0, SEC_OVERVIEW_H - VIEW_H);
   const ovScrollY = useTransform(
@@ -515,13 +567,24 @@ export function TraceScreen({ progress }: TraceScreenProps) {
     { ease: ease.inOut, clamp: true },
   );
 
-  const opRowY = useTransform(ovScrollY, (sy) => HEADER_H + gridRowYInOv(0) + OV_ROW_CAL + sy);
-  const dbRowY = useTransform(p2ScrollY, (sy) => HEADER_H + DB_ROW_YIN_COL + sy);
+  const opRowY = useTransform(
+    ovScrollY,
+    (sy) => HEADER_H + gridRowYInOv(0) + OV_ROW_CAL + sy,
+  );
+  const dbRowY = useTransform(
+    p2ScrollY,
+    (sy) => HEADER_H + DB_ROW_YIN_COL + sy,
+  );
   const logY = useTransform(p2ScrollY, (sy) => HEADER_H + LOG_DOT_YIN_COL + sy);
 
   const cursorOpacity = useTransform(
     progress,
-    [TL.at("pageOut", 0.25), TL.at("pageOut", 0.6), TL.at("pageIn", 0.55), TL.at("pageIn", 0.95)],
+    [
+      TL.at("pageOut", 0.25),
+      TL.at("pageOut", 0.6),
+      TL.at("pageIn", 0.55),
+      TL.at("pageIn", 0.95),
+    ],
     [1, 0, 0, 1],
     { ease: ease.inOut, clamp: true },
   );
@@ -543,7 +606,18 @@ export function TraceScreen({ progress }: TraceScreenProps) {
       TL.end("moveToLog"),
       1,
     ],
-    [460, 460, 440, 440, P2_REST_X, P2_REST_X, DB_SPAN_X, DB_SPAN_X, HOVER_LOG_X, HOVER_LOG_X],
+    [
+      460,
+      460,
+      440,
+      440,
+      P2_REST_X,
+      P2_REST_X,
+      DB_SPAN_X,
+      DB_SPAN_X,
+      HOVER_LOG_X,
+      HOVER_LOG_X,
+    ],
     { ease: ease.inOut },
   );
 
@@ -557,18 +631,23 @@ export function TraceScreen({ progress }: TraceScreenProps) {
       if (p >= TL.start("moveToSlowRow") && p < TL.start("pageOut")) {
         if (p >= TL.start("opClick")) return orow;
         const f = smooth(
-          (p - TL.start("moveToSlowRow")) / Math.max(1e-6, TL.start("opClick") - TL.start("moveToSlowRow")),
+          (p - TL.start("moveToSlowRow")) /
+            Math.max(1e-6, TL.start("opClick") - TL.start("moveToSlowRow")),
         );
         return P2_REST_Y + (orow - P2_REST_Y) * f;
       }
       if (p >= TL.start("moveToLog")) {
-        const f = smooth((p - TL.start("moveToLog")) / Math.max(1e-6, TL.end("moveToLog") - TL.start("moveToLog")));
+        const f = smooth(
+          (p - TL.start("moveToLog")) /
+            Math.max(1e-6, TL.end("moveToLog") - TL.start("moveToLog")),
+        );
         return drow + (lrow - drow) * f;
       }
       if (p >= TL.start("moveToDbSpan")) {
         if (p >= TL.start("dbClick")) return drow;
         const f = smooth(
-          (p - TL.start("moveToDbSpan")) / Math.max(1e-6, TL.start("dbClick") - TL.start("moveToDbSpan")),
+          (p - TL.start("moveToDbSpan")) /
+            Math.max(1e-6, TL.start("dbClick") - TL.start("moveToDbSpan")),
         );
         return P2_REST_Y + (drow - P2_REST_Y) * f;
       }
@@ -719,14 +798,26 @@ function DocTabStrip() {
         }}
       >
         <IconServer size={12} color={token.icQuery} />
-        <span style={{ fontSize: 12.5, color: token.textStrong, fontWeight: 600 }}>EShops Gateway</span>
+        <span
+          style={{ fontSize: 12.5, color: token.textStrong, fontWeight: 600 }}
+        >
+          EShops Gateway
+        </span>
       </div>
     </div>
   );
 }
 
 function GatewayViewNav() {
-  const views = ["Overview", "Monitoring", "Logs", "Schema", "Deployments", "Operations", "Clients"];
+  const views = [
+    "Overview",
+    "Monitoring",
+    "Logs",
+    "Schema",
+    "Deployments",
+    "Operations",
+    "Clients",
+  ];
   return (
     <div
       style={{
@@ -741,7 +832,15 @@ function GatewayViewNav() {
     >
       {views.map((v) => {
         const on = v === "Monitoring";
-        return <UnderlineTab key={v} label={v} active={on} height="100%" color={ORANGE} />;
+        return (
+          <UnderlineTab
+            key={v}
+            label={v}
+            active={on}
+            height="100%"
+            color={ORANGE}
+          />
+        );
       })}
       <span
         style={{
@@ -790,7 +889,9 @@ function ProductionStageHeader() {
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>Production Stage</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>
+        Production Stage
+      </span>
       <span
         style={{
           marginLeft: "auto",
@@ -821,7 +922,11 @@ function MonitoringOverview() {
         gap: TILE_GAP,
       }}
     >
-      <PanelTile title="Latency" height={LAT_TILE_H} headerExtra={<MetricBadge value="128 ms" sub="p95" />}>
+      <PanelTile
+        title="Latency"
+        height={LAT_TILE_H}
+        headerExtra={<MetricBadge value="128 ms" sub="p95" />}
+      >
         <MultiLineChart
           series={[
             { values: OVERVIEW.latMax, color: token.chP95, label: "max" },
@@ -839,14 +944,24 @@ function MonitoringOverview() {
 
       <div style={{ display: "flex", gap: TILE_GAP, height: TP_TILE_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
-          <PanelTile title="Throughput" headerExtra={<MetricBadge value="4.9K" sub="opm" />}>
-            <AreaLineChart values={OVERVIEW.throughput} color={token.chThroughput} />
+          <PanelTile
+            title="Throughput"
+            headerExtra={<MetricBadge value="4.9K" sub="opm" />}
+          >
+            <AreaLineChart
+              values={OVERVIEW.throughput}
+              color={token.chThroughput}
+            />
           </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
           <PanelTile
             title="Clients"
-            headerExtra={<span style={{ fontSize: 11, color: token.textSecondary }}>requests</span>}
+            headerExtra={
+              <span style={{ fontSize: 11, color: token.textSecondary }}>
+                requests
+              </span>
+            }
           >
             <ClientsBars />
           </PanelTile>
@@ -856,13 +971,21 @@ function MonitoringOverview() {
       <div style={{ display: "flex", gap: TILE_GAP, height: FAIL_TILE_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
           <PanelTile title="Failed Operations">
-            <AreaLineChart values={OVERVIEW.failed} color={token.chP95} legendLabel="GetHomePageQuery" />
+            <AreaLineChart
+              values={OVERVIEW.failed}
+              color={token.chP95}
+              legendLabel="GetHomePageQuery"
+            />
           </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
           <PanelTile
             title="Errors"
-            headerExtra={<span style={{ fontSize: 11, color: token.errorText }}>{ERRORS.length} recent</span>}
+            headerExtra={
+              <span style={{ fontSize: 11, color: token.errorText }}>
+                {ERRORS.length} recent
+              </span>
+            }
           >
             <ErrorList />
           </PanelTile>
@@ -964,7 +1087,13 @@ function MultiLineChart({
             />
           ))}
           {series.map((s, i) => (
-            <LinePath key={i} values={s.values} color={s.color} max={max} jagged={jagged} />
+            <LinePath
+              key={i}
+              values={s.values}
+              color={s.color}
+              max={max}
+              jagged={jagged}
+            />
           ))}
         </svg>
       </div>
@@ -972,8 +1101,21 @@ function MultiLineChart({
   );
 }
 
-function LinePath({ values, color, max, jagged }: { values: number[]; color: string; max: number; jagged?: boolean }) {
-  const pts: Pt[] = values.map((v, i) => [(i / (values.length - 1)) * 100, 100 - (v / max) * 90 - 5]);
+function LinePath({
+  values,
+  color,
+  max,
+  jagged,
+}: {
+  values: number[];
+  color: string;
+  max: number;
+  jagged?: boolean;
+}) {
+  const pts: Pt[] = values.map((v, i) => [
+    (i / (values.length - 1)) * 100,
+    100 - (v / max) * 90 - 5,
+  ]);
   const line = smoothLinePath(pts, jagged ? 0.85 : 0.5);
   return (
     <path
@@ -988,9 +1130,20 @@ function LinePath({ values, color, max, jagged }: { values: number[]; color: str
   );
 }
 
-function AreaLineChart({ values, color, legendLabel }: { values: number[]; color: string; legendLabel?: string }) {
+function AreaLineChart({
+  values,
+  color,
+  legendLabel,
+}: {
+  values: number[];
+  color: string;
+  legendLabel?: string;
+}) {
   const max = Math.max(...values) * 1.2 || 1;
-  const pts: Pt[] = values.map((v, i) => [(i / (values.length - 1)) * 100, 100 - (v / max) * 88 - 6]);
+  const pts: Pt[] = values.map((v, i) => [
+    (i / (values.length - 1)) * 100,
+    100 - (v / max) * 88 - 6,
+  ]);
   const line = smoothLinePath(pts, 0.55);
   const areaD = areaFromLine(line, pts, 100);
   const GRID = [0.3, 0.6];
@@ -1079,10 +1232,19 @@ function ClientsBars() {
     >
       {CLIENTS.map((c, i) => {
         const frac = c.value / CLIENTS_MAX;
-        const CLIENT_RAMP = [token.chImpact, token.chP95, token.chLatency, token.chThroughput, token.accent];
+        const CLIENT_RAMP = [
+          token.chImpact,
+          token.chP95,
+          token.chLatency,
+          token.chThroughput,
+          token.accent,
+        ];
         const color = CLIENT_RAMP[Math.min(CLIENT_RAMP.length - 1, i)];
         return (
-          <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            key={c.label}
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
             <span
               style={{
                 flex: "0 0 104px",
@@ -1151,7 +1313,8 @@ function ErrorList() {
             alignItems: "flex-start",
             gap: 8,
             padding: "6px 8px",
-            borderBottom: i < ERRORS.length - 1 ? `1px solid ${token.grid}` : "none",
+            borderBottom:
+              i < ERRORS.length - 1 ? `1px solid ${token.grid}` : "none",
           }}
         >
           <span
@@ -1236,8 +1399,14 @@ function InsightsTable() {
           borderBottom: `1px solid ${token.border}`,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>Insights</span>
-        <span style={{ fontSize: 11.5, color: token.textSecondary }}>operations · sorted by impact</span>
+        <span
+          style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
+        >
+          Insights
+        </span>
+        <span style={{ fontSize: 11.5, color: token.textSecondary }}>
+          operations · sorted by impact
+        </span>
         <span
           style={{
             marginLeft: "auto",
@@ -1341,7 +1510,10 @@ function GridRow({ op }: { op: OpRow }) {
           >
             {op.p95}
           </span>
-          <MiniSpark seed={op.seed} color={op.slow ? token.chImpact : token.chLatency} />
+          <MiniSpark
+            seed={op.seed}
+            color={op.slow ? token.chImpact : token.chLatency}
+          />
         </span>
       </GridCol>
       <GridCol w={130} right>
@@ -1366,7 +1538,11 @@ function GridRow({ op }: { op: OpRow }) {
         </span>
       </GridCol>
       <GridCol w={96} right>
-        <span style={{ fontSize: 12.5, fontFamily: token.mono, color: token.text }}>{op.errorRate}</span>
+        <span
+          style={{ fontSize: 12.5, fontFamily: token.mono, color: token.text }}
+        >
+          {op.errorRate}
+        </span>
       </GridCol>
       <GridCol w={130} right>
         <ImpactBar value={op.impact} hot={op.slow} />
@@ -1378,7 +1554,10 @@ function GridRow({ op }: { op: OpRow }) {
 function MiniSpark({ seed, color }: { seed: number; color: string }) {
   const vals = smoothSeries(seed, 22, 40, 18);
   const max = Math.max(...vals) * 1.18 || 1;
-  const pts: Pt[] = vals.map((v, i) => [(i / (vals.length - 1)) * 100, 100 - (v / max) * 80 - 10]);
+  const pts: Pt[] = vals.map((v, i) => [
+    (i / (vals.length - 1)) * 100,
+    100 - (v / max) * 80 - 10,
+  ]);
   const line = smoothLinePath(pts, 0.5);
   const areaD = areaFromLine(line, pts, 100);
   return (
@@ -1390,7 +1569,13 @@ function MiniSpark({ seed, color }: { seed: number; color: string }) {
       style={{ display: "block", flex: "0 0 auto" }}
     >
       <path d={areaD} fill={color} opacity={0.16} />
-      <path d={line} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+      <path
+        d={line}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   );
 }
@@ -1467,8 +1652,14 @@ function OperationScreen() {
           <span style={{ display: "flex", color: token.textSecondary }}>
             <IconQuery size={15} />
           </span>
-          <span style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}>GetHomePageQuery</span>
-          <span style={{ fontSize: 12, color: token.textSecondary }}>operation metrics</span>
+          <span
+            style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}
+          >
+            GetHomePageQuery
+          </span>
+          <span style={{ fontSize: 12, color: token.textSecondary }}>
+            operation metrics
+          </span>
         </div>
         <div
           style={{
@@ -1478,13 +1669,25 @@ function OperationScreen() {
             flex: "0 0 auto",
           }}
         >
-          <PanelTile title="Latency" headerExtra={<MetricBadge value="842 ms" sub="p95" />}>
+          <PanelTile
+            title="Latency"
+            headerExtra={<MetricBadge value="842 ms" sub="p95" />}
+          >
             <AreaLineChart values={OPSERIES.latency} color={token.chP95} />
           </PanelTile>
-          <PanelTile title="Throughput" headerExtra={<MetricBadge value="8.4K" sub="opm" />}>
-            <AreaLineChart values={OPSERIES.throughput} color={token.chThroughput} />
+          <PanelTile
+            title="Throughput"
+            headerExtra={<MetricBadge value="8.4K" sub="opm" />}
+          >
+            <AreaLineChart
+              values={OPSERIES.throughput}
+              color={token.chThroughput}
+            />
           </PanelTile>
-          <PanelTile title="Errors" headerExtra={<MetricBadge value="0.04" sub="%" />}>
+          <PanelTile
+            title="Errors"
+            headerExtra={<MetricBadge value="0.04" sub="%" />}
+          >
             <AreaLineChart values={OPSERIES.errors} color={token.chP95} />
           </PanelTile>
         </div>
@@ -1510,11 +1713,17 @@ function OperationScreen() {
               borderBottom: `1px solid ${token.border}`,
             }}
           >
-            <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>Latency Distribution</span>
+            <span
+              style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
+            >
+              Latency Distribution
+            </span>
             <span style={{ fontSize: 11.5, color: token.textSecondary }}>
               Total operations: {DIST.total.toLocaleString("en-US")}
             </span>
-            <span style={{ marginLeft: "auto", fontSize: 11, color: token.textDim }}>
+            <span
+              style={{ marginLeft: "auto", fontSize: 11, color: token.textDim }}
+            >
               Click and drag to select a range
             </span>
           </div>
@@ -1538,11 +1747,14 @@ function LatencyDistribution() {
   const hi = Math.log10(xMax);
   const binLeftMs = (i: number) => Math.pow(10, lo + ((hi - lo) * i) / n);
   const yTicks = [1, 10, 100, 1000, 10000].filter((t) => t <= maxCount * 1.15);
-  const markPct = (msVal: number) => xScale(Math.min(xMax, Math.max(xMin, msVal)));
+  const markPct = (msVal: number) =>
+    xScale(Math.min(xMax, Math.max(xMin, msVal)));
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 18, width: 30 }}>
+      <div
+        style={{ position: "absolute", left: 0, top: 0, bottom: 18, width: 30 }}
+      >
         {yTicks.map((t) => (
           <span
             key={t}
@@ -1560,7 +1772,9 @@ function LatencyDistribution() {
           </span>
         ))}
       </div>
-      <div style={{ position: "absolute", left: 32, right: 0, top: 0, bottom: 18 }}>
+      <div
+        style={{ position: "absolute", left: 32, right: 0, top: 0, bottom: 18 }}
+      >
         {yTicks.map((t) => (
           <div
             key={t}
@@ -1590,7 +1804,9 @@ function LatencyDistribution() {
             const bw = Math.max(0.5, x1 - x0 - 0.4);
             const topY = yScale(Math.max(1, c));
             const hasError = i >= DIST.errorFrom;
-            const errH = hasError ? Math.min(100 - topY, 4 + (i - DIST.errorFrom) * 2.5) : 0;
+            const errH = hasError
+              ? Math.min(100 - topY, 4 + (i - DIST.errorFrom) * 2.5)
+              : 0;
             return (
               <g key={i}>
                 <rect
@@ -1601,13 +1817,26 @@ function LatencyDistribution() {
                   rx={0.4}
                   style={{ fill: token.cLatency }}
                 />
-                {hasError && <rect x={x0 + 0.2} y={topY} width={bw} height={errH} style={{ fill: token.cError }} />}
+                {hasError && (
+                  <rect
+                    x={x0 + 0.2}
+                    y={topY}
+                    width={bw}
+                    height={errH}
+                    style={{ fill: token.cError }}
+                  />
+                )}
               </g>
             );
           })}
         </svg>
         {DIST.markers.map((m) => (
-          <DistMarker key={m.label} label={m.label} leftPct={markPct(m.ms)} color={m.color} />
+          <DistMarker
+            key={m.label}
+            label={m.label}
+            leftPct={markPct(m.ms)}
+            color={m.color}
+          />
         ))}
         <div
           style={{
@@ -1632,7 +1861,15 @@ function LatencyDistribution() {
   );
 }
 
-function DistMarker({ label, leftPct, color }: { label: string; leftPct: number; color: string }) {
+function DistMarker({
+  label,
+  leftPct,
+  color,
+}: {
+  label: string;
+  leftPct: number;
+  color: string;
+}) {
   return (
     <div
       style={{
@@ -1707,8 +1944,14 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>Trace Sample</span>
-            <span style={{ fontSize: 12, color: token.textSecondary }}>· 1 of {TRACE.sampleOf}</span>
+            <span
+              style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}
+            >
+              Trace Sample
+            </span>
+            <span style={{ fontSize: 12, color: token.textSecondary }}>
+              · 1 of {TRACE.sampleOf}
+            </span>
             <span
               style={{
                 marginLeft: "auto",
@@ -1766,7 +2009,9 @@ function TraceSampleSection({ progress }: { progress: MotionValue<number> }) {
                       width: 9,
                       height: 9,
                       borderRadius: 2,
-                      background: [PAL.http, PAL.graphql, PAL.internal, PAL.db][i],
+                      background: [PAL.http, PAL.graphql, PAL.internal, PAL.db][
+                        i
+                      ],
                     }}
                   />{" "}
                   {l}
@@ -1903,11 +2148,22 @@ const LOG_SEVERITY = {
 
 const CIRCLE = 15;
 const STEM = 7;
-function LogMarker({ log, progress }: { log: (typeof TRACE.logs)[number]; progress: MotionValue<number> }) {
+function LogMarker({
+  log,
+  progress,
+}: {
+  log: (typeof TRACE.logs)[number];
+  progress: MotionValue<number>;
+}) {
   const sev = LOG_SEVERITY[log.severity];
   const leftPct = logLeftPct(log);
   const idx = TRACE.spans.findIndex((s) => s.id === log.spanId);
-  const popOpacity = useTransform(progress, [TL.at("moveToLog", 0.6), TL.end("moveToLog")], [0, 1], { clamp: true });
+  const popOpacity = useTransform(
+    progress,
+    [TL.at("moveToLog", 0.6), TL.end("moveToLog")],
+    [0, 1],
+    { clamp: true },
+  );
   return (
     <div
       style={{
@@ -1939,7 +2195,9 @@ function LogMarker({ log, progress }: { log: (typeof TRACE.logs)[number]; progre
       >
         {log.count}
       </span>
-      <span style={{ width: 1, height: STEM, background: sev.color, opacity: 0.7 }} />
+      <span
+        style={{ width: 1, height: STEM, background: sev.color, opacity: 0.7 }}
+      />
       {log.hover && (
         <motion.div
           style={{
@@ -1968,7 +2226,9 @@ function LogMarker({ log, progress }: { log: (typeof TRACE.logs)[number]; progre
               borderBottom: `1px solid ${token.border}`,
             }}
           >
-            <span style={{ display: "flex", color: sev.color }}>{sev.icon(13)}</span>
+            <span style={{ display: "flex", color: sev.color }}>
+              {sev.icon(13)}
+            </span>
             <span
               style={{
                 fontSize: 11,
@@ -2008,7 +2268,15 @@ function LogMarker({ log, progress }: { log: (typeof TRACE.logs)[number]; progre
   );
 }
 
-function SpanRow({ span, index, progress }: { span: Span; index: number; progress: MotionValue<number> }) {
+function SpanRow({
+  span,
+  index,
+  progress,
+}: {
+  span: Span;
+  index: number;
+  progress: MotionValue<number>;
+}) {
   const color = KIND_COLOR[span.kind];
   const left = (span.startMs / TRACE.totalMs) * 100;
   const width = Math.max(0.6, (span.durationMs / TRACE.totalMs) * 100);
@@ -2019,10 +2287,15 @@ function SpanRow({ span, index, progress }: { span: Span; index: number; progres
   const glow = useTransform(progress, [0, TL.start("dbClick")], [3, 4], {
     clamp: true,
   });
-  const targetGlow = useTransform(glow, (r) => `0 0 ${r}px 0 ${token.chImpact}`);
+  const targetGlow = useTransform(
+    glow,
+    (r) => `0 0 ${r}px 0 ${token.chImpact}`,
+  );
 
   const select = TL.start("dbClick");
-  const rowBg = useTransform(progress, (p) => (span.target && p >= select ? token.highlight : "transparent"));
+  const rowBg = useTransform(progress, (p) =>
+    span.target && p >= select ? token.highlight : "transparent",
+  );
 
   return (
     <motion.div
@@ -2068,7 +2341,9 @@ function SpanRow({ span, index, progress }: { span: Span; index: number; progres
         style={{
           position: "absolute",
           top: 22,
-          [rightAnchor ? "right" : "left"]: rightAnchor ? `${100 - left}%` : `${left}%`,
+          [rightAnchor ? "right" : "left"]: rightAnchor
+            ? `${100 - left}%`
+            : `${left}%`,
           display: "flex",
           alignItems: "center",
           gap: 7,
@@ -2076,7 +2351,9 @@ function SpanRow({ span, index, progress }: { span: Span; index: number; progres
           whiteSpace: "nowrap",
         }}
       >
-        <span style={{ display: "flex", color, flex: "0 0 auto" }}>{KIND_ICON[span.kind](12)}</span>
+        <span style={{ display: "flex", color, flex: "0 0 auto" }}>
+          {KIND_ICON[span.kind](12)}
+        </span>
         <span
           style={{
             fontSize: 12,
@@ -2100,7 +2377,8 @@ function SpanRow({ span, index, progress }: { span: Span; index: number; progres
   );
 }
 
-const fmtDur = (d: number) => (d >= 1 ? `${d.toFixed(d < 10 ? 1 : 0)} ms` : `${Math.round(d * 1000)} µs`);
+const fmtDur = (d: number) =>
+  d >= 1 ? `${d.toFixed(d < 10 ? 1 : 0)} ms` : `${Math.round(d * 1000)} µs`;
 
 function DbDetail({ progress }: { progress: MotionValue<number> }) {
   const w0 = TL.start("detailReveal");
@@ -2111,7 +2389,11 @@ function DbDetail({ progress }: { progress: MotionValue<number> }) {
           <span style={{ display: "flex", color: token.chImpact }}>
             <IconDatabase size={16} />
           </span>
-          <span style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}>{TRACE.dbSpan.name}</span>
+          <span
+            style={{ fontSize: 15, fontWeight: 600, color: token.textStrong }}
+          >
+            {TRACE.dbSpan.name}
+          </span>
         </div>
         <div
           style={{
@@ -2248,7 +2530,15 @@ function OpBadge({ color }: { color: string }) {
   );
 }
 
-function Badge({ text, bg, dark }: { text: string; bg: string; dark?: boolean }) {
+function Badge({
+  text,
+  bg,
+  dark,
+}: {
+  text: string;
+  bg: string;
+  dark?: boolean;
+}) {
   return (
     <span
       style={{

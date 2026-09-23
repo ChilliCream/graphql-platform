@@ -286,7 +286,10 @@ type Tenant {
 }
 
 type Query {
-  product(tenantId: ID! @is(field: "tenant.id"), sku: String! @is(field: "sku")): Product @lookup
+  product(
+    tenantId: ID! @is(field: "tenant.id")
+    sku: String! @is(field: "sku")
+  ): Product @lookup
 }
 ```
 
@@ -309,7 +312,9 @@ input ProductKeyInput {
 }
 
 type Query {
-  product(key: ProductKeyInput! @is(field: "{ tenantId: tenant.id, sku }")): Product @lookup
+  product(
+    key: ProductKeyInput! @is(field: "{ tenantId: tenant.id, sku }")
+  ): Product @lookup
 }
 ```
 

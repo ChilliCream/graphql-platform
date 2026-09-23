@@ -34,7 +34,10 @@ function load(): Record<string, OptimizedImage> | null {
     return cache;
   }
   try {
-    const raw = fs.readFileSync(path.join(process.cwd(), "public/_optimized/manifest.json"), "utf8");
+    const raw = fs.readFileSync(
+      path.join(process.cwd(), "public/_optimized/manifest.json"),
+      "utf8",
+    );
     cache = JSON.parse(raw);
   } catch {
     cache = null; // dev / unoptimized / not generated yet

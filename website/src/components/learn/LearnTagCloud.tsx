@@ -11,7 +11,9 @@ export function LearnTagCloud({ tags }: LearnTagCloudProps) {
   }
   return (
     <div>
-      <p className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Most popular</p>
+      <p className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
+        Most popular
+      </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {tags.map((tag) => (
           <Tag key={tag} href={`/learn/articles/tags/${tag}`}>

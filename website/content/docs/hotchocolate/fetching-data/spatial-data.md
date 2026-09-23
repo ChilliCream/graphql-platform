@@ -209,7 +209,13 @@ The `distance` filter requires an input geometry. You can optionally buffer the 
 
 ```graphql
 {
-  pubs(where: { location: { distance: { geometry: { type: Point, coordinates: [1, 1] }, lt: 120 } } }) {
+  pubs(
+    where: {
+      location: {
+        distance: { geometry: { type: Point, coordinates: [1, 1] }, lt: 120 }
+      }
+    }
+  ) {
     id
     name
   }
@@ -222,7 +228,11 @@ The `contains` filter is an implementation of `Geometry.Contains`. It requires a
 
 ```graphql
 {
-  counties(where: { area: { contains: { geometry: { type: Point, coordinates: [1, 1] } } } }) {
+  counties(
+    where: {
+      area: { contains: { geometry: { type: Point, coordinates: [1, 1] } } }
+    }
+  ) {
     id
     name
   }
@@ -293,7 +303,13 @@ The `within` filter is an implementation of `Geometry.Within`.
 
 ```graphql
 {
-  pubs(where: { location: { within: { geometry: { type: Point, coordinates: [1, 1] }, buffer: 200 } } }) {
+  pubs(
+    where: {
+      location: {
+        within: { geometry: { type: Point, coordinates: [1, 1] }, buffer: 200 }
+      }
+    }
+  ) {
     id
     name
   }

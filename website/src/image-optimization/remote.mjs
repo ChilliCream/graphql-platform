@@ -74,7 +74,10 @@ export async function collectRemoteImages(cwd) {
   // YouTube posters for the catalog's video items (src/data/learn/content.ts),
   // in addition to the ones referenced from markdown bodies above.
   try {
-    const learnContent = fs.readFileSync(path.resolve(cwd, LEARN_CONTENT_FILE), "utf8");
+    const learnContent = fs.readFileSync(
+      path.resolve(cwd, LEARN_CONTENT_FILE),
+      "utf8",
+    );
     LEARN_VIDEO_ID_RE.lastIndex = 0;
     let match;
     while ((match = LEARN_VIDEO_ID_RE.exec(learnContent)) !== null) {
@@ -89,7 +92,9 @@ export async function collectRemoteImages(cwd) {
       }
     }
   } catch (err) {
-    console.warn(`[image-opt] WARN learn content ${LEARN_CONTENT_FILE}: ${err.message}`);
+    console.warn(
+      `[image-opt] WARN learn content ${LEARN_CONTENT_FILE}: ${err.message}`,
+    );
   }
 
   return [...byKey.values()];

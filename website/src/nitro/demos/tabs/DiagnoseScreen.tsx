@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { motion, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
+import {
+  motion,
+  useMotionValueEvent,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { Stage } from "../../primitives/reel/Stage";
 import { AppFrame } from "../../primitives/reel/AppFrame";
 import { Cursor } from "../../primitives/reel/Cursor";
 import { Flyout } from "../../primitives/reel/Flyout";
-import { GatewayChrome, GW_DOCTABS_H } from "../../primitives/reel/GatewayChrome";
+import {
+  GatewayChrome,
+  GW_DOCTABS_H,
+} from "../../primitives/reel/GatewayChrome";
 import { TableList } from "../../primitives/reel/TableList";
 import { TABREEL_CANVAS } from "../../primitives/reel/TabReel";
 import { Badge } from "../../primitives/Badge";
@@ -12,7 +20,12 @@ import { PanelTile } from "../../primitives/PanelTile";
 import { token } from "../../lib/tokens";
 import { ease } from "../../lib/motion";
 import { timeline } from "../../lib/timeline";
-import { smoothLinePath, areaFromLine, compact, type Pt } from "../../lib/scale";
+import {
+  smoothLinePath,
+  areaFromLine,
+  compact,
+  type Pt,
+} from "../../lib/scale";
 import {
   IconMutation,
   IconQuery,
@@ -89,7 +102,12 @@ function series(seed: number, n: number, base: number, amp: number): number[] {
   for (let i = 0; i < n; i++) {
     s = (s * 9301 + 49297) % 233280;
     const r = s / 233280;
-    out.push(Math.max(0, base + Math.sin(i * 0.7 + seed) * amp * 0.5 + (r - 0.5) * amp));
+    out.push(
+      Math.max(
+        0,
+        base + Math.sin(i * 0.7 + seed) * amp * 0.5 + (r - 0.5) * amp,
+      ),
+    );
   }
   return out;
 }
@@ -193,7 +211,10 @@ const OPS: OpRow[] = [
   },
 ];
 
-const OCCUR = [2, 1, 3, 2, 1, 2, 3, 2, 1, 2, 1, 2, 3, 1, 2, 2, 4, 9, 22, 41, 58, 47, 28, 14, 7, 4, 3, 2];
+const OCCUR = [
+  2, 1, 3, 2, 1, 2, 3, 2, 1, 2, 1, 2, 3, 1, 2, 2, 4, 9, 22, 41, 58, 47, 28, 14,
+  7, 4, 3, 2,
+];
 const OCCUR_PEAK = 58;
 
 interface TraceSample {
@@ -260,7 +281,8 @@ const LOG_ROWS: LogRow[] = [
   {
     ts: FAILING_TS,
     severity: "error",
-    message: "Unhandled exception while executing request - Sequence contains no elements",
+    message:
+      "Unhandled exception while executing request - Sequence contains no elements",
     burst: true,
   },
   {
@@ -272,13 +294,15 @@ const LOG_ROWS: LogRow[] = [
   {
     ts: "2024-03-18T14:32:09.341Z",
     severity: "error",
-    message: "Unhandled exception while executing request - Sequence contains no elements",
+    message:
+      "Unhandled exception while executing request - Sequence contains no elements",
     burst: true,
   },
   {
     ts: "2024-03-18T14:32:10.118Z",
     severity: "error",
-    message: "Unhandled exception while executing request - Sequence contains no elements",
+    message:
+      "Unhandled exception while executing request - Sequence contains no elements",
     burst: true,
   },
   {
@@ -295,12 +319,22 @@ const LOG_ROWS: LogRow[] = [
 const BURST_ROWS = LOG_ROWS.filter((r) => r.burst);
 
 const DIST = {
-  info: [4, 5, 4, 6, 5, 4, 5, 6, 5, 4, 6, 5, 4, 5, 6, 5, 4, 6, 5, 4, 5, 6, 5, 4, 5, 6, 5, 4],
-  warn: [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 5, 6, 4, 3, 2, 1, 1, 0, 1, 0, 0],
-  error: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 12, 18, 14, 9, 5, 3, 2, 1, 1, 0],
+  info: [
+    4, 5, 4, 6, 5, 4, 5, 6, 5, 4, 6, 5, 4, 5, 6, 5, 4, 6, 5, 4, 5, 6, 5, 4, 5,
+    6, 5, 4,
+  ],
+  warn: [
+    0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 5, 6, 4, 3, 2, 1, 1, 0,
+    1, 0, 0,
+  ],
+  error: [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 12, 18, 14, 9, 5, 3,
+    2, 1, 1, 0,
+  ],
 };
 const DIST_N = DIST.error.length;
-const DIST_PEAK = Math.max(...DIST.info.map((v, i) => v + DIST.warn[i] + DIST.error[i])) * 1.12;
+const DIST_PEAK =
+  Math.max(...DIST.info.map((v, i) => v + DIST.warn[i] + DIST.error[i])) * 1.12;
 const BRUSH_FROM = 15.5 / DIST_N;
 const BRUSH_TO = 26.5 / DIST_N;
 
@@ -327,12 +361,16 @@ const EXCEPTION = {
 
 const ERR_TILE_LEFT_FRAC = 0.61;
 const ERRORS_TILE_X =
-  RAIL + PANEL_PAD_X + (W - RAIL - PANEL_PAD_X * 2) * (ERR_TILE_LEFT_FRAC + (1 - ERR_TILE_LEFT_FRAC) / 2);
+  RAIL +
+  PANEL_PAD_X +
+  (W - RAIL - PANEL_PAD_X * 2) *
+    (ERR_TILE_LEFT_FRAC + (1 - ERR_TILE_LEFT_FRAC) / 2);
 const OV_PAD_TOP = 16;
 const LAT_TILE_H = 220;
 const TP_ROW_H = 158;
 const FAIL_ROW_H = 150;
-const ERRORS_ROW0_Y = HEADER_H + OV_PAD_TOP + LAT_TILE_H + TILE_GAP + TP_ROW_H + TILE_GAP + 36 + 15;
+const ERRORS_ROW0_Y =
+  HEADER_H + OV_PAD_TOP + LAT_TILE_H + TILE_GAP + TP_ROW_H + TILE_GAP + 36 + 15;
 
 const VIEW_LOGS_X = W - PANEL_PAD_X - 60;
 const VIEW_LOGS_Y = HEADER_H + OV_PAD_TOP + 30;
@@ -373,11 +411,21 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
   const [page, setPage] = useState(() => pageAt(progress.get()));
   useMotionValueEvent(progress, "change", (p) => setPage(pageAt(p)));
 
-  const p0Opacity = useTransform(progress, [TL.start("p1Out"), TL.end("p1Out")], [1, 0], {
-    ease: ease.inOut,
-    clamp: true,
-  });
-  const p0X = useTransform(progress, [TL.start("p1Out"), TL.end("p1Out")], [0, -40], { ease: ease.inOut, clamp: true });
+  const p0Opacity = useTransform(
+    progress,
+    [TL.start("p1Out"), TL.end("p1Out")],
+    [1, 0],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
+  const p0X = useTransform(
+    progress,
+    [TL.start("p1Out"), TL.end("p1Out")],
+    [0, -40],
+    { ease: ease.inOut, clamp: true },
+  );
   const p1Opacity = useTransform(
     progress,
     [TL.start("p1In"), TL.end("p1In"), TL.start("p2Out"), TL.end("p2Out")],
@@ -390,26 +438,54 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
     [44, 0, 0, -40],
     { ease: ease.inOut, clamp: true },
   );
-  const p2Opacity = useTransform(progress, [TL.start("p2In"), TL.end("p2In")], [0, 1], {
-    ease: ease.inOut,
-    clamp: true,
-  });
-  const p2X = useTransform(progress, [TL.start("p2In"), TL.end("p2In")], [44, 0], { ease: ease.inOut, clamp: true });
+  const p2Opacity = useTransform(
+    progress,
+    [TL.start("p2In"), TL.end("p2In")],
+    [0, 1],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
+  const p2X = useTransform(
+    progress,
+    [TL.start("p2In"), TL.end("p2In")],
+    [44, 0],
+    { ease: ease.inOut, clamp: true },
+  );
 
   const load1Opacity = useTransform(
     progress,
-    [TL.start("p1Out"), TL.at("p1Load", 0.1), TL.at("p1Load", 0.9), TL.end("p1In")],
+    [
+      TL.start("p1Out"),
+      TL.at("p1Load", 0.1),
+      TL.at("p1Load", 0.9),
+      TL.end("p1In"),
+    ],
     [0, 1, 1, 0],
     { clamp: true },
   );
-  const load1Rot = useTransform(progress, [TL.start("p1Out"), TL.end("p1In")], [0, 720]);
+  const load1Rot = useTransform(
+    progress,
+    [TL.start("p1Out"), TL.end("p1In")],
+    [0, 720],
+  );
   const load2Opacity = useTransform(
     progress,
-    [TL.start("p2Out"), TL.at("p2Load", 0.1), TL.at("p2Load", 0.9), TL.end("p2In")],
+    [
+      TL.start("p2Out"),
+      TL.at("p2Load", 0.1),
+      TL.at("p2Load", 0.9),
+      TL.end("p2In"),
+    ],
     [0, 1, 1, 0],
     { clamp: true },
   );
-  const load2Rot = useTransform(progress, [TL.start("p2Out"), TL.end("p2In")], [0, 720]);
+  const load2Rot = useTransform(
+    progress,
+    [TL.start("p2Out"), TL.end("p2In")],
+    [0, 720],
+  );
 
   const cx = useTransform(
     progress,
@@ -496,7 +572,11 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
           x={cx}
           y={cy}
           progress={progress}
-          clickTimes={[TL.start("errorClick"), TL.start("viewLogsClick"), TL.start("rowClick")]}
+          clickTimes={[
+            TL.start("errorClick"),
+            TL.start("viewLogsClick"),
+            TL.start("rowClick"),
+          ]}
           pointerWindows={[
             [TL.start("errorHover"), TL.start("errorClick") + 0.02],
             [TL.start("viewLogsHover"), TL.start("viewLogsClick") + 0.02],
@@ -586,7 +666,13 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
   );
 }
 
-function BridgeSpinner({ opacity, rot }: { opacity: MotionValue<number>; rot: MotionValue<number> }) {
+function BridgeSpinner({
+  opacity,
+  rot,
+}: {
+  opacity: MotionValue<number>;
+  rot: MotionValue<number>;
+}) {
   return (
     <motion.div
       style={{
@@ -620,7 +706,9 @@ function ProductionStageHeader() {
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>Production Stage</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>
+        Production Stage
+      </span>
       <span
         style={{
           marginLeft: "auto",
@@ -671,7 +759,11 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
         overflow: "hidden",
       }}
     >
-      <PanelTile title="Latency" height={LAT_TILE_H} headerExtra={<MetricBadge value="128 ms" sub="p95" />}>
+      <PanelTile
+        title="Latency"
+        height={LAT_TILE_H}
+        headerExtra={<MetricBadge value="128 ms" sub="p95" />}
+      >
         <MultiLineChart
           series={[
             { values: OVERVIEW.latMax, color: token.chP95, label: "max" },
@@ -687,14 +779,24 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
 
       <div style={{ display: "flex", gap: TILE_GAP, height: TP_ROW_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
-          <PanelTile title="Throughput" headerExtra={<MetricBadge value="4.9K" sub="opm" />}>
-            <AreaLineChart values={OVERVIEW.throughput} color={token.chThroughput} />
+          <PanelTile
+            title="Throughput"
+            headerExtra={<MetricBadge value="4.9K" sub="opm" />}
+          >
+            <AreaLineChart
+              values={OVERVIEW.throughput}
+              color={token.chThroughput}
+            />
           </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
           <PanelTile
             title="Clients"
-            headerExtra={<span style={{ fontSize: 11, color: token.textSecondary }}>requests</span>}
+            headerExtra={
+              <span style={{ fontSize: 11, color: token.textSecondary }}>
+                requests
+              </span>
+            }
           >
             <ClientsBars />
           </PanelTile>
@@ -704,13 +806,21 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
       <div style={{ display: "flex", gap: TILE_GAP, height: FAIL_ROW_H }}>
         <div style={{ flex: "0 0 61%", minWidth: 0, display: "flex" }}>
           <PanelTile title="Failed Operations">
-            <AreaLineChart values={OVERVIEW.failed} color={token.chP95} legendLabel="createOrder" />
+            <AreaLineChart
+              values={OVERVIEW.failed}
+              color={token.chP95}
+              legendLabel="createOrder"
+            />
           </PanelTile>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
           <PanelTile
             title="Errors"
-            headerExtra={<span style={{ fontSize: 11, color: token.errorText }}>{ERRORS.length} recent</span>}
+            headerExtra={
+              <span style={{ fontSize: 11, color: token.errorText }}>
+                {ERRORS.length} recent
+              </span>
+            }
           >
             <ErrorList progress={progress} />
           </PanelTile>
@@ -722,7 +832,11 @@ function MonitoringOverview({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-function MultiLineChart({ series }: { series: { values: number[]; color: string; label: string }[] }) {
+function MultiLineChart({
+  series,
+}: {
+  series: { values: number[]; color: string; label: string }[];
+}) {
   const all = series.flatMap((s) => s.values);
   const max = Math.max(...all) * 1.16 || 1;
   const GRID = [0.25, 0.5, 0.75];
@@ -784,7 +898,10 @@ function MultiLineChart({ series }: { series: { values: number[]; color: string;
             />
           ))}
           {series.map((s, i) => {
-            const pts: Pt[] = s.values.map((v, j) => [(j / (s.values.length - 1)) * 100, 100 - (v / max) * 90 - 5]);
+            const pts: Pt[] = s.values.map((v, j) => [
+              (j / (s.values.length - 1)) * 100,
+              100 - (v / max) * 90 - 5,
+            ]);
             return (
               <path
                 key={i}
@@ -804,9 +921,20 @@ function MultiLineChart({ series }: { series: { values: number[]; color: string;
   );
 }
 
-function AreaLineChart({ values, color, legendLabel }: { values: number[]; color: string; legendLabel?: string }) {
+function AreaLineChart({
+  values,
+  color,
+  legendLabel,
+}: {
+  values: number[];
+  color: string;
+  legendLabel?: string;
+}) {
   const max = Math.max(...values) * 1.2 || 1;
-  const pts: Pt[] = values.map((v, i) => [(i / (values.length - 1)) * 100, 100 - (v / max) * 88 - 6]);
+  const pts: Pt[] = values.map((v, i) => [
+    (i / (values.length - 1)) * 100,
+    100 - (v / max) * 88 - 6,
+  ]);
   const line = smoothLinePath(pts, 0.55);
   const areaD = areaFromLine(line, pts, 100);
   const GRID = [0.3, 0.6];
@@ -882,7 +1010,13 @@ function AreaLineChart({ values, color, legendLabel }: { values: number[]; color
   );
 }
 
-const CLIENT_RAMP = [token.chImpact, token.chP99, token.chLatency, token.chThroughput, token.accent];
+const CLIENT_RAMP = [
+  token.chImpact,
+  token.chP99,
+  token.chLatency,
+  token.chThroughput,
+  token.accent,
+];
 
 function ClientsBars() {
   return (
@@ -899,7 +1033,10 @@ function ClientsBars() {
         const frac = c.value / CLIENTS_MAX;
         const color = CLIENT_RAMP[Math.min(i, CLIENT_RAMP.length - 1)];
         return (
-          <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            key={c.label}
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
             <span
               style={{
                 flex: "0 0 104px",
@@ -961,13 +1098,26 @@ function ErrorList({ progress }: { progress: MotionValue<number> }) {
       }}
     >
       {ERRORS.map((e, i) => (
-        <ErrorRow key={i} e={e} last={i === ERRORS.length - 1} progress={progress} />
+        <ErrorRow
+          key={i}
+          e={e}
+          last={i === ERRORS.length - 1}
+          progress={progress}
+        />
       ))}
     </div>
   );
 }
 
-function ErrorRow({ e, last, progress }: { e: ErrorEntry; last: boolean; progress: MotionValue<number> }) {
+function ErrorRow({
+  e,
+  last,
+  progress,
+}: {
+  e: ErrorEntry;
+  last: boolean;
+  progress: MotionValue<number>;
+}) {
   const bg = useTransform(progress, (p): string =>
     e.target && p >= TL.start("errorHover") ? token.highlight : "transparent",
   );
@@ -1035,7 +1185,10 @@ function ErrorRow({ e, last, progress }: { e: ErrorEntry; last: boolean; progres
             textOverflow: "ellipsis",
           }}
         >
-          <span style={{ fontFamily: token.mono, color: token.errorText }}>{e.type}</span>: {e.msg}
+          <span style={{ fontFamily: token.mono, color: token.errorText }}>
+            {e.type}
+          </span>
+          : {e.msg}
         </span>
       </span>
     </motion.div>
@@ -1064,8 +1217,14 @@ function InsightsTable() {
           borderBottom: `1px solid ${token.border}`,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}>Insights</span>
-        <span style={{ fontSize: 11.5, color: token.textSecondary }}>operations · sorted by error rate</span>
+        <span
+          style={{ fontSize: 13, fontWeight: 600, color: token.textStrong }}
+        >
+          Insights
+        </span>
+        <span style={{ fontSize: 11.5, color: token.textSecondary }}>
+          operations · sorted by error rate
+        </span>
       </div>
       <div
         style={{
@@ -1083,9 +1242,13 @@ function InsightsTable() {
         }}
       >
         <span style={{ flex: 1 }}>Operation</span>
-        <span style={{ flex: "0 0 120px", textAlign: "right" }}>Throughput</span>
+        <span style={{ flex: "0 0 120px", textAlign: "right" }}>
+          Throughput
+        </span>
         <span style={{ flex: "0 0 110px", textAlign: "right" }}>p95</span>
-        <span style={{ flex: "0 0 110px", textAlign: "right" }}>Error Rate</span>
+        <span style={{ flex: "0 0 110px", textAlign: "right" }}>
+          Error Rate
+        </span>
       </div>
       {OPS.map((o) => (
         <div
@@ -1099,8 +1262,14 @@ function InsightsTable() {
             background: o.failing ? token.highlight : "transparent",
           }}
         >
-          <span style={{ flex: 1, display: "flex", alignItems: "center", gap: 9 }}>
-            {o.kind === "mutation" ? <IconMutation size={14} /> : <IconQuery size={14} />}
+          <span
+            style={{ flex: 1, display: "flex", alignItems: "center", gap: 9 }}
+          >
+            {o.kind === "mutation" ? (
+              <IconMutation size={14} />
+            ) : (
+              <IconQuery size={14} />
+            )}
             <span
               style={{
                 fontSize: 13,
@@ -1152,9 +1321,24 @@ function InsightsTable() {
 }
 
 function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
-  const chartOp = useTransform(progress, [TL.start("errChart"), TL.at("errChart", 0.3)], [0, 1], { clamp: true });
-  const whereOp = useTransform(progress, [TL.start("errWhere"), TL.at("errWhere", 0.3)], [0, 1], { clamp: true });
-  const stackOp = useTransform(progress, [TL.start("errStack"), TL.at("errStack", 0.3)], [0, 1], { clamp: true });
+  const chartOp = useTransform(
+    progress,
+    [TL.start("errChart"), TL.at("errChart", 0.3)],
+    [0, 1],
+    { clamp: true },
+  );
+  const whereOp = useTransform(
+    progress,
+    [TL.start("errWhere"), TL.at("errWhere", 0.3)],
+    [0, 1],
+    { clamp: true },
+  );
+  const stackOp = useTransform(
+    progress,
+    [TL.start("errStack"), TL.at("errStack", 0.3)],
+    [0, 1],
+    { clamp: true },
+  );
 
   return (
     <div
@@ -1219,7 +1403,9 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
               {GQL_ERROR.code}
             </Badge>
           </div>
-          <div style={{ fontSize: 13.5, color: token.text, marginTop: 4 }}>{EXCEPTION.message}</div>
+          <div style={{ fontSize: 13.5, color: token.text, marginTop: 4 }}>
+            {EXCEPTION.message}
+          </div>
         </div>
         <ViewLogsButton progress={progress} />
       </div>
@@ -1236,7 +1422,11 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
         <div style={{ flex: "0 0 58%", minWidth: 0, display: "flex" }}>
           <PanelTile
             title="Occurrences"
-            headerExtra={<span style={{ fontSize: 11, color: token.textSecondary }}>events / hour · last 24h</span>}
+            headerExtra={
+              <span style={{ fontSize: 11, color: token.textSecondary }}>
+                events / hour · last 24h
+              </span>
+            }
           >
             <OccurrenceBars progress={progress} />
           </PanelTile>
@@ -1275,14 +1465,20 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
         <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
           <PanelTile
             title="Example traces"
-            headerExtra={<span style={{ fontSize: 11, color: token.textSecondary }}>recent samples</span>}
+            headerExtra={
+              <span style={{ fontSize: 11, color: token.textSecondary }}>
+                recent samples
+              </span>
+            }
           >
             <ExampleTraces />
           </PanelTile>
         </div>
       </motion.div>
 
-      <motion.div style={{ flex: 1, minHeight: 0, display: "flex", opacity: stackOp }}>
+      <motion.div
+        style={{ flex: 1, minHeight: 0, display: "flex", opacity: stackOp }}
+      >
         <PanelTile
           title="Server Stack Trace"
           headerExtra={
@@ -1307,12 +1503,20 @@ function ErrorScreen({ progress }: { progress: MotionValue<number> }) {
 function ViewLogsButton({ progress }: { progress: MotionValue<number> }) {
   const press = useTransform(
     progress,
-    [TL.start("viewLogsClick"), TL.at("viewLogsClick", 0.5), TL.end("viewLogsClick")],
+    [
+      TL.start("viewLogsClick"),
+      TL.at("viewLogsClick", 0.5),
+      TL.end("viewLogsClick"),
+    ],
     [1, 0.94, 1],
     { clamp: true },
   );
-  const bg = useTransform(progress, (p): string => (p >= TL.start("viewLogsHover") ? token.accent : "transparent"));
-  const fg = useTransform(progress, (p): string => (p >= TL.start("viewLogsHover") ? "#fff" : token.text));
+  const bg = useTransform(progress, (p): string =>
+    p >= TL.start("viewLogsHover") ? token.accent : "transparent",
+  );
+  const fg = useTransform(progress, (p): string =>
+    p >= TL.start("viewLogsHover") ? "#fff" : token.text,
+  );
   return (
     <motion.span
       data-testid="view-logs"
@@ -1337,7 +1541,15 @@ function ViewLogsButton({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-function StatTile({ label, value, emphasize }: { label: string; value: string; emphasize?: boolean }) {
+function StatTile({
+  label,
+  value,
+  emphasize,
+}: {
+  label: string;
+  value: string;
+  emphasize?: boolean;
+}) {
   return (
     <div
       style={{
@@ -1376,7 +1588,12 @@ function StatTile({ label, value, emphasize }: { label: string; value: string; e
 }
 
 function OccurrenceBars({ progress }: { progress: MotionValue<number> }) {
-  const grow = useTransform(progress, [TL.at("errChart", 0.1), TL.at("errChart", 0.6)], [0, 1], { clamp: true });
+  const grow = useTransform(
+    progress,
+    [TL.at("errChart", 0.1), TL.at("errChart", 0.6)],
+    [0, 1],
+    { clamp: true },
+  );
   return (
     <div
       style={{
@@ -1412,7 +1629,11 @@ function OccurrenceBars({ progress }: { progress: MotionValue<number> }) {
 function WhereItOccurs() {
   const rows: [React.ReactNode, string, string][] = [
     [<IconMutation key="op" size={13} />, "Operation", SPAN_NAME],
-    [<IconServer key="sub" size={13} />, "Subgraph", `${EXCEPTION.subgraph} service`],
+    [
+      <IconServer key="sub" size={13} />,
+      "Subgraph",
+      `${EXCEPTION.subgraph} service`,
+    ],
     [<IconDatabase key="frame" size={13} />, "Top frame", EXCEPTION.topFrame],
   ];
   return (
@@ -1433,7 +1654,8 @@ function WhereItOccurs() {
             alignItems: "center",
             gap: 9,
             padding: "4px 0",
-            borderBottom: i < rows.length - 1 ? `1px solid ${token.grid}` : "none",
+            borderBottom:
+              i < rows.length - 1 ? `1px solid ${token.grid}` : "none",
           }}
         >
           <span
@@ -1496,7 +1718,8 @@ function ExampleTraces() {
             height: 30,
             padding: "0 8px",
             borderRadius: 4,
-            borderBottom: i < TRACES.length - 1 ? `1px solid ${token.grid}` : "none",
+            borderBottom:
+              i < TRACES.length - 1 ? `1px solid ${token.grid}` : "none",
           }}
         >
           <span
@@ -1506,7 +1729,11 @@ function ExampleTraces() {
               color: t.status === "error" ? token.error : token.successText,
             }}
           >
-            {t.status === "error" ? <IconErrorCircle size={12} /> : <IconInfo size={12} />}
+            {t.status === "error" ? (
+              <IconErrorCircle size={12} />
+            ) : (
+              <IconInfo size={12} />
+            )}
           </span>
           <span
             style={{
@@ -1543,7 +1770,9 @@ function ExampleTraces() {
           >
             {t.duration}
           </span>
-          <span style={{ display: "flex", flex: "0 0 auto", color: token.textDim }}>
+          <span
+            style={{ display: "flex", flex: "0 0 auto", color: token.textDim }}
+          >
             <IconChevronRight size={13} />
           </span>
         </div>
@@ -1562,9 +1791,14 @@ function ErrorStackTrace({ progress }: { progress: MotionValue<number> }) {
     ["rgba(0,0,0,0)", "rgba(207,34,46,0.12)"],
     { clamp: true },
   );
-  const frameBorder = useTransform(progress, [TL.at("errStack", 0.5), TL.end("errStack")], ["rgba(0,0,0,0)", DANGER], {
-    clamp: true,
-  });
+  const frameBorder = useTransform(
+    progress,
+    [TL.at("errStack", 0.5), TL.end("errStack")],
+    ["rgba(0,0,0,0)", DANGER],
+    {
+      clamp: true,
+    },
+  );
   return (
     <div
       style={{
@@ -1604,9 +1838,14 @@ function ErrorStackTrace({ progress }: { progress: MotionValue<number> }) {
 }
 
 function LogsView({ progress }: { progress: MotionValue<number> }) {
-  const contentOpacity = useTransform(progress, [TL.start("logsReveal"), TL.at("logsReveal", 0.6)], [0, 1], {
-    clamp: true,
-  });
+  const contentOpacity = useTransform(
+    progress,
+    [TL.start("logsReveal"), TL.at("logsReveal", 0.6)],
+    [0, 1],
+    {
+      clamp: true,
+    },
+  );
 
   const narrowedAt = (p: number) => p >= TL.end("brushLoad");
   const [narrowed, setNarrowed] = useState(() => narrowedAt(progress.get()));
@@ -1649,8 +1888,14 @@ function LogsView({ progress }: { progress: MotionValue<number> }) {
             flexDirection: "column",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}>Log Distribution</span>
+          <div
+            style={{ display: "flex", alignItems: "center", marginBottom: 8 }}
+          >
+            <span
+              style={{ fontSize: 14, fontWeight: 600, color: token.textStrong }}
+            >
+              Log Distribution
+            </span>
             <div
               style={{
                 marginLeft: "auto",
@@ -1688,7 +1933,10 @@ function LogsView({ progress }: { progress: MotionValue<number> }) {
               overflow: "hidden",
             }}
           >
-            <ListLoadingBar progress={progress} window={[TL.start("brushLoad"), TL.end("brushLoad")]} />
+            <ListLoadingBar
+              progress={progress}
+              window={[TL.start("brushLoad"), TL.end("brushLoad")]}
+            />
             <motion.div style={{ opacity: listDim }}>
               {rows.map((r) => (
                 <LogListRow key={r.ts} row={r} progress={progress} />
@@ -1704,24 +1952,41 @@ function LogsView({ progress }: { progress: MotionValue<number> }) {
 function Legend({ color, label }: { color: string; label: string }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-      <span style={{ width: 9, height: 9, borderRadius: 2, background: color }} />
+      <span
+        style={{ width: 9, height: 9, borderRadius: 2, background: color }}
+      />
       {label}
     </span>
   );
 }
 
 function DistributionBars({ progress }: { progress: MotionValue<number> }) {
-  const grow = useTransform(progress, [TL.start("logsReveal"), TL.at("logsReveal", 0.7)], [0, 1], { clamp: true });
+  const grow = useTransform(
+    progress,
+    [TL.start("logsReveal"), TL.at("logsReveal", 0.7)],
+    [0, 1],
+    { clamp: true },
+  );
 
   const brushLeftPct = BRUSH_FROM * 100;
   const brushFullPct = (BRUSH_TO - BRUSH_FROM) * 100;
-  const brushOpacity = useTransform(progress, [TL.start("dragPress"), TL.at("dragPress", 0.6)], [0, 1], {
-    clamp: true,
-  });
-  const brushWidthPct = useTransform(progress, [TL.start("dragSelect"), TL.end("dragSelect")], [0, brushFullPct], {
-    ease: ease.inOut,
-    clamp: true,
-  });
+  const brushOpacity = useTransform(
+    progress,
+    [TL.start("dragPress"), TL.at("dragPress", 0.6)],
+    [0, 1],
+    {
+      clamp: true,
+    },
+  );
+  const brushWidthPct = useTransform(
+    progress,
+    [TL.start("dragSelect"), TL.end("dragSelect")],
+    [0, brushFullPct],
+    {
+      ease: ease.inOut,
+      clamp: true,
+    },
+  );
   const brushWidth = useTransform(brushWidthPct, (w) => `${w}%`);
 
   return (
@@ -1779,8 +2044,14 @@ function DistributionBars({ progress }: { progress: MotionValue<number> }) {
                   overflow: "hidden",
                 }}
               >
-                {errH > 0 && <span style={{ height: `${errH}%`, background: DANGER }} />}
-                {warnH > 0 && <span style={{ height: `${warnH}%`, background: token.warning }} />}
+                {errH > 0 && (
+                  <span style={{ height: `${errH}%`, background: DANGER }} />
+                )}
+                {warnH > 0 && (
+                  <span
+                    style={{ height: `${warnH}%`, background: token.warning }}
+                  />
+                )}
                 <span
                   style={{
                     height: `${infoH}%`,
@@ -1853,9 +2124,17 @@ function DistributionBars({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-function ListLoadingBar({ progress, window }: { progress: MotionValue<number>; window: [number, number] }) {
+function ListLoadingBar({
+  progress,
+  window,
+}: {
+  progress: MotionValue<number>;
+  window: [number, number];
+}) {
   const [a, b] = window;
-  const opacity = useTransform(progress, (p): number => (p >= a && p <= b ? 1 : 0));
+  const opacity = useTransform(progress, (p): number =>
+    p >= a && p <= b ? 1 : 0,
+  );
   const left = useTransform(progress, (p): string =>
     p >= a && p <= b ? `${((p - a) / (b - a)) * 130 - 30}%` : "-30%",
   );
@@ -1887,7 +2166,13 @@ function ListLoadingBar({ progress, window }: { progress: MotionValue<number>; w
   );
 }
 
-function LogListRow({ row, progress }: { row: LogRow; progress: MotionValue<number> }) {
+function LogListRow({
+  row,
+  progress,
+}: {
+  row: LogRow;
+  progress: MotionValue<number>;
+}) {
   const target = row.ts === FAILING_TS;
   const bg = useTransform(progress, (p): string =>
     target && p >= TL.start("rowHover") ? token.highlight : "transparent",
@@ -1945,12 +2230,22 @@ function LogListRow({ row, progress }: { row: LogRow; progress: MotionValue<numb
 }
 
 function LogDetail({ progress }: { progress: MotionValue<number> }) {
-  const bodyOpacity = useTransform(progress, [TL.start("contextReveal") - 0.01, TL.start("contextReveal")], [1, 0], {
-    clamp: true,
-  });
-  const richOpacity = useTransform(progress, [TL.start("contextReveal"), TL.at("contextReveal", 0.2)], [0, 1], {
-    clamp: true,
-  });
+  const bodyOpacity = useTransform(
+    progress,
+    [TL.start("contextReveal") - 0.01, TL.start("contextReveal")],
+    [1, 0],
+    {
+      clamp: true,
+    },
+  );
+  const richOpacity = useTransform(
+    progress,
+    [TL.start("contextReveal"), TL.at("contextReveal", 0.2)],
+    [0, 1],
+    {
+      clamp: true,
+    },
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -1966,7 +2261,9 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
         }}
       >
         <IconErrorCircle size={15} color={DANGER} />
-        <span style={{ fontSize: 15, fontWeight: 600, color: token.errorText }}>Error</span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: token.errorText }}>
+          Error
+        </span>
         <span
           style={{
             marginLeft: "auto",
@@ -1988,14 +2285,18 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
         }}
       >
         <IconMutation size={14} />
-        <span style={{ fontSize: 13, color: token.textStrong }}>{SPAN_NAME}</span>
+        <span style={{ fontSize: 13, color: token.textStrong }}>
+          {SPAN_NAME}
+        </span>
         <Badge mono background={token.bg}>
           142 ms
         </Badge>
       </div>
 
       <motion.div style={{ position: "relative", flex: 1, minHeight: 0 }}>
-        <motion.div style={{ position: "absolute", inset: 0, opacity: bodyOpacity }}>
+        <motion.div
+          style={{ position: "absolute", inset: 0, opacity: bodyOpacity }}
+        >
           <div
             style={{
               fontSize: 12,
@@ -2018,7 +2319,8 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
               whiteSpace: "pre-wrap",
             }}
           >
-            Unhandled exception while executing request - Sequence contains no elements
+            Unhandled exception while executing request - Sequence contains no
+            elements
           </div>
         </motion.div>
 
@@ -2034,7 +2336,10 @@ function LogDetail({ progress }: { progress: MotionValue<number> }) {
             title="Request"
             rows={[{ label: "Operation", value: SPAN_NAME, mono: true }]}
             progress={progress}
-            playWindow={[TL.start("contextReveal"), TL.at("contextReveal", 0.5)]}
+            playWindow={[
+              TL.start("contextReveal"),
+              TL.at("contextReveal", 0.5),
+            ]}
           />
           <TableList
             title="GraphQL Error"
@@ -2069,11 +2374,26 @@ function StackTrace({ progress }: { progress: MotionValue<number> }) {
   const frames = EXCEPTION.stack;
   const failingIdx = frames.findIndex((s) => s.includes("OrderService.cs"));
   const fileLine = failingIdx >= 0 ? failingIdx + 1 : -1;
-  const opacity = useTransform(progress, [TL.at("stackReveal", 0.4), TL.end("stackReveal")], [0, 1], { clamp: true });
-  const frameBg = useTransform(progress, TL.span("rootCause"), ["rgba(0,0,0,0)", "rgba(207,34,46,0.12)"], {
-    clamp: true,
-  });
-  const frameBorder = useTransform(progress, TL.span("rootCause"), ["rgba(0,0,0,0)", DANGER], { clamp: true });
+  const opacity = useTransform(
+    progress,
+    [TL.at("stackReveal", 0.4), TL.end("stackReveal")],
+    [0, 1],
+    { clamp: true },
+  );
+  const frameBg = useTransform(
+    progress,
+    TL.span("rootCause"),
+    ["rgba(0,0,0,0)", "rgba(207,34,46,0.12)"],
+    {
+      clamp: true,
+    },
+  );
+  const frameBorder = useTransform(
+    progress,
+    TL.span("rootCause"),
+    ["rgba(0,0,0,0)", DANGER],
+    { clamp: true },
+  );
 
   return (
     <motion.div style={{ marginBottom: 14, opacity }}>

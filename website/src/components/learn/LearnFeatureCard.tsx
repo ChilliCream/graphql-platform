@@ -28,7 +28,9 @@ export function LearnFeatureCard({ item }: LearnFeatureCardProps) {
         <h3 className="font-heading text-cc-heading text-h5 group-hover:text-cc-accent mt-3 font-semibold transition-colors">
           {item.title}
         </h3>
-        <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">{item.tagline}</p>
+        <p className="text-cc-ink-dim mt-2 line-clamp-3 text-sm leading-relaxed">
+          {item.tagline}
+        </p>
       </div>
     </>
   );
@@ -37,7 +39,12 @@ export function LearnFeatureCard({ item }: LearnFeatureCardProps) {
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
         {inner}
       </a>
     );

@@ -1,6 +1,11 @@
 import { mulberry32 } from "./rng";
 
-export function smoothSeries(seed: number, n: number, base: number, amp: number): number[] {
+export function smoothSeries(
+  seed: number,
+  n: number,
+  base: number,
+  amp: number,
+): number[] {
   const r = mulberry32((seed ^ 0x9e3779b9) >>> 0);
   const ph1 = r() * Math.PI * 2;
   const ph2 = r() * Math.PI * 2;
@@ -209,7 +214,10 @@ export interface ErrRow {
 }
 
 export const diagnoseData = {
-  spike: [1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 1, 0, 2, 1, 1, 0, 1, 2, 1, 0, 3, 5, 9, 18, 34, 52, 47, 31, 18, 9, 4, 2],
+  spike: [
+    1, 0, 2, 1, 0, 1, 2, 1, 0, 1, 1, 0, 2, 1, 1, 0, 1, 2, 1, 0, 3, 5, 9, 18, 34,
+    52, 47, 31, 18, 9, 4, 2,
+  ],
   peak: 52,
   grid: [
     {
@@ -305,10 +313,25 @@ export const schemaData = {
   typeGroups: [
     {
       group: "Objects",
-      rows: ["Query", "Mutation", "Product", "Review", "Order", "Account", "Cart", "Money", "Brand"].map(
+      rows: [
+        "Query",
+        "Mutation",
+        "Product",
+        "Review",
+        "Order",
+        "Account",
+        "Cart",
+        "Money",
+        "Brand",
+      ].map(
         (name): SchemaRow => ({
           name,
-          kind: name === "Query" ? "query" : name === "Mutation" ? "mutation" : "object",
+          kind:
+            name === "Query"
+              ? "query"
+              : name === "Mutation"
+                ? "mutation"
+                : "object",
           drillable: true,
         }),
       ),
@@ -321,11 +344,15 @@ export const schemaData = {
     },
     {
       group: "Enums",
-      rows: ["OrderStatus", "Currency"].map((name): SchemaRow => ({ name, kind: "enum", drillable: true })),
+      rows: ["OrderStatus", "Currency"].map(
+        (name): SchemaRow => ({ name, kind: "enum", drillable: true }),
+      ),
     },
     {
       group: "Scalars",
-      rows: ["ID", "String", "Int", "Float", "DateTime"].map((name): SchemaRow => ({ name, kind: "scalar" })),
+      rows: ["ID", "String", "Int", "Float", "DateTime"].map(
+        (name): SchemaRow => ({ name, kind: "scalar" }),
+      ),
     },
   ],
   queryFields: [

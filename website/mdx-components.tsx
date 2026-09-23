@@ -12,8 +12,18 @@ import { Tab, Tabs } from "@/src/design-system/Tabs";
 import { ApiChoiceTabs } from "@/src/design-system/ApiChoiceTabs";
 import { InputChoiceTabs } from "@/src/components/InputChoiceTabs";
 import { PipelineChoiceTabs } from "@/src/components/PipelineChoiceTabs";
-import { Code, ExampleCode, ExampleTabs, Implementation, Schema } from "@/src/components/ExampleTabs";
-import { CSharp, LanguageTabs, TypeScript } from "@/src/components/LanguageTabs";
+import {
+  Code,
+  ExampleCode,
+  ExampleTabs,
+  Implementation,
+  Schema,
+} from "@/src/components/ExampleTabs";
+import {
+  CSharp,
+  LanguageTabs,
+  TypeScript,
+} from "@/src/components/LanguageTabs";
 import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
 import { FusionSubscriptionsDiagram } from "@/src/components/FusionSubscriptionsDiagram";
 import { DocHeading } from "@/src/components/DocHeading";
@@ -23,7 +33,14 @@ import { PackageInstallation } from "@/src/components/PackageInstallation";
 import { PhotoGrid } from "@/src/components/PhotoGrid";
 import { YouTubeVideo } from "@/src/components/YouTubeVideo";
 import { detectAdmonition } from "@/src/helpers/detectAdmonition";
-import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "@/src/design-system/Table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/src/design-system/Table";
 import { Typography } from "@/src/design-system/Typography";
 
 const components: MDXComponents = {
@@ -88,7 +105,9 @@ const components: MDXComponents = {
   ExampleTabs,
   // Component identity is not stable across the RSC/client boundary. Give the
   // marker elements a serializable discriminator for ExampleTabs to inspect.
-  Implementation: (props) => <Implementation {...props} exampleTab="implementation" />,
+  Implementation: (props) => (
+    <Implementation {...props} exampleTab="implementation" />
+  ),
   Code: (props) => <Code {...props} exampleTab="code" />,
   ExampleCode: (props) => <ExampleCode {...props} exampleTab="code" />,
   Schema: (props) => <Schema {...props} exampleTab="schema" />,

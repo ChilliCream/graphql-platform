@@ -32,7 +32,10 @@ export function PlanSelector() {
             callToAction={{
               title: tier.cta,
               link: tier.ctaHref,
-              track: { name: "pricing_cta_click", params: { plan: tier.id, location: "pricing_plans" } },
+              track: {
+                name: "pricing_cta_click",
+                params: { plan: tier.id, location: "pricing_plans" },
+              },
             }}
           />
         ))}
@@ -44,17 +47,25 @@ export function PlanSelector() {
 
 function SelfHostedStrip({ tier }: { readonly tier: Tier }) {
   return (
-    <Card variant="panel" className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+    <Card
+      variant="panel"
+      className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div>
-        <h3 className="font-heading text-cc-heading text-h6 font-semibold">{tier.name}</h3>
+        <h3 className="font-heading text-cc-heading text-h6 font-semibold">
+          {tier.name}
+        </h3>
         <p className="text-cc-ink mt-2 max-w-2xl text-sm text-pretty">
-          {tier.tagline} Run on your own infrastructure, air-gapped or on-prem, with configurable retention and priority
-          engineering support.
+          {tier.tagline} Run on your own infrastructure, air-gapped or on-prem,
+          with configurable retention and priority engineering support.
         </p>
       </div>
       <OutlineButton
         href={tier.ctaHref}
-        track={{ name: "pricing_cta_click", params: { plan: tier.id, location: "pricing_self_hosted" } }}
+        track={{
+          name: "pricing_cta_click",
+          params: { plan: tier.id, location: "pricing_self_hosted" },
+        }}
         className="shrink-0 sm:w-auto"
       >
         {tier.cta}

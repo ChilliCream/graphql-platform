@@ -1,6 +1,11 @@
 import { FeatureComparison } from "@/src/components/FeatureComparison";
 
-const PLAN_NAMES: readonly string[] = ["Community", "Startup", "Business", "Enterprise"];
+const PLAN_NAMES: readonly string[] = [
+  "Community",
+  "Startup",
+  "Business",
+  "Enterprise",
+];
 
 const COMPARISON = [
   {
@@ -8,7 +13,12 @@ const COMPARISON = [
     rows: [
       {
         title: "Critical Incidents",
-        values: [false, "2 (next business day)", "5 (next business day)", "Unlimited (24 hours)"],
+        values: [
+          false,
+          "2 (next business day)",
+          "5 (next business day)",
+          "Unlimited (24 hours)",
+        ],
       },
       {
         title: "Non-critical Incidents",

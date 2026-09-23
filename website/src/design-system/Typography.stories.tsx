@@ -7,7 +7,18 @@ const meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["h1", "h2", "h3", "h4", "h5", "h6", "body", "strong", "em", "del"],
+      options: [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "body",
+        "strong",
+        "em",
+        "del",
+      ],
     },
   },
 } satisfies Meta<typeof Typography>;

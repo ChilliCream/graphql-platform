@@ -14,8 +14,12 @@ interface LearnMastheadProps {
 export function LearnMasthead({ title, teaser }: LearnMastheadProps) {
   return (
     <header className="py-6 sm:py-8">
-      <h1 className="font-heading text-cc-heading text-h3 font-semibold text-balance">{title}</h1>
-      {teaser ? <p className="text-cc-ink-dim mt-4 max-w-2xl text-lg">{teaser}</p> : null}
+      <h1 className="font-heading text-cc-heading text-h3 font-semibold text-balance">
+        {title}
+      </h1>
+      {teaser ? (
+        <p className="text-cc-ink-dim mt-4 max-w-2xl text-lg">{teaser}</p>
+      ) : null}
     </header>
   );
 }

@@ -2,7 +2,10 @@ import { ArrowLink } from "@/src/components/ArrowLink";
 import { hubKickerForPost } from "@/src/data/learn/hubs";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { LearnFeaturedStory } from "./LearnFeaturedStory";
-import { LearnLatestVideos, type LatestVideoRailItem } from "./LearnLatestVideos";
+import {
+  LearnLatestVideos,
+  type LatestVideoRailItem,
+} from "./LearnLatestVideos";
 import { LearnListRow } from "./LearnListRow";
 import { LearnTagCloud } from "./LearnTagCloud";
 
@@ -54,7 +57,9 @@ export function LearnEditorialBand({
       <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-8 xl:grid-cols-[minmax(14rem,19rem)_minmax(37.5rem,1fr)_minmax(14rem,19rem)] xl:gap-x-0 xl:gap-y-0 2xl:grid-cols-[minmax(16rem,24rem)_minmax(37.5rem,1fr)_minmax(16rem,24rem)]">
         {showLatest ? (
           <div className="order-2 lg:order-3 lg:col-span-2 xl:order-1 xl:col-span-1 xl:flex xl:flex-col xl:pr-8">
-            <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">Latest</h2>
+            <h2 className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
+              Latest
+            </h2>
             <div className="mt-2 grid grid-cols-1 gap-x-10 sm:grid-cols-2 xl:grid-cols-1">
               {latestPosts.map((post) => {
                 const kicker = hubKickerForPost(post);
@@ -74,7 +79,10 @@ export function LearnEditorialBand({
                 );
               })}
             </div>
-            <ArrowLink href={allArticlesHref} className="mt-6 xl:mt-auto xl:pt-6">
+            <ArrowLink
+              href={allArticlesHref}
+              className="mt-6 xl:mt-auto xl:pt-6"
+            >
               All articles
             </ArrowLink>
           </div>
@@ -97,7 +105,10 @@ export function LearnEditorialBand({
               <LearnTagCloud tags={tags} />
             </div>
             {latestVideos.length > 0 ? (
-              <ArrowLink href="/learn/browse?type=video" className="mt-6 xl:mt-auto xl:pt-6">
+              <ArrowLink
+                href="/learn/browse?type=video"
+                className="mt-6 xl:mt-auto xl:pt-6"
+              >
                 All videos
               </ArrowLink>
             ) : null}

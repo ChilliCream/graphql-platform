@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnVideoDetail } from "@/src/components/learn/LearnVideoDetail";
-import { youTubePosterFallback, youTubePosterKey } from "@/src/components/YouTubePoster";
+import {
+  youTubePosterFallback,
+  youTubePosterKey,
+} from "@/src/components/YouTubePoster";
 import { getOptimizedImage } from "@/src/image-optimization/manifest";
 import { productLabel } from "@/src/data/learn/facets";
 import { LEARN_SUMMARIES, VIDEO_ITEMS } from "@/src/data/learn/content";
@@ -23,14 +26,19 @@ export const dynamicParams = false;
  * entries seeded before the TV migration carry no id (or long description)
  * and keep linking straight to YouTube via `learnItemHref`.
  */
-function findVideo(slug: string): (VideoItem & { readonly youtubeId: string }) | undefined {
+function findVideo(
+  slug: string,
+): (VideoItem & { readonly youtubeId: string }) | undefined {
   return VIDEO_ITEMS.find(
-    (video): video is VideoItem & { readonly youtubeId: string } => video.slug === slug && Boolean(video.youtubeId),
+    (video): video is VideoItem & { readonly youtubeId: string } =>
+      video.slug === slug && Boolean(video.youtubeId),
   );
 }
 
 export function generateStaticParams(): { slug: string }[] {
-  return VIDEO_ITEMS.filter((video) => video.youtubeId).map((video) => ({ slug: video.slug }));
+  return VIDEO_ITEMS.filter((video) => video.youtubeId).map((video) => ({
+    slug: video.slug,
+  }));
 }
 
 /** Self-hosted optimized poster when built, else the external `hqdefault` thumbnail (matches `YouTubePoster`'s resolution). */
@@ -42,12 +50,19 @@ function posterUrl(youtubeId: string): string {
 /** `"51:49"` / `"1:02:15"` mm:ss or h:mm:ss duration to ISO 8601 (`PT51M49S`). */
 function toIsoDuration(duration: string): string {
   const parts = duration.split(":").map(Number);
-  const [hours, minutes, seconds] = parts.length === 3 ? parts : parts.length === 2 ? [0, ...parts] : [0, 0, ...parts];
+  const [hours, minutes, seconds] =
+    parts.length === 3
+      ? parts
+      : parts.length === 2
+        ? [0, ...parts]
+        : [0, 0, ...parts];
   const body = `${hours ? `${hours}H` : ""}${minutes ? `${minutes}M` : ""}${seconds ? `${seconds}S` : ""}`;
   return `PT${body || "0S"}`;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const video = findVideo(slug);
   if (!video) {
@@ -74,8 +89,18 @@ function structuredData(video: VideoItem & { readonly youtubeId: string }) {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Learn", item: `${SITE_URL}/learn` },
-          { "@type": "ListItem", position: 2, name: "Videos", item: `${SITE_URL}/learn/browse?type=video` },
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Learn",
+            item: `${SITE_URL}/learn`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Videos",
+            item: `${SITE_URL}/learn/browse?type=video`,
+          },
           { "@type": "ListItem", position: 3, name: video.title },
         ],
       },
@@ -100,17 +125,22 @@ function structuredData(video: VideoItem & { readonly youtubeId: string }) {
  * (templates first). The current video is always excluded.
  */
 function findRelated(video: VideoItem): readonly LearnItemSummary[] {
-  const byNewest = (a: VideoItem, b: VideoItem) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "");
+  const byNewest = (a: VideoItem, b: VideoItem) =>
+    (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "");
   const otherVideos = VIDEO_ITEMS.filter((v) => v.slug !== video.slug);
   const usedSlugs = new Set([video.slug]);
 
-  const sameProduct = otherVideos.filter((v) => v.products.some((p) => video.products.includes(p))).sort(byNewest);
+  const sameProduct = otherVideos
+    .filter((v) => v.products.some((p) => video.products.includes(p)))
+    .sort(byNewest);
   const primary = sameProduct.slice(0, MAX_RELATED);
   primary.forEach((v) => usedSlugs.add(v.slug));
 
   let result: LearnItemSummary[] = [...primary];
   if (result.length < MAX_RELATED) {
-    const remainingVideos = otherVideos.filter((v) => !usedSlugs.has(v.slug)).sort(byNewest);
+    const remainingVideos = otherVideos
+      .filter((v) => !usedSlugs.has(v.slug))
+      .sort(byNewest);
     const pad = remainingVideos.slice(0, MAX_RELATED - result.length);
     pad.forEach((v) => usedSlugs.add(v.slug));
     result = [...result, ...pad];
@@ -118,7 +148,9 @@ function findRelated(video: VideoItem): readonly LearnItemSummary[] {
   if (result.length < MAX_RELATED) {
     const nonVideo = LEARN_SUMMARIES.filter(
       (item) =>
-        item.type !== "video" && !usedSlugs.has(item.slug) && item.products.some((p) => video.products.includes(p)),
+        item.type !== "video" &&
+        !usedSlugs.has(item.slug) &&
+        item.products.some((p) => video.products.includes(p)),
     );
     const templatesFirst = [
       ...nonVideo.filter((i) => i.type === "template"),
@@ -138,7 +170,12 @@ export default async function VideoPage({ params }: PageProps) {
   const related = findRelated(video);
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(video)) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData(video)),
+        }}
+      />
       <LearnVideoDetail video={video} related={related} />
     </>
   );

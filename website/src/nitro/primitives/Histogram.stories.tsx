@@ -21,7 +21,12 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <ThemeProvider theme="dark" reducedMotion="always" className="w-[520px] max-w-full p-6" style={{ height: 260 }}>
+      <ThemeProvider
+        theme="dark"
+        reducedMotion="always"
+        className="w-[520px] max-w-full p-6"
+        style={{ height: 260 }}
+      >
         <Story />
       </ThemeProvider>
     ),

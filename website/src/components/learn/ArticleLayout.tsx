@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogTags } from "@/src/components/BlogTags";
-import { TableOfContents, type HeadingItem } from "@/src/components/TableOfContents";
+import {
+  TableOfContents,
+  type HeadingItem,
+} from "@/src/components/TableOfContents";
 import type { LearnContentType } from "@/src/data/learn/facets";
 import { Picture } from "@/src/design-system/Picture";
 import { ContentTypeBadge } from "./ContentTypeBadge";
@@ -93,7 +96,11 @@ export function ArticleLayout({
           >
             {title}
           </h1>
-          {standfirst ? <p className="text-cc-ink-dim my-4 text-lg leading-relaxed">{standfirst}</p> : null}
+          {standfirst ? (
+            <p className="text-cc-ink-dim my-4 text-lg leading-relaxed">
+              {standfirst}
+            </p>
+          ) : null}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <BlogMetadata
               author={meta.author}

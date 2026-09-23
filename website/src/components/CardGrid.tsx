@@ -29,7 +29,10 @@ interface CardGridProps {
   readonly skipThreeCol?: boolean;
 }
 
-const SINGLE_COLS_CLASS: Record<"sm" | "md" | "lg", Record<2 | 3 | 4, string>> = {
+const SINGLE_COLS_CLASS: Record<
+  "sm" | "md" | "lg",
+  Record<2 | 3 | 4, string>
+> = {
   sm: { 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4" },
   md: { 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" },
   lg: { 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4" },
@@ -77,7 +80,9 @@ export function CardGrid({
       : SINGLE_COLS_CLASS[breakpoint][cols];
 
   return (
-    <div className={`grid ${GAP_CLASS[gap]} ${colsClass}${itemsStretch ? ` ${ITEMS_STRETCH_CLASS[breakpoint]}` : ""}`}>
+    <div
+      className={`grid ${GAP_CLASS[gap]} ${colsClass}${itemsStretch ? ` ${ITEMS_STRETCH_CLASS[breakpoint]}` : ""}`}
+    >
       {children}
     </div>
   );

@@ -3,7 +3,15 @@ kind: article
 date: "2026-07-12"
 title: "Fusion 16.5: The Gateway for Everyone"
 description: "Built with C# and .NET, Fusion 16.5 is the only gateway supporting both federation standards, achieves 100% Apollo Federation compliance, and leads in real-world performance."
-tags: ["fusion", "graphql", "federation", "apollo-federation", "dotnet", "aspnetcore"]
+tags:
+  [
+    "fusion",
+    "graphql",
+    "federation",
+    "apollo-federation",
+    "dotnet",
+    "aspnetcore",
+  ]
 category: "Release"
 featuredImage: "header.png"
 author: Michael Staib

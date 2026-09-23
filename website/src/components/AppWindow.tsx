@@ -11,7 +11,13 @@ interface AppWindowProps {
   readonly className?: string;
 }
 
-export function AppWindow({ title, disclosure, children, footer, className = "" }: AppWindowProps) {
+export function AppWindow({
+  title,
+  disclosure,
+  children,
+  footer,
+  className = "",
+}: AppWindowProps) {
   return (
     <div className="min-w-0">
       {disclosure !== undefined && (
@@ -29,7 +35,9 @@ export function AppWindow({ title, disclosure, children, footer, className = "" 
                 <span className="bg-cc-warning/60 h-2.5 w-2.5 rounded-full" />
                 <span className="bg-cc-success/60 h-2.5 w-2.5 rounded-full" />
               </span>
-              <div className="text-cc-ink-dim ml-2 flex items-center gap-2 font-mono text-[0.72rem]">{title}</div>
+              <div className="text-cc-ink-dim ml-2 flex items-center gap-2 font-mono text-[0.72rem]">
+                {title}
+              </div>
             </>
           ),
         }}

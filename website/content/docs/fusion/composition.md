@@ -266,7 +266,9 @@ When a field is intentionally non-accessible at the moment, for example during a
 {
   "satisfiability": {
     "ignoredNonAccessibleFields": {
-      "Order.shippingAddress": ["accounts:Query.viewer<User> -> accounts:User.orders<Order>"]
+      "Order.shippingAddress": [
+        "accounts:Query.viewer<User> -> accounts:User.orders<Order>"
+      ]
     }
   }
 }

@@ -19,15 +19,26 @@ export function ClosingCta() {
       <ButtonRow align="center" className="mt-8">
         <SolidButton
           href="https://nitro.chillicream.com"
-          track={{ name: "nitro_signup_click", params: { location: "pricing_closing" } }}
+          track={{
+            name: "nitro_signup_click",
+            params: { location: "pricing_closing" },
+          }}
         >
           Start for free
         </SolidButton>
-        <OutlineButton href="/docs" track={{ name: "docs_cta_click", params: { location: "pricing_closing" } }}>
+        <OutlineButton
+          href="/docs"
+          track={{
+            name: "docs_cta_click",
+            params: { location: "pricing_closing" },
+          }}
+        >
           Read the docs
         </OutlineButton>
       </ButtonRow>
-      <p className="text-cc-ink-dim mt-6 font-mono text-xs">No credit card. Free on the shared cloud.</p>
+      <p className="text-cc-ink-dim mt-6 font-mono text-xs">
+        No credit card. Free on the shared cloud.
+      </p>
     </Band>
   );
 }

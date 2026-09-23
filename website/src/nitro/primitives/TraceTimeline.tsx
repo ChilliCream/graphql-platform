@@ -105,7 +105,9 @@ export function TraceTimeline({
           />
         ))}
 
-        {showScan && <Scan t={t} plotL={plotL} plotR={plotR} plotT={plotT} plotB={plotB} />}
+        {showScan && (
+          <Scan t={t} plotL={plotL} plotR={plotR} plotT={plotT} plotB={plotB} />
+        )}
       </svg>
 
       {LOG_TICKS.filter((v) => v >= dMin && v <= dMax).map((v) => (

@@ -5,7 +5,15 @@ import { UnderlineTab } from "../UnderlineTab";
 
 export const TOPBAR_H = 112;
 
-const NAV = ["Overview", "Monitoring", "Deployments", "Changelog", "Operations", "Clients", "Stages"];
+const NAV = [
+  "Overview",
+  "Monitoring",
+  "Deployments",
+  "Changelog",
+  "Operations",
+  "Clients",
+  "Stages",
+];
 const ICON = {
   close: "M6 6l12 12M18 6L6 18",
   plus: "M12 5v14M5 12h14",
@@ -25,7 +33,12 @@ export interface TopBarProps {
   style?: CSSProperties;
 }
 
-export function TopBar({ active = "Monitoring", stage = "Development Stage", width, style }: TopBarProps) {
+export function TopBar({
+  active = "Monitoring",
+  stage = "Development Stage",
+  width,
+  style,
+}: TopBarProps) {
   return (
     <div style={{ width: width ?? "100%", color: token.text, ...style }}>
       <div
@@ -61,7 +74,11 @@ export function TopBar({ active = "Monitoring", stage = "Development Stage", wid
               flex: "0 0 auto",
             }}
           />
-          <span style={{ fontSize: 13, fontStyle: "italic", color: token.text }}>GitHub</span>
+          <span
+            style={{ fontSize: 13, fontStyle: "italic", color: token.text }}
+          >
+            GitHub
+          </span>
           <span
             style={{
               marginLeft: "auto",
@@ -148,7 +165,8 @@ export function TopBar({ active = "Monitoring", stage = "Development Stage", wid
               color: token.text,
             }}
           >
-            Development <StrokeIcon d={ICON.chevron} size={13} strokeWidth={1.6} />
+            Development{" "}
+            <StrokeIcon d={ICON.chevron} size={13} strokeWidth={1.6} />
           </span>
           <span style={{ width: 1, height: 16, background: token.border }} />
           <StrokeIcon d={ICON.refresh} size={15} strokeWidth={1.6} />

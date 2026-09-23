@@ -15,7 +15,10 @@ export function BlogShareBar({ url, title }: BlogShareBarProps) {
 
   return (
     <div className="flex flex-row items-center gap-4">
-      <ShareLink href={`https://x.com/intent/tweet?${xParams}`} label="Share this post on X">
+      <ShareLink
+        href={`https://x.com/intent/tweet?${xParams}`}
+        label="Share this post on X"
+      >
         <XIcon className="h-5 w-auto fill-current" />
       </ShareLink>
       <ShareLink
@@ -28,7 +31,15 @@ export function BlogShareBar({ url, title }: BlogShareBarProps) {
   );
 }
 
-function ShareLink({ href, label, children }: { href: string; label: string; children: ReactNode }) {
+function ShareLink({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <a
       href={href}

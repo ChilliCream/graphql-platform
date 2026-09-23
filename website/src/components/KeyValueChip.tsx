@@ -54,7 +54,11 @@ export function KeyValueChip({
   labelWidth,
   className = "",
 }: KeyValueChipProps) {
-  const labelSizingClass = labelWidth ? "shrink-0" : labelTruncate ? "min-w-0 truncate" : "";
+  const labelSizingClass = labelWidth
+    ? "shrink-0"
+    : labelTruncate
+      ? "min-w-0 truncate"
+      : "";
 
   const labelNode = (
     <span

@@ -38,7 +38,10 @@ export default function remarkHeadingTags() {
       if (tags) {
         file.data ??= {};
         file.data.headingTags = Object.fromEntries(
-          PROP_ORDER.filter((prop) => tags.has(prop)).map((prop) => [prop, tags.get(prop)]),
+          PROP_ORDER.filter((prop) => tags.has(prop)).map((prop) => [
+            prop,
+            tags.get(prop),
+          ]),
         );
         tree.children.shift();
       }

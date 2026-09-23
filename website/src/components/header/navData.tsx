@@ -28,7 +28,8 @@ export const TOOLS = {
 };
 
 export const CONTACT_HREF = "/services/support/contact";
-export const GITHUB_REPO_URL = "https://github.com/ChilliCream/graphql-platform";
+export const GITHUB_REPO_URL =
+  "https://github.com/ChilliCream/graphql-platform";
 export const GITHUB_STARGAZERS_URL = `${GITHUB_REPO_URL}/stargazers`;
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;

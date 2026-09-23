@@ -14,7 +14,9 @@
 export const YOUTUBE_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 
 /** The self-hosted image pipeline's lookup key for a video's `maxresdefault` poster; shared by every caller resolving the same remote asset. */
-export const youTubePosterKey = (videoId: string): string => `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+export const youTubePosterKey = (videoId: string): string =>
+  `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
 
 /** External `hqdefault` thumbnail, which always exists (unlike `maxresdefault`, which 404s for many videos). */
-export const youTubePosterFallback = (videoId: string): string => `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+export const youTubePosterFallback = (videoId: string): string =>
+  `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;

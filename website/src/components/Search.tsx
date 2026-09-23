@@ -1,10 +1,20 @@
 "use client";
 
-import type { DocSearchHit, InternalDocSearchHit, StoredDocSearchHit } from "@docsearch/react";
+import type {
+  DocSearchHit,
+  InternalDocSearchHit,
+  StoredDocSearchHit,
+} from "@docsearch/react";
 import { useDocSearchKeyboardEvents } from "@docsearch/react/useDocSearchKeyboardEvents";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { PRODUCTS } from "@/src/data/products";
 import { trackEvent } from "@/src/helpers/analyticsEvents";
@@ -40,7 +50,9 @@ const API_KEY = process.env.NEXT_PUBLIC_ALGOLIA_API_KEY;
 const INDEX_NAME = process.env.NEXT_PUBLIC_ALGOLIA_INDEX;
 const IS_CONFIGURED = Boolean(APP_ID && API_KEY && INDEX_NAME);
 
-const PRODUCT_TITLES_BY_SLUG = new Map(PRODUCTS.map(({ slug, title }) => [slug, title] as const));
+const PRODUCT_TITLES_BY_SLUG = new Map(
+  PRODUCTS.map(({ slug, title }) => [slug, title] as const),
+);
 const PRODUCT_TITLES = new Set(PRODUCT_TITLES_BY_SLUG.values());
 const DOCS_PATH_PATTERN = /^\/docs\/([^/]+)/;
 
@@ -122,7 +134,9 @@ function addProductContext(items: DocSearchHit[]): DocSearchHit[] {
 // The search term lives in DocSearch's own input, which the modal owns; it is
 // read at click time so the result event carries the query that produced it.
 function getSearchQuery(): string {
-  return document.querySelector<HTMLInputElement>(".DocSearch-Input")?.value ?? "";
+  return (
+    document.querySelector<HTMLInputElement>(".DocSearch-Input")?.value ?? ""
+  );
 }
 
 type HitProps = {
@@ -130,12 +144,19 @@ type HitProps = {
   children: ReactNode;
 };
 
-export function Search({ className, ariaLabel = "Search" }: { className?: string; ariaLabel?: string }) {
+export function Search({
+  className,
+  ariaLabel = "Search",
+}: {
+  className?: string;
+  ariaLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [initialScrollY, setInitialScrollY] = useState(0);
   // Seed from the module-level cache so later instances (and re-renders) start
   // with the already-resolved component.
-  const [ModalComponent, setModalComponent] = useState<SearchModalComponent | null>(() => loadedModal);
+  const [ModalComponent, setModalComponent] =
+    useState<SearchModalComponent | null>(() => loadedModal);
   const router = useRouter();
   const searchButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -194,12 +215,19 @@ export function Search({ className, ariaLabel = "Search" }: { className?: string
         onPointerDown={IS_CONFIGURED ? loadSearchModal : undefined}
         onFocus={IS_CONFIGURED ? loadSearchModal : undefined}
         aria-disabled={IS_CONFIGURED ? undefined : true}
-        title={IS_CONFIGURED ? undefined : "Search is unavailable — Algolia credentials are not configured"}
+        title={
+          IS_CONFIGURED
+            ? undefined
+            : "Search is unavailable — Algolia credentials are not configured"
+        }
         className={className}
       >
         <SearchIcon className="h-5 w-5 fill-current" aria-hidden="true" />
       </button>
-      {IS_CONFIGURED && open && ModalComponent && typeof document !== "undefined"
+      {IS_CONFIGURED &&
+      open &&
+      ModalComponent &&
+      typeof document !== "undefined"
         ? createPortal(
             <ModalComponent
               appId={APP_ID!}
@@ -213,7 +241,10 @@ export function Search({ className, ariaLabel = "Search" }: { className?: string
               onAskAiToggle={() => {}}
               navigator={{
                 navigate({ itemUrl }) {
-                  trackEvent("search_result_click", { query: getSearchQuery(), result_url: itemUrl });
+                  trackEvent("search_result_click", {
+                    query: getSearchQuery(),
+                    result_url: itemUrl,
+                  });
                   router.push(itemUrl);
                 },
               }}

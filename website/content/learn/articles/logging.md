@@ -3,7 +3,17 @@ kind: article
 date: "2024-08-11"
 title: "Logging in Banana Cake Pop"
 description: "We just released logging in Banana Cake Pop. Checkout the blog post to learn more!"
-tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release", "open-telemetry", "logging"]
+tags:
+  [
+    "bananacakepop",
+    "graphql",
+    "hotchocolate",
+    "workshops",
+    "cloud",
+    "release",
+    "open-telemetry",
+    "logging",
+  ]
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn

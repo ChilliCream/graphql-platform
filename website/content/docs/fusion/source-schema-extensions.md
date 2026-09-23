@@ -57,7 +57,9 @@ extend type Query {
 
 extend type Product {
   warehouseLocationCode: String @inaccessible
-  stockStatus(warehouseLocationCode: String @require(field: "warehouseLocationCode")): StockStatus!
+  stockStatus(
+    warehouseLocationCode: String @require(field: "warehouseLocationCode")
+  ): StockStatus!
 }
 
 enum StockStatus {
@@ -92,7 +94,9 @@ type Product {
   description: String
   price: Money!
   warehouseLocationCode: String @inaccessible
-  stockStatus(warehouseLocationCode: String @require(field: "warehouseLocationCode")): StockStatus!
+  stockStatus(
+    warehouseLocationCode: String @require(field: "warehouseLocationCode")
+  ): StockStatus!
 }
 
 enum StockStatus {

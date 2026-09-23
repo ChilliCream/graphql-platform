@@ -5,7 +5,8 @@ import { getShareImageSrc } from "@/src/image-optimization/manifest";
 export const dynamic = "force-static";
 
 const FEED_TITLE = "ChilliCream Blog";
-const FEED_DESCRIPTION = "Announcements, deep dives, and how-tos from the ChilliCream GraphQL Platform team.";
+const FEED_DESCRIPTION =
+  "Announcements, deep dives, and how-tos from the ChilliCream GraphQL Platform team.";
 
 function escape(text: string): string {
   return text
@@ -47,11 +48,15 @@ export function GET() {
     .map((post) => {
       const url = `${SITE_URL}${post.href}`;
       const description = post.description ?? "";
-      const shareImage = post.featuredImage ? getShareImageSrc(post.featuredImage) : null;
+      const shareImage = post.featuredImage
+        ? getShareImageSrc(post.featuredImage)
+        : null;
       const enclosure = shareImage
         ? `<enclosure url="${SITE_URL}${escape(shareImage)}" type="${imageMimeType(shareImage)}" />`
         : "";
-      const categories = post.tags.map((tag) => `<category>${escape(tag)}</category>`).join("");
+      const categories = post.tags
+        .map((tag) => `<category>${escape(tag)}</category>`)
+        .join("");
       return `    <item>
       <title>${escape(post.title)}</title>
       <link>${escape(url)}</link>

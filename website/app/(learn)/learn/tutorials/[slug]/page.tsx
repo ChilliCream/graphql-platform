@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnDetail } from "@/src/components/learn/LearnDetail";
 import { productLabel } from "@/src/data/learn/facets";
-import { findRelatedCatalogItems, TUTORIAL_ITEMS } from "@/src/data/learn/content";
+import {
+  findRelatedCatalogItems,
+  TUTORIAL_ITEMS,
+} from "@/src/data/learn/content";
 import type { TutorialItem } from "@/src/data/learn/types";
 import { ORGANIZATION_ID } from "@/src/helpers/structuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -22,7 +25,9 @@ function findTutorial(slug: string): TutorialItem | undefined {
   return TUTORIAL_ITEMS.find((tutorial) => tutorial.slug === slug);
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const tutorial = findTutorial(slug);
   if (!tutorial) {
@@ -46,8 +51,18 @@ const structuredData = (tutorial: TutorialItem) => ({
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: "Learn", item: `${SITE_URL}/learn` },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${SITE_URL}/`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Learn",
+          item: `${SITE_URL}/learn`,
+        },
         { "@type": "ListItem", position: 3, name: tutorial.title },
       ],
     },
@@ -73,7 +88,9 @@ export default async function TutorialPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(tutorial)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData(tutorial)),
+        }}
       />
       <LearnDetail item={tutorial} related={related} />
     </>

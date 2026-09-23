@@ -19,7 +19,12 @@ const TIERS: readonly Tier[] = [
     title: "Community",
     description: "Learn in the open with thousands of practitioners.",
     price: "Free",
-    perks: ["Public Slack channel", "7000+ developers", "Open GitHub discussions", "Searchable history"],
+    perks: [
+      "Public Slack channel",
+      "7000+ developers",
+      "Open GitHub discussions",
+      "Searchable history",
+    ],
     callToAction: { title: "Join Slack", link: SLACK },
   },
   {
@@ -39,7 +44,12 @@ const TIERS: readonly Tier[] = [
     title: "Support",
     description: "Dedicated support for teams running GraphQL in production.",
     price: "Custom",
-    perks: ["Dedicated account manager", "Private Slack channel", "Email support", "Plan tailored to your team"],
+    perks: [
+      "Dedicated account manager",
+      "Private Slack channel",
+      "Email support",
+      "Plan tailored to your team",
+    ],
     callToAction: { title: "Check out plans", link: "/services/support" },
     popular: true,
     popularLabel: "Best Value",

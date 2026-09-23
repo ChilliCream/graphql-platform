@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnDetail } from "@/src/components/learn/LearnDetail";
 import { languageLabel, productLabel } from "@/src/data/learn/facets";
-import { findTemplate, LEARN_SUMMARIES, TEMPLATE_ITEMS, TEMPLATE_SUMMARIES } from "@/src/data/learn/content";
+import {
+  findTemplate,
+  LEARN_SUMMARIES,
+  TEMPLATE_ITEMS,
+  TEMPLATE_SUMMARIES,
+} from "@/src/data/learn/content";
 import type { LearnItemSummary, TemplateItem } from "@/src/data/learn/types";
 import { ORGANIZATION_ID } from "@/src/helpers/structuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -21,7 +26,9 @@ export function generateStaticParams(): { slug: string }[] {
   return TEMPLATE_ITEMS.map((template) => ({ slug: template.slug }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const template = findTemplate(slug);
   if (!template) {
@@ -41,8 +48,18 @@ const structuredData = (template: TemplateItem) => ({
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: "Learn", item: `${SITE_URL}/learn` },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${SITE_URL}/`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Learn",
+          item: `${SITE_URL}/learn`,
+        },
         { "@type": "ListItem", position: 3, name: template.title },
       ],
     },
@@ -68,13 +85,18 @@ function findRelated(template: TemplateItem): readonly LearnItemSummary[] {
   const others = TEMPLATE_SUMMARIES.filter((t) => t.slug !== template.slug);
   const sameTopology = others.filter((t) => t.topology === template.topology);
   const productOverlap = others.filter(
-    (t) => !sameTopology.includes(t) && t.products.some((p) => template.products.includes(p)),
+    (t) =>
+      !sameTopology.includes(t) &&
+      t.products.some((p) => template.products.includes(p)),
   );
   const sameType = [...sameTopology, ...productOverlap].slice(0, MAX_RELATED);
   if (sameType.length >= MAX_RELATED) {
     return sameType;
   }
-  const usedSlugs = new Set([template.slug, ...sameType.map((summary) => summary.slug)]);
+  const usedSlugs = new Set([
+    template.slug,
+    ...sameType.map((summary) => summary.slug),
+  ]);
   const otherType = LEARN_SUMMARIES.filter(
     (item) =>
       item.type !== "template" &&
@@ -95,7 +117,9 @@ export default async function TemplatePage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(template)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData(template)),
+        }}
       />
       <LearnDetail item={template} related={related} />
     </>

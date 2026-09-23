@@ -24,7 +24,11 @@ import process from "node:process";
 
 const WEBSITE_ROOT = process.cwd();
 const LEARN_DATA_DIR = path.join(WEBSITE_ROOT, "src", "data", "learn");
-const ALLOWLIST_PATH = path.join(WEBSITE_ROOT, "scripts", "check-learn-links.allowlist.json");
+const ALLOWLIST_PATH = path.join(
+  WEBSITE_ROOT,
+  "scripts",
+  "check-learn-links.allowlist.json",
+);
 const FETCH_TIMEOUT_MS = 15_000;
 
 /** Matches an http(s) URL up to the first character that can't legitimately be part of one in this source: whitespace, quotes, backtick, a trailing sentence/paren delimiter, or a backslash (source strings use "\n" for line breaks inside prose, not an actual newline character). */
@@ -49,7 +53,11 @@ function extractUrlOccurrences(file, text) {
     for (const match of line.matchAll(URL_PATTERN)) {
       const url = match[0].replace(TRAILING_PUNCTUATION, "");
       if (url.length > 0) {
-        occurrences.push({ url, file: path.relative(WEBSITE_ROOT, file), line: index + 1 });
+        occurrences.push({
+          url,
+          file: path.relative(WEBSITE_ROOT, file),
+          line: index + 1,
+        });
       }
     }
   });
@@ -63,7 +71,9 @@ function groupByUrl(occurrences) {
     if (!byUrl.has(occurrence.url)) {
       byUrl.set(occurrence.url, []);
     }
-    byUrl.get(occurrence.url).push({ file: occurrence.file, line: occurrence.line });
+    byUrl
+      .get(occurrence.url)
+      .push({ file: occurrence.file, line: occurrence.line });
   }
   return byUrl;
 }
@@ -74,11 +84,17 @@ function loadAllowlist() {
   }
   const raw = JSON.parse(fs.readFileSync(ALLOWLIST_PATH, "utf8"));
   if (!Array.isArray(raw)) {
-    throw new Error(`${path.relative(WEBSITE_ROOT, ALLOWLIST_PATH)} must be a JSON array of { url, reason }`);
+    throw new Error(
+      `${path.relative(WEBSITE_ROOT, ALLOWLIST_PATH)} must be a JSON array of { url, reason }`,
+    );
   }
   const entries = new Map();
   for (const entry of raw) {
-    if (typeof entry?.url !== "string" || typeof entry?.reason !== "string" || entry.reason.trim() === "") {
+    if (
+      typeof entry?.url !== "string" ||
+      typeof entry?.reason !== "string" ||
+      entry.reason.trim() === ""
+    ) {
       throw new Error(
         `${path.relative(WEBSITE_ROOT, ALLOWLIST_PATH)} has an invalid entry: ${JSON.stringify(entry)} (each entry needs a string "url" and a non-empty string "reason")`,
       );
@@ -120,7 +136,10 @@ function checkGithubUrl(githubTarget) {
   try {
     ghApi(`repos/${owner}/${repo}`);
   } catch (err) {
-    return { ok: false, detail: `repo ${owner}/${repo} not found (gh api repos/${owner}/${repo}): ${firstLine(err)}` };
+    return {
+      ok: false,
+      detail: `repo ${owner}/${repo} not found (gh api repos/${owner}/${repo}): ${firstLine(err)}`,
+    };
   }
   if (contentsPath === null) {
     if (ref === null) {
@@ -158,7 +177,11 @@ async function fetchWithTimeout(url, method) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    return await fetch(url, { method, redirect: "follow", signal: controller.signal });
+    return await fetch(url, {
+      method,
+      redirect: "follow",
+      signal: controller.signal,
+    });
   } finally {
     clearTimeout(timeout);
   }
@@ -186,9 +209,15 @@ async function checkHttpUrl(url) {
     if (isPassingStatus(getResponse.status)) {
       return { ok: true, detail: null };
     }
-    return { ok: false, detail: `HEAD ${headStatus}, GET ${getResponse.status}` };
+    return {
+      ok: false,
+      detail: `HEAD ${headStatus}, GET ${getResponse.status}`,
+    };
   } catch (err) {
-    return { ok: false, detail: `HEAD ${headStatus}, GET error (${err.message})` };
+    return {
+      ok: false,
+      detail: `HEAD ${headStatus}, GET error (${err.message})`,
+    };
   }
 }
 
@@ -202,7 +231,9 @@ async function checkUrl(url) {
 
 async function main() {
   const files = listLearnDataFiles();
-  const occurrences = files.flatMap((file) => extractUrlOccurrences(file, fs.readFileSync(file, "utf8")));
+  const occurrences = files.flatMap((file) =>
+    extractUrlOccurrences(file, fs.readFileSync(file, "utf8")),
+  );
   const byUrl = groupByUrl(occurrences);
   const allowlist = loadAllowlist();
 
@@ -210,7 +241,9 @@ async function main() {
   let checkedCount = 0;
   let skippedCount = 0;
 
-  for (const [url, locations] of [...byUrl.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+  for (const [url, locations] of [...byUrl.entries()].sort(([a], [b]) =>
+    a.localeCompare(b),
+  )) {
     if (allowlist.has(url)) {
       console.log(`SKIP ${url} (allowlisted: ${allowlist.get(url)})`);
       skippedCount++;

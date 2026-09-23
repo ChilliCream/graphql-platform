@@ -52,7 +52,8 @@ export const RichText: Story = {
     title: "Two ways forward",
     text: (
       <>
-        Start free with the open-source SDK, or <strong>book a guided onboarding</strong> for your team.
+        Start free with the open-source SDK, or{" "}
+        <strong>book a guided onboarding</strong> for your team.
       </>
     ),
     primaryLink: "/get-started",

@@ -8,7 +8,13 @@ type BlogMetadataProps = {
   readingTime?: string;
 };
 
-export function BlogMetadata({ author, authorUrl, authorImageUrl, date, readingTime }: BlogMetadataProps) {
+export function BlogMetadata({
+  author,
+  authorUrl,
+  authorImageUrl,
+  date,
+  readingTime,
+}: BlogMetadataProps) {
   if (!author && !date && !readingTime) {
     return null;
   }
@@ -26,7 +32,9 @@ export function BlogMetadata({ author, authorUrl, authorImageUrl, date, readingT
           href={authorUrl || "#"}
           className="text-cc-ink-dim hover:text-cc-accent flex items-center no-underline"
           target={authorUrl?.startsWith("http") ? "_blank" : undefined}
-          rel={authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined}
+          rel={
+            authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined
+          }
         >
           {authorImageUrl ? (
             <Picture

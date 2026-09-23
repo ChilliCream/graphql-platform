@@ -1,4 +1,8 @@
-import type { FilterAxisDef, LearnContentType, ProductKey } from "@/src/data/learn/facets";
+import type {
+  FilterAxisDef,
+  LearnContentType,
+  ProductKey,
+} from "@/src/data/learn/facets";
 import { CONTENT_TYPE_OPTIONS, PRODUCT_OPTIONS } from "@/src/data/learn/facets";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { SearchIcon } from "@/src/icons/Search";
@@ -8,7 +12,8 @@ export type ContentTypeSelection = LearnContentType | "all";
 // One active-pill recipe for every content-type facet (learn-harmonization.md
 // section 2.3/D4): color no longer varies by type, matching the product-mix
 // pills' existing accent treatment below.
-const ACTIVE_TYPE_PILL_CLASSES = "border-cc-accent/40 bg-cc-accent/15 text-cc-accent";
+const ACTIVE_TYPE_PILL_CLASSES =
+  "border-cc-accent/40 bg-cc-accent/15 text-cc-accent";
 
 interface LearnFacetBarProps {
   readonly contentType: ContentTypeSelection;
@@ -116,7 +121,9 @@ export function LearnFacetBar({
                 {active && <CheckGlyph className="text-cc-surface size-3" />}
               </span>
               {option.label}
-              <span className="font-mono text-[0.6875rem] opacity-70">{count}</span>
+              <span className="font-mono text-[0.6875rem] opacity-70">
+                {count}
+              </span>
             </button>
           );
         })}
@@ -134,7 +141,8 @@ export function LearnFacetBar({
                   </legend>
                   <div className="mt-3 space-y-0.5">
                     {axis.options.map((option) => {
-                      const active = axisSelection[axis.key]?.includes(option.key) ?? false;
+                      const active =
+                        axisSelection[axis.key]?.includes(option.key) ?? false;
                       const count = axisOptionCount(axis, option.key);
                       return (
                         <button
@@ -148,23 +156,31 @@ export function LearnFacetBar({
                           <span
                             aria-hidden="true"
                             className={`flex size-4 shrink-0 items-center justify-center border transition-colors ${
-                              axis.kind === "single" || axis.kind === "toggle" ? "rounded-full" : "rounded-[4px]"
+                              axis.kind === "single" || axis.kind === "toggle"
+                                ? "rounded-full"
+                                : "rounded-[4px]"
                             } ${
                               active
                                 ? "bg-cc-accent border-cc-accent"
                                 : "border-cc-card-border-hover group-hover:border-cc-accent/70"
                             }`}
                           >
-                            {active && <CheckGlyph className="text-cc-surface size-3" />}
+                            {active && (
+                              <CheckGlyph className="text-cc-surface size-3" />
+                            )}
                           </span>
                           <span
                             className={`flex-1 truncate transition-colors ${
-                              active ? "text-cc-heading" : "text-cc-ink-dim group-hover:text-cc-heading"
+                              active
+                                ? "text-cc-heading"
+                                : "text-cc-ink-dim group-hover:text-cc-heading"
                             }`}
                           >
                             {option.label}
                           </span>
-                          <span className="text-cc-ink-dim font-mono text-[0.6875rem]">{count}</span>
+                          <span className="text-cc-ink-dim font-mono text-[0.6875rem]">
+                            {count}
+                          </span>
                         </button>
                       );
                     })}
@@ -206,7 +222,9 @@ function TypePill({
       onClick={onClick}
       aria-pressed={active}
       className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-        active ? activeClassName : "border-cc-card-border text-cc-ink-dim hover:border-cc-accent"
+        active
+          ? activeClassName
+          : "border-cc-card-border text-cc-ink-dim hover:border-cc-accent"
       }`}
     >
       {label}

@@ -43,17 +43,29 @@ interface LearnArticleCardProps {
  * wraps its whole body in one link, which cannot hold an independently
  * clickable kicker.
  */
-export function LearnArticleCard({ post, layout = "card", kicker, kickerHref, sizes }: LearnArticleCardProps) {
+export function LearnArticleCard({
+  post,
+  layout = "card",
+  kicker,
+  kickerHref,
+  sizes,
+}: LearnArticleCardProps) {
   const split = layout === "split";
   const art = post.products[0] ? PRODUCT_ART[post.products[0]] : null;
-  const dateLabel = formatDate(post.date, { month: "short", day: "numeric", year: "numeric" });
+  const dateLabel = formatDate(post.date, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   // A post with neither artwork nor a product renders headline-first rather
   // than reserving an empty 16:9 tile.
   const showImage = post.featuredImage !== null || art !== null;
 
   return (
-    <div className={`group/card relative flex h-full flex-col ${split ? "lg:flex-row lg:items-center lg:gap-10" : ""}`}>
+    <div
+      className={`group/card relative flex h-full flex-col ${split ? "lg:flex-row lg:items-center lg:gap-10" : ""}`}
+    >
       {showImage ? (
         <div
           className={`bg-cc-white/4 aspect-video overflow-hidden rounded-2xl ${
@@ -72,7 +84,13 @@ export function LearnArticleCard({ post, layout = "card", kicker, kickerHref, si
             />
           ) : (
             <span className="flex h-full w-full items-center justify-center">
-              {art ? <DrinkIcon Icon={art.Drink} name={art.drinkName} base={split ? 96 : 56} /> : null}
+              {art ? (
+                <DrinkIcon
+                  Icon={art.Drink}
+                  name={art.drinkName}
+                  base={split ? 96 : 56}
+                />
+              ) : null}
             </span>
           )}
         </div>
@@ -88,9 +106,13 @@ export function LearnArticleCard({ post, layout = "card", kicker, kickerHref, si
             {kicker}
           </Link>
         ) : (
-          <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{kicker}</span>
+          <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
+            {kicker}
+          </span>
         )}
-        <h3 className={`font-heading text-cc-heading mt-2 font-semibold text-balance ${split ? "text-h5" : "text-h6"}`}>
+        <h3
+          className={`font-heading text-cc-heading mt-2 font-semibold text-balance ${split ? "text-h5" : "text-h6"}`}
+        >
           <Link
             href={post.href}
             className="group-hover/card:text-cc-accent static line-clamp-3 no-underline transition-colors"
@@ -100,9 +122,13 @@ export function LearnArticleCard({ post, layout = "card", kicker, kickerHref, si
           </Link>
         </h3>
         {split && post.description ? (
-          <p className="text-cc-ink-dim mt-4 line-clamp-3 max-w-[68ch] text-lg">{post.description}</p>
+          <p className="text-cc-ink-dim mt-4 line-clamp-3 max-w-[68ch] text-lg">
+            {post.description}
+          </p>
         ) : null}
-        <div className={`text-cc-ink-dim flex items-center gap-2 text-sm ${split ? "mt-6" : "mt-auto pt-3"}`}>
+        <div
+          className={`text-cc-ink-dim flex items-center gap-2 text-sm ${split ? "mt-6" : "mt-auto pt-3"}`}
+        >
           {post.author ? (
             <>
               {post.authorImageUrl ? (

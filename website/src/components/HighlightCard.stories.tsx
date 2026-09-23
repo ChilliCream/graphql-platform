@@ -36,7 +36,9 @@ const perks = ["Mentoring and guidance", "Architecture", "Code Review"];
 function PerkBody() {
   return (
     <div className="flex h-full flex-col gap-5">
-      <h3 className="font-heading text-cc-heading text-h4 font-semibold">Working team</h3>
+      <h3 className="font-heading text-cc-heading text-h4 font-semibold">
+        Working team
+      </h3>
       <ul className="flex flex-1 flex-col gap-2">
         {perks.map((item) => (
           <li key={item} className="flex items-start gap-3">

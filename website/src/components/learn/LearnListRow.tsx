@@ -50,7 +50,11 @@ export function LearnListRow({
   density = "default",
 }: LearnListRowProps) {
   const art = product ? PRODUCT_ART[product] : null;
-  const dateLabel = formatDate(date, { month: "short", day: "numeric", year: "numeric" });
+  const dateLabel = formatDate(date, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
   const compact = density === "compact";
   const thumbSize = compact ? "size-12" : "size-20";
   const showThumb = !compact || featuredImage !== null;
@@ -70,8 +74,16 @@ export function LearnListRow({
             className={`${thumbSize} shrink-0 rounded-lg object-cover`}
           />
         ) : (
-          <span className={`bg-cc-white/4 flex ${thumbSize} shrink-0 items-center justify-center rounded-lg`}>
-            {art ? <DrinkIcon Icon={art.Drink} name={art.drinkName} base={compact ? 24 : 40} /> : null}
+          <span
+            className={`bg-cc-white/4 flex ${thumbSize} shrink-0 items-center justify-center rounded-lg`}
+          >
+            {art ? (
+              <DrinkIcon
+                Icon={art.Drink}
+                name={art.drinkName}
+                base={compact ? 24 : 40}
+              />
+            ) : null}
           </span>
         )
       ) : null}
@@ -84,7 +96,9 @@ export function LearnListRow({
             {kicker}
           </Link>
         ) : (
-          <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">{kicker}</span>
+          <span className="text-cc-ink-dim font-mono text-xs tracking-wider uppercase">
+            {kicker}
+          </span>
         )}
         <Link
           href={href}

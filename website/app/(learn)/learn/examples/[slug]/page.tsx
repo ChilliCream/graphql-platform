@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LearnDetail } from "@/src/components/learn/LearnDetail";
 import { productLabel } from "@/src/data/learn/facets";
-import { EXAMPLE_ITEMS, findRelatedCatalogItems } from "@/src/data/learn/content";
+import {
+  EXAMPLE_ITEMS,
+  findRelatedCatalogItems,
+} from "@/src/data/learn/content";
 import type { ExampleItem } from "@/src/data/learn/types";
 import { ORGANIZATION_ID } from "@/src/helpers/structuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
@@ -22,7 +25,9 @@ function findExample(slug: string): ExampleItem | undefined {
   return EXAMPLE_ITEMS.find((example) => example.slug === slug);
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const example = findExample(slug);
   if (!example) {
@@ -46,8 +51,18 @@ const structuredData = (example: ExampleItem) => ({
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: "Learn", item: `${SITE_URL}/learn` },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${SITE_URL}/`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Learn",
+          item: `${SITE_URL}/learn`,
+        },
         { "@type": "ListItem", position: 3, name: example.title },
       ],
     },
@@ -73,7 +88,9 @@ export default async function ExamplePage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(example)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData(example)),
+        }}
       />
       <LearnDetail item={example} related={related} />
     </>
