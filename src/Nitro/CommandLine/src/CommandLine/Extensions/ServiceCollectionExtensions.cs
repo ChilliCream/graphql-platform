@@ -38,6 +38,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<AgentDatabase>();
         services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
+        services.TryAddSingleton<IAgentStore, AgentStore>();
         services.TryAddSingleton<IGlobalConfigDirectoryProvider, GlobalConfigDirectoryProvider>();
         services.TryAddSingleton<INitroInstanceIdProvider, NitroInstanceIdProvider>();
         services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
