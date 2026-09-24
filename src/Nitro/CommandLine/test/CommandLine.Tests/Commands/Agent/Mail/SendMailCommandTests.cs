@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Moq;
 
@@ -139,6 +140,39 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             new MailInboxFilter { Actor = "bob", UnreadOnly = true }, cancellationToken);
         Assert.Contains(unread, m => m.Id == message.Id);
         Assert.Equal(unreadBefore, await store.CountUnreadAsync("bob", cancellationToken));
+    }
+
+    [Fact]
+    public async Task NudgeAsync_Should_ReserveNoDelivery_When_TheSessionIdIsMissingOnAClaudePeerEndpoint()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAliveSessionAsync(
+            "session-alice", "alice", role: "", host: "host-send-no-session-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
+        await SeedAliveSessionAsync(
+            "session-bob", "bob", role: "", host: "host-send-no-session-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob");
+        await ExecuteAsync(
+            "UPDATE agents SET endpoint_kind = 'claude-peer', endpoint_addr = 'peer-addr', "
+                + "session_id = NULL WHERE name = 'bob'");
+        await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
+        var peerClient = new FakeClaudePeerClient();
+        var nudge = new MailNudge(
+            CreateAgentStore(),
+            CreateStore(),
+            new AgentDeliveryLedger(
+                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            peerClient,
+            new FakeCodexQueueClient(),
+            FakeTime);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(peerClient.Calls);
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = 'bob'"));
     }
 
     [Fact]
