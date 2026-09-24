@@ -208,6 +208,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             () => standby.Status.State == MailWakeDaemonState.Ready,
             cancellationToken);
         Assert.NotNull(standby.Status.OwnerToken);
+        Assert.True(timeProvider.GetUtcNow() - timeProvider.Start < s_fastPolicy.LeaderLeaseDuration);
 
         await coordinator.StopAsync(cancellationToken);
         await standby.StopAsync(cancellationToken);
