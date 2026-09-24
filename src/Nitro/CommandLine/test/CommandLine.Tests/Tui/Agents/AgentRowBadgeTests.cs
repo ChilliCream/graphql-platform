@@ -8,79 +8,39 @@ public sealed class AgentRowBadgeTests
 {
     private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public void Render_Should_FitNarrowWidth_When_SelectedOrImplicit(bool selected, bool implicitIdentity)
-    {
-        // arrange
-        const int maxWidth = 11;
-        var agent = implicitIdentity
-            ? new AgentRecord
-            {
-                Name = "agent-a",
-                Role = "",
-                Client = "",
-                Implicit = true,
-                RegisteredAt = s_now,
-                LastSeenAt = s_now
-            }
-            : null;
-        var row = new AgentParticipantRow(
-            AgentSessionParticipantBuilder.Participant(agentName: "agent-a", role: "漢⌚❤️1️⃣", agent: agent),
-            Activity: null);
-        var widths = AgentRowBadge.ComputeWidths([row], s_now);
-
-        // act
-        var line = AgentRowBadge.Render(row, s_now, selected, maxWidth, widths);
-
-        // assert
-        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
-    }
-
-    [Fact]
-    public void Render_Should_FitFixedColumns_When_RoleHasNoBudget()
-    {
-        // arrange
-        const int maxWidth = 47;
-        var row = new AgentParticipantRow(
-            AgentSessionParticipantBuilder.Participant(agentName: "agent-a"),
-            Activity: null);
-        var widths = AgentRowBadge.ComputeWidths([row], s_now);
-
-        // act
-        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
-
-        // assert
-        Assert.Equal("    agent-a ● claude-code started now heard now", line);
-        Assert.Equal(maxWidth, line.GetCellWidth());
-    }
-
-    [Fact]
-    public void Render_Should_TruncateRoleByDisplayWidth_When_NormalWidthHasPartialRoleBudget()
-    {
-        // arrange
-        const int maxWidth = 55;
-        var row = new AgentParticipantRow(
-            AgentSessionParticipantBuilder.Participant(agentName: "agent-a", role: "漢😀❤️1️⃣tail"),
-            Activity: null);
-        var widths = AgentRowBadge.ComputeWidths([row], s_now);
-
-        // act
-        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
-
-        // assert
-        Assert.Equal("    agent-a ● claude-code 漢😀❤️… started now heard now", line);
-        Assert.Equal(maxWidth, line.GetCellWidth());
-    }
+    private static AgentRow CreateRow(
+        string name = "agent-a",
+        string role = "",
+        string? harness = "claude-code",
+        string? sessionId = "session-a",
+        DateTimeOffset? startedAt = null,
+        DateTimeOffset? lastSeenAt = null,
+        string endpointKind = AgentSessionEndpointKind.ClaudePeer,
+        DateTimeOffset? endedAt = null) => new()
+        {
+            Name = name,
+            Role = role,
+            Harness = harness,
+            HarnessVersion = "",
+            SessionId = sessionId,
+            Cwd = "",
+            WorkspacePath = "",
+            RegisteredAt = s_now,
+            StartedAt = startedAt ?? s_now,
+            LastSeenAt = lastSeenAt ?? s_now,
+            EndedAt = endedAt,
+            EndpointKind = endpointKind,
+            EndpointAddr = endpointKind == AgentSessionEndpointKind.None ? "" : "peer-1",
+            BlockBudgetUsed = 0,
+            AnnouncementPending = false,
+            IdlePushArmed = false
+        };
 
     [Fact]
     public void Render_Should_ReturnEmpty_When_MaxWidthIsZero()
     {
         // arrange
-        var row = new AgentParticipantRow(AgentSessionParticipantBuilder.Participant(agentName: "agent-a"), Activity: null);
+        var row = CreateRow();
         var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
         // act
@@ -91,19 +51,112 @@ public sealed class AgentRowBadgeTests
     }
 
     [Fact]
-    public void Render_Should_KeepEveryColumn_When_MaxWidthFits()
+    public void Render_Should_ShowEveryColumn_When_MaxWidthFits()
     {
         // arrange
-        const int maxWidth = 120;
-        var row = new AgentParticipantRow(
-            AgentSessionParticipantBuilder.Participant(agentName: "agent-a", role: "developer"),
-            Activity: null);
+        const int maxWidth = 80;
+        var row = CreateRow(role: "implementer");
         var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
         // act
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("    agent-a ● claude-code developer started now heard now", line);
+        Assert.Equal("  ● agent-a implementer Claude Code now ago now ago", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDashForRole_When_RoleIsEmpty()
+    {
+        // arrange
+        const int maxWidth = 80;
+        var row = CreateRow(role: "");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("  ● agent-a - Claude Code now ago now ago", line);
+    }
+
+    [Fact]
+    public void Render_Should_ShowDashForHarness_When_AgentIsLoginOnly()
+    {
+        // arrange
+        const int maxWidth = 80;
+        var row = CreateRow(harness: null, sessionId: null, endpointKind: AgentSessionEndpointKind.None);
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("  ● agent-a - - now ago now ago", line);
+    }
+
+    [Fact]
+    public void Render_Should_DropStartedColumn_When_WidthIsTooNarrowForAllColumns()
+    {
+        // arrange
+        const int maxWidth = 45;
+        var row = CreateRow(role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("  ● agent-a implementer Claude Code now ago", line);
+    }
+
+    [Fact]
+    public void Render_Should_DropRoleColumn_When_WidthIsTooNarrowForRoleAndHarness()
+    {
+        // arrange
+        const int maxWidth = 35;
+        var row = CreateRow(role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("  ● agent-a Claude Code now ago", line);
+    }
+
+    [Fact]
+    public void Render_Should_TruncateName_When_WidthIsTooNarrowForHarness()
+    {
+        // arrange
+        const int maxWidth = 14;
+        var row = CreateRow(name: "a-long-agent-name", role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Contains("now ago", line);
+        Assert.True(line.GetCellWidth() <= maxWidth);
+    }
+
+    [Fact]
+    public void PresenceStyle_Should_ReturnDistinctStyles_When_StateDiffers()
+    {
+        // arrange
+        const AgentState online = AgentState.Online;
+        const AgentState unreachable = AgentState.Unreachable;
+        const AgentState offline = AgentState.Offline;
+
+        // act
+        var onlineStyle = AgentRowBadge.PresenceStyle(online);
+        var unreachableStyle = AgentRowBadge.PresenceStyle(unreachable);
+        var offlineStyle = AgentRowBadge.PresenceStyle(offline);
+
+        // assert
+        Assert.NotEqual(onlineStyle, unreachableStyle);
+        Assert.NotEqual(onlineStyle, offlineStyle);
+        Assert.NotEqual(unreachableStyle, offlineStyle);
     }
 }

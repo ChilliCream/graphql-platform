@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
@@ -8,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using Microsoft.Extensions.Time.Testing;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
@@ -22,6 +22,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 /// </summary>
 public sealed class TuiShellTabsTests
 {
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     private static ConsoleKeyInfo KeyInfo(char keyChar, ConsoleKey key, ConsoleModifiers modifiers = ConsoleModifiers.None) =>
         new(
             keyChar,
@@ -46,15 +48,8 @@ public sealed class TuiShellTabsTests
     private static TuiTab CreateAgentsTab(string title, ITuiMode mode, char mnemonic = 'A') =>
         new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-    private static AgentRecord Agent(string name, string role = "") => new()
-    {
-        Name = name,
-        Role = role,
-        Client = "",
-        Implicit = false,
-        RegisteredAt = DateTimeOffset.UnixEpoch,
-        LastSeenAt = DateTimeOffset.UnixEpoch
-    };
+    private static void LoginAgent(Agents.FakeAgentStore store)
+        => store.LoginAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     [Fact]
     public void Constructor_Should_CallOnEnter_OnEveryHostedTab_NotOnlyTheActiveOne()
@@ -487,69 +482,46 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_AlwaysShowSelectedAgentDetail_WithoutOpeningAnything_ThroughATabbedShell()
+    public void Handle_Should_LeaveTheAgentsListUnopened_When_EnterIsPressed_ThroughATabbedShell()
     {
         // arrange
-        var sessions = new Agents.FakeAgentSessionRegistry();
-        sessions.Participants.Add(
-            Agents.AgentSessionParticipantBuilder.Participant(
-                sessionId: "s-a", agentName: "agent-a", role: "backend", agent: Agent("agent-a", role: "backend")));
-        var taskStore = new FakeTaskStore();
-        var mailStore = new Agents.FakeMailStore();
-        var agentsMode = new AgentsMode(
-            taskStore,
-            mailStore,
-            sessions,
-            new Agents.FakeClaudeSessionActivityReader());
-        var shell = new TuiShell(
-            [CreateAgentsTab("Agents", agentsMode)],
-            100,
-            24,
-            tasksTabIndex: 0,
-            store: taskStore);
-        Assert.Contains("backend", RenderToText(shell, width: 100));
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new Agents.FakeAgentStore(time);
+        LoginAgent(agentStore);
+        var agentsMode = new AgentsMode(agentStore, time);
+        var shell = new TuiShell([CreateAgentsTab("Agents", agentsMode)], 100, 24, tasksTabIndex: 0);
+        var agentName = Assert.Single(agentsMode.State.Rows).Name;
+        Assert.Contains(agentName, RenderToText(shell, width: 100));
 
         // act
-        // Enter focuses the already-visible detail pane instead of pushing a full-screen mode.
+        // Enter is a no-op until the detail popover lands, so nothing new should open.
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // assert
         var rendered = RenderToText(shell, width: 100);
         Assert.True(dirty);
-        Assert.Equal(AgentsFocus.Detail, agentsMode.State.Focus);
-        Assert.Contains("agent-a", rendered);
-        Assert.Contains("backend", rendered);
+        Assert.Equal(0, agentsMode.State.SelectedRow);
+        Assert.Contains(agentName, rendered);
     }
 
     [Fact]
     public void Handle_Should_LeaveAgentsListSelectionUntouched_When_EscapePressed()
     {
         // arrange
-        var sessions = new Agents.FakeAgentSessionRegistry();
-        sessions.Participants.Add(
-            Agents.AgentSessionParticipantBuilder.Participant(
-                sessionId: "s-a", agentName: "agent-a"));
-        var taskStore = new FakeTaskStore();
-        var mailStore = new Agents.FakeMailStore();
-        var agentsMode = new AgentsMode(
-            taskStore,
-            mailStore,
-            sessions,
-            new Agents.FakeClaudeSessionActivityReader());
-        var shell = new TuiShell(
-            [CreateAgentsTab("Agents", agentsMode)],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: taskStore);
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new Agents.FakeAgentStore(time);
+        LoginAgent(agentStore);
+        var agentsMode = new AgentsMode(agentStore, time);
+        var shell = new TuiShell([CreateAgentsTab("Agents", agentsMode)], 80, 24, tasksTabIndex: 0);
+        var agentName = Assert.Single(agentsMode.State.Rows).Name;
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
 
         // assert
         Assert.True(dirty);
-        Assert.Equal("agent-a", agentsMode.State.SelectedParticipant?.Participant.Session.AgentName);
-        Assert.Contains("Agents (1)", RenderToText(shell));
+        Assert.Equal(agentName, agentsMode.State.SelectedAgent?.Name);
+        Assert.Contains("Agents (0 online / 1)", RenderToText(shell));
     }
 
     [Fact]
