@@ -43,22 +43,26 @@
 -- e2e-agent is the one ended agent: ended_at is set to a fixed past
 -- timestamp. AgentStateResolver checks ended_at before last_seen_at at
 -- all, so this row renders Offline regardless of how recently it was
--- seen; its last_seen_at is left untouched (mail-seed.sql's fixed
--- 2026-01-01 value) since it plays no further role here. Ending it does
--- not affect its use as the mail/task actor elsewhere in this fixture:
--- mail send only rejects an unknown or deleted recipient, never an ended
--- one, and no task command reads agent state at all.
+-- seen. Its last_seen_at is not a fixture-fixed value: run.sh's own
+-- fixture guard (`nitro agent mail inbox --actor e2e-agent`) touches this
+-- row on every run.sh invocation and refreshes it to the real current
+-- time, so its Last Seen column is covered by the agents SCRUBS entry
+-- like nora's and alice's. Ending it does not affect its use as the
+-- mail/task actor elsewhere in this fixture: mail send only rejects an
+-- unknown or deleted recipient, never an ended one, and no task command
+-- reads agent state at all.
 --
 -- nora is the one Online agent, with a role: a harness, a session id, and
 -- a non-'none' endpoint_kind (AgentStateResolver.Resolve only returns
 -- Online when none of "ended", "deleted", or "endpoint_kind = none" hold,
 -- alongside a last_seen_at inside its 30-minute online window). Her
--- last_seen_at is likewise computed with datetime('now'). She has no mail,
--- task, or memory participation at all, so agents-flow.tape's own popover
--- walkthrough opens an empty show-more list ("Nothing here yet.",
--- AgentPopoverListMode.EmptyMessage) rather than a populated one; that is
--- still a real exercise of the show-more mechanism, and it is the only
--- name here that can carry a harness without perturbing mail-board-flow.
+-- last_seen_at is likewise computed with datetime('now'). She has memory
+-- participation only: the three memory_journal rows below, at fixed past
+-- created_at values, and no mail or task participation at all, so
+-- agents-flow.tape's own popover walkthrough steps past the empty Mail
+-- and Tickets show-more rows before it reaches her populated Memory
+-- section and its show-more list. She is the only name here that can
+-- carry a harness without perturbing mail-board-flow.
 --
 -- wren is the one deleted agent: deleted_at is set on insert, so every
 -- non-deleted read excludes her outright, including the mail Workspace
@@ -92,5 +96,15 @@ INSERT INTO agents (name, registered_at, started_at, last_seen_at, deleted_at) V
     '2026-01-01 07:00:00.0000000+00:00',
     '2026-01-01 09:00:00.0000000+00:00'
 );
+
+-- Memory ids must be syntactically valid per MemoryId.IsValid (exactly 26
+-- lowercase Crockford base32 characters: 0-9 and a-z minus i, l, o, u), the
+-- same check MemoryStore.LoadJournalAsync runs via MemoryId.Require before a
+-- popover load can render these rows; a human-readable id like 'mj-nora-1'
+-- fails that check and surfaces as an "Invalid memory id" ExitException.
+INSERT INTO memory_journal (id, body, created_at, created_by) VALUES
+    ('e2enramemj0000000000000001', 'Prefer small PRs over big changes.', '2026-01-01 08:00:00.0000000+00:00', 'nora'),
+    ('e2enramemj0000000000000002', 'Staging resets nightly at 02:00 UTC.', '2026-01-01 08:05:00.0000000+00:00', 'nora'),
+    ('e2enramemj0000000000000003', 'Fusion warnings are non-fatal.', '2026-01-01 08:10:00.0000000+00:00', 'nora');
 
 COMMIT;

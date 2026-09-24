@@ -22,23 +22,26 @@
 #
 # nora is Online and sorts first, so she is also the row Enter opens the
 # popover on: AgentPopoverModel loads her identity plus her mail, ticket,
-# and memory participation (AgentPopoverView), all of which are empty (she
-# is not a party to any seeded message or task). Her Mail section's own
-# "show more" row is therefore the popover's very first selectable row
+# and memory participation (AgentPopoverView). Her Mail and Tickets
+# sections are both empty (she is not a party to any seeded message or
+# task), so the cursor starts on Mail's own "show more" row
 # (AgentPopoverModel.Locate: an empty section's show-more row is not
-# preceded by any item rows), so no cursor movement is needed to reach it;
-# Enter there opens its full-list view (AgentPopoverListMode), rendering
-# its fixed empty-state message ("Nothing here yet."), the "scroll a
-# section" step, exercising the show-more mechanism itself rather than a
-# populated list. The first Escape backs out of that list to the summary
-# popover, and the second Escape closes the popover entirely, returning to
-# the table. From there, Shift+D presses the table's own delete-offline
-# binding (AgentsKeyMap's D, distinct from the popover's per-agent 'd'),
-# opening the confirmation TuiShell.TryOpenAgentDeleteOfflineDialog shows
-# for the currently Offline agents, bob and e2e-agent ("Delete 2 offline
-# agents? This cannot be undone."). A final Escape cancels it: TuiShell's
-# Cancelled branch just clears the dialog, so the final frame is the table
-# itself, unchanged.
+# preceded by any item rows) and j walks it past Tickets' equally-empty
+# show-more row onto her three seeded memory_journal entries
+# (fixtures/agents-seed.sql), listed most recent first. Further j presses
+# move the selection down to the third (oldest) entry and onto Memory's
+# own "show more" row; Enter there opens its full-list view
+# (AgentPopoverListMode), rendering all three entries, and j/k move the
+# selection inside that list, exercising both the section-to-section
+# cursor and the show-more list's own scrolling. The first Escape backs
+# out of that list to the summary popover, and the second Escape closes
+# the popover entirely, returning to the table. From there, Shift+D
+# presses the table's own delete-offline binding (AgentsKeyMap's D,
+# distinct from the popover's per-agent 'd'), opening the confirmation
+# TuiShell.TryOpenAgentDeleteOfflineDialog shows for the currently Offline
+# agents, bob and e2e-agent ("Delete 2 offline agents? This cannot be
+# undone."). A final Escape cancels it: TuiShell's Cancelled branch just
+# clears the dialog, so the final frame is the table itself, unchanged.
 #
 # nora's last_seen_at is refreshed to the real current time by
 # agents-seed.sql rather than pinned to a fixture-past timestamp (the state
@@ -93,12 +96,28 @@ Wait+Screen@30s /Role: planner/
 Wait+Screen@30s /Harness: claude-code 2\.4\.1/
 Wait+Screen@30s /Session id: e2e-online-session/
 
-# Scroll a section: the cursor already sits on Mail's own "show more" row
-# (nora has no mail at all, so that row is the first selectable one), and
-# Enter there opens its own full-list view.
+# The cursor starts on Mail's own "show more" row (nora has no mail at
+# all, so that row is the first selectable one). j moves it past the
+# equally-empty Tickets show-more row onto Memory's three seeded journal
+# entries, most recent first.
+Type "j"
+Type "j"
+Wait+Screen@30s /journal\s+2026-01-01\s+Fusion warnings are non-fatal\./
+
+# j walks the cursor down through the second entry to the third (oldest).
+Type "j"
+Type "j"
+
+# j once more lands on Memory's own "show more" row; Enter opens its full
+# list view.
+Type "j"
 Enter
-Wait+Screen@30s /nora — Mail/
-Wait+Screen@30s /Nothing here yet\./
+Wait+Screen@30s /nora — Memory/
+Wait+Screen@30s /Prefer small PRs over big changes\./
+
+# j/k move the selection inside the full list itself.
+Type "j"
+Type "k"
 
 # Esc backs out of the show-more list to the summary popover.
 Escape
