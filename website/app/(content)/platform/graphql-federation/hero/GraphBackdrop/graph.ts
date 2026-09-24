@@ -47,17 +47,6 @@ function clamp01(t: number): number {
   return t < 0 ? 0 : t > 1 ? 1 : t;
 }
 
-/**
- * A uniform grid over 2D positions, cell size >= any query radius used
- * against it, so the 3x3 block of cells around a query point is always a
- * superset of every inserted point within that radius (never fewer, so
- * every predicate that consults it stays exact -- it only prunes candidates
- * that couldn't possibly match). Cell coordinates pack into one numeric Map
- * key (a plain multiply, well under 2^53, not a template string) since
- * farEnough below calls this on every attempt of a saturating Poisson-disc
- * process -- tens of thousands of them, per the ticket's own unchanged
- * attempt budgets -- so per-call overhead is what the 50ms bar measures.
- */
 const GRID_KEY_STRIDE = 1 << 20;
 
 class SpatialGrid {
@@ -379,19 +368,12 @@ function sampleWorldNodes(
 
   const accepted: SampledPoint[] = [];
   const clears: number[] = [];
-  // Flat, parallel to `accepted`: farEnough's hot loop reads x/y straight
-  // out of these instead of through accepted[i].screen, one array hop
-  // instead of two, since it runs on every attempt of the (unchanged)
-  // attempt-budget dart-throwing process below.
   const acceptedX: number[] = [];
   const acceptedY: number[] = [];
-  // Cell size = nearScreenRadius, the largest clearance any point (main
-  // pass or guard) ever carries, so the 3x3 neighbourhood (gridRadius 1)
-  // around a candidate always contains every accepted point its own
-  // required distance could reach -- the same accept/reject decisions as
-  // scanning all of `accepted`, just without scanning the far ones.
+  // Cell size must be at least the largest clearance any point can carry,
+  // so the 3x3 neighbourhood around a candidate always contains every
+  // accepted point its own required distance could reach.
   const gridCellSize = nearScreenRadius;
-  const gridRadius = Math.ceil(nearScreenRadius / gridCellSize);
   const grid = new SpatialGrid(gridCellSize);
 
   const onCanvas = (p: Point) =>
@@ -404,8 +386,8 @@ function sampleWorldNodes(
     const cx = grid.cellX(screen.x);
     const cy = grid.cellY(screen.y);
     const clearFloor = Math.max(clear, MIN_NODE_SPACING);
-    for (let dx = -gridRadius; dx <= gridRadius; dx++) {
-      for (let dy = -gridRadius; dy <= gridRadius; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
         const bucket = grid.bucket(cx + dx, cy + dy);
         if (!bucket) {
           continue;
@@ -748,12 +730,6 @@ function buildEdges(
     edges.push({ a, b, bridge, via });
   };
 
-  // Screen-space grid, cell size = EDGE_LEN_CAP: the 3x3 neighbourhood
-  // around a node always contains every other node within the cap, so it
-  // narrows the O(n) scan below to the same candidate set a full scan
-  // would find, in the same ascending-index order the original loop built
-  // it in -- the later stable sort by 3D distance then ties exactly as
-  // before, keeping the edge list identical.
   const screenGrid = new SpatialGrid(EDGE_LEN_CAP);
   for (let i = 0; i < n; i++) {
     screenGrid.insert(i, screen[i].x, screen[i].y);

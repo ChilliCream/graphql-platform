@@ -17,6 +17,7 @@ const FALLBACK_VIGNETTE = `radial-gradient(ellipse at 50% 50%, ${rgba(NAVY, 0)} 
 interface Engine {
   w: number;
   h: number;
+  dpr: number;
   mode: LayoutMode | null;
   graph: GraphModel | null;
   copyRect: Rect | null;
@@ -85,6 +86,7 @@ export function GraphBackdrop() {
     const engine: Engine = {
       w: 0,
       h: 0,
+      dpr: 0,
       mode: null,
       graph: null,
       copyRect: null,
@@ -113,11 +115,6 @@ export function GraphBackdrop() {
         : null;
     };
 
-    // ResizeObserver fires once on observe() even with no real change (both
-    // the canvas's own and the copy block's), so a plain mount without this
-    // guard rebuilds the same graph up to three times. Skipping the build
-    // when w, h, mode and the copy rect all match the last build keeps it
-    // to once per actually-distinct input.
     const rebuild = (): boolean => {
       if (engine.w <= 0 || engine.h <= 0) {
         return false;
@@ -160,11 +157,15 @@ export function GraphBackdrop() {
         return;
       }
       const dpr = capDpr(w, h, window.devicePixelRatio || 1);
+      if (w === engine.w && h === engine.h && dpr === engine.dpr) {
+        return;
+      }
       canvas.width = Math.max(1, Math.round(w * dpr));
       canvas.height = Math.max(1, Math.round(h * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       engine.w = w;
       engine.h = h;
+      engine.dpr = dpr;
       measureCopyRect();
       rebuild();
       draw();
@@ -175,8 +176,6 @@ export function GraphBackdrop() {
     const copyRo = copyEl
       ? new ResizeObserver(() => {
           measureCopyRect();
-          // Unlike resize(), this never resets the canvas backing store, so
-          // a skipped rebuild has nothing new to paint.
           if (rebuild()) {
             draw();
           }
