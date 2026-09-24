@@ -72,7 +72,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        var queueClient = await SetupSuccessfulWakeAsync("host-send-single-test", "bob");
+        var queueClient = await SetupSuccessfulWakeAsync("bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -96,7 +96,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
-        var queueClient = await SetupSuccessfulWakeAsync("host-send-repeat-test", "bob");
+        var queueClient = await SetupSuccessfulWakeAsync("bob");
         var message = await SeedMessageAsync(
             "test-agent", "Status", ["bob"], body: "All good.");
         var nudge = CreateMailNudge("host-send-repeat-test", queueClient);
@@ -122,7 +122,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
-        var queueClient = await SetupSuccessfulWakeAsync("host-send-unread-test", "bob");
+        var queueClient = await SetupSuccessfulWakeAsync("bob");
         var message = await SeedMessageAsync("test-agent", "Status", ["bob"], body: "All good.");
         var store = CreateStore();
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -148,10 +148,10 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await SeedAliveSessionAsync(
-            "session-alice", "alice", role: "", host: "host-send-no-session-test",
+            "session-alice", "alice", role: "",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
         await SeedAliveSessionAsync(
-            "session-bob", "bob", role: "", host: "host-send-no-session-test",
+            "session-bob", "bob", role: "",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob");
         await ExecuteAsync(
             "UPDATE agents SET endpoint_kind = 'claude-peer', endpoint_addr = 'peer-addr', "
@@ -182,10 +182,10 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // SendAsync has no transport for opencode-server, even with a session.
         await InitWorkspaceAsync();
         await SeedAliveSessionAsync(
-            "session-alice", "alice", role: "", host: "host-send-opencode-test",
+            "session-alice", "alice", role: "",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
         await SeedAliveSessionAsync(
-            "session-bob", "bob", role: "", host: "host-send-opencode-test",
+            "session-bob", "bob", role: "",
             endpointKind: AgentSessionEndpointKind.OpencodeServer, endpointAddr: "opencode-bob");
         await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
         var codexQueueClient = new FakeCodexQueueClient();
@@ -217,10 +217,10 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // A claude-peer endpoint with a session is a transport SendAsync can reach.
         await InitWorkspaceAsync();
         await SeedAliveSessionAsync(
-            "session-alice", "alice", role: "", host: "host-send-claude-peer-test",
+            "session-alice", "alice", role: "",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
         await SeedAliveSessionAsync(
-            "session-bob", "bob", role: "", host: "host-send-claude-peer-test",
+            "session-bob", "bob", role: "",
             endpointKind: AgentSessionEndpointKind.ClaudePeer, endpointAddr: "peer-bob");
         var message = await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
         var peerClient = new FakeClaudePeerClient();
@@ -252,14 +252,13 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        SetupInstanceId("host-send-two-sessions-test");
         var queueClient = new FakeCodexQueueClient();
         SetupCodexQueueClient(queueClient);
         await SeedAliveSessionAsync(
-            "session-bob-1", "bob", role: "", host: "host-send-two-sessions-test",
+            "session-bob-1", "bob", role: "",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob-1");
         await SeedAliveSessionAsync(
-            "session-bob-2", "bob", role: "", host: "host-send-two-sessions-test",
+            "session-bob-2", "bob", role: "",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob-2");
 
         // act
@@ -280,7 +279,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await ExecuteCommandAsync("agent", "register", "--actor", "carol");
-        await SetupSuccessfulWakeAsync("host-send-dedupe-test", "bob", "carol");
+        await SetupSuccessfulWakeAsync("bob", "carol");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -327,7 +326,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SetupSuccessfulWakeAsync("host-send-known-unknown-test", "bob");
+        await SetupSuccessfulWakeAsync("bob");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -404,7 +403,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
-        await SetupSuccessfulWakeAsync("host-send-json-test", "bob");
+        await SetupSuccessfulWakeAsync("bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -487,7 +486,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SetupSuccessfulWakeAsync("host-send-body-file-test", "bob");
+        await SetupSuccessfulWakeAsync("bob");
         var bodyFilePath = Path.Combine(WorkingDirectory, "body.txt");
         await File.WriteAllTextAsync(
             bodyFilePath, "Line one\r\nLine two\r\n", TestContext.Current.CancellationToken);
@@ -546,7 +545,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "register");
-        await SetupSuccessfulWakeAsync("host-send-self-test", "test-agent");
+        await SetupSuccessfulWakeAsync("test-agent");
 
         // act
         var result = await ExecuteCommandAsync(

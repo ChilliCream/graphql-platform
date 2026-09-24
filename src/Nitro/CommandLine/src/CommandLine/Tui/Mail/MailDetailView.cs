@@ -65,7 +65,7 @@ internal sealed class MailDetailView
     public void ResetScroll() => _bodyViewport.Update(0, 0);
 
     /// <summary>
-    /// Renders the selected message or thread with optional <see cref="AgentRecord.Client"/>
+    /// Renders the selected message or thread with optional <see cref="AgentRow.Harness"/>
     /// attribution. A null lookup or an absent or empty client entry adds no attribution.
     /// </summary>
     public IRenderable Render(

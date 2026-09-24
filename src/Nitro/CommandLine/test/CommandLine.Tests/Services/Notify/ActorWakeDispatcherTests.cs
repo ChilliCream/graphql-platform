@@ -28,7 +28,6 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
     private readonly AgentStore _agentStore;
-    private readonly AgentRegistry _agentRegistry;
     private readonly MailStore _mail;
     private readonly MailWakeBatchStore _batches;
     private readonly AgentPingGateStore _gates;
@@ -45,7 +44,6 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
         _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
-        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
         _batches = new MailWakeBatchStore(_fileSystem, _database);
         _gates = new AgentPingGateStore(_fileSystem, _database);
@@ -826,10 +824,29 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         return result.Row!.Name;
     }
 
+    /// <summary>
+    /// Registers the named agent directly against the unified <c>agents</c> table.
+    /// </summary>
+    private async Task SeedAgentAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES (@name, @now, @now, @now)
+            ON CONFLICT (name) DO UPDATE SET last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@now", _timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     private async Task<MailMessage> SendEnqueuedMailAsync(string actor, CancellationToken cancellationToken)
     {
         // Registers the mail sender behind the store's sender-usability check.
-        await _agentRegistry.RegisterAsync("pascal", role: "", client: "", cancellationToken);
+        await SeedAgentAsync("pascal", cancellationToken);
 
         return await _mail.SendMessageAsync(
             new MailMessageCreation

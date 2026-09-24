@@ -14,6 +14,12 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
 
     public IReadOnlyList<AgentRow> Rows => _rows;
 
+    /// <summary>
+    /// Adds a row directly, bypassing the allocated-name contract, for tests that need
+    /// a deterministic agent name.
+    /// </summary>
+    public void Seed(AgentRow row) => _rows.Add(row);
+
     public Task<AgentRow> LoginAsync(CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();

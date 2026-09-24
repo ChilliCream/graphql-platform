@@ -57,9 +57,8 @@ public sealed class AgentDatabaseTests : IDisposable
 
         foreach (var sessionTable in new[]
         {
-            "agent_sessions", "session_deliveries", "ping_leases",
-            "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons",
-            "session_ping_gates"
+            "ping_leases", "agent_deliveries", "agent_ping_gates",
+            "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons"
         })
         {
             var sessionTableCount = await QueryScalarLongAsync(
@@ -72,7 +71,7 @@ public sealed class AgentDatabaseTests : IDisposable
         foreach (var index in new[]
         {
             "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
-            "idx_mail_wake_batches_expires", "idx_session_ping_gates_expires"
+            "idx_mail_wake_batches_expires", "idx_agent_ping_gates_expires"
         })
         {
             var indexCount = await QueryScalarLongAsync(
@@ -82,26 +81,23 @@ public sealed class AgentDatabaseTests : IDisposable
             Assert.Equal(1, indexCount);
         }
 
-        var columns = (await QueryColumnNamesAsync(connection, "agents", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("role", columns);
-        Assert.Contains("implicit", columns);
-        Assert.Contains("client", columns);
-
-        var sessionColumns = (await QueryColumnNamesAsync(connection, "agent_sessions", cancellationToken))
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.Contains("role", sessionColumns);
-        Assert.Contains("harness_version", sessionColumns);
-        Assert.DoesNotContain("pid", sessionColumns);
-        Assert.DoesNotContain("proc_start", sessionColumns);
+        var columns = await QueryColumnNamesAsync(connection, "agents", cancellationToken);
+        Assert.Equal(
+            [
+                "name", "role", "harness", "harness_version", "session_id", "cwd", "workspace_path",
+                "registered_at", "started_at", "last_seen_at", "ended_at", "deleted_at",
+                "endpoint_kind", "endpoint_addr", "endpoint_secret", "block_budget_used",
+                "last_ping_at", "last_ping_attempt", "last_ping_result", "last_ping_detail",
+                "announcement_pending", "idle_push_armed"
+            ],
+            columns);
     }
 
     /// <summary>
-    /// Seeds a raw v14-shaped database: the old six-column <c>agents</c> table,
-    /// the (unchanged) <c>agent_sessions</c> table, a task, and a piece of mail
-    /// sent by the seeded agent. InitializeAsync must wipe the agent-domain
-    /// tables, lay the new <c>agents</c> columns, and leave tasks and mail
-    /// untouched.
+    /// Seeds a raw v14-shaped database: the old six-column <c>agents</c> table, a
+    /// task, and a piece of mail sent by the seeded agent. InitializeAsync must
+    /// wipe the agent-domain tables, lay the new <c>agents</c> columns, and leave
+    /// tasks and mail untouched.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_WipeAgentDomainTablesAndPreserveTasksAndMail_When_ExistingVersionIsV14()
@@ -128,7 +124,6 @@ public sealed class AgentDatabaseTests : IDisposable
                 """,
                 cancellationToken);
             await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, AgentSessionSchema.Create, cancellationToken);
 
             await ExecuteAsync(
                 connection,
@@ -143,16 +138,6 @@ public sealed class AgentDatabaseTests : IDisposable
                 VALUES ('mail-1', 'mail-1', 'maya', 'Old mail', 'Keep me too', '2026-01-10T12:00:00+00:00');
                 INSERT INTO message_recipients (message_id, recipient, ordinal)
                 VALUES ('mail-1', 'maya', 0);
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    role, harness_version
-                ) VALUES (
-                    'claude-code', 'session-v14', 'maya', 'explicit', 'host-a',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3'
-                );
 
                 PRAGMA user_version = 14;
                 """,
@@ -171,20 +156,17 @@ public sealed class AgentDatabaseTests : IDisposable
             MessageRecipients =
                 await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM message_recipients", cancellationToken),
             Agents = await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken),
-            AgentSessions =
-                await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agent_sessions", cancellationToken),
             AgentColumns = await QueryColumnNamesAsync(upgraded, "agents", cancellationToken)
         };
 
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 17,
+              "Version": 18,
               "Tasks": 1,
               "Messages": 1,
               "MessageRecipients": 1,
               "Agents": 0,
-              "AgentSessions": 0,
               "AgentColumns": [
                 "name",
                 "role",
@@ -207,9 +189,7 @@ public sealed class AgentDatabaseTests : IDisposable
                 "last_ping_result",
                 "last_ping_detail",
                 "announcement_pending",
-                "idle_push_armed",
-                "implicit",
-                "client"
+                "idle_push_armed"
               ]
             }
             """);
@@ -292,7 +272,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 17,
+              "Version": 18,
               "Sender": "ghost",
               "Subject": "Old mail",
               "ReadAt": "2026-01-11T09:00:00+00:00"
@@ -390,7 +370,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 17,
+              "Version": 18,
               "OutboxColumns": [
                 "actor",
                 "requested_generation",
@@ -558,60 +538,8 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(AgentDatabase.CurrentVersion, version);
     }
 
-    [Fact]
-    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ConstraintPredatesOpencode()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
-        {
-            await ExecuteAsync(
-                connection,
-                """
-                DROP TABLE agent_session_identities;
-                CREATE TABLE agent_session_identities (
-                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
-                    session_id TEXT NOT NULL,
-                    actor TEXT NOT NULL UNIQUE REFERENCES agents (name),
-                    role TEXT NOT NULL DEFAULT '',
-                    actor_revision INTEGER NOT NULL DEFAULT 1 CHECK (actor_revision > 0),
-                    created_at TEXT NOT NULL,
-                    last_seen_at TEXT NOT NULL,
-                    PRIMARY KEY (harness, session_id)
-                );
-                CREATE INDEX idx_agent_session_identities_actor
-                    ON agent_session_identities (actor);
-                PRAGMA user_version = 11;
-                """,
-                cancellationToken);
-        }
-
-        // act
-        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await ExecuteAsync(
-            upgraded,
-            """
-            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
-            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
-            INSERT INTO agent_session_identities (
-                harness, session_id, actor, created_at, last_seen_at
-            ) VALUES (
-                'opencode', 'session-1', 'maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken);
-
-        // assert
-        Assert.Equal(AgentDatabase.CurrentVersion,
-            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
-        Assert.Equal("opencode", await QueryScalarStringAsync(
-            upgraded,
-            "SELECT harness FROM agent_session_identities WHERE session_id = 'session-1'",
-            cancellationToken));
-    }
-
     /// <summary>
-    /// Tests that a fresh session table accepts <c>unsupported</c> as a ping result.
+    /// Tests that the unified agents table accepts <c>unsupported</c> as a ping result.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AcceptUnsupportedLastPingResult_When_DatabaseIsFreshlyCreated()
@@ -619,57 +547,22 @@ public sealed class AgentDatabaseTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await InsertAgentSessionAsync(connection, "session-fresh", cancellationToken);
+        await ExecuteAsync(
+            connection,
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+            + "('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            cancellationToken);
 
         // act
         await ExecuteAsync(
             connection,
-            "UPDATE agent_sessions SET last_ping_result = 'unsupported' WHERE session_id = 'session-fresh';",
+            "UPDATE agents SET last_ping_result = 'unsupported' WHERE name = 'maya';",
             cancellationToken);
 
         // assert
         var lastPingResult = await QueryScalarStringAsync(
-            connection,
-            "SELECT last_ping_result FROM agent_sessions WHERE session_id = 'session-fresh'",
-            cancellationToken);
+            connection, "SELECT last_ping_result FROM agents WHERE name = 'maya'", cancellationToken);
         Assert.Equal("unsupported", lastPingResult);
-    }
-
-    /// <summary>
-    /// Tests that a fresh session table accepts the <c>nitro-board</c> harness
-    /// and <c>db-watch</c> endpoint.
-    /// </summary>
-    [Fact]
-    public async Task InitializeAsync_Should_AcceptNitroBoardHarnessAndDbWatchEndpoint_When_DatabaseIsFreshlyCreated()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // act
-        await ExecuteAsync(
-            connection,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'nitro-board', 'board-fresh', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'db-watch', 'local', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken);
-
-        // assert
-        var harness = await QueryScalarStringAsync(
-            connection, "SELECT harness FROM agent_sessions WHERE session_id = 'board-fresh'", cancellationToken);
-        var endpointKind = await QueryScalarStringAsync(
-            connection,
-            "SELECT endpoint_kind FROM agent_sessions WHERE session_id = 'board-fresh'",
-            cancellationToken);
-        Assert.Equal("nitro-board", harness);
-        Assert.Equal("db-watch", endpointKind);
     }
 
     [Fact]
@@ -790,6 +683,7 @@ public sealed class AgentDatabaseTests : IDisposable
     [InlineData(5)]
     [InlineData(6)]
     [InlineData(7)]
+    [InlineData(17)]
     public async Task ConnectAsync_Should_Throw_When_VersionIsUpgradable(int upgradableVersion)
     {
         // arrange
@@ -802,207 +696,29 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Round trip against the real schema with foreign_keys=ON (verified
-    /// explicitly): insert an unclaimed <c>agent_sessions</c> row (no agent,
-    /// <c>binding_kind = 'none'</c>), then claim it by pointing
-    /// <c>agent_name</c> at a real row in <c>agents</c> and flipping
-    /// <c>binding_kind</c> to <c>'explicit'</c>. Also proves the FK actually
-    /// enforces: claiming with a name that is not in <c>agents</c> fails.
-    /// </summary>
-    [Fact]
-    public async Task AgentSessionsTable_Should_InsertUnclaimedRowThenClaimIt_When_ForeignKeysAreOn()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        var foreignKeysEnabled = await QueryScalarLongAsync(connection, "PRAGMA foreign_keys;", cancellationToken);
-        Assert.Equal(1, foreignKeysEnabled);
-
-        await ExecuteAsync(
-            connection,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'claude-code', 'session-1', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken);
-
-        // act: the row starts unclaimed.
-        var unclaimedAgentName = await QueryScalarStringAsync(
-            connection, "SELECT agent_name FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
-        var unclaimedBindingKind = await QueryScalarStringAsync(
-            connection, "SELECT binding_kind FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
-        Assert.Null(unclaimedAgentName);
-        Assert.Equal("none", unclaimedBindingKind);
-
-        // Claiming with an unregistered agent must fail the FK check.
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
-            connection,
-            "UPDATE agent_sessions SET agent_name = 'ghost', binding_kind = 'explicit' "
-            + "WHERE session_id = 'session-1';",
-            cancellationToken));
-
-        await ExecuteAsync(
-            connection,
-            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
-            + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
-            cancellationToken);
-
-        await ExecuteAsync(
-            connection,
-            "UPDATE agent_sessions SET agent_name = 'claude', binding_kind = 'explicit' "
-            + "WHERE session_id = 'session-1';",
-            cancellationToken);
-
-        // assert: claiming against a real agent succeeds.
-        var claimedAgentName = await QueryScalarStringAsync(
-            connection, "SELECT agent_name FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
-        var claimedBindingKind = await QueryScalarStringAsync(
-            connection, "SELECT binding_kind FROM agent_sessions WHERE session_id = 'session-1'", cancellationToken);
-        Assert.Equal("claude", claimedAgentName);
-        Assert.Equal("explicit", claimedBindingKind);
-    }
-
-    /// <summary>
-    /// The cross-column CHECK <c>(binding_kind = 'none') = (agent_name IS NULL)</c>
-    /// rejects a row that claims to be bound (<c>binding_kind = 'explicit'</c>)
-    /// while carrying no agent name.
-    /// </summary>
-    [Fact]
-    public async Task AgentSessionsTable_Should_RejectMismatchedBindingKindAndAgentName_When_CheckConstraintFires()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
-            connection,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'claude-code', 'session-2', NULL, 'explicit', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken));
-    }
-
-    /// <summary>
-    /// The cross-column CHECK <c>(endpoint_kind = 'none') = (endpoint_addr = '')</c>
-    /// rejects a row that names a real endpoint kind while carrying no
-    /// address.
-    /// </summary>
-    [Fact]
-    public async Task AgentSessionsTable_Should_RejectActiveEndpointKindWithEmptyAddress_When_CheckConstraintFires()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
-            connection,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'claude-code', 'session-3', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'claude-peer', '', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken));
-    }
-
-    /// <summary>
-    /// The same cross-column CHECK also rejects the opposite mismatch: a
-    /// non-empty address while <c>endpoint_kind</c> claims there is none.
-    /// </summary>
-    [Fact]
-    public async Task AgentSessionsTable_Should_RejectNoneEndpointKindWithNonEmptyAddress_When_CheckConstraintFires()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
-            connection,
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'claude-code', 'session-4', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'none', 'peer-a', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken));
-    }
-
-    /// <summary>
-    /// <c>session_deliveries.channel</c> is CHECK-constrained to
+    /// <c>agent_deliveries.channel</c> is CHECK-constrained to
     /// <c>digest</c>, <c>gate</c>, or <c>ping</c>.
     /// </summary>
     [Fact]
-    public async Task SessionDeliveriesTable_Should_RejectUnknownChannel_When_CheckConstraintFires()
+    public async Task AgentDeliveriesTable_Should_RejectUnknownChannel_When_CheckConstraintFires()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await InsertAgentSessionAsync(connection, "session-5", cancellationToken);
+        await ExecuteAsync(
+            connection,
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+            + "('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+            cancellationToken);
 
         // act & assert
         await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
             connection,
             """
-            INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-            VALUES ('claude-code', 'session-5', 'msg-1', 'unknown-channel', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at)
+            VALUES ('maya', 'msg-1', 'unknown-channel', '2026-01-10T12:00:00+00:00');
             """,
             cancellationToken));
-    }
-
-    /// <summary>
-    /// <c>session_deliveries</c> rows cascade-delete with their owning
-    /// <c>agent_sessions</c> row.
-    /// </summary>
-    [Fact]
-    public async Task SessionDeliveriesTable_Should_CascadeDelete_When_OwningAgentSessionRowIsDeleted()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await InsertAgentSessionAsync(connection, "session-6", cancellationToken);
-        await ExecuteAsync(
-            connection,
-            """
-            INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-            VALUES ('claude-code', 'session-6', 'msg-1', 'digest', '2026-01-10T12:00:00+00:00');
-            """,
-            cancellationToken);
-
-        // act
-        await ExecuteAsync(
-            connection, "DELETE FROM agent_sessions WHERE session_id = 'session-6';", cancellationToken);
-
-        // assert
-        var remaining = await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM session_deliveries WHERE session_id = 'session-6'",
-            cancellationToken);
-        Assert.Equal(0, remaining);
     }
 
     /// <summary>
@@ -1179,7 +895,6 @@ public sealed class AgentDatabaseTests : IDisposable
             new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         var fileSystem = new TestFileSystem(_tempRoot.FullName);
         var taskStore = new TaskStore(fileSystem, timeProvider, _database);
-        var agentRegistry = new AgentRegistry(fileSystem, timeProvider, _database);
         var agentStore = new AgentStore(fileSystem, timeProvider, _database);
         var mailStore = new MailStore(fileSystem, timeProvider, _database, agentStore);
 
@@ -1195,8 +910,17 @@ public sealed class AgentDatabaseTests : IDisposable
                 Actor = "claude"
             },
             cancellationToken);
-        await agentRegistry.RegisterAsync("claude", role: "", client: "", cancellationToken);
-        await agentRegistry.RegisterAsync("codex", role: "", client: "", cancellationToken);
+
+        await using (var agentSeedConnection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                agentSeedConnection,
+                "INSERT INTO agents (name, registered_at, started_at, last_seen_at) VALUES "
+                + "('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'), "
+                + "('codex', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
+                cancellationToken);
+        }
+
         var message = await mailStore.SendMessageAsync(
             new MailMessageCreation
             {
@@ -1225,13 +949,13 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Tests adding mail-wake and session-ping-gate tables and indexes to a
-    /// database stamped v6 that lacks them. Agent-domain rows (agents,
-    /// agent_sessions, session_deliveries, ping_leases) are wiped by the
-    /// blanket agent-domain reset; mail is a non-agent table and survives.
+    /// Tests adding mail-wake and ping-gate tables and indexes to a database
+    /// stamped v6 that lacks them. Agent-domain rows (agents, ping_leases) are
+    /// wiped by the blanket agent-domain reset; mail is a non-agent table and
+    /// survives.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_AddMailWakeAndSessionPingGateTables_When_ExistingVersionIsV6()
+    public async Task InitializeAsync_Should_AddMailWakeAndAgentPingGateTables_When_ExistingVersionIsV6()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1243,33 +967,20 @@ public sealed class AgentDatabaseTests : IDisposable
             await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
             await ExecuteAsync(connection, AgentRegistrySchema.Create, cancellationToken);
             await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
-            await ExecuteAsync(connection, AgentSessionSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, PingLeaseSchema.Create, cancellationToken);
 
             await ExecuteAsync(
                 connection,
                 """
-                INSERT INTO agents (name, registered_at, started_at, last_seen_at, role, implicit, client)
-                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'claude-code'),
-                       ('codex', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '', 0, 'codex');
+                INSERT INTO agents (name, registered_at, started_at, last_seen_at, role)
+                VALUES ('claude', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend'),
+                       ('codex', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '');
 
                 INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
                 VALUES ('msg-v6', 'thread-v6', 'claude', 'Status', 'Merged.', '2026-01-10T12:00:00+00:00');
 
                 INSERT INTO message_recipients (message_id, recipient, kind, ordinal)
                 VALUES ('msg-v6', 'codex', 'to', 0);
-
-                INSERT INTO agent_sessions (
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    role, harness_version
-                ) VALUES (
-                    'claude-code', 'session-v6', 'claude', 'explicit', 'host-a',
-                    '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                    '2026-01-10T12:00:00+00:00', 'backend', '1.2.3'
-                );
-
-                INSERT INTO session_deliveries (harness, session_id, message_id, channel, delivered_at)
-                VALUES ('claude-code', 'session-v6', 'msg-v6', 'digest', '2026-01-10T12:00:00+00:00');
 
                 INSERT INTO ping_leases (slot, attempt_id, acquired_at, expires_at)
                 VALUES (1, 'attempt-v6', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:05+00:00');
@@ -1289,7 +1000,7 @@ public sealed class AgentDatabaseTests : IDisposable
         foreach (var newTable in new[]
         {
             "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons",
-            "session_ping_gates"
+            "agent_ping_gates"
         })
         {
             var tableCount = await QueryScalarLongAsync(
@@ -1302,7 +1013,7 @@ public sealed class AgentDatabaseTests : IDisposable
         foreach (var index in new[]
         {
             "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
-            "idx_mail_wake_batches_expires", "idx_session_ping_gates_expires"
+            "idx_mail_wake_batches_expires", "idx_agent_ping_gates_expires"
         })
         {
             var indexCount = await QueryScalarLongAsync(
@@ -1317,16 +1028,10 @@ public sealed class AgentDatabaseTests : IDisposable
             await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM messages", cancellationToken);
         var recipientCount =
             await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM message_recipients", cancellationToken);
-        var sessionCount =
-            await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM agent_sessions", cancellationToken);
-        var deliveryCount =
-            await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM session_deliveries", cancellationToken);
         var leaseCount = await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM ping_leases", cancellationToken);
         Assert.Equal(0, agentCount);
         Assert.Equal(1, messageCount);
         Assert.Equal(1, recipientCount);
-        Assert.Equal(0, sessionCount);
-        Assert.Equal(0, deliveryCount);
         Assert.Equal(0, leaseCount);
     }
 
@@ -1494,64 +1199,6 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that a session ping gate survives deletion of the corresponding session row.
-    /// </summary>
-    [Fact]
-    public async Task SessionPingGatesTable_Should_SurviveAgentSessionDeletion_When_NoForeignKeyTiesThem()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await InsertAgentSessionAsync(connection, "session-gate", cancellationToken);
-        await ExecuteAsync(
-            connection,
-            """
-            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
-            VALUES ('claude-code', 'session-gate', 'host-a', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
-            """,
-            cancellationToken);
-
-        // act
-        await ExecuteAsync(
-            connection, "DELETE FROM agent_sessions WHERE session_id = 'session-gate';", cancellationToken);
-
-        // assert
-        var gateCount = await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM session_ping_gates WHERE session_id = 'session-gate'",
-            cancellationToken);
-        Assert.Equal(1, gateCount);
-    }
-
-    /// <summary>
-    /// Tests that the ping-gate primary key rejects a duplicate
-    /// (harness, session_id, host) generation.
-    /// </summary>
-    [Fact]
-    public async Task SessionPingGatesTable_Should_RejectDuplicateGeneration_When_PrimaryKeyFires()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-        await ExecuteAsync(
-            connection,
-            """
-            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
-            VALUES ('claude-code', 'session-dup', 'host-a', 'attempt-1', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:30+00:00');
-            """,
-            cancellationToken);
-
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
-            connection,
-            """
-            INSERT INTO session_ping_gates (harness, session_id, host, attempt_id, acquired_at, expires_at)
-            VALUES ('claude-code', 'session-dup', 'host-a', 'attempt-2', '2026-01-10T12:00:01+00:00', '2026-01-10T12:00:31+00:00');
-            """,
-            cancellationToken));
-    }
-
-    /// <summary>
     /// Opens a database file and sets its <c>PRAGMA user_version</c> without creating tables.
     /// </summary>
     private async Task StampVersionOnNewFileAsync(int version, CancellationToken cancellationToken)
@@ -1618,24 +1265,4 @@ public sealed class AgentDatabaseTests : IDisposable
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
-
-    /// <summary>
-    /// Inserts a minimal, otherwise-valid <c>agent_sessions</c> row with the
-    /// given session id, for tests that only care about a dependent table.
-    /// </summary>
-    private static Task InsertAgentSessionAsync(
-        SqliteConnection connection, string sessionId, CancellationToken cancellationToken)
-        => ExecuteAsync(
-            connection,
-            $"""
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'claude-code', '{sessionId}', NULL, 'none', 'host-a',
-                '/tmp/work', '/tmp/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00',
-                '2026-01-10T12:00:00+00:00'
-            );
-            """,
-            cancellationToken);
 }

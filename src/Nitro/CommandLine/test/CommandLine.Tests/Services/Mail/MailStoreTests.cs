@@ -16,7 +16,6 @@ public sealed class MailStoreTests : IAsyncDisposable
     private readonly string _workingDirectory;
     private readonly string _workspaceDirectory;
     private readonly FakeTimeProvider _timeProvider;
-    private readonly AgentRegistry _registry;
     private readonly AgentStore _agentStore;
     private readonly AgentDatabase _database;
     private readonly MailStore _store;
@@ -32,7 +31,6 @@ public sealed class MailStoreTests : IAsyncDisposable
             new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
 
         _database = new AgentDatabase();
-        _registry = new AgentRegistry(new TestFileSystem(_workingDirectory), _timeProvider, _database);
         _agentStore = new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, _database);
         _store = CreateStore();
     }
@@ -96,8 +94,22 @@ public sealed class MailStoreTests : IAsyncDisposable
         return await _store.InitializeAsync(_workspaceDirectory, cancellationToken);
     }
 
-    private Task<AgentRecord> SeedAgentAsync(string name, CancellationToken cancellationToken)
-        => _registry.RegisterAsync(name, role: "", client: "", cancellationToken);
+    private async Task SeedAgentAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES ($name, $now, $now, $now)
+            ON CONFLICT (name) DO UPDATE SET last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("$name", name);
+        command.Parameters.AddWithValue("$now", _timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 
     private Task<MailMessage> SendAsync(
         string sender,

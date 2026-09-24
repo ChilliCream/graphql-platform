@@ -36,7 +36,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     private readonly AgentDatabase _database;
     private readonly MailWakeBatchStore _batches;
     private readonly SessionGateCoordinator _gateCoordinator;
-    private AgentRegistry _agentRegistry = null!;
+    private TestAgentSeeder _agentRegistry = null!;
     private AgentStore _agentStore = null!;
     private MailStore _mail = null!;
 
@@ -54,17 +54,62 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     }
 
     /// <summary>
-    /// Builds the agent registry, agent store and mail store from <paramref name="timeProvider"/>,
+    /// Builds the agent seeder, agent store and mail store from <paramref name="timeProvider"/>,
     /// so every store the coordinator reads or writes through shares the test's fake clock.
     /// </summary>
     private void CreateStores(FakeTimeProvider timeProvider)
     {
-        _agentRegistry = new AgentRegistry(_fileSystem, timeProvider, _database);
+        _agentRegistry = new TestAgentSeeder(_workspaceDirectory, timeProvider, _database);
         _agentStore = new AgentStore(_fileSystem, timeProvider, _database);
         _mail = new MailStore(_fileSystem, timeProvider, _database, _agentStore);
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
+
+    /// <summary>
+    /// Seeds rows directly against the unified <c>agents</c> table for tests that need an
+    /// actor to exist without going through <see cref="IAgentStore"/>'s allocated-name contract.
+    /// </summary>
+    private sealed class TestAgentSeeder(string workspaceDirectory, TimeProvider timeProvider, AgentDatabase database)
+    {
+        /// <summary>
+        /// Ensures the named actor exists, leaving an existing row unchanged.
+        /// </summary>
+        public Task EnsureImplicitAsync(string name, CancellationToken cancellationToken)
+            => UpsertAsync(name, role: null, cancellationToken);
+
+        /// <summary>
+        /// Registers the normalized name and role, refreshing last-seen time.
+        /// </summary>
+        public Task RegisterAsync(string name, string role, string client, CancellationToken cancellationToken)
+            => UpsertAsync(name, role, cancellationToken);
+
+        private async Task UpsertAsync(string name, string? role, CancellationToken cancellationToken)
+        {
+            await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = role is null
+                ? """
+                  INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+                  VALUES (@name, @now, @now, @now)
+                  ON CONFLICT (name) DO NOTHING;
+                  """
+                : """
+                  INSERT INTO agents (name, role, registered_at, started_at, last_seen_at)
+                  VALUES (@name, @role, @now, @now, @now)
+                  ON CONFLICT (name) DO UPDATE SET role = excluded.role, last_seen_at = excluded.last_seen_at;
+                  """;
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@now", timeProvider.GetUtcNow());
+
+            if (role is not null)
+            {
+                command.Parameters.AddWithValue("@role", role);
+            }
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+    }
 
     [Fact]
     public async Task StartAsync_Should_BecomeReady_When_NoOtherLeaderExists()

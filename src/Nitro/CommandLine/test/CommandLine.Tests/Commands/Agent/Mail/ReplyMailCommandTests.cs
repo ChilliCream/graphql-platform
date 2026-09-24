@@ -47,7 +47,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("bob");
         await SeedAgentAsync("carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
-        await SetupSuccessfulWakeAsync("host-reply-all-test", "alice", "carol");
+        await SetupSuccessfulWakeAsync("alice", "carol");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -72,7 +72,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
         await MarkAgentDeletedAsync("carol");
-        await SetupSuccessfulWakeAsync("host-reply-skip-test", "alice");
+        await SetupSuccessfulWakeAsync("alice");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -167,7 +167,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("alice");
         await SeedAgentAsync("bob");
         var originalId = await SendOriginalMessageAsync("alice", "Root subject", "bob");
-        await SetupSuccessfulWakeAsync("host-reply-thread-test", "alice");
+        await SetupSuccessfulWakeAsync("alice");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -195,7 +195,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("alice");
         await SeedAgentAsync("bob");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
-        var queueClient = await SetupSuccessfulWakeAsync("host-reply-nudge-test", "alice");
+        var queueClient = await SetupSuccessfulWakeAsync("alice");
 
         // act
         await ExecuteCommandAsync(

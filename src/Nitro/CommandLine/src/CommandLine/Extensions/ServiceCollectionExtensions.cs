@@ -37,23 +37,18 @@ internal static class ServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<AgentDatabase>();
-        services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
         services.TryAddSingleton<IAgentStore, AgentStore>();
         services.TryAddSingleton<IGlobalConfigDirectoryProvider, GlobalConfigDirectoryProvider>();
-        services.TryAddSingleton<INitroInstanceIdProvider, NitroInstanceIdProvider>();
         services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
         services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
-        services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
         services.TryAddSingleton<ITakeoverLedger, TakeoverLedger>();
-        services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IAgentDeliveryLedger, AgentDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
         services.TryAddSingleton<IOpencodeServerClient, OpencodeServerClient>();
         services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
         services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
-        services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
         services.TryAddSingleton<IAgentPingGateStore, AgentPingGateStore>();
         services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
         services.TryAddSingleton<IMailNudge, MailNudge>();
@@ -68,7 +63,6 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
         services.TryAddSingleton<ICodexHookHandler, CodexHookHandler>();
         services.TryAddSingleton<IOpencodeHookHandler, OpencodeHookHandler>();
-        services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
         services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
         services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
         services.TryAddSingleton<IClaudeHooksSidecarStore, ClaudeHooksSidecarStore>();

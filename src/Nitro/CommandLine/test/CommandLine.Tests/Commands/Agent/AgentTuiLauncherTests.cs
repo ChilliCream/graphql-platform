@@ -40,7 +40,7 @@ public sealed class AgentTuiLauncherTests
 
         var mailTab = AgentTuiLauncher.BuildMailTab(
             store,
-            new Tui.Agents.FakeAgentRegistry(),
+            new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
             new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
 
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
@@ -55,7 +55,7 @@ public sealed class AgentTuiLauncherTests
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(s_now),
+            store, new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)), new FakeTimeProvider(s_now),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -69,7 +69,6 @@ public sealed class AgentTuiLauncherTests
         // arrange
         var taskStore = new FakeTaskStore();
         var mailStore = new FakeMailStore();
-        var agentRegistry = new Tui.Agents.FakeAgentRegistry();
         var timeProvider = new FakeTimeProvider(s_now);
 
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
@@ -89,7 +88,6 @@ public sealed class AgentTuiLauncherTests
                 taskStore,
                 mailStore,
                 memoryStore,
-                agentRegistry,
                 agentStore,
                 timeProvider,
                 TestContext.Current.CancellationToken);
@@ -201,7 +199,6 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new Tui.Agents.FakeAgentRegistry(),
                 new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,
@@ -267,7 +264,6 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new Tui.Agents.FakeAgentRegistry(),
                 new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,

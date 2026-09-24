@@ -84,8 +84,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         // assert: the name exists but belongs to nobody until register binds it.
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_session_identities"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE harness IS NOT NULL"));
     }
 
     [Fact]
@@ -134,8 +133,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         // assert: registering the allocated name needs no session of any kind.
         Assert.Equal(0, result.ExitCode);
         Assert.Equal($"✓ Actor '{actor}'.", result.StdOut.Trim());
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_session_identities"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync($"SELECT harness FROM agents WHERE name = '{actor}'"));
     }
 
     [Fact]
@@ -155,7 +153,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         Assert.Equal(
             actor,
             await QueryScalarAsync("SELECT actor FROM events WHERE event_type = 'created'"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync($"SELECT harness FROM agents WHERE name = '{actor}'"));
     }
 
     [Fact]

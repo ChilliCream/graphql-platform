@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The <c>agent_sessions.endpoint_kind</c> values, matching the table's
+/// The <c>agents.endpoint_kind</c> values, matching the table's
 /// CHECK constraint.
 /// </summary>
 internal static class AgentSessionEndpointKind

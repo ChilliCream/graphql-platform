@@ -13,14 +13,10 @@ internal static class AgentActorAllocator
         SqliteConnection connection,
         DbTransaction transaction)
     {
-        // A name is unavailable once it has ever been minted: agent rows (including
-        // tombstones, whose deleted_at is set) and durable session identities.
+        // A name is unavailable once it has ever been minted: agent rows, including
+        // tombstones whose deleted_at is set.
         var occupied = (await connection.QueryAsync<string>(
-                """
-                SELECT actor FROM agent_session_identities
-                UNION
-                SELECT name FROM agents
-                """,
+                "SELECT name FROM agents",
                 transaction: transaction))
             .ToHashSet(StringComparer.Ordinal);
         var names = AgentNamePool.Names;
