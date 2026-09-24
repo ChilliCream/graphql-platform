@@ -411,25 +411,39 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_ReserveFourLinesForTheHeaderBlock_When_SizingTheRowViewport()
+    public void Render_Should_ScrollRowsBelowTheHeaderBlock_When_MoreAgentsThanRowLinesExist()
     {
         // arrange
-        // Four rows exactly fill a viewport four lines shorter than the pane interior (10 - 2 chrome - 4 header = 4).
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
-        var rows = Enumerable.Range(0, 4).Select(i => AddOnlineAgent(store, $"s-{i}")).ToArray();
+        AddOnlineAgent(store, "s-a");
+        AddOnlineAgent(store, "s-b");
+        AddOnlineAgent(store, "s-c");
+        AddOnlineAgent(store, "s-d");
+        AddOnlineAgent(store, "s-e");
+        AddOnlineAgent(store, "s-f");
         var mode = new AgentsMode(store, time);
         mode.OnEnter();
+        var console = new TestConsole().Width(100);
 
         // act
-        var text = RenderToText(mode, width: 100, height: 10);
-        var allLines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        var interiorLines = allLines.Skip(1).Take(allLines.Length - 2).ToArray();
-        var rowLineCount = interiorLines.Count(line => rows.Any(row => line.Contains(row.Name, StringComparison.Ordinal)));
+        console.Write(mode.Render(100, 10));
 
         // assert
-        Assert.Equal(8, interiorLines.Length);
-        Assert.Equal(4, rowLineCount);
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Agents (6 online / 6)────────────────────────────────────────────────────────────────────────────╮
+            │                                                                                                  │
+            │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
+            │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
+            │                                                                                                  │
+            │ > ● ackbar          -               Claude Code     just now      just now                       │
+            │   ● ahsoka          -               Claude Code     just now      just now                       │
+            │   ● aladdin         -               Claude Code     just now      just now                       │
+            │   3 more below                                                                                   │
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+            """);
     }
 
     [Fact]
