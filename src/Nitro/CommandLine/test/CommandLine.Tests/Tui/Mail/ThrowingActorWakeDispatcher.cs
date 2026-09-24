@@ -7,6 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 /// </summary>
 internal sealed class ThrowingActorWakeDispatcher : IActorWakeDispatcher
 {
-    public Task<ActorWakeReceipt?> DispatchAsync(string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+    public Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
         => throw new InvalidOperationException("Dispatch failed.");
 }

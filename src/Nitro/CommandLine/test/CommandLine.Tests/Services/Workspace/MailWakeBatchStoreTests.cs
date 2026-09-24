@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
 
@@ -12,11 +13,14 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 {
     private const string Actor = "claude";
 
+    private static readonly TimeSpan s_longLeaderLease = TimeSpan.FromDays(1);
+
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
     private readonly TestFileSystem _fileSystem;
     private readonly AgentDatabase _database;
     private readonly MailWakeBatchStore _batches;
+    private readonly MailWakeDaemonLeaderStore _leaderStore;
 
     public MailWakeBatchStoreTests()
     {
@@ -26,6 +30,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         _fileSystem = new TestFileSystem(_tempRoot.FullName);
         _database = new AgentDatabase();
         _batches = new MailWakeBatchStore(_fileSystem, _database);
+        _leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -98,6 +103,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             await SeedActorAsync(seedConnection, cancellationToken);
             await SeedOutboxAsync(seedConnection, requestedGeneration: 3, settledGeneration: 1, dueAt: now, cancellationToken);
         }
+        await AcquireLeaderLeaseAsync("owner-1", now, s_longLeaderLease, cancellationToken);
 
         // act
         var claim = await _batches.TryClaimAsync(
@@ -127,6 +133,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             await SeedActorAsync(connection, cancellationToken);
             await SeedOutboxAsync(connection, requestedGeneration: 2, settledGeneration: 0, dueAt: now, cancellationToken);
         }
+        await AcquireLeaderLeaseAsync("owner-1", now, s_longLeaderLease, cancellationToken);
         var firstClaim = await _batches.TryClaimAsync(
             Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
@@ -169,7 +176,9 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
 
         // act
-        // a new owner claims 11s later, after the lease expired.
+        // owner-1 steps down and a new owner takes the leader lease before claiming 11s later.
+        await _leaderStore.TryReleaseAsync("owner-1", now + TimeSpan.FromSeconds(11), cancellationToken);
+        await AcquireLeaderLeaseAsync("owner-2", now + TimeSpan.FromSeconds(11), s_longLeaderLease, cancellationToken);
         var secondClaim = await _batches.TryClaimAsync(
             Actor, "owner-2", "attempt-2", [Actor], now + TimeSpan.FromSeconds(11),
             TimeSpan.FromSeconds(10), cancellationToken);
@@ -191,6 +200,8 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
+        await _leaderStore.TryReleaseAsync("owner-1", now + TimeSpan.FromSeconds(11), cancellationToken);
+        await AcquireLeaderLeaseAsync("owner-2", now + TimeSpan.FromSeconds(11), s_longLeaderLease, cancellationToken);
         await _batches.TryClaimAsync(
             Actor, "owner-2", "attempt-2", [Actor], now + TimeSpan.FromSeconds(11),
             TimeSpan.FromSeconds(10), cancellationToken);
@@ -222,12 +233,14 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             await SeedActorAsync(connection, cancellationToken);
             await SeedOutboxAsync(connection, requestedGeneration: 1, settledGeneration: 0, dueAt: now, cancellationToken);
         }
+        await AcquireLeaderLeaseAsync("owner-1", now, s_longLeaderLease, cancellationToken);
 
         // act
+        // Every racer shares the current leader's token; only the attempt id distinguishes them.
         var results = await ConcurrentTestHarness.RunAsync(
             6,
             i => new MailWakeBatchStore(_fileSystem, _database).TryClaimAsync(
-                Actor, $"owner-{i}", $"attempt-{i}", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken));
+                Actor, "owner-1", $"attempt-{i}", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken));
 
         // assert
         // exactly one caller claimed the batch.
@@ -349,8 +362,11 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
+        // owner-1 steps down and a new owner takes the leader lease before reclaiming.
         var released = await _batches.TryReleaseAsync(
             claim.BatchId, "owner-1", "attempt-1", now, retryAt: null, lastError: "spawn-failed", cancellationToken);
+        await _leaderStore.TryReleaseAsync("owner-1", now, cancellationToken);
+        await AcquireLeaderLeaseAsync("owner-2", now, s_longLeaderLease, cancellationToken);
         var reclaimed = await _batches.TryClaimAsync(
             Actor, "owner-2", "attempt-2", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
 
@@ -466,6 +482,78 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         Assert.False(recorded);
     }
 
+    [Fact]
+    public async Task TryRecordTargetOutcomeAsync_Should_ReturnFalse_When_OwnerNoLongerHoldsTheLeaderLease()
+    {
+        // arrange
+        // owner-1's batch stays active while a second owner takes over the leader lease.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leaderStore.TryReleaseAsync("owner-1", now, cancellationToken);
+        await AcquireLeaderLeaseAsync("owner-2", now, s_longLeaderLease, cancellationToken);
+
+        // act
+        var recorded = await _batches.TryRecordTargetOutcomeAsync(
+            claim.BatchId, Actor, "owner-1", "attempt-1", "delivered",
+            offeredGeneration: null, acceptedGeneration: 1, lastError: null, now, cancellationToken);
+
+        // assert
+        Assert.False(recorded);
+        await using var connection = await ConnectAsync(cancellationToken);
+        var status = await ExecuteScalarStringAsync(
+            connection, $"SELECT status FROM mail_wake_targets WHERE batch_id = '{claim.BatchId}'", cancellationToken);
+        Assert.Equal(MailWakeTargetStatus.Pending, status);
+    }
+
+    [Fact]
+    public async Task TryCompleteAsync_Should_ReturnFalse_When_OwnerNoLongerHoldsTheLeaderLease()
+    {
+        // arrange
+        // owner-1's batch stays active while a second owner takes over the leader lease.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _leaderStore.TryReleaseAsync("owner-1", now, cancellationToken);
+        await AcquireLeaderLeaseAsync("owner-2", now, s_longLeaderLease, cancellationToken);
+
+        // act
+        var completed = await _batches.TryCompleteAsync(claim.BatchId, "owner-1", "attempt-1", now, cancellationToken);
+
+        // assert
+        Assert.False(completed);
+        await using var connection = await ConnectAsync(cancellationToken);
+        var status = await ExecuteScalarStringAsync(
+            connection, $"SELECT status FROM mail_wake_batches WHERE batch_id = '{claim.BatchId}'", cancellationToken);
+        Assert.Equal("active", status);
+    }
+
+    [Fact]
+    public async Task TryClaimAsync_Should_ReturnNull_When_OwnerDoesNotHoldTheLeaderLease()
+    {
+        // arrange
+        // A second owner holds the leader lease; owner-1 holds none and attempts to claim anyway.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        await using (var connection = await InitializeWorkspaceAsync(cancellationToken))
+        {
+            await SeedActorAsync(connection, cancellationToken);
+            await SeedOutboxAsync(connection, requestedGeneration: 1, settledGeneration: 0, dueAt: now, cancellationToken);
+        }
+        await AcquireLeaderLeaseAsync("owner-2", now, s_longLeaderLease, cancellationToken);
+
+        // act
+        var claim = await _batches.TryClaimAsync(
+            Actor, "owner-1", "attempt-1", [Actor], now, TimeSpan.FromSeconds(30), cancellationToken);
+
+        // assert
+        Assert.Null(claim);
+        await using var connection2 = await ConnectAsync(cancellationToken);
+        var settledGeneration = await ExecuteScalarLongAsync(
+            connection2, $"SELECT settled_generation FROM mail_wake_outbox WHERE actor = '{Actor}'", cancellationToken);
+        Assert.Equal(0, settledGeneration);
+    }
+
     private async Task<MailWakeBatchClaim> SeedClaimedBatchAsync(
         DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken, long requestedGeneration = 1)
     {
@@ -474,12 +562,20 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             await SeedActorAsync(connection, cancellationToken);
             await SeedOutboxAsync(connection, requestedGeneration, settledGeneration: 0, dueAt: now, cancellationToken);
         }
+        await AcquireLeaderLeaseAsync("owner-1", now, s_longLeaderLease, cancellationToken);
 
         var claim = await _batches.TryClaimAsync(
             Actor, "owner-1", "attempt-1", [Actor], now, leaseDuration, cancellationToken);
 
         return claim ?? throw new InvalidOperationException("Failed to seed a claimed batch for the test.");
     }
+
+    /// <summary>
+    /// Acquires the single shared mail-wake leader lease for <paramref name="owner"/>.
+    /// </summary>
+    private async Task AcquireLeaderLeaseAsync(
+        string owner, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+        => await _leaderStore.TryAcquireAsync(owner, now, leaseDuration, cancellationToken);
 
     private async Task<SqliteConnection> InitializeWorkspaceAsync(CancellationToken cancellationToken)
         => await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
