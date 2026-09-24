@@ -1,17 +1,24 @@
-import { ProblemWindows } from "../visuals/ProblemWindows";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+import {
+  CompositionWindow,
+  ReleaseQueueWindow,
+} from "../visuals/ProblemWindows";
 import { Section } from "./shared";
 
 export function ProblemSection() {
   return (
     <Section id="problem">
-      <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
+      <div className="grid lg:grid-cols-12 lg:gap-16">
+        {/* An h3 so the page keeps exactly four section-level H2s; the
+            classes match SectionHeading's own h2 at size="md". */}
+        <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance lg:col-span-5">
+          What problem does GraphQL Federation solve?
+        </h3>
+      </div>
+      <div className="mt-16 grid items-center gap-10 sm:mt-24 lg:grid-cols-12 lg:gap-16">
         <div className="min-w-0 lg:col-span-5">
-          {/* An h3 so the page keeps exactly four section-level H2s; the
-              classes match SectionHeading's own h2 at size="md". */}
-          <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance">
-            What problem does GraphQL Federation solve?
-          </h3>
-          <div className="text-cc-ink mt-5 space-y-4 text-base">
+          <Eyebrow color="ink-dim">One schema, one release queue</Eyebrow>
+          <div className="text-cc-ink mt-3 space-y-4 text-base">
             <p>
               Most GraphQL APIs start as one server with one schema. That works
               well for a while.
@@ -22,6 +29,16 @@ export function ProblemSection() {
               Everyone shares one release queue, so every change needs
               coordination and every team waits on the same bottleneck.
             </p>
+          </div>
+        </div>
+        <div className="min-w-0 lg:col-span-7">
+          <ReleaseQueueWindow />
+        </div>
+      </div>
+      <div className="mt-16 grid items-center gap-10 sm:mt-24 lg:grid-cols-12 lg:gap-16">
+        <div className="min-w-0 lg:order-2 lg:col-span-5">
+          <Eyebrow color="ink-dim">With GraphQL Federation</Eyebrow>
+          <div className="text-cc-ink mt-3 space-y-4 text-base">
             <p>
               GraphQL Federation breaks that one big schema into smaller ones.
               Each service contributes a source schema, and a service that
@@ -39,8 +56,8 @@ export function ProblemSection() {
             </p>
           </div>
         </div>
-        <div className="min-w-0 lg:col-span-7">
-          <ProblemWindows />
+        <div className="min-w-0 lg:order-1 lg:col-span-7">
+          <CompositionWindow />
         </div>
       </div>
     </Section>

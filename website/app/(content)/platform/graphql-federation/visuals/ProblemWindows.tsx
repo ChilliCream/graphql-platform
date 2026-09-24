@@ -157,24 +157,27 @@ const AFTER_ROWS: readonly WindowRowSpec[] = [
 /**
  * Before/after windows for the Problem section, in the release-safety
  * AppWindow style: one release queue on one schema versus subgraphs composed
- * into one composite schema. Stacked at every width so every row keeps its
- * 11 px labels on one line.
+ * into one composite schema. Each renders on its own so a caller can place
+ * them beside their own text.
  */
-export function ProblemWindows() {
+export function ReleaseQueueWindow() {
   return (
-    <div className="grid gap-6">
-      <StatusWindow
-        title="release queue · schema.graphql · one server"
-        rows={BEFORE_ROWS}
-        footerOk={false}
-        footer="one schema · one release queue · every team waits"
-      />
-      <StatusWindow
-        title="composition · 4 subgraphs"
-        rows={AFTER_ROWS}
-        footerOk
-        footer="one composite schema · teams release on their own schedule"
-      />
-    </div>
+    <StatusWindow
+      title="release queue · schema.graphql · one server"
+      rows={BEFORE_ROWS}
+      footerOk={false}
+      footer="one schema · one release queue · every team waits"
+    />
+  );
+}
+
+export function CompositionWindow() {
+  return (
+    <StatusWindow
+      title="composition · 4 subgraphs"
+      rows={AFTER_ROWS}
+      footerOk
+      footer="one composite schema · teams release on their own schedule"
+    />
   );
 }
