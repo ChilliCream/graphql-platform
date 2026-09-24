@@ -20,6 +20,8 @@ interface Engine {
   mode: LayoutMode | null;
   graph: GraphModel | null;
   copyRect: Rect | null;
+  paragraphRect: Rect | null;
+  ctaRect: Rect | null;
 }
 
 // A static constellation backdrop: the whole scene is a still frame,
@@ -46,6 +48,10 @@ export function GraphBackdrop() {
     const section = root.parentElement;
     const copyEl =
       section?.querySelector<HTMLElement>("[data-hero-copy]") ?? null;
+    const paragraphEl =
+      section?.querySelector<HTMLElement>("[data-hero-paragraph]") ?? null;
+    const ctaEl =
+      section?.querySelector<HTMLElement>("[data-hero-cta]") ?? null;
 
     const engine: Engine = {
       w: 0,
@@ -53,21 +59,28 @@ export function GraphBackdrop() {
       mode: null,
       graph: null,
       copyRect: null,
+      paragraphRect: null,
+      ctaRect: null,
     };
 
+    const relRect = (rb: DOMRect, cb: DOMRect): Rect => ({
+      x: rb.x - cb.x,
+      y: rb.y - cb.y,
+      width: rb.width,
+      height: rb.height,
+    });
+
     const measureCopyRect = () => {
-      if (!copyEl) {
-        engine.copyRect = null;
-        return;
-      }
       const cb = canvas.getBoundingClientRect();
-      const rb = copyEl.getBoundingClientRect();
-      engine.copyRect = {
-        x: rb.x - cb.x,
-        y: rb.y - cb.y,
-        width: rb.width,
-        height: rb.height,
-      };
+      engine.copyRect = copyEl
+        ? relRect(copyEl.getBoundingClientRect(), cb)
+        : null;
+      engine.paragraphRect = paragraphEl
+        ? relRect(paragraphEl.getBoundingClientRect(), cb)
+        : null;
+      engine.ctaRect = ctaEl
+        ? relRect(ctaEl.getBoundingClientRect(), cb)
+        : null;
     };
 
     const rebuild = () => {
@@ -93,6 +106,8 @@ export function GraphBackdrop() {
         h: engine.h,
         graph: engine.graph,
         copyRect: engine.copyRect,
+        paragraphRect: engine.paragraphRect,
+        ctaRect: engine.ctaRect,
       });
     };
 

@@ -29,21 +29,26 @@ export function ExplainerPage() {
               Federation
             </span>
           </h1>
-          <p className="text-cc-ink mx-auto mt-7 max-w-2xl text-lg">
+          <p
+            data-hero-paragraph
+            className="text-cc-ink mx-auto mt-7 max-w-2xl text-lg"
+          >
             Learn what GraphQL Federation is and whether it fits your setup, or
             jump straight into Fusion. It speaks both standards, so you can
             start where the ecosystem is today with Apollo Federation and move
             with it as GraphQL Federation becomes the open standard at the
             GraphQL Foundation.
           </p>
-          <ButtonRow className="mt-7">
-            <SolidButton href="/docs/fusion/getting-started">
-              Get Started
-            </SolidButton>
-            <OutlineButton href="/services/support/contact?subject=Sales&context=GraphQL%20Federation">
-              Contact an Expert
-            </OutlineButton>
-          </ButtonRow>
+          <div data-hero-cta>
+            <ButtonRow className="mt-7">
+              <SolidButton href="/docs/fusion/getting-started">
+                Get Started
+              </SolidButton>
+              <OutlineButton href="/services/support/contact?subject=Sales&context=GraphQL%20Federation">
+                Contact an Expert
+              </OutlineButton>
+            </ButtonRow>
+          </div>
         </div>
       </section>
 
