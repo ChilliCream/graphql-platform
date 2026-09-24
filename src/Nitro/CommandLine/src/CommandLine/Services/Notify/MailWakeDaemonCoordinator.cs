@@ -288,9 +288,8 @@ internal sealed class MailWakeDaemonCoordinator(
                 try
                 {
                     var now = timeProvider.GetUtcNow();
-                    var leaseExpiresAt = Status.LeaseExpiresAt;
 
-                    if (leaseExpiresAt is null || now < leaseExpiresAt)
+                    if (Status.State == MailWakeDaemonState.Ready)
                     {
                         var due = await FindDueActorsWithRetryAsync(now, loopToken) ?? [];
 
