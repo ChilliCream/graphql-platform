@@ -1,15 +1,20 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Features;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using static System.Net.Http.HttpCompletionOption;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.HttpTransportVersion;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
+using OperationInfo = HotChocolate.Execution.Pipeline.OperationInfo;
+using WellKnownRequestMiddleware = HotChocolate.Execution.WellKnownRequestMiddleware;
 
 namespace HotChocolate.AspNetCore;
 
@@ -570,6 +575,310 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
     }
 
+    // A pipeline step that finds the request state an earlier step provides missing is a failure
+    // inside the server, and is answered 500 like one.
+    [Theory]
+    [InlineData("""{ "query": "{ __typename }" }""", Latest)]
+    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Latest)]
+    public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeValidation(
+        string body,
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.DocumentValidationMiddleware,
+            context => context.OperationDocumentInfo.Document = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Latest)]
+    public async Task Post_Should_ReturnInternalServerError_When_CachedDocumentIsMissing(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        // the first request puts its document into the document cache under the document ID
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.DocumentValidationMiddleware,
+            context =>
+            {
+                if (context.OperationDocumentInfo.IsCached)
+                {
+                    context.OperationDocumentInfo.Document = null;
+                }
+            });
+
+        using var cacheRequest = new HttpRequestMessage(HttpMethod.Post, s_url);
+        cacheRequest.Content = new StringContent(
+            """{ "id": "cached-document", "query": "{ __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+        using var cacheResponse = await client.SendAsync(
+            cacheRequest,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(OK, cacheResponse.StatusCode);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "id": "cached-document" }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    // A request that carries only a document ID, sent to a pipeline without persisted
+    // operations, is a request error.
+    [Theory]
+    [InlineData(Latest, BadRequest)]
+    public async Task Post_Should_ReturnBadRequest_When_DocumentIdIsNotResolved(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/test"));
+        request.Content = new StringContent("""{ "id": "abc" }""", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Latest)]
+    public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeCompilation(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationResolverMiddleware,
+            context => context.OperationDocumentInfo.Document = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Either no query document exists or the document validation result is invalid."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Latest)]
+    public async Task Post_Should_ReturnInternalServerError_When_OperationIsMissingBeforeExecution(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationExecutionMiddleware,
+            context => context.Features.GetRequired<OperationInfo>().Operation = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Either no compiled operation was found or the variables have not been coerced."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Latest)]
+    public async Task Post_Should_ReturnInternalServerError_When_OperationIsMissingBeforeVariableCoercion(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationVariableCoercionMiddleware,
+            context => context.Features.GetRequired<OperationInfo>().Operation = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"There is no operation on the context which can be used to coerce variables."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData("""{ "query": "{ __typename }" }""", Latest)]
+    [InlineData("""{ "query": "{ __typename }", "variables": [{}] }""", Latest)]
+    public async Task Post_Should_ReturnInternalServerError_When_VariablesAreMissingBeforeExecution(
+        string body,
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationExecutionMiddleware,
+            context => context.VariableValues = []);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Either no compiled operation was found or the variables have not been coerced."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Latest, BadRequest)]
+    public async Task Post_Should_ReturnBadRequest_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        // with the cost analyzer skipped, the empty batch reaches operation execution
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyCostOptions(o => o.SkipAnalyzer = true)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "query": "query($id: String!) { human(id: $id) { name } }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set."}]}
+                """);
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
@@ -578,6 +887,31 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 {
                     HttpTransportVersion = serverTransportVersion
                 }));
+
+        return server.CreateClient();
+    }
+
+    private HttpClient GetClient(
+        HttpTransportVersion serverTransportVersion,
+        string nextMiddleware,
+        Action<Execution.RequestContext> modifyContext)
+    {
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .UseRequest(
+                    next => context =>
+                    {
+                        modifyContext(context);
+                        return next(context);
+                    },
+                    key: "ModifyContext",
+                    before: nextMiddleware)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = serverTransportVersion
+                    }));
 
         return server.CreateClient();
     }
