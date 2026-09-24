@@ -412,10 +412,17 @@ function sampleWorldNodes(
         }
         for (const i of bucket) {
           const required = Math.max(clearFloor, clears[i]);
-          if (
-            Math.hypot(acceptedX[i] - screen.x, acceptedY[i] - screen.y) <
-            required
-          ) {
+          const ddx = acceptedX[i] - screen.x;
+          const ddy = acceptedY[i] - screen.y;
+          const d2 = ddx * ddx + ddy * ddy;
+          const r2 = required * required;
+          if (d2 > r2 * 1.000001) {
+            continue;
+          }
+          if (d2 < r2 * 0.999999) {
+            return false;
+          }
+          if (Math.hypot(ddx, ddy) < required) {
             return false;
           }
         }
