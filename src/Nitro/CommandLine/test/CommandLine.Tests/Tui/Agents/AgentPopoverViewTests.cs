@@ -159,7 +159,7 @@ public sealed class AgentPopoverViewTests
         var text = PlainText(built);
 
         // assert
-        Assert.Contains($"Last Seen: {lastSeenAt.ToUniversalTime():yyyy-MM-dd}", text);
+        Assert.Contains($"Last Seen: {lastSeenAt.ToUniversalTime():yyyy-MM-dd}\n", text);
     }
 
     [Fact]
