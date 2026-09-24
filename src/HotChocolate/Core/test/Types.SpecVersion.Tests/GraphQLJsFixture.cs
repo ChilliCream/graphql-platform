@@ -1,6 +1,7 @@
 using System.Text;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.SpecVersion;
 
@@ -14,7 +15,7 @@ public sealed class GraphQLJsFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         var nodeFiles = Directory.GetFiles(
-            global::System.IO.Path.Combine(AppContext.BaseDirectory, "node"));
+            IOPath.Combine(AppContext.BaseDirectory, "node"));
 
         try
         {
@@ -82,5 +83,3 @@ public sealed class GraphQLJsFixture : IAsyncLifetime
         return new ValidationResult(result.ExitCode is 0, result.Stdout, result.Stderr);
     }
 }
-
-public sealed record ValidationResult(bool IsSuccess, string StandardOutput, string StandardError);
