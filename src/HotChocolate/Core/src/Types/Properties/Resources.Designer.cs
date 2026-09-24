@@ -117,6 +117,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_EmptyVariableBatch_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptyVariableBatch_Message", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message", resourceCulture);

@@ -97,16 +97,44 @@ internal static class ErrorHelper
     }
 
     public static OperationResult StateInvalidForOperationResolver()
-        => OperationResult.FromError(
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                 .Build());
 
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
+
     public static OperationResult StateInvalidForOperationExecution()
-        => OperationResult.FromError(
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationExecution_Message)
                 .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
+
+    public static OperationResult EmptyVariableBatch()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_EmptyVariableBatch_Message)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(ExecutionContextData.ValidationErrors, null);
+
+        return result;
+    }
 
     public static IError ValueCompletion_CouldNotResolveAbstractType(
         Selection selection,

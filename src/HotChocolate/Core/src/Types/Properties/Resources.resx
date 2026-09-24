@@ -153,6 +153,9 @@
   <data name="ErrorHelper_StateInvalidForOperationExecution_Message" xml:space="preserve">
     <value>Either no compiled operation was found or the variables have not been coerced.</value>
   </data>
+  <data name="ErrorHelper_EmptyVariableBatch_Message" xml:space="preserve">
+    <value>A variable batch request must contain at least one variable set.</value>
+  </data>
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
     <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
