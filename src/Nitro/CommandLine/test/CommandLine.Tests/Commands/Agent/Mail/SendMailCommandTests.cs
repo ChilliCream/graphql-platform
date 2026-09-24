@@ -69,6 +69,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var queueClient = await SetupSuccessfulWakeAsync("host-send-single-test", "bob");
 
@@ -146,6 +147,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // arrange
         // One agent row per actor, so a later session supersedes an earlier one.
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         SetupInstanceId("host-send-two-sessions-test");
         var queueClient = new FakeCodexQueueClient();
@@ -172,6 +174,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await ExecuteCommandAsync("agent", "register", "--actor", "carol");
         await SetupSuccessfulWakeAsync("host-send-dedupe-test", "bob", "carol");
@@ -199,6 +202,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -218,6 +222,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await SetupSuccessfulWakeAsync("host-send-known-unknown-test", "bob");
 
@@ -238,6 +243,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("dave");
         await MarkAgentDeletedAsync("dave");
 
@@ -274,6 +280,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("dave");
 
         // act
@@ -292,6 +299,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
         await SetupSuccessfulWakeAsync("host-send-json-test", "bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -374,6 +382,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await SetupSuccessfulWakeAsync("host-send-body-file-test", "bob");
         var bodyFilePath = Path.Combine(WorkingDirectory, "body.txt");

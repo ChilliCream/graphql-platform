@@ -823,6 +823,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         SetupInstanceId("host-unified-workspace-test");
 
         // act
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
         var sendResult = await ExecuteCommandAsync(
             "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "Merged.");

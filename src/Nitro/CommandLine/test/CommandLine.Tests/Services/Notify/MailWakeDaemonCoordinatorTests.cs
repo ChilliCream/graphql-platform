@@ -551,7 +551,11 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     }
 
     private async Task<MailMessage> SendEnqueuedMailAsync(CancellationToken cancellationToken, string actor)
-        => await _mail.SendMessageAsync(
+    {
+        // Registers the mail sender behind the store's sender-usability check.
+        await _agentRegistry.RegisterAsync("pascal", role: "", client: "", cancellationToken);
+
+        return await _mail.SendMessageAsync(
             new MailMessageCreation
             {
                 Sender = "pascal",
@@ -561,6 +565,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
                 WakePolicy = MailWakePolicy.Enqueue
             },
             cancellationToken);
+    }
 
     private async Task<string?> ReadTargetStatusAsync(string agent, CancellationToken cancellationToken)
     {

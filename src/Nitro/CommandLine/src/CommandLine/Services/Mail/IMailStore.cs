@@ -21,11 +21,11 @@ internal interface IMailStore
 
     /// <summary>
     /// Starts a thread with normalized addresses and recipients deduplicated in first
-    /// occurrence order (To wins over Cc), registering the sender and creating implicit identities for unknown recipients.
+    /// occurrence order (To wins over Cc). The sender must exist and not be deleted.
     /// Stores the message and recipients atomically with wake generations when
     /// <see cref="MailMessageCreation.WakePolicy"/> requests them; invalid addresses,
-    /// a trimmed subject outside 1 to 500 characters, or no recipients cause an
-    /// <see cref="ExitException"/>.
+    /// a trimmed subject outside 1 to 500 characters, no recipients, or an unusable
+    /// sender or recipient cause an <see cref="ExitException"/>.
     /// </summary>
     Task<MailMessage> SendMessageAsync(
         MailMessageCreation creation,

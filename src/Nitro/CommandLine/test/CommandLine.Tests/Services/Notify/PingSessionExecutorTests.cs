@@ -24,6 +24,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
     private readonly AgentStore _agentStore;
+    private readonly AgentRegistry _agentRegistry;
     private readonly MailStore _mail;
     private readonly AgentDeliveryLedger _ledger;
     private readonly PingLeaseStore _leases;
@@ -40,6 +41,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
         _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
+        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
         _ledger = new AgentDeliveryLedger(_fileSystem, _database);
         _leases = new PingLeaseStore(_fileSystem, _database);
@@ -458,6 +460,9 @@ public sealed class PingSessionExecutorTests : IDisposable
         {
         }
 
+        // Registers the mail sender used throughout this fixture's digests.
+        await _agentRegistry.RegisterAsync("pascal", role: "", client: "", cancellationToken);
+
         var result = await _agentStore.StartSessionAsync(
             new AgentSessionStartRequest
             {
@@ -483,6 +488,9 @@ public sealed class PingSessionExecutorTests : IDisposable
         await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
         }
+
+        // Registers the mail sender used throughout this fixture's digests.
+        await _agentRegistry.RegisterAsync("pascal", role: "", client: "", cancellationToken);
 
         var result = await _agentStore.StartSessionAsync(
             new AgentSessionStartRequest

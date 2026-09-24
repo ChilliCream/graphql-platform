@@ -25,6 +25,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
     private readonly AgentStore _agentStore;
+    private readonly AgentRegistry _agentRegistry;
     private readonly MailStore _mail;
     private readonly MailWakeBatchStore _batches;
     private readonly AgentPingGateStore _gates;
@@ -40,6 +41,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
         _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
+        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
         _batches = new MailWakeBatchStore(_fileSystem, _database);
         _gates = new AgentPingGateStore(_fileSystem, _database);
@@ -687,7 +689,11 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     private async Task<MailMessage> SendEnqueuedMailAsync(string actor, CancellationToken cancellationToken)
-        => await _mail.SendMessageAsync(
+    {
+        // Registers the mail sender behind the store's sender-usability check.
+        await _agentRegistry.RegisterAsync("pascal", role: "", client: "", cancellationToken);
+
+        return await _mail.SendMessageAsync(
             new MailMessageCreation
             {
                 Sender = "pascal",
@@ -697,4 +703,5 @@ public sealed class ActorWakeDispatcherTests : IDisposable
                 WakePolicy = MailWakePolicy.Enqueue
             },
             cancellationToken);
+    }
 }

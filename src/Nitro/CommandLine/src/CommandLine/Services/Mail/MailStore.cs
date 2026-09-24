@@ -68,6 +68,10 @@ internal sealed class MailStore(
         var now = timeProvider.GetUtcNow();
         var seed = $"{sender}|{subject}|{now:O}";
 
+        // Second line of defense behind the --actor resolver: a caller that reaches the
+        // store directly (a hook, the TUI) can still pass an unusable sender.
+        await EnsureAgentUsableAsync(sender, cancellationToken);
+
         // Refreshes the sender's presence before the message transaction.
         await agentStore.TouchAsync(sender, cancellationToken);
 

@@ -1065,6 +1065,7 @@ public sealed class AgentDatabaseTests : IDisposable
                 Actor = "claude"
             },
             cancellationToken);
+        await agentRegistry.RegisterAsync("claude", role: "", client: "", cancellationToken);
         await agentRegistry.RegisterAsync("codex", role: "", client: "", cancellationToken);
         var message = await mailStore.SendMessageAsync(
             new MailMessageCreation

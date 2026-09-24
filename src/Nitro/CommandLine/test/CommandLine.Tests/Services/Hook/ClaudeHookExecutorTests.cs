@@ -199,6 +199,7 @@ public sealed class ClaudeHookExecutorTests
             var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
             await handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
             await agentRegistry.RegisterAsync("alice", role: "", client: "", cancellationToken);
+            await agentRegistry.RegisterAsync("bob", role: "", client: "", cancellationToken);
             await mail.SendMessageAsync(
                 new MailMessageCreation { Sender = "bob", Subject = "status", Body = "check", To = ["alice"] },
                 cancellationToken);
