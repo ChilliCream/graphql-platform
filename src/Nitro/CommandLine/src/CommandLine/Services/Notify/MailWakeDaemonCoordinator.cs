@@ -29,6 +29,13 @@ internal sealed class MailWakeDaemonCoordinator(
     /// </summary>
     internal Func<CancellationToken, Task>? AfterStandbyTickAsync { get; init; }
 
+    /// <summary>
+    /// Invoked once leadership is ending, either because <see cref="StopAsync"/> was called
+    /// or the coordinator degraded itself, before it bounds its wait for the heartbeat and
+    /// admission loops to drain.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterLeadershipEndedAsync { get; init; }
+
     private readonly string _ownerToken = $"daemon-{Guid.NewGuid():N}";
     private readonly object _statusLock = new();
     private readonly ConcurrentDictionaryBackoff _backoff = new();
@@ -229,11 +236,39 @@ internal sealed class MailWakeDaemonCoordinator(
 
         var heartbeatTask = HeartbeatLoopAsync(degradedSource, leaderSource.Token);
         var admissionTask = AdmissionLoopAsync(degradedSource, leaderSource.Token);
+        var loopsCompleted = Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
 
-        await Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
-
-        if (stopToken.IsCancellationRequested || Status.State == MailWakeDaemonState.Degraded)
+        // Cheap and never blocked by an in-flight dispatch: leaderSource cancels the moment
+        // either StopAsync is called or the coordinator degrades itself.
+        try
         {
+            await Task.Delay(Timeout.InfiniteTimeSpan, leaderSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        if (stopToken.IsCancellationRequested || degradedSource.IsCancellationRequested)
+        {
+            if (AfterLeadershipEndedAsync is { } afterLeadershipEndedAsync)
+            {
+                await afterLeadershipEndedAsync(CancellationToken.None);
+            }
+
+            try
+            {
+                // Bounded so a dispatch that ignores its cancellation token cannot hold the
+                // lease forever; the loops keep draining in the background either way.
+                await loopsCompleted.WaitAsync(policy.ShutdownWait, timeProvider, CancellationToken.None);
+            }
+            catch (TimeoutException)
+            {
+                UpdateStatus(s => s with
+                {
+                    LastError = Bound("A dispatch ignored cancellation past the shutdown wait; leadership was released anyway.")
+                });
+            }
+
             await ReleaseWithRetryAsync(CancellationToken.None);
         }
     }
