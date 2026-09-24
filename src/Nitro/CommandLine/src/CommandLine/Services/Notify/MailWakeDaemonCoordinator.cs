@@ -512,11 +512,13 @@ internal sealed class MailWakeDaemonCoordinator(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var actors = await connection.QueryAsync<string>(
-            """
-            SELECT actor FROM mail_wake_outbox
-            WHERE settled_generation < requested_generation AND due_at <= @now
-            """,
-            new { now, cancellationToken });
+            new CommandDefinition(
+                """
+                SELECT actor FROM mail_wake_outbox
+                WHERE settled_generation < requested_generation AND due_at <= @now
+                """,
+                new { now },
+                cancellationToken: cancellationToken));
 
         return actors.AsList();
     }

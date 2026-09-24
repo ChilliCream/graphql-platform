@@ -316,17 +316,19 @@ internal sealed class MailStore(
         foreach (var recipient in recipients)
         {
             var generation = await connection.QueryFirstOrDefaultAsync<long>(
-                """
-                INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
-                VALUES (@actor, 1, 0, @now, @now)
-                ON CONFLICT (actor) DO UPDATE SET
-                    requested_generation = requested_generation + 1,
-                    due_at = MIN(due_at, excluded.due_at),
-                    updated_at = excluded.updated_at
-                RETURNING requested_generation
-                """,
-                new { actor = recipient.Name, now, cancellationToken },
-                transaction);
+                new CommandDefinition(
+                    """
+                    INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+                    VALUES (@actor, 1, 0, @now, @now)
+                    ON CONFLICT (actor) DO UPDATE SET
+                        requested_generation = requested_generation + 1,
+                        due_at = MIN(due_at, excluded.due_at),
+                        updated_at = excluded.updated_at
+                    RETURNING requested_generation
+                    """,
+                    new { actor = recipient.Name, now },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken));
 
             receipts.Add(new MailWakeReceipt { Actor = recipient.Name, Generation = generation });
         }
