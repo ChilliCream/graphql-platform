@@ -330,8 +330,21 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         var gatedLeaderStore = new GatedRenewalLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database));
         var dispatcher = new CountingDispatcher();
+        var ticksAfterInsert = 0;
+        DateTimeOffset? insertedAt = null;
         await using var coordinator = new MailWakeDaemonCoordinator(
-            gatedLeaderStore, dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy);
+            gatedLeaderStore, dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy)
+        {
+            AfterAdmissionTickAsync = _ =>
+            {
+                if (insertedAt is { } insertedAtValue && timeProvider.GetUtcNow() > insertedAtValue)
+                {
+                    Interlocked.Increment(ref ticksAfterInsert);
+                }
+
+                return Task.CompletedTask;
+            }
+        };
 
         // act
         await coordinator.StartAsync(cancellationToken);
@@ -340,13 +353,54 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         timeProvider.Advance(s_fastPolicy.LeaderLeaseDuration + s_fastPolicy.HeartbeatInterval);
         await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, Actor);
-        timeProvider.Advance(s_fastPolicy.AdmissionPollInterval);
-        await Task.Delay(s_fastPolicy.AdmissionPollInterval * 5, cancellationToken);
+        insertedAt = timeProvider.GetUtcNow();
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.AdmissionPollInterval,
+            () => Volatile.Read(ref ticksAfterInsert) > 0,
+            cancellationToken);
+        gatedLeaderStore.ReleaseHeldRenewal();
 
         // assert
         // The lapsed cached lease stopped admission before the heartbeat's held renewal ever returned.
         Assert.Equal(0, dispatcher.DispatchCount);
         Assert.Equal(MailWakeDaemonState.Standby, coordinator.Status.State);
+
+        await coordinator.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task RunningLeader_Should_ReleaseLeadershipAfterTheHeldRenewalReturns_When_ItsOwnDispatchIsAccessDenied()
+    {
+        // arrange
+        // A leader store wrapper holds the heartbeat's in-flight renewal while an access-denied
+        // dispatch degrades the coordinator; the renewal must complete before the release runs.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var events = new ConcurrentQueue<string>();
+        var leaderStore = new OrderedReleaseLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database), events);
+        var dispatcher = new AlwaysDeniedDispatcher();
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            leaderStore, dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy);
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        leaderStore.HoldNextRenewal();
+        await AdvanceUntilAsync(timeProvider, s_fastPolicy.HeartbeatInterval, () => leaderStore.IsHeld, cancellationToken);
+        await InsertDueOutboxRowAsync(cancellationToken, Actor);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.AdmissionPollInterval,
+            () => coordinator.Status.State == MailWakeDaemonState.Degraded,
+            cancellationToken);
+        leaderStore.ReleaseHeldRenewal();
+        await WaitUntilAsync(() => events.Count >= 2, cancellationToken);
+
+        // assert
+        Assert.Equal(["renewal-completed", "release-attempted"], events);
 
         await coordinator.StopAsync(cancellationToken);
     }
@@ -708,6 +762,28 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             await Task.Delay(TimeSpan.FromMilliseconds(15), cancellationToken);
         }
     }
+
+    /// <summary>
+    /// Repeatedly advances <paramref name="timeProvider"/> by <paramref name="step"/> until
+    /// <paramref name="condition"/> is observed true, so a background loop parked on a fake-clock
+    /// delay gets a fresh due time on every attempt instead of a single, possibly missed, advance.
+    /// </summary>
+    private static async Task AdvanceUntilAsync(
+        FakeTimeProvider timeProvider, TimeSpan step, Func<bool> condition, CancellationToken cancellationToken)
+    {
+        var deadline = DateTime.UtcNow + s_waitTimeout;
+
+        while (!condition())
+        {
+            if (DateTime.UtcNow >= deadline)
+            {
+                throw new TimeoutException("Condition was not met within the timeout.");
+            }
+
+            timeProvider.Advance(step);
+            await Task.Delay(TimeSpan.FromMilliseconds(15), cancellationToken);
+        }
+    }
 }
 
 /// <summary>
@@ -1003,4 +1079,63 @@ internal sealed class GatedRenewalLeaderStore(IMailWakeDaemonLeaderStore inner) 
 
     public Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
         => inner.TryReleaseAsync(token, now, cancellationToken);
+}
+
+/// <summary>
+/// Delegates every call to <paramref name="inner"/>, except that after
+/// <see cref="HoldNextRenewal"/> the next <see cref="TryRenewAsync"/> call marks
+/// <see cref="IsHeld"/> and awaits <see cref="ReleaseHeldRenewal"/> before completing
+/// against <paramref name="inner"/> with no cancellation, then records
+/// <c>"renewal-completed"</c> into <paramref name="events"/>. Every
+/// <see cref="TryReleaseAsync"/> call records <c>"release-attempted"</c> before delegating.
+/// </summary>
+internal sealed class OrderedReleaseLeaderStore(IMailWakeDaemonLeaderStore inner, ConcurrentQueue<string> events)
+    : IMailWakeDaemonLeaderStore
+{
+    private volatile bool _held;
+    private TaskCompletionSource? _gate;
+
+    public bool IsHeld => _held;
+
+    public void HoldNextRenewal() => _gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public void ReleaseHeldRenewal() => _gate?.TrySetResult();
+
+    public Task<bool> TryAcquireAsync(string token, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+        => inner.TryAcquireAsync(token, now, leaseDuration, cancellationToken);
+
+    public async Task<bool> TryRenewAsync(string token, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+    {
+        if (_gate is { } gate)
+        {
+            _held = true;
+            await gate.Task;
+        }
+
+        // Simulates a renewal already in flight against the database: it runs to
+        // completion rather than being cut short by the caller's own cancellation.
+        var renewed = await inner.TryRenewAsync(token, now, leaseDuration, CancellationToken.None);
+        events.Enqueue("renewal-completed");
+        return renewed;
+    }
+
+    public Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        events.Enqueue("release-attempted");
+        return inner.TryReleaseAsync(token, now, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Returns a pending, access-denied receipt for whichever actor it is dispatched for,
+/// on every call, without touching any real session, mail, or dispatch machinery.
+/// </summary>
+internal sealed class AlwaysDeniedDispatcher : IActorWakeDispatcher
+{
+    public Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
+        => Task.FromResult<ActorWakeReceipt?>(new ActorWakeReceipt(
+            actor,
+            "denied",
+            [new ActorWakeTargetReceipt(actor, MailWakeTargetStatus.Pending, null, null, "access-denied")]));
 }

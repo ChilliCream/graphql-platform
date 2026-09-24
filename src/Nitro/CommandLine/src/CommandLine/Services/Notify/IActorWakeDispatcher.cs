@@ -8,7 +8,9 @@ internal interface IActorWakeDispatcher
 {
     /// <summary>
     /// Dispatches the actor's pending wake work within the supplied transport deadline,
-    /// fencing every batch write on the caller's leader lease token.
+    /// fencing every batch write on the caller's leader lease token, and returns null
+    /// when no batch can be claimed. Transport outcomes are recorded without propagating
+    /// transport failures; caller cancellation and workspace or storage failures propagate.
     /// </summary>
     Task<ActorWakeReceipt?> DispatchAsync(
         string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken);

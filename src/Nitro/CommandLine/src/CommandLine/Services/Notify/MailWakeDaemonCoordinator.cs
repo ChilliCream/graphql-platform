@@ -19,6 +19,11 @@ internal sealed class MailWakeDaemonCoordinator(
 {
     private const int MaxTransientAttempts = 5;
 
+    /// <summary>
+    /// Invoked at the end of every admission loop iteration, before its poll delay.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterAdmissionTickAsync { get; init; }
+
     private readonly string _ownerToken = $"daemon-{Guid.NewGuid():N}";
     private readonly object _statusLock = new();
     private readonly ConcurrentDictionaryBackoff _backoff = new();
@@ -217,9 +222,9 @@ internal sealed class MailWakeDaemonCoordinator(
 
         await Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
 
-        if (stopToken.IsCancellationRequested && Status.State != MailWakeDaemonState.Degraded)
+        if (stopToken.IsCancellationRequested || Status.State == MailWakeDaemonState.Degraded)
         {
-            await leaderStore.TryReleaseAsync(_ownerToken, timeProvider.GetUtcNow(), CancellationToken.None);
+            await ReleaseWithRetryAsync(CancellationToken.None);
         }
     }
 
@@ -321,6 +326,11 @@ internal sealed class MailWakeDaemonCoordinator(
                     UpdateStatus(s => s with { LastError = Bound(ex.Message) });
                 }
 
+                if (AfterAdmissionTickAsync is { } afterAdmissionTickAsync)
+                {
+                    await afterAdmissionTickAsync(loopToken);
+                }
+
                 await Task.Delay(policy.AdmissionPollInterval, timeProvider, loopToken);
             }
         }
@@ -366,16 +376,8 @@ internal sealed class MailWakeDaemonCoordinator(
                     SelfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
                     UpdateStatus(s => s with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
 
-                    // Signals sibling dispatches to cancel before releasing leadership.
-                    try
-                    {
-                        await degradedSource.CancelAsync();
-                    }
-                    finally
-                    {
-                        await ReleaseWithRetryAsync(CancellationToken.None);
-                    }
-
+                    // Leadership is released once both the heartbeat and admission loops have stopped.
+                    await degradedSource.CancelAsync();
                     return;
                 }
 
