@@ -696,7 +696,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     /// prefix and gitignore content.
     /// </summary>
     [Fact]
-    public async Task PlainInit_UpgradesSchemaOnly_When_ExistingVersionIsUpgradable()
+    public async Task Init_Should_UpgradeSchemaOnly_When_ExistingVersionIsUpgradable()
     {
         // arrange
         await SeedV3WorkspaceAsync("legacy3");
@@ -788,7 +788,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task TasksAndMail_ShareTheSameUnifiedWorkspace()
+    public async Task Init_Should_ShareTasksAndMailInTheSameUnifiedWorkspace_When_BothAreUsed()
     {
         // arrange
         await InitWorkspaceAsync();

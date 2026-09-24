@@ -66,7 +66,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task SingleRecipient_SendsMessage()
+    public async Task Send_Should_DeliverMessage_When_ThereIsASingleRecipient()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -118,7 +118,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task NudgeAsync_Should_LeaveTheMessageUnread_When_ItPushesTheBody()
     {
-        // arrange: pushing the body to the session never means it was read.
+        // arrange
+        // Pushing the body to the session never means it was read.
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
@@ -132,8 +133,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         // act
         await nudge.NudgeAsync(["bob"], cancellationToken);
 
-        // assert: the pushed payload says unread, the message is still in the
-        // unread inbox, and the unread count is unchanged.
+        // assert
+        // The pushed payload says unread and the unread inbox and count are unchanged.
         var call = Assert.Single(queueClient.Calls);
         Assert.False(ReadDigestReadFlag(call));
         var unread = await store.QueryInboxAsync(
@@ -272,7 +273,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task NameInBothToAndCc_CollapsesWithToWinning()
+    public async Task Send_Should_CollapseNameInBothToAndCc_WithToWinning_When_RecipientsOverlap()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -397,7 +398,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JsonOutput_ReturnsSendResult()
+    public async Task Send_Should_ReturnSendResult_When_JsonOutputIsRequested()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -480,7 +481,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task BodyFile_ReadsContentVerbatim_PreservingLineEndings()
+    public async Task Send_Should_ReadBodyFileContentVerbatim_PreservingLineEndings_When_BodyFileIsGiven()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -540,7 +541,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task SendingToSelf_IsAllowed()
+    public async Task Send_Should_BeAllowed_When_RecipientIsSelf()
     {
         // arrange
         await InitWorkspaceAsync();

@@ -711,14 +711,17 @@ public sealed class AgentDatabaseTests : IDisposable
             + "('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');",
             cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<SqliteException>(() => ExecuteAsync(
+        // act
+        var exception = await Record.ExceptionAsync(() => ExecuteAsync(
             connection,
             """
             INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at)
             VALUES ('maya', 'msg-1', 'unknown-channel', '2026-01-10T12:00:00+00:00');
             """,
             cancellationToken));
+
+        // assert
+        Assert.IsType<SqliteException>(exception);
     }
 
     /// <summary>

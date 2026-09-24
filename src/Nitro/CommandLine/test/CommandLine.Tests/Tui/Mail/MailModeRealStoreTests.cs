@@ -116,7 +116,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task OpenSelected_Should_MarkMessageRead_AgainstTheRealStore()
+    public async Task OpenSelected_Should_MarkMessageRead_AgainstTheRealStore_When_MessageIsUnread()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -141,7 +141,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ArchiveConfirmation_Confirmed_Should_ArchiveMessage_AgainstTheRealStore()
+    public async Task ArchiveConfirmation_Confirmed_Should_ArchiveMessage_AgainstTheRealStore_When_ConfirmationIsAccepted()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -204,7 +204,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ReplyForm_Submit_Should_ComputeTheSameRecipientSet_AsTheCliReplyCommand()
+    public async Task ReplyForm_Submit_Should_ComputeTheSameRecipientSet_AsTheCliReplyCommand_When_ReplyingAll()
     {
         // arrange
         // Seed matching threads for a direct reply and a reply built by the form.

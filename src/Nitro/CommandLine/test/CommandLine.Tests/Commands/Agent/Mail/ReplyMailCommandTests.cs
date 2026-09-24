@@ -39,7 +39,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ReplyAll_ExcludesSelf_IncludesSenderAndOtherRecipients()
+    public async Task ReplyAll_Should_ExcludeSelf_AndIncludeSenderAndOtherRecipients_When_ReplyingToAll()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -160,7 +160,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Reply_ThreadsUnderOriginalMessage_AndInheritsRootSubject()
+    public async Task Reply_Should_ThreadUnderOriginalMessage_AndInheritRootSubject_When_JsonOutputIsRequested()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -188,7 +188,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Reply_Should_NudgeRecipientWithExactMessageIdAndBody()
+    public async Task Reply_Should_NudgeRecipientWithExactMessageIdAndBody_When_ReplyIsSent()
     {
         // arrange
         await InitWorkspaceAsync();

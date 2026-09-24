@@ -966,7 +966,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast(AgentFilterRequiresWorkspaceMessage, ToastStyle.Warn)];
         }
 
-        var agents = _agentStore.ListAsync(CancellationToken.None).GetAwaiter().GetResult();
+        var agents = _agentStore.ListAsync(CancellationToken.None)
+            .GetAwaiter()
+            .GetResult()
+            .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         _agentPicker = BuildAgentPicker(agents, _state.AgentFilter);
         return [];

@@ -1594,7 +1594,37 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void AgentFilterPicker_Applied_Should_NarrowWorkspaceMessages_ToMessagesTheAgentSentOrReceived()
+    public void AgentFilterPickerRequested_Should_ListAgentsByName_When_StoreReturnsThemOutOfOrder()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        agentStore.Seed(Agent("zeta"));
+        agentStore.Seed(Agent("alpha"));
+        agentStore.Seed(Agent("mike"));
+        var mode = CreateMode(store, agentStore: agentStore);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
+        mode.Handle(new TuiMessage.AgentFilterPickerRequested());
+        var console = new TestConsole().Width(70).Height(6);
+
+        // act
+        console.Write(mode.Render(70, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Filter by agent──────────────────────────────────────────────╮
+            │ (o) All agents                                               │
+            │ ( ) alpha                                                    │
+            │ ( ) mike                                                     │
+            │ ( ) zeta                                                     │
+            ╰──────────────────────────────────────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void AgentFilterPicker_Applied_Should_NarrowWorkspaceMessages_ToMessagesTheAgentSentOrReceived_When_AnAgentIsSelected()
     {
         // arrange
         var store = new FakeMailStore();
@@ -1624,7 +1654,7 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void AgentFilterPicker_Applied_AllAgents_Should_RestoreTheFullWorkspaceStream()
+    public void AgentFilterPicker_Applied_AllAgents_Should_RestoreTheFullWorkspaceStream_When_AllAgentsIsSelected()
     {
         // arrange
         var store = new FakeMailStore();
@@ -1655,7 +1685,7 @@ public sealed class MailModeTests
     }
 
     [Fact]
-    public void AgentFilterPicker_Cancelled_Should_LeaveTheFilterUnchanged()
+    public void AgentFilterPicker_Cancelled_Should_LeaveTheFilterUnchanged_When_PickerIsCancelled()
     {
         // arrange
         var store = new FakeMailStore();

@@ -34,7 +34,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_OpenWithoutAnActor()
+    public void BuildMailTab_Should_OpenWithoutAnActor_When_NoActorIsGiven()
     {
         var store = new FakeMailStore();
 
@@ -48,7 +48,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_HostAWorkingMailMode()
+    public void BuildMailTab_Should_HostAWorkingMailMode_When_MailStoreIsGiven()
     {
         // arrange
         var store = new FakeMailStore();

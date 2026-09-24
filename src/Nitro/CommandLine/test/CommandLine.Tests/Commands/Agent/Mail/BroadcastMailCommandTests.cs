@@ -37,7 +37,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ExcludesSender_SendsToOthersOrderedByName()
+    public async Task Broadcast_Should_ExcludeSenderAndOrderOthersByName_When_MultipleAgentsAreRegistered()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -289,7 +289,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JsonOutput_ReturnsMessageResult()
+    public async Task Broadcast_Should_ReturnMessageResult_When_JsonOutputIsRequested()
     {
         // arrange
         await InitWorkspaceAsync();
