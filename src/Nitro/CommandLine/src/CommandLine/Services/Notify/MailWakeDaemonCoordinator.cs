@@ -55,6 +55,12 @@ internal sealed class MailWakeDaemonCoordinator(
         {
             lock (_statusLock)
             {
+                if (_status.State == MailWakeDaemonState.Ready
+                    && timeProvider.GetUtcNow() >= _status.LeaseExpiresAt)
+                {
+                    return _status with { State = MailWakeDaemonState.Standby, OwnerToken = null, LeaseExpiresAt = null };
+                }
+
                 return _status;
             }
         }
@@ -282,22 +288,27 @@ internal sealed class MailWakeDaemonCoordinator(
                 try
                 {
                     var now = timeProvider.GetUtcNow();
-                    var due = await FindDueActorsWithRetryAsync(now, loopToken) ?? [];
+                    var leaseExpiresAt = Status.LeaseExpiresAt;
 
-                    foreach (var actor in due)
+                    if (leaseExpiresAt is null || now < leaseExpiresAt)
                     {
-                        lock (inFlightLock)
+                        var due = await FindDueActorsWithRetryAsync(now, loopToken) ?? [];
+
+                        foreach (var actor in due)
                         {
-                            if (inFlight.Contains(actor) || !_backoff.IsEligible(actor, now))
+                            lock (inFlightLock)
                             {
-                                continue;
+                                if (inFlight.Contains(actor) || !_backoff.IsEligible(actor, now))
+                                {
+                                    continue;
+                                }
+
+                                inFlight.Add(actor);
                             }
 
-                            inFlight.Add(actor);
+                            executionTasks.Add(ExecuteActorAsync(
+                                actor, executionGate, inFlight, inFlightLock, degradedSource, loopToken));
                         }
-
-                        executionTasks.Add(ExecuteActorAsync(
-                            actor, executionGate, inFlight, inFlightLock, degradedSource, loopToken));
                     }
 
                     executionTasks.RemoveAll(t => t.IsCompleted);
@@ -341,7 +352,7 @@ internal sealed class MailWakeDaemonCoordinator(
             try
             {
                 var deadline = timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;
-                var receipt = await dispatcher.DispatchAsync(actor, deadline, loopToken);
+                var receipt = await dispatcher.DispatchAsync(actor, _ownerToken, deadline, loopToken);
 
                 if (receipt is null)
                 {

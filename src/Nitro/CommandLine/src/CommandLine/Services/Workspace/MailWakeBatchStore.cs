@@ -64,6 +64,24 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             return null;
         }
 
+        var isLeaseHolder = await connection.ExecuteScalarAsync<long>(
+            new CommandDefinition(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM mail_wake_daemons
+                    WHERE id = 1 AND owner_token = @ownerId AND expires_at > @now
+                )
+                """,
+                new { ownerId, now },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        if (isLeaseHolder == 0)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return null;
+        }
+
         var batchId = Guid.NewGuid().ToString("N");
         var expiresAt = now + leaseDuration;
 
@@ -125,6 +143,10 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                 UPDATE mail_wake_batches SET expires_at = @expiresAt
                 WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
                   AND status = 'active' AND expires_at > @now
+                  AND EXISTS (
+                      SELECT 1 FROM mail_wake_daemons
+                      WHERE id = 1 AND owner_token = @ownerId AND expires_at > @now
+                  )
                 RETURNING batch_id
                 """,
                 new { batchId, ownerId, attemptId, now, expiresAt = now + leaseDuration },
@@ -149,6 +171,10 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                 UPDATE mail_wake_batches SET status = 'completed', completed_at = @now
                 WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
                   AND status = 'active' AND expires_at > @now
+                  AND EXISTS (
+                      SELECT 1 FROM mail_wake_daemons
+                      WHERE id = 1 AND owner_token = @ownerId AND expires_at > @now
+                  )
                 RETURNING actor AS Actor, claimed_generation AS ClaimedGeneration
                 """,
                 new { batchId, ownerId, attemptId, now },
@@ -200,6 +226,10 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                 UPDATE mail_wake_batches SET status = 'released', last_error = @lastError
                 WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
                   AND status = 'active' AND expires_at > @now
+                  AND EXISTS (
+                      SELECT 1 FROM mail_wake_daemons
+                      WHERE id = 1 AND owner_token = @ownerId AND expires_at > @now
+                  )
                 RETURNING actor AS Actor
                 """,
                 new { batchId, ownerId, attemptId, now, lastError },
@@ -257,6 +287,10 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
                       SELECT 1 FROM mail_wake_batches
                       WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
                         AND status = 'active' AND expires_at > @now
+                  )
+                  AND EXISTS (
+                      SELECT 1 FROM mail_wake_daemons
+                      WHERE id = 1 AND owner_token = @ownerId AND expires_at > @now
                   )
                 RETURNING batch_id
                 """,

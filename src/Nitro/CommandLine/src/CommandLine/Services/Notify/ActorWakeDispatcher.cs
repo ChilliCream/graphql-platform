@@ -18,12 +18,12 @@ internal sealed class ActorWakeDispatcher(
     TimeProvider timeProvider) : IActorWakeDispatcher
 {
     public async Task<ActorWakeReceipt?> DispatchAsync(
-        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         var normalizedActor = MailAgentName.Normalize(actor);
 
         var now = timeProvider.GetUtcNow();
-        var ownerId = $"dispatcher-{Guid.NewGuid():N}";
+        var ownerId = leaderToken;
         var batchAttemptId = $"batch-{Guid.NewGuid():N}";
 
         var claim = await batchStore.TryClaimAsync(
