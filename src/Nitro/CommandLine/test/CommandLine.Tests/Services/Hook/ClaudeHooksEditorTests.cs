@@ -13,10 +13,13 @@ public sealed class ClaudeHooksEditorTests
         new("/home/agent/.dotnet/tools/nitro", []);
 
     [Fact]
-    public void Install_MissingFile_CreatesAllFourEventsAsInstalled()
+    public void Install_Should_CreateAllFiveEventsAsInstalled_When_TheSettingsFileIsMissing()
     {
+        // arrange
+        // act
         var result = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
 
+        // assert
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
         Assert.Equal(ClaudeHooksTemplate.Events, result.Outcomes.Select(o => o.Event));
 
@@ -29,7 +32,7 @@ public sealed class ClaudeHooksEditorTests
             AssertCommand(group, ClaudeHooksTemplate.BuildCommand(s_descriptor, claudeEvent), 10);
         }
 
-        Assert.Equal(4, result.Sidecar.Count);
+        Assert.Equal(5, result.Sidecar.Count);
         Assert.All(result.Sidecar.Values, e => Assert.Equal(DateTimeOffset.UnixEpoch, e.InstalledAt));
     }
 

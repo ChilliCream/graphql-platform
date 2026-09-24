@@ -160,9 +160,50 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
+    [Fact]
+    public async Task Notification_Should_WriteNeutralResponse_When_TheNotificationTypeIsNotIdlePrompt()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await BindAgentSessionAsync("maya", "session-1");
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}},"notification_type":"permission_request"}""");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "claude", "notification");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task Notification_Should_TouchTheSession_When_TheNotificationTypeIsIdlePrompt()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await BindAgentSessionAsync("maya", "session-1");
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+        await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
+        var lastSeenBefore = await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'");
+        FakeTime.Advance(TimeSpan.FromMinutes(5));
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}},"notification_type":"idle_prompt"}""");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "claude", "notification");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+        Assert.NotEqual(lastSeenBefore, await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'"));
+    }
+
     [Theory]
     [InlineData("user-prompt-submit")]
     [InlineData("stop")]
+    [InlineData("notification")]
     [InlineData("session-end")]
     public async Task Event_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession(string eventName)
     {
@@ -214,6 +255,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
               session-start       Adapt Claude Code's SessionStart hook: upsert this session's presence row.
               user-prompt-submit  Adapt Claude Code's UserPromptSubmit hook: reset the block budget and inject the unread-mail digest.
               stop                Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.
+              notification        Adapt Claude Code's Notification hook: touch last-seen on an idle-prompt notification.
               session-end         Adapt Claude Code's SessionEnd hook: mark this session's agent row as ended.
             """);
     }
@@ -228,6 +270,9 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [InlineData(
         "stop",
         "Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.")]
+    [InlineData(
+        "notification",
+        "Adapt Claude Code's Notification hook: touch last-seen on an idle-prompt notification.")]
     [InlineData(
         "session-end",
         "Adapt Claude Code's SessionEnd hook: mark this session's agent row as ended.")]

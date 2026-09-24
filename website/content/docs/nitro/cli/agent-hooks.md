@@ -19,7 +19,7 @@ nitro agent hooks opencode install
 
 # Claude Code
 
-Claude Code hook entries live in a `settings.json` file and cover four events: `SessionStart`, `UserPromptSubmit`, `Stop`, and `SessionEnd`. Each entry runs `nitro agent hook claude <event>`. The `Stop` entry is a hard gate: it can block the turn from ending, up to three times per turn, until unread mail is read, resetting on the next `UserPromptSubmit`.
+Claude Code hook entries live in a `settings.json` file and cover five events: `SessionStart`, `UserPromptSubmit`, `Stop`, `Notification`, and `SessionEnd`. Each entry runs `nitro agent hook claude <event>`. The `Stop` entry is a hard gate: it can block the turn from ending, up to three times per turn, until unread mail is read, resetting on the next `UserPromptSubmit`. The `Notification` entry only refreshes the agent's last-seen time, and only when Claude Code's `notification_type` is `idle_prompt`.
 
 `install` and `uninstall` only ever touch the entries Nitro itself owns; hook entries another tool added for the same event are left in place.
 

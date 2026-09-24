@@ -111,6 +111,19 @@ internal sealed class ClaudeHookHandler(
         };
     }
 
+    public async Task<ClaudeHookOutcome> HandleNotificationAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
+    {
+        if (payload.NotificationType != "idle_prompt")
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        await ResolveOrStartRowAsync(payload, skipSessionFileLookup, cancellationToken);
+
+        return ClaudeHookOutcome.Neutral;
+    }
+
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {

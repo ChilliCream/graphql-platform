@@ -31,6 +31,14 @@ internal interface IClaudeHookHandler
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Touches the session's last-seen time, minting the row first when it is not yet known,
+    /// only when <see cref="ClaudeHookPayload.NotificationType"/> is <c>idle_prompt</c>; any
+    /// other type, or a payload that does not resolve, leaves the store untouched.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleNotificationAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Stamps the session's agent row as ended, keeping it in place.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionEndAsync(

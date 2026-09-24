@@ -702,6 +702,85 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
+    // ---------- Notification ----------
+
+    [Fact]
+    public async Task HandleNotificationAsync_Should_ReturnNeutralWithoutTouching_When_TheNotificationTypeIsNotIdlePrompt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastSeenAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleNotificationAsync(
+            Payload(SessionId, notificationType: "permission_request"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        var after = (await FindRowAsync(cancellationToken))!.LastSeenAt;
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
+    public async Task HandleNotificationAsync_Should_AdvanceLastSeenAt_When_TheNotificationTypeIsIdlePromptAndTheSessionResolves()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
+        var before = (await FindRowAsync(cancellationToken))!.LastSeenAt;
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleNotificationAsync(
+            Payload(SessionId, notificationType: "idle_prompt"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        var after = (await FindRowAsync(cancellationToken))!.LastSeenAt;
+        Assert.True(after > before);
+    }
+
+    [Fact]
+    public async Task HandleNotificationAsync_Should_MintTheAgentSilently_When_TheSessionIsUnknownAndTheNotificationTypeIsIdlePrompt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleNotificationAsync(
+            Payload(SessionId, notificationType: "idle_prompt"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.NotNull(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleNotificationAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleNotificationAsync(
+            Payload(SessionId, notificationType: "idle_prompt"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+    }
+
     // ---------- SessionEnd ----------
 
     [Fact]
@@ -756,11 +835,12 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
     // ---------- helpers ----------
 
-    private ClaudeHookPayload Payload(string sessionId, bool stopHookActive = false) => new()
+    private ClaudeHookPayload Payload(string sessionId, bool stopHookActive = false, string? notificationType = null) => new()
     {
         SessionId = sessionId,
         Cwd = _workspaceRoot,
-        StopHookActive = stopHookActive
+        StopHookActive = stopHookActive,
+        NotificationType = notificationType
     };
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
