@@ -82,4 +82,10 @@ internal sealed class CancellingAnnouncementAgentStore(
     public Task<bool> RecordHarnessVersionAsync(
         string name, string harnessVersion, CancellationToken cancellationToken)
         => inner.RecordHarnessVersionAsync(name, harnessVersion, cancellationToken);
+
+    public Task<bool> DeleteAsync(string name, CancellationToken cancellationToken)
+        => inner.DeleteAsync(name, cancellationToken);
+
+    public Task<int> DeleteOfflineAsync(CancellationToken cancellationToken)
+        => inner.DeleteOfflineAsync(cancellationToken);
 }
