@@ -20,8 +20,31 @@ public sealed class ClaudeHooksEditorTests
         var result = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
 
         // assert
-        Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
-        Assert.Equal(ClaudeHooksTemplate.Events, result.Outcomes.Select(o => o.Event));
+        result.Outcomes.MatchInlineSnapshot(
+            """
+            [
+              {
+                "Event": "SessionStart",
+                "Outcome": "Installed"
+              },
+              {
+                "Event": "UserPromptSubmit",
+                "Outcome": "Installed"
+              },
+              {
+                "Event": "Stop",
+                "Outcome": "Installed"
+              },
+              {
+                "Event": "Notification",
+                "Outcome": "Installed"
+              },
+              {
+                "Event": "SessionEnd",
+                "Outcome": "Installed"
+              }
+            ]
+            """);
 
         var root = Parse(result.SettingsJson);
         var hooks = (JsonObject)root["hooks"]!;
@@ -148,6 +171,115 @@ public sealed class ClaudeHooksEditorTests
         var twice = ClaudeHooksEditor.Install(once, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
 
         Assert.Equal(once, twice);
+    }
+
+    [Fact]
+    public void Status_Should_ReportNotificationMissing_When_TheInstallHasFourEntries()
+    {
+        // arrange
+        var before = ClaudeHooksInstallFixtures.Read("install", "four-events.json");
+
+        // act
+        var result = ClaudeHooksEditor.Status(before, s_descriptor);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            [
+              {
+                "Event": "SessionStart",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude session-start"
+              },
+              {
+                "Event": "UserPromptSubmit",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude user-prompt-submit"
+              },
+              {
+                "Event": "Stop",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude stop"
+              },
+              {
+                "Event": "Notification",
+                "Outcome": "Missing",
+                "InstalledCommand": null
+              },
+              {
+                "Event": "SessionEnd",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude session-end"
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Install_Should_AddNotificationAndLeaveTheOtherFourUnchanged_When_TheInstallHasFourEntries()
+    {
+        // arrange
+        var before = ClaudeHooksInstallFixtures.Read("install", "four-events.json");
+
+        // act
+        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        result.Outcomes.MatchInlineSnapshot(
+            """
+            [
+              {
+                "Event": "SessionStart",
+                "Outcome": "Unchanged"
+              },
+              {
+                "Event": "UserPromptSubmit",
+                "Outcome": "Unchanged"
+              },
+              {
+                "Event": "Stop",
+                "Outcome": "Unchanged"
+              },
+              {
+                "Event": "Notification",
+                "Outcome": "Installed"
+              },
+              {
+                "Event": "SessionEnd",
+                "Outcome": "Unchanged"
+              }
+            ]
+            """);
+        ClaudeHooksEditor.Status(result.SettingsJson, s_descriptor).MatchInlineSnapshot(
+            """
+            [
+              {
+                "Event": "SessionStart",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude session-start"
+              },
+              {
+                "Event": "UserPromptSubmit",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude user-prompt-submit"
+              },
+              {
+                "Event": "Stop",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude stop"
+              },
+              {
+                "Event": "Notification",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude notification"
+              },
+              {
+                "Event": "SessionEnd",
+                "Outcome": "Installed",
+                "InstalledCommand": "/home/agent/.dotnet/tools/nitro agent hook claude session-end"
+              }
+            ]
+            """);
     }
 
     [Fact]
