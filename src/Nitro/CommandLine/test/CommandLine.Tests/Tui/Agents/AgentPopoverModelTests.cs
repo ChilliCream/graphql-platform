@@ -459,6 +459,66 @@ public sealed class AgentPopoverModelTests
     }
 
     [Fact]
+    public void HandleKey_Should_RenderTheJournalEntryWithoutTheMemoryTabActionHint_When_EnterIsPressedOnAJournalRow()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var memoryStore = new FakeMemoryStore { ParticipationRows = [CreateMemoryEntry(0)] };
+        memoryStore.JournalEntries["j0"] = new MemoryJournalEntry
+        {
+            Id = "j0",
+            Body = "Journal body 0",
+            CreatedAt = s_now,
+            CreatedBy = "felix"
+        };
+        var model = CreateModel(agent.Name, agentStore, memoryStore: memoryStore);
+        model.Load();
+
+        // act
+        // Mail and tickets have no rows, so cursor 2 is memory's first item.
+        MoveCursorDown(model, 2);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var text = RenderToText(model);
+
+        // assert
+        text.MatchInlineSnapshot(
+            """
+            ╭─j0───────────────────────────────────────────────────────────────────────────────────────────────╮
+            │ Created: 2026-01-01T00:00:00Z by felix                                                           │
+            │                                                                                                  │
+            │ Journal body 0                                                                                   │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            │                                                                                                  │
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
     public void HandleKey_Should_OpenTheCuratedMemoryDetail_When_TheSelectedMemoryRowIsCurated()
     {
         // arrange

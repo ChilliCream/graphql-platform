@@ -74,8 +74,9 @@ internal sealed class MemoryDetailView
 
         var interiorWidth = Math.Max(1, Math.Max(1, width) - PanelChromeWidth);
         var header = $"[dim]{Markup.Escape(entry.Id)}[/]";
+        var lines = BuildJournalLines(entry, interiorWidth, includePromoteHint: false);
 
-        return RenderPanel(BuildJournalLines(entry, interiorWidth), header, "No item selected.", width, height, focused);
+        return RenderPanel(lines, header, "No item selected.", width, height, focused);
     }
 
     private IRenderable RenderPanel(
@@ -124,7 +125,8 @@ internal sealed class MemoryDetailView
     private static IReadOnlyList<string> BuildLines(MemoryState state, int width) => state.Collection switch
     {
         MemoryCollectionFilter.Curated when state.SelectedCuratedRecord is { } record => BuildCuratedLines(record, width),
-        MemoryCollectionFilter.Journal when state.SelectedJournalEntry is { } entry => BuildJournalLines(entry, width),
+        MemoryCollectionFilter.Journal when state.SelectedJournalEntry is { } entry
+            => BuildJournalLines(entry, width, includePromoteHint: true),
         _ => []
     };
 
@@ -149,13 +151,14 @@ internal sealed class MemoryDetailView
         return lines;
     }
 
-    private static IReadOnlyList<string> BuildJournalLines(MemoryJournalEntry entry, int width)
+    private static IReadOnlyList<string> BuildJournalLines(MemoryJournalEntry entry, int width, bool includePromoteHint)
     {
-        var lines = new List<string>
+        var lines = new List<string> { $"Created: {MemoryDates.Format(entry.CreatedAt)} by {entry.CreatedBy}" };
+
+        if (includePromoteHint)
         {
-            $"Created: {MemoryDates.Format(entry.CreatedAt)} by {entry.CreatedBy}",
-            "Not yet promoted, or already promoted (press p to promote either way; a repeat is idempotent)."
-        };
+            lines.Add("Not yet promoted, or already promoted (press p to promote either way; a repeat is idempotent).");
+        }
 
         lines.Add(string.Empty);
         lines.AddRange(TaskDetailSections.WrapText(entry.Body, width));
