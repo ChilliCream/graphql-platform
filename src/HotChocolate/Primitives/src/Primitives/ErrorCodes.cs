@@ -262,6 +262,11 @@ public static class ErrorCodes
         /// null values are enforced.
         /// </summary>
         public const string MultiPartFileVariableValueNotNull = "HC0115";
+
+        /// <summary>
+        /// The requested GraphQL specification edition is not supported.
+        /// </summary>
+        public const string InvalidSpecVersion = "HC0134";
     }
 
     public static class Schema

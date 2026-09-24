@@ -151,6 +151,7 @@
     <Project Path="HotChocolate/Core/test/Types.Queries.Tests/HotChocolate.Types.Queries.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Records.Tests/HotChocolate.Types.Records.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.SpecVersion.Tests/HotChocolate.Types.SpecVersion.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests.Documentation/HotChocolate.Types.Tests.Documentation.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Validation.Tests/HotChocolate.Types.Validation.Tests.csproj" />

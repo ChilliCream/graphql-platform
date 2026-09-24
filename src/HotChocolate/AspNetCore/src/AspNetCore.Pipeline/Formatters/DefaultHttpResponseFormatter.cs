@@ -27,8 +27,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
     private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
 
-    private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<SchemaCacheKey, CachedSchemaOutput> _schemaCache = [];
+    private readonly ConcurrentDictionary<SchemaCacheKey, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = [];
     private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
@@ -469,22 +469,31 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return format.ContentType;
     }
 
-    public async ValueTask FormatAsync(
+    public ValueTask FormatAsync(
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
         CancellationToken cancellationToken)
+        => FormatAsync(response, schema, version, specVersion: null, cancellationToken);
+
+    public async ValueTask FormatAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        GraphQLSpecVersion? specVersion,
+        CancellationToken cancellationToken)
     {
-        var output = _schemaCache.GetOrAdd(schema.Name, Update);
+        var key = new SchemaCacheKey(schema.Name, specVersion);
+        var output = _schemaCache.GetOrAdd(key, Update);
 
         if (output.Version < version)
         {
             lock (_schemaCache)
             {
-                if (!_schemaCache.TryGetValue(schema.Name, out output)
+                if (!_schemaCache.TryGetValue(key, out output)
                     || output.Version < version)
                 {
-                    _schemaCache[schema.Name] = output = Update(schema.Name);
+                    _schemaCache[key] = output = Update(key);
                 }
             }
         }
@@ -499,26 +508,35 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSchemaOutput Update(string _)
-            => new(schema, version, _timeProvider.UtcNow);
+        CachedSchemaOutput Update(SchemaCacheKey _)
+            => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
+
+    public ValueTask FormatSemanticNonNullSchemaAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken)
+        => FormatSemanticNonNullSchemaAsync(response, schema, version, specVersion: null, cancellationToken);
 
     public async ValueTask FormatSemanticNonNullSchemaAsync(
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
-        var output = _semanticNonNullSchemaCache.GetOrAdd(schema.Name, Update);
+        var key = new SchemaCacheKey(schema.Name, specVersion);
+        var output = _semanticNonNullSchemaCache.GetOrAdd(key, Update);
 
         if (output.Version < version)
         {
             lock (_semanticNonNullSchemaCache)
             {
-                if (!_semanticNonNullSchemaCache.TryGetValue(schema.Name, out output)
+                if (!_semanticNonNullSchemaCache.TryGetValue(key, out output)
                     || output.Version < version)
                 {
-                    _semanticNonNullSchemaCache[schema.Name] = output = Update(schema.Name);
+                    _semanticNonNullSchemaCache[key] = output = Update(key);
                 }
             }
         }
@@ -533,8 +551,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSemanticNonNullSchemaOutput Update(string _)
-            => new(schema, version, _timeProvider.UtcNow);
+        CachedSemanticNonNullSchemaOutput Update(SchemaCacheKey _)
+            => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
 
     /// <summary>
@@ -1107,14 +1125,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSchemaOutput(
+            ISchemaDefinition schema,
+            ulong version,
+            GraphQLSpecVersion? specVersion,
+            DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
                     schema,
                     new SchemaFormatterOptions
                     {
-                        IncludeInternalDirectives = false
+                        IncludeInternalDirectives = false,
+                        SpecVersion = specVersion
                     }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
@@ -1150,7 +1173,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSemanticNonNullSchemaOutput(
+            ISchemaDefinition schema,
+            ulong version,
+            GraphQLSpecVersion? specVersion,
+            DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
@@ -1158,6 +1185,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     new SchemaFormatterOptions
                     {
                         IncludeInternalDirectives = false,
+                        SpecVersion = specVersion,
                         RewriteToSemanticNonNull = true
                     }));
             FileName = GetSchemaFileName(schema);
@@ -1189,4 +1217,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 ? "schema.graphql"
                 : schema.Name + ".schema.graphql";
     }
+
+    private readonly record struct SchemaCacheKey(string SchemaName, GraphQLSpecVersion? SpecVersion);
 }

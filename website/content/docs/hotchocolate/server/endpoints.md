@@ -299,6 +299,16 @@ app.UseEndpoints(endpoints =>
 
 With the above configuration, you can download your `schema.graphql` file from the `/graphql/schema` endpoint.
 
+Append `?spec-version=<value>` to `/graphql/schema.graphql`, `/graphql/schema` (including `/graphql/schema/`), or `/graphql/semantic-non-null-schema.graphql` to download SDL compatible with a GraphQL specification edition. Supported values are `october-2021` (also `2021-10`) and `september-2025` (also `2025-09`); values are case-insensitive.
+
+For example:
+
+```text
+/graphql/schema.graphql?spec-version=october-2021
+```
+
+An unknown, empty, or whitespace-only value returns `400 Bad Request` with a GraphQL error such as `The spec version 'invalid' is not supported. Supported values: october-2021, september-2025.` The `?types=` query parameter ignores `spec-version`. Schema responses are cached separately for each specification edition and have their own ETag values.
+
 # MapGraphQLPersistedOperations
 
 Call `MapGraphQLPersistedOperations()` on the `IEndpointRouteBuilder` to expose persisted operations via REST-like URLs. This enables clients to execute pre-registered GraphQL operations using a simple URL pattern instead of sending a full GraphQL request body.

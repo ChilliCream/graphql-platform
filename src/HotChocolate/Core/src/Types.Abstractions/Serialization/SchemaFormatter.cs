@@ -68,6 +68,11 @@ public static class SchemaFormatter
             document = SemanticNonNullSchemaRewriter.Rewrite(document);
         }
 
+        if (options.SpecVersion is { } specVersion)
+        {
+            document = SpecVersionSchemaRewriter.Rewrite(document, specVersion);
+        }
+
         return document;
     }
 
