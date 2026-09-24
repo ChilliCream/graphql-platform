@@ -620,15 +620,20 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, firstActor);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, secondActor);
         var dispatcher = new ConcurrentEntryDispatcher(expectedActors: 2);
+        var ticks = new LoopTickSignal();
         await using var coordinator = new MailWakeDaemonCoordinator(
-            new MailWakeDaemonLeaderStore(_fileSystem, _database), dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy);
+            new MailWakeDaemonLeaderStore(_fileSystem, _database), dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy)
+        {
+            AfterAdmissionTickAsync = ticks.HookAsync
+        };
 
         // act
+        var firstTick = ticks.WaitForNextTickAsync(cancellationToken);
         await coordinator.StartAsync(cancellationToken);
-        await dispatcher.AllEntered.WaitAsync(s_hangGuard, cancellationToken);
+        await firstTick;
 
         // assert
-        // Both actors were admitted concurrently, while neither transport had completed.
+        // Both actors entered their dispatch within the first admission tick, while the first was still blocked.
         Assert.Equal(2, dispatcher.EnteredCount);
 
         await coordinator.StopAsync(cancellationToken);
