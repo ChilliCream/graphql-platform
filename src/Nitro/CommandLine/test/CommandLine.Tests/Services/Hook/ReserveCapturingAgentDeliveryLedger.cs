@@ -3,15 +3,16 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// An <see cref="IAgentDeliveryLedger"/> whose every member throws, used
-/// to stand in for a mail-store or ledger failure without touching a real
-/// workspace database.
+/// Wraps a real <see cref="IAgentDeliveryLedger"/>, delegating every call while
+/// capturing the <c>messageIds</c> argument of the most recent <c>ReserveAsync</c> call.
 /// </summary>
-internal sealed class ThrowingDeliveryLedger : IAgentDeliveryLedger
+internal sealed class ReserveCapturingAgentDeliveryLedger(IAgentDeliveryLedger inner) : IAgentDeliveryLedger
 {
+    public IReadOnlyList<string>? LastMessageIds { get; private set; }
+
     public Task<IReadOnlyList<string>> FindDeliveredAsync(
         string agent, IReadOnlyList<string> messageIds, CancellationToken cancellationToken)
-        => throw new InvalidOperationException("Simulated delivery-ledger failure.");
+        => inner.FindDeliveredAsync(agent, messageIds, cancellationToken);
 
     public Task<IReadOnlyList<string>> ReserveAsync(
         string agent,
@@ -19,9 +20,12 @@ internal sealed class ThrowingDeliveryLedger : IAgentDeliveryLedger
         string channel,
         DateTimeOffset deliveredAt,
         CancellationToken cancellationToken)
-        => throw new InvalidOperationException("Simulated delivery-ledger failure.");
+    {
+        LastMessageIds = messageIds;
+        return inner.ReserveAsync(agent, messageIds, channel, deliveredAt, cancellationToken);
+    }
 
     public Task ReleaseAsync(
         string agent, IReadOnlyList<string> messageIds, string channel, CancellationToken cancellationToken)
-        => throw new InvalidOperationException("Simulated delivery-ledger failure.");
+        => inner.ReleaseAsync(agent, messageIds, channel, cancellationToken);
 }

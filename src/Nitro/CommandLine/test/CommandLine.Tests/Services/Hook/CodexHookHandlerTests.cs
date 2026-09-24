@@ -1,9 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Extensions.Time.Testing;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
@@ -22,10 +20,9 @@ public sealed class CodexHookHandlerTests : IDisposable
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
     private readonly AgentRegistry _agentRegistry;
-    private readonly AgentSessionRegistry _sessions;
-    private readonly SessionDeliveryLedger _ledger;
+    private readonly AgentStore _agentStore;
+    private readonly AgentDeliveryLedger _ledger;
     private readonly MailStore _mail;
-    private readonly FixedEnvironmentVariableProvider _environmentVariables;
     private readonly FakeCodexQueueClient _queueClient;
     private readonly CodexHookHandler _handler;
 
@@ -39,17 +36,9 @@ public sealed class CodexHookHandlerTests : IDisposable
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
         _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
-        _sessions = new AgentSessionRegistry(
-            _fileSystem,
-            _timeProvider,
-            _database,
-            _agentRegistry,
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
-        _ledger = new SessionDeliveryLedger(_fileSystem, _database);
-        _mail = new MailStore(
-            _fileSystem, _timeProvider, _database, new AgentStore(_fileSystem, _timeProvider, _database));
-        _environmentVariables = new FixedEnvironmentVariableProvider();
+        _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
+        _ledger = new AgentDeliveryLedger(_fileSystem, _database);
+        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
         _queueClient = new FakeCodexQueueClient();
 
         _handler = CreateHandler();
@@ -57,73 +46,72 @@ public sealed class CodexHookHandlerTests : IDisposable
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
-    private CodexHookHandler CreateHandler() => CreateHandler(_agentRegistry);
-
-    private CodexHookHandler CreateHandler(IAgentRegistry agentRegistry) => new(
+    private CodexHookHandler CreateHandler(ICodexHarnessVersionResolver? harnessVersionResolver = null) => new(
         _fileSystem,
         _timeProvider,
-        _sessions,
-        agentRegistry,
+        _agentStore,
         _ledger,
         _mail,
-        _environmentVariables,
-        new FixedCodexHarnessVersionResolver(),
-        new FixedInstanceIdProvider("host-1"),
-        new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
+        harnessVersionResolver ?? new FixedCodexHarnessVersionResolver(),
         _queueClient);
 
     // ---------- SessionStart ----------
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_BindTheRowToAGeneratedActor_When_NoEnvActorIsSet()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-
-        // assert
-        var row = await FindRowAsync(cancellationToken);
-        Assert.NotNull(row);
-        Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
-        Assert.DoesNotContain(SessionId, row.AgentName);
-        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
-        Assert.Equal("", row.Role);
-        Assert.NotNull(await _agentRegistry.GetAsync(row.AgentName!, cancellationToken));
-    }
-
-    [Fact]
-    public async Task HandleSessionStartAsync_Should_BindTheSameGeneratedActor_When_CalledAgainForTheSameSession()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-
-        var row = await FindRowAsync(cancellationToken);
-        Assert.NotNull(row);
-        Assert.Equal(first.AdditionalContext, outcome.AdditionalContext);
-        Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
-        Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
-    }
-
-    [Fact]
-    public async Task HandleSessionStartAsync_Should_UseDurableAgentRole_When_SessionRoleIsEmpty()
+    public async Task HandleSessionStartAsync_Should_MintAnAgentAndAnnounceTheNameOnly_When_TheSessionIsUnknown()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var actor = await StartAndGetActorAsync(cancellationToken);
-        await _sessions.RegisterAsync(
-            CurrentGeneration(), actor: null, actorGiven: false, role: "researcher", roleGiven: true,
-            cancellationToken: cancellationToken);
-        await _sessions.SetRoleAsync(CurrentGeneration(), string.Empty, cancellationToken);
 
         // act
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal("", row.Role);
+        outcome.AdditionalContext!.Replace(row.Name, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_ReuseTheSameAgent_When_CalledAgainForTheSameSession()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
+
+        // act
+        var second = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
+
+        // assert
+        Assert.Equal(first.AdditionalContext, second.AdditionalContext);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Contains($"\"{row!.Name}\"", second.AdditionalContext);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_ReuseAnEndedRowAndAnnounceNameAndRole_When_TheSessionResumes()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.Name;
+        await _agentStore.SetRoleAsync(actor, "researcher", cancellationToken);
+        await _handler.HandleSessionEndAsync(Payload(SessionId), cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal(actor, row!.Name);
+        Assert.Null(row.EndedAt);
         outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
             """
             Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
@@ -132,82 +120,38 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_UseSessionRole_When_DurableAgentRoleAlsoExists()
+    public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await _sessions.RegisterAsync(
-            CurrentGeneration(), actor: null, actorGiven: false, role: "researcher", roleGiven: true,
-            cancellationToken: cancellationToken);
-        await _sessions.SetRoleAsync(CurrentGeneration(), "planner", cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         // assert
-        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
-            """
-            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
-            Your Nitro role is "planner".
-            """);
+        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_OmitRole_When_SessionRoleIsEmptyAndAgentIsMissing()
+    public async Task HandleSessionStartAsync_Should_SetTheCodexThreadEndpointToTheSessionId_When_TheSessionIdIsAValidAddress()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var agentRegistry = new Mock<IAgentRegistry>(MockBehavior.Strict);
-        agentRegistry
-            .Setup(registry => registry.GetAsync(It.IsAny<string>(), cancellationToken))
-            .ReturnsAsync((AgentRecord?)null);
-        var handler = CreateHandler(agentRegistry.Object);
 
         // act
-        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-        var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
-
-        // assert
-        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
-            """
-            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
-            """);
-    }
-
-    [Fact]
-    public async Task HandleSessionStartAsync_Should_PreserveActorContext_When_DurableRoleLookupFails()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var agentRegistry = new Mock<IAgentRegistry>(MockBehavior.Strict);
-        agentRegistry
-            .Setup(registry => registry.GetAsync(It.IsAny<string>(), cancellationToken))
-            .ThrowsAsync(new InvalidOperationException("lookup failed"));
-        var handler = CreateHandler(agentRegistry.Object);
-
-        // act
-        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-        var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
-
-        // assert
-        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
-            """
-            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
-            """);
-    }
-
-    [Fact]
-    public async Task HandleSessionStartAsync_Should_SetTheCodexThreadEndpoint_ToTheSessionId()
-    {
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
         Assert.Equal(AgentSessionEndpointKind.CodexThread, row.EndpointKind);
@@ -217,6 +161,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutCreatingARow_When_CwdHasNoWorkspace()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var noWorkspaceRoot = Directory.CreateTempSubdirectory("nitro-codex-hook-no-workspace-tests");
@@ -225,8 +170,10 @@ public sealed class CodexHookHandlerTests : IDisposable
         {
             var payload = new CodexHookPayload { SessionId = SessionId, Cwd = noWorkspaceRoot.FullName };
 
+            // act
             var outcome = await _handler.HandleSessionStartAsync(payload, cancellationToken);
 
+            // assert
             Assert.Equal(CodexHookOutcome.Neutral, outcome);
             Assert.Null(await FindRowAsync(cancellationToken));
         }
@@ -244,14 +191,17 @@ public sealed class CodexHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new CodexHookPayload { SessionId = SessionId, Cwd = null };
 
+        // act
         var outcome = await _handler.HandleSessionStartAsync(payload, cancellationToken);
 
+        // assert
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
 
     [Fact]
     public async Task HandleSessionStartAsync_Should_NotCreateAProvisionalIdentity_When_SessionIdIsMissing()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new CodexHookPayload { SessionId = null, Cwd = _workspaceRoot };
@@ -263,29 +213,21 @@ public sealed class CodexHookHandlerTests : IDisposable
         // assert
         Assert.Equal(CodexHookOutcome.Neutral, first);
         Assert.Equal(CodexHookOutcome.Neutral, second);
-        Assert.Equal(0L, await CountAllSessionRowsAsync(cancellationToken));
+        Assert.Equal(0L, await CountAllAgentRowsAsync(cancellationToken));
     }
 
     [Fact]
     public async Task HandleSessionStartAsync_Should_RecordHarnessVersion_When_TheResolverReturnsOne()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var handler = new CodexHookHandler(
-            _fileSystem,
-            _timeProvider,
-            _sessions,
-            _agentRegistry,
-            _ledger,
-            _mail,
-            _environmentVariables,
-            new FixedCodexHarnessVersionResolver("0.101.0"),
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
-            _queueClient);
+        var handler = CreateHandler(new FixedCodexHarnessVersionResolver("0.101.0"));
 
+        // act
         await handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         var row = await FindRowAsync(cancellationToken);
         Assert.Equal("0.101.0", row!.HarnessVersion);
     }
@@ -293,11 +235,14 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
+        // act
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         var row = await FindRowAsync(cancellationToken);
         Assert.Equal("", row!.HarnessVersion);
     }
@@ -305,42 +250,66 @@ public sealed class CodexHookHandlerTests : IDisposable
     // ---------- UserPromptSubmit ----------
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    public async Task HandleUserPromptSubmitAsync_Should_AdvanceLastSeenAt_When_TheSessionResolves()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        var before = (await FindRowAsync(cancellationToken))!.LastSeenAt;
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
+        // act
         await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
-        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        // assert
+        var after = (await FindRowAsync(cancellationToken))!.LastSeenAt;
         Assert.True(after > before);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_MintTheAgentSilently_When_TheSessionIsUnknown()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
+
+        // assert
+        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        Assert.NotNull(await FindRowAsync(cancellationToken));
     }
 
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheActor()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
+        // act
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
 
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnDigest_When_UnreadMailExistsForTheClaimedActor()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         var message = await SendMailAsync("bob", actor, cancellationToken);
 
+        // act
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         outcome.AdditionalContext!
             .Replace(actor, "<actor>")
             .Replace(message.Id, "<message-id>")
@@ -373,6 +342,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -380,66 +350,121 @@ public sealed class CodexHookHandlerTests : IDisposable
         var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
         Assert.NotNull(first.AdditionalContext);
 
+        // act
         var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         Assert.Equal(CodexHookOutcome.Neutral, second);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
+
+        // assert
+        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     // ---------- SessionEnd ----------
 
     [Fact]
-    public async Task HandleSessionEndAsync_Should_DeleteTheRow()
+    public async Task HandleSessionEndAsync_Should_StampEndedAtAndKeepTheRow_When_TheSessionIsActive()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-        Assert.NotNull(await FindRowAsync(cancellationToken));
 
+        // act
         var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
-        Assert.Null(await FindRowAsync(cancellationToken));
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.NotNull(row.EndedAt);
     }
 
     [Fact]
     public async Task HandleSessionEndAsync_Should_ReturnNeutral_When_NoRowExists()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
+        // act
         var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), cancellationToken);
 
+        // assert
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleSessionEndAsync_Should_ReturnNeutralWithoutClearingDeletedAt_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), cancellationToken);
+
+        // assert
+        Assert.Equal(CodexHookOutcome.Neutral, outcome);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Null(row!.EndedAt);
     }
 
     // ---------- Notify (the idle-turn gate) ----------
 
     [Fact]
-    public async Task HandleNotifyAsync_Should_AdvanceLastBeatAt_When_GenerationResolves()
+    public async Task HandleNotifyAsync_Should_AdvanceLastSeenAt_When_TheThreadResolves()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
-        var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        var before = (await FindRowAsync(cancellationToken))!.LastSeenAt;
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
+        // act
         await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
-        var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        // assert
+        var after = (await FindRowAsync(cancellationToken))!.LastSeenAt;
         Assert.True(after > before);
     }
 
     [Fact]
     public async Task HandleNotifyAsync_Should_ReturnNeutral_When_TypeIsNotAgentTurnComplete()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
 
+        // act
         var outcome = await _handler.HandleNotifyAsync(
             NotifyPayload(SessionId, type: "something-else"), cancellationToken);
 
+        // assert
         Assert.Equal(CodexNotifyOutcome.Neutral, outcome);
         Assert.Empty(_queueClient.Calls);
     }
@@ -447,12 +472,15 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheGeneratedActor()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
+        // act
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
+        // assert
         Assert.Equal(CodexNotifyOutcome.Neutral, outcome);
         Assert.Empty(_queueClient.Calls);
     }
@@ -460,13 +488,16 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_QueueTheDigestJson_When_UnreadMailExistsForTheClaimedActor()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         var message = await SendMailAsync("bob", actor, cancellationToken);
 
+        // act
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
+        // assert
         Assert.True(outcome.Queued);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(SessionId, call.ThreadId);
@@ -506,14 +537,8 @@ public sealed class CodexHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         var message = await SendMailAsync("bob", actor, cancellationToken);
-        var generation = CurrentGeneration();
         await _ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
-            [message.Id],
-            AgentSessionChannel.Ping,
-            _timeProvider.GetUtcNow(),
-            cancellationToken);
+            actor, [message.Id], AgentSessionChannel.Ping, _timeProvider.GetUtcNow(), cancellationToken);
 
         // act
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
@@ -535,7 +560,6 @@ public sealed class CodexHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
-
         var first = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
         Assert.True(first.Queued);
 
@@ -550,16 +574,19 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_QueueAgain_When_NewMailArrivesAfterAnEarlierQueue()
     {
+        // arrange
         // A new message remains eligible after an earlier message was queued.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
         await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
-
         await SendMailAsync("carol", actor, cancellationToken);
+
+        // act
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
+        // assert
         Assert.True(outcome.Queued);
         Assert.Equal(2, _queueClient.Calls.Count);
     }
@@ -567,20 +594,45 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_ReturnNeutral_When_QueueClientFails()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
         _queueClient.NextResult = CodexQueueResult.Error;
-
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
-
         Assert.False(outcome.Queued);
 
+        // act
         // Retry the same message after the failed queue attempt.
         var retried = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
+
+        // assert
         Assert.Equal(CodexNotifyOutcome.Neutral, retried);
         Assert.Single(_queueClient.Calls);
+    }
+
+    [Fact]
+    public async Task HandleNotifyAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
+
+        // assert
+        Assert.Equal(CodexNotifyOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(_queueClient.Calls);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     // ---------- helpers ----------
@@ -612,25 +664,34 @@ public sealed class CodexHookHandlerTests : IDisposable
         await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         var row = await FindRowAsync(cancellationToken);
 
-        return row!.AgentName!;
+        return row!.Name;
     }
 
-    private async Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
-        => await _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);
+    private Task<AgentRow?> FindRowAsync(CancellationToken cancellationToken)
+        => _agentStore.FindBySessionAsync(AgentSessionHarness.Codex, SessionId, cancellationToken);
 
-    private async Task<long> CountAllSessionRowsAsync(CancellationToken cancellationToken)
+    private async Task<long> CountAllAgentRowsAsync(CancellationToken cancellationToken)
     {
         await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT COUNT(*) FROM agent_sessions;";
+        command.CommandText = "SELECT COUNT(*) FROM agents;";
 
         return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
     }
 
-    private static AgentSessionGeneration CurrentGeneration() => new(
-        AgentSessionHarness.Codex,
-        SessionId,
-        "host-1");
+    /// <summary>
+    /// Marks the named agent as soft-deleted.
+    /// </summary>
+    private async Task MarkDeletedAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agents SET deleted_at = @now WHERE name = @name";
+        command.Parameters.AddWithValue("@now", _timeProvider.GetUtcNow());
+        command.Parameters.AddWithValue("@name", name);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }
 
 internal sealed class FakeCodexQueueClient : ICodexQueueClient

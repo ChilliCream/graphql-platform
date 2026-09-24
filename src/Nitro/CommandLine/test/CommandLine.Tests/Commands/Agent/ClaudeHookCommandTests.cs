@@ -13,12 +13,12 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
     [Fact]
-    public async Task SessionStart_Should_WriteTheActorContext_ToStdout()
+    public async Task SessionStart_Should_WriteTheActorContext_When_TheSessionIsBound()
     {
-        // arrange: an identity already bound to this session id, so the
-        // announced actor is the seeded name rather than an allocated one.
+        // arrange
+        // an agent already bound to this session id, so the announced actor is the seeded name
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -53,7 +53,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     {
         // arrange
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -68,10 +68,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [Fact]
     public async Task UserPromptSubmit_Should_AppendTheMailDigest_When_TheActorHasUnreadMail()
     {
-        // arrange: one unread message addressed to the actor this session
-        // is bound to, sent by a second allocated actor.
+        // arrange
+        // one unread message addressed to the actor this session is bound to
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         var message = await SeedMailAsync();
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
@@ -90,14 +90,16 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [Fact]
     public async Task Stop_Should_WriteNeutralResponse_When_NoUnreadMailIsUndelivered()
     {
-        // arrange: a presence row bound to the actor, with an empty inbox,
-        // so the gate has nothing to block the turn for.
+        // arrange
+        // an empty inbox, so the gate has nothing to block the turn for
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
-        Assert.Equal("maya", await QueryScalarAsync("SELECT agent_name FROM agent_sessions"));
+        Assert.Equal(
+            "maya",
+            await QueryScalarAsync("SELECT name FROM agents WHERE harness = 'claude-code' AND session_id = 'session-1'"));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -112,10 +114,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [Fact]
     public async Task Stop_Should_BlockTheTurn_When_UnreadMailIsUndelivered()
     {
-        // arrange: a presence row bound to the actor, and one unread
-        // message never yet delivered on the gate channel.
+        // arrange
+        // one unread message never yet delivered on the gate channel
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         var message = await SeedMailAsync();
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
@@ -135,15 +137,16 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task SessionEnd_Should_RemoveThePresenceRow()
+    public async Task SessionEnd_Should_StampEndedAtAndKeepTheRow_When_TheSessionIsBound()
     {
-        // arrange: a presence row this session started.
+        // arrange
+        // a session this session-start bound to the agent row
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
         await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -152,20 +155,62 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.NotNull(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'maya'"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task Notification_Should_WriteNeutralResponse_When_TheNotificationTypeIsNotIdlePrompt()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await BindAgentSessionAsync("maya", "session-1");
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}},"notification_type":"permission_request"}""");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "claude", "notification");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task Notification_Should_TouchTheSession_When_TheNotificationTypeIsIdlePrompt()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await BindAgentSessionAsync("maya", "session-1");
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+        await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
+        var lastSeenBefore = await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'");
+        FakeTime.Advance(TimeSpan.FromMinutes(5));
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}},"notification_type":"idle_prompt"}""");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "claude", "notification");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+        Assert.NotEqual(lastSeenBefore, await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'"));
     }
 
     [Theory]
     [InlineData("user-prompt-submit")]
     [InlineData("stop")]
+    [InlineData("notification")]
     [InlineData("session-end")]
     public async Task Event_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession(string eventName)
     {
-        // arrange: a payload with no session id, so nothing identifies which
-        // session the event speaks for.
+        // arrange
+        // a payload with no session id, so nothing identifies which session the event speaks for
         await InitWorkspaceAsync();
-        await InsertSessionIdentityAsync("maya", "session-1");
+        await BindAgentSessionAsync("maya", "session-1");
         SetupStandardInput(
             $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -188,9 +233,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task ClaudeHelp_ReturnsSuccess()
+    public async Task ClaudeHelp_Should_ListTheHookEvents_When_HelpIsRequested()
     {
-        // arrange & act
+        // arrange
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "claude", "--help");
 
         // assert
@@ -209,7 +255,8 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
               session-start       Adapt Claude Code's SessionStart hook: upsert this session's presence row.
               user-prompt-submit  Adapt Claude Code's UserPromptSubmit hook: reset the block budget and inject the unread-mail digest.
               stop                Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.
-              session-end         Adapt Claude Code's SessionEnd hook: delete this session's presence row.
+              notification        Adapt Claude Code's Notification hook: touch last-seen on an idle-prompt notification.
+              session-end         Adapt Claude Code's SessionEnd hook: mark this session's agent row as ended.
             """);
     }
 
@@ -224,11 +271,15 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
         "stop",
         "Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.")]
     [InlineData(
+        "notification",
+        "Adapt Claude Code's Notification hook: touch last-seen on an idle-prompt notification.")]
+    [InlineData(
         "session-end",
-        "Adapt Claude Code's SessionEnd hook: delete this session's presence row.")]
-    public async Task EventHelp_ReturnsSuccess(string eventName, string description)
+        "Adapt Claude Code's SessionEnd hook: mark this session's agent row as ended.")]
+    public async Task EventHelp_Should_PrintTheEventDescription_When_HelpIsRequested(string eventName, string description)
     {
-        // arrange & act
+        // arrange
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "claude", eventName, "--help");
 
         // assert

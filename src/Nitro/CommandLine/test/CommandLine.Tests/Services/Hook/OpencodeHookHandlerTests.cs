@@ -2,7 +2,6 @@ using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
@@ -21,8 +20,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
     private readonly AgentRegistry _agentRegistry;
-    private readonly AgentSessionRegistry _sessions;
-    private readonly SessionDeliveryLedger _ledger;
+    private readonly AgentStore _agentStore;
+    private readonly AgentDeliveryLedger _ledger;
     private readonly MailStore _mail;
     private readonly FixedEnvironmentVariableProvider _environmentVariables;
     private readonly OpencodeHookHandler _handler;
@@ -37,29 +36,28 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
         _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
-        _sessions = new AgentSessionRegistry(
-            _fileSystem,
-            _timeProvider,
-            _database,
-            _agentRegistry,
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
-        _ledger = new SessionDeliveryLedger(_fileSystem, _database);
-        _mail = new MailStore(
-            _fileSystem, _timeProvider, _database, new AgentStore(_fileSystem, _timeProvider, _database));
+        _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
+        _ledger = new AgentDeliveryLedger(_fileSystem, _database);
+        _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
         _environmentVariables = new FixedEnvironmentVariableProvider();
-        _handler = new OpencodeHookHandler(
-            _fileSystem,
-            _timeProvider,
-            _sessions,
-            _ledger,
-            _mail,
-            _environmentVariables,
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+        _handler = CreateHandler();
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
+
+    private OpencodeHookHandler CreateHandler() => new(
+        _fileSystem, _timeProvider, _agentStore, _ledger, _mail, _environmentVariables);
+
+    private OpencodeHookHandler CreateHandler(IAgentDeliveryLedger ledger) => new(
+        _fileSystem, _timeProvider, _agentStore, ledger, _mail, _environmentVariables);
+
+    private OpencodeHookHandler CreateHandler(IAgentStore agentStore) => new(
+        _fileSystem, _timeProvider, agentStore, _ledger, _mail, _environmentVariables);
+
+    private OpencodeHookHandler CreateHandler(IAgentStore agentStore, IAgentDeliveryLedger ledger) => new(
+        _fileSystem, _timeProvider, agentStore, ledger, _mail, _environmentVariables);
+
+    // ---------- SessionCreated ----------
 
     [Fact]
     public async Task HandleSessionCreatedAsync_Should_StoreTheOpencodeEndpointVersionAndPassword()
@@ -78,6 +76,24 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.Equal("http://127.0.0.1:4096", row.EndpointAddr);
         Assert.Equal("secret", row.EndpointSecret);
         Assert.Equal("1.18.25", row.HarnessVersion);
+    }
+
+    [Fact]
+    public async Task HandleSessionCreatedAsync_Should_ReuseTheSameAgent_When_CalledAgainForTheSameSession()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.Name;
+
+        // act
+        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal(actor, row!.Name);
+        Assert.Equal(1L, await CountAllAgentRowsAsync(cancellationToken));
     }
 
     /// <summary>
@@ -102,19 +118,51 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.NotNull(row);
         Assert.Equal(AgentSessionEndpointKind.None, row.EndpointKind);
         Assert.Equal(string.Empty, row.EndpointAddr);
-        Assert.Null(row.EndpointSecret);
-
-        // assert
-        Assert.False(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
-
-        // assert
-        Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
+        Assert.False(await _agentStore.ClaimIdlePushAsync(row.Name, cancellationToken));
+        Assert.True(await _agentStore.IsAnnouncementPendingAsync(row.Name, cancellationToken));
     }
 
-    /// <summary>
-    /// A session demoted to <c>endpoint_kind = 'none'</c> at session.created must stay unarmed for the
-    /// idle-push gate even after a genuine chat message.
-    /// </summary>
+    [Fact]
+    public async Task HandleSessionCreatedAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionCreatedAsync_Should_ReturnNeutralWithoutCreatingARow_When_TheServerUrlIsMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var payload = Payload(SessionId);
+        payload.ServerUrl = null;
+
+        // act
+        var outcome = await _handler.HandleSessionCreatedAsync(payload, dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        Assert.Equal(0L, await CountAllAgentRowsAsync(cancellationToken));
+    }
+
+    // ---------- ChatMessage ----------
+
     [Fact]
     public async Task HandleChatMessageAsync_Should_NotArmIdlePush_When_EndpointIsUntrusted()
     {
@@ -125,12 +173,13 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         untrustedPayload.ServerUrl = "http://localhost:4096/";
         untrustedPayload.ServerBound = false;
         await _handler.HandleSessionCreatedAsync(untrustedPayload, dryRun: true, cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.Name;
 
         // act
         await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        Assert.False(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
+        Assert.False(await _agentStore.ClaimIdlePushAsync(actor, cancellationToken));
     }
 
     [Fact]
@@ -170,13 +219,14 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleChatMessageAsync_Should_ResetThePerTurnBudget()
+    public async Task HandleChatMessageAsync_Should_ResetThePerTurnBudget_When_AGenuineChatMessageArrives()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await _sessions.IncrementBlockBudgetAsync(CurrentGeneration(), cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.Name;
+        await _agentStore.IncrementBlockBudgetAsync(actor, cancellationToken);
 
         // act
         await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
@@ -184,6 +234,68 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // assert
         var row = await FindRowAsync(cancellationToken);
         Assert.Equal(0, row!.BlockBudgetUsed);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_NotRearmOrAppendParts_When_TheMessageWasPushedByNitro()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _agentStore.IncrementBlockBudgetAsync(actor, cancellationToken);
+        var pushedPayload = Payload(SessionId);
+        pushedPayload.NitroPushed = true;
+
+        // act
+        var pushed = await _handler.HandleChatMessageAsync(pushedPayload, dryRun: true, cancellationToken);
+        await SendMailAsync("carol", actor, cancellationToken);
+        var idle = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, pushed);
+        Assert.Equal(OpencodeHookOutcome.Neutral, idle);
+        Assert.Equal(1, (await FindRowAsync(cancellationToken))!.BlockBudgetUsed);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_ReturnNeutralWithoutMinting_When_TheSessionIsUnknown()
+    {
+        // arrange
+        // Today's OpenCode behavior, unchanged: chat-message never mints a fresh agent.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        Assert.Null(await FindRowAsync(cancellationToken));
     }
 
     [Fact]
@@ -202,32 +314,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
 
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
-        Assert.True(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
-    }
-
-    [Fact]
-    public async Task HandleChatMessageAsync_Should_NotRearmOrAppendParts_When_TheMessageWasPushedByNitro()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
-        await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await _sessions.IncrementBlockBudgetAsync(CurrentGeneration(), cancellationToken);
-        var pushedPayload = Payload(SessionId);
-        pushedPayload.NitroPushed = true;
-
-        // act
-        var pushed = await _handler.HandleChatMessageAsync(
-            pushedPayload, dryRun: true, cancellationToken);
-        await SendMailAsync("carol", actor, cancellationToken);
-        var idle = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, pushed);
-        Assert.Equal(OpencodeHookOutcome.Neutral, idle);
-        Assert.Equal(1, (await FindRowAsync(cancellationToken))!.BlockBudgetUsed);
+        Assert.True(await _agentStore.ClaimIdlePushAsync(actor, cancellationToken));
     }
 
     [Fact]
@@ -237,7 +324,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await StartAndGetActorAsync(cancellationToken);
-        var beforeSuppressed = (await FindRowAsync(cancellationToken))!.LastBeatAt;
+        var beforeSuppressed = (await FindRowAsync(cancellationToken))!.LastSeenAt;
         _environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");
         _timeProvider.Advance(TimeSpan.FromMinutes(1));
 
@@ -246,7 +333,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
 
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, suppressed);
-        Assert.Equal(beforeSuppressed, (await FindRowAsync(cancellationToken))!.LastBeatAt);
+        Assert.Equal(beforeSuppressed, (await FindRowAsync(cancellationToken))!.LastSeenAt);
 
         // act
         _environmentVariables.Set("NITRO_HOOK_SUPPRESS", "0");
@@ -254,75 +341,27 @@ public sealed class OpencodeHookHandlerTests : IDisposable
 
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, resumed);
-        Assert.Equal(_timeProvider.GetUtcNow(), (await FindRowAsync(cancellationToken))!.LastBeatAt);
+        Assert.Equal(_timeProvider.GetUtcNow(), (await FindRowAsync(cancellationToken))!.LastSeenAt);
     }
 
     [Fact]
-    public async Task HandleChatMessageAsync_Should_RemainNeutral_When_TheSessionIsDeletedBeforeReservation()
+    public async Task HandleSessionIdleAsync_Should_ReturnNeutralWithoutWriting_When_TheSessionBelongsToADeletedAgent()
     {
         // arrange
-        // Claim the announcement before injecting deletion during digest reservation.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
-        var handler = CreateHandler(new SessionDeletingDeliveryLedger(_ledger, _sessions, CurrentGeneration()));
-
-        // act
-        var outcome = await handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
-        Assert.Null(await FindRowAsync(cancellationToken));
-    }
-
-    [Fact]
-    public async Task HandleChatMessageAsync_Should_RemainNeutral_When_TheSessionWasReplacedBeforeTouch()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await _sessions.StartAsync(
-            new AgentSessionGeneration(AgentSessionHarness.Opencode, SessionId, "host-2"),
-            _workspaceRoot,
-            _workspaceDirectory,
-            AgentSessionEndpointKind.OpencodeServer,
-            "http://127.0.0.1:4096",
-            endpointSecret: null,
-            envActor: null,
-            cancellationToken);
-
-        // act
-        var outcome = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
-    }
-
-    [Fact]
-    public async Task HandleSessionIdleAsync_Should_RemainNeutral_When_TheSessionWasReplacedBeforeTouch()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await _sessions.StartAsync(
-            new AgentSessionGeneration(AgentSessionHarness.Opencode, SessionId, "host-2"),
-            _workspaceRoot,
-            _workspaceDirectory,
-            AgentSessionEndpointKind.OpencodeServer,
-            "http://127.0.0.1:4096",
-            endpointSecret: null,
-            envActor: null,
-            cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
     }
 
     [Fact]
@@ -341,12 +380,18 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
 
         // assert
-        Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
+        Assert.True(await _agentStore.IsAnnouncementPendingAsync(actor, cancellationToken));
+
+        // act
+        var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
         Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
+
+        // act
         var again = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, again);
     }
 
@@ -359,7 +404,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
-        var handler = CreateHandler(new ThrowingAnnouncementSessionRegistry(_sessions));
+        var handler = CreateHandler(new ThrowingAnnouncementAgentStore(_agentStore));
 
         // act
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -384,8 +429,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var b = await SendMailAsync("bob", actor, cancellationToken);
         var c = await SendMailAsync("bob", actor, cancellationToken);
         await _ledger.ReserveAsync(
-            CurrentGeneration(), [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
-        var handler = CreateHandler(new ThrowingAnnouncementSessionRegistry(_sessions));
+            actor, [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
+        var handler = CreateHandler(new ThrowingAnnouncementAgentStore(_agentStore));
 
         // act
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -394,17 +439,13 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // assert
         // This turn's reservations can be acquired again.
         var reReservedAb = await _ledger.ReserveAsync(
-            CurrentGeneration(),
-            [a.Id, b.Id],
-            AgentSessionChannel.Digest,
-            _timeProvider.GetUtcNow(),
-            cancellationToken);
+            actor, [a.Id, b.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
         Assert.Equal(2, reReservedAb.Count);
 
         // assert
         // The earlier reservation remains held.
         var reReservedC = await _ledger.ReserveAsync(
-            CurrentGeneration(), [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
+            actor, [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
         Assert.Empty(reReservedC);
     }
 
@@ -418,7 +459,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var handler = CreateHandler(new CancellingAnnouncementSessionRegistry(_sessions, cts));
+        var handler = CreateHandler(new CancellingAnnouncementAgentStore(_agentStore, cts));
 
         // act
         await Assert.ThrowsAnyAsync<Exception>(
@@ -442,7 +483,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
         var handler = CreateHandler(
-            new ThrowingAnnouncementSessionRegistry(_sessions), new ReleaseThrowingDeliveryLedger(_ledger));
+            new ThrowingAnnouncementAgentStore(_agentStore), new ReleaseThrowingDeliveryLedger(_ledger));
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -513,7 +554,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await StartAndGetActorAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
         await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
         var deliveredPayload = Payload(SessionId);
         deliveredPayload.Delivered = true;
@@ -532,7 +573,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
 
         // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, again);
-        Assert.False(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
+        Assert.False(await _agentStore.IsAnnouncementPendingAsync(actor, cancellationToken));
     }
 
     [Fact]
@@ -559,7 +600,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleChatMessageAsync_Should_AnnounceAgain_When_TheSessionIsCreatedAfterDeletion()
+    public async Task HandleChatMessageAsync_Should_AnnounceAgain_When_TheSessionIsCreatedAfterEnding()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -575,6 +616,58 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // assert
         var announcement = Assert.Single(outcome.Parts);
         Assert.Contains("Your Nitro actor name is", announcement);
+    }
+
+    // ---------- SessionDeleted ----------
+
+    [Fact]
+    public async Task HandleSessionDeletedAsync_Should_StampEndedAtAndKeepTheRow_When_TheSessionIsActive()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionDeletedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.NotNull(row.EndedAt);
+    }
+
+    [Fact]
+    public async Task HandleSessionDeletedAsync_Should_ReturnNeutral_When_NoRowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionDeletedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+    }
+
+    [Fact]
+    public async Task HandleSessionDeletedAsync_Should_ReturnNeutralWithoutClearingDeletedAt_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await MarkDeletedAsync(actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionDeletedAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Null(row!.EndedAt);
     }
 
     [Fact]
@@ -594,6 +687,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.Equal("1.18.25", payload.HarnessVersion);
     }
 
+    // ---------- helpers ----------
+
     private OpencodeHookPayload Payload(string sessionId) => new()
     {
         SessionId = sessionId,
@@ -603,37 +698,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         HarnessVersion = "1.18.25",
         ServerBound = true
     };
-
-    private OpencodeHookHandler CreateHandler(ISessionDeliveryLedger ledger) => new(
-        _fileSystem,
-        _timeProvider,
-        _sessions,
-        ledger,
-        _mail,
-        _environmentVariables,
-        new FixedInstanceIdProvider("host-1"),
-        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
-
-    private OpencodeHookHandler CreateHandler(IAgentSessionRegistry sessionRegistry) => new(
-        _fileSystem,
-        _timeProvider,
-        sessionRegistry,
-        _ledger,
-        _mail,
-        _environmentVariables,
-        new FixedInstanceIdProvider("host-1"),
-        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
-
-    private OpencodeHookHandler CreateHandler(
-        IAgentSessionRegistry sessionRegistry, ISessionDeliveryLedger ledger) => new(
-        _fileSystem,
-        _timeProvider,
-        sessionRegistry,
-        ledger,
-        _mail,
-        _environmentVariables,
-        new FixedInstanceIdProvider("host-1"),
-        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
@@ -647,7 +711,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         await _handler.HandleSessionCreatedAsync(Payload(SessionId), dryRun: true, cancellationToken);
         var row = await FindRowAsync(cancellationToken);
 
-        return row!.AgentName!;
+        return row!.Name;
     }
 
     private async Task<MailMessage> SendMailAsync(string sender, string recipient, CancellationToken cancellationToken)
@@ -660,11 +724,29 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             cancellationToken);
     }
 
-    private Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
-        => _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);
+    private Task<AgentRow?> FindRowAsync(CancellationToken cancellationToken)
+        => _agentStore.FindBySessionAsync(AgentSessionHarness.Opencode, SessionId, cancellationToken);
 
-    private static AgentSessionGeneration CurrentGeneration() => new(
-        AgentSessionHarness.Opencode,
-        SessionId,
-        "host-1");
+    private async Task<long> CountAllAgentRowsAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM agents;";
+
+        return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
+    }
+
+    /// <summary>
+    /// Marks the named agent as soft-deleted.
+    /// </summary>
+    private async Task MarkDeletedAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agents SET deleted_at = @now WHERE name = @name";
+        command.Parameters.AddWithValue("@now", _timeProvider.GetUtcNow());
+        command.Parameters.AddWithValue("@name", name);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

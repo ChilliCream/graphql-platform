@@ -2,7 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
 /// Handles Claude session registration, unread-mail context, Stop decisions, and
-/// session removal. Exceptions propagate to the hook executor.
+/// session end. Exceptions propagate to the hook executor.
 /// </summary>
 internal interface IClaudeHookHandler
 {
@@ -31,7 +31,15 @@ internal interface IClaudeHookHandler
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Conditionally deletes the session's presence row.
+    /// Touches the session's last-seen time, minting the row first when it is not yet known,
+    /// only when <see cref="ClaudeHookPayload.NotificationType"/> is <c>idle_prompt</c>; any
+    /// other type, or a payload that does not resolve, leaves the store untouched.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleNotificationAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Stamps the session's agent row as ended, keeping it in place.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionEndAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);

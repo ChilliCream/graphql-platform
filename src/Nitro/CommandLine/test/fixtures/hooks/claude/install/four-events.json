@@ -5,15 +5,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/local/bin/herdr hook session-start",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
             "command": "/home/agent/.dotnet/tools/nitro agent hook claude session-start",
             "timeout": 10
           }
@@ -37,17 +28,6 @@
           {
             "type": "command",
             "command": "/home/agent/.dotnet/tools/nitro agent hook claude stop",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/home/agent/.dotnet/tools/nitro agent hook claude notification",
             "timeout": 10
           }
         ]
