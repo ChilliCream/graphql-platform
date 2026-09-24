@@ -142,7 +142,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_SetTheCodexThreadEndpoint_ToTheSessionId()
+    public async Task HandleSessionStartAsync_Should_SetTheCodexThreadEndpointToTheSessionId_When_TheSessionIdIsAValidAddress()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
