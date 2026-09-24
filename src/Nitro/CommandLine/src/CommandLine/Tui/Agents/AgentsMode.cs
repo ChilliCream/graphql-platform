@@ -162,8 +162,7 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// Builds the toast for copying an agent's session id: the id itself, or a login-only
-    /// hint when the agent has no active session. Shared by the Agents table's own y key and
-    /// the agent detail popover's, so both report the same result for the same agent.
+    /// hint when <paramref name="sessionId"/> is null or empty.
     /// </summary>
     public static TuiMessage.ShowToast BuildCopyIdToast(string name, string? sessionId) =>
         sessionId is { Length: > 0 }

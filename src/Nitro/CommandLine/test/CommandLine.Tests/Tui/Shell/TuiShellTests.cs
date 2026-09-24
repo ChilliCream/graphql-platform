@@ -1614,6 +1614,7 @@ public sealed class TuiShellTests
     public void Handle_Should_CopyThePopoversOwnAgentSessionId_When_YIsPressedAfterTheTableSelectionMovesToAnotherAgent()
     {
         // arrange
+        // deleting the popover agent moves the table selection to the only other agent
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         var first = AddOnlineAgent(agentStore, "s-a");
@@ -1624,10 +1625,6 @@ public sealed class TuiShellTests
         var popoverAgent = mode.State.SelectedAgent!;
         var otherAgent = popoverAgent.Name == first.Name ? second : first;
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
-
-        // A database event elsewhere removes the popover's own agent: the table's
-        // selection moves to the only other agent left, while the popover keeps showing
-        // the agent it was opened on.
         DeleteAgent(agentStore, popoverAgent.Name);
         shell.Handle(new TuiEvent.DataChangedEvent());
 
@@ -1637,7 +1634,8 @@ public sealed class TuiShellTests
 
         // assert
         Assert.Equal(otherAgent.Name, mode.State.SelectedAgent?.Name);
-        Assert.Contains(popoverAgent.SessionId!, rendered);
+        var statusLine = rendered.TrimEnd().Split('\n')[^1].Trim();
+        Assert.Equal($"i {popoverAgent.SessionId}", statusLine);
     }
 
     [Fact]

@@ -256,20 +256,14 @@ public sealed class AgentPopoverModelTests
         model.Load();
 
         // act
-        // A tall viewport keeps every section's rows and show-more row on screen at once,
-        // instead of only whichever section the cursor's row happens to scroll into view.
+        // height 100 keeps every section and its show-more row on screen; show-more rows sit at cursor 10, 21 and 32
         var summary = RenderToText(model, height: 100);
         var summaryCounts = (
             Mail: summary.Split("Subject ").Length - 1,
             Tickets: summary.Split("Ticket ").Length - 1,
-            // The bare word "Memory" is also the section's own title line, so counting rows
-            // needs the fuller row prefix to avoid matching that title.
             Memory: summary.Split("journal  now  Memory ").Length - 1,
             ShowMore: summary.Split("show more").Length - 1);
 
-        // The summary's cursor walks the SectionLimit-truncated rows it navigates (10 per
-        // section), so the mail, tickets, and memory show-more rows sit at cursor 10, 21,
-        // and 32: each section contributes its 10 visible rows plus one show-more row.
         MoveCursorDown(model, 10);
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
         var mailListCount = RenderToText(model).Split("Subject ").Length - 1;
