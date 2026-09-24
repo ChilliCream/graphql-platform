@@ -60,7 +60,7 @@ declare -A MARKERS=(
   [mail-send]="Thanks-noted"
   [mail-error]="[nitro exit: 1]"
   [mail-board]="Workspace: bob (3)"
-  [agents]="Session id: e2e-online-session"
+  [agents]="Agents (1 online / 4)"
 )
 ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
 

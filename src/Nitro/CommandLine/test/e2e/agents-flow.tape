@@ -28,14 +28,17 @@
 # (AgentPopoverModel.Locate: an empty section's show-more row is not
 # preceded by any item rows), so no cursor movement is needed to reach it;
 # Enter there opens its full-list view (AgentPopoverListMode), rendering
-# its fixed empty-state message ("Nothing here yet.") -- the "scroll a
+# its fixed empty-state message ("Nothing here yet."), the "scroll a
 # section" step, exercising the show-more mechanism itself rather than a
-# populated list. Escape backs out of that list to the summary, 'd' opens
-# the same delete confirmation the table's own 'd' key does
-# (AgentPopoverResult.DeleteRequested), and Escape there cancels it:
-# TuiShell.HandleAgentDeleteDialogKey's Cancelled branch clears only the
-# dialog, leaving the popover itself open underneath, so the final frame is
-# the popover again, undisturbed.
+# populated list. The first Escape backs out of that list to the summary
+# popover, and the second Escape closes the popover entirely, returning to
+# the table. From there, Shift+D presses the table's own delete-offline
+# binding (AgentsKeyMap's D, distinct from the popover's per-agent 'd'),
+# opening the confirmation TuiShell.TryOpenAgentDeleteOfflineDialog shows
+# for the currently Offline agents, bob and e2e-agent ("Delete 2 offline
+# agents? This cannot be undone."). A final Escape cancels it: TuiShell's
+# Cancelled branch just clears the dialog, so the final frame is the table
+# itself, unchanged.
 #
 # nora's last_seen_at is refreshed to the real current time by
 # agents-seed.sql rather than pinned to a fixture-past timestamp (the state
@@ -101,12 +104,18 @@ Wait+Screen@30s /Nothing here yet\./
 Escape
 Wait+Screen@30s /State: ● Online/
 
-# 'd' opens the same delete confirmation the Agents table's own 'd' key
-# does, then Esc cancels it, leaving the popover open underneath.
-Type "d"
-Wait+Screen@30s /Delete agent 'nora'\? Its mail and tasks keep the name; this cannot be undone\./
+# Esc again closes the popover entirely, back on the table.
 Escape
-Wait+Screen@30s /Session id: e2e-online-session/
+Wait+Screen@30s /Agents \(1 online \/ 4\)/
+
+# Shift+D opens the table-level delete-offline confirmation (distinct from
+# the popover's per-agent 'd'), counting bob and e2e-agent; Esc cancels it,
+# returning to the table.
+Type "D"
+Wait+Screen@30s /Delete 2 offline agents\? This cannot be undone\./
+Escape
+Wait+Screen@30s /Agents \(1 online \/ 4\)/
+Wait+Screen@30s /> ● nora/
 
 Sleep 1500ms
 Screenshot agents-flow-final.png

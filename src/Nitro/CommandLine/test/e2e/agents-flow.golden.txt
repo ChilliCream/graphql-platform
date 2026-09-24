@@ -1,35 +1,35 @@
  [T]asks   [M]ail   [A]gents   M[e]mory
-
-
-
-         ╭─nora─────────────────────────────────────────────────────────────────────╮
-         │ State: ● Online                                                          │
-         │ Role: planner                                                            │
-         │ Harness: claude-code 2.4.1                                               │
-         │ Session id: e2e-online-session                                           │
-         │ Started: 2026-01-01 ago                                                  │
-         │ Last Seen: AG ago                                                        │
-         │ Mail                                                                     │
-         │ No mail yet                                                              │
-         │ › show more                                                              │
-         │ Tickets                                                                  │
-         │ No tickets yet                                                           │
-         │ › show more                                                              │
-         │ Memory                                                                   │
-         │ No memory yet                                                            │
-         │ › show more                                                              │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         │                                                                          │
-         ╰──────────────────────────────────────────────────────────────────────────╯
-
-
-
-
-j/k move  enter show more  d delete  y copy id  esc close                       mail-wake:ready
+╭─Agents (1 online / 4)───────────────────────────────────────────────────────────────────────╮
+│ > ● nora      planner Claude Code 2026-01-01 ago AG ago                                     │
+│   ● alice     -       -           2026-01-01 ago AG ago                                     │
+│   ● e2e-agent -       -           2026-01-01 ago AG ago                                     │
+│   ● bob       -       -           2026-01-01 ago 2026-01-01 ago                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+│                                                                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────╯
+hjkl move  enter open  d delete  D delete offline  y copy id  r refresh  / search  …
