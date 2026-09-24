@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
@@ -14,7 +13,6 @@ internal static class AgentRowBadge
     private const string UnselectedPrefix = "  ";
     private const string EmptyRole = "-";
     private const string BubbleGlyph = "●";
-    private const string AgeSuffix = " ago";
 
     /// <summary>
     /// The column widths a set of rows agree on: each column padded to the
@@ -215,7 +213,7 @@ internal static class AgentRowBadge
 
     private static string RoleText(AgentRow row) => row.Role.Length == 0 ? EmptyRole : row.Role;
 
-    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => MailAges.Format(value, now) + AgeSuffix;
+    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => AgentAges.Format(value, now);
 
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";

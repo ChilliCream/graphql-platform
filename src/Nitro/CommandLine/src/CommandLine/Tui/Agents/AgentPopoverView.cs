@@ -102,7 +102,7 @@ internal static class AgentPopoverView
         return agent.HarnessVersion.Length == 0 ? harness : $"{harness} {agent.HarnessVersion}";
     }
 
-    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => $"{MailAges.Format(value, now)} ago";
+    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => AgentAges.Format(value, now);
 
     private static string FormatHeaderLine(string label, string valueMarkup)
     {
