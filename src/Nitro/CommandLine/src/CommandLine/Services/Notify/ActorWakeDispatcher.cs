@@ -194,9 +194,26 @@ internal sealed class ActorWakeDispatcher(
         {
             var row = await agentStore.FindAsync(target, dispatchToken);
 
-            if (row is null || AgentStateResolver.Resolve(row, timeProvider.GetUtcNow()) != AgentState.Online)
+            if (row is null)
             {
-                return await RecordOfferedAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration, "offline");
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
+            }
+
+            if (row.EndedAt is not null)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "ended");
+            }
+
+            var state = AgentStateResolver.Resolve(row, timeProvider.GetUtcNow());
+
+            if (state == AgentState.Offline)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "offline");
+            }
+
+            if (state == AgentState.Unreachable)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
             }
 
             if (row.EndpointKind is AgentSessionEndpointKind.DbWatch or AgentSessionEndpointKind.CopilotExtension)
@@ -210,6 +227,12 @@ internal sealed class ActorWakeDispatcher(
                 and not AgentSessionEndpointKind.OpencodeServer)
             {
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "unsupported");
+            }
+
+            if (row.EndpointKind is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.OpencodeServer
+                && row.SessionId is null)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
             }
 
             var now = timeProvider.GetUtcNow();
@@ -254,14 +277,14 @@ internal sealed class ActorWakeDispatcher(
 
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
-                var outcome = row.EndpointKind switch
+                var outcome = (row.EndpointKind, row.SessionId) switch
                 {
-                    AgentSessionEndpointKind.ClaudePeer => await executor.ExecuteClaudePeerAsync(
-                        target, row.SessionId!, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
-                    AgentSessionEndpointKind.CodexThread => await executor.ExecuteCodexThreadAsync(
+                    (AgentSessionEndpointKind.ClaudePeer, { } sessionId) => await executor.ExecuteClaudePeerAsync(
+                        target, sessionId, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
+                    (AgentSessionEndpointKind.CodexThread, _) => await executor.ExecuteCodexThreadAsync(
                         target, row.EndpointAddr, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
-                    AgentSessionEndpointKind.OpencodeServer => await executor.ExecuteOpencodeServerAsync(
-                        target, row.SessionId!, row.EndpointAddr, row.EndpointSecret, pingAttemptId, held.Slot,
+                    (AgentSessionEndpointKind.OpencodeServer, { } sessionId) => await executor.ExecuteOpencodeServerAsync(
+                        target, sessionId, row.EndpointAddr, row.EndpointSecret, pingAttemptId, held.Slot,
                         attemptDeadline, dispatchToken),
                     _ => throw new UnreachableException(
                         $"Endpoint kind '{row.EndpointKind}' passed the earlier supported-kind guard.")
@@ -338,6 +361,19 @@ internal sealed class ActorWakeDispatcher(
 
         return recorded
             ? new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Failed, null, null, reason)
+            : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
+    }
+
+    private async Task<ActorWakeTargetReceipt> RecordSkippedAsync(
+        string batchId, string target, string ownerId, string attemptId, string reason)
+    {
+        var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+            batchId, target, ownerId, attemptId, MailWakeTargetStatus.Skipped,
+            offeredGeneration: null, acceptedGeneration: null, lastError: reason,
+            timeProvider.GetUtcNow(), CancellationToken.None);
+
+        return recorded
+            ? new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Skipped, null, null, reason)
             : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
     }
 

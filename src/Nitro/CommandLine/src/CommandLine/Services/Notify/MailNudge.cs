@@ -94,7 +94,12 @@ internal sealed class MailNudge(
             switch (row.EndpointKind)
             {
                 case AgentSessionEndpointKind.ClaudePeer:
-                    await claudePeerClient.SendAsync(row.SessionId!, text, cancellationToken);
+                    if (row.SessionId is null)
+                    {
+                        break;
+                    }
+
+                    await claudePeerClient.SendAsync(row.SessionId, text, cancellationToken);
                     break;
 
                 case AgentSessionEndpointKind.CodexThread:
