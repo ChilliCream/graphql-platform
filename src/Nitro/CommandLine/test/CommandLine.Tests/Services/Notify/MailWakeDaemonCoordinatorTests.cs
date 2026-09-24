@@ -3,29 +3,21 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="MailWakeDaemonCoordinator"/> against a real workspace
-/// database with a fast injected <see cref="MailWakeDaemonPolicy"/> and real
-/// wall-clock time (no <c>FakeTimeProvider</c>, so there is no race between
-/// advancing a fake clock and a background loop reaching its next await):
-/// first acquisition, staying standby behind another owner's live lease,
-/// taking over once that lease expires, exactly one leader winning (and the
-/// other staying standby) when two coordinators race the same lease with
-/// different owner tokens, the admission/execution loops actually draining
-/// outstanding actor wake work through the reused
-/// <see cref="IActorWakeDispatcher"/>, self-degradation on a daemon-side
-/// Claude access denial without disturbing the winning standby, and a
-/// bounded, leadership-releasing graceful stop.
+/// database: leadership acquisition and handoff, the admission and execution
+/// loops, self-degradation, a graceful stop, and demotion on a lost or fenced lease.
 /// </summary>
 public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 {
     private const string Actor = "codex-worker";
 
     private static readonly MailWakeDaemonPolicy s_fastPolicy = new(
-        LeaderLeaseDuration: TimeSpan.FromMilliseconds(400),
+        LeaderLeaseDuration: TimeSpan.FromSeconds(10),
         HeartbeatInterval: TimeSpan.FromMilliseconds(60),
         AdmissionPollInterval: TimeSpan.FromMilliseconds(30),
         StandbyPollInterval: TimeSpan.FromMilliseconds(30),
@@ -165,24 +157,58 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await SendEnqueuedMailAsync(cancellationToken, actor);
         var executor = new FakePingSessionExecutor();
         executor.ReasonByActor[actor] = PingAttemptReason.AccessDenied;
-        await using var coordinator = CreateCoordinator(executor);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var standbyTicks = 0;
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database),
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, executor, _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy)
+        {
+            AfterStandbyTickAsync = _ =>
+            {
+                Interlocked.Increment(ref standbyTicks);
+                return Task.CompletedTask;
+            }
+        };
 
         // act
         await coordinator.StartAsync(cancellationToken);
-        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Degraded, cancellationToken);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.AdmissionPollInterval,
+            () => coordinator.Status.State == MailWakeDaemonState.Degraded,
+            cancellationToken);
 
         // assert
         // Degraded with the denial recorded, and it does not flap back to ready.
         Assert.Equal("access-denied", coordinator.Status.LastError);
-        await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.StandbyPollInterval,
+            () => Volatile.Read(ref standbyTicks) >= 5,
+            cancellationToken);
         Assert.NotEqual(MailWakeDaemonState.Ready, coordinator.Status.State);
 
         // a differently privileged standby (a second coordinator instance)
         // can take over immediately, without waiting out the lease.
-        await using var standby = CreateCoordinator(new FakePingSessionExecutor());
+        await using var standby = new MailWakeDaemonCoordinator(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database),
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, new FakePingSessionExecutor(), _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy);
         await standby.StartAsync(cancellationToken);
-        await WaitUntilAsync(() => standby.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.StandbyPollInterval,
+            () => standby.Status.State == MailWakeDaemonState.Ready,
+            cancellationToken);
         Assert.NotNull(standby.Status.OwnerToken);
+        Assert.True(timeProvider.GetUtcNow() - timeProvider.Start < s_fastPolicy.LeaderLeaseDuration);
 
         await coordinator.StopAsync(cancellationToken);
         await standby.StopAsync(cancellationToken);
@@ -256,6 +282,158 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         Assert.NotEqual(MailWakeTargetStatus.Delivered, status);
         Assert.Null(coordinator.Status.OwnerToken);
         Assert.Null(coordinator.Status.LeaseExpiresAt);
+
+        await coordinator.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task RunningLeader_Should_DemoteToStandby_When_ASecondCoordinatorAcquiresItsExpiredLease()
+    {
+        // arrange
+        // A gated leader store holds coordinator A's renewal in flight while B claims the row it already lost.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken, actor);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var sharedLeaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
+        var gatedLeaderStore = new GatedRenewalLeaderStore(sharedLeaderStore);
+        var executorA = new FakePingSessionExecutor { HangUntilCancelled = true };
+        await using var coordinatorA = new MailWakeDaemonCoordinator(
+            gatedLeaderStore,
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, executorA, _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy);
+        await using var coordinatorB = new MailWakeDaemonCoordinator(
+            sharedLeaderStore,
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, new FakePingSessionExecutor(), _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy);
+
+        // act
+        await coordinatorA.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinatorA.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        await executorA.Entered.Task.WaitAsync(s_waitTimeout, cancellationToken);
+        var staleToken = coordinatorA.Status.OwnerToken!;
+        gatedLeaderStore.HoldNextRenewal();
+        timeProvider.Advance(s_fastPolicy.LeaderLeaseDuration + s_fastPolicy.HeartbeatInterval);
+        await WaitUntilAsync(() => coordinatorA.Status.State == MailWakeDaemonState.Standby, cancellationToken);
+        var aStandbyWhileRenewalHeld = coordinatorA.Status.State;
+
+        await coordinatorB.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinatorB.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        gatedLeaderStore.ReleaseHeldRenewal();
+        await gatedLeaderStore.RenewalCompleted.WaitAsync(s_waitTimeout, cancellationToken);
+        var (batchId, attemptId) = await ReadActiveBatchAsync(actor, cancellationToken);
+        var staleOutcomeAccepted = await _batches.TryRecordTargetOutcomeAsync(
+            batchId, actor, staleToken, attemptId, MailWakeTargetStatus.Delivered,
+            offeredGeneration: null, acceptedGeneration: 1, lastError: null, timeProvider.GetUtcNow(), cancellationToken);
+        var staleCompleteAccepted = await _batches.TryCompleteAsync(
+            batchId, staleToken, attemptId, timeProvider.GetUtcNow(), cancellationToken);
+
+        // assert
+        Assert.Equal(MailWakeDaemonState.Standby, aStandbyWhileRenewalHeld);
+        var finalState = (
+            AState: coordinatorA.Status.State,
+            AOwnerToken: coordinatorA.Status.OwnerToken,
+            ALeaseExpiresAt: coordinatorA.Status.LeaseExpiresAt,
+            RowOwnerToken: await ReadLeaderOwnerTokenAsync(cancellationToken),
+            StaleOutcomeAccepted: staleOutcomeAccepted,
+            StaleCompleteAccepted: staleCompleteAccepted,
+            TargetStatus: await ReadTargetStatusAsync(actor, cancellationToken));
+        Assert.Equal(
+            (MailWakeDaemonState.Standby, null, null, coordinatorB.Status.OwnerToken,
+                false, false, MailWakeTargetStatus.Pending),
+            finalState);
+
+        await coordinatorA.StopAsync(cancellationToken);
+        await coordinatorB.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task AdmissionLoop_Should_StopDispatching_When_TheCachedLeaderLeaseHasLapsed()
+    {
+        // arrange
+        // A gated leader store holds the heartbeat's renewal in flight while the cached lease goes stale.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var gatedLeaderStore = new GatedRenewalLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database));
+        var dispatcher = new CountingDispatcher();
+        var ticksAfterInsert = 0;
+        DateTimeOffset? insertedAt = null;
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            gatedLeaderStore, dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy)
+        {
+            AfterAdmissionTickAsync = _ =>
+            {
+                if (insertedAt is { } insertedAtValue && timeProvider.GetUtcNow() > insertedAtValue)
+                {
+                    Interlocked.Increment(ref ticksAfterInsert);
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        gatedLeaderStore.HoldNextRenewal();
+        timeProvider.Advance(s_fastPolicy.LeaderLeaseDuration + s_fastPolicy.HeartbeatInterval);
+        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await InsertDueOutboxRowAsync(cancellationToken, Actor);
+        insertedAt = timeProvider.GetUtcNow();
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.AdmissionPollInterval,
+            () => Volatile.Read(ref ticksAfterInsert) > 0,
+            cancellationToken);
+        gatedLeaderStore.ReleaseHeldRenewal();
+
+        // assert
+        // The lapsed cached lease stopped admission before the heartbeat's held renewal ever returned.
+        Assert.Equal(0, dispatcher.DispatchCount);
+        Assert.Equal(MailWakeDaemonState.Standby, coordinator.Status.State);
+
+        await coordinator.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task RunningLeader_Should_ReleaseLeadershipAfterTheHeldRenewalReturns_When_ItsOwnDispatchIsAccessDenied()
+    {
+        // arrange
+        // The heartbeat's renewal is held in flight while an access-denied dispatch degrades the leader.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var events = new ConcurrentQueue<string>();
+        var leaderStore = new OrderedReleaseLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database), events);
+        var dispatcher = new AlwaysDeniedDispatcher();
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            leaderStore, dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy);
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        leaderStore.HoldNextRenewal();
+        await AdvanceUntilAsync(timeProvider, s_fastPolicy.HeartbeatInterval, () => leaderStore.IsHeld, cancellationToken);
+        await InsertDueOutboxRowAsync(cancellationToken, Actor);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.AdmissionPollInterval,
+            () => coordinator.Status.State == MailWakeDaemonState.Degraded,
+            cancellationToken);
+        leaderStore.ReleaseHeldRenewal();
+        await WaitUntilAsync(() => events.Count >= 2, cancellationToken);
+
+        // assert
+        Assert.Equal(["renewal-completed", "release-attempted"], events);
 
         await coordinator.StopAsync(cancellationToken);
     }
@@ -540,6 +718,22 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         return (string?)await command.ExecuteScalarAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Reads the actor's active batch id and attempt id.
+    /// </summary>
+    private async Task<(string BatchId, string AttemptId)> ReadActiveBatchAsync(
+        string actor, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT batch_id, attempt_id FROM mail_wake_batches WHERE actor = @actor AND status = 'active'";
+        command.Parameters.AddWithValue("@actor", actor);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+        return (reader.GetString(0), reader.GetString(1));
+    }
+
     private async Task<string?> ReadLeaderOwnerTokenAsync(CancellationToken cancellationToken)
     {
         await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
@@ -598,6 +792,28 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
                 throw new TimeoutException("Condition was not met within the timeout.");
             }
 
+            await Task.Delay(TimeSpan.FromMilliseconds(15), cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Repeatedly advances <paramref name="timeProvider"/> by <paramref name="step"/> until
+    /// <paramref name="condition"/> is observed true, so a background loop parked on a fake-clock
+    /// delay gets a fresh due time on every attempt instead of a single, possibly missed, advance.
+    /// </summary>
+    private static async Task AdvanceUntilAsync(
+        FakeTimeProvider timeProvider, TimeSpan step, Func<bool> condition, CancellationToken cancellationToken)
+    {
+        var deadline = DateTime.UtcNow + s_waitTimeout;
+
+        while (!condition())
+        {
+            if (DateTime.UtcNow >= deadline)
+            {
+                throw new TimeoutException("Condition was not met within the timeout.");
+            }
+
+            timeProvider.Advance(step);
             await Task.Delay(TimeSpan.FromMilliseconds(15), cancellationToken);
         }
     }
@@ -708,7 +924,7 @@ internal sealed class DeniedThenHangingDispatcher(string deniedActor, Concurrent
     private int _deniedDispatchCount;
 
     public async Task<ActorWakeReceipt?> DispatchAsync(
-        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         if (actor == deniedActor && Interlocked.Increment(ref _deniedDispatchCount) == 1)
         {
@@ -760,7 +976,7 @@ internal sealed class ConcurrencyTrackingDispatcher : IActorWakeDispatcher
     public ConcurrentBag<string> CompletedActors { get; } = [];
 
     public async Task<ActorWakeReceipt?> DispatchAsync(
-        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         var observed = Interlocked.Increment(ref _concurrent);
         InterlockedMax(ref _maxObservedConcurrency, observed);
@@ -810,7 +1026,7 @@ internal sealed class HangingDispatcher : IActorWakeDispatcher
     public void Release() => _gate.TrySetResult();
 
     public async Task<ActorWakeReceipt?> DispatchAsync(
-        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _enteredCount);
         await _gate.Task;
@@ -840,4 +1056,119 @@ internal sealed class RenewalLossLeaderStore(IMailWakeDaemonLeaderStore inner) :
 
     public Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
         => inner.TryReleaseAsync(token, now, cancellationToken);
+}
+
+/// <summary>
+/// Counts every <see cref="DispatchAsync"/> call without touching any real
+/// session, mail, or dispatch machinery.
+/// </summary>
+internal sealed class CountingDispatcher : IActorWakeDispatcher
+{
+    private int _dispatchCount;
+
+    public int DispatchCount => Volatile.Read(ref _dispatchCount);
+
+    public Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _dispatchCount);
+        return Task.FromResult<ActorWakeReceipt?>(null);
+    }
+}
+
+/// <summary>
+/// Delegates every call to <paramref name="inner"/>, except that after
+/// <see cref="HoldNextRenewal"/> the next <see cref="TryRenewAsync"/> call
+/// awaits <see cref="ReleaseHeldRenewal"/> before delegating.
+/// <see cref="RenewalCompleted"/> resolves with that delegated call's result.
+/// </summary>
+internal sealed class GatedRenewalLeaderStore(IMailWakeDaemonLeaderStore inner) : IMailWakeDaemonLeaderStore
+{
+    private readonly TaskCompletionSource<bool> _renewalCompleted =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private TaskCompletionSource? _gate;
+
+    public Task<bool> RenewalCompleted => _renewalCompleted.Task;
+
+    public void HoldNextRenewal() => _gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public void ReleaseHeldRenewal() => _gate?.TrySetResult();
+
+    public Task<bool> TryAcquireAsync(string token, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+        => inner.TryAcquireAsync(token, now, leaseDuration, cancellationToken);
+
+    public async Task<bool> TryRenewAsync(string token, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+    {
+        if (_gate is { } gate)
+        {
+            await gate.Task;
+        }
+
+        var renewed = await inner.TryRenewAsync(token, now, leaseDuration, cancellationToken);
+        _renewalCompleted.TrySetResult(renewed);
+        return renewed;
+    }
+
+    public Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
+        => inner.TryReleaseAsync(token, now, cancellationToken);
+}
+
+/// <summary>
+/// Delegates every call to <paramref name="inner"/>, except that after
+/// <see cref="HoldNextRenewal"/> the next <see cref="TryRenewAsync"/> call marks
+/// <see cref="IsHeld"/> and awaits <see cref="ReleaseHeldRenewal"/> before completing
+/// against <paramref name="inner"/> with no cancellation, then records
+/// <c>"renewal-completed"</c> into <paramref name="events"/>. Every
+/// <see cref="TryReleaseAsync"/> call records <c>"release-attempted"</c> before delegating.
+/// </summary>
+internal sealed class OrderedReleaseLeaderStore(IMailWakeDaemonLeaderStore inner, ConcurrentQueue<string> events)
+    : IMailWakeDaemonLeaderStore
+{
+    private volatile bool _held;
+    private TaskCompletionSource? _gate;
+
+    public bool IsHeld => _held;
+
+    public void HoldNextRenewal() => _gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public void ReleaseHeldRenewal() => _gate?.TrySetResult();
+
+    public Task<bool> TryAcquireAsync(string token, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+        => inner.TryAcquireAsync(token, now, leaseDuration, cancellationToken);
+
+    public async Task<bool> TryRenewAsync(string token, DateTimeOffset now, TimeSpan leaseDuration, CancellationToken cancellationToken)
+    {
+        if (_gate is { } gate)
+        {
+            _held = true;
+            await gate.Task;
+        }
+
+        // Simulates a renewal already in flight against the database: it runs to
+        // completion rather than being cut short by the caller's own cancellation.
+        var renewed = await inner.TryRenewAsync(token, now, leaseDuration, CancellationToken.None);
+        events.Enqueue("renewal-completed");
+        return renewed;
+    }
+
+    public Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        events.Enqueue("release-attempted");
+        return inner.TryReleaseAsync(token, now, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Returns a pending, access-denied receipt for whichever actor it is dispatched for,
+/// on every call, without touching any real session, mail, or dispatch machinery.
+/// </summary>
+internal sealed class AlwaysDeniedDispatcher : IActorWakeDispatcher
+{
+    public Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
+        => Task.FromResult<ActorWakeReceipt?>(new ActorWakeReceipt(
+            actor,
+            "denied",
+            [new ActorWakeTargetReceipt(actor, MailWakeTargetStatus.Pending, null, null, "access-denied")]));
 }

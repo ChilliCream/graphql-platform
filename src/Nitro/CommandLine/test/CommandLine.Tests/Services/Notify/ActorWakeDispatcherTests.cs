@@ -20,6 +20,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class ActorWakeDispatcherTests : IDisposable
 {
+    private const string LeaderToken = "leader-token";
+
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
     private readonly TestFileSystem _fileSystem;
@@ -32,6 +34,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     private readonly AgentPingGateStore _gates;
     private readonly PingLeaseStore _leases;
     private readonly SessionGateCoordinator _gateCoordinator;
+    private readonly MailWakeDaemonLeaderStore _leaderStore;
 
     public ActorWakeDispatcherTests()
     {
@@ -48,6 +51,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _gates = new AgentPingGateStore(_fileSystem, _database);
         _leases = new PingLeaseStore(_fileSystem, _database);
         _gateCoordinator = new SessionGateCoordinator(_gates, _leases);
+        _leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -63,7 +67,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(new FakePingSessionExecutor());
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Null(receipt);
@@ -83,7 +87,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -95,7 +99,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // the batch completed instead of releasing for a retry.
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+        Assert.Null(await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken));
     }
 
     [Fact]
@@ -112,7 +116,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -124,7 +128,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // the batch completed instead of releasing for a retry.
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+        Assert.Null(await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken));
     }
 
     [Fact]
@@ -140,7 +144,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -152,7 +156,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // the batch completed instead of releasing for a retry.
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+        Assert.Null(await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken));
     }
 
     [Fact]
@@ -170,7 +174,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -182,7 +186,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // the batch completed instead of releasing for a retry.
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+        Assert.Null(await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken));
     }
 
     [Fact]
@@ -203,7 +207,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _batches, missingStore.Object, _gateCoordinator, executor, _mail, _timeProvider);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -215,7 +219,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // the batch completed instead of releasing for a retry.
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+        Assert.Null(await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken));
     }
 
     [Fact]
@@ -231,7 +235,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         // Satisfied, zero, no transport attempted, and no second message row written.
@@ -258,7 +262,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -269,7 +273,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Single(executor.Calls);
 
         // the batch settled: nothing left outstanding for a fresh dispatch.
-        var again = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var again = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
         Assert.Null(again);
     }
 
@@ -285,7 +289,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -309,7 +313,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var tightDeadline = _timeProvider.GetUtcNow() + TimeSpan.FromMilliseconds(200);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, tightDeadline, cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, tightDeadline, cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -334,7 +338,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // Wait for transport entry, then advance past the batch lease expiry.
-        var dispatchTask = dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var dispatchTask = dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
 
@@ -348,7 +352,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // An expired batch can be reclaimed by a fresh dispatch.
         var freshExecutor = new FakePingSessionExecutor();
         var freshDispatcher = CreateDispatcher(freshExecutor);
-        var reclaimed = await freshDispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var reclaimed = await freshDispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         Assert.NotNull(reclaimed);
         Assert.Equal(MailWakeTargetStatus.Delivered, reclaimed.Status);
@@ -375,7 +379,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // Wait for transport entry, then advance past the renew interval but not the lease expiry.
-        var dispatchTask = dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var dispatchTask = dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchRenewInterval + TimeSpan.FromSeconds(1));
 
@@ -390,7 +394,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration);
         var freshExecutor = new FakePingSessionExecutor();
         var freshDispatcher = CreateDispatcher(freshExecutor);
-        var reclaimed = await freshDispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var reclaimed = await freshDispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         Assert.NotNull(reclaimed);
         Assert.Equal(MailWakeTargetStatus.Delivered, reclaimed.Status);
@@ -417,7 +421,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _timeProvider);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -455,7 +459,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _timeProvider);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -489,7 +493,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // The dispatcher sees unread mail; the executor's digest lookup returns none.
-        var firstReceipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var firstReceipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
         var firstRow = await _agentStore.FindAsync(actor, cancellationToken);
 
         // assert
@@ -503,7 +507,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(actor, cancellationToken);
-        var secondReceipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var secondReceipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
         var secondRow = await _agentStore.FindAsync(actor, cancellationToken);
 
         // assert
@@ -528,7 +532,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(receipt);
@@ -548,7 +552,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
         await _agentStore.RearmIdlePushAsync(actor, cancellationToken);
         await SendEnqueuedMailAsync(actor, cancellationToken);
-        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, Deadline(), cancellationToken);
+        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // act
         // Advance past the gate's cooldown, then dispatch a second wake with no fresh rearm.
@@ -556,7 +560,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await SendEnqueuedMailAsync(actor, cancellationToken);
         var suppressedExecutor = new FakePingSessionExecutor();
         var suppressedReceipt = await CreateDispatcher(suppressedExecutor)
-            .DispatchAsync(actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         // suppressed rather than pushed again.
@@ -581,7 +585,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var dispatcher = CreateDispatcher(executor);
 
         // act
-        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var receipt = await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         // offered, not failed, and no transport was ever attempted.
@@ -602,7 +606,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var actor = await SeedLiveSessionAsync(
             AgentSessionEndpointKind.OpencodeServer, "http://127.0.0.1:4096", cancellationToken);
         await SendEnqueuedMailAsync(actor, cancellationToken);
-        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, Deadline(), cancellationToken);
+        await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // act
         // A genuine prompt rearms the gate, and the retry becomes due.
@@ -610,7 +614,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var rearmedExecutor = new FakePingSessionExecutor();
         var rearmedReceipt = await CreateDispatcher(rearmedExecutor)
-            .DispatchAsync(actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.NotNull(rearmedReceipt);
@@ -635,7 +639,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // The gate is busy, so the target is offered rather than failed.
-        var busyReceipt = await CreateDispatcher(busyExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
+        var busyReceipt = await CreateDispatcher(busyExecutor).DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal("busy", Assert.Single(busyReceipt!.Targets).LastError);
@@ -647,7 +651,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
-            .DispatchAsync(actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
@@ -668,7 +672,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // the transport fails outright.
-        var failedReceipt = await CreateDispatcher(failingExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
+        var failedReceipt = await CreateDispatcher(failingExecutor).DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Failed, failedReceipt?.Status);
@@ -678,7 +682,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await SendEnqueuedMailAsync(actor, cancellationToken);
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
-            .DispatchAsync(actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
@@ -700,7 +704,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         var healthOnlyReceipt = await CreateDispatcher(healthOnlyExecutor)
-            .DispatchAsync(actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, healthOnlyReceipt?.Status);
@@ -710,7 +714,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(actor, cancellationToken);
         var pushExecutor = new FakePingSessionExecutor();
-        var pushReceipt = await CreateDispatcher(pushExecutor).DispatchAsync(actor, Deadline(), cancellationToken);
+        var pushReceipt = await CreateDispatcher(pushExecutor).DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, pushReceipt?.Status);
@@ -733,7 +737,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // act
         // Wait for transport entry, then advance past the batch lease expiry.
-        var dispatchTask = dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+        var dispatchTask = dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
@@ -748,7 +752,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await SendEnqueuedMailAsync(actor, cancellationToken);
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
-            .DispatchAsync(actor, Deadline(), cancellationToken);
+            .DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken);
 
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, deliveredReceipt?.Status);
@@ -775,11 +779,18 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     private ActorWakeDispatcher CreateDispatcher(FakePingSessionExecutor executor)
         => new(_batches, _agentStore, _gateCoordinator, executor, _mail, _timeProvider);
 
+    /// <summary>
+    /// Initializes the workspace database and acquires the fixed leader
+    /// lease every dispatch in this class fences its batch writes on.
+    /// </summary>
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
         await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
         {
         }
+
+        await _leaderStore.TryAcquireAsync(
+            LeaderToken, _timeProvider.GetUtcNow(), TimeSpan.FromDays(1), cancellationToken);
     }
 
     /// <summary>
