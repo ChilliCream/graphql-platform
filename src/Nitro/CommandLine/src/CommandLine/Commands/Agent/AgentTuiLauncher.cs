@@ -33,14 +33,13 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentRegistry agentRegistry,
-        IAgentSessionRegistry agentSessionRegistry,
-        IClaudeSessionActivityReader activityReader,
+        IAgentStore agentStore,
         TimeProvider timeProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         CancellationToken cancellationToken)
         => RunShellAsync(
-            console, taskStore, mailStore, memoryStore, agentRegistry, agentSessionRegistry, activityReader,
+            console, taskStore, mailStore, memoryStore, agentRegistry, agentStore,
             timeProvider, workspaceDirectory, mailWakeDaemonCoordinator, cancellationToken);
 
     private static async Task<int> RunShellAsync(
@@ -49,8 +48,7 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentRegistry agentRegistry,
-        IAgentSessionRegistry agentSessionRegistry,
-        IClaudeSessionActivityReader activityReader,
+        IAgentStore agentStore,
         TimeProvider timeProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
@@ -67,8 +65,7 @@ internal static class AgentTuiLauncher
             mailStore,
             memoryStore,
             agentRegistry,
-            agentSessionRegistry,
-            activityReader,
+            agentStore,
             timeProvider,
             quitCts.Token);
 
@@ -85,7 +82,8 @@ internal static class AgentTuiLauncher
             taskStore,
             actor: null,
             mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
-            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
+            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()],
+            agentStore: agentStore);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
@@ -135,8 +133,7 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentRegistry agentRegistry,
-        IAgentSessionRegistry agentSessionRegistry,
-        IClaudeSessionActivityReader activityReader,
+        IAgentStore agentStore,
         TimeProvider timeProvider,
         CancellationToken effectCancellationToken = default)
     {
@@ -148,7 +145,7 @@ internal static class AgentTuiLauncher
             mailStore, agentRegistry, timeProvider,
             effectCancellationToken);
 
-        var agentsMode = new AgentsMode(taskStore, mailStore, agentSessionRegistry, activityReader, timeProvider);
+        var agentsMode = new AgentsMode(agentStore, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var memoryMode = new MemoryMode(memoryStore, timeProvider);

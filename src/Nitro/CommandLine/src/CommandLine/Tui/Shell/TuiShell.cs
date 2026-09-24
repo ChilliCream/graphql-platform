@@ -1,6 +1,8 @@
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -35,6 +37,7 @@ internal sealed class TuiShell
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
+    private readonly IAgentStore? _agentStore;
     private readonly string? _actor;
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
@@ -55,6 +58,9 @@ internal sealed class TuiShell
     private TaskCreateForm? _createForm;
     private EditingConfirmDialog? _discardDialog;
     private DiscardTarget _discardTarget;
+    private EditingConfirmDialog? _agentDeleteDialog;
+    private string? _agentDeleteTarget;
+    private EditingConfirmDialog? _agentDeleteOfflineDialog;
     private int _width;
     private int _height;
 
@@ -69,7 +75,8 @@ internal sealed class TuiShell
         string? actor = null,
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
-        TimeSpan? quitGateDrainBound = null)
+        TimeSpan? quitGateDrainBound = null,
+        IAgentStore? agentStore = null)
         : this(
             [new TuiTab(
                 string.Empty,
@@ -85,7 +92,8 @@ internal sealed class TuiShell
             actor,
             mailWakeDaemonState,
             quitGates,
-            quitGateDrainBound)
+            quitGateDrainBound,
+            agentStore)
     {
     }
 
@@ -109,6 +117,7 @@ internal sealed class TuiShell
     /// <param name="mailWakeDaemonState">
     /// Supplies the daemon state for the footer when no toast is shown; null omits the badge.
     /// </param>
+    /// <param name="agentStore">The agent store, or null to disable the Agents tab's delete actions.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
     /// </exception>
@@ -123,7 +132,8 @@ internal sealed class TuiShell
         string? actor = null,
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
-        TimeSpan? quitGateDrainBound = null)
+        TimeSpan? quitGateDrainBound = null,
+        IAgentStore? agentStore = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
 
@@ -144,6 +154,7 @@ internal sealed class TuiShell
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
+        _agentStore = agentStore;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
@@ -217,11 +228,15 @@ internal sealed class TuiShell
                     ? form.Render(_width, contentHeight)
                     : _lifecycleDialog is { } lifecycleDialog
                         ? lifecycleDialog.Render(_width, contentHeight)
-                        : _picker is { } picker
-                            ? picker.Render(_width, contentHeight)
-                            : _createForm is { } createForm
-                                ? createForm.Render(_width, contentHeight)
-                                : ActiveMode.Render(_width, contentHeight);
+                        : _agentDeleteDialog is { } agentDeleteDialog
+                            ? agentDeleteDialog.Render(_width, contentHeight)
+                            : _agentDeleteOfflineDialog is { } agentDeleteOfflineDialog
+                                ? agentDeleteOfflineDialog.Render(_width, contentHeight)
+                                : _picker is { } picker
+                                    ? picker.Render(_width, contentHeight)
+                                    : _createForm is { } createForm
+                                        ? createForm.Render(_width, contentHeight)
+                                        : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
             ?? new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
@@ -355,6 +370,16 @@ internal sealed class TuiShell
         if (_lifecycleDialog is not null)
         {
             return HandleLifecycleDialogKey(info);
+        }
+
+        if (_agentDeleteDialog is not null)
+        {
+            return HandleAgentDeleteDialogKey(info);
+        }
+
+        if (_agentDeleteOfflineDialog is not null)
+        {
+            return HandleAgentDeleteOfflineDialogKey(info);
         }
 
         if (_picker is not null)
@@ -532,6 +557,75 @@ internal sealed class TuiShell
         var outcome = outcomeTask.GetAwaiter().GetResult();
 
         HandleMessage(outcome.ToShowToast());
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
+    private bool HandleAgentDeleteDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _agentDeleteDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _agentDeleteDialog = null;
+                _agentDeleteTarget = null;
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                return SubmitAgentDelete();
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitAgentDelete()
+    {
+        var name = _agentDeleteTarget!;
+        _agentDeleteDialog = null;
+        _agentDeleteTarget = null;
+
+        var deleted = _agentStore!.DeleteAsync(name, CancellationToken.None).GetAwaiter().GetResult();
+
+        HandleMessage(new TuiMessage.ShowToast(
+            deleted ? $"Deleted agent '{name}'." : $"Agent '{name}' was not found.",
+            deleted ? ToastStyle.Info : ToastStyle.Warn));
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
+    private bool HandleAgentDeleteOfflineDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _agentDeleteOfflineDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _agentDeleteOfflineDialog = null;
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                return SubmitAgentDeleteOffline();
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitAgentDeleteOffline()
+    {
+        _agentDeleteOfflineDialog = null;
+
+        var deletedCount = _agentStore!.DeleteOfflineAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+        HandleMessage(new TuiMessage.ShowToast($"Deleted {deletedCount} offline agents.", ToastStyle.Info));
         HandleMessage(new TuiMessage.RefreshRequested());
         return true;
     }
@@ -736,6 +830,12 @@ internal sealed class TuiShell
 
             case TuiMessage.DeleteRequested:
                 return TryOpenDeleteDialog();
+
+            case TuiMessage.DeleteAgentRequested deleteAgent:
+                return TryOpenAgentDeleteDialog(deleteAgent.Name);
+
+            case TuiMessage.DeleteOfflineAgentsRequested:
+                return TryOpenAgentDeleteOfflineDialog();
 
             case TuiMessage.StatusPickerRequested:
                 return TryOpenPicker(PickerKind.Status);
@@ -954,6 +1054,55 @@ internal sealed class TuiShell
         return true;
     }
 
+    /// <summary>
+    /// Opens the delete confirmation for the named agent. Does nothing outside the Agents
+    /// tab, and shows a toast instead of a dialog when no agent is selected.
+    /// </summary>
+    private bool TryOpenAgentDeleteDialog(string name)
+    {
+        if (ActiveMode is not AgentsMode || _agentStore is null)
+        {
+            return false;
+        }
+
+        if (name.Length == 0)
+        {
+            return ShowToastNow("No agent selected.", ToastStyle.Warn);
+        }
+
+        _agentDeleteTarget = name;
+        _agentDeleteDialog = new EditingConfirmDialog(
+            $"Delete agent '{name}'? Its mail and tasks keep the name; this cannot be undone.",
+            "Delete",
+            ButtonKind.Danger);
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the delete-all-offline confirmation. Does nothing outside the Agents tab, and
+    /// shows a toast instead of a dialog when there are no offline agents.
+    /// </summary>
+    private bool TryOpenAgentDeleteOfflineDialog()
+    {
+        if (ActiveMode is not AgentsMode agentsMode || _agentStore is null)
+        {
+            return false;
+        }
+
+        var offlineCount = agentsMode.CountOfflineAgents();
+
+        if (offlineCount == 0)
+        {
+            return ShowToastNow("No offline agents to delete.", ToastStyle.Warn);
+        }
+
+        _agentDeleteOfflineDialog = new EditingConfirmDialog(
+            $"Delete {offlineCount} offline agents? This cannot be undone.",
+            "Delete",
+            ButtonKind.Danger);
+        return true;
+    }
+
     private bool TryOpenPicker(PickerKind kind)
     {
         if (!IsTasksTabActive || _store is null)
@@ -1055,6 +1204,11 @@ internal sealed class TuiShell
         }
 
         if (_lifecycleDialog is not null)
+        {
+            return EditingConfirmDialog.Hints;
+        }
+
+        if (_agentDeleteDialog is not null || _agentDeleteOfflineDialog is not null)
         {
             return EditingConfirmDialog.Hints;
         }

@@ -229,4 +229,15 @@ internal abstract record TuiMessage
     /// selected curated memory.
     /// </summary>
     public sealed record ForgetRequested : TuiMessage;
+
+    /// <summary>
+    /// The delete confirmation should open for the Agents tab's agent named
+    /// <paramref name="Name"/>, an empty string when nothing is selected.
+    /// </summary>
+    public sealed record DeleteAgentRequested(string Name) : TuiMessage;
+
+    /// <summary>
+    /// The delete-all-offline confirmation should open for the Agents tab.
+    /// </summary>
+    public sealed record DeleteOfflineAgentsRequested : TuiMessage;
 }
