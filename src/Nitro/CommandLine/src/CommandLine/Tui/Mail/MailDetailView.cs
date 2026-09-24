@@ -86,7 +86,7 @@ internal sealed class MailDetailView
         var harnesses = harnessesByName ?? s_emptyHarnesses;
 
         var lines = state.ViewMode == MailViewMode.Thread
-            ? BuildThreadLines(state, interiorWidth, harnesses)
+            ? BuildThreadLines(state.ThreadMessages, interiorWidth, harnesses)
             : BuildMessageLines(state, interiorWidth, harnesses);
 
         IRenderable content = lines.Count == 0
@@ -98,6 +98,47 @@ internal sealed class MailDetailView
         return new Panel(content)
         {
             Header = new PanelHeader(BuildHeader(state)),
+            Border = BoxBorder.Rounded,
+            BorderStyle = ThemeTokens.GetStyle(borderToken),
+            Width = safeWidth,
+            Height = Math.Max(1, height)
+        };
+    }
+
+    /// <summary>
+    /// Renders a thread's messages directly, for a host outside the Mail tab that already
+    /// has the thread loaded (for example the agent detail popover). Oldest message first,
+    /// with the thread's subject as the header, the same as <see cref="Render"/> with
+    /// <see cref="MailViewMode.Thread"/> selected.
+    /// </summary>
+    public IRenderable RenderThread(
+        IReadOnlyList<MailMessage> messages,
+        int width,
+        int height,
+        bool focused,
+        IReadOnlyDictionary<string, string>? harnessesByName = null)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return new Markup(string.Empty);
+        }
+
+        var safeWidth = Math.Max(1, width);
+        var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
+        var interiorHeight = Math.Max(1, height - PanelChromeHeight);
+        var harnesses = harnessesByName ?? s_emptyHarnesses;
+
+        var lines = BuildThreadLines(messages, interiorWidth, harnesses);
+
+        IRenderable content = lines.Count == 0
+            ? Align.Center(new Markup(Markup.Escape("No messages.")), VerticalAlignment.Middle)
+            : new Rows(RenderVisibleLines(lines, interiorHeight).Select(Row));
+
+        var borderToken = focused ? "board.column.border.focused" : "board.column.border";
+
+        return new Panel(content)
+        {
+            Header = new PanelHeader(BuildThreadHeader(messages)),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
@@ -129,19 +170,17 @@ internal sealed class MailDetailView
         return new TaskDetailBodyLine($"{labelMarkup} {Markup.Escape(value)}", IsMarkup: true);
     }
 
-    private static string BuildHeader(MailState state)
-    {
-        if (state.ViewMode == MailViewMode.Thread)
-        {
-            return state.ThreadMessages.Count > 0
-                ? $"Thread: {Markup.Escape(state.ThreadMessages[0].Subject)}"
-                : "Thread";
-        }
+    private static string BuildHeader(MailState state) => state.ViewMode == MailViewMode.Thread
+        ? BuildThreadHeader(state.ThreadMessages)
+        : BuildMessageHeader(state);
 
-        return state.SelectedMessage is { } selected
+    private static string BuildThreadHeader(IReadOnlyList<MailMessage> messages)
+        => messages.Count > 0 ? $"Thread: {Markup.Escape(messages[0].Subject)}" : "Thread";
+
+    private static string BuildMessageHeader(MailState state)
+        => state.SelectedMessage is { } selected
             ? $"[dim]{Markup.Escape(selected.Id)}[/] {Markup.Escape(selected.Subject)}"
             : "Detail";
-    }
 
     private static string NoMessageMessage(MailState state)
         => state.Messages.Count == 0 ? "No messages." : "No message selected.";
@@ -217,16 +256,16 @@ internal sealed class MailDetailView
     }
 
     private static IReadOnlyList<TaskDetailBodyLine> BuildThreadLines(
-        MailState state, int width, IReadOnlyDictionary<string, string> harnessesByName)
+        IReadOnlyList<MailMessage> messages, int width, IReadOnlyDictionary<string, string> harnessesByName)
     {
-        if (state.ThreadMessages.Count == 0)
+        if (messages.Count == 0)
         {
             return [];
         }
 
         var lines = new List<TaskDetailBodyLine>();
 
-        for (var i = 0; i < state.ThreadMessages.Count; i++)
+        for (var i = 0; i < messages.Count; i++)
         {
             if (i > 0)
             {
@@ -234,7 +273,7 @@ internal sealed class MailDetailView
                 lines.Add(PlainLine(new string('-', Math.Clamp(width, 1, 40))));
             }
 
-            var message = state.ThreadMessages[i];
+            var message = messages[i];
             lines.Add(SectionHeaderLine(
                 $"{AttributeHarness(message.Sender, harnessesByName)} - {FormatTimestamp(message.CreatedAt)}"));
             lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));

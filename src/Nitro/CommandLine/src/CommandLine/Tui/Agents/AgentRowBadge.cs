@@ -1,12 +1,12 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders one agent row: a presence bubble and name, role, harness, and age columns.
-/// Narrow widths drop the Started column first, then Role; Name and Last Seen always remain.
+/// Renders the Agents table's header row and each agent row: a presence bubble and name,
+/// role, harness, and age columns. Narrow widths drop the Started column first, then Role,
+/// identically for the header and the rows so the two always agree.
 /// </summary>
 internal static class AgentRowBadge
 {
@@ -14,24 +14,46 @@ internal static class AgentRowBadge
     private const string UnselectedPrefix = "  ";
     private const string EmptyRole = "-";
     private const string BubbleGlyph = "●";
-    private const string AgeSuffix = " ago";
+    private const string ColumnGutter = "    ";
+    private const char RuleGlyph = '─';
+
+    private const string NameHeader = "NAME";
+    private const string RoleHeader = "ROLE";
+    private const string HarnessHeader = "HARNESS";
+    private const string StartedHeader = "STARTED";
+    private const string LastSeenHeader = "LAST SEEN";
+
+    private const int MinNameWidth = 12;
+    private const int MinRoleWidth = 12;
+    private const int MinHarnessWidth = 12;
+    private const int MinStartedWidth = 10;
+    private const int MinLastSeenWidth = 10;
+
+    private enum ColumnPlan
+    {
+        Full,
+        WithoutStarted,
+        WithoutStartedAndRole,
+        NameAndLastSeenOnly
+    }
 
     /// <summary>
-    /// The column widths a set of rows agree on: each column padded to the
-    /// widest value among those rows.
+    /// The column widths a set of rows agree on: each column padded to at least its minimum
+    /// width, and wider still when its header title or a row's value needs more room.
     /// </summary>
     public readonly record struct Widths(int Name, int Role, int Harness, int Started, int LastSeen);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/>.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, with each column no
+    /// narrower than its minimum width or its header title.
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<AgentRow> rows, DateTimeOffset now)
     {
-        var name = 0;
-        var role = 0;
-        var harness = 0;
-        var started = 0;
-        var lastSeen = 0;
+        var name = Math.Max(MinNameWidth, DisplayWidth.Measure(NameHeader));
+        var role = Math.Max(MinRoleWidth, DisplayWidth.Measure(RoleHeader));
+        var harness = Math.Max(MinHarnessWidth, DisplayWidth.Measure(HarnessHeader));
+        var started = Math.Max(MinStartedWidth, DisplayWidth.Measure(StartedHeader));
+        var lastSeen = Math.Max(MinLastSeenWidth, DisplayWidth.Measure(LastSeenHeader));
 
         foreach (var row in rows)
         {
@@ -74,60 +96,18 @@ internal static class AgentRowBadge
         var started = DisplayWidth.PadRight(FormatAge(row.StartedAt, now), widths.Started);
         var lastSeen = DisplayWidth.PadRight(FormatAge(row.LastSeenAt, now), widths.LastSeen);
 
-        var prefixWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(BubbleGlyph) + 1;
-        var budget = maxWidth - prefixWidth;
+        var budget = maxWidth - PrefixWidth(prefix);
+        var plan = DecideColumns(budget, widths);
+        var (nameCell, roleCell, harnessCell, startedCell) =
+            SelectCells(plan, budget, widths, row.Name, name, role, harness, started);
 
-        var nameWidth = DisplayWidth.Measure(name);
-        var roleWidth = DisplayWidth.Measure(role);
-        var harnessWidth = DisplayWidth.Measure(harness);
-        var startedWidth = DisplayWidth.Measure(started);
-        var lastSeenWidth = DisplayWidth.Measure(lastSeen);
-
-        string line;
-
-        if (budget >= nameWidth + 1 + roleWidth + 1 + harnessWidth + 1 + startedWidth + 1 + lastSeenWidth)
-        {
-            line = BuildLine(
-                prefix, bubbleStyle,
-                name, nameStyle,
-                role, roleStyle,
-                harness, harnessStyle,
-                started, ageStyle,
-                lastSeen, ageStyle);
-        }
-        else if (budget >= nameWidth + 1 + roleWidth + 1 + harnessWidth + 1 + lastSeenWidth)
-        {
-            line = BuildLine(
-                prefix, bubbleStyle,
-                name, nameStyle,
-                role, roleStyle,
-                harness, harnessStyle,
-                started: null, ageStyle,
-                lastSeen, ageStyle);
-        }
-        else if (budget >= nameWidth + 1 + harnessWidth + 1 + lastSeenWidth)
-        {
-            line = BuildLine(
-                prefix, bubbleStyle,
-                name, nameStyle,
-                role: null, roleStyle,
-                harness, harnessStyle,
-                started: null, ageStyle,
-                lastSeen, ageStyle);
-        }
-        else
-        {
-            var truncatedNameBudget = Math.Max(0, budget - 1 - lastSeenWidth);
-            var truncatedName = DisplayWidth.Truncate(row.Name, truncatedNameBudget);
-
-            line = BuildLine(
-                prefix, bubbleStyle,
-                truncatedName, nameStyle,
-                role: null, roleStyle,
-                harness: null, harnessStyle,
-                started: null, ageStyle,
-                lastSeen, ageStyle);
-        }
+        var line = BuildLine(
+            prefix, BubbleGlyph, bubbleStyle,
+            nameCell, nameStyle,
+            roleCell, roleStyle,
+            harnessCell, harnessStyle,
+            startedCell, ageStyle,
+            lastSeen, ageStyle);
 
         if (selected)
         {
@@ -138,8 +118,119 @@ internal static class AgentRowBadge
         return line;
     }
 
+    /// <summary>
+    /// Builds the header title line shown above the rows: NAME, ROLE, HARNESS, STARTED, LAST
+    /// SEEN, aligned to <paramref name="widths"/> with the cursor and bubble cells left blank.
+    /// Columns are dropped using the same thresholds as <see cref="Render"/>, so the header
+    /// always agrees with the rows below it. A <paramref name="maxWidth"/> of 0 or less
+    /// produces an empty line.
+    /// </summary>
+    public static string RenderHeader(int maxWidth, Widths widths)
+    {
+        if (maxWidth <= 0)
+        {
+            return string.Empty;
+        }
+
+        var headerStyle = ThemeTokens.GetStyle("agents.list.header").ToMarkup();
+        var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
+
+        var name = DisplayWidth.PadRight(NameHeader, widths.Name);
+        var role = DisplayWidth.PadRight(RoleHeader, widths.Role);
+        var harness = DisplayWidth.PadRight(HarnessHeader, widths.Harness);
+        var started = DisplayWidth.PadRight(StartedHeader, widths.Started);
+        var lastSeen = DisplayWidth.PadRight(LastSeenHeader, widths.LastSeen);
+
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var plan = DecideColumns(budget, widths);
+        var (nameCell, roleCell, harnessCell, startedCell) =
+            SelectCells(plan, budget, widths, NameHeader, name, role, harness, started);
+
+        return BuildLine(
+            UnselectedPrefix, blankBubble, string.Empty,
+            nameCell, headerStyle,
+            roleCell, headerStyle,
+            harnessCell, headerStyle,
+            startedCell, headerStyle,
+            lastSeen, headerStyle);
+    }
+
+    /// <summary>
+    /// Builds the dashed rule line under the header, filling <paramref name="maxWidth"/>
+    /// display columns. A <paramref name="maxWidth"/> of 0 or less produces an empty line.
+    /// </summary>
+    public static string RenderRule(int maxWidth)
+    {
+        if (maxWidth <= 0)
+        {
+            return string.Empty;
+        }
+
+        var ruleStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
+        return Stylize(ruleStyle, new string(RuleGlyph, maxWidth));
+    }
+
+    private static int PrefixWidth(string prefix) =>
+        DisplayWidth.Measure(prefix) + DisplayWidth.Measure(BubbleGlyph) + 1;
+
+    /// <summary>
+    /// Decides which optional columns fit <paramref name="budget"/> display columns given
+    /// <paramref name="widths"/>: Started is dropped first, then Role, with Name and Last Seen
+    /// always kept (Name truncated as a last resort).
+    /// </summary>
+    private static ColumnPlan DecideColumns(int budget, Widths widths)
+    {
+        var gutter = DisplayWidth.Measure(ColumnGutter);
+
+        if (budget >= widths.Name + gutter + widths.Role + gutter + widths.Harness + gutter
+            + widths.Started + gutter + widths.LastSeen)
+        {
+            return ColumnPlan.Full;
+        }
+
+        if (budget >= widths.Name + gutter + widths.Role + gutter + widths.Harness + gutter + widths.LastSeen)
+        {
+            return ColumnPlan.WithoutStarted;
+        }
+
+        if (budget >= widths.Name + gutter + widths.Harness + gutter + widths.LastSeen)
+        {
+            return ColumnPlan.WithoutStartedAndRole;
+        }
+
+        return ColumnPlan.NameAndLastSeenOnly;
+    }
+
+    /// <summary>
+    /// Resolves the Name, Role, Harness, and Started cells for <paramref name="plan"/>: the
+    /// dropped columns become null, and the narrowest plan truncates <paramref name="rawName"/>
+    /// to what remains of <paramref name="budget"/> after Last Seen.
+    /// </summary>
+    private static (string Name, string? Role, string? Harness, string? Started) SelectCells(
+        ColumnPlan plan,
+        int budget,
+        Widths widths,
+        string rawName,
+        string paddedName,
+        string paddedRole,
+        string paddedHarness,
+        string paddedStarted)
+    {
+        if (plan == ColumnPlan.NameAndLastSeenOnly)
+        {
+            var truncatedNameBudget = Math.Max(0, budget - DisplayWidth.Measure(ColumnGutter) - widths.LastSeen);
+            return (DisplayWidth.Truncate(rawName, truncatedNameBudget), null, null, null);
+        }
+
+        var role = plan is ColumnPlan.Full or ColumnPlan.WithoutStarted ? paddedRole : null;
+        var started = plan == ColumnPlan.Full ? paddedStarted : null;
+
+        return (paddedName, role, paddedHarness, started);
+    }
+
     private static string BuildLine(
         string prefix,
+        string bubble,
         string bubbleStyle,
         string name,
         string nameStyle,
@@ -152,25 +243,25 @@ internal static class AgentRowBadge
         string lastSeen,
         string lastSeenStyle)
     {
-        var line = $"{Markup.Escape(prefix)}{Stylize(bubbleStyle, BubbleGlyph)} "
+        var line = $"{Markup.Escape(prefix)}{Stylize(bubbleStyle, Markup.Escape(bubble))} "
             + $"{Stylize(nameStyle, Markup.Escape(name))}";
 
         if (role is not null)
         {
-            line += $" {Stylize(roleStyle, Markup.Escape(role))}";
+            line += ColumnGutter + Stylize(roleStyle, Markup.Escape(role));
         }
 
         if (harness is not null)
         {
-            line += $" {Stylize(harnessStyle, Markup.Escape(harness))}";
+            line += ColumnGutter + Stylize(harnessStyle, Markup.Escape(harness));
         }
 
         if (started is not null)
         {
-            line += $" {Stylize(startedStyle, Markup.Escape(started))}";
+            line += ColumnGutter + Stylize(startedStyle, Markup.Escape(started));
         }
 
-        line += $" {Stylize(lastSeenStyle, Markup.Escape(lastSeen))}";
+        line += ColumnGutter + Stylize(lastSeenStyle, Markup.Escape(lastSeen));
 
         return line;
     }
@@ -215,7 +306,7 @@ internal static class AgentRowBadge
 
     private static string RoleText(AgentRow row) => row.Role.Length == 0 ? EmptyRole : row.Role;
 
-    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => MailAges.Format(value, now) + AgeSuffix;
+    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => AgentAges.Format(value, now);
 
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";

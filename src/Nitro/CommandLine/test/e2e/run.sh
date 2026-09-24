@@ -76,31 +76,33 @@ ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error boa
 # agent's `last_seen_at`, refreshed to the real current time by
 # fixtures/agents-seed.sql (for `agents` to render Online/Unreachable
 # instead of stale-Offline, see that file's header) or by `register`
-# touching the row (for `mail-send`). Both render it as a short relative
-# age ("now", "3m", "2h") that grows with however long the run takes to
-# reach that flow, so it is normalized to a fixed placeholder before
-# diffing rather than pinned to a literal fixture value the way every
-# other timestamp in these fixtures is. `agents`'s TUI rendering
-# (AgentRowBadge/AgentPopoverView) always suffixes it " ago"; `mail-send`'s
-# `nitro agent list` line does not, so that one is anchored on the Online
-# column ("yes"/"no") that always follows it instead, so it cannot also
-# match the deterministic "now" the same line's `mail inbox` step prints
-# for a just-sent message's own age. Both contexts pad this value to a
-# width computed from the real pre-scrub text (the popover panel's own
-# fixed border; `PadRight` against the widest column value for the CLI
-# table), so every substitution below keeps that padded span's total
-# length exactly what it was: "now" and a 2-digit unit (e.g. "12m") are
-# both 3 characters and become "AG " (the placeholder plus one literal
-# space standing in for the character it drops), a 1-digit unit (e.g. "3m")
-# is 2 characters already and becomes "AG" alone. Getting this wrong still
-# passes a same-run diff (both sides of that recording agree with
-# themselves) but fails the next run the instant the live clock crosses a
-# digit-count boundary a `--update` run didn't happen to land on.
+# touching the row (for `mail-send`). Both render an age that grows with
+# however long the run takes to reach that flow, so it is normalized to a
+# fixed placeholder before diffing rather than pinned to a literal fixture
+# value the way every other timestamp in these fixtures is. `agents`'s TUI
+# rendering (AgentRowBadge/AgentPopoverView) shows "just now" for a fresh
+# timestamp, "N[mh] ago" for a relative one (e.g. "3m ago", "12h ago"), or
+# a bare date with no suffix once it is a week or more old; `mail-send`'s
+# `nitro agent list` line instead shows the unsuffixed "now"/"3m"/"2h" and
+# is anchored on the Online column ("yes"/"no") that always follows it, so
+# it cannot also match the deterministic "now" the same line's `mail inbox`
+# step prints for a just-sent message's own age. Both contexts pad this
+# value to a width computed from the real pre-scrub text (the popover
+# panel's own fixed border; `PadRight` against the widest column value for
+# the CLI table), so every substitution below keeps that padded span's
+# total length exactly what it was: for `agents`, "just now" is 8
+# characters and becomes "AG ago  ", a 2-digit unit plus " ago" (e.g.
+# "12m ago") is 7 characters and becomes "AG ago ", and a 1-digit unit
+# plus " ago" (e.g. "3m ago") is 6 characters already and becomes
+# "AG ago" alone. Getting this wrong still passes a same-run diff (both
+# sides of that recording agree with themselves) but fails the next run
+# the instant the live clock crosses a digit-count boundary a `--update`
+# run didn't happen to land on.
 declare -A SCRUBS=(
   [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
   [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g; '\
 's/(now|[0-9]{2}[mh])( +)(yes|no)$/AG \2\3/g; s/([0-9])[mh]( +)(yes|no)$/AG\2\3/g'
-  [agents]='s/(now|[0-9]{2}[mh]) ago/AG ago /g; s/[0-9][mh] ago/AG ago/g'
+  [agents]='s/just now/AG ago  /g; s/[0-9]{2}[mh] ago/AG ago /g; s/[0-9][mh] ago/AG ago/g'
 )
 
 # --- args: optional --update plus an optional subset of flow names ------------
@@ -281,8 +283,12 @@ for flow in "${FLOWS[@]}"; do
   fi
 
   # 3b. Normalize non-deterministic content (task IDs, dates) before compare/update.
+  #     Writes to a temp file and moves it over the original rather than using
+  #     `sed -i`, whose in-place syntax differs between GNU sed (Linux CI) and
+  #     BSD sed (macOS): the same command works on both hosts.
   if [[ "$recorded_ok" == "1" && -n "${SCRUBS[$flow]:-}" ]]; then
-    sed -E -i "${SCRUBS[$flow]}" "$frame"
+    sed -E "${SCRUBS[$flow]}" "$frame" > "$frame.tmp"
+    mv "$frame.tmp" "$frame"
   fi
 
   # 4. Update or verify.

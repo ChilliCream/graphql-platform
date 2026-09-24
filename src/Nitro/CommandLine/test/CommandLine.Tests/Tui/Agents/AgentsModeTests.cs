@@ -208,16 +208,16 @@ public sealed class AgentsModeTests
         var mode = new AgentsMode(store, time);
         mode.OnEnter();
         var wide = RenderToText(mode, width: 100);
-        Assert.Contains("10m ago", wide);
-        Assert.Contains("now ago", wide);
 
         // act
         var narrow = RenderToText(mode, width: 35);
 
         // assert
-        // Only the Last Seen age remains; a second "ago" would mean Started survived too.
-        Assert.Equal(1, CountOccurrences(narrow, "ago"));
-        Assert.Contains("now ago", narrow);
+        // Last Seen is fresh ("just now", no suffix); an "ago" would mean Started survived too.
+        Assert.Contains("10m ago", wide);
+        Assert.Contains("just now", wide);
+        Assert.Equal(0, CountOccurrences(narrow, "ago"));
+        Assert.Contains("just now", narrow);
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public sealed class AgentsModeTests
         mode.OnEnter();
         // Move off row 0 so its bubble is never selection-highlighted, before or after the tick.
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
-        Assert.Contains("now ago", RenderToText(mode));
+        var initialText = RenderToText(mode);
 
         // act
         // Advance the clock 31 minutes with no refresh in between.
@@ -240,6 +240,7 @@ public sealed class AgentsModeTests
         var text = RenderToAnsiText(mode);
 
         // assert
+        Assert.Contains("just now", initialText);
         Assert.Contains("31m ago", RenderToText(mode));
         AssertAnsiStylePrefixesText(text, "agents.list.presence.offline", "●");
     }
@@ -407,6 +408,74 @@ public sealed class AgentsModeTests
 
         // assert
         Assert.Equal(2, offlineCount);
+    }
+
+    [Fact]
+    public void Render_Should_ScrollRowsBelowTheHeaderBlock_When_MoreAgentsThanRowLinesExist()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        AddOnlineAgent(store, "s-a");
+        AddOnlineAgent(store, "s-b");
+        AddOnlineAgent(store, "s-c");
+        AddOnlineAgent(store, "s-d");
+        AddOnlineAgent(store, "s-e");
+        AddOnlineAgent(store, "s-f");
+        var mode = new AgentsMode(store, time);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 10));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Agents (6 online / 6)────────────────────────────────────────────────────────────────────────────╮
+            │                                                                                                  │
+            │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
+            │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
+            │                                                                                                  │
+            │ > ● ackbar          -               Claude Code     just now      just now                       │
+            │   ● ahsoka          -               Claude Code     just now      just now                       │
+            │   ● aladdin         -               Claude Code     just now      just now                       │
+            │   3 more below                                                                                   │
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowHeaderRuleAndRows_When_ThreeAgentsArePresent()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        AddOnlineAgent(store, "s-a");
+        AddOnlineAgent(store, "s-b");
+        AddOnlineAgent(store, "s-c");
+        var mode = new AgentsMode(store, time);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 9));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Agents (3 online / 3)────────────────────────────────────────────────────────────────────────────╮
+            │                                                                                                  │
+            │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
+            │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
+            │                                                                                                  │
+            │ > ● ackbar          -               Claude Code     just now      just now                       │
+            │   ● ahsoka          -               Claude Code     just now      just now                       │
+            │   ● aladdin         -               Claude Code     just now      just now                       │
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+            """);
     }
 
     [Fact]

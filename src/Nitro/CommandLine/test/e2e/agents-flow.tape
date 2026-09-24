@@ -29,7 +29,11 @@
 # preceded by any item rows) and j walks it past Tickets' equally-empty
 # show-more row onto her three seeded memory_journal entries
 # (fixtures/agents-seed.sql), listed most recent first. Further j presses
-# move the selection down to the third (oldest) entry and onto Memory's
+# move the selection down to the third (oldest) entry, where Enter now
+# drills into it: a nested, read-only detail view rendered with the Memory
+# tab's own renderer (AgentItemDetailMode.ForMemory / MemoryDetailView.
+# RenderJournal), and Escape returns to the summary popover with the
+# cursor unchanged. From there, j once more lands onto Memory's
 # own "show more" row; Enter there opens its full-list view
 # (AgentPopoverListMode), rendering all three entries, and j/k move the
 # selection inside that list, exercising both the section-to-section
@@ -48,7 +52,7 @@
 # this table renders is a live, time-windowed computation with no
 # host/PID escape hatch to pin it statically the way the old
 # agent_sessions model's `Remote` state could be); the formatted age this
-# produces ("now"/"Nm ago") is normalized by run.sh's own `agents` SCRUBS
+# produces ("just now"/"Nm ago") is normalized by run.sh's own `agents` SCRUBS
 # entry before the diff, since it grows with however long a full `run.sh`
 # takes to reach this, the last-recorded flow.
 #
@@ -108,11 +112,21 @@ Wait+Screen@30s /journal\s+2026-01-01\s+Fusion warnings are non-fatal\./
 Type "j"
 Type "j"
 
+# Enter drills into the selected journal entry: a nested, read-only detail
+# view rendered with the Memory tab's own renderer.
+Enter
+Wait+Screen@30s /Prefer small PRs over big changes\./
+Wait+Screen@30s /Created: 2026-01-01/
+
+# Esc returns to the summary popover with the cursor unchanged.
+Escape
+Wait+Screen@30s /State: ● Online/
+
 # j once more lands on Memory's own "show more" row; Enter opens its full
 # list view.
 Type "j"
 Enter
-Wait+Screen@30s /nora — Memory/
+Wait+Screen@30s /Memory \(3\)/
 Wait+Screen@30s /Prefer small PRs over big changes\./
 
 # j/k move the selection inside the full list itself.

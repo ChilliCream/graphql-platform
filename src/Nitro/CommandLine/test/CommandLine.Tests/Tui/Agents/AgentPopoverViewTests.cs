@@ -23,6 +23,7 @@ public sealed class AgentPopoverViewTests
         string? harness = "claude-code",
         string harnessVersion = "2.1.0",
         string? sessionId = "session-a",
+        DateTimeOffset? lastSeenAt = null,
         DateTimeOffset? endedAt = null) => new()
         {
             Name = "agent-a",
@@ -34,7 +35,7 @@ public sealed class AgentPopoverViewTests
             WorkspacePath = "",
             RegisteredAt = s_now,
             StartedAt = s_now,
-            LastSeenAt = s_now,
+            LastSeenAt = lastSeenAt ?? s_now,
             EndedAt = endedAt,
             EndpointKind = AgentSessionEndpointKind.ClaudePeer,
             EndpointAddr = "peer-1",
@@ -119,6 +120,49 @@ public sealed class AgentPopoverViewTests
     }
 
     [Fact]
+    public void BuildLines_Should_ShowJustNow_When_LastSeenIsFresh()
+    {
+        // arrange
+        var row = CreateRow(lastSeenAt: s_now);
+
+        // act
+        var built = AgentPopoverView.BuildLines(row, [], [], [], s_now, 80, s_noSelection);
+        var text = PlainText(built);
+
+        // assert
+        Assert.Contains("Last Seen: just now", text);
+    }
+
+    [Fact]
+    public void BuildLines_Should_ShowARelativeAge_When_LastSeenIsMinutesOld()
+    {
+        // arrange
+        var row = CreateRow(lastSeenAt: s_now.AddMinutes(-26));
+
+        // act
+        var built = AgentPopoverView.BuildLines(row, [], [], [], s_now, 80, s_noSelection);
+        var text = PlainText(built);
+
+        // assert
+        Assert.Contains("Last Seen: 26m ago", text);
+    }
+
+    [Fact]
+    public void BuildLines_Should_ShowABareDate_When_LastSeenIsAtLeastAWeekOld()
+    {
+        // arrange
+        var lastSeenAt = s_now.AddDays(-8);
+        var row = CreateRow(lastSeenAt: lastSeenAt);
+
+        // act
+        var built = AgentPopoverView.BuildLines(row, [], [], [], s_now, 80, s_noSelection);
+        var text = PlainText(built);
+
+        // assert
+        Assert.Contains($"Last Seen: {lastSeenAt.ToUniversalTime():yyyy-MM-dd}\n", text);
+    }
+
+    [Fact]
     public void BuildLines_Should_ShowEmptySectionMessages_When_ThereIsNoParticipation()
     {
         // arrange
@@ -154,6 +198,55 @@ public sealed class AgentPopoverViewTests
         Assert.Contains("a1  open  First", text);
         Assert.Contains("a2  open  Second", text);
         Assert.Contains("a3  open  Third", text);
+    }
+
+    [Fact]
+    public void BuildLines_Should_ShowSpacerLinesAndSectionTitles_When_ThereAreTwoItemsPerSection()
+    {
+        // arrange
+        var row = CreateRow();
+        var mail = new[] { CreateMailSummary("t1", "Ship it"), CreateMailSummary("t2", "Review PR") };
+        var tickets = new[]
+        {
+            TaskItemBuilder.Create("a1", "First"),
+            TaskItemBuilder.Create("a2", "Second")
+        };
+        var memory = new[]
+        {
+            new MemoryParticipationEntry(MemoryParticipationKind.Journal, "j1", null, [], "Note one.", s_now),
+            new MemoryParticipationEntry(MemoryParticipationKind.Journal, "j2", null, [], "Note two.", s_now)
+        };
+
+        // act
+        var built = AgentPopoverView.BuildLines(row, mail, tickets, memory, s_now, 80, s_noSelection);
+        var text = PlainText(built);
+
+        // assert
+        text.MatchInlineSnapshot(
+            """
+
+            State: ● Online
+            Role: -
+            Harness: claude-code 2.1.0
+            Session id: session-a
+            Started: just now
+            Last Seen: just now
+
+            Mail (last 10)
+            now  Ship it  felix -> oscar (3)
+            now  Review PR  felix -> oscar (3)
+            › show more
+
+            Tickets (last 10)
+            a1  open  First
+            a2  open  Second
+            › show more
+
+            Memory (last 10)
+            journal  now  Note one.
+            journal  now  Note two.
+            › show more
+            """);
     }
 
     [Fact]

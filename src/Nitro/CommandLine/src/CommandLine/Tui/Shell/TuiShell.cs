@@ -758,6 +758,9 @@ internal sealed class TuiShell
             case AgentPopoverResult.CopyRequested copyRequested:
                 return HandleMessage(AgentsMode.BuildCopyIdToast(copyRequested.Name, copyRequested.SessionId));
 
+            case AgentPopoverResult.CopyItemRequested copyItemRequested:
+                return HandleMessage(new TuiMessage.ShowToast(copyItemRequested.Id, ToastStyle.Info));
+
             default:
                 return true;
         }
