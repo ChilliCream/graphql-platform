@@ -15,7 +15,7 @@ internal sealed class AgentPopoverListMode
     private const int PanelChromeHeight = 2;
     private const string EmptyMessage = "Nothing here yet.";
 
-    private readonly string _title;
+    private readonly string _sectionName;
     private readonly IReadOnlyList<Func<DateTimeOffset, int, string>> _rows;
     private readonly TimeProvider _timeProvider;
     private readonly Viewport _viewport = new(0, 0);
@@ -23,17 +23,21 @@ internal sealed class AgentPopoverListMode
     private int _selected;
 
     /// <summary>
-    /// Builds a list titled <paramref name="title"/> from <paramref name="rows"/>, one
-    /// formatter per row taking the current time and the content width it should render at.
+    /// Builds a list for the <paramref name="sectionName"/> kind (for example "Mail") from
+    /// <paramref name="rows"/>, one formatter per row taking the current time and the content
+    /// width it should render at. The panel title shows the kind alongside the total row count.
     /// </summary>
     public AgentPopoverListMode(
-        string title, IReadOnlyList<Func<DateTimeOffset, int, string>> rows, TimeProvider timeProvider, int selected = 0)
+        string sectionName,
+        IReadOnlyList<Func<DateTimeOffset, int, string>> rows,
+        TimeProvider timeProvider,
+        int selected = 0)
     {
-        ArgumentNullException.ThrowIfNull(title);
+        ArgumentNullException.ThrowIfNull(sectionName);
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(timeProvider);
 
-        _title = title;
+        _sectionName = sectionName;
         _rows = rows;
         _timeProvider = timeProvider;
         _selected = rows.Count == 0 ? 0 : Math.Clamp(selected, 0, rows.Count - 1);
@@ -116,7 +120,7 @@ internal sealed class AgentPopoverListMode
             lines.Add(string.Empty);
         }
 
-        var panel = ColumnPane.RenderWithHeader(_title, lines, focused: true);
+        var panel = ColumnPane.Render(_sectionName, _rows.Count, lines, focused: true);
         panel.Width = Math.Max(1, width);
         panel.Height = Math.Max(1, height);
 

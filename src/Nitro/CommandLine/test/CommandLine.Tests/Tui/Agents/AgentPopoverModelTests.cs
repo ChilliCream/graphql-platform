@@ -130,6 +130,61 @@ public sealed class AgentPopoverModelTests
     }
 
     [Fact]
+    public void Render_Should_ShowSpacerLinesAndSectionTitles_When_ThereAreTwoItemsPerSection()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)] };
+        var taskStore = new FakeTaskStore
+        {
+            ParticipationRows = [TaskItemBuilder.Create("a1", "First"), TaskItemBuilder.Create("a2", "Second")]
+        };
+        var memoryStore = new FakeMemoryStore { ParticipationRows = [CreateMemoryEntry(0), CreateMemoryEntry(1)] };
+        var model = CreateModel(agent.Name, agentStore, mailStore, taskStore, memoryStore);
+        model.Load();
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(model.Render(100, 30));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+
+
+
+                      ╭─ackbar───────────────────────────────────────────────────────────────────────╮
+                      │                                                                              │
+                      │ State: ● Online                                                              │
+                      │ Role: -                                                                      │
+                      │ Harness: claude-code 1.0.0                                                   │
+                      │ Session id: s-a                                                              │
+                      │ Started: just now                                                            │
+                      │ Last Seen: just now                                                          │
+                      │                                                                              │
+                      │ Mail (last 10)                                                               │
+                      │ now  Subject 0  felix -> oscar (1)                                           │
+                      │ now  Subject 1  felix -> oscar (1)                                           │
+                      │ › show more                                                                  │
+                      │                                                                              │
+                      │ Tickets (last 10)                                                            │
+                      │ a1  open  First                                                              │
+                      │ a2  open  Second                                                             │
+                      │ › show more                                                                  │
+                      │                                                                              │
+                      │ Memory (last 10)                                                             │
+                      │ journal  now  Memory 0                                                       │
+                      │ journal  now  Memory 1                                                       │
+                      │ › show more                                                                  │
+                      ╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+
+            """);
+    }
+
+    [Fact]
     public void Render_Should_ShowExactlyTenMailRowsAndAShowMoreRow_When_ThereAreTwelveMailThreads()
     {
         // arrange
@@ -171,7 +226,7 @@ public sealed class AgentPopoverModelTests
         var text = RenderToText(model);
 
         // assert
-        Assert.Contains($"{agent.Name} — Mail", text);
+        Assert.Contains("Mail (2)", text);
         Assert.Contains("Subject 0", text);
     }
 

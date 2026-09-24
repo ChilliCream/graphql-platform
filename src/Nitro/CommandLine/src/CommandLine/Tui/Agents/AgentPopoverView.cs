@@ -23,8 +23,15 @@ internal static class AgentPopoverView
     private const string BubbleGlyph = "●";
 
     /// <summary>
-    /// Builds every line of the popover's summary view: the header block, a blank line, and
-    /// the Mail, Tickets, and Memory sections in order, each ending in a show-more row.
+    /// A blank spacer row. A single space, not an empty string, so the panel's row renderer
+    /// keeps it as a line instead of collapsing it away.
+    /// </summary>
+    private const string BlankLine = " ";
+
+    /// <summary>
+    /// Builds every line of the popover's summary view: a leading blank line, the header
+    /// block, a blank line, and the Mail, Tickets, and Memory sections in order, each ending
+    /// in a show-more row and followed by a blank line, except the last section.
     /// <paramref name="selected"/> marks the row that should render highlighted, and its
     /// line index is returned so the caller can keep it in view.
     /// </summary>
@@ -45,23 +52,24 @@ internal static class AgentPopoverView
             return new AgentPopoverBuiltLines(lines, 0);
         }
 
+        lines.Add(BlankLine);
         AppendHeader(lines, agent, now);
-        lines.Add(string.Empty);
+        lines.Add(BlankLine);
 
         var selectedLineIndex = 0;
 
         AppendSection(
-            lines, "Mail", AgentPopoverSection.Mail, mail.Count, "No mail yet",
+            lines, "Mail (last 10)", AgentPopoverSection.Mail, mail.Count, "No mail yet",
             i => FormatMailRow(mail[i], now, width), selected, ref selectedLineIndex);
-        lines.Add(string.Empty);
+        lines.Add(BlankLine);
 
         AppendSection(
-            lines, "Tickets", AgentPopoverSection.Tickets, tickets.Count, "No tickets yet",
+            lines, "Tickets (last 10)", AgentPopoverSection.Tickets, tickets.Count, "No tickets yet",
             i => FormatTicketRow(tickets[i], width), selected, ref selectedLineIndex);
-        lines.Add(string.Empty);
+        lines.Add(BlankLine);
 
         AppendSection(
-            lines, "Memory", AgentPopoverSection.Memory, memory.Count, "No memory yet",
+            lines, "Memory (last 10)", AgentPopoverSection.Memory, memory.Count, "No memory yet",
             i => FormatMemoryRow(memory[i], now, width), selected, ref selectedLineIndex);
 
         return new AgentPopoverBuiltLines(lines, selectedLineIndex);

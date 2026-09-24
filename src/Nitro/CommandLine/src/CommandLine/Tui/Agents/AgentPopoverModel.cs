@@ -327,7 +327,7 @@ internal sealed class AgentPopoverModel
                 (now, width) => AgentPopoverView.FormatMailRow(item, now, width)))
             .ToList();
 
-        return new AgentPopoverListMode(ListTitle("Mail"), rows, _timeProvider, selected);
+        return new AgentPopoverListMode("Mail", rows, _timeProvider, selected);
     }
 
     private AgentPopoverListMode BuildTicketListMode(int selected)
@@ -340,7 +340,7 @@ internal sealed class AgentPopoverModel
                 (_, width) => AgentPopoverView.FormatTicketRow(item, width)))
             .ToList();
 
-        return new AgentPopoverListMode(ListTitle("Tickets"), rows, _timeProvider, selected);
+        return new AgentPopoverListMode("Tickets", rows, _timeProvider, selected);
     }
 
     private AgentPopoverListMode BuildMemoryListMode(int selected)
@@ -353,10 +353,8 @@ internal sealed class AgentPopoverModel
                 (now, width) => AgentPopoverView.FormatMemoryRow(item, now, width)))
             .ToList();
 
-        return new AgentPopoverListMode(ListTitle("Memory"), rows, _timeProvider, selected);
+        return new AgentPopoverListMode("Memory", rows, _timeProvider, selected);
     }
-
-    private string ListTitle(string section) => $"{Agent?.Name ?? _agentName} — {section}";
 
     /// <summary>
     /// Renders the show-more list at full size when one is open, otherwise the centered

@@ -112,7 +112,7 @@ Type "j"
 # list view.
 Type "j"
 Enter
-Wait+Screen@30s /nora — Memory/
+Wait+Screen@30s /Memory \(3\)/
 Wait+Screen@30s /Prefer small PRs over big changes\./
 
 # j/k move the selection inside the full list itself.
