@@ -774,9 +774,14 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     private async Task<MailMessage> SendMailAsync(string sender, string recipient, CancellationToken cancellationToken)
-        => await _mail.SendMessageAsync(
+    {
+        // Registers the mail sender behind the store's sender-usability check.
+        await _agentRegistry.RegisterAsync(sender, role: "", client: "", cancellationToken);
+
+        return await _mail.SendMessageAsync(
             new MailMessageCreation { Sender = sender, Subject = "status", Body = "please check", To = [recipient] },
             cancellationToken);
+    }
 
     private async Task<string> StartAndGetActorAsync(CancellationToken cancellationToken)
     {

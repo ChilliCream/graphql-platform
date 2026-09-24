@@ -35,4 +35,14 @@ internal static class ThrowHelper
 
     public static ExitException DeletedMailRecipient(string name)
         => Exit($"Agent '{name}' was deleted. Look the name up with 'nitro agent list'.");
+
+    public static ExitException NoReplyRecipientsRemaining(IEnumerable<(string Name, bool WasDeleted)> skipped)
+    {
+        var reasons = skipped.Select(
+            recipient => recipient.WasDeleted
+                ? $"'{recipient.Name}' was deleted"
+                : $"'{recipient.Name}' is unknown");
+
+        return Exit($"No recipients left: {string.Join(", ", reasons)}.");
+    }
 }

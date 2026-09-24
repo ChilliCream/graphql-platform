@@ -41,6 +41,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
         await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
@@ -82,6 +83,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         // arrange
         // The legacy implicit flag no longer gates broadcast recipients.
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
         await CreateRegistry().EnsureImplicitAsync("implicit-agent", TestContext.Current.CancellationToken);
@@ -105,6 +107,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
         await SeedAgentAsync("gone");
@@ -292,6 +295,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await SetupSuccessfulWakeAsync("host-broadcast-json-test", "bob");

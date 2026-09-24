@@ -12,8 +12,6 @@ internal interface IPingSessionExecutor
     /// failures return an outcome, with best-effort recording and lease release.
     /// </summary>
     Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
-        string harness,
-        string sessionId,
         string actorName,
         string endpointAddr,
         string attemptId,
@@ -26,9 +24,8 @@ internal interface IPingSessionExecutor
     /// best-effort cleanup contract of <see cref="ExecuteCodexThreadAsync"/>.
     /// </summary>
     Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
-        string harness,
-        string sessionId,
         string actorName,
+        string sessionId,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
@@ -40,9 +37,8 @@ internal interface IPingSessionExecutor
     /// of <see cref="ExecuteCodexThreadAsync"/>.
     /// </summary>
     Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
-        string harness,
-        string sessionId,
         string actorName,
+        string sessionId,
         string endpointAddr,
         string? endpointSecret,
         string attemptId,

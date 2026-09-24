@@ -66,6 +66,12 @@ internal sealed class ReplyMailCommand : Command
             $"Sent '{message.Id.EscapeMarkup()}' to "
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
 
+        if (message.Skipped.Count > 0)
+        {
+            console.MarkupLine(
+                $"Skipped deleted or unknown agents: {string.Join(", ", message.Skipped).EscapeMarkup()}.");
+        }
+
         return ExitCodes.Success;
     }
 }

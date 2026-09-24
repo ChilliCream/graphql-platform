@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
@@ -36,9 +35,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
             new TestFileSystem(_workingDirectory),
             _timeProvider,
             new AgentDatabase(),
-            new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase()),
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workingDirectory));
+            new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase()));
     }
 
     public async ValueTask DisposeAsync()

@@ -9,10 +9,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 internal sealed class ThrowingRenewMailWakeBatchStore(IMailWakeBatchStore inner) : IMailWakeBatchStore
 {
     public Task<MailWakeBatchClaim?> TryClaimAsync(
-        string nitroInstanceId, string actor, string ownerId, string attemptId,
-        IReadOnlyList<AgentSessionGeneration> targets, DateTimeOffset now, TimeSpan leaseDuration,
+        string actor, string ownerId, string attemptId,
+        IReadOnlyList<string> targets, DateTimeOffset now, TimeSpan leaseDuration,
         CancellationToken cancellationToken)
-        => inner.TryClaimAsync(nitroInstanceId, actor, ownerId, attemptId, targets, now, leaseDuration, cancellationToken);
+        => inner.TryClaimAsync(actor, ownerId, attemptId, targets, now, leaseDuration, cancellationToken);
 
     public Task<bool> TryRenewAsync(
         string batchId, string ownerId, string attemptId, DateTimeOffset now, TimeSpan leaseDuration,
@@ -29,7 +29,7 @@ internal sealed class ThrowingRenewMailWakeBatchStore(IMailWakeBatchStore inner)
         => inner.TryReleaseAsync(batchId, ownerId, attemptId, now, retryAt, lastError, cancellationToken);
 
     public Task<bool> TryRecordTargetOutcomeAsync(
-        string batchId, AgentSessionGeneration target, string ownerId, string attemptId, string status,
+        string batchId, string target, string ownerId, string attemptId, string status,
         long? offeredGeneration, long? acceptedGeneration, string? lastError, DateTimeOffset now,
         CancellationToken cancellationToken)
         => inner.TryRecordTargetOutcomeAsync(

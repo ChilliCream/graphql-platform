@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Moq;
 
@@ -11,17 +12,17 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     : MailCommandTestBase(fixture)
 {
     [Fact]
-    public async Task NudgeAsync_Should_ReturnNormally_When_ParticipantDiscoveryThrows()
+    public async Task NudgeAsync_Should_ReturnNormally_When_AgentLookupThrows()
     {
         // arrange
-        var sessions = new Mock<IAgentSessionRegistry>();
-        sessions
-            .Setup(registry => registry.ListParticipantsAsync(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("participant discovery failed"));
+        var agentStore = new Mock<IAgentStore>();
+        agentStore
+            .Setup(store => store.FindAsync("bob", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("agent lookup failed"));
         var nudge = new MailNudge(
-            sessions.Object,
+            agentStore.Object,
             Mock.Of<IMailStore>(),
-            Mock.Of<ISessionDeliveryLedger>(),
+            Mock.Of<IAgentDeliveryLedger>(),
             Mock.Of<IClaudePeerClient>(),
             Mock.Of<ICodexQueueClient>(),
             TimeProvider.System);
@@ -30,9 +31,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
 
         // assert
-        sessions.Verify(
-            registry => registry.ListParticipantsAsync(It.IsAny<CancellationToken>()),
-            Times.Once);
+        agentStore.Verify(store => store.FindAsync("bob", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -71,6 +70,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         var queueClient = await SetupSuccessfulWakeAsync("host-send-single-test", "bob");
 
@@ -143,10 +143,45 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task SingleRecipient_Should_SendBodyToEachLiveSession_When_ActorHasTwoSessions()
+    public async Task NudgeAsync_Should_ReserveNoDelivery_When_TheSessionIdIsMissingOnAClaudePeerEndpoint()
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAliveSessionAsync(
+            "session-alice", "alice", role: "", host: "host-send-no-session-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
+        await SeedAliveSessionAsync(
+            "session-bob", "bob", role: "", host: "host-send-no-session-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-bob");
+        await ExecuteAsync(
+            "UPDATE agents SET endpoint_kind = 'claude-peer', endpoint_addr = 'peer-addr', "
+                + "session_id = NULL WHERE name = 'bob'");
+        await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
+        var peerClient = new FakeClaudePeerClient();
+        var nudge = new MailNudge(
+            CreateAgentStore(),
+            CreateStore(),
+            new AgentDeliveryLedger(
+                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            peerClient,
+            new FakeCodexQueueClient(),
+            FakeTime);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(peerClient.Calls);
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = 'bob'"));
+    }
+
+    [Fact]
+    public async Task SingleRecipient_Should_SendBodyToItsCurrentSession_When_AnEarlierSessionWasSuperseded()
+    {
+        // arrange
+        // One agent row per actor, so a later session supersedes an earlier one.
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         SetupInstanceId("host-send-two-sessions-test");
         var queueClient = new FakeCodexQueueClient();
@@ -164,13 +199,8 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
 
         // assert
         var id = await QueryScalarAsync("SELECT id FROM messages WHERE subject = 'Status'");
-        Assert.Equal(
-            new[]
-            {
-                ("thread-bob-1", id!, "All good."),
-                ("thread-bob-2", id!, "All good.")
-            },
-            queueClient.Calls.Select(ReadDigestCall).OrderBy(call => call.ThreadId).ToArray());
+        var call = Assert.Single(queueClient.Calls);
+        Assert.Equal(("thread-bob-2", id!, "All good."), ReadDigestCall(call));
     }
 
     [Fact]
@@ -178,6 +208,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await ExecuteCommandAsync("agent", "register", "--actor", "carol");
         await SetupSuccessfulWakeAsync("host-send-dedupe-test", "bob", "carol");
@@ -205,6 +236,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -224,6 +256,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await SetupSuccessfulWakeAsync("host-send-known-unknown-test", "bob");
 
@@ -244,6 +277,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("dave");
         await MarkAgentDeletedAsync("dave");
 
@@ -280,6 +314,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("dave");
 
         // act
@@ -298,6 +333,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await SeedAgentAsync("bob");
         await SetupSuccessfulWakeAsync("host-send-json-test", "bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -380,6 +416,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
         await SetupSuccessfulWakeAsync("host-send-body-file-test", "bob");
         var bodyFilePath = Path.Combine(WorkingDirectory, "body.txt");

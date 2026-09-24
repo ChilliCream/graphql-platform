@@ -12,9 +12,7 @@ internal sealed class MailStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     AgentDatabase database,
-    IAgentStore agentStore,
-    INitroInstanceIdProvider? instanceIdProvider = null,
-    IGlobalConfigDirectoryProvider? globalConfigDirectoryProvider = null) : IMailStore
+    IAgentStore agentStore) : IMailStore
 {
     private const string IdPrefix = "m-";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -70,16 +68,17 @@ internal sealed class MailStore(
         var now = timeProvider.GetUtcNow();
         var seed = $"{sender}|{subject}|{now:O}";
 
+        // Second line of defense behind the --actor resolver: a caller that reaches the
+        // store directly (a hook, the TUI) can still pass an unusable sender.
+        await EnsureAgentUsableAsync(sender, cancellationToken);
+
         // Refreshes the sender's presence before the message transaction.
         await agentStore.TouchAsync(sender, cancellationToken);
 
         // Rejects the whole send when a recipient is unknown or deleted.
         await EnsureRecipientsExistAsync(recipients, cancellationToken);
 
-        // Resolves wake ownership before the message transaction.
-        var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
-            ? await ResolveNitroInstanceIdAsync(cancellationToken)
-            : null;
+        var shouldEnqueueWake = creation.WakePolicy == MailWakePolicy.Enqueue;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -122,9 +121,9 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
-        var wakeReceipts = nitroInstanceId is null
-            ? []
-            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+        var wakeReceipts = shouldEnqueueWake
+            ? await EnqueueWakeAsync(connection, recipients, now, cancellationToken, transaction)
+            : [];
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -159,16 +158,13 @@ internal sealed class MailStore(
         var actor = MailAgentName.Normalize(sender);
         var now = timeProvider.GetUtcNow();
 
-        var (original, root, recipients) =
+        var (original, root, recipients, skipped) =
             await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
 
         // Refreshes the replying actor's presence after participant validation.
         await agentStore.TouchAsync(actor, cancellationToken);
 
-        // Resolves wake ownership before the reply transaction.
-        var nitroInstanceId = wakePolicy == MailWakePolicy.Enqueue
-            ? await ResolveNitroInstanceIdAsync(cancellationToken)
-            : null;
+        var shouldEnqueueWake = wakePolicy == MailWakePolicy.Enqueue;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -212,9 +208,9 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
-        var wakeReceipts = nitroInstanceId is null
-            ? []
-            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+        var wakeReceipts = shouldEnqueueWake
+            ? await EnqueueWakeAsync(connection, recipients, now, cancellationToken, transaction)
+            : [];
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -228,7 +224,8 @@ internal sealed class MailStore(
             Body = body,
             CreatedAt = now,
             Recipients = recipients,
-            WakeReceipts = wakeReceipts
+            WakeReceipts = wakeReceipts,
+            Skipped = skipped
         };
     }
 
@@ -304,32 +301,11 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Resolves this machine's Nitro instance id for a
-    /// <see cref="MailWakePolicy.Enqueue"/> send or reply. Throws
-    /// <see cref="InvalidOperationException"/> when this store was
-    /// constructed without the instance id and global config directory
-    /// providers <see cref="MailWakePolicy.Enqueue"/> requires.
-    /// </summary>
-    private async Task<string> ResolveNitroInstanceIdAsync(CancellationToken cancellationToken)
-    {
-        if (instanceIdProvider is null || globalConfigDirectoryProvider is null)
-        {
-            throw new InvalidOperationException(
-                "MailWakePolicy.Enqueue requires this MailStore to be constructed with an "
-                + "INitroInstanceIdProvider and an IGlobalConfigDirectoryProvider.");
-        }
-
-        return await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-    }
-
-    /// <summary>
-    /// Advances each recipient's wake generation for the Nitro instance and returns
-    /// the resulting tokens in recipient order. Preserves the earlier due time
-    /// when wake work already exists.
+    /// Advances each recipient's wake generation and returns the resulting tokens
+    /// in recipient order. Preserves the earlier due time when wake work already exists.
     /// </summary>
     private static async Task<List<MailWakeReceipt>> EnqueueWakeAsync(
         SqliteConnection connection,
-        string nitroInstanceId,
         IReadOnlyList<MailRecipient> recipients,
         DateTimeOffset now,
         CancellationToken cancellationToken,
@@ -340,19 +316,19 @@ internal sealed class MailStore(
         foreach (var recipient in recipients)
         {
             var generation = await connection.QueryFirstOrDefaultAsync<long>(
-                """
-                INSERT INTO mail_wake_outbox (
-                    nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at
-                )
-                VALUES (@nitroInstanceId, @actor, 1, 0, @now, @now)
-                ON CONFLICT (nitro_instance_id, actor) DO UPDATE SET
-                    requested_generation = requested_generation + 1,
-                    due_at = MIN(due_at, excluded.due_at),
-                    updated_at = excluded.updated_at
-                RETURNING requested_generation
-                """,
-                new { nitroInstanceId, actor = recipient.Name, now, cancellationToken },
-                transaction);
+                new CommandDefinition(
+                    """
+                    INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+                    VALUES (@actor, 1, 0, @now, @now)
+                    ON CONFLICT (actor) DO UPDATE SET
+                        requested_generation = requested_generation + 1,
+                        due_at = MIN(due_at, excluded.due_at),
+                        updated_at = excluded.updated_at
+                    RETURNING requested_generation
+                    """,
+                    new { actor = recipient.Name, now },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken));
 
             receipts.Add(new MailWakeReceipt { Actor = recipient.Name, Generation = generation });
         }
@@ -361,14 +337,16 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Returns the original message, thread root, and computed reply recipients.
-    /// Throws <see cref="ExitException"/> when the message is missing, the actor is not
-    /// a participant, or no recipients remain.
+    /// Returns the original message, thread root, computed reply recipients, and the
+    /// names dropped for being unknown or deleted. Throws <see cref="ExitException"/>
+    /// when the message is missing, the actor is not a participant or is unusable, a
+    /// lone remaining recipient is unusable, or every remaining recipient is unusable.
     /// </summary>
-    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients)> ResolveReplyAsync(
-        string inReplyToId,
-        string actor,
-        CancellationToken cancellationToken)
+    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)>
+        ResolveReplyAsync(
+            string inReplyToId,
+            string actor,
+            CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -388,11 +366,15 @@ internal sealed class MailStore(
                 $"'{actor}' is not the sender or a recipient of '{inReplyToId}' and cannot reply to it.");
         }
 
+        // Second line of defense behind the --actor resolver: a caller that reaches the
+        // store directly (a hook, the TUI) can still pass an unusable actor.
+        await EnsureAgentUsableAsync(actor, cancellationToken);
+
         var candidates = new List<string> { original.Sender };
         candidates.AddRange(original.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var recipients = new List<MailRecipient>();
+        var candidateNames = new List<string>();
 
         foreach (var name in candidates)
         {
@@ -401,24 +383,75 @@ internal sealed class MailStore(
                 continue;
             }
 
-            recipients.Add(new MailRecipient
-            {
-                Name = name,
-                Kind = MailRecipientKinds.To,
-                Ordinal = recipients.Count
-            });
+            candidateNames.Add(name);
         }
 
-        if (recipients.Count == 0)
+        if (candidateNames.Count == 0)
         {
             throw new ExitException(
                 $"Replying to '{inReplyToId}' as '{actor}' would leave no recipients.");
         }
 
+        var (recipients, skipped) = candidateNames.Count == 1
+            ? await ResolveDirectReplyRecipientAsync(candidateNames[0], cancellationToken)
+            : await ResolveReplyAllRecipientsAsync(candidateNames, cancellationToken);
+
         var root = await GetMessageAsync(connection, original.ThreadId, cancellationToken)
             ?? original;
 
-        return (original, root, recipients);
+        return (original, root, recipients, skipped);
+    }
+
+    /// <summary>
+    /// Resolves a direct reply's single recipient, rejecting it outright with the same
+    /// message as an unusable send recipient rather than dropping it to no recipients.
+    /// </summary>
+    private async Task<(List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)> ResolveDirectReplyRecipientAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await EnsureAgentUsableAsync(name, cancellationToken);
+
+        return ([new MailRecipient { Name = name, Kind = MailRecipientKinds.To, Ordinal = 0 }], []);
+    }
+
+    /// <summary>
+    /// Resolves a reply-all's recipients, dropping every unknown or deleted participant
+    /// and reporting the drops in <c>Skipped</c>. Throws <see cref="ExitException"/> when
+    /// every candidate is unusable.
+    /// </summary>
+    private async Task<(List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)> ResolveReplyAllRecipientsAsync(
+        IReadOnlyList<string> candidateNames,
+        CancellationToken cancellationToken)
+    {
+        var recipients = new List<MailRecipient>();
+        var skipped = new List<(string Name, bool WasDeleted)>();
+
+        foreach (var name in candidateNames)
+        {
+            var availability = await CheckParticipantAsync(name, cancellationToken);
+
+            if (availability == MailParticipantAvailability.Usable)
+            {
+                recipients.Add(new MailRecipient
+                {
+                    Name = name,
+                    Kind = MailRecipientKinds.To,
+                    Ordinal = recipients.Count
+                });
+            }
+            else
+            {
+                skipped.Add((name, availability == MailParticipantAvailability.Deleted));
+            }
+        }
+
+        if (recipients.Count == 0)
+        {
+            throw ThrowHelper.NoReplyRecipientsRemaining(skipped);
+        }
+
+        return (recipients, skipped.Select(s => s.Name).ToArray());
     }
 
     public async Task<MailMessage?> GetMessageAsync(
@@ -1473,18 +1506,45 @@ internal sealed class MailStore(
     {
         foreach (var recipient in recipients)
         {
-            var agent = await agentStore.FindAsync(recipient.Name, cancellationToken);
-
-            if (agent is null)
-            {
-                throw ThrowHelper.UnknownMailRecipient(recipient.Name);
-            }
-
-            if (agent.IsDeleted)
-            {
-                throw ThrowHelper.DeletedMailRecipient(recipient.Name);
-            }
+            await EnsureAgentUsableAsync(recipient.Name, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Throws <see cref="ExitException"/> when the named agent does not exist or was
+    /// deleted, using the same messages as a rejected send recipient.
+    /// </summary>
+    private async Task EnsureAgentUsableAsync(string name, CancellationToken cancellationToken)
+    {
+        var agent = await agentStore.FindAsync(name, cancellationToken);
+
+        if (agent is null)
+        {
+            throw ThrowHelper.UnknownMailRecipient(name);
+        }
+
+        if (agent.IsDeleted)
+        {
+            throw ThrowHelper.DeletedMailRecipient(name);
+        }
+    }
+
+    /// <summary>
+    /// Classifies the named agent as usable, unknown, or deleted, without throwing,
+    /// for callers that drop rather than reject an unusable participant.
+    /// </summary>
+    private async Task<MailParticipantAvailability> CheckParticipantAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        var agent = await agentStore.FindAsync(name, cancellationToken);
+
+        if (agent is null)
+        {
+            return MailParticipantAvailability.Unknown;
+        }
+
+        return agent.IsDeleted ? MailParticipantAvailability.Deleted : MailParticipantAvailability.Usable;
     }
 
     private static async Task InsertRecipientsAsync(
@@ -1570,6 +1630,16 @@ internal sealed class MailStore(
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+
+    /// <summary>
+    /// Whether a reply-all participant is usable, unknown, or deleted.
+    /// </summary>
+    private enum MailParticipantAvailability
+    {
+        Usable,
+        Unknown,
+        Deleted
+    }
 
     internal sealed class MailMessageRow
     {

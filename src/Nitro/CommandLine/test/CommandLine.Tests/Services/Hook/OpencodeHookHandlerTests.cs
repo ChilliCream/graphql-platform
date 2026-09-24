@@ -650,10 +650,15 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         return row!.AgentName!;
     }
 
-    private Task<MailMessage> SendMailAsync(string sender, string recipient, CancellationToken cancellationToken)
-        => _mail.SendMessageAsync(
+    private async Task<MailMessage> SendMailAsync(string sender, string recipient, CancellationToken cancellationToken)
+    {
+        // Registers the mail sender behind the store's sender-usability check.
+        await _agentRegistry.RegisterAsync(sender, role: "", client: "", cancellationToken);
+
+        return await _mail.SendMessageAsync(
             new MailMessageCreation { Sender = sender, Subject = "status", Body = "please check", To = [recipient] },
             cancellationToken);
+    }
 
     private Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
         => _sessions.FindByGenerationAsync(CurrentGeneration(), cancellationToken);

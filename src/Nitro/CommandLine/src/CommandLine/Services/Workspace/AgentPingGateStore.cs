@@ -3,38 +3,39 @@ using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
-internal sealed class MailWakeDaemonLeaderStore(
-    IFileSystem fileSystem, AgentDatabase database) : IMailWakeDaemonLeaderStore
+internal sealed class AgentPingGateStore(IFileSystem fileSystem, AgentDatabase database) : IAgentPingGateStore
 {
     public async Task<bool> TryAcquireAsync(
-        string token,
+        string agent,
+        string attemptId,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var acquired = await connection.QueryFirstOrDefaultAsync<string>(
+        // An unexpired gate remains claimed by its current attempt.
+        var claimed = await connection.QueryFirstOrDefaultAsync<string>(
             new CommandDefinition(
                 """
-                INSERT INTO mail_wake_daemons (id, owner_token, acquired_at, heartbeat_at, expires_at)
-                VALUES (1, @token, @now, @now, @expiresAt)
-                ON CONFLICT (id) DO UPDATE SET
-                    owner_token = excluded.owner_token,
+                INSERT INTO agent_ping_gates (agent, attempt_id, acquired_at, expires_at)
+                VALUES (@agent, @attemptId, @now, @expiresAt)
+                ON CONFLICT (agent) DO UPDATE SET
+                    attempt_id = excluded.attempt_id,
                     acquired_at = excluded.acquired_at,
-                    heartbeat_at = excluded.heartbeat_at,
                     expires_at = excluded.expires_at
-                WHERE mail_wake_daemons.expires_at <= @now
-                RETURNING owner_token
+                WHERE agent_ping_gates.expires_at <= @now
+                RETURNING attempt_id
                 """,
-                new { token, now, expiresAt = now + leaseDuration },
+                new { agent, attemptId, now, expiresAt = now + leaseDuration },
                 cancellationToken: cancellationToken));
 
-        return acquired is not null;
+        return claimed is not null;
     }
 
     public async Task<bool> TryRenewAsync(
-        string token,
+        string agent,
+        string attemptId,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken)
@@ -44,31 +45,27 @@ internal sealed class MailWakeDaemonLeaderStore(
         var renewed = await connection.QueryFirstOrDefaultAsync<string>(
             new CommandDefinition(
                 """
-                UPDATE mail_wake_daemons SET expires_at = @expiresAt, heartbeat_at = @now
-                WHERE id = 1 AND owner_token = @token AND expires_at > @now
-                RETURNING owner_token
+                UPDATE agent_ping_gates SET expires_at = @expiresAt
+                WHERE agent = @agent AND attempt_id = @attemptId AND expires_at > @now
+                RETURNING attempt_id
                 """,
-                new { token, now, expiresAt = now + leaseDuration },
+                new { agent, attemptId, now, expiresAt = now + leaseDuration },
                 cancellationToken: cancellationToken));
 
         return renewed is not null;
     }
 
-    public async Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
+    public async Task ReleaseAsync(string agent, string attemptId, CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var released = await connection.QueryFirstOrDefaultAsync<string>(
+        await connection.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE mail_wake_daemons SET expires_at = @now
-                WHERE id = 1 AND owner_token = @token
-                RETURNING owner_token
+                DELETE FROM agent_ping_gates WHERE agent = @agent AND attempt_id = @attemptId
                 """,
-                new { token, now },
+                new { agent, attemptId },
                 cancellationToken: cancellationToken));
-
-        return released is not null;
     }
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)

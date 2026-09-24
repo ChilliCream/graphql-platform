@@ -5,9 +5,9 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 internal sealed class MailNudge(
-    IAgentSessionRegistry sessions,
+    IAgentStore agentStore,
     IMailStore mail,
-    ISessionDeliveryLedger ledger,
+    IAgentDeliveryLedger ledger,
     IClaudePeerClient claudePeerClient,
     ICodexQueueClient codexQueueClient,
     TimeProvider timeProvider) : IMailNudge
@@ -33,67 +33,55 @@ internal sealed class MailNudge(
             return;
         }
 
-        var participants = await sessions.ListParticipantsAsync(cancellationToken);
-
         foreach (var actor in actors.Distinct(StringComparer.Ordinal))
         {
-            // Sessions are selected by actor binding without checking their presence state.
-            var targets = participants
-                .Where(participant => participant.Session.AgentName == actor)
-                .ToArray();
-
-            if (targets.Length == 0)
+            try
             {
-                continue;
-            }
+                var row = await agentStore.FindAsync(actor, cancellationToken);
 
-            foreach (var target in targets)
-            {
-                try
+                if (row is null || AgentStateResolver.Resolve(row, timeProvider.GetUtcNow()) != AgentState.Online)
                 {
-                    var unread = await mail.QueryInboxAsync(
-                        new MailInboxFilter
-                        {
-                            Actor = actor,
-                            UnreadOnly = true,
-                            Limit = MailDigestPolicy.MaxMessages
-                        },
-                        cancellationToken);
+                    // Nudging only reaches an actor the wake system could itself target.
+                    continue;
+                }
 
-                    if (unread.Count == 0)
+                if (row.EndpointKind is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.OpencodeServer
+                    && row.SessionId is null)
+                {
+                    continue;
+                }
+
+                var unread = await mail.QueryInboxAsync(
+                    new MailInboxFilter
                     {
-                        continue;
-                    }
+                        Actor = actor,
+                        UnreadOnly = true,
+                        Limit = MailDigestPolicy.MaxMessages
+                    },
+                    cancellationToken);
 
-                    var generation = new AgentSessionGeneration(
-                        target.Session.Harness,
-                        target.Session.SessionId,
-                        target.Session.Host);
-                    var messageIds = unread.Select(message => message.Id).ToList();
-                    var delivered = await ledger.FindDeliveredAsync(
-                        generation, messageIds, cancellationToken);
-                    var reserved = await ledger.ReserveAsync(
-                        generation.Harness,
-                        generation.SessionId,
-                        messageIds,
-                        AgentSessionChannel.Ping,
-                        timeProvider.GetUtcNow(),
-                        cancellationToken);
-                    var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
-                    var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
-                    var messages = unread
-                        .Where(message =>
-                            reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
-                        .ToList();
-                    var unreadTotal = await mail.CountUnreadAsync(actor, cancellationToken);
-                    var text = MailDigest.Render(actor, messages, unreadTotal);
-
-                    await SendAsync(target.Session, text, cancellationToken);
-                }
-                catch (Exception exception) when (exception is not OperationCanceledException)
+                if (unread.Count == 0)
                 {
-                    // Notification failure leaves the mail unread.
+                    continue;
                 }
+
+                var messageIds = unread.Select(message => message.Id).ToList();
+                var delivered = await ledger.FindDeliveredAsync(actor, messageIds, cancellationToken);
+                var reserved = await ledger.ReserveAsync(
+                    actor, messageIds, AgentSessionChannel.Ping, timeProvider.GetUtcNow(), cancellationToken);
+                var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+                var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+                var messages = unread
+                    .Where(message => reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+                    .ToList();
+                var unreadTotal = await mail.CountUnreadAsync(actor, cancellationToken);
+                var text = MailDigest.Render(actor, messages, unreadTotal);
+
+                await SendAsync(row, text, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // Notification failure leaves the mail unread.
             }
         }
     }
@@ -103,20 +91,25 @@ internal sealed class MailNudge(
     /// Cancellation propagates; other transport failures are ignored.
     /// </summary>
     private async Task SendAsync(
-        AgentSessionRecord session,
+        AgentRow row,
         string text,
         CancellationToken cancellationToken)
     {
         try
         {
-            switch (session.EndpointKind)
+            switch (row.EndpointKind)
             {
                 case AgentSessionEndpointKind.ClaudePeer:
-                    await claudePeerClient.SendAsync(session.SessionId, text, cancellationToken);
+                    if (row.SessionId is null)
+                    {
+                        break;
+                    }
+
+                    await claudePeerClient.SendAsync(row.SessionId, text, cancellationToken);
                     break;
 
                 case AgentSessionEndpointKind.CodexThread:
-                    await codexQueueClient.QueueAsync(session.EndpointAddr, text, cancellationToken);
+                    await codexQueueClient.QueueAsync(row.EndpointAddr, text, cancellationToken);
                     break;
             }
         }
