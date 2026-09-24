@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution.Caching;
 /// <summary>
 /// Caches operation plans by operation id.
 /// </summary>
-internal sealed class OperationPlanCache(int capacity = 256, CacheDiagnostics? diagnostics = null)
+internal sealed class OperationPlanCache(int capacity, CacheDiagnostics? diagnostics)
 {
     private readonly Cache<OperationPlan> _cache = new(capacity, diagnostics);
 
@@ -31,5 +31,5 @@ internal sealed class OperationPlanCache(int capacity = 256, CacheDiagnostics? d
     /// Tries to add an operation plan to the cache. The first plan added for an operation id wins.
     /// </summary>
     public void TryAddPlan(string operationId, OperationPlan plan)
-        => _cache.GetOrCreate(operationId, static (_, value) => value, plan);
+        => _cache.TryAdd(operationId, plan);
 }

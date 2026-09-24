@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution.Caching;
 /// <summary>
 /// Caches cost plans by operation id.
 /// </summary>
-internal sealed class CostPlanCache(int capacity = 256)
+internal sealed class CostPlanCache(int capacity)
 {
     private readonly Cache<CostPlan> _cache = new(capacity);
 
@@ -31,5 +31,5 @@ internal sealed class CostPlanCache(int capacity = 256)
     /// Tries to add a cost plan to the cache. The first plan added for an operation id wins.
     /// </summary>
     public void TryAddPlan(string operationId, CostPlan plan)
-        => _cache.GetOrCreate(operationId, static (_, value) => value, plan);
+        => _cache.TryAdd(operationId, plan);
 }
