@@ -412,19 +412,22 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "All good.");
 
         // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
         var root = document.RootElement;
 
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        Assert.StartsWith("m-", root.GetProperty("id").GetString());
-        Assert.Equal(root.GetProperty("id").GetString(), root.GetProperty("threadId").GetString());
-        Assert.Equal(System.Text.Json.JsonValueKind.Null, root.GetProperty("inReplyTo").ValueKind);
-        Assert.Equal("test-agent", root.GetProperty("from").GetString());
-        Assert.Equal(["bob"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
-        Assert.Equal("Status", root.GetProperty("subject").GetString());
-        Assert.True(root.TryGetProperty("createdAt", out _));
-        Assert.True(root.GetProperty("messageStored").GetBoolean());
+        Snapshot.Create()
+            .Add(root.GetProperty("id").GetString(), "Id")
+            .Add(root.GetProperty("threadId").GetString(), "ThreadId")
+            .Add(root.GetProperty("inReplyTo").ValueKind, "InReplyTo")
+            .Add(root.GetProperty("from").GetString(), "From")
+            .Add(root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray(), "To")
+            .Add(root.GetProperty("subject").GetString(), "Subject")
+            .Add(root.GetProperty("createdAt").GetString(), "CreatedAt")
+            .Add(root.GetProperty("messageStored").GetBoolean(), "MessageStored")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]

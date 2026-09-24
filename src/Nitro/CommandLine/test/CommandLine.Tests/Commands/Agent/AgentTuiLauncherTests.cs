@@ -36,13 +36,16 @@ public sealed class AgentTuiLauncherTests
     [Fact]
     public void BuildMailTab_Should_OpenWithoutAnActor_When_NoActorIsGiven()
     {
+        // arrange
         var store = new FakeMailStore();
 
+        // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
             store,
             new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
             new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
 
+        // assert
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
         Assert.Null(mailMode.State.Actor);
     }
@@ -158,7 +161,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public async Task RunAsync_Should_StartAndStopTheMailWakeDaemonCoordinator_AroundTheApplicationLoop()
+    public async Task RunAsync_Should_StartAndStopTheMailWakeDaemonCoordinator_When_TheApplicationLoopIsCancelled()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;

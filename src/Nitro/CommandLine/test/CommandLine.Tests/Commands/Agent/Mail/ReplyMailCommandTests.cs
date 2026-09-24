@@ -175,16 +175,19 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
         var root = document.RootElement;
 
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal(originalId, root.GetProperty("threadId").GetString());
-        Assert.Equal(originalId, root.GetProperty("inReplyTo").GetString());
-        Assert.Equal("Root subject", root.GetProperty("subject").GetString());
-        Assert.Equal(["alice"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
-        Assert.True(root.GetProperty("messageStored").GetBoolean());
+        Snapshot.Create()
+            .Add(root.GetProperty("threadId").GetString() == originalId, "ThreadIdMatchesOriginal")
+            .Add(root.GetProperty("inReplyTo").GetString() == originalId, "InReplyToMatchesOriginal")
+            .Add(root.GetProperty("subject").GetString(), "Subject")
+            .Add(root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray(), "To")
+            .Add(root.GetProperty("messageStored").GetBoolean(), "MessageStored")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]

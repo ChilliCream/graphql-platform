@@ -37,60 +37,34 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         var version = await QueryScalarLongAsync(connection, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
 
-        var taskTableCount = await QueryScalarLongAsync(
+        var tables = await QueryExistingSqliteObjectsAsync(
             connection,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+            "table",
+            [
+                "tasks", "messages", "agents",
+                "ping_leases", "agent_deliveries", "agent_ping_gates",
+                "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons"
+            ],
             cancellationToken);
-        var mailTableCount = await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'messages'",
-            cancellationToken);
-        var agentTableCount = await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agents'",
-            cancellationToken);
-        Assert.Equal(1, taskTableCount);
-        Assert.Equal(1, mailTableCount);
-        Assert.Equal(1, agentTableCount);
 
-        foreach (var sessionTable in new[]
-        {
-            "ping_leases", "agent_deliveries", "agent_ping_gates",
-            "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons"
-        })
-        {
-            var sessionTableCount = await QueryScalarLongAsync(
-                connection,
-                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{sessionTable}'",
-                cancellationToken);
-            Assert.Equal(1, sessionTableCount);
-        }
-
-        foreach (var index in new[]
-        {
-            "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
-            "idx_mail_wake_batches_expires", "idx_agent_ping_gates_expires"
-        })
-        {
-            var indexCount = await QueryScalarLongAsync(
-                connection,
-                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = '{index}'",
-                cancellationToken);
-            Assert.Equal(1, indexCount);
-        }
+        var indexes = await QueryExistingSqliteObjectsAsync(
+            connection,
+            "index",
+            [
+                "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
+                "idx_mail_wake_batches_expires", "idx_agent_ping_gates_expires"
+            ],
+            cancellationToken);
 
         var columns = await QueryColumnNamesAsync(connection, "agents", cancellationToken);
-        Assert.Equal(
-            [
-                "name", "role", "harness", "harness_version", "session_id", "cwd", "workspace_path",
-                "registered_at", "started_at", "last_seen_at", "ended_at", "deleted_at",
-                "endpoint_kind", "endpoint_addr", "endpoint_secret", "block_budget_used",
-                "last_ping_at", "last_ping_attempt", "last_ping_result", "last_ping_detail",
-                "announcement_pending", "idle_push_armed"
-            ],
-            columns);
+
+        Snapshot.Create()
+            .Add(version, "Version")
+            .Add(tables, "Tables")
+            .Add(indexes, "Indexes")
+            .Add(columns, "AgentColumns")
+            .MatchMarkdownSnapshot();
     }
 
     /// <summary>
@@ -998,33 +972,24 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
 
-        foreach (var newTable in new[]
-        {
-            "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons",
-            "agent_ping_gates"
-        })
-        {
-            var tableCount = await QueryScalarLongAsync(
-                connection2,
-                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{newTable}'",
-                cancellationToken);
-            Assert.Equal(1, tableCount);
-        }
+        var tables = await QueryExistingSqliteObjectsAsync(
+            connection2,
+            "table",
+            [
+                "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets", "mail_wake_daemons",
+                "agent_ping_gates"
+            ],
+            cancellationToken);
 
-        foreach (var index in new[]
-        {
-            "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
-            "idx_mail_wake_batches_expires", "idx_agent_ping_gates_expires"
-        })
-        {
-            var indexCount = await QueryScalarLongAsync(
-                connection2,
-                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = '{index}'",
-                cancellationToken);
-            Assert.Equal(1, indexCount);
-        }
+        var indexes = await QueryExistingSqliteObjectsAsync(
+            connection2,
+            "index",
+            [
+                "idx_mail_wake_outbox_due", "idx_mail_wake_batches_one_active_per_actor",
+                "idx_mail_wake_batches_expires", "idx_agent_ping_gates_expires"
+            ],
+            cancellationToken);
 
         var agentCount = await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM agents", cancellationToken);
         var messageCount =
@@ -1032,10 +997,16 @@ public sealed class AgentDatabaseTests : IDisposable
         var recipientCount =
             await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM message_recipients", cancellationToken);
         var leaseCount = await QueryScalarLongAsync(connection2, "SELECT COUNT(*) FROM ping_leases", cancellationToken);
-        Assert.Equal(0, agentCount);
-        Assert.Equal(1, messageCount);
-        Assert.Equal(1, recipientCount);
-        Assert.Equal(0, leaseCount);
+
+        Snapshot.Create()
+            .Add(version, "Version")
+            .Add(tables, "Tables")
+            .Add(indexes, "Indexes")
+            .Add(agentCount, "AgentCount")
+            .Add(messageCount, "MessageCount")
+            .Add(recipientCount, "RecipientCount")
+            .Add(leaseCount, "LeaseCount")
+            .MatchMarkdownSnapshot();
     }
 
     /// <summary>
@@ -1236,6 +1207,35 @@ public sealed class AgentDatabaseTests : IDisposable
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
         return result is null or DBNull ? null : result.ToString();
+    }
+
+    /// <summary>
+    /// Returns the subset of <paramref name="candidates"/> that exist in
+    /// <c>sqlite_master</c> under the given object <paramref name="type"/>
+    /// (<c>"table"</c> or <c>"index"</c>), in candidate order.
+    /// </summary>
+    private static async Task<List<string>> QueryExistingSqliteObjectsAsync(
+        SqliteConnection connection,
+        string type,
+        IReadOnlyList<string> candidates,
+        CancellationToken cancellationToken)
+    {
+        var present = new List<string>();
+
+        foreach (var candidate in candidates)
+        {
+            var count = await QueryScalarLongAsync(
+                connection,
+                $"SELECT COUNT(*) FROM sqlite_master WHERE type = '{type}' AND name = '{candidate}'",
+                cancellationToken);
+
+            if (count == 1)
+            {
+                present.Add(candidate);
+            }
+        }
+
+        return present;
     }
 
     private static async Task<List<string>> QueryColumnNamesAsync(
