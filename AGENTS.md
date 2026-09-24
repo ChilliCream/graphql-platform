@@ -6,6 +6,11 @@ This file provides guidance to coding agents when working with this repository.
 
 - Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
+## Pull Requests
+
+- Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.
+- Area prefixes are optional. Write them in title case (`[Fusion]`, not `[fusion]`), and put `Fix` after one: `[Fusion] Fix the gateway ignoring subgraph timeouts`.
+
 ## Build
 
 ### Website
