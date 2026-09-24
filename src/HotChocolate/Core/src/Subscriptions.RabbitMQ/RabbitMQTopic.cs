@@ -12,6 +12,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
     private readonly IRabbitMQConnection _connection;
     private readonly IMessageSerializer _serializer;
     private readonly RabbitMQSubscriptionOptions _rabbitMqSubscriptionOptions;
+    private readonly RabbitMQTopologyHelper _topologyHelper;
 
     public RabbitMQTopic(
         string name,
@@ -20,12 +21,14 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         int capacity,
         TopicBufferFullMode fullMode,
         RabbitMQSubscriptionOptions rabbitMqSubscriptionOptions,
-        ISubscriptionDiagnosticEvents diagnosticEvents)
+        ISubscriptionDiagnosticEvents diagnosticEvents,
+        RabbitMQTopologyHelper topologyHelper)
         : base(name, capacity, fullMode, diagnosticEvents)
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         _rabbitMqSubscriptionOptions = rabbitMqSubscriptionOptions ?? throw new ArgumentNullException(nameof(rabbitMqSubscriptionOptions));
+        _topologyHelper = topologyHelper;
     }
 
     protected override async ValueTask<IAsyncDisposable> OnConnectAsync(CancellationToken cancellationToken)
@@ -39,24 +42,7 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         var queueName = string.IsNullOrEmpty(_rabbitMqSubscriptionOptions.QueuePrefix)
             ? string.Empty // use server-generated name
             : _rabbitMqSubscriptionOptions.QueuePrefix + Guid.NewGuid();
-
-        await channel.ExchangeDeclareAsync(
-            exchange: Name,
-            type: ExchangeType.Fanout,
-            durable: true,
-            autoDelete: false,
-            cancellationToken: cancellationToken);
-        await channel.QueueDeclareAsync(
-            queue: queueName,
-            durable: true,
-            exclusive: true,
-            autoDelete: true,
-            cancellationToken: cancellationToken);
-        await channel.QueueBindAsync(
-            queue: queueName,
-            exchange: Name,
-            routingKey: string.Empty,
-            cancellationToken: cancellationToken);
+        await _topologyHelper.ConfigureConsumingAsync(channel, Name, queueName, cancellationToken).ConfigureAwait(false);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.ReceivedAsync += async (_, args) =>

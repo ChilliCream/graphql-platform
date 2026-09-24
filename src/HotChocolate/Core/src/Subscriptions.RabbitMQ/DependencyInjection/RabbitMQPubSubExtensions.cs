@@ -91,6 +91,7 @@ public static class RabbitMQPubSubExtensions
         services.TryAddSingleton(options ?? new SubscriptionOptions());
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
         services.TryAddSingleton<RabbitMQPubSub>();
+        services.TryAddSingleton<RabbitMQTopologyHelper>();
         services.TryAddSingleton<ITopicEventSender>(sp => sp.GetRequiredService<RabbitMQPubSub>());
 
         return services;
