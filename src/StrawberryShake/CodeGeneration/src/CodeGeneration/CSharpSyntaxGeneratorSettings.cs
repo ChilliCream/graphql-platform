@@ -13,13 +13,15 @@ public class CSharpSyntaxGeneratorSettings
         bool noStore,
         bool inputRecords,
         bool entityRecords,
-        bool razorComponents)
+        bool razorComponents,
+        bool optionalEnum)
     {
         AccessModifier = accessModifier;
         NoStore = noStore;
         InputRecords = inputRecords;
         EntityRecords = entityRecords;
         RazorComponents = razorComponents;
+        OptionalEnum = optionalEnum;
     }
 
     /// <summary>
@@ -46,4 +48,9 @@ public class CSharpSyntaxGeneratorSettings
     /// Generate Razor components.
     /// </summary>
     public bool RazorComponents { get; }
+
+    /// <summary>
+    /// Generate optional enum values for output fields.
+    /// </summary>
+    public bool OptionalEnum { get; }
 }
