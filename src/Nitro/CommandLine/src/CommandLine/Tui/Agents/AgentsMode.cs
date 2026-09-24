@@ -93,7 +93,8 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.MoveCursor(CursorDirection.Up) => Move(-1),
         TuiMessage.MoveCursor(CursorDirection.Down) => Move(1),
         TuiMessage.MoveToEdge(var edge) => MoveToEdge(edge),
-        TuiMessage.OpenSelected => [],
+        // OpenSelected is handled by TuiShell before it reaches here: the shell opens an
+        // AgentPopoverModel for the selected agent.
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CopySelectedId => CopySelectedId(),
         TuiMessage.SearchRequested => OpenSearchForm(),
