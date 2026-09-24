@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
@@ -378,6 +379,160 @@ internal sealed class AgentStore(
                 cancellationToken: cancellationToken));
 
         return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var now = timeProvider.GetUtcNow();
+        var reason = $"Agent '{normalizedName}' was deleted";
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
+        var deleted = await DeleteAgentRowWithinTransactionAsync(
+            connection, transaction, normalizedName, now, cancellationToken);
+
+        if (!deleted)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return false;
+        }
+
+        await DeleteAgentSideRowsWithinTransactionAsync(connection, transaction, normalizedName, cancellationToken);
+
+        await TaskStore.ReleaseAssigneeWithinTransactionAsync(
+            connection, transaction, normalizedName, reason, now, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
+    }
+
+    public async Task<int> DeleteOfflineAsync(CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
+        await using var selectCommand = connection.CreateCommand();
+        selectCommand.Transaction = transaction;
+        selectCommand.CommandText = $"SELECT {AgentRow.Columns} FROM agents WHERE deleted_at IS NULL";
+
+        var candidates = await ReadAllAsync(selectCommand, cancellationToken);
+
+        var deletedCount = 0;
+
+        foreach (var candidate in candidates)
+        {
+            if (AgentStateResolver.Resolve(candidate, now) != AgentState.Offline)
+            {
+                continue;
+            }
+
+            var deleted = await DeleteAgentRowWithinTransactionAsync(
+                connection, transaction, candidate.Name, now, cancellationToken);
+
+            if (!deleted)
+            {
+                continue;
+            }
+
+            await DeleteAgentSideRowsWithinTransactionAsync(
+                connection, transaction, candidate.Name, cancellationToken);
+
+            await TaskStore.ReleaseAssigneeWithinTransactionAsync(
+                connection, transaction, candidate.Name, $"Agent '{candidate.Name}' was deleted", now,
+                cancellationToken);
+
+            deletedCount++;
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return deletedCount;
+    }
+
+    /// <summary>
+    /// Stamps <c>deleted_at</c> and clears the agent's endpoint and transient state.
+    /// Returns false, changing nothing, when no matching non-deleted row exists.
+    /// </summary>
+    private static async Task<bool> DeleteAgentRowWithinTransactionAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string name,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var rowsAffected = await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE agents SET
+                    deleted_at = @now,
+                    endpoint_kind = 'none',
+                    endpoint_addr = '',
+                    endpoint_secret = NULL,
+                    last_ping_at = NULL,
+                    last_ping_attempt = NULL,
+                    last_ping_result = NULL,
+                    last_ping_detail = NULL,
+                    announcement_pending = 0,
+                    idle_push_armed = 0,
+                    block_budget_used = 0
+                WHERE name = @name AND deleted_at IS NULL
+                """,
+                new { now, name },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        return rowsAffected > 0;
+    }
+
+    /// <summary>
+    /// Removes the agent's wake and ping side rows: its delivery reservations, ping gate,
+    /// wake outbox entry, owned wake batches, and wake target entries.
+    /// </summary>
+    private static async Task DeleteAgentSideRowsWithinTransactionAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM agent_deliveries WHERE agent = @name",
+                new { name },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM agent_ping_gates WHERE agent = @name",
+                new { name },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM mail_wake_targets WHERE agent = @name",
+                new { name },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM mail_wake_batches WHERE actor = @name",
+                new { name },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM mail_wake_outbox WHERE actor = @name",
+                new { name },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
     }
 
     /// <summary>

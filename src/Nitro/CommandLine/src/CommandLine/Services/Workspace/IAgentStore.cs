@@ -136,4 +136,19 @@ internal interface IAgentStore
     /// non-deleted row exists.
     /// </summary>
     Task<bool> RecordHarnessVersionAsync(string name, string harnessVersion, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Soft-deletes the named agent: stamps <c>deleted_at</c>, clears its endpoint and
+    /// transient state, drops its wake and ping side rows, and returns its in-progress
+    /// tasks to open and unassigned. Returns false, writing nothing, when no matching
+    /// non-deleted row exists. There is no undelete.
+    /// </summary>
+    Task<bool> DeleteAsync(string name, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Soft-deletes every agent currently resolving to <see cref="AgentState.Offline"/>,
+    /// applying the same effect as <see cref="DeleteAsync"/> to each. Online and
+    /// unreachable agents are left untouched. Returns the number of agents deleted.
+    /// </summary>
+    Task<int> DeleteOfflineAsync(CancellationToken cancellationToken);
 }
