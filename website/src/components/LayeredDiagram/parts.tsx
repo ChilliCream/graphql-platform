@@ -42,7 +42,6 @@ export function Card({
   lit,
   tone,
 }: CardProps) {
-  // Badge cards narrow their padding below 359px, then drop it below 312px.
   const tight = badge ? "@max-[359px]:px-1 @max-[312px]:px-0" : "";
 
   return (

@@ -10,14 +10,13 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    "test-results/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "storybook-static/**",
     "next-env.d.ts",
-    // Gitignored local test-harness scripts; not present in CI.
-    "test-results/**",
   ]),
   ...storybook.configs["flat/recommended"],
   {
