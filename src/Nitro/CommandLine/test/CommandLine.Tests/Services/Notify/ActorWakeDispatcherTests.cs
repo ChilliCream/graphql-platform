@@ -93,6 +93,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Empty(executor.Calls);
 
         // the batch completed instead of releasing for a retry.
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
     }
 
@@ -121,6 +122,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Empty(executor.Calls);
 
         // the batch completed instead of releasing for a retry.
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
     }
 
@@ -148,6 +150,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Empty(executor.Calls);
 
         // the batch completed instead of releasing for a retry.
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
     }
 
@@ -177,6 +180,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Empty(executor.Calls);
 
         // the batch completed instead of releasing for a retry.
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
     }
 
