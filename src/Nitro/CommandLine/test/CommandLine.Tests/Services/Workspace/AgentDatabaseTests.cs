@@ -301,6 +301,136 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
+    /// Seeds a raw v16-shaped database with the pre-agent-model wake tables:
+    /// a Nitro instance id on the outbox, batches, and daemon lease, and
+    /// targets keyed by (harness, session_id, host). InitializeAsync must
+    /// wipe them and lay down the current agent-keyed shape.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_ReplaceOldShapedWakeTables_When_ExistingVersionIsV16()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA foreign_keys = OFF;", cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE mail_wake_outbox (
+                    nitro_instance_id TEXT NOT NULL,
+                    actor TEXT NOT NULL REFERENCES agents (name),
+                    requested_generation INTEGER NOT NULL DEFAULT 0 CHECK (requested_generation >= 0),
+                    settled_generation INTEGER NOT NULL DEFAULT 0
+                        CHECK (settled_generation >= 0 AND settled_generation <= requested_generation),
+                    due_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (nitro_instance_id, actor)
+                );
+
+                CREATE TABLE mail_wake_batches (
+                    batch_id TEXT PRIMARY KEY,
+                    nitro_instance_id TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    claimed_generation INTEGER NOT NULL CHECK (claimed_generation >= 0),
+                    owner_id TEXT NOT NULL,
+                    attempt_id TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'released')),
+                    claimed_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    completed_at TEXT NULL,
+                    last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
+                    FOREIGN KEY (nitro_instance_id, actor) REFERENCES mail_wake_outbox (nitro_instance_id, actor)
+                );
+
+                CREATE TABLE mail_wake_targets (
+                    batch_id TEXT NOT NULL REFERENCES mail_wake_batches (batch_id) ON DELETE CASCADE,
+                    harness TEXT NOT NULL
+                        CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    host TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (status IN ('pending', 'delivered', 'satisfied', 'delegated', 'skipped', 'failed')),
+                    offered_generation INTEGER NULL CHECK (offered_generation IS NULL OR offered_generation >= 0),
+                    accepted_generation INTEGER NULL CHECK (accepted_generation IS NULL OR accepted_generation >= 0),
+                    last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200),
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (batch_id, harness, session_id, host)
+                );
+
+                CREATE TABLE mail_wake_daemons (
+                    nitro_instance_id TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    epoch INTEGER NOT NULL CHECK (epoch >= 1),
+                    leased_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    last_error TEXT NULL CHECK (last_error IS NULL OR length(last_error) <= 200)
+                );
+
+                PRAGMA user_version = 16;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var state = new
+        {
+            Version = await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken),
+            OutboxColumns = await QueryColumnNamesAsync(upgraded, "mail_wake_outbox", cancellationToken),
+            BatchColumns = await QueryColumnNamesAsync(upgraded, "mail_wake_batches", cancellationToken),
+            TargetColumns = await QueryColumnNamesAsync(upgraded, "mail_wake_targets", cancellationToken),
+            DaemonColumns = await QueryColumnNamesAsync(upgraded, "mail_wake_daemons", cancellationToken)
+        };
+
+        state.MatchInlineSnapshot(
+            """
+            {
+              "Version": 17,
+              "OutboxColumns": [
+                "actor",
+                "requested_generation",
+                "settled_generation",
+                "due_at",
+                "updated_at"
+              ],
+              "BatchColumns": [
+                "batch_id",
+                "actor",
+                "claimed_generation",
+                "owner_id",
+                "attempt_id",
+                "status",
+                "claimed_at",
+                "expires_at",
+                "completed_at",
+                "last_error"
+              ],
+              "TargetColumns": [
+                "batch_id",
+                "agent",
+                "status",
+                "offered_generation",
+                "accepted_generation",
+                "last_error",
+                "updated_at"
+              ],
+              "DaemonColumns": [
+                "id",
+                "owner_token",
+                "acquired_at",
+                "heartbeat_at",
+                "expires_at"
+              ]
+            }
+            """);
+    }
+
+    /// <summary>
     /// Opening an already-current database, whether for the first time after
     /// creation or a second time in a row, never wipes the agents already in it.
     /// </summary>
