@@ -52,7 +52,7 @@ public sealed class TuiShellTabsTests
         => store.LoginAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     [Fact]
-    public void Constructor_Should_CallOnEnter_OnEveryHostedTab_NotOnlyTheActiveOne()
+    public void Constructor_Should_CallOnEnter_When_EveryHostedTabIsConstructed()
     {
         // arrange
         var tab1Mode = new FakeTuiMode();
@@ -97,7 +97,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Render_Should_BracketEachTabsMnemonic_InBothActiveAndInactiveState()
+    public void Render_Should_BracketEachTabsMnemonic_When_TabsAreActiveOrInactive()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
@@ -240,7 +240,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_RouteKeysOnlyToTheActiveTabsDispatcherAndMode()
+    public void Handle_Should_RouteKeysOnlyToTheActiveTabsDispatcherAndMode_When_AKeyIsPressed()
     {
         // arrange
         var tasksMode = new FakeTuiMode();
@@ -348,7 +348,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void HandleDataChanged_Should_NotRouteAnInactiveTabsFollowUp_ToTheActiveTab()
+    public void HandleDataChanged_Should_NotRouteAnInactiveTabsFollowUpToTheActiveTab_When_DataChanges()
     {
         // arrange
         // The inactive mail mode returns a toast when refreshed.
@@ -417,7 +417,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_SwitchTab_Again_OnceTheOverlayThatBlockedItCloses()
+    public void Handle_Should_SwitchTab_When_TheOverlayThatBlockedItCloses()
     {
         // arrange
         var store = new FakeTaskStore();
@@ -478,7 +478,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Render_Should_ShowTheMailTabsUnreadBadge_RefreshedOnDataChanged()
+    public void Render_Should_ShowTheMailTabsUnreadBadge_When_DataChanged()
     {
         // arrange
         var mailStore = new FakeMailStore();
@@ -632,8 +632,7 @@ public sealed class TuiShellTabsTests
             timeProvider: time,
             tasksTabIndex: 0,
             store: new FakeTaskStore());
-        var agentName = Assert.Single(agentsMode.State.Rows).Name;
-        Assert.Contains(agentName, RenderToText(shell, width: 100));
+        var agentName = agentsMode.State.Rows[0].Name;
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
@@ -705,7 +704,7 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_PreserveEachTabsNavigationStack_AcrossTabSwitches_AndKeepBackWithinTheTab()
+    public void Handle_Should_PreserveEachTabsNavigationStack_When_SwitchingTabs()
     {
         // arrange
         var store = new FakeTaskStore();

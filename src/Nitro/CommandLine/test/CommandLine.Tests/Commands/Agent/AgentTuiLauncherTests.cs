@@ -64,7 +64,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildTabs_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
+    public void BuildTabs_Should_RegisterTabsInOrderTasksMailAgentsMemory_When_AllStoresAreGiven()
     {
         // arrange
         var taskStore = new FakeTaskStore();
