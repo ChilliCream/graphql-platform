@@ -182,6 +182,41 @@ public class VariableCoercionHelperTests : FusionTestBase
     }
 
     [Fact]
+    public void TryCoerceVariableValues_Should_CoerceNullDefault_When_VariableIsOmitted()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(arg: Int = 5): Int
+            }
+            """);
+        var variableDefinition = new VariableDefinitionNode(
+            null,
+            new VariableNode("value"),
+            description: null,
+            new NamedTypeNode("Int"),
+            NullValueNode.Default,
+            Array.Empty<DirectiveNode>());
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            default,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        var entry = Assert.Single(coercedVariableValues);
+        Assert.Equal("value", entry.Key);
+        Assert.IsType<NullValueNode>(entry.Value.Value);
+    }
+
+    [Fact]
     public void TryCoerceVariableValues_Should_PreserveNestedErrorPaths()
     {
         // arrange
