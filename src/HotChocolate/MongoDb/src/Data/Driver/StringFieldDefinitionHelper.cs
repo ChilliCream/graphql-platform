@@ -37,7 +37,11 @@ public static class StringFieldDefinitionHelper
         }
 
         // first, lets try the quick and easy one, which will be a majority of cases
-        if (documentSerializer.TryGetMemberSerializationInfo(fieldName, out serializationInfo))
+        if (TryGetMemberSerializationInfo(
+                documentSerializer,
+                resolvedFieldSerializer ?? serializer,
+                fieldName,
+                out serializationInfo))
         {
             resolvedFieldName = serializationInfo.ElementName;
             resolvedFieldSerializer = serializationInfo.Serializer;
@@ -74,7 +78,9 @@ public static class StringFieldDefinitionHelper
 
             documentSerializer = resolvedFieldSerializer as IBsonDocumentSerializer;
             if (documentSerializer == null
-                || !documentSerializer.TryGetMemberSerializationInfo(
+                || !TryGetMemberSerializationInfo(
+                    documentSerializer,
+                    resolvedFieldSerializer,
                     nameParts[i],
                     out serializationInfo))
             {
@@ -86,7 +92,9 @@ public static class StringFieldDefinitionHelper
                     documentSerializer =
                         serializationInfo.Serializer as IBsonDocumentSerializer;
                     if (documentSerializer == null
-                        || !documentSerializer.TryGetMemberSerializationInfo(
+                        || !TryGetMemberSerializationInfo(
+                            documentSerializer,
+                            serializationInfo.Serializer,
                             nameParts[i],
                             out serializationInfo))
                     {
@@ -106,5 +114,55 @@ public static class StringFieldDefinitionHelper
         }
 
         resolvedFieldName = string.Join(".", nameParts);
+    }
+
+    private static bool TryGetMemberSerializationInfo(
+        IBsonDocumentSerializer documentSerializer,
+        IBsonSerializer serializer,
+        string memberName,
+        out BsonSerializationInfo serializationInfo)
+    {
+        if (documentSerializer.TryGetMemberSerializationInfo(memberName, out serializationInfo))
+        {
+            return true;
+        }
+
+        if (!BsonClassMap.IsClassMapRegistered(serializer.ValueType))
+        {
+            return false;
+        }
+
+        var classMap = BsonClassMap.LookupClassMap(serializer.ValueType);
+        foreach (var knownType in classMap.KnownTypes)
+        {
+            if (!BsonClassMap.IsClassMapRegistered(knownType))
+            {
+                continue;
+            }
+
+            var knownTypeClassMap = BsonClassMap.LookupClassMap(knownType);
+            BsonMemberMap? memberMap = null;
+            foreach (var knownTypeMemberMap in knownTypeClassMap.AllMemberMaps)
+            {
+                if (knownTypeMemberMap.MemberName == memberName)
+                {
+                    memberMap = knownTypeMemberMap;
+                    break;
+                }
+            }
+
+            if (memberMap is null)
+            {
+                continue;
+            }
+
+            serializationInfo = new BsonSerializationInfo(
+                memberMap.ElementName,
+                memberMap.GetSerializer(),
+                memberMap.MemberType);
+            return true;
+        }
+
+        return false;
     }
 }
