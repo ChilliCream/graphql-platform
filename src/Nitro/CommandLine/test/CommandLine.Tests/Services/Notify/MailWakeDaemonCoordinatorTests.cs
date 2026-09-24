@@ -157,23 +157,56 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await SendEnqueuedMailAsync(cancellationToken, actor);
         var executor = new FakePingSessionExecutor();
         executor.ReasonByActor[actor] = PingAttemptReason.AccessDenied;
-        await using var coordinator = CreateCoordinator(executor);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var standbyTicks = 0;
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database),
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, executor, _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy)
+        {
+            AfterStandbyTickAsync = _ =>
+            {
+                Interlocked.Increment(ref standbyTicks);
+                return Task.CompletedTask;
+            }
+        };
 
         // act
         await coordinator.StartAsync(cancellationToken);
-        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Degraded, cancellationToken);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.AdmissionPollInterval,
+            () => coordinator.Status.State == MailWakeDaemonState.Degraded,
+            cancellationToken);
 
         // assert
         // Degraded with the denial recorded, and it does not flap back to ready.
         Assert.Equal("access-denied", coordinator.Status.LastError);
-        await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.StandbyPollInterval,
+            () => Volatile.Read(ref standbyTicks) >= 5,
+            cancellationToken);
         Assert.NotEqual(MailWakeDaemonState.Ready, coordinator.Status.State);
 
         // a differently privileged standby (a second coordinator instance)
         // can take over immediately, without waiting out the lease.
-        await using var standby = CreateCoordinator(new FakePingSessionExecutor());
+        await using var standby = new MailWakeDaemonCoordinator(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database),
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, new FakePingSessionExecutor(), _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy);
         await standby.StartAsync(cancellationToken);
-        await WaitUntilAsync(() => standby.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        await AdvanceUntilAsync(
+            timeProvider,
+            s_fastPolicy.StandbyPollInterval,
+            () => standby.Status.State == MailWakeDaemonState.Ready,
+            cancellationToken);
         Assert.NotNull(standby.Status.OwnerToken);
 
         await coordinator.StopAsync(cancellationToken);
@@ -373,8 +406,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     public async Task RunningLeader_Should_ReleaseLeadershipAfterTheHeldRenewalReturns_When_ItsOwnDispatchIsAccessDenied()
     {
         // arrange
-        // A leader store wrapper holds the heartbeat's in-flight renewal while an access-denied
-        // dispatch degrades the coordinator; the renewal must complete before the release runs.
+        // The heartbeat's renewal is held in flight while an access-denied dispatch degrades the leader.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);

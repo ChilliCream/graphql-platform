@@ -24,6 +24,11 @@ internal sealed class MailWakeDaemonCoordinator(
     /// </summary>
     internal Func<CancellationToken, Task>? AfterAdmissionTickAsync { get; init; }
 
+    /// <summary>
+    /// Invoked at the end of every standby loop iteration, before its poll delay.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterStandbyTickAsync { get; init; }
+
     private readonly string _ownerToken = $"daemon-{Guid.NewGuid():N}";
     private readonly object _statusLock = new();
     private readonly ConcurrentDictionaryBackoff _backoff = new();
@@ -188,6 +193,11 @@ internal sealed class MailWakeDaemonCoordinator(
                         return true;
                     }
                 }
+            }
+
+            if (AfterStandbyTickAsync is { } afterStandbyTickAsync)
+            {
+                await afterStandbyTickAsync(stopToken);
             }
 
             try
