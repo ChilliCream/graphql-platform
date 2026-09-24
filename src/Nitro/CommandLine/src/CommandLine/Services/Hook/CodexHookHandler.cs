@@ -7,121 +7,46 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal sealed class CodexHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
-    IAgentSessionRegistry sessionRegistry,
-    IAgentRegistry agentRegistry,
-    ISessionDeliveryLedger ledger,
+    IAgentStore agentStore,
+    IAgentDeliveryLedger ledger,
     IMailStore mailStore,
     ICodexHarnessVersionResolver harnessVersionResolver,
-    INitroInstanceIdProvider instanceIdProvider,
-    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     ICodexQueueClient queueClient) : ICodexHookHandler
 {
-    public CodexHookHandler(
-        IFileSystem fileSystem,
-        TimeProvider timeProvider,
-        IAgentSessionRegistry sessionRegistry,
-        IAgentRegistry agentRegistry,
-        ISessionDeliveryLedger ledger,
-        IMailStore mailStore,
-        IEnvironmentVariableProvider environmentVariableProvider,
-        ICodexHarnessVersionResolver harnessVersionResolver,
-        INitroInstanceIdProvider instanceIdProvider,
-        IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
-        ICodexQueueClient queueClient)
-        : this(
-            fileSystem,
-            timeProvider,
-            sessionRegistry,
-            agentRegistry,
-            ledger,
-            mailStore,
-            harnessVersionResolver,
-            instanceIdProvider,
-            globalConfigDirectoryProvider,
-            queueClient)
-    {
-        ArgumentNullException.ThrowIfNull(environmentVariableProvider);
-    }
-
     public async Task<CodexHookOutcome> HandleSessionStartAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, cancellationToken);
+        var workspaceDirectory = Resolve(payload);
 
-        if (resolved is null)
+        if (workspaceDirectory is null)
         {
             return CodexHookOutcome.Neutral;
         }
 
-        // The Codex endpoint address is the thread id itself, which equals the
-        // session id.
-        var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
-            ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
-            : (AgentSessionEndpointKind.None, string.Empty);
+        var result = await agentStore.StartSessionAsync(
+            BuildStartRequest(payload, workspaceDirectory), cancellationToken);
 
-        var session = await sessionRegistry.StartAsync(
-            resolved.Generation,
-            payload.Cwd!,
-            resolved.WorkspaceDirectory,
-            endpointKind,
-            endpointAddr,
-            envActor: null,
-            cancellationToken);
-
-        var harnessVersion = harnessVersionResolver.Resolve(resolved.Generation.SessionId);
-
-        if (harnessVersion.Length > 0)
+        if (result.Kind == AgentSessionStartKind.Ignored)
         {
-            await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
+            return CodexHookOutcome.Neutral;
         }
 
-        var role = await AgentEffectiveRole.ResolveAsync(
-            session.Role, session.AgentName!, agentRegistry, cancellationToken);
+        var row = result.Row!;
 
-        return new CodexHookOutcome
-        {
-            AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
-        };
+        return new CodexHookOutcome { AdditionalContext = AgentActorContext.Format(row.Name, row.Role) };
     }
 
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, cancellationToken);
-
-        if (resolved is null)
-        {
-            return CodexHookOutcome.Neutral;
-        }
-
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
+        var row = await ResolveOrStartRowAsync(payload, cancellationToken);
 
         if (row is null)
         {
-            var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
-                ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
-                : (AgentSessionEndpointKind.None, string.Empty);
-            row = await sessionRegistry.StartAsync(
-                resolved.Generation,
-                payload.Cwd!,
-                resolved.WorkspaceDirectory,
-                endpointKind,
-                endpointAddr,
-                envActor: null,
-                cancellationToken);
-        }
-        else
-        {
-            await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
-        }
-
-        if (row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
-        {
             return CodexHookOutcome.Neutral;
         }
 
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
+        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Digest, cancellationToken);
 
         return digest is null
             ? CodexHookOutcome.Neutral
@@ -131,11 +56,11 @@ internal sealed class CodexHookHandler(
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, cancellationToken);
+        var workspaceDirectory = Resolve(payload);
 
-        if (resolved is not null)
+        if (workspaceDirectory is not null)
         {
-            await sessionRegistry.EndAsync(resolved.Generation, cancellationToken);
+            await agentStore.EndSessionAsync(AgentSessionHarness.Codex, payload.SessionId!, cancellationToken);
         }
 
         return CodexHookOutcome.Neutral;
@@ -154,25 +79,15 @@ internal sealed class CodexHookHandler(
             return CodexNotifyOutcome.Neutral;
         }
 
-        var resolved = await ResolveAsync(
+        var row = await ResolveOrStartRowAsync(
             new CodexHookPayload { SessionId = payload.ThreadId, Cwd = payload.Cwd }, cancellationToken);
 
-        if (resolved is null)
+        if (row is null)
         {
             return CodexNotifyOutcome.Neutral;
         }
 
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
-
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
-
-        if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
-        {
-            return CodexNotifyOutcome.Neutral;
-        }
-
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
+        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Gate, cancellationToken);
 
         if (digest is null)
         {
@@ -186,11 +101,46 @@ internal sealed class CodexHookHandler(
     }
 
     /// <summary>
+    /// Resolves the current thread's row, minting one exactly like
+    /// <see cref="HandleSessionStartAsync"/> without announcing it when none is bound yet.
+    /// Returns null when the payload does not resolve, the session belongs to a deleted
+    /// agent, or the mint itself is ignored for the same reason.
+    /// </summary>
+    private async Task<AgentRow?> ResolveOrStartRowAsync(
+        CodexHookPayload payload, CancellationToken cancellationToken)
+    {
+        var workspaceDirectory = Resolve(payload);
+
+        if (workspaceDirectory is null)
+        {
+            return null;
+        }
+
+        var row = await agentStore.FindBySessionAsync(AgentSessionHarness.Codex, payload.SessionId!, cancellationToken);
+
+        if (row is not null)
+        {
+            if (row.IsDeleted)
+            {
+                return null;
+            }
+
+            await agentStore.TouchSessionAsync(AgentSessionHarness.Codex, payload.SessionId!, cancellationToken);
+
+            return row;
+        }
+
+        var result = await agentStore.StartSessionAsync(
+            BuildStartRequest(payload, workspaceDirectory), cancellationToken);
+
+        return result.Kind == AgentSessionStartKind.Ignored ? null : result.Row;
+    }
+
+    /// <summary>
     /// Returns a digest or unread-count reminder for newly reserved messages in the
     /// current inbox batch, or null when that batch yields no reservations.
     /// </summary>
     private async Task<MailDigestResult?> BuildDigestAsync(
-        AgentSessionGeneration generation,
         string actor,
         string channel,
         CancellationToken cancellationToken)
@@ -205,14 +155,9 @@ internal sealed class CodexHookHandler(
         }
 
         var messageIds = unread.Select(message => message.Id).ToList();
-        var delivered = await ledger.FindDeliveredAsync(generation, messageIds, cancellationToken);
+        var delivered = await ledger.FindDeliveredAsync(actor, messageIds, cancellationToken);
         var reserved = await ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
-            messageIds,
-            channel,
-            timeProvider.GetUtcNow(),
-            cancellationToken);
+            actor, messageIds, channel, timeProvider.GetUtcNow(), cancellationToken);
 
         if (reserved.Count == 0)
         {
@@ -226,18 +171,16 @@ internal sealed class CodexHookHandler(
             .ToList();
         var unreadTotal = await mailStore.CountUnreadAsync(actor, cancellationToken);
 
-        return new MailDigestResult(
-            MailDigest.Render(actor, messages, unreadTotal));
+        return new MailDigestResult(MailDigest.Render(actor, messages, unreadTotal));
     }
 
     /// <summary>
-    /// Resolves the session identity and workspace, or null when the session id or cwd
-    /// is missing, no workspace is found, or the payload and process workspaces differ.
+    /// Resolves the session's workspace directory, or null when the session id or cwd is
+    /// missing, no workspace is found, or the payload and process workspaces differ.
     /// </summary>
-    private async Task<ResolvedGeneration?> ResolveAsync(
-        CodexHookPayload payload, CancellationToken cancellationToken)
+    private string? Resolve(CodexHookPayload payload)
     {
-        if (string.IsNullOrWhiteSpace(payload.Cwd))
+        if (string.IsNullOrWhiteSpace(payload.Cwd) || string.IsNullOrWhiteSpace(payload.SessionId))
         {
             return null;
         }
@@ -245,26 +188,27 @@ internal sealed class CodexHookHandler(
         var payloadWorkspace = AgentWorkspace.Find(fileSystem, payload.Cwd);
         var processWorkspace = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
-        if (payloadWorkspace is null || payloadWorkspace != processWorkspace)
-        {
-            return null;
-        }
-
-        var host = await instanceIdProvider.GetIdAsync(
-            globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-
-        if (string.IsNullOrWhiteSpace(payload.SessionId))
-        {
-            return null;
-        }
-
-        var generation = new AgentSessionGeneration(
-            AgentSessionHarness.Codex, payload.SessionId, host);
-
-        return new ResolvedGeneration(generation, payloadWorkspace);
+        return payloadWorkspace is null || payloadWorkspace != processWorkspace ? null : payloadWorkspace;
     }
 
-    private sealed record ResolvedGeneration(AgentSessionGeneration Generation, string WorkspaceDirectory);
+    private AgentSessionStartRequest BuildStartRequest(CodexHookPayload payload, string workspaceDirectory)
+    {
+        // The Codex endpoint address is the thread id itself, which equals the session id.
+        var (endpointKind, endpointAddr) = EndpointAddress.IsValid(payload.SessionId!)
+            ? (AgentSessionEndpointKind.CodexThread, payload.SessionId!)
+            : (AgentSessionEndpointKind.None, string.Empty);
+
+        return new AgentSessionStartRequest
+        {
+            Harness = AgentSessionHarness.Codex,
+            SessionId = payload.SessionId!,
+            HarnessVersion = harnessVersionResolver.Resolve(payload.SessionId!),
+            Cwd = payload.Cwd!,
+            WorkspacePath = workspaceDirectory,
+            EndpointKind = endpointKind,
+            EndpointAddr = endpointAddr
+        };
+    }
 
     private sealed record MailDigestResult(string Text);
 }
