@@ -83,12 +83,14 @@ public sealed class AgentTuiLauncherTests
                 timeProvider,
                 new AgentDatabase());
 
+            var agentStore = new Tui.Agents.FakeAgentStore(timeProvider);
+
             var tabs = AgentTuiLauncher.BuildTabs(
                 taskStore,
                 mailStore,
                 memoryStore,
                 agentRegistry,
-                new Tui.Agents.FakeAgentStore(timeProvider),
+                agentStore,
                 timeProvider,
                 TestContext.Current.CancellationToken);
 
@@ -96,10 +98,14 @@ public sealed class AgentTuiLauncherTests
                 tabs,
                 80,
                 24,
+                agentStore: agentStore,
+                mailStore: mailStore,
+                memoryStore: memoryStore,
+                timeProvider: timeProvider,
                 tasksTabIndex: 0,
-                new SearchMode(taskStore),
-                new DependencyTreeView(taskStore, rootId: ""),
-                taskStore,
+                searchMode: new SearchMode(taskStore),
+                treeView: new DependencyTreeView(taskStore, rootId: ""),
+                store: taskStore,
                 actor: "tasks-actor");
 
             // act
@@ -133,11 +139,16 @@ public sealed class AgentTuiLauncherTests
         var taskStore = new FakeTaskStore();
         var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(s_now));
         var boardMode = new BoardMode(loader);
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
             boardMode,
             width,
             24,
+            agentStore: new Tui.Agents.FakeAgentStore(time),
+            mailStore: new FakeMailStore(),
+            memoryStore: new Tui.Agents.FakeMemoryStore(),
+            timeProvider: time,
             actor: "tasks-actor",
             mailWakeDaemonState: () => state);
 

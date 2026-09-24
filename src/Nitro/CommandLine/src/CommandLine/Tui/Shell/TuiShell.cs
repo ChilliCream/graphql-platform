@@ -39,9 +39,9 @@ internal sealed class TuiShell
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
-    private readonly IAgentStore? _agentStore;
-    private readonly IMailStore? _mailStore;
-    private readonly IMemoryStore? _memoryStore;
+    private readonly IAgentStore _agentStore;
+    private readonly IMailStore _mailStore;
+    private readonly IMemoryStore _memoryStore;
     private readonly TimeProvider _timeProvider;
     private readonly string? _actor;
 
@@ -75,17 +75,17 @@ internal sealed class TuiShell
         ITuiMode activeMode,
         int initialWidth,
         int initialHeight,
+        IAgentStore agentStore,
+        IMailStore mailStore,
+        IMemoryStore memoryStore,
+        TimeProvider timeProvider,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
         string? actor = null,
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
-        TimeSpan? quitGateDrainBound = null,
-        IAgentStore? agentStore = null,
-        IMailStore? mailStore = null,
-        IMemoryStore? memoryStore = null,
-        TimeProvider? timeProvider = null)
+        TimeSpan? quitGateDrainBound = null)
         : this(
             [new TuiTab(
                 string.Empty,
@@ -94,6 +94,10 @@ internal sealed class TuiShell
                 dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
             initialWidth,
             initialHeight,
+            agentStore,
+            mailStore,
+            memoryStore,
+            timeProvider,
             tasksTabIndex: 0,
             searchMode,
             treeView,
@@ -101,11 +105,7 @@ internal sealed class TuiShell
             actor,
             mailWakeDaemonState,
             quitGates,
-            quitGateDrainBound,
-            agentStore,
-            mailStore,
-            memoryStore,
-            timeProvider)
+            quitGateDrainBound)
     {
     }
 
@@ -116,6 +116,10 @@ internal sealed class TuiShell
     /// <param name="tabs">The non-empty list of hosted tabs in display order.</param>
     /// <param name="initialWidth">The initial frame width.</param>
     /// <param name="initialHeight">The initial frame height.</param>
+    /// <param name="agentStore">The agent store backing the Agents tab's delete actions.</param>
+    /// <param name="mailStore">The mail store backing the agent detail popover's Mail section.</param>
+    /// <param name="memoryStore">The memory store backing the agent detail popover's Memory section.</param>
+    /// <param name="timeProvider">The time source for the agent detail popover's ages and presence.</param>
     /// <param name="searchMode">The task search mode, or null to disable shell search entry.</param>
     /// <param name="treeView">The dependency tree mode, or null to disable shell tree entry.</param>
     /// <param name="store">The task store, or null to disable shell task writes and detail entry.</param>
@@ -129,13 +133,6 @@ internal sealed class TuiShell
     /// <param name="mailWakeDaemonState">
     /// Supplies the daemon state for the footer when no toast is shown; null omits the badge.
     /// </param>
-    /// <param name="agentStore">The agent store, or null to disable the Agents tab's delete actions.</param>
-    /// <param name="mailStore">The mail store, or null to disable the agent detail popover.</param>
-    /// <param name="memoryStore">The memory store, or null to disable the agent detail popover.</param>
-    /// <param name="timeProvider">
-    /// The time source for the agent detail popover's ages and presence; <see cref="TimeProvider.System"/>
-    /// when null.
-    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
     /// </exception>
@@ -143,6 +140,10 @@ internal sealed class TuiShell
         IReadOnlyList<TuiTab> tabs,
         int initialWidth,
         int initialHeight,
+        IAgentStore agentStore,
+        IMailStore mailStore,
+        IMemoryStore memoryStore,
+        TimeProvider timeProvider,
         int tasksTabIndex = 0,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
@@ -150,13 +151,13 @@ internal sealed class TuiShell
         string? actor = null,
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
-        TimeSpan? quitGateDrainBound = null,
-        IAgentStore? agentStore = null,
-        IMailStore? mailStore = null,
-        IMemoryStore? memoryStore = null,
-        TimeProvider? timeProvider = null)
+        TimeSpan? quitGateDrainBound = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
+        ArgumentNullException.ThrowIfNull(agentStore);
+        ArgumentNullException.ThrowIfNull(mailStore);
+        ArgumentNullException.ThrowIfNull(memoryStore);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (tabs.Count == 0)
         {
@@ -178,7 +179,7 @@ internal sealed class TuiShell
         _agentStore = agentStore;
         _mailStore = mailStore;
         _memoryStore = memoryStore;
-        _timeProvider = timeProvider ?? TimeProvider.System;
+        _timeProvider = timeProvider;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
@@ -631,7 +632,7 @@ internal sealed class TuiShell
         // shows the same effect through its own refresh below.
         _agentPopover = null;
 
-        var deleted = _agentStore!.DeleteAsync(name, CancellationToken.None).GetAwaiter().GetResult();
+        var deleted = _agentStore.DeleteAsync(name, CancellationToken.None).GetAwaiter().GetResult();
 
         HandleMessage(new TuiMessage.ShowToast(
             deleted ? $"Deleted agent '{name}'." : $"Agent '{name}' was not found.",
@@ -665,7 +666,7 @@ internal sealed class TuiShell
     {
         _agentDeleteOfflineDialog = null;
 
-        var deletedCount = _agentStore!.DeleteOfflineAsync(CancellationToken.None).GetAwaiter().GetResult();
+        var deletedCount = _agentStore.DeleteOfflineAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         HandleMessage(new TuiMessage.ShowToast($"Deleted {deletedCount} offline agents.", ToastStyle.Info));
         HandleMessage(new TuiMessage.RefreshRequested());
@@ -1031,8 +1032,7 @@ internal sealed class TuiShell
     /// </summary>
     private bool TryOpenAgentPopover()
     {
-        if (ActiveMode is not AgentsMode agentsMode
-            || _agentStore is null || _mailStore is null || _memoryStore is null || _store is null)
+        if (ActiveMode is not AgentsMode agentsMode || _store is null)
         {
             return false;
         }
@@ -1156,7 +1156,7 @@ internal sealed class TuiShell
     /// </summary>
     private bool TryOpenAgentDeleteDialog(string name)
     {
-        if (ActiveMode is not AgentsMode || _agentStore is null)
+        if (ActiveMode is not AgentsMode)
         {
             return false;
         }
@@ -1180,7 +1180,7 @@ internal sealed class TuiShell
     /// </summary>
     private bool TryOpenAgentDeleteOfflineDialog()
     {
-        if (ActiveMode is not AgentsMode agentsMode || _agentStore is null)
+        if (ActiveMode is not AgentsMode agentsMode)
         {
             return false;
         }

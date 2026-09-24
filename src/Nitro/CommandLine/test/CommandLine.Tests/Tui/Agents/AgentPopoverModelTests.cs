@@ -285,6 +285,53 @@ public sealed class AgentPopoverModelTests
         Assert.Contains("2m ago", text);
     }
 
+    [Fact]
+    public void Tick_Should_ReturnTrueAndUpdateTheMailRowAge_When_OnlyAMailThreadAgeChanges()
+    {
+        // arrange
+        // The agent's own LastSeen is already day-old, so only the mail thread's age moves.
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        time.Advance(TimeSpan.FromDays(2));
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0) with { LastMessageAt = time.GetUtcNow() }] };
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore, timeProvider: time);
+        model.Load();
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(2));
+        var dirty = model.Tick();
+        var text = RenderToText(model);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("2m", text);
+    }
+
+    [Fact]
+    public void Tick_Should_ReturnTrueAndUpdateTheFullListRowAge_When_TimeAdvancesWhileAShowMoreListIsOpen()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        time.Advance(TimeSpan.FromDays(2));
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0) with { LastMessageAt = time.GetUtcNow() }] };
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore, timeProvider: time);
+        model.Load();
+        model.HandleKey(Key(ConsoleKey.J, 'j'));
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(2));
+        var dirty = model.Tick();
+        var text = RenderToText(model);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("2m", text);
+    }
+
     private static MailThreadSummary CreateMailSummary(int index) => new()
     {
         ThreadId = $"t{index}",

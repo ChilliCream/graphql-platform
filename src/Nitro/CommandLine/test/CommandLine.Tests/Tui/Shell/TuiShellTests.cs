@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
@@ -29,7 +30,16 @@ public sealed class TuiShellTests
             modifiers.HasFlag(ConsoleModifiers.Control));
 
     private static TuiShell CreateShell(FakeTuiMode mode, int width = 80, int height = 24, string? actor = null) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height, actor: actor);
+        new(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            width,
+            height,
+            agentStore: new FakeAgentStore(TimeProvider.System),
+            mailStore: new FakeMailStore(),
+            memoryStore: new FakeMemoryStore(),
+            timeProvider: TimeProvider.System,
+            actor: actor);
 
     private static TuiShell CreateShellWithModes(
         ITuiMode initialMode,
@@ -45,9 +55,13 @@ public sealed class TuiShellTests
             initialMode,
             80,
             24,
-            searchMode,
-            treeView,
-            store,
+            agentStore: new FakeAgentStore(TimeProvider.System),
+            mailStore: new FakeMailStore(),
+            memoryStore: new FakeMemoryStore(),
+            timeProvider: TimeProvider.System,
+            searchMode: searchMode,
+            treeView: treeView,
+            store: store,
             actor: "tester");
     }
 
@@ -72,31 +86,28 @@ public sealed class TuiShellTests
         return console.Output;
     }
 
-    private static TuiShell CreateAgentsShell(AgentsMode mode, FakeAgentStore agentStore, int width = 80) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, 24, agentStore: agentStore);
-
     /// <summary>
-    /// Builds an Agents-tab shell with the mail, task, and memory stores the agent detail
-    /// popover needs, wired to the same time provider as <paramref name="mode"/>.
+    /// Builds an Agents-tab shell, defaulting the mail, task, and memory stores the agent
+    /// detail popover needs when a test does not care about them.
     /// </summary>
-    private static TuiShell CreateAgentsShellWithPopover(
+    private static TuiShell CreateAgentsShell(
         AgentsMode mode,
         FakeAgentStore agentStore,
-        FakeMailStore mailStore,
-        FakeTaskStore taskStore,
-        FakeMemoryStore memoryStore,
-        TimeProvider timeProvider,
-        int width = 100) =>
+        FakeMailStore? mailStore = null,
+        FakeTaskStore? taskStore = null,
+        FakeMemoryStore? memoryStore = null,
+        TimeProvider? timeProvider = null,
+        int width = 80) =>
         new(
             new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
             mode,
             width,
             24,
-            store: taskStore,
             agentStore: agentStore,
-            mailStore: mailStore,
-            memoryStore: memoryStore,
-            timeProvider: timeProvider);
+            mailStore: mailStore ?? new FakeMailStore(),
+            memoryStore: memoryStore ?? new FakeMemoryStore(),
+            timeProvider: timeProvider ?? TimeProvider.System,
+            store: taskStore ?? new FakeTaskStore());
 
     private static AgentRow AddOnlineAgent(FakeAgentStore store, string sessionId)
         => store.StartSessionAsync(
@@ -120,6 +131,19 @@ public sealed class TuiShellTests
             .GetAwaiter().GetResult();
         return row;
     }
+
+    private static MailThreadSummary CreateMailSummary(DateTimeOffset lastMessageAt) => new()
+    {
+        ThreadId = "t1",
+        Subject = "New thread",
+        MessageCount = 1,
+        LastMessageAt = lastMessageAt,
+        LastSender = "felix",
+        LastRecipients = ["oscar"],
+        BodyPreview = "",
+        UnreadCount = 0,
+        ArchivedCount = 0
+    };
 
     [Fact]
     public void Constructor_Should_CallOnEnter_OnActiveMode()
@@ -1553,7 +1577,7 @@ public sealed class TuiShellTests
         var agentStore = new FakeAgentStore(time);
         var agent = AddOnlineAgent(agentStore, "s-a");
         var mode = new AgentsMode(agentStore, time);
-        var shell = CreateAgentsShellWithPopover(
+        var shell = CreateAgentsShell(
             mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
 
         // act
@@ -1572,7 +1596,7 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         var mode = new AgentsMode(agentStore, time);
-        var shell = CreateAgentsShellWithPopover(
+        var shell = CreateAgentsShell(
             mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
 
         // act
@@ -1591,7 +1615,7 @@ public sealed class TuiShellTests
         var agentStore = new FakeAgentStore(time);
         var agent = AddOnlineAgent(agentStore, "s-a");
         var mode = new AgentsMode(agentStore, time);
-        var shell = CreateAgentsShellWithPopover(
+        var shell = CreateAgentsShell(
             mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
@@ -1615,7 +1639,7 @@ public sealed class TuiShellTests
         var agentStore = new FakeAgentStore(time);
         AddOnlineAgent(agentStore, "s-a");
         var mode = new AgentsMode(agentStore, time);
-        var shell = CreateAgentsShellWithPopover(
+        var shell = CreateAgentsShell(
             mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
@@ -1626,5 +1650,49 @@ public sealed class TuiShellTests
         // assert
         Assert.True(dirty);
         Assert.Contains("hjkl move", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_MarkDirtyAndRedrawThePopoverAges_When_ATickEventArrivesWithThePopoverOpen()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShell(
+            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(2));
+        var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("2m ago", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReloadThePopover_When_ADataChangedEventArrives()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var mode = new AgentsMode(agentStore, time);
+        var mailStore = new FakeMailStore();
+        var shell = CreateAgentsShell(mode, agentStore, mailStore, new FakeTaskStore(), new FakeMemoryStore(), time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        mailStore.ParticipationRows = [CreateMailSummary(time.GetUtcNow())];
+        var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("New thread", rendered);
     }
 }

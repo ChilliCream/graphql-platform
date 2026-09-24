@@ -3,7 +3,6 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
-using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 using Spectre.Console.Rendering;
 
@@ -95,6 +94,7 @@ internal sealed class AgentPopoverModel
     private string _lastAgeSignature = string.Empty;
     private int _cursor;
     private AgentPopoverListMode? _listMode;
+    private AgentPopoverSection? _listSection;
 
     public AgentPopoverModel(
         string agentName,
@@ -152,6 +152,14 @@ internal sealed class AgentPopoverModel
         _memory = await _memoryStore.QueryParticipationAsync(_agentName, SectionLimit, cancellationToken);
 
         _cursor = Math.Clamp(_cursor, 0, Math.Max(0, TotalSelectableRows - 1));
+
+        // An open show-more list holds its own snapshot of the section it lists, so a reload
+        // (a DataChangedEvent) rebuilds it too, keeping its selected row.
+        if (_listMode is { } openList && _listSection is { } section)
+        {
+            _listMode = BuildListMode(section, openList.Selected);
+        }
+
         _lastAgeSignature = ComputeAgeSignature(_timeProvider.GetUtcNow());
     }
 
@@ -172,13 +180,26 @@ internal sealed class AgentPopoverModel
         return true;
     }
 
-    private string ComputeAgeSignature(DateTimeOffset now) => Agent is null
-        ? string.Empty
-        : string.Join(
-            '\u0001',
-            AgentStateResolver.Resolve(Agent, now),
-            MailAges.Format(Agent.StartedAt, now),
-            MailAges.Format(Agent.LastSeenAt, now));
+    /// <summary>
+    /// Builds a signature from every line currently visible: the show-more list's rows when
+    /// one is open, otherwise the summary's resolved state plus its rendered lines.
+    /// </summary>
+    private string ComputeAgeSignature(DateTimeOffset now)
+    {
+        if (_listMode is { } listMode)
+        {
+            return string.Join('\u0001', listMode.FormatRows(now));
+        }
+
+        if (Agent is null)
+        {
+            return string.Empty;
+        }
+
+        var lines = AgentPopoverView.BuildLines(Agent, _mail, _tickets, _memory, now, int.MaxValue, Locate(_cursor)).Lines;
+
+        return AgentStateResolver.Resolve(Agent, now) + '\u0001' + string.Join('\u0001', lines);
+    }
 
     private int TotalSelectableRows => _mail.Count + 1 + _tickets.Count + 1 + _memory.Count + 1;
 
@@ -195,6 +216,7 @@ internal sealed class AgentPopoverModel
             if (listMode.HandleKey(info))
             {
                 _listMode = null;
+                _listSection = null;
             }
 
             return null;
@@ -249,13 +271,16 @@ internal sealed class AgentPopoverModel
             return;
         }
 
-        _listMode = location.Section switch
-        {
-            AgentPopoverSection.Mail => BuildMailListMode(),
-            AgentPopoverSection.Tickets => BuildTicketListMode(),
-            _ => BuildMemoryListMode()
-        };
+        _listSection = location.Section;
+        _listMode = BuildListMode(location.Section, selected: 0);
     }
+
+    private AgentPopoverListMode BuildListMode(AgentPopoverSection section, int selected) => section switch
+    {
+        AgentPopoverSection.Mail => BuildMailListMode(selected),
+        AgentPopoverSection.Tickets => BuildTicketListMode(selected),
+        _ => BuildMemoryListMode(selected)
+    };
 
     /// <summary>
     /// Resolves which section and row (or show-more row) <paramref name="cursor"/> points
@@ -292,42 +317,43 @@ internal sealed class AgentPopoverModel
         yield return (AgentPopoverSection.Memory, _memory.Count);
     }
 
-    private AgentPopoverListMode BuildMailListMode()
+    private AgentPopoverListMode BuildMailListMode(int selected)
     {
-        var now = _timeProvider.GetUtcNow();
         var items = _mailStore.QueryParticipationThreadsAsync(_agentName, null, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         var rows = items
-            .Select(item => (Func<int, string>)(width => AgentPopoverView.FormatMailRow(item, now, width)))
+            .Select(item => (Func<DateTimeOffset, int, string>)(
+                (now, width) => AgentPopoverView.FormatMailRow(item, now, width)))
             .ToList();
 
-        return new AgentPopoverListMode(ListTitle("Mail"), rows);
+        return new AgentPopoverListMode(ListTitle("Mail"), rows, _timeProvider, selected);
     }
 
-    private AgentPopoverListMode BuildTicketListMode()
+    private AgentPopoverListMode BuildTicketListMode(int selected)
     {
         var items = _taskStore.QueryParticipationAsync(_agentName, null, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         var rows = items
-            .Select(item => (Func<int, string>)(width => AgentPopoverView.FormatTicketRow(item, width)))
+            .Select(item => (Func<DateTimeOffset, int, string>)(
+                (_, width) => AgentPopoverView.FormatTicketRow(item, width)))
             .ToList();
 
-        return new AgentPopoverListMode(ListTitle("Tickets"), rows);
+        return new AgentPopoverListMode(ListTitle("Tickets"), rows, _timeProvider, selected);
     }
 
-    private AgentPopoverListMode BuildMemoryListMode()
+    private AgentPopoverListMode BuildMemoryListMode(int selected)
     {
-        var now = _timeProvider.GetUtcNow();
         var items = _memoryStore.QueryParticipationAsync(_agentName, null, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         var rows = items
-            .Select(item => (Func<int, string>)(width => AgentPopoverView.FormatMemoryRow(item, now, width)))
+            .Select(item => (Func<DateTimeOffset, int, string>)(
+                (now, width) => AgentPopoverView.FormatMemoryRow(item, now, width)))
             .ToList();
 
-        return new AgentPopoverListMode(ListTitle("Memory"), rows);
+        return new AgentPopoverListMode(ListTitle("Memory"), rows, _timeProvider, selected);
     }
 
     private string ListTitle(string section) => $"{Agent?.Name ?? _agentName} — {section}";

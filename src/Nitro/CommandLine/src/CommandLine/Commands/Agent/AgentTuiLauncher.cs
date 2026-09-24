@@ -76,17 +76,17 @@ internal static class AgentTuiLauncher
             tabs,
             console.Profile.Width,
             console.Profile.Height,
-            tasksTabIndex: 0,
-            searchMode,
-            treeView,
-            taskStore,
-            actor: null,
-            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
-            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()],
             agentStore: agentStore,
             mailStore: mailStore,
             memoryStore: memoryStore,
-            timeProvider: timeProvider);
+            timeProvider: timeProvider,
+            tasksTabIndex: 0,
+            searchMode: searchMode,
+            treeView: treeView,
+            store: taskStore,
+            actor: null,
+            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
+            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 

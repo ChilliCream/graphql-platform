@@ -16,23 +16,33 @@ internal sealed class AgentPopoverListMode
     private const string EmptyMessage = "Nothing here yet.";
 
     private readonly string _title;
-    private readonly IReadOnlyList<Func<int, string>> _rows;
+    private readonly IReadOnlyList<Func<DateTimeOffset, int, string>> _rows;
+    private readonly TimeProvider _timeProvider;
     private readonly Viewport _viewport = new(0, 0);
 
     private int _selected;
 
     /// <summary>
     /// Builds a list titled <paramref name="title"/> from <paramref name="rows"/>, one
-    /// formatter per row taking the content width it should render at.
+    /// formatter per row taking the current time and the content width it should render at.
     /// </summary>
-    public AgentPopoverListMode(string title, IReadOnlyList<Func<int, string>> rows)
+    public AgentPopoverListMode(
+        string title, IReadOnlyList<Func<DateTimeOffset, int, string>> rows, TimeProvider timeProvider, int selected = 0)
     {
         ArgumentNullException.ThrowIfNull(title);
         ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(timeProvider);
 
         _title = title;
         _rows = rows;
+        _timeProvider = timeProvider;
+        _selected = rows.Count == 0 ? 0 : Math.Clamp(selected, 0, rows.Count - 1);
     }
+
+    /// <summary>
+    /// The index of the currently highlighted row.
+    /// </summary>
+    public int Selected => _selected;
 
     /// <summary>
     /// Handles one raw key. Returns <see langword="true"/> when Escape was pressed and the
@@ -80,6 +90,7 @@ internal sealed class AgentPopoverListMode
 
         var contentWidth = Math.Max(0, width - PanelChromeWidth);
         var interiorHeight = Math.Max(0, height - PanelChromeHeight);
+        var now = _timeProvider.GetUtcNow();
 
         _viewport.Update(_rows.Count, interiorHeight);
         _viewport.EnsureVisible(_selected);
@@ -95,7 +106,7 @@ internal sealed class AgentPopoverListMode
         for (var i = 0; i < count; i++)
         {
             var index = start + i;
-            var line = _rows[index](contentWidth);
+            var line = _rows[index](now, contentWidth);
 
             lines.Add(index == _selected ? AgentPopoverView.Highlight(line) : line);
         }
@@ -111,4 +122,10 @@ internal sealed class AgentPopoverListMode
 
         return panel;
     }
+
+    /// <summary>
+    /// Formats every row's full text as of <paramref name="now"/>, used to detect a row age
+    /// change between ticks without going through a render pass.
+    /// </summary>
+    internal IEnumerable<string> FormatRows(DateTimeOffset now) => _rows.Select(row => row(now, int.MaxValue));
 }
