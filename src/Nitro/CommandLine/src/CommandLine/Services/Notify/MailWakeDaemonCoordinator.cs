@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
@@ -46,9 +47,14 @@ internal sealed class MailWakeDaemonCoordinator(
     /// </summary>
     internal Func<CancellationToken, Task>? AfterShutdownWaitArmedAsync { get; init; }
 
-    private readonly string _ownerToken = $"daemon-{Guid.NewGuid():N}";
     private readonly object _statusLock = new();
     private readonly ConcurrentDictionaryBackoff _backoff = new();
+    private readonly ConcurrentDictionary<string, bool> _inFlightActors = new(StringComparer.Ordinal);
+
+    // Regenerated per leadership term (every successful TryAcquireWithRetryAsync), so a
+    // dispatch orphaned by an earlier term carries a stale token that the store's fencing
+    // rejects once a new term begins.
+    private string _ownerToken = NewOwnerToken();
 
     private MailWakeDaemonStatus _status = MailWakeDaemonStatus.Initial;
     private CancellationTokenSource? _lifetime;
@@ -281,9 +287,11 @@ internal sealed class MailWakeDaemonCoordinator(
                 await afterLeadershipEndedAsync(CancellationToken.None);
             }
 
-            // Bounded so a dispatch that ignores its cancellation token cannot hold the
-            // lease forever; the loops keep draining in the background either way.
-            var drained = loopsCompleted.WaitAsync(policy.ShutdownWait, timeProvider, CancellationToken.None);
+            // Bounded, and strictly shorter than the outer StopAsync/ShutdownWait budget, so a
+            // dispatch that ignores its cancellation token cannot hold the lease forever and the
+            // release below still has time to land within that outer budget; the loops keep
+            // draining in the background either way.
+            var drained = loopsCompleted.WaitAsync(policy.DispatchStopWait, timeProvider, CancellationToken.None);
 
             if (AfterShutdownWaitArmedAsync is { } afterShutdownWaitArmedAsync)
             {
@@ -296,9 +304,13 @@ internal sealed class MailWakeDaemonCoordinator(
             }
             catch (TimeoutException)
             {
+                var stuckActors = _inFlightActors.Keys.ToArray();
+                var actorsText = stuckActors.Length > 0 ? string.Join(", ", stuckActors) : "unknown actor";
                 UpdateStatus(s => s with
                 {
-                    LastError = Bound("A dispatch ignored cancellation past the shutdown wait; leadership was released anyway.")
+                    LastError = Bound(
+                        $"Dispatch for actor(s) [{actorsText}] under owner token {_ownerToken} "
+                        + "ignored cancellation past the shutdown wait; leadership was released anyway.")
                 });
             }
 
@@ -360,8 +372,6 @@ internal sealed class MailWakeDaemonCoordinator(
     private async Task AdmissionLoopAsync(CancellationTokenSource degradedSource, CancellationToken loopToken)
     {
         using var executionGate = new SemaphoreSlim(policy.MaxConcurrentActorExecutions);
-        var inFlight = new HashSet<string>(StringComparer.Ordinal);
-        var inFlightLock = new object();
         var executionTasks = new List<Task>();
 
         try
@@ -378,18 +388,12 @@ internal sealed class MailWakeDaemonCoordinator(
 
                         foreach (var actor in due)
                         {
-                            lock (inFlightLock)
+                            if (!_backoff.IsEligible(actor, now) || !_inFlightActors.TryAdd(actor, true))
                             {
-                                if (inFlight.Contains(actor) || !_backoff.IsEligible(actor, now))
-                                {
-                                    continue;
-                                }
-
-                                inFlight.Add(actor);
+                                continue;
                             }
 
-                            executionTasks.Add(ExecuteActorAsync(
-                                actor, executionGate, inFlight, inFlightLock, degradedSource, loopToken));
+                            executionTasks.Add(ExecuteActorAsync(actor, executionGate, degradedSource, loopToken));
                         }
                     }
 
@@ -429,8 +433,6 @@ internal sealed class MailWakeDaemonCoordinator(
     private async Task ExecuteActorAsync(
         string actor,
         SemaphoreSlim gate,
-        HashSet<string> inFlight,
-        object inFlightLock,
         CancellationTokenSource degradedSource,
         CancellationToken loopToken)
     {
@@ -487,10 +489,7 @@ internal sealed class MailWakeDaemonCoordinator(
         }
         finally
         {
-            lock (inFlightLock)
-            {
-                inFlight.Remove(actor);
-            }
+            _inFlightActors.TryRemove(actor, out _);
         }
     }
 
@@ -515,9 +514,23 @@ internal sealed class MailWakeDaemonCoordinator(
     private static bool IsBusy(SqliteException ex) => ex.SqliteErrorCode is 5 or 6; // SQLITE_BUSY / SQLITE_LOCKED
 
     private async Task<bool> TryAcquireWithRetryAsync(DateTimeOffset now, CancellationToken cancellationToken)
-        => await RunBoolWithBusyRetryAsync(
-            ct => leaderStore.TryAcquireAsync(_ownerToken, now, policy.LeaderLeaseDuration, ct),
+    {
+        // A fresh candidate token per acquisition attempt, so every leadership term gets
+        // its own token; it only becomes _ownerToken once the acquire actually succeeds.
+        var candidateToken = NewOwnerToken();
+        var acquired = await RunBoolWithBusyRetryAsync(
+            ct => leaderStore.TryAcquireAsync(candidateToken, now, policy.LeaderLeaseDuration, ct),
             cancellationToken);
+
+        if (acquired)
+        {
+            _ownerToken = candidateToken;
+        }
+
+        return acquired;
+    }
+
+    private static string NewOwnerToken() => $"daemon-{Guid.NewGuid():N}";
 
     private async Task<LeaseSnapshot?> ReadLeaseWithRetryAsync(CancellationToken cancellationToken)
         => await RunWithBusyRetryAsync(ReadLeaseAsync, cancellationToken);

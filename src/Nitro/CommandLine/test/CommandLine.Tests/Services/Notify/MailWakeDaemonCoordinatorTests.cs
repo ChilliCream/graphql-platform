@@ -268,7 +268,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // Degraded with the denial recorded, released without waiting out the lease.
         Assert.Equal(MailWakeDaemonState.Degraded, coordinator.Status.State);
         Assert.Equal("access-denied", coordinator.Status.LastError);
-        Assert.NotEqual(MailWakeDaemonState.Ready, coordinator.Status.State);
+        Assert.Null(coordinator.Status.OwnerToken);
         Assert.NotNull(standby.Status.OwnerToken);
         Assert.True(timeProvider.GetUtcNow() - timeProvider.Start < s_fastPolicy.LeaderLeaseDuration);
 
@@ -450,6 +450,62 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
         await coordinatorA.StopAsync(cancellationToken);
         await coordinatorB.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task Coordinator_Should_RejectAStaleTermsBatchWrite_When_ItReacquiresTheLeaseItReleased()
+    {
+        // arrange
+        // A batch claimed under the first term's owner token, left active when the coordinator stops.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        CreateStores(timeProvider);
+        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await InsertDueOutboxRowAsync(cancellationToken, timeProvider, Actor);
+        var ticks = new LoopTickSignal();
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            new MailWakeDaemonLeaderStore(_fileSystem, _database),
+            new CountingDispatcher(),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy)
+        {
+            AfterAdmissionTickAsync = ticks.HookAsync,
+            AfterStandbyTickAsync = ticks.HookAsync
+        };
+
+        // act
+        var ready = ticks.WaitForNextTickAsync(cancellationToken);
+        await coordinator.StartAsync(cancellationToken);
+        await ready;
+        var staleToken = coordinator.Status.OwnerToken!;
+        const string attemptId = "attempt-1";
+        var claim = await _batches.TryClaimAsync(
+            Actor, staleToken, attemptId, [Actor], timeProvider.GetUtcNow(),
+            s_fastPolicy.LeaderLeaseDuration, cancellationToken);
+        await coordinator.StopAsync(cancellationToken).WaitAsync(s_hangGuard, cancellationToken);
+
+        var readyAgain = ticks.WaitForNextTickAsync(cancellationToken);
+        await coordinator.StartAsync(cancellationToken);
+        await readyAgain;
+        var freshToken = coordinator.Status.OwnerToken;
+
+        var staleOutcomeAccepted = await _batches.TryRecordTargetOutcomeAsync(
+            claim!.BatchId, Actor, staleToken, attemptId, MailWakeTargetStatus.Delivered,
+            offeredGeneration: null, acceptedGeneration: claim.ClaimedGeneration, lastError: null,
+            timeProvider.GetUtcNow(), cancellationToken);
+        var staleCompleteAccepted = await _batches.TryCompleteAsync(
+            claim.BatchId, staleToken, attemptId, timeProvider.GetUtcNow(), cancellationToken);
+
+        // assert
+        // A fresh term token was minted on reacquisition, and the orphaned term's writes are fenced out.
+        Assert.NotEqual(staleToken, freshToken);
+        Assert.False(staleOutcomeAccepted);
+        Assert.False(staleCompleteAccepted);
+
+        await coordinator.StopAsync(cancellationToken);
     }
 
     [Fact]
@@ -935,8 +991,10 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             "someone-else", timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
 
         // assert
-        // Released within the shutdown budget even though the stuck dispatch never returned.
+        // Released within the shutdown budget even though the stuck dispatch never returned,
+        // and the log names the stuck actor rather than staying generic.
         Assert.Contains("shutdown", coordinator.Status.LastError, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(Actor, coordinator.Status.LastError, StringComparison.Ordinal);
         Assert.True(reacquired);
 
         // The stuck dispatch is released now so its orphaned task and the drain can both finish.
