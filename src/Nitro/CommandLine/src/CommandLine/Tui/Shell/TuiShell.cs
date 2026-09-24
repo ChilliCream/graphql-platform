@@ -309,8 +309,9 @@ internal sealed class TuiShell
         var searchDirty = _searchMode is { } search
             && ReferenceEquals(ActiveMode, search)
             && search.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
+        var agentsDirty = ActiveMode is AgentsMode agents && agents.Tick();
 
-        return toastDirty || searchDirty;
+        return toastDirty || searchDirty || agentsDirty;
     }
 
     /// <summary>

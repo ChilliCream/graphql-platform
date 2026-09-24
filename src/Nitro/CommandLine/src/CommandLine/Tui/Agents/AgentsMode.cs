@@ -80,6 +80,13 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     public int CountOfflineAgents() => _state.CountOffline(_timeProvider.GetUtcNow());
 
+    /// <summary>
+    /// Recomputes state and ages as of now, re-sorting when they changed and preserving the
+    /// selected agent by name. Returns whether anything the render depends on changed since
+    /// the last tick or render.
+    /// </summary>
+    public bool Tick() => _state.Resettle(_timeProvider.GetUtcNow());
+
     /// <inheritdoc />
     public IReadOnlyList<TuiMessage> Handle(TuiMessage message) => message switch
     {

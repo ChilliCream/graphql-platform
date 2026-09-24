@@ -12,6 +12,7 @@ using Microsoft.Extensions.Time.Testing;
 using Spectre.Console;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
+using static ChilliCream.Nitro.CommandLine.Tests.Tui.AnsiAssertions;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
@@ -60,6 +61,13 @@ public sealed class TuiShellTests
     private static string RenderToText(TuiShell shell, int width)
     {
         var console = new TestConsole().Width(width);
+        console.Write(shell.Render());
+        return console.Output;
+    }
+
+    private static string RenderToAnsiText(TuiShell shell, int width = 80)
+    {
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(width);
         console.Write(shell.Render());
         return console.Output;
     }
@@ -1470,5 +1478,47 @@ public sealed class TuiShellTests
         var remaining = Assert.Single(mode.State.Rows);
         Assert.Equal(online.Name, remaining.Name);
         Assert.Contains("Deleted 2 offline agents.", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReportDirtyAndShowTheOfflineBubble_When_ATickAdvancesPastTheOnlineWindow()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        AddOnlineAgent(agentStore, "s-b");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShell(mode, agentStore);
+        // Move off row 0 so its bubble is never selection-highlighted, before or after the tick.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+        AssertAnsiStylePrefixesText(RenderToAnsiText(shell), "agents.list.presence.online", "●");
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(31));
+        var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
+        var rendered = RenderToAnsiText(shell);
+
+        // assert
+        Assert.True(dirty);
+        AssertAnsiStylePrefixesText(rendered, "agents.list.presence.offline", "●");
+        Assert.Contains("31m ago", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReturnFalse_When_ATickHasNoTimeAdvance()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShell(mode, agentStore);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
+
+        // assert
+        Assert.False(dirty);
     }
 }

@@ -245,6 +245,36 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
+    public void Tick_Should_MoveTheSelectedAgentToTheOfflineGroupByName_When_ItsOnlineWindowElapses()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        var stale = AddOnlineAgent(store, "s-a");
+        time.Advance(TimeSpan.FromMinutes(25));
+        var alreadyOffline = AddOfflineAgent(store, "s-off");
+        time.Advance(TimeSpan.FromMinutes(4));
+        var fresh = AddOnlineAgent(store, "s-c");
+        var mode = new AgentsMode(store, time);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
+        Assert.Equal(stale.Name, mode.State.SelectedAgent?.Name);
+
+        // act
+        // Only the stale agent's online window elapses; the other two keep their state.
+        time.Advance(TimeSpan.FromMinutes(2));
+        var dirty = mode.Tick();
+        var text = RenderToText(mode);
+
+        // assert
+        var freshIndex = text.IndexOf(fresh.Name, StringComparison.Ordinal);
+        var offlineIndex = text.IndexOf(alreadyOffline.Name, StringComparison.Ordinal);
+        var staleIndex = text.IndexOf(stale.Name, StringComparison.Ordinal);
+        Assert.True(dirty && freshIndex >= 0 && offlineIndex > freshIndex && staleIndex > offlineIndex);
+        Assert.Equal(stale.Name, mode.State.SelectedAgent?.Name);
+    }
+
+    [Fact]
     public void MoveSelection_Should_ClampAtLastRow_When_MovingDownPastEnd()
     {
         // arrange

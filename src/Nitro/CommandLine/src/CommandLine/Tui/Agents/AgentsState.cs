@@ -1,4 +1,6 @@
+using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
@@ -8,6 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
 {
     private IReadOnlyList<AgentRow> _allRows = [];
+    private string _lastSignature = string.Empty;
 
     /// <summary>
     /// Every non-deleted agent matching <see cref="SearchText"/>, sorted by state group
@@ -47,7 +50,7 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
         var selectedName = SelectedAgent?.Name;
 
         _allRows = await store.ListAsync(cancellationToken);
-        ApplyFilterAndSort();
+        ApplyFilterAndSort(timeProvider.GetUtcNow());
 
         var preservedIndex = selectedName is null ? -1 : IndexOf(Rows, selectedName);
 
@@ -62,8 +65,36 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
     public void ApplySearch(string text)
     {
         SearchText = text.Trim();
-        ApplyFilterAndSort();
+        ApplyFilterAndSort(timeProvider.GetUtcNow());
         SelectedRow = 0;
+    }
+
+    /// <summary>
+    /// Recomputes every loaded row's resolved state and formatted started/last-seen ages as
+    /// of <paramref name="now"/>. When any changed since the last call, re-applies the filter
+    /// and sort and preserves the selected agent by name, returning true; returns false
+    /// without touching <see cref="Rows"/> or <see cref="SelectedRow"/> when nothing changed.
+    /// </summary>
+    public bool Resettle(DateTimeOffset now)
+    {
+        var signature = ComputeSignature(now);
+
+        if (signature == _lastSignature)
+        {
+            return false;
+        }
+
+        var selectedName = SelectedAgent?.Name;
+
+        ApplyFilterAndSort(now);
+
+        var preservedIndex = selectedName is null ? -1 : IndexOf(Rows, selectedName);
+
+        SelectedRow = preservedIndex >= 0
+            ? preservedIndex
+            : Math.Clamp(SelectedRow, 0, Math.Max(0, Rows.Count - 1));
+
+        return true;
     }
 
     /// <summary>
@@ -80,9 +111,9 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
     public int CountOnline(DateTimeOffset now)
         => _allRows.Count(row => AgentStateResolver.Resolve(row, now) == AgentState.Online);
 
-    private void ApplyFilterAndSort()
+    private void ApplyFilterAndSort(DateTimeOffset now)
     {
-        var now = timeProvider.GetUtcNow();
+        _lastSignature = ComputeSignature(now);
 
         var filtered = SearchText.Length == 0
             ? _allRows
@@ -93,6 +124,27 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
             .ThenByDescending(row => row.LastSeenAt)
             .ThenBy(row => row.Name, StringComparer.Ordinal)
             .ToList();
+    }
+
+    /// <summary>
+    /// Builds a cheap signature of every loaded row's resolved state and formatted
+    /// started/last-seen ages as of <paramref name="now"/>, used to detect whether a tick
+    /// changed anything worth re-sorting and re-rendering.
+    /// </summary>
+    private string ComputeSignature(DateTimeOffset now)
+    {
+        var signature = new StringBuilder();
+
+        foreach (var row in _allRows)
+        {
+            signature
+                .Append(row.Name).Append('\u0001')
+                .Append(AgentStateResolver.Resolve(row, now)).Append('\u0001')
+                .Append(MailAges.Format(row.StartedAt, now)).Append('\u0001')
+                .Append(MailAges.Format(row.LastSeenAt, now)).Append('\u0002');
+        }
+
+        return signature.ToString();
     }
 
     private static int StateRank(AgentState state) => state switch
