@@ -987,9 +987,12 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // A pipeline step that finds the request state an earlier step provides missing is a failure
     // inside the server, and is answered 500 like one.
     [Theory]
-    [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData("""{ "query": "{ __typename }" }""", Draft20250508)]
+    [InlineData("""{ "query": "{ __typename }" }""", Draft20260903)]
+    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Draft20250508)]
+    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Draft20260903)]
     public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeValidation(
+        string body,
         HttpTransportVersion transportVersion)
     {
         // arrange
@@ -1000,7 +1003,60 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
-        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnInternalServerError_When_CachedDocumentIsMissing(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        // the first request puts its document into the document cache under the document ID
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.DocumentValidationMiddleware,
+            context =>
+            {
+                if (context.OperationDocumentInfo.IsCached)
+                {
+                    context.OperationDocumentInfo.Document = null;
+                }
+            });
+
+        using var cacheRequest = new HttpRequestMessage(HttpMethod.Post, s_url);
+        cacheRequest.Content = new StringContent(
+            """{ "id": "cached-document", "query": "{ __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+        using var cacheResponse = await client.SendAsync(
+            cacheRequest,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(OK, cacheResponse.StatusCode);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "id": "cached-document" }""",
+            Encoding.UTF8,
+            "application/json");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
