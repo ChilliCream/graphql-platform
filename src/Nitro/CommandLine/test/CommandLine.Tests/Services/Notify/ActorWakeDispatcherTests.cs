@@ -69,16 +69,17 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_OfferPendingWithOfflineReason_When_TheActorIsOffline()
+    public async Task DispatchAsync_Should_SkipWithOfflineReason_When_TheAgentIsPastTheOnlineWindow()
     {
         // arrange
-        // a login-only agent, stale well past the online window.
+        // A session-bound agent, advanced well past the online window.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var actor = (await _agentStore.LoginAsync(cancellationToken)).Name;
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
         _timeProvider.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
         await SendEnqueuedMailAsync(actor, cancellationToken);
-        var dispatcher = CreateDispatcher(new FakePingSessionExecutor());
+        var executor = new FakePingSessionExecutor();
+        var dispatcher = CreateDispatcher(executor);
 
         // act
         var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
@@ -87,8 +88,96 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.NotNull(receipt);
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(
-            (MailWakeTargetStatus.Pending, actor, MailWakeTargetStatus.Pending, "offline"),
+            (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "offline"),
             (receipt.Status, target.Target, target.Status, target.LastError));
+        Assert.Empty(executor.Calls);
+
+        // the batch completed instead of releasing for a retry.
+        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_SkipWithEndedReason_When_TheAgentHasEnded()
+    {
+        // arrange
+        // A session-bound agent whose harness session has ended.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await _agentStore.EndSessionAsync(AgentSessionHarness.Codex, "session-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        var executor = new FakePingSessionExecutor();
+        var dispatcher = CreateDispatcher(executor);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(receipt);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(
+            (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "ended"),
+            (receipt.Status, target.Target, target.Status, target.LastError));
+        Assert.Empty(executor.Calls);
+
+        // the batch completed instead of releasing for a retry.
+        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_SkipWithUnreachableReason_When_TheAgentIsLoginOnly()
+    {
+        // arrange
+        // A login-only agent, still within the online window but with no endpoint.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = (await _agentStore.LoginAsync(cancellationToken)).Name;
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        var executor = new FakePingSessionExecutor();
+        var dispatcher = CreateDispatcher(executor);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(receipt);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(
+            (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "unreachable"),
+            (receipt.Status, target.Target, target.Status, target.LastError));
+        Assert.Empty(executor.Calls);
+
+        // the batch completed instead of releasing for a retry.
+        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_SkipWithUnreachableReason_When_TheSessionIdIsMissingOnAClaudePeerEndpoint()
+    {
+        // arrange
+        // A login-only agent with a claude-peer endpoint but no session id.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = (await _agentStore.LoginAsync(cancellationToken)).Name;
+        await _agentStore.SetEndpointAsync(
+            actor, AgentSessionEndpointKind.ClaudePeer, "peer-addr", null, cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        var executor = new FakePingSessionExecutor();
+        var dispatcher = CreateDispatcher(executor);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(receipt);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(
+            (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "unreachable"),
+            (receipt.Status, target.Target, target.Status, target.LastError));
+        Assert.Empty(executor.Calls);
+
+        // the batch completed instead of releasing for a retry.
+        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
     }
 
     [Fact]
