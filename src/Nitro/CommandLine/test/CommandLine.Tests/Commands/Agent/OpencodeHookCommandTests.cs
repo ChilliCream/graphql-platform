@@ -162,7 +162,7 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     }
 
     [Fact]
-    public async Task SessionIdle_Should_NotReserveTheUnreadMail_And_WriteNeutralResponse()
+    public async Task SessionIdle_Should_WriteNeutralResponseWithoutReservingMail_When_TheActorHasUnreadMail()
     {
         // arrange
         // Start the session and send unread mail before invoking session-idle.
@@ -229,8 +229,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     }
 
     [Fact]
-    public async Task HookHelp_ShouldBeInvisible()
+    public async Task HookHelp_Should_BeInvisible_When_HelpIsRequested()
     {
+        // arrange
+
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "--help");
 
@@ -239,8 +241,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     }
 
     [Fact]
-    public async Task OpencodeHelp_ReturnsSuccess()
+    public async Task OpencodeHelp_Should_ListTheEventCommands_When_HelpIsRequested()
     {
+        // arrange
+
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "opencode", "--help");
 
@@ -279,6 +283,8 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
         "Adapt opencode's session.deleted event: remove this session's presence row.")]
     public async Task EventHelp_Should_PrintTheEventDescription_When_HelpIsRequested(string eventName, string description)
     {
+        // arrange
+
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "opencode", eventName, "--help");
 

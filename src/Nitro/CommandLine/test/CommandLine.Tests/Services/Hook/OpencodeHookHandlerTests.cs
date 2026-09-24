@@ -219,7 +219,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleChatMessageAsync_Should_ResetThePerTurnBudget()
+    public async Task HandleChatMessageAsync_Should_ResetThePerTurnBudget_When_AGenuineChatMessageArrives()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
