@@ -31,7 +31,7 @@ internal interface IClaudeHookHandler
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Conditionally deletes the session's presence row.
+    /// Stamps the session's agent row as ended, keeping it in place.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionEndAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
