@@ -2,7 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
 /// Handles Claude session registration, unread-mail context, Stop decisions, and
-/// session removal. Exceptions propagate to the hook executor.
+/// session end. Exceptions propagate to the hook executor.
 /// </summary>
 internal interface IClaudeHookHandler
 {

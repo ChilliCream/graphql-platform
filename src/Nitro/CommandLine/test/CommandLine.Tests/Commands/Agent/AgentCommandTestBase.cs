@@ -59,6 +59,33 @@ public abstract class AgentCommandTestBase : CommandTestBase
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 
+    /// <summary>
+    /// Seeds the named agent and binds it to a Claude Code session directly on
+    /// the unified <c>agents</c> row, mirroring what <c>StartSessionAsync</c>
+    /// would write.
+    /// </summary>
+    protected async Task BindAgentSessionAsync(
+        string actor,
+        string sessionId,
+        string harness = AgentSessionHarness.ClaudeCode)
+    {
+        await SeedAgentAsync(actor);
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agents SET harness = $harness, session_id = $sessionId, "
+            + "started_at = $now, last_seen_at = $now WHERE name = $name";
+        command.Parameters.AddWithValue("$harness", harness);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        command.Parameters.AddWithValue("$name", actor);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     protected async Task InitWorkspaceAsync()
     {
         var result = await ExecuteCommandAsync("agent", "init");
