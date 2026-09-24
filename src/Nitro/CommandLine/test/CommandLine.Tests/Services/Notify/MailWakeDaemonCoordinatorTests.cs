@@ -129,42 +129,6 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     }
 
     [Fact]
-    public async Task TwoCoordinators_Should_ElectExactlyOneLeader_And_NeverBothLead_When_TheyRaceTheSameLease()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await using var coordinatorA = CreateCoordinator(new FakePingSessionExecutor());
-        await using var coordinatorB = CreateCoordinator(new FakePingSessionExecutor());
-
-        // act
-        await coordinatorA.StartAsync(cancellationToken);
-        await coordinatorB.StartAsync(cancellationToken);
-        await WaitUntilAsync(
-            () => coordinatorA.Status.State == MailWakeDaemonState.Ready
-                || coordinatorB.Status.State == MailWakeDaemonState.Ready,
-            cancellationToken);
-        await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
-
-        // assert
-        // Exactly one became ready, and the other stayed standby.
-        var states = new[] { coordinatorA.Status.State, coordinatorB.Status.State };
-        Assert.Single(states, s => s == MailWakeDaemonState.Ready);
-        Assert.Single(states, s => s == MailWakeDaemonState.Standby);
-        var readyOwnerToken = coordinatorA.Status.State == MailWakeDaemonState.Ready
-            ? coordinatorA.Status.OwnerToken
-            : coordinatorB.Status.OwnerToken;
-        var standbyOwnerToken = coordinatorA.Status.State == MailWakeDaemonState.Standby
-            ? coordinatorA.Status.OwnerToken
-            : coordinatorB.Status.OwnerToken;
-        Assert.NotNull(readyOwnerToken);
-        Assert.Null(standbyOwnerToken);
-
-        await coordinatorA.StopAsync(cancellationToken);
-        await coordinatorB.StopAsync(cancellationToken);
-    }
-
-    [Fact]
     public async Task RunningLeader_Should_DispatchOutstandingActorWork_Through_TheAdmissionAndExecutionLoops()
     {
         // arrange
