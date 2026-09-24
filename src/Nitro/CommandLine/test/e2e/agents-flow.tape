@@ -48,7 +48,7 @@
 # this table renders is a live, time-windowed computation with no
 # host/PID escape hatch to pin it statically the way the old
 # agent_sessions model's `Remote` state could be); the formatted age this
-# produces ("now"/"Nm ago") is normalized by run.sh's own `agents` SCRUBS
+# produces ("just now"/"Nm ago") is normalized by run.sh's own `agents` SCRUBS
 # entry before the diff, since it grows with however long a full `run.sh`
 # takes to reach this, the last-recorded flow.
 #
