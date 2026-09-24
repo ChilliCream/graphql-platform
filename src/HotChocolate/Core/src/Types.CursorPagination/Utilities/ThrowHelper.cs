@@ -67,6 +67,32 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Paging.SchemaTypeInvalid)
                 .Build());
 
+    public static SchemaException PagingObjectFieldDescriptorExtensions_ConnectionNameConflict(
+        string connectionTypeName,
+        string existingNodeType,
+        bool existingIncludeTotalCount,
+        bool existingIncludeNodesField,
+        string currentNodeType,
+        bool currentIncludeTotalCount,
+        bool currentIncludeNodesField)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The connection type `{0}` is inferred for multiple fields with "
+                    + "conflicting paging settings. Existing: nodeType `{1}`, "
+                    + "includeTotalCount `{2}`, includeNodesField `{3}`. Current: "
+                    + "nodeType `{4}`, includeTotalCount `{5}`, includeNodesField `{6}`. "
+                    + "Set an explicit ConnectionName to disambiguate.",
+                    connectionTypeName,
+                    existingNodeType,
+                    existingIncludeTotalCount,
+                    existingIncludeNodesField,
+                    currentNodeType,
+                    currentIncludeTotalCount,
+                    currentIncludeNodesField)
+                .SetCode(ErrorCodes.Schema.DuplicateTypeName)
+                .Build());
+
     public static GraphQLException InvalidIndexCursor(string argument, string cursor)
         => new GraphQLException(
             ErrorBuilder.New()

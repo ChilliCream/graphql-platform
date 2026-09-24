@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -432,25 +433,75 @@ public static class PagingObjectFieldDescriptorExtensions
         bool includeTotalCount,
         bool includeNodesField)
     {
-        return connectionName is null
-            ? TypeReference.Create(
+        if (connectionName is null)
+        {
+            return TypeReference.Create(
                 "HotChocolate_Types_Connection",
                 nodeType,
                 _ => new ConnectionType(nodeType, includeTotalCount, includeNodesField),
-                TypeContext.Output)
-            : TypeReference.Create(
-                NameHelper.CreateConnectionName(context.Naming, connectionName),
-                TypeContext.Output,
-                factory: c => new ConnectionType(
-                    connectionName,
-                    nodeType,
-                    includeTotalCount,
-                    includeNodesField,
-                    c.Naming));
+                TypeContext.Output);
+        }
+
+        var typeName = NameHelper.CreateConnectionName(context.Naming, connectionName);
+        ValidateConnectionTypeConfiguration(
+            context,
+            typeName,
+            nodeType,
+            includeTotalCount,
+            includeNodesField);
+
+        return TypeReference.Create(
+            typeName,
+            TypeContext.Output,
+            factory: c => new ConnectionType(
+                connectionName,
+                nodeType,
+                includeTotalCount,
+                includeNodesField,
+                c.Naming));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)
         => char.IsUpper(connectionName[0])
             ? connectionName
             : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName[1..]);
+
+    private static void ValidateConnectionTypeConfiguration(
+        IDescriptorContext context,
+        string typeName,
+        TypeReference nodeType,
+        bool includeTotalCount,
+        bool includeNodesField)
+    {
+        var registry = context.Features.GetOrSet<ConnectionTypeRegistry>();
+        var current = new ConnectionTypeSignature(nodeType, includeTotalCount, includeNodesField);
+
+        if (registry.Signatures.TryGetValue(typeName, out var existing) && !existing.Equals(current))
+        {
+            var existingNodeType = existing.NodeType.ToString() ?? "<null>";
+            var currentNodeType = current.NodeType.ToString() ?? "<null>";
+
+            throw ThrowHelper.PagingObjectFieldDescriptorExtensions_ConnectionNameConflict(
+                typeName,
+                existingNodeType,
+                existing.IncludeTotalCount,
+                existing.IncludeNodesField,
+                currentNodeType,
+                current.IncludeTotalCount,
+                current.IncludeNodesField);
+        }
+
+        registry.Signatures[typeName] = current;
+    }
+
+    private sealed class ConnectionTypeRegistry
+    {
+        public Dictionary<string, ConnectionTypeSignature> Signatures { get; } =
+            new(StringComparer.Ordinal);
+    }
+
+    private readonly record struct ConnectionTypeSignature(
+        TypeReference NodeType,
+        bool IncludeTotalCount,
+        bool IncludeNodesField);
 }
