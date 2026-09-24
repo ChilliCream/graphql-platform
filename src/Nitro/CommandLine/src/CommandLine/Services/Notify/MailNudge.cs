@@ -45,6 +45,12 @@ internal sealed class MailNudge(
                     continue;
                 }
 
+                if (row.EndpointKind is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.OpencodeServer
+                    && row.SessionId is null)
+                {
+                    continue;
+                }
+
                 var unread = await mail.QueryInboxAsync(
                     new MailInboxFilter
                     {
