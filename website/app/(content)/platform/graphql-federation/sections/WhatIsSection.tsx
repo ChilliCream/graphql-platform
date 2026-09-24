@@ -190,7 +190,8 @@ export function WhatIsSection() {
             owners. Federation lets each team publish only the piece of the API
             it owns, as a source schema. A build step called composition then
             validates those schemas together and produces one composite schema.
-            Clients see one API and never learn which team owns which field.
+            Clients see one API and never know whether there is one API or many
+            behind the gateway.
           </p>
           <p>
             The services themselves stay where they are. Each team keeps its own
