@@ -22,28 +22,26 @@ export function ProblemSection() {
               Everyone shares one release queue, so every change needs
               coordination and every team waits on the same bottleneck.
             </p>
+            <p>
+              GraphQL Federation breaks that one big schema into smaller ones.
+              Each service contributes a source schema, and a service that
+              contributes a source schema is called a subgraph. One per team, or
+              one per domain. Each team owns its subgraph: the source schema,
+              the code, the release schedule.
+            </p>
+            <p>
+              When a team ships a change, composition checks the source schemas
+              against each other and merges them into one composite schema,
+              which is what your gateway serves. If the change conflicts with
+              another subgraph, composition fails at build time and the change
+              never reaches production. Your consumers also known as clients
+              never notice any of this.
+            </p>
           </div>
         </div>
         <div className="min-w-0 lg:col-span-7">
           <ProblemWindows />
         </div>
-      </div>
-      <div className="text-cc-ink mt-10 max-w-2xl space-y-4 text-base sm:mt-12">
-        <p>
-          GraphQL Federation breaks that one big schema into smaller ones. Each
-          service contributes a source schema, and a service that contributes a
-          source schema is called a subgraph. One per team, or one per domain.
-          Each team owns its subgraph: the source schema, the code, the release
-          schedule.
-        </p>
-        <p>
-          When a team ships a change, composition checks the source schemas
-          against each other and merges them into one composite schema, which is
-          what your gateway serves. If the change conflicts with another
-          subgraph, composition fails at build time and the change never reaches
-          production. Your consumers also known as clients never notice any of
-          this.
-        </p>
       </div>
     </Section>
   );
