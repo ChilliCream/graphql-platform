@@ -1,4 +1,4 @@
-# ExtendObjectType_WithGenericType_RaisesInfo
+﻿# ExtendObjectType_WithTypeArgument_RaisesInfo
 
 ## HotChocolateTypeModule.735550c.g.cs
 
@@ -37,7 +37,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "Title": "ExtendObjectType Should Be Upgraded",
     "Severity": "Info",
     "WarningLevel": 1,
-    "Location": ": (4,1)-(4,26)",
+    "Location": ": (4,1)-(4,34)",
     "MessageFormat": "Consider upgrading to [ObjectType<{0}>]",
     "Message": "Consider upgrading to [ObjectType<Product>]",
     "Category": "TypeSystem",
