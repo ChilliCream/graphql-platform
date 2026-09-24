@@ -70,7 +70,7 @@ internal static class SpecVersionSchemaRewriter
 
     private static bool ShouldRemoveDefinition(
         IDefinitionNode definition,
-        IReadOnlySet<string> removedDirectives)
+        HashSet<string> removedDirectives)
         => definition switch
         {
             DirectiveExtensionNode => true,
