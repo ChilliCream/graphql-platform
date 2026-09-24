@@ -62,7 +62,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a implementer Claude Code now ago now ago", line);
+        Assert.Equal("  ● agent-a implementer Claude Code just now just now", line);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a - Claude Code now ago now ago", line);
+        Assert.Equal("  ● agent-a - Claude Code just now just now", line);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a - - now ago now ago", line);
+        Assert.Equal("  ● agent-a - - just now just now", line);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a implementer Claude Code now ago", line);
+        Assert.Equal("  ● agent-a implementer Claude Code just now", line);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a Claude Code now ago", line);
+        Assert.Equal("  ● agent-a Claude Code just now", line);
     }
 
     [Fact]
@@ -137,8 +137,39 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Contains("now ago", line);
+        Assert.Contains("just now", line);
         Assert.True(line.GetCellWidth() <= maxWidth);
+    }
+
+    [Theory]
+    [InlineData(0, "just now")]
+    [InlineData(90, "1m ago")]
+    public void Render_Should_FormatLastSeen_When_AgeIsFreshOrMinutesOld(int elapsedSeconds, string expectedAge)
+    {
+        // arrange
+        var row = CreateRow(lastSeenAt: s_now.AddSeconds(-elapsedSeconds));
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth: 80, widths));
+
+        // assert
+        Assert.EndsWith(expectedAge, line);
+    }
+
+    [Fact]
+    public void Render_Should_FormatLastSeenAsBareDate_When_AgeIsAtLeastAWeekOld()
+    {
+        // arrange
+        var lastSeenAt = s_now.AddDays(-8);
+        var row = CreateRow(lastSeenAt: lastSeenAt);
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth: 80, widths));
+
+        // assert
+        Assert.EndsWith(lastSeenAt.ToUniversalTime().ToString("yyyy-MM-dd"), line);
     }
 
     [Fact]
