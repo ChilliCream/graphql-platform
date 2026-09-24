@@ -45,9 +45,11 @@ internal sealed class MailNudge(
                     continue;
                 }
 
-                if (row.EndpointKind is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.OpencodeServer
-                    && row.SessionId is null)
+                if (!CanTransport(row))
                 {
+                    // Reserving a Ping delivery for an endpoint kind SendAsync
+                    // cannot reach would strand the message as delivered
+                    // without it ever reaching the agent.
                     continue;
                 }
 
@@ -85,6 +87,17 @@ internal sealed class MailNudge(
             }
         }
     }
+
+    /// <summary>
+    /// Reports whether <see cref="SendAsync"/> can deliver to the given agent's endpoint:
+    /// a Claude peer with a session, or a Codex thread.
+    /// </summary>
+    private static bool CanTransport(AgentRow row) => row.EndpointKind switch
+    {
+        AgentSessionEndpointKind.ClaudePeer => row.SessionId is not null,
+        AgentSessionEndpointKind.CodexThread => true,
+        _ => false
+    };
 
     /// <summary>
     /// Sends through a Claude peer or Codex thread endpoint, skipping other endpoint kinds.
