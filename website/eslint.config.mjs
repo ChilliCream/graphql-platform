@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "storybook-static/**",
     "next-env.d.ts",
+    // Gitignored local test-harness scripts; not present in CI.
+    "test-results/**",
   ]),
   ...storybook.configs["flat/recommended"],
   {
