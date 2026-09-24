@@ -13,7 +13,7 @@ To get started, follow these steps:
 
 2. Install the Nitro package from NuGet using the following command:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.HotChocolate
 ```

@@ -15,7 +15,7 @@ You need an existing Hot Chocolate GraphQL server. If you do not have one yet, f
 
 Add the adapter package to the server project:
 
-```bash
+```shell
 dotnet add package HotChocolate.Adapters.Mcp
 ```
 
@@ -106,7 +106,7 @@ Nitro is the easiest way to manage MCP tools and prompts. You author tools and p
 
 ## Install the Nitro packages
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.HotChocolate
 ```

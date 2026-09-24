@@ -28,9 +28,9 @@ The payload of `connectionInitMessage` is only valid for the duration of the cal
 
 ## Cost variable multipliers retired
 
-Cost analysis now evaluates coerced variable values directly. The filter and sort variable multipliers are inert in 16.7 and marked `[Obsolete(error: true)]`, so code that accesses them fails to compile. They will be removed in a later release.
+Cost analysis now evaluates coerced variable values directly. The filter and sort variable multipliers are inert in 16.7 and marked `#!csharp [Obsolete(error: true)]`, so code that accesses them fails to compile. They will be removed in a later release.
 
-The positional `RequestCostOptions` constructors and `Deconstruct` overload that expose the filter variable multiplier are also marked `[Obsolete(error: true)]`. The replacement positional shape includes `skipAnalyzer` and replaces the multiplier with `maxResponseSize`. Record `with` expressions that do not access an obsolete member continue to compile.
+The positional `RequestCostOptions` constructors and `Deconstruct` overload that expose the filter variable multiplier are also marked `#!csharp [Obsolete(error: true)]`. The replacement positional shape includes `skipAnalyzer` and replaces the multiplier with `maxResponseSize`. Record `with` expressions that do not access an obsolete member continue to compile.
 
 | Deprecated 16.6 member                                              | 16.7 replacement                                                       |
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -206,7 +206,7 @@ The following calculation rules also change:
 - Fields are collected by response name before signed weights are applied. Clamping happens after the complete field-call sum and per-instance type sum are calculated.
 - An interface or union return weight is the signed maximum of its member object-type weights.
 - A field selected through an interface is priced through each possible object type's field metadata.
-- Output fields returning lists of scalars or enums now default to weight `0`, as the [IBM cost specification](https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight) requires. In 16.x, they cost `1`; add `@cost(weight: "1")` to retain that cost.
+- Output fields returning lists of scalars or enums now default to weight `0`, as the [IBM cost specification](https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight) requires. In 16.x, they cost `1`; add `#!sdl @cost(weight: "1")` to retain that cost.
 - Costs on arguments of directives used in the query contribute to field cost.
 - An inherited size from a parent's `@listSize(sizedFields:)` takes precedence over the child field's own `@listSize`.
 - Negative slicing values clamp to `0`. A slicing value of `0` remains `0`, while the field-call cost is still paid once.
@@ -261,4 +261,4 @@ Cost rejections, including the single result for a rejected variable batch, retu
 
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
-Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.
+Use `#!csharp RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.

@@ -258,8 +258,8 @@ builder
 | Property                      | Type   | Default | Description                                                                                                                                         |
 | ----------------------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `RegisterNodeInterface`       | `bool` | `true`  | Registers the `Node` interface. When `false`, the `node` and `nodes` fields and `[NodeResolver]` inference are disabled as well.                    |
-| `AddNodeField`                | `bool` | `true`  | Adds the `node(id: ID!): Node` field to the Query type.                                                                                             |
-| `AddNodesField`               | `bool` | `true`  | Adds a `nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                                               |
+| `AddNodeField`                | `bool` | `true`  | Adds the `#!sdl node(id: ID!): Node` field to the Query type.                                                                                       |
+| `AddNodesField`               | `bool` | `true`  | Adds a `#!sdl nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                                         |
 | `EnsureAllNodesCanBeResolved` | `bool` | `true`  | Validates during schema building that every type implementing `Node` has a corresponding node resolver configured.                                  |
 | `MaxAllowedNodeBatchSize`     | `int`  | `50`    | The maximum number of IDs a client can pass to the `nodes` field in a single request. Prevents excessive batch fetching.                            |
 | `MarkNodeFieldAsLookup`       | `bool` | `false` | Annotates the `Query.node` field with the `@lookup` directive for the composite schema spec, so a Fusion gateway can resolve entities by global ID. |

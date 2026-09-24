@@ -447,10 +447,10 @@ app.Run();
 
 The `GraphQLSocketOptions` class controls WebSocket behavior:
 
-| Property                          | Type        | Default                    | Description                                                                                                                                                                    |
-| --------------------------------- | ----------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | `TimeSpan.FromSeconds(10)` | The time a client has to send a `connection_init` message after opening the WebSocket. If the client does not initialize within this window, the server closes the connection. |
-| `KeepAliveInterval`               | `TimeSpan?` | `TimeSpan.FromSeconds(5)`  | The interval at which the server sends keep-alive pings to prevent idle connections from being dropped. Set to `null` to disable keep-alive.                                   |
+| Property                          | Type        | Default                             | Description                                                                                                                                                                    |
+| --------------------------------- | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | `#!csharp TimeSpan.FromSeconds(10)` | The time a client has to send a `connection_init` message after opening the WebSocket. If the client does not initialize within this window, the server closes the connection. |
+| `KeepAliveInterval`               | `TimeSpan?` | `#!csharp TimeSpan.FromSeconds(5)`  | The interval at which the server sends keep-alive pings to prevent idle connections from being dropped. Set to `null` to disable keep-alive.                                   |
 
 Configure these options through `ModifyServerOptions`:
 

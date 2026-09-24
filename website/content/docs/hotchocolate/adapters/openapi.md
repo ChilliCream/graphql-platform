@@ -11,7 +11,7 @@ This is useful when you have a GraphQL API and need to provide a REST interface 
 
 Install the `HotChocolate.Adapters.OpenApi` package:
 
-```bash
+```shell
 dotnet add package HotChocolate.Adapters.OpenApi
 ```
 
@@ -143,7 +143,7 @@ query GetUserDetails($userId: ID!, $includeAddress: Boolean!)
 }
 ```
 
-A request to `GET /users/1/details?includeAddress=true` sets `$includeAddress` to `true`.
+A request to `#!http GET /users/1/details?includeAddress=true` sets `$includeAddress` to `true`.
 
 Query parameters support the same `key:$variable.path` mapping syntax as route parameters.
 
@@ -162,7 +162,7 @@ mutation CreateUser($user: UserInput! @body)
 }
 ```
 
-A POST request with a JSON body `{"id": "6", "name": "Alice", "email": "alice@example.com"}` sets `$user` to that object. The request must have a `Content-Type: application/json` header.
+A POST request with a JSON body `#!json {"id": "6", "name": "Alice", "email": "alice@example.com"}` sets `$user` to that object. The request must have a `Content-Type: application/json` header.
 
 # Shared Fragments
 
@@ -313,7 +313,7 @@ The listener receives an error for every definition the adapter cannot use: one 
 
 # OpenAPI Specification
 
-The adapter integrates with ASP.NET Core's built-in OpenAPI support. After you register `AddOpenApi(options => options.AddGraphQLTransformer())`, the generated endpoints appear in the OpenAPI document at `/openapi/v1.json`.
+The adapter integrates with ASP.NET Core's built-in OpenAPI support. After you register `#!csharp AddOpenApi(options => options.AddGraphQLTransformer())`, the generated endpoints appear in the OpenAPI document at `/openapi/v1.json`.
 
 Each endpoint definition's description becomes the OpenAPI operation summary. Route and query parameters become OpenAPI parameters with types inferred from the GraphQL schema. Request body schemas are generated from the GraphQL input types.
 

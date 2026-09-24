@@ -237,7 +237,7 @@ builder
 
 Next, add OpenTelemetry to your project. In this example, you will use it with an OTLP exporter:
 
-```bash
+```shell
 dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 dotnet add package OpenTelemetry.Instrumentation.Http

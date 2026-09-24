@@ -298,7 +298,7 @@ Both defaults project `reviews` onto `Chair`. If any contributing declaration is
 
 # Use Interface Objects with Apollo Federation
 
-Apollo Federation v2 subgraphs use the same `type Media @interfaceObject @key(...)` stand-in shape, imported through `@link`. Fusion composes that construct with native interface objects.
+Apollo Federation v2 subgraphs use the same `#!sdl type Media @interfaceObject @key(...)` stand-in shape, imported through `@link`. Fusion composes that construct with native interface objects.
 
 Resolution still follows each source protocol. Fusion enters native GraphQL Federation sources through `@lookup` fields and Apollo Federation sources through `_entities` representations. Apollo Federation has no `@implement` directive. When an Apollo implementation redeclares a projected default, mark the compatible declarations with `@shareable`; Fusion uses that declaration as the explicit replacement contract.
 

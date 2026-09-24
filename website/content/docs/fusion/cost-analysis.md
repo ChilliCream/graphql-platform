@@ -35,7 +35,7 @@ Walk a query for a `book` field weighted `10`, returning a `title` and an `autho
 # Field cost: 10 + 0 + 1 + 0 = 11
 ```
 
-Add pagination and the weight of every field below a sized field multiplies by the list size. This `books` field is weighted `10` and carries `@listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"])`, evaluated with `first: 50`:
+Add pagination and the weight of every field below a sized field multiplies by the list size. This `books` field is weighted `10` and carries `#!sdl @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"])`, evaluated with `first: 50`:
 
 ```graphql
 {
