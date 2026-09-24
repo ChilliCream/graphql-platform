@@ -134,10 +134,10 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private readonly List<TuiEffectCompletion<MailSendOutcome>> _deferredCompletions = [];
 
     /// <summary>
-    /// Every agent's <see cref="AgentRow.Harness"/>, keyed by name (case-insensitively),
+    /// Every agent's harness display name, keyed by agent name (case-insensitively),
     /// loaded once per <see cref="RefreshBlocking"/>.
     /// </summary>
-    private IReadOnlyDictionary<string, string> _clientsByName =
+    private IReadOnlyDictionary<string, string> _harnessesByName =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     private ConfirmDialog? _archiveDialog;
@@ -986,14 +986,14 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// An agent picker row's markup: the name, plus its
-    /// <see cref="AgentRow.Harness"/> in dim parentheses when non-empty.
+    /// <see cref="AgentRow.Harness"/> display name in dim parentheses when non-empty.
     /// </summary>
     private static string FormatAgentOptionMarkup(AgentRow agent)
     {
         var name = Markup.Escape(agent.Name);
         return agent.Harness is not { Length: > 0 } harness
             ? name
-            : $"{name} [dim]({Markup.Escape(harness)})[/]";
+            : $"{name} [dim]({Markup.Escape(AgentHarnessDisplay.Name(harness))})[/]";
     }
 
     private IReadOnlyList<TuiMessage> HandleAgentPickerKey(ConsoleKeyInfo info)
@@ -1199,7 +1199,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     };
 
     private IRenderable RenderDetailPane(int width, int height)
-        => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _clientsByName);
+        => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _harnessesByName);
 
     /// <summary>
     /// Renders the heading and visible list rows with aligned columns, scroll
@@ -1320,8 +1320,11 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         var agents = _agentStore.ListAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         // First-wins on duplicate names (case-insensitive).
-        _clientsByName = agents
-            .ToLookup(a => a.Name, a => a.Harness ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+        _harnessesByName = agents
+            .ToLookup(
+                a => a.Name,
+                a => a.Harness is { Length: > 0 } h ? AgentHarnessDisplay.Name(h) : string.Empty,
+                StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 }

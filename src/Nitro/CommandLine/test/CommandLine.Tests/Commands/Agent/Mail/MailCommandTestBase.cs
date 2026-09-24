@@ -125,7 +125,7 @@ public abstract class MailCommandTestBase : CommandTestBase
         return queueClient;
     }
 
-    private protected MailNudge CreateMailNudge(string host, FakeCodexQueueClient queueClient)
+    private protected MailNudge CreateMailNudge(FakeCodexQueueClient queueClient)
     {
         var fileSystem = new TestFileSystem(WorkingDirectory);
         var database = new AgentDatabase();

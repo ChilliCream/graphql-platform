@@ -216,16 +216,16 @@ public sealed class MailDetailViewTests
         var console = new TestConsole().Width(80).Height(20);
         var clientsByName = new Dictionary<string, string>
         {
-            ["bob"] = "codex",
-            ["alice"] = "claude-code"
+            ["bob"] = "Codex",
+            ["alice"] = "Claude Code"
         };
 
         // act
         console.Write(view.Render(state, 80, 20, focused: true, clientsByName));
 
         // assert
-        Assert.Contains("From: bob (codex)", console.Output);
-        Assert.Contains("alice (claude-code): unread", console.Output);
+        Assert.Contains("From: bob (Codex)", console.Output);
+        Assert.Contains("alice (Claude Code): unread", console.Output);
     }
 
     [Fact]
@@ -297,14 +297,14 @@ public sealed class MailDetailViewTests
         await state.ShowThreadAsync(CancellationToken.None);
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
-        var clientsByName = new Dictionary<string, string> { ["bob"] = "codex", ["carol"] = "claude-code" };
+        var clientsByName = new Dictionary<string, string> { ["bob"] = "Codex", ["carol"] = "Claude Code" };
 
         // act
         console.Write(view.Render(state, 80, 20, focused: true, clientsByName));
 
         // assert
-        Assert.Contains("bob (codex)", console.Output);
-        Assert.Contains("carol (claude-code)", console.Output);
+        Assert.Contains("bob (Codex)", console.Output);
+        Assert.Contains("carol (Claude Code)", console.Output);
     }
 
     [Fact]

@@ -99,7 +99,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var queueClient = await SetupSuccessfulWakeAsync("bob");
         var message = await SeedMessageAsync(
             "test-agent", "Status", ["bob"], body: "All good.");
-        var nudge = CreateMailNudge("host-send-repeat-test", queueClient);
+        var nudge = CreateMailNudge(queueClient);
 
         // act
         await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
@@ -128,7 +128,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var store = CreateStore();
         var cancellationToken = TestContext.Current.CancellationToken;
         var unreadBefore = await store.CountUnreadAsync("bob", cancellationToken);
-        var nudge = CreateMailNudge("host-send-unread-test", queueClient);
+        var nudge = CreateMailNudge(queueClient);
 
         // act
         await nudge.NudgeAsync(["bob"], cancellationToken);

@@ -398,7 +398,7 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        Assert.Contains("From: bob (codex)", console.Output);
+        Assert.Contains("From: bob (Codex)", console.Output);
     }
 
     [Fact]
@@ -1588,7 +1588,7 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        Assert.Contains("bob (codex)", console.Output);
+        Assert.Contains("bob (Codex)", console.Output);
         Assert.Contains("carol", console.Output);
         Assert.DoesNotContain("carol (", console.Output);
     }

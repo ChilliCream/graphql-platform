@@ -385,6 +385,144 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
+    /// Seeds a raw v17-shaped database: the current, foreign-key-free task and mail
+    /// tables, an <c>agents</c> table still carrying the transitional <c>implicit</c>
+    /// and <c>client</c> columns, and the old <c>agent_sessions</c> and
+    /// <c>agent_session_identities</c> tables. InitializeAsync must drop the session
+    /// tables, wipe the agent-domain rows, lay down the current <c>agents</c> columns,
+    /// and leave the mail already present untouched.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_DropSessionTablesAndPreserveMail_When_ExistingVersionIsV17()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA foreign_keys = OFF;", cancellationToken);
+            await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    role TEXT NOT NULL DEFAULT '',
+                    harness TEXT NULL,
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    session_id TEXT NULL,
+                    cwd TEXT NOT NULL DEFAULT '',
+                    workspace_path TEXT NOT NULL DEFAULT '',
+                    registered_at TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    ended_at TEXT NULL,
+                    deleted_at TEXT NULL,
+                    endpoint_kind TEXT NOT NULL DEFAULT 'none',
+                    endpoint_addr TEXT NOT NULL DEFAULT '',
+                    endpoint_secret TEXT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0,
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL,
+                    last_ping_detail TEXT NULL,
+                    announcement_pending INTEGER NOT NULL DEFAULT 0,
+                    idle_push_armed INTEGER NOT NULL DEFAULT 0,
+                    implicit INTEGER NOT NULL DEFAULT 0,
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL,
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                CREATE TABLE agent_session_identities (
+                    harness TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id)
+                );
+                """,
+                cancellationToken);
+
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agents (name, registered_at, started_at, last_seen_at, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                    '2026-01-10T12:00:00+00:00', 0, 'claude-code');
+
+                INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
+                VALUES ('mail-1', 'mail-1', 'maya', 'Old mail', 'Keep me', '2026-01-10T12:00:00+00:00');
+                INSERT INTO message_recipients (message_id, recipient, ordinal)
+                VALUES ('mail-1', 'maya', 0);
+
+                PRAGMA user_version = 17;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var state = new
+        {
+            Version = await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken),
+            Messages = await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM messages", cancellationToken),
+            MessageRecipients =
+                await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM message_recipients", cancellationToken),
+            Agents = await QueryScalarLongAsync(upgraded, "SELECT COUNT(*) FROM agents", cancellationToken),
+            AgentColumns = await QueryColumnNamesAsync(upgraded, "agents", cancellationToken),
+            SessionTables = await QueryScalarLongAsync(
+                upgraded,
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' "
+                + "AND name IN ('agent_sessions', 'agent_session_identities')",
+                cancellationToken)
+        };
+
+        state.MatchInlineSnapshot(
+            """
+            {
+              "Version": 18,
+              "Messages": 1,
+              "MessageRecipients": 1,
+              "Agents": 0,
+              "AgentColumns": [
+                "name",
+                "role",
+                "harness",
+                "harness_version",
+                "session_id",
+                "cwd",
+                "workspace_path",
+                "registered_at",
+                "started_at",
+                "last_seen_at",
+                "ended_at",
+                "deleted_at",
+                "endpoint_kind",
+                "endpoint_addr",
+                "endpoint_secret",
+                "block_budget_used",
+                "last_ping_at",
+                "last_ping_attempt",
+                "last_ping_result",
+                "last_ping_detail",
+                "announcement_pending",
+                "idle_push_armed"
+              ],
+              "SessionTables": 0
+            }
+            """);
+    }
+
+    /// <summary>
     /// Opening an already-current database, whether for the first time after
     /// creation or a second time in a row, never wipes the agents already in it.
     /// </summary>
@@ -664,9 +802,12 @@ public sealed class AgentDatabaseTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await StampVersionOnNewFileAsync(upgradableVersion, cancellationToken);
 
-        // act & assert
-        await Assert.ThrowsAsync<AgentWorkspaceSchemaMismatchException>(
+        // act
+        var exception = await Record.ExceptionAsync(
             () => _database.ConnectAsync(_workspaceDirectory, cancellationToken));
+
+        // assert
+        Assert.IsType<AgentWorkspaceSchemaMismatchException>(exception);
     }
 
     /// <summary>
