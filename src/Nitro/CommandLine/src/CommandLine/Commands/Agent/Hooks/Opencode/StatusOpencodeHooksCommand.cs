@@ -65,9 +65,8 @@ internal sealed class StatusOpencodeHooksCommand : Command
     }
 
     /// <summary>
-    /// Returns Opencode participants from this Nitro instance with their registered
-    /// endpoint and last recorded ping diagnostics. Returns an empty list when no
-    /// workspace exists.
+    /// Returns opencode agents in this workspace with their registered endpoint and last
+    /// recorded ping diagnostics. Returns an empty list when no workspace exists.
     /// </summary>
     private static async Task<IReadOnlyList<OpencodeSessionStatus>> ResolveOpencodeSessionsAsync(
         ICommandServices services, CancellationToken cancellationToken)
@@ -79,12 +78,12 @@ internal sealed class StatusOpencodeHooksCommand : Command
             return [];
         }
 
-        var sessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
-        var participants = await sessionRegistry.ListParticipantsAsync(cancellationToken);
+        var agentStore = services.GetRequiredService<IAgentStore>();
+        var rows = await agentStore.ListAsync(cancellationToken);
 
-        return participants
-            .Where(participant => participant.Session.Harness == AgentSessionHarness.Opencode
-                && participant.State != AgentSessionState.Remote)
+        return rows
+            .Where(row => row.Harness == AgentSessionHarness.Opencode)
+            .OrderBy(row => row.SessionId, StringComparer.Ordinal)
             .Select(OpencodeSessionStatus.From)
             .ToArray();
     }
@@ -106,35 +105,29 @@ internal sealed class StatusOpencodeHooksCommand : Command
     /// </summary>
     public sealed record OpencodeSessionStatus(
         string SessionId,
-        string? Actor,
+        string Actor,
         string EndpointKind,
         string EndpointAddress,
         string Reachability,
         string? LastPingResult,
         string? LastPingDetail)
     {
-        public static OpencodeSessionStatus From(AgentSessionParticipant participant)
-        {
-            var session = participant.Session;
-
-            return new OpencodeSessionStatus(
-                session.SessionId,
-                session.AgentName,
-                session.EndpointKind,
-                session.EndpointAddr,
-                ComputeReachability(session),
-                session.LastPingResult,
-                session.LastPingDetail);
-        }
+        public static OpencodeSessionStatus From(AgentRow row) => new(
+            row.SessionId!,
+            row.Name,
+            row.EndpointKind,
+            row.EndpointAddr,
+            ComputeReachability(row),
+            row.LastPingResult,
+            row.LastPingDetail);
 
         public string FormatLine()
         {
-            var actor = Actor is { Length: > 0 } name ? name : "unbound";
             var endpoint = EndpointKind == AgentSessionEndpointKind.None
                 ? "no endpoint registered"
                 : $"{EndpointKind} {EndpointAddress}".EscapeMarkup();
 
-            return $"  session {SessionId.EscapeMarkup()} (actor {actor.EscapeMarkup()}): "
+            return $"  session {SessionId.EscapeMarkup()} (actor {Actor.EscapeMarkup()}): "
                 + $"{endpoint}; {Reachability}; {DescribeLastPing()}";
         }
 
@@ -166,14 +159,14 @@ internal sealed class StatusOpencodeHooksCommand : Command
         /// is registered, otherwise classifies the last recorded ping result.
         /// Performs no live network probe.
         /// </summary>
-        private static string ComputeReachability(AgentSessionRecord session)
+        private static string ComputeReachability(AgentRow row)
         {
-            if (session.EndpointKind == AgentSessionEndpointKind.None)
+            if (row.EndpointKind == AgentSessionEndpointKind.None)
             {
                 return OpencodeSessionReachability.NoEndpoint;
             }
 
-            return session.LastPingResult switch
+            return row.LastPingResult switch
             {
                 AgentPingResult.Ok => OpencodeSessionReachability.ReachableAtLastPing,
                 AgentPingResult.EndpointGone => OpencodeSessionReachability.EndpointGoneAtLastPing,
