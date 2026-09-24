@@ -282,10 +282,7 @@ for flow in "${FLOWS[@]}"; do
     recorded_ok=1
   fi
 
-  # 3b. Normalize non-deterministic content (task IDs, dates) before compare/update.
-  #     Writes to a temp file and moves it over the original rather than using
-  #     `sed -i`, whose in-place syntax differs between GNU sed (Linux CI) and
-  #     BSD sed (macOS): the same command works on both hosts.
+  # 3b. Portable in-place edit (GNU and BSD sed).
   if [[ "$recorded_ok" == "1" && -n "${SCRUBS[$flow]:-}" ]]; then
     sed -E "${SCRUBS[$flow]}" "$frame" > "$frame.tmp"
     mv "$frame.tmp" "$frame"
