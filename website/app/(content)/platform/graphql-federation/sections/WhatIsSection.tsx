@@ -171,7 +171,7 @@ export function WhatIsSection() {
           </div>
         }
       >
-        <div className="text-cc-ink mt-5 space-y-4 text-base">
+        <div className="text-cc-ink mt-4 space-y-4 text-base">
           <p>
             In a large organization, no single team owns all of that data.
             Checkout, catalog, and accounts are separate services with separate
