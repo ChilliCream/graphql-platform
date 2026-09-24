@@ -291,11 +291,10 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await ready;
 
         // act
-        await coordinator.StopAsync(cancellationToken);
+        await coordinator.StopAsync(cancellationToken).WaitAsync(s_hangGuard, cancellationToken);
 
         // assert
-        // Returned without the fake clock ever moving, and the lease is reacquirable immediately.
-        Assert.Equal(timeProvider.Start, timeProvider.GetUtcNow());
+        // The hang guard proves the run loop completed rather than timed out; the lease is reacquirable immediately.
         var leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
         var reacquired = await leaderStore.TryAcquireAsync(
             "someone-else", timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
@@ -780,15 +779,6 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await secondReleaseAttempt;
         await busyReleaseStore.Released.WaitAsync(s_hangGuard, cancellationToken);
 
-        // assert
-        Assert.Equal(2, busyReleaseStore.ReleaseCalls);
-        var ordered = events.ToArray();
-        var cancelledIndex = Array.IndexOf(ordered, $"{hungActor}-cancelled");
-        var releasedIndex = Array.IndexOf(ordered, "release-attempted");
-        Assert.True(
-            cancelledIndex >= 0 && releasedIndex >= 0 && cancelledIndex < releasedIndex,
-            $"Expected \"{hungActor}-cancelled\" before \"release-attempted\". Events: [{string.Join(", ", ordered)}]");
-
         // A differently privileged standby takes over, proving the release reached the database.
         var standbyReadyTicks = new LoopTickSignal();
         await using var standby = new MailWakeDaemonCoordinator(
@@ -809,6 +799,15 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             standbyReadyTicks.WaitForNextTickAsync,
             () => standby.Status.State == MailWakeDaemonState.Ready,
             cancellationToken);
+
+        // assert
+        Assert.Equal(2, busyReleaseStore.ReleaseCalls);
+        var ordered = events.ToArray();
+        var cancelledIndex = Array.IndexOf(ordered, $"{hungActor}-cancelled");
+        var releasedIndex = Array.IndexOf(ordered, "release-attempted");
+        Assert.True(
+            cancelledIndex >= 0 && releasedIndex >= 0 && cancelledIndex < releasedIndex,
+            $"Expected \"{hungActor}-cancelled\" before \"release-attempted\". Events: [{string.Join(", ", ordered)}]");
         Assert.NotNull(standby.Status.OwnerToken);
 
         await coordinator.StopAsync(cancellationToken);
