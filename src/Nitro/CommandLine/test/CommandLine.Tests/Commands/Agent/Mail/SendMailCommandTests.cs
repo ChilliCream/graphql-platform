@@ -176,6 +176,75 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task NudgeAsync_Should_ReserveNoDelivery_When_TheEndpointKindIsOpencodeServerWithASession()
+    {
+        // arrange
+        // SendAsync has no transport for opencode-server, even with a session.
+        await InitWorkspaceAsync();
+        await SeedAliveSessionAsync(
+            "session-alice", "alice", role: "", host: "host-send-opencode-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
+        await SeedAliveSessionAsync(
+            "session-bob", "bob", role: "", host: "host-send-opencode-test",
+            endpointKind: AgentSessionEndpointKind.OpencodeServer, endpointAddr: "opencode-bob");
+        await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
+        var codexQueueClient = new FakeCodexQueueClient();
+        var nudge = new MailNudge(
+            CreateAgentStore(),
+            CreateStore(),
+            new AgentDeliveryLedger(
+                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            new FakeClaudePeerClient(),
+            codexQueueClient,
+            FakeTime);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        // No reservation was written, so a later nudge could still deliver it.
+        Assert.Empty(codexQueueClient.Calls);
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = 'bob'"));
+        var unread = await CreateStore().QueryInboxAsync(
+            new MailInboxFilter { Actor = "bob", UnreadOnly = true }, TestContext.Current.CancellationToken);
+        Assert.Single(unread);
+    }
+
+    [Fact]
+    public async Task NudgeAsync_Should_ReserveADelivery_When_TheEndpointKindIsClaudePeerWithASession()
+    {
+        // arrange
+        // A claude-peer endpoint with a session is a transport SendAsync can reach.
+        await InitWorkspaceAsync();
+        await SeedAliveSessionAsync(
+            "session-alice", "alice", role: "", host: "host-send-claude-peer-test",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
+        await SeedAliveSessionAsync(
+            "session-bob", "bob", role: "", host: "host-send-claude-peer-test",
+            endpointKind: AgentSessionEndpointKind.ClaudePeer, endpointAddr: "peer-bob");
+        var message = await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
+        var peerClient = new FakeClaudePeerClient();
+        var nudge = new MailNudge(
+            CreateAgentStore(),
+            CreateStore(),
+            new AgentDeliveryLedger(
+                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            peerClient,
+            new FakeCodexQueueClient(),
+            FakeTime);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        var call = Assert.Single(peerClient.Calls);
+        Assert.Equal(
+            ("session-bob", message.Id, "All good."),
+            ReadDigestCall((call.SessionId, call.Message)));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = 'bob'"));
+    }
+
+    [Fact]
     public async Task SingleRecipient_Should_SendBodyToItsCurrentSession_When_AnEarlierSessionWasSuperseded()
     {
         // arrange
