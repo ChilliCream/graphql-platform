@@ -17,7 +17,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     private const string Actor = "codex-worker";
 
     private static readonly MailWakeDaemonPolicy s_fastPolicy = new(
-        LeaderLeaseDuration: TimeSpan.FromMilliseconds(400),
+        LeaderLeaseDuration: TimeSpan.FromSeconds(10),
         HeartbeatInterval: TimeSpan.FromMilliseconds(60),
         AdmissionPollInterval: TimeSpan.FromMilliseconds(30),
         StandbyPollInterval: TimeSpan.FromMilliseconds(30),
@@ -318,6 +318,37 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
         await coordinatorA.StopAsync(cancellationToken);
         await coordinatorB.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task AdmissionLoop_Should_StopDispatching_When_TheCachedLeaderLeaseHasLapsed()
+    {
+        // arrange
+        // A gated leader store holds the heartbeat's renewal in flight while the cached lease goes stale.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var gatedLeaderStore = new GatedRenewalLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database));
+        var dispatcher = new CountingDispatcher();
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            gatedLeaderStore, dispatcher, _fileSystem, _database, timeProvider, s_fastPolicy);
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        gatedLeaderStore.HoldNextRenewal();
+        timeProvider.Advance(s_fastPolicy.LeaderLeaseDuration + s_fastPolicy.HeartbeatInterval);
+        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await InsertDueOutboxRowAsync(cancellationToken, Actor);
+        timeProvider.Advance(s_fastPolicy.AdmissionPollInterval);
+        await Task.Delay(s_fastPolicy.AdmissionPollInterval * 5, cancellationToken);
+
+        // assert
+        // The lapsed cached lease stopped admission before the heartbeat's held renewal ever returned.
+        Assert.Equal(0, dispatcher.DispatchCount);
+        Assert.Equal(MailWakeDaemonState.Standby, coordinator.Status.State);
+
+        await coordinator.StopAsync(cancellationToken);
     }
 
     [Fact]
@@ -916,6 +947,24 @@ internal sealed class RenewalLossLeaderStore(IMailWakeDaemonLeaderStore inner) :
 
     public Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
         => inner.TryReleaseAsync(token, now, cancellationToken);
+}
+
+/// <summary>
+/// Counts every <see cref="DispatchAsync"/> call without touching any real
+/// session, mail, or dispatch machinery.
+/// </summary>
+internal sealed class CountingDispatcher : IActorWakeDispatcher
+{
+    private int _dispatchCount;
+
+    public int DispatchCount => Volatile.Read(ref _dispatchCount);
+
+    public Task<ActorWakeReceipt?> DispatchAsync(
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _dispatchCount);
+        return Task.FromResult<ActorWakeReceipt?>(null);
+    }
 }
 
 /// <summary>
