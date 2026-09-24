@@ -206,7 +206,9 @@ internal static class AgentPopoverView
     private static string FirstLine(string body)
     {
         var index = body.IndexOf('\n');
-        return index < 0 ? body : body[..index];
+        var line = index < 0 ? body : body[..index];
+
+        return line.EndsWith('\r') ? line[..^1] : line;
     }
 
     /// <summary>

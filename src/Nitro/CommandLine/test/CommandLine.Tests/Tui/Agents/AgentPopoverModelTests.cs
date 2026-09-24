@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
@@ -217,7 +218,7 @@ public sealed class AgentPopoverModelTests
     }
 
     [Fact]
-    public void HandleKey_Should_ReturnCopyRequested_When_YIsPressed()
+    public void HandleKey_Should_ReturnCopyRequestedWithTheAgentsOwnSessionId_When_YIsPressed()
     {
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
@@ -229,7 +230,63 @@ public sealed class AgentPopoverModelTests
         var result = model.HandleKey(Key(ConsoleKey.Y, 'y'));
 
         // assert
-        Assert.IsType<AgentPopoverResult.CopyRequested>(result);
+        var copy = Assert.IsType<AgentPopoverResult.CopyRequested>(result);
+        Assert.Equal((agent.Name, agent.SessionId), (copy.Name, copy.SessionId));
+    }
+
+    [Fact]
+    public void Render_Should_ShowTenRowsInTheSummaryAndAllTwentyFiveInEachShowMoreList_When_ThereAreTwentyFiveOfEachParticipationType()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore
+        {
+            ParticipationRows = [.. Enumerable.Range(0, 25).Select(CreateMailSummary)]
+        };
+        var taskStore = new FakeTaskStore
+        {
+            ParticipationRows = [.. Enumerable.Range(0, 25).Select(i => TaskItemBuilder.Create($"a{i}", $"Ticket {i}"))]
+        };
+        var memoryStore = new FakeMemoryStore
+        {
+            ParticipationRows = [.. Enumerable.Range(0, 25).Select(CreateMemoryEntry)]
+        };
+        var model = CreateModel(agent.Name, agentStore, mailStore, taskStore, memoryStore);
+        model.Load();
+
+        // act
+        // A tall viewport keeps every section's rows and show-more row on screen at once,
+        // instead of only whichever section the cursor's row happens to scroll into view.
+        var summary = RenderToText(model, height: 100);
+        var summaryCounts = (
+            Mail: summary.Split("Subject ").Length - 1,
+            Tickets: summary.Split("Ticket ").Length - 1,
+            // The bare word "Memory" is also the section's own title line, so counting rows
+            // needs the fuller row prefix to avoid matching that title.
+            Memory: summary.Split("journal  now  Memory ").Length - 1,
+            ShowMore: summary.Split("show more").Length - 1);
+
+        // The summary's cursor walks the SectionLimit-truncated rows it navigates (10 per
+        // section), so the mail, tickets, and memory show-more rows sit at cursor 10, 21,
+        // and 32: each section contributes its 10 visible rows plus one show-more row.
+        MoveCursorDown(model, 10);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var mailListCount = RenderToText(model).Split("Subject ").Length - 1;
+        model.HandleKey(Key(ConsoleKey.Escape));
+
+        MoveCursorDown(model, 11);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var ticketListCount = RenderToText(model).Split("Ticket ").Length - 1;
+        model.HandleKey(Key(ConsoleKey.Escape));
+
+        MoveCursorDown(model, 11);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var memoryListCount = RenderToText(model).Split("journal  now  Memory ").Length - 1;
+
+        // assert
+        Assert.Equal((10, 10, 10, 3), summaryCounts);
+        Assert.Equal((25, 25, 25), (mailListCount, ticketListCount, memoryListCount));
     }
 
     [Fact]
@@ -331,6 +388,17 @@ public sealed class AgentPopoverModelTests
         Assert.True(dirty);
         Assert.Contains("2m", text);
     }
+
+    private static void MoveCursorDown(AgentPopoverModel model, int times)
+    {
+        for (var i = 0; i < times; i++)
+        {
+            model.HandleKey(Key(ConsoleKey.J, 'j'));
+        }
+    }
+
+    private static MemoryParticipationEntry CreateMemoryEntry(int index) =>
+        new(MemoryParticipationKind.Journal, $"j{index}", null, [], $"Memory {index}", s_now);
 
     private static MailThreadSummary CreateMailSummary(int index) => new()
     {

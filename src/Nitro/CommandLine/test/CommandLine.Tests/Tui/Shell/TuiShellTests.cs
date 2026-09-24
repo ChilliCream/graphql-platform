@@ -132,6 +132,9 @@ public sealed class TuiShellTests
         return row;
     }
 
+    private static void DeleteAgent(FakeAgentStore store, string name)
+        => store.DeleteAsync(name, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
     private static MailThreadSummary CreateMailSummary(DateTimeOffset lastMessageAt) => new()
     {
         ThreadId = "t1",
@@ -1605,6 +1608,36 @@ public sealed class TuiShellTests
         // assert
         Assert.True(dirty);
         Assert.Contains("No agent selected.", RenderToText(shell, 100));
+    }
+
+    [Fact]
+    public void Handle_Should_CopyThePopoversOwnAgentSessionId_When_YIsPressedAfterTheTableSelectionMovesToAnotherAgent()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var first = AddOnlineAgent(agentStore, "s-a");
+        var second = AddOnlineAgent(agentStore, "s-b");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShell(
+            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+        var popoverAgent = mode.State.SelectedAgent!;
+        var otherAgent = popoverAgent.Name == first.Name ? second : first;
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // A database event elsewhere removes the popover's own agent: the table's
+        // selection moves to the only other agent left, while the popover keeps showing
+        // the agent it was opened on.
+        DeleteAgent(agentStore, popoverAgent.Name);
+        shell.Handle(new TuiEvent.DataChangedEvent());
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('y', ConsoleKey.Y)));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.Equal(otherAgent.Name, mode.State.SelectedAgent?.Name);
+        Assert.Contains(popoverAgent.SessionId!, rendered);
     }
 
     [Fact]

@@ -41,10 +41,10 @@ internal abstract record AgentPopoverResult
     public sealed record DeleteRequested(string Name) : AgentPopoverResult;
 
     /// <summary>
-    /// The agent's session id should be copied, the same flow the Agents table's y key
-    /// starts.
+    /// The popover's own agent's session id should be copied, the same flow the Agents
+    /// table's y key starts, regardless of which row the table currently has selected.
     /// </summary>
-    public sealed record CopyRequested : AgentPopoverResult;
+    public sealed record CopyRequested(string Name, string? SessionId) : AgentPopoverResult;
 }
 
 /// <summary>
@@ -242,7 +242,7 @@ internal sealed class AgentPopoverModel
                 return new AgentPopoverResult.DeleteRequested(_agentName);
 
             case ConsoleKey.Y when info.Modifiers == ConsoleModifiers.None:
-                return new AgentPopoverResult.CopyRequested();
+                return new AgentPopoverResult.CopyRequested(Agent?.Name ?? _agentName, Agent?.SessionId);
 
             case ConsoleKey.Escape:
                 return new AgentPopoverResult.Closed();
