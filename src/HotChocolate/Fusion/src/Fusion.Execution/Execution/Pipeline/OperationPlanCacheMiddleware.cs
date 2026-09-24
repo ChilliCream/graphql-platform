@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,12 +9,12 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationPlanCacheMiddleware
 {
-    private readonly Cache<OperationPlan> _cache;
+    private readonly OperationPlanCache _cache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans =
         new(StringComparer.Ordinal);
 
-    private OperationPlanCacheMiddleware(Cache<OperationPlan> cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
+    private OperationPlanCacheMiddleware(OperationPlanCache cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
         _cache = cache;
         _diagnosticEvents = diagnosticEvents;
@@ -33,7 +33,7 @@ internal sealed class OperationPlanCacheMiddleware
         // Recheck the cache because another request may have completed the plan in the meantime.
         while (!resolved)
         {
-            if (_cache.TryGet(operationId, out var plan))
+            if (_cache.TryGetPlan(operationId, out var plan))
             {
                 context.SetOperationPlan(plan);
                 _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
@@ -139,7 +139,7 @@ internal sealed class OperationPlanCacheMiddleware
         => new RequestMiddlewareConfiguration(
             static (fc, next) =>
             {
-                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationPlan>>();
+                var cache = fc.SchemaServices.GetRequiredService<OperationPlanCache>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
                 var middleware = new OperationPlanCacheMiddleware(cache, diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);

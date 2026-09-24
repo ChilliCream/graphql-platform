@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
@@ -354,7 +353,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var operationId = Assert.Single(operationIds);
         Assert.Equal(1, listener.PlanStartCount(operationId));
 
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
         Assert.Equal(1, operationPlanCache.Count);
     }
 
@@ -502,9 +501,9 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Equal(1, listener.PlanStartCount(operationId));
         Assert.Equal(1, listener.AddedToCacheCount(operationId));
 
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
         Assert.Equal(1, operationPlanCache.Count);
-        Assert.True(operationPlanCache.TryGet(operationId, out _));
+        Assert.True(operationPlanCache.TryGetPlan(operationId, out _));
     }
 
     [Fact]
@@ -890,9 +889,9 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Equal(0, listener.PlanStartCount(operationId));
         Assert.Equal(1, listener.AddedToCacheCount(operationId));
 
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
         Assert.Equal(1, operationPlanCache.Count);
-        Assert.True(operationPlanCache.TryGet(operationId, out var cachedPlan));
+        Assert.True(operationPlanCache.TryGetPlan(operationId, out var cachedPlan));
         Assert.Same(externalPlan, cachedPlan);
     }
 
@@ -974,9 +973,9 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Empty(leaderResult.ExpectOperationResult().Errors);
 
         var operationId = Assert.Single(operationIds.Distinct());
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
         Assert.Equal(1, operationPlanCache.Count);
-        Assert.True(operationPlanCache.TryGet(operationId, out var cachedPlan));
+        Assert.True(operationPlanCache.TryGetPlan(operationId, out var cachedPlan));
         Assert.Same(externalPlan, cachedPlan);
     }
 
@@ -1066,9 +1065,9 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var operationId = Assert.Single(operationIds.Distinct());
         Assert.Equal(1, listener.AddedToCacheCount(operationId));
 
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
         Assert.Equal(1, operationPlanCache.Count);
-        Assert.True(operationPlanCache.TryGet(operationId, out var cachedPlan));
+        Assert.True(operationPlanCache.TryGetPlan(operationId, out var cachedPlan));
         Assert.Same(externalPlan, cachedPlan);
     }
 
@@ -1151,8 +1150,8 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var operationId = Assert.Single(operationIds.Distinct());
 
         // Populate the cache while the follower is still waiting on the leader.
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
-        operationPlanCache.TryAdd(operationId, meanwhilePlan);
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
+        operationPlanCache.TryAddPlan(operationId, meanwhilePlan);
 
         // Cancel before planning so the follower must retry and discover the cached plan.
         await leaderCts.CancelAsync();
@@ -1170,7 +1169,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Equal(0, listener.AddedToCacheCount(operationId));
 
         Assert.Equal(1, operationPlanCache.Count);
-        Assert.True(operationPlanCache.TryGet(operationId, out var cachedPlan));
+        Assert.True(operationPlanCache.TryGetPlan(operationId, out var cachedPlan));
         Assert.Same(meanwhilePlan, cachedPlan);
     }
 
@@ -1255,10 +1254,10 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             Assert.Empty(fillerResult.ExpectOperationResult().Errors);
         }
 
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
         var operationId = Assert.Single(leaderOperationIds.Distinct());
         Assert.False(
-            operationPlanCache.TryGet(operationId, out _),
+            operationPlanCache.TryGetPlan(operationId, out _),
             "The leader's plan should have been evicted by the filler operations above.");
 
         // A leaked in-flight entry would leave this request waiting until cancellation.
@@ -1277,7 +1276,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         Assert.Equal(1, listener.PlanStartCount(operationId));
         Assert.Equal(planCacheCapacity, operationPlanCache.Count);
-        Assert.True(operationPlanCache.TryGet(operationId, out _));
+        Assert.True(operationPlanCache.TryGetPlan(operationId, out _));
     }
 
     private static RequestDelegate CreateExternalPlanBeforePlanningMiddleware(

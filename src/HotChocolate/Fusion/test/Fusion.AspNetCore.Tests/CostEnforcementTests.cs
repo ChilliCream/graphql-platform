@@ -3,11 +3,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using HotChocolate.AspNetCore;
-using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -189,14 +188,14 @@ public class CostEnforcementTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, response);
     }
 
-    private static async Task<(Cache<OperationPlan> OperationPlans, Cache<CostPlan> CostPlans)> GetCachesAsync(
+    private static async Task<(OperationPlanCache OperationPlans, CostPlanCache CostPlans)> GetCachesAsync(
         Gateway gateway)
     {
         var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
         var executor = await manager.GetExecutorAsync();
         return (
-            executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>(),
-            executor.Schema.Services.GetRequiredService<Cache<CostPlan>>());
+            executor.Schema.Services.GetRequiredService<OperationPlanCache>(),
+            executor.Schema.Services.GetRequiredService<CostPlanCache>());
     }
 
     private sealed class RaiseTypeCostLimitInterceptor : DefaultHttpRequestInterceptor

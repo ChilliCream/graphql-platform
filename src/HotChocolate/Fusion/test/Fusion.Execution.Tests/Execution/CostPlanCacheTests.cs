@@ -1,14 +1,11 @@
-using HotChocolate.Caching.Memory;
-using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Caching;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
-/// Verifies the capacity and warmup behavior of the dedicated <see cref="Cache{TValue}"/>
-/// for <see cref="CostPlan"/> instances.
+/// Verifies the capacity and warmup behavior of the dedicated <see cref="CostPlanCache"/>.
 /// </summary>
 public class CostPlanCacheTests : FusionTestBase
 {
@@ -32,7 +29,7 @@ public class CostPlanCacheTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var costPlanCache = executor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var costPlanCache = executor.Schema.Services.GetRequiredService<CostPlanCache>();
 
         // assert
         Assert.Equal(cacheCapacity, costPlanCache.Capacity);
@@ -66,8 +63,8 @@ public class CostPlanCacheTests : FusionTestBase
 
         // assert
         Assert.IsType<WarmupExecutionResult>(warmupResult);
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
-        var costPlanCache = executor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
+        var costPlanCache = executor.Schema.Services.GetRequiredService<CostPlanCache>();
         Assert.Equal(1, operationPlanCache.Count);
         Assert.Equal(1, costPlanCache.Count);
     }
