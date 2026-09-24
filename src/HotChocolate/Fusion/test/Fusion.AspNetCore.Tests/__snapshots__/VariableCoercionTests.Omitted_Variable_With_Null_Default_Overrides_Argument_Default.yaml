@@ -1,0 +1,62 @@
+title: Omitted_Variable_With_Null_Default_Overrides_Argument_Default
+request:
+  document: |
+    query testQuery($value: Int = null) {
+      field(arg: $value)
+    }
+response:
+  body: |
+    {
+      "data": {
+        "field": null
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        field(arg: Int = 5): Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_dcfd4e86_1($value: Int = null) {
+              field(arg: $value)
+            }
+          variables: |
+            {
+              "value": null
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "field": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($value: Int = null) {
+          field(arg: $value)
+        }
+      name: testQuery
+      hash: eb301bff5742ca0de609d91b06ef2ad3
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_dcfd4e86_1($value: Int = null) {
+          field(arg: $value)
+        }
+      forwardedVariables:
+        - value

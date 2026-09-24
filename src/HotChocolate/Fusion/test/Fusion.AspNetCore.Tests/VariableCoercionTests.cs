@@ -578,6 +578,38 @@ public class VariableCoercionTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Omitted_Variable_With_Null_Default_Overrides_Argument_Default()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema3.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($value: Int = null) {
+              field(arg: $value)
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class SourceSchema1
     {
         public class Query
@@ -591,6 +623,14 @@ public class VariableCoercionTests : FusionTestBase
         public class Query
         {
             public double GetField(double input) => input;
+        }
+    }
+
+    public static class SourceSchema3
+    {
+        public class Query
+        {
+            public int? GetField(int? arg = 5) => arg;
         }
     }
 }
