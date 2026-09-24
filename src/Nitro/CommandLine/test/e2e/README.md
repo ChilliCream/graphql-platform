@@ -30,10 +30,10 @@ layer: a handful of representative flows, not exhaustive.
 | `board-maximize` | the Tasks tab's maximize toggle (`z`) | the single-column maximized layout |
 | `search` | search mode (`/`) in the Tasks tab (bare `nitro agent`) | live query filtering and opening a result's detail pane |
 | `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
-| `mail-send` | `agent register/mail send/inbox/reply/read --thread` over a copy of the fixture | the mail send/inbox/reply/read round trip, one actor registered with a role |
+| `mail-send` | `agent register/list/mail send/inbox/reply/read --thread` over a copy of the fixture | the mail send/inbox/reply/read round trip, one actor registered with a role, and the unified `agent list` shape |
 | `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
 | `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | read-only navigation, fold/list/thread toggles, and per-agent filtering |
-| `agents` | the Agents tab (bare `nitro agent`, `A` to switch) | the fixture's remote agent session and detail pane |
+| `agents` | the Agents tab (bare `nitro agent`, `A` to switch) | the unified agent table's presence states and header counts, and the Enter detail popover |
 
 `help` is a trivial smoke flow that proves the pipeline itself,
 independently of the fixture-backed flows below it. It asks for help on
@@ -57,13 +57,30 @@ The `mail-*` flows are a handful of representative mail flows, not
 exhaustive per-command coverage (that is the unit tier's job): `mail-send`
 runs live against a copy of the shared fixture (register two actors via the
 root `nitro agent register` command
-(one with `--role`), send with `--cc`, inbox as the recipient, read with
-`--thread` after a reply), so its ids and dates need the `mail-send`
-SCRUBS entry in [`run.sh`](run.sh); `mail-board` runs against the shared
+(one with `--role`), list them with `nitro agent list` to check the unified
+agent table's shape, send with `--cc`, inbox as the recipient, read with
+`--thread` after a reply), so its ids, dates, and one live agent's relative
+age need the `mail-send` SCRUBS entry in [`run.sh`](run.sh); `mail-board`
+runs against the shared
 seeded fixture ([`fixtures/mail-seed.sql`](fixtures/mail-seed.sql)) with
 timestamps fixed far enough in the past that the board's age column always
 renders a fixed date, so it needs no SCRUBS entry. Mail commands need no
 auth, they never call the Nitro backend.
+
+`agents` runs against the same shared fixture, extended by
+[`fixtures/agents-seed.sql`](fixtures/agents-seed.sql) to put its agents
+into the three states `AgentStateResolver` derives from a row (Online,
+Unreachable, Offline) and add a fourth, already soft-deleted agent that
+must never appear. The Online one is a fresh name with no mail or task
+history, not one of `mail-seed.sql`'s three message participants, since
+giving one of those a harness would also change mail-board-flow's own
+committed golden (see `fixtures/agents-seed.sql`'s header). Online is
+also a live, time-windowed state with no way to pin it to a past timestamp
+the way every other fixture value here is, so its last_seen_at is
+refreshed to the real current time at fixture-prepare time instead, and
+the resulting relative age needs its own `agents` SCRUBS entry in
+[`run.sh`](run.sh), the same reason `mail-send` needs one for the agent it
+registers live.
 
 Keep `MARKERS`/`ALL_FLOWS` in [`run.sh`](run.sh) in sync with the tape set as
 flows are added.

@@ -60,7 +60,7 @@ declare -A MARKERS=(
   [mail-send]="Thanks-noted"
   [mail-error]="[nitro exit: 1]"
   [mail-board]="Workspace: bob (3)"
-  [agents]="Billing review"
+  [agents]="Session id: e2e-online-session"
 )
 ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
 
@@ -72,9 +72,35 @@ ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error boa
 # normalize it to a fixed placeholder before diffing. The expression is a
 # single literal substitution (no alternation/backreferences) so it cannot
 # fail on a well-formed frame.
+# `agents` and `mail-send`'s own `nitro agent list` step both show a live
+# agent's `last_seen_at`, refreshed to the real current time by
+# fixtures/agents-seed.sql (for `agents` to render Online/Unreachable
+# instead of stale-Offline, see that file's header) or by `register`
+# touching the row (for `mail-send`). Both render it as a short relative
+# age ("now", "3m", "2h") that grows with however long the run takes to
+# reach that flow, so it is normalized to a fixed placeholder before
+# diffing rather than pinned to a literal fixture value the way every
+# other timestamp in these fixtures is. `agents`'s TUI rendering
+# (AgentRowBadge/AgentPopoverView) always suffixes it " ago"; `mail-send`'s
+# `nitro agent list` line does not, so that one is anchored on the Online
+# column ("yes"/"no") that always follows it instead, so it cannot also
+# match the deterministic "now" the same line's `mail inbox` step prints
+# for a just-sent message's own age. Both contexts pad this value to a
+# width computed from the real pre-scrub text (the popover panel's own
+# fixed border; `PadRight` against the widest column value for the CLI
+# table), so every substitution below keeps that padded span's total
+# length exactly what it was: "now" and a 2-digit unit (e.g. "12m") are
+# both 3 characters and become "AG " (the placeholder plus one literal
+# space standing in for the character it drops), a 1-digit unit (e.g. "3m")
+# is 2 characters already and becomes "AG" alone. Getting this wrong still
+# passes a same-run diff (both sides of that recording agree with
+# themselves) but fails the next run the instant the live clock crosses a
+# digit-count boundary a `--update` run didn't happen to land on.
 declare -A SCRUBS=(
   [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
-  [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g'
+  [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g; '\
+'s/(now|[0-9]{2}[mh])( +)(yes|no)$/AG \2\3/g; s/([0-9])[mh]( +)(yes|no)$/AG\2\3/g'
+  [agents]='s/(now|[0-9]{2}[mh]) ago/AG ago /g; s/[0-9][mh] ago/AG ago/g'
 )
 
 # --- args: optional --update plus an optional subset of flow names ------------
@@ -157,7 +183,7 @@ if [[ -z "$FIXTURE_SCHEMA_VERSION" ]]; then
 fi
 FIXTURE_TASK_MARKER="acme-epic1"
 FIXTURE_MAIL_MARKER="Retro notes"
-FIXTURE_AGENTS_MARKER="bob  remote"
+FIXTURE_AGENTS_MARKER="planner"
 
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
@@ -189,7 +215,7 @@ if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
 fi
 if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/agents-seed.sql"; then
   echo "==> fixture prepare FAILED: agents-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
-  echo "    the agent_sessions schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  echo "    the agents schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
 
@@ -206,7 +232,7 @@ if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent mail inbox --actor e2e-agent 
 fi
 if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent list ) | grep -q "$FIXTURE_AGENTS_MARKER"; then
   echo "==> fixture guard FAILED: 'nitro agent list' did not show '$FIXTURE_AGENTS_MARKER'" >&2
-  echo "    the agent_sessions schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  echo "    the agents schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
 echo "    fixture ready, guard passed"

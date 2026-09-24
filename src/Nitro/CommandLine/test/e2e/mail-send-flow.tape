@@ -77,6 +77,20 @@ Type `nitro agent register --actor bob` Enter
 Wait+Screen@30s /Actor 'bob'/
 Sleep 500ms
 
+# The new unified `agents` table's list shape (ListAgentCommand): one line
+# per agent, Name/Role/Harness/Started/Last seen/Online columns. Neither
+# actor here has a harness or a live session (register only ever sets role
+# and touches last_seen_at), so both are Unreachable ("no"); this step only
+# asserts their two rows, not the full listing, since fixtures/agents-
+# seed.sql's own Online agent (nora, an Online "yes" row here too) and
+# stale-offline bob also show up in this same shared fixture (see that
+# file's header for why the Online one is a name with no mail history
+# rather than alice or bob).
+Type `nitro agent list` Enter
+Wait+Screen@30s /alice\s+reviewer\s+-\s+\S+\s+\S+\s+no/
+Wait+Screen@30s /bob\s+-\s+-\s+\S+\s+\S+\s+no/
+Sleep 500ms
+
 # Send from alice to bob, cc'ing alice itself so the run exercises
 # --cc without needing a third registered actor.
 Type `nitro agent mail send --to bob --actor alice --cc alice --subject Status --body All-good` Enter
@@ -89,8 +103,14 @@ Sleep 500ms
 
 # Captures the id from bob's own inbox listing (its first column, see
 # MailInboxRow.Format) rather than from the send command's own output.
+# This spawns its own nitro process inside the substitution, so it needs a
+# longer settle than the single Sleep 500ms every other step here uses:
+# typing the next line before this one's inbox+awk pipeline actually
+# returns races the still-running foreground command, corrupting the
+# prompt redraw (the same class of race the header comment above warns
+# about, just with a slower command behind it).
 Type `MSG_ID=$(nitro agent mail inbox --actor bob | awk 'NR==1{print $1}')` Enter
-Sleep 500ms
+Sleep 2000ms
 Type `echo "captured $MSG_ID"` Enter
 Wait+Screen@30s /captured m-/
 Sleep 500ms
