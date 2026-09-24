@@ -18,14 +18,26 @@ import { InPractice, LINK_CLASS, Section, SubHeading, Table } from "./shared";
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
 
 /**
- * The generic architecture the specification describes: five subgraphs
+ * The generic architecture the specification describes: seven subgraphs
  * behind one gateway, no product name, both federation specs represented
  * (this is the definition drawn, not the Fusion product).
  */
 const WHAT_IS_TIERS: readonly TierNode[] = [
   {
+    name: "Checkout",
+    language: "C#",
+    badge: specTag("GraphQL Federation"),
+    spec: "GraphQL Federation",
+  },
+  {
     name: "Catalog",
     language: "TypeScript",
+    badge: specTag("GraphQL Federation"),
+    spec: "GraphQL Federation",
+  },
+  {
+    name: "Accounts",
+    language: "C#",
     badge: specTag("GraphQL Federation"),
     spec: "GraphQL Federation",
   },
@@ -64,7 +76,7 @@ const WHAT_IS_REQUESTS: readonly Request[] = [
   {
     client: 1,
     operation: "query Checkout",
-    targets: ["Catalog", "Ordering", "Billing"],
+    targets: ["Checkout", "Catalog", "Billing"],
   },
   {
     client: 2,
@@ -74,7 +86,7 @@ const WHAT_IS_REQUESTS: readonly Request[] = [
   {
     client: 3,
     operation: "query AccountSummary",
-    targets: ["Billing", "Inventory"],
+    targets: ["Accounts", "Billing"],
   },
 ];
 
@@ -163,7 +175,7 @@ export function WhatIsSection() {
           <div className={`${PANEL_CLASS} overflow-hidden`}>
             <LayeredDiagram
               gatewayLabel="GATEWAY"
-              compositionLine="Composite schema · 5 subgraphs · one endpoint"
+              compositionLine="Composite schema · 7 subgraphs · one endpoint"
               clients={CLIENT_NODES}
               tiers={WHAT_IS_TIERS}
               requests={WHAT_IS_REQUESTS}
