@@ -51,7 +51,7 @@ operationPlan:
           field(input: $input)
         }
       name: testQuery
-      hash: 9dd2f5869cf5d627883a05994b98b50a
+      hash: fcd8fe1dd5acc47e7aee0368828820a4
       searchSpace: 1
       expandedNodes: 1
   nodes:

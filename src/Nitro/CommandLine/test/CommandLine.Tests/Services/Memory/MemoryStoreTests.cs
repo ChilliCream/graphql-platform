@@ -240,8 +240,8 @@ public sealed class MemoryStoreTests : MemoryTestBase
     [Fact]
     public async Task SearchCuratedAsync_Should_SeeAnUpdatedBody()
     {
-        // arrange: the schema's triggers keep the index in step, so there is
-        // no rebuild step between the write and the search that finds it.
+        // arrange
+        // Update the body without explicitly rebuilding the search index.
         var cancellationToken = TestContext.Current.CancellationToken;
         var saved = await SaveAsync("Original wording.");
 
@@ -294,6 +294,26 @@ public sealed class MemoryStoreTests : MemoryTestBase
     }
 
     [Fact]
+    public async Task SearchJournalAsync_Should_MatchWordsAndAgreeWithCuratedSearch_When_QueryContainsTabsAndNewlines()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var journal = await LogAsync("Investigated the flaky watcher test.");
+        var curated = await SaveAsync("Investigated the flaky watcher test.");
+
+        // act
+        const string query = "flaky\t\nwatcher";
+        var journalResults = await _store.SearchJournalAsync(
+            query, since: null, limit: null, cancellationToken);
+        var curatedResults = await _store.SearchCuratedAsync(
+            query, [], type: null, since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([journal.Id], journalResults.Select(entry => entry.Id));
+        Assert.Equal([curated.Id], curatedResults.Select(record => record.Id));
+    }
+
+    [Fact]
     public async Task PromoteAsync_Should_CopyTheEntryIntoACuratedMemory()
     {
         // arrange
@@ -314,9 +334,7 @@ public sealed class MemoryStoreTests : MemoryTestBase
     [Fact]
     public async Task PromoteAsync_Should_ReturnTheFirstOutcome_When_PromotedTwice()
     {
-        // arrange: the unique promoted_from index makes the second promote
-        // affect no rows, so it reports what the first one produced rather
-        // than duplicating or failing.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var entry = await LogAsync("Investigated the flaky test.");
         var first = await _store.PromoteAsync(entry.Id, "decision", ["flaky"], cancellationToken);
@@ -324,7 +342,7 @@ public sealed class MemoryStoreTests : MemoryTestBase
         // act
         var second = await _store.PromoteAsync(entry.Id, "fact", [], cancellationToken);
 
-        // assert: the winner's type and tags, not this call's own attempt.
+        // assert
         Assert.True(second.AlreadyPromoted);
         Assert.Equal(first.Record.Id, second.Record.Id);
         Assert.Equal("decision", second.Record.Type);

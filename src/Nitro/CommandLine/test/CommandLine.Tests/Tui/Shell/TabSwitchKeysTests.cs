@@ -138,8 +138,7 @@ public sealed class TabSwitchKeysTests
     [Fact]
     public void ResolveMnemonic_Should_MatchCaseInsensitively()
     {
-        // arrange: a terminal is expected to report the shifted letter
-        // already uppercase, but the match itself does not depend on that.
+        // arrange
         var tabs = new[] { Tab("Tasks", 'T') };
         var chord = new KeyChord(ConsoleKey.T, ConsoleModifiers.Shift, 't');
 
@@ -184,10 +183,7 @@ public sealed class TabSwitchKeysTests
     [InlineData('A')]
     public void ResolveMnemonic_Should_NotCollide_WithTheGlobalTaskKeyMap(char mnemonic)
     {
-        // arrange: T/M/A are the mnemonics AgentTuiLauncher hosts today, so
-        // the global table must not already bind Shift+<letter> for any of
-        // them (a real collision would have to be reported instead of
-        // silently shadowed).
+        // arrange
         var keyMap = KeyMap.CreateDefaultGlobal();
         var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
 

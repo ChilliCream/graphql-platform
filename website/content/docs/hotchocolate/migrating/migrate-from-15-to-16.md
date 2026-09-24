@@ -355,7 +355,7 @@ if (context.Result is OperationResult result)
 
 Most of the properties you'd want to modify are now immutable data structures that can be modified.
 
-`OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
+`OperationResultBuilder.CreateError(error)` can be simply replaced with `#!csharp new OperationResult([error])`.
 
 ## Page and cursor API changes
 
@@ -570,7 +570,7 @@ public sealed class BookDTO
 ```
 
 Note that this change implies that all type parameters of the generic `ID<Type>`-attribute must now be valid GraphQL types.
-If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `[ID("BookDTO")]`.
+If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `#!csharp [ID("BookDTO")]`.
 
 ## DescriptorAttribute attributeProvider is nullable
 
@@ -803,9 +803,15 @@ query {
 
 This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
 
-## Byte arrays now mapped to Base64String
+## ByteArray scalar deprecated in favor of Base64String
 
-C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+The `ByteArray` scalar type is deprecated. Use `Base64String` instead. `byte[]` is not bound to it implicitly, so bind it explicitly:
+
+```csharp
+AddGraphQL().BindRuntimeType<byte[], Base64StringType>()
+```
+
+Without a binding, `byte[]` members are inferred as `[UnsignedByte!]!` and `byte[]?` members as `[UnsignedByte!]`.
 
 ## Uri now mapped to URI scalar instead of URL
 
@@ -1409,7 +1415,7 @@ app.MapGraphQLSemanticNonNullSchema();
 
 If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
 
-```bash
+```shell
 dotnet run -- schema export --output schema.graphql --semantic-non-null
 ```
 
@@ -1547,6 +1553,23 @@ The public `HotChocolate.Data.Projections.ProjectionFeature` record has been rem
 
 Use the existing `IsProjected()` descriptor extension or the `[IsProjected]` attribute to configure projection behavior; reading the feature from a field's `Features` collection is no longer possible.
 
+## Sorting is applied after the resolver's projection
+
+Hot Chocolate 16.0 through 16.6.6 moved a sort in front of the resolver's `Select` projection when it could map the sorted field back to the source, and removed `.DateTime` from `DateTimeOffset` members while doing so. Sorting is now applied to the `IQueryable<T>` that the resolver returns, after its `Select` projection, as in Hot Chocolate 15. This change lands in **16.6.7**.
+
+A sorted field that the projection assigns from `DateTimeOffset.DateTime` is now sorted on `DateTimeOffset.DateTime`:
+
+```csharp
+[UseSorting]
+public static IQueryable<OrderDto> GetOrders(CatalogContext db)
+    => db.Orders.Select(o => new OrderDto { Id = o.Id, PlacedAt = o.PlacedAt.DateTime });
+```
+
+- **SQL Server with EF Core 8, 9, or 10** does not translate `DateTimeOffset.DateTime`, so sorting on `placedAt` fails with EF Core's "could not be translated" error. See [Troubleshooting](../fetching-data/sorting.md#the-linq-expression-could-not-be-translated) for the fixes.
+- **SQL Server with EF Core 11** sorts by the local date and time instead of the UTC instant, which changes the order when rows have different offsets.
+
+`OnAfterSortingApplied` callbacks can call `ThenBy` again when the resolver ends with a `Select` projection.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -1559,6 +1582,9 @@ The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type in
 
 ## Validation walker is now operation-scoped for fragment visits by default
 
+> [!NOTE]
+> The `CostAnalyzer` example below describes the analyzer that shipped with version 16. The current cost analyzer compiles and evaluates its own cost plan and does not use `DocumentValidatorVisitor`.
+
 The base `DocumentValidatorVisitor` no longer re-walks a fragment definition on every sibling spread within an operation. Each fragment is now visited at most once per operation. Cycle detection continues to work via `context.Path.Contains(fragment)` in `FragmentVisitor`.
 
 User-visible effect: some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
@@ -1566,14 +1592,14 @@ User-visible effect: some queries that previously failed validation with false-p
 If you wrote a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you have two options:
 
 1. **Match the new default (operation-scoped):** remove the `Leave` call. Each fragment is walked at most once per operation; sibling spreads short-circuit.
-2. **Opt back into per-spread re-walks:** keep the `Leave` call. This is what `CostAnalyzer` does, because per-spread re-walks are required to correctly accumulate cost across reused fragments.
+2. **Opt back into per-spread re-walks:** keep the `Leave` call. The version 16 `CostAnalyzer` used this behavior to accumulate cost across reused fragments.
 
 ```diff
 if (context.Fragments.TryEnter(node, out var fragment))
 {
     var result = Visit(fragment, node, context);
 -   context.Fragments.Leave(fragment); // remove for operation-scoped (recommended for validation rules)
-    // keep the Leave(...) call if your rule needs per-spread re-walks (e.g. cost analysis)
+    // keep the Leave(...) call if your rule needs per-spread re-walks
 
     if (result.IsBreak())
     {

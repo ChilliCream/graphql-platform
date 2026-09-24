@@ -87,10 +87,6 @@ public sealed class ShowMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task NoWorkspace_ReportsTheMissingWorkspace()
     {
-        // arrange: memory lives in the workspace database, so with no
-        // workspace there is nothing to look in - which is a different
-        // condition from the memory not existing.
-
         // act
         var result = await ExecuteCommandAsync(
             "agent", "memory", "show", "01hqzxk8xdtd3fk3f0z7c5g8vm");

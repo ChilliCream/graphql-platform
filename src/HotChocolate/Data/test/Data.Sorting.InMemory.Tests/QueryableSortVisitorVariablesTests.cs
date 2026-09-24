@@ -194,6 +194,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
                 {
                     services.AddRouting();
                     services.AddGraphQLServer()
+                        .ModifyCostOptions(o => o.DefaultListSize = 1)
                         .AddSorting()
                         .AddQueryType(
                             c =>

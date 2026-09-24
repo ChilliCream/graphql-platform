@@ -174,7 +174,7 @@ builder
 
 ## Nodes Batch Size
 
-The `nodes(ids: [ID!]!)` field allows fetching multiple entities at once. The default batch limit is **50**:
+The `#!sdl nodes(ids: [ID!]!)` field allows fetching multiple entities at once. The default batch limit is **50**:
 
 ```csharp
 builder

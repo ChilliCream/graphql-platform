@@ -15,7 +15,7 @@ You need an existing Fusion gateway. If you do not have one yet, follow the [Get
 
 Add the adapter package to the gateway project:
 
-```bash
+```shell
 dotnet add package HotChocolate.Fusion.Adapters.Mcp
 ```
 
@@ -106,7 +106,7 @@ Nitro is the easiest way to manage MCP tools and prompts. You author tools and p
 
 ## Install the Nitro packages
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.Fusion
 ```

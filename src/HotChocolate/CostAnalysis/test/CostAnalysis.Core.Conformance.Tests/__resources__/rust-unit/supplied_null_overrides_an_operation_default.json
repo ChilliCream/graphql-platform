@@ -1,0 +1,17 @@
+{
+  "id": "supplied_null_overrides_an_operation_default",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\n\ninput DefaultedNestedFilter {\n  approx: Boolean = true @cost(weight: \"-12\")\n}\ninput DefaultedFilter {\n  nested: DefaultedNestedFilter = {} @cost(weight: \"4\")\n}\ntype Query {\n  search(filter: DefaultedFilter = {} @cost(weight: \"15\")): Int\n    @cost(weight: \"5\")\n}\n",
+  "operation": "query Example($filter: DefaultedFilter = { nested: null }) {\n  search(filter: $filter)\n}\n",
+  "operationName": "Example",
+  "variables": {
+    "filter": null
+  },
+  "defaultListSize": 10,
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 1,
+    "fieldCost": 20
+  },
+  "notes": "Port of estimator.rs test `supplied_null_overrides_an_operation_default` at line 1146, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. Selected source assertion at lines 1159-1168: supplied null overrides the operation default, producing Cost { type_cost: 1.0, field_cost: 20.0 }."
+}

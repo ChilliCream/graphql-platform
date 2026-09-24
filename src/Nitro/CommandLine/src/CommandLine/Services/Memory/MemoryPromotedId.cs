@@ -4,10 +4,7 @@ using System.Text;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Derives a curated memory's id deterministically from the journal entry id
-/// it is promoted from: the same journal id always derives the same curated
-/// id, so a concurrent or retried <c>promote</c> of the same entry lands on
-/// the same row.
+/// Derives a curated memory id deterministically from its source journal entry id.
 /// </summary>
 internal static class MemoryPromotedId
 {

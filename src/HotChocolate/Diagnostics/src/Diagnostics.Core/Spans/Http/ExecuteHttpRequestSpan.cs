@@ -46,6 +46,9 @@ internal sealed class ExecuteHttpRequestSpan(
             case HttpRequestKind.HttpGetSemanticNonNullSchema:
                 activity.DisplayName = "GraphQL HTTP GET Semantic Non-Null SDL";
                 break;
+            case HttpRequestKind.HttpQuery:
+                activity.DisplayName = "GraphQL HTTP QUERY";
+                break;
         }
 
         activity.SetTag(GraphQL.Http.Kind, kind.ToString());

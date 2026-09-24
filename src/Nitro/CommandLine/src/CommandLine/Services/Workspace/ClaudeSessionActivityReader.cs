@@ -20,7 +20,11 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
         {
             using var document = JsonDocument.Parse(json);
 
-            return document.RootElement.TryGetProperty("status", out var status)
+            var root = document.RootElement;
+
+            return root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("status", out var status)
+                && status.ValueKind == JsonValueKind.String
                 ? status.GetString()
                 : null;
         }
@@ -31,15 +35,19 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
     }
 
     /// <summary>
-    /// The session file carrying <paramref name="sessionId"/>. The directory
-    /// holds one file per live session, named by its pid rather than its
-    /// session id, so the file is found by reading them.
+    /// Returns the contents of a session file with the matching session id, or null
+    /// when no readable matching file is found.
     /// </summary>
     private static string? ReadSessionFile(string sessionId)
     {
         var directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "sessions");
 
+        return ReadSessionFile(directory, sessionId);
+    }
+
+    internal static string? ReadSessionFile(string directory, string sessionId)
+    {
         try
         {
             foreach (var path in Directory.EnumerateFiles(directory, "*.json"))
@@ -50,7 +58,8 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
                 {
                     using var document = JsonDocument.Parse(json);
 
-                    if (document.RootElement.TryGetProperty("sessionId", out var id)
+                    if (document.RootElement.ValueKind == JsonValueKind.Object
+                        && document.RootElement.TryGetProperty("sessionId", out var id)
                         && id.ValueKind == JsonValueKind.String
                         && id.GetString() == sessionId)
                     {

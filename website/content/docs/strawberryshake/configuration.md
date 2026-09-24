@@ -25,7 +25,10 @@ Here is a full configuration with all possibilities:
       // The URL of the GraphQL api you want to consume with the client
       "url": "https://workshop.chillicream.com/graphql/",
       // The access level modifier of the generated client
-      "accessModifier": "public"
+      "accessModifier": "public",
+      // Allows fields whose return types differ only in nullability to be merged in a selection set
+      // Requires the EnableCovariantFieldMerging schema option on the Hot Chocolate server
+      "enableCovariantFieldMerging": false
     }
   }
 }

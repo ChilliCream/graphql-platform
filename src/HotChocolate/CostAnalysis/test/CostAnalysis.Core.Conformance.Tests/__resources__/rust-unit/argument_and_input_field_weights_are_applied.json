@@ -1,0 +1,19 @@
+{
+  "id": "argument_and_input_field_weights_are_applied",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\ninput Filter { approximate: Boolean @cost(weight: \"-12.0\") }\ntype Query { products(filter: Filter @cost(weight: \"15.0\")): String @cost(weight: \"5.0\") }\n",
+  "operation": "query Example($filter: Filter) { products(filter: $filter) }",
+  "operationName": "Example",
+  "variables": {
+    "filter": {
+      "approximate": true
+    }
+  },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 1,
+    "fieldCost": 8
+  },
+  "notes": "Port of estimator.rs test `argument_and_input_field_weights_are_applied` at line 1261, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. The source asserts fieldCost 8; typeCost 1 is the oracle's root-object cost."
+}

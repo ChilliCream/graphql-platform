@@ -1,10 +1,13 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Globalization;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Settings;
@@ -53,6 +56,7 @@ internal sealed class FusionSettingsSetCommand : Command
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
         var compositionSettings = new CompositionSettings();
+        var unsetDefaultListSize = false;
 
         switch (settingName)
         {
@@ -77,6 +81,27 @@ internal sealed class FusionSettingsSetCommand : Command
                 }
 
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
+                break;
+
+            case FusionSettingsNameArgument.DefaultListSize:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    unsetDefaultListSize = true;
+                }
+                else if (!int.TryParse(
+                        settingValue,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var defaultListSize)
+                    || defaultListSize < 0)
+                {
+                    throw new ExitException(
+                        $"Expected a non-negative integer or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.DefaultListSize = defaultListSize;
+                }
                 break;
 
             case FusionSettingsNameArgument.EnumValuesMergeBehavior:
@@ -171,6 +196,12 @@ internal sealed class FusionSettingsSetCommand : Command
 
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
 
+        if (unsetDefaultListSize)
+        {
+            // Clear the persisted value first: merging null settings preserves an existing value.
+            await ClearDefaultListSizeSettingAsync(archive, cancellationToken);
+        }
+
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         await using var composeActivity = console.StartActivity(
@@ -211,5 +242,31 @@ internal sealed class FusionSettingsSetCommand : Command
 
             throw new ExitException();
         }
+    }
+
+    private static async Task ClearDefaultListSizeSettingAsync(
+        FusionArchive archive,
+        CancellationToken cancellationToken)
+    {
+        var compositionLog = new CompositionLog();
+
+        // Validate raw settings so invalid values produce the same composition errors as ComposeAsync.
+        var (settingsRead, existingSettings) = await CompositionHelper.TryGetCompositionSettingsAsync(
+            archive,
+            compositionLog,
+            cancellationToken);
+
+        if (!settingsRead)
+        {
+            throw new ExitException(string.Join(Environment.NewLine, compositionLog.Select(e => e.Message)));
+        }
+
+        existingSettings.Merger.DefaultListSize = null;
+
+        using var updatedSettingsJson = JsonSerializer.SerializeToDocument(
+            existingSettings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        await archive.SetCompositionSettingsAsync(updatedSettingsJson, cancellationToken);
     }
 }

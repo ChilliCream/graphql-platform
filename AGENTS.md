@@ -6,6 +6,11 @@ This file provides guidance to coding agents when working with this repository.
 
 - Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
+## Pull Requests
+
+- Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.
+- Area prefixes are optional. Write them in title case (`[Fusion]`, not `[fusion]`), and put `Fix` after one: `[Fusion] Fix the gateway ignoring subgraph timeouts`.
+
 ## Build
 
 ### Website
@@ -126,6 +131,10 @@ When you add a value to `ExecutionNodeType`, map it in two places:
 - `GraphQL.Operation.Step.KindValues` in `src/HotChocolate/Diagnostics/src/Diagnostics.Core/SemanticConventions.cs`, if the kind needs a new constant. Tag values are snake_case.
 
 `KindValues` supplies the `graphql.operation.step.kind` tag on the step span. An unmapped type does not fail execution. `ExecutePlanNodeSpan.Start` falls back to an untagged span, so the node silently loses its kind in traces. The guard test `StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue` in `src/HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/FusionActivityExecutionDiagnosticListenerTests.cs` fails until the mapping exists.
+
+#### Operation planner version
+
+`OperationPlanner.Version` identifies planning behavior and is independent of the package version. Bump the minor version when an existing operation can plan differently, the major version when consumers must react to a new plan structure. Refactors, performance work and fixes that cannot change a plan do not bump it.
 
 #### Operation plan JSON format
 

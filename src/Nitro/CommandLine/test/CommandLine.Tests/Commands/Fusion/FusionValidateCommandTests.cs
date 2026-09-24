@@ -1412,6 +1412,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
               "The name of the source schema that provides the specified enum value."
@@ -1644,6 +1646,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1886,6 +1890,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(

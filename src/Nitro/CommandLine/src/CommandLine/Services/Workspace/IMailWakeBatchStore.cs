@@ -14,20 +14,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal interface IMailWakeBatchStore
 {
     /// <summary>
-    /// Atomically claims the next batch of outstanding wake work for
-    /// (<paramref name="nitroInstanceId"/>, <paramref name="actor"/>) and
-    /// materializes <paramref name="targets"/> as its frozen
-    /// <c>mail_wake_targets</c> rows. Returns null when there is no
-    /// outstanding generation (<c>settled_generation</c> already equals
-    /// <c>requested_generation</c>), the outbox row's <c>due_at</c> has not
-    /// yet arrived, or a live active batch already exists for this actor (at
-    /// most one active batch per actor at a time). An active batch whose
-    /// lease has expired is released and superseded by this claim first, so
-    /// its old owner's subsequent renew, complete, release, or
-    /// record-outcome calls then fail their fencing as a no-op. The returned
-    /// claim's <see cref="MailWakeBatchClaim.ClaimedGeneration"/> is fixed
-    /// for this batch's whole lifetime, snapshotted from
-    /// <c>requested_generation</c> at claim time.
+    /// Claims due, unsettled work for the instance and actor, replacing any expired
+    /// batch and recording the current requested generation and supplied targets.
+    /// Returns null when no work is due or an unexpired active batch exists.
     /// </summary>
     Task<MailWakeBatchClaim?> TryClaimAsync(
         string nitroInstanceId,
@@ -40,11 +29,8 @@ internal interface IMailWakeBatchStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Extends an active batch's expiry. Returns false, changing nothing,
-    /// when the batch is not active, does not match
-    /// <paramref name="ownerId"/> and <paramref name="attemptId"/>, or has
-    /// already expired (a lost lease can never be renewed back to life; the
-    /// caller must re-claim).
+    /// Sets the active batch's expiry to <paramref name="now"/> plus <paramref name="leaseDuration"/>.
+    /// Returns false when the owner or attempt differs, or the batch is inactive or expired.
     /// </summary>
     Task<bool> TryRenewAsync(
         string batchId,
@@ -55,13 +41,9 @@ internal interface IMailWakeBatchStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Marks an active batch completed and settles the outbox row's
-    /// <c>settled_generation</c> up to (never past) this batch's own
-    /// <c>mail_wake_batches.claimed_generation</c>: a wake requested
-    /// after this batch was claimed is never settled by this completion,
-    /// regardless of how far <c>requested_generation</c> has since advanced.
-    /// Returns false, changing nothing, under the same fencing as
-    /// <see cref="TryRenewAsync"/>.
+    /// Completes the matching active batch and advances settlement through its claimed
+    /// generation, preserving any higher settlement. Returns false when the owner or
+    /// attempt differs, or the batch is inactive or expired.
     /// </summary>
     Task<bool> TryCompleteAsync(
         string batchId,
@@ -89,12 +71,9 @@ internal interface IMailWakeBatchStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Records one target's outcome: its lattice <paramref name="status"/>
-    /// and its target-qualified <paramref name="offeredGeneration"/> and
-    /// <paramref name="acceptedGeneration"/>, scoped to this one target row,
-    /// never implied for the rest of the batch. Fenced through the owning
-    /// batch: a no-op returning false when the batch is not active or does
-    /// not match <paramref name="ownerId"/> and <paramref name="attemptId"/>.
+    /// Records the status, generations, and error for the matching target; null values
+    /// clear the corresponding fields. Returns false when the target is missing or the
+    /// batch is inactive, expired, or owned by a different owner or attempt.
     /// </summary>
     Task<bool> TryRecordTargetOutcomeAsync(
         string batchId,

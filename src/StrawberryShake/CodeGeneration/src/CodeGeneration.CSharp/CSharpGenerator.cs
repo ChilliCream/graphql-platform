@@ -102,7 +102,7 @@ public static class CSharpGenerator
         }
 
         // Next we will start validating the executable documents.
-        if (!TryValidateRequestAsync(schema, executableFiles, fileLookup, errors))
+        if (!TryValidateRequestAsync(settings, schema, executableFiles, fileLookup, errors))
         {
             return new CSharpGeneratorResult(errors);
         }
@@ -114,6 +114,7 @@ public static class CSharpGenerator
         // which represents the logical parts of the executable documents.
         var analyzer = new DocumentAnalyzer();
         analyzer.SetSchema(schema);
+        analyzer.EnableCovariantFieldMerging(settings.EnableCovariantFieldMerging);
 
         foreach (var executableDocument in executableFiles)
         {
@@ -428,12 +429,13 @@ public static class CSharpGenerator
     }
 
     private static bool TryValidateRequestAsync(
+        CSharpGeneratorSettings settings,
         Schema schema,
         IReadOnlyList<GraphQLFile> executableFiles,
         Dictionary<ISyntaxNode, string> fileLookup,
         List<IError> errors)
     {
-        var validator = CreateDocumentValidator();
+        var validator = CreateDocumentValidator(settings);
 
         var document = MergeDocuments(executableFiles);
         var validationResult = validator.Validate(schema, document);
@@ -449,9 +451,11 @@ public static class CSharpGenerator
         return true;
     }
 
-    private static DocumentValidator CreateDocumentValidator()
+    private static DocumentValidator CreateDocumentValidator(CSharpGeneratorSettings settings)
         => DocumentValidatorBuilder.New()
             .AddDefaultRules()
+            .ModifyOptions(
+                o => o.EnableCovariantFieldMerging = settings.EnableCovariantFieldMerging)
             .Build();
 
     private static DocumentNode MergeDocuments(IReadOnlyList<GraphQLFile> executableFiles)

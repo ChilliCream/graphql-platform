@@ -1,13 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Schema v11: curated memories and the journal, in the same workspace
-/// database as tasks and mail. Memory used to live as markdown files under
-/// the workspace directory with a disposable FTS index beside them; the
-/// database is the source of truth now, so a memory is a row and search
-/// runs against <c>memory_curated_fts</c> instead of a rebuilt sidecar.
-/// Statements are idempotent so applying them to an existing database is
-/// non-destructive.
+/// Creates missing memory tables, indexes, and search-maintenance triggers in the
+/// workspace database.
 /// </summary>
 internal static class MemoryStoreSchema
 {
@@ -55,11 +50,7 @@ internal static class MemoryStoreSchema
             content_rowid = 'rowid'
         );
 
-        -- The FTS index is a contentless-delete mirror of memory_curated,
-        -- kept in step by triggers rather than by a rebuild pass: with the
-        -- rows themselves in this database there is nothing to fall out of
-        -- sync with, so the index can never be stale the way the old
-        -- sidecar could.
+        -- Curated-memory writes update the external-content search index.
         CREATE TRIGGER IF NOT EXISTS memory_curated_fts_insert AFTER INSERT ON memory_curated
         BEGIN
             INSERT INTO memory_curated_fts (rowid, id, body) VALUES (new.rowid, new.id, new.body);

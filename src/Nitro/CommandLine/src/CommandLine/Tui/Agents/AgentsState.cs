@@ -3,18 +3,13 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The live state of the agents list: every live participant from
-/// <see cref="IAgentSessionRegistry.ListParticipantsAsync"/>, in the order
-/// the registry returns them, which row is selected, and which of the tab's
-/// two panes currently holds focus.
+/// The loaded live participants, selected row, and focused pane.
 /// </summary>
 internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaudeSessionActivityReader activityReader)
 {
     /// <summary>
-    /// The participant rows currently loaded, ordered by harness then
-    /// session id (the registry's own order). One row per live harness
-    /// session, including unbound ones; a session that ends or is reaped is
-    /// simply absent from the next <see cref="RefreshAsync"/>.
+    /// Live participant rows in registry order by harness and session id, including
+    /// unbound sessions. Ended or reaped sessions are absent after refresh.
     /// </summary>
     public IReadOnlyList<AgentParticipantRow> Rows { get; private set; } = [];
 
@@ -36,12 +31,8 @@ internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaude
         => SelectedRow >= 0 && SelectedRow < Rows.Count ? Rows[SelectedRow] : null;
 
     /// <summary>
-    /// Reloads every live participant from the registry. The selected row
-    /// stays selected by its <see cref="AgentSessionKey"/> (harness plus
-    /// session id), never by actor name, so two sessions sharing one actor
-    /// and a bound session's role being promoted both leave the selection
-    /// untouched. Otherwise the selected row is clamped to the new list's
-    /// bounds.
+    /// Reloads every live participant from the registry. The selected row stays selected by its
+    /// <see cref="AgentSessionKey"/>; otherwise it is clamped to the new list's bounds.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
@@ -58,10 +49,8 @@ internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaude
     }
 
     /// <summary>
-    /// Reads the Claude activity read-through for a single online
-    /// claude-code session; every other row carries no activity, since the
-    /// read-through only means anything against a session a caller could
-    /// plausibly find a live status file for.
+    /// Attaches activity for an online Claude Code participant, or null activity
+    /// for other participants.
     /// </summary>
     private AgentParticipantRow ToRow(AgentSessionParticipant participant)
     {

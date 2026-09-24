@@ -13,14 +13,12 @@ internal abstract record MemoryPromoteOutcome
     }
 
     /// <summary>
-    /// The promotion succeeded, carrying whether it had already happened
-    /// from an earlier, idempotent promotion of the same journal entry.
+    /// The curated memory id and whether the journal entry had already been promoted.
     /// </summary>
     public sealed record Succeeded(string CuratedId, bool AlreadyPromoted, string ToastText) : MemoryPromoteOutcome;
 
     /// <summary>
-    /// The store rejected the write, carrying its <see cref="ExitException"/>
-    /// message: this is how an invalid type surfaces.
+    /// The store rejected the write with an <see cref="ExitException"/> message.
     /// </summary>
     public sealed record Failed(string ToastText) : MemoryPromoteOutcome;
 

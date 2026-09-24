@@ -179,7 +179,7 @@ mutation ($file: Upload!) {
 
 Send this request to your GraphQL server using HTTP multipart:
 
-```bash
+```shell
 curl localhost:5000/graphql \
   -H "GraphQL-preflight: 1" \
   -F operations='{ "query": "mutation ($file: Upload!) { uploadFile(file: $file) { success } }", "variables": { "file": null } }' \

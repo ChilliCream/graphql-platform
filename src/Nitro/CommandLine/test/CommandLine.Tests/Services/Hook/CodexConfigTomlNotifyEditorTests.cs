@@ -3,13 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="CodexConfigTomlNotifyEditor"/> against golden
-/// "before" <c>config.toml</c> fixtures under
-/// <c>test/fixtures/hooks/codex/config-toml/</c>: the wrap-a-foreign-program
-/// cycle, the restore-on-uninstall cycle, idempotent reinstall, a
-/// <c>notify</c> key living inside an unrelated table (must not be touched),
-/// and the safe-refusal path for a shape this narrow editor cannot confidently
-/// parse.
+/// Tests <see cref="CodexConfigTomlNotifyEditor"/> installation, status, removal,
+/// and foreign-program preservation against TOML fixtures.
 /// </summary>
 public sealed class CodexConfigTomlNotifyEditorTests
 {
@@ -61,11 +56,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Install_OurOwnStaleEntry_ReplacesItAndCarriesThePriorForeignRecordForward()
     {
-        // A reinstall after the launch descriptor changed: what's on disk is
-        // OUR previous argv, not a foreign program, so the sidecar's
-        // recorded foreign value (from before we EVER wrapped anything)
-        // must survive untouched rather than being overwritten with our own
-        // stale entry.
+        // The existing argv identifies an older Nitro installation with a recorded foreign program.
         var staleArgv = new List<string> { "/opt/old/nitro", "agent", "hook", "codex", "notify" };
         var before = $"notify = [{string.Join(", ", staleArgv.Select(a => $"\"{a}\""))}]\n";
         var recordedPriorForeign = new List<string> { "/usr/local/bin/herdr-notify" };
@@ -146,8 +137,6 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Uninstall_ForeignEditSinceInstall_LeavesItUntouched()
     {
-        // The value on disk no longer matches what we installed (a foreign
-        // edit landed since): must not clobber it.
         const string edited = "notify = [\"/something/else\"]\n";
 
         var result = CodexConfigTomlNotifyEditor.Uninstall(edited, s_ourArgv, ["/usr/local/bin/herdr-notify"]);

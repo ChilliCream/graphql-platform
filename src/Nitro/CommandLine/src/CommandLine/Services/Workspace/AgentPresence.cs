@@ -1,12 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// One agent identity's presence, aggregated across zero or more live
-/// <see cref="AgentSessionRecord"/> rows bound to it. Presence has its own
-/// minutes-scale lifetime, distinct from the 30-day staleness
-/// <see cref="AgentRecord"/> identity carries (<c>agent list --stale</c>).
-/// Consumed by both <c>agent list</c> and the TUI Agents tab so the two
-/// surfaces agree on what "online" means.
+/// The combined presence of an actor's surviving sessions.
 /// </summary>
 internal sealed record AgentPresence(
     string State,
@@ -17,8 +12,7 @@ internal sealed record AgentPresence(
     string? Activity)
 {
     /// <summary>
-    /// The state priority a conflicted agent's states are joined in: the
-    /// most-actionable state first (see <see cref="Compute"/>).
+    /// The display order for distinct session states in a conflicted presence.
     /// </summary>
     private static readonly string[] s_statePriority =
     [
@@ -34,22 +28,9 @@ internal sealed record AgentPresence(
     public static readonly AgentPresence Offline = new(AgentPresenceState.Offline, false, 0, null, null, null);
 
     /// <summary>
-    /// Aggregates <paramref name="sessions"/> - already filtered to the one
-    /// agent's rows - into a single display presence.
-    /// <para/>
-    /// A same-actor restart can leave more than one live session. When those
-    /// sessions disagree on <see cref="AgentSessionView.State"/>, every
-    /// distinct state is joined (in <see cref="s_statePriority"/> order)
-    /// rather than one being silently picked, and <see cref="Conflicted"/> is
-    /// set so a caller can flag it: the plan's "same-actor multi-session
-    /// conflicts surfaced, not hidden".
-    /// <para/>
-    /// The endpoint columns and the Claude activity read-through (via
-    /// <paramref name="activityReader"/>, never stored - see
-    /// <see cref="IClaudeSessionActivityReader"/>) are only reported when
-    /// exactly one session is live: with more than one, which session's
-    /// endpoint or activity to show is itself ambiguous, and guessing would
-    /// re-hide the exact conflict this method exists to surface.
+    /// Combines one actor's sessions into a presence, joining distinct states in priority
+    /// order and marking conflicts when states differ. Endpoint details require exactly
+    /// one session; activity additionally requires that session to be online in Claude Code.
     /// </summary>
     public static AgentPresence Compute(
         IReadOnlyList<AgentSessionView> sessions, IClaudeSessionActivityReader activityReader)

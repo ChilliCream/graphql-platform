@@ -3,7 +3,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal static class TakeoverLedgerSchema
 {
     /// <summary>
-    /// The complete schema for recorded actor takeovers. Statements are idempotent so applying them to an existing database is non-destructive.
+    /// Creates takeover audit tables and indexes that do not already exist.
     /// </summary>
     public const string Create =
         """

@@ -80,5 +80,17 @@ namespace HotChocolate.Transport.Http {
                 return ResourceManager.GetString("DefaultGraphQLHttpClient_FileUploadNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string DefaultGraphQLHttpClient_QueryBatchNotAllowed {
+            get {
+                return ResourceManager.GetString("DefaultGraphQLHttpClient_QueryBatchNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultGraphQLHttpClient_QueryFileUploadNotAllowed {
+            get {
+                return ResourceManager.GetString("DefaultGraphQLHttpClient_QueryFileUploadNotAllowed", resourceCulture);
+            }
+        }
     }
 }

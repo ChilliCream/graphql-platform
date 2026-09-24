@@ -6,6 +6,7 @@
   <Folder Name="/external/">
     <Project Path="../AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
     <Project Path="../AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
+    <Project Path="../CostAnalysis/src/CostAnalysis.Core/HotChocolate.CostAnalysis.Core.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />

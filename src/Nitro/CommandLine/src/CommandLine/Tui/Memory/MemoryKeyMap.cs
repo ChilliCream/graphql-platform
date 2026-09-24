@@ -4,22 +4,9 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Builds the memory tab's key table, for the memory command's own
-/// <see cref="KeyDispatcher"/> in place of <see cref="KeyMap.CreateDefaultGlobal"/>:
-/// vim-style navigation (j/k/h/l and arrow keys, g/G for edges), Enter to
-/// focus the detail pane, Tab to switch panes, f to cycle between the
-/// curated and journal collections, s to cycle the scope filter, / to focus
-/// the search box, p to promote the selected journal entry, d to forget the
-/// selected curated memory, Shift+R to refresh, y to copy the selected id,
-/// q and Ctrl+C to request quit, and Escape to leave the mode.
+/// Builds the memory tab's key bindings for navigation, collection selection,
+/// search, promotion, deletion, and exit requests.
 /// </summary>
-/// <remarks>
-/// A standalone table rather than an extension of the task board's global
-/// table, the same reasoning <c>MailKeyMap</c> gives: most of that table's
-/// bindings have no meaning for a memory list, and refresh moves off the
-/// bare r chord to make room for nothing here, but stays consistent with
-/// the mail and agents tabs' own Shift+R convention.
-/// </remarks>
 internal static class MemoryKeyMap
 {
     public static KeyMap CreateDefault() => new(
@@ -67,10 +54,6 @@ internal static class MemoryKeyMap
             new KeyChord(ConsoleKey.F, ConsoleModifiers.None, 'f'),
             () => new TuiMessage.CycleView(1),
             new KeyHint("f", "curated/journal")),
-        new KeyBinding(
-            new KeyChord(ConsoleKey.S, ConsoleModifiers.None, 's'),
-            () => new TuiMessage.CycleScopeRequested(),
-            new KeyHint("s", "scope")),
         new KeyBinding(
             new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/'),
             () => new TuiMessage.SearchRequested(),

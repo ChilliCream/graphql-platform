@@ -119,7 +119,7 @@ Hot Chocolate computes cache constraints only for query operations. Introspectio
 
 Install the package first:
 
-```bash
+```shell
 dotnet add package HotChocolate.Caching
 ```
 

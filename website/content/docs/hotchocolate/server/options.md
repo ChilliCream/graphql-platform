@@ -42,6 +42,7 @@ builder
 | `EnableFlagEnums`                         | `bool`                       | `false`             | Treats `[Flags]` enums as flag enums in GraphQL.                                                             |
 | `EnableDefer`                             | `bool`                       | `false`             | Enables the `@defer` directive.                                                                              |
 | `EnableStream`                            | `bool`                       | `false`             | Enables the `@stream` directive.                                                                             |
+| `EnableCovariantFieldMerging`             | `bool`                       | `false`             | Allows fields whose return types differ only in nullability to be merged in a selection set.                 |
 | `EnableEmptySelectionSets`                | `bool`                       | `false`             | Enables empty selection sets (`{ }`) on composite fields and on query and mutation roots.                    |
 | `EnableSemanticNonNull`                   | `bool`                       | `false`             | Enables the semantic non-null feature.                                                                       |
 | `StripLeadingIFromInterface`              | `bool`                       | `false`             | Strips the leading `I` from C# interface names when generating GraphQL interface type names.                 |
@@ -85,11 +86,30 @@ builder
     {
         o.MaxFieldCost = 1000;
         o.MaxTypeCost = 2000;
+        o.DefaultListSize = 100;
+        o.MaxResponseSize = 10_000;
         o.EnforceCostLimits = true;
     });
 ```
 
-Refer to the cost analysis documentation for the full list of configurable properties.
+| Property                           | Type                          | Default   | Description                                                                                                              |
+| ---------------------------------- | ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `MaxFieldCost`                     | `double`                      | `1_000`   | Maximum allowed field cost.                                                                                              |
+| `MaxTypeCost`                      | `double`                      | `10_000`  | Maximum allowed type cost.                                                                                               |
+| `EnforceCostLimits`                | `bool`                        | `true`    | Rejects operations that exceed a configured limit.                                                                       |
+| `SkipAnalyzer`                     | `bool`                        | `false`   | Bypasses cost analysis and reporting.                                                                                    |
+| `ApplyCostDefaults`                | `bool`                        | `true`    | Applies Hot Chocolate cost metadata to the schema.                                                                       |
+| `ApplySlicingArgumentDefaultValue` | `bool`                        | `true`    | Writes the paging default size for argument-less evaluated requests.                                                     |
+| `DefaultResolverCost`              | `double?`                     | `10.0`    | Weight for fields without a pure resolver. `null` disables the default.                                                  |
+| `DefaultListSize`                  | `double`                      | `50`      | Size for lists without applicable `@listSize` metadata, sourced from `PagingDefaults.MaxPageSize`.                       |
+| `CostPlanCacheSize`                | `int`                         | `256`     | Maximum compiled cost plans cached per schema.                                                                           |
+| `MaxResponseSize`                  | `double?`                     | `null`    | Maximum response-object-field count. `null` disables the check.                                                          |
+| `CaseBudget`                       | `int?`                        | `null`    | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
+| `CaseBudgetExceededBehavior`       | `CaseBudgetExceededBehavior?` | `null`    | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).             |
+| `Filtering`                        | `FilterCostOptions`           | See below | Default weights for filtering arguments and operations.                                                                  |
+| `Sorting`                          | `SortCostOptions`             | See below | Default weights for sorting arguments and operations.                                                                    |
+
+See [Cost Analysis](../security/cost-analysis.md#options-reference) for filtering and sorting defaults and the reporting contract.
 
 # Server Options (ModifyServerOptions)
 
@@ -113,6 +133,7 @@ builder
 | `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`.       |
 | `EnableGetRequests`                       | `bool`                 | `true`             | Allows GraphQL queries over HTTP GET.                                                                                                          |
 | `EnableMultipartRequests`                 | `bool`                 | `true`             | Allows multipart HTTP requests (file uploads).                                                                                                 |
+| `EnableQueryRequests`                     | `bool`                 | `false`            | Allows GraphQL queries over HTTP QUERY.                                                                                                        |
 | `EnableSchemaRequests`                    | `bool`                 | `true`             | Allows schema SDL downloads.                                                                                                                   |
 | `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Allows the schema SDL to be served as a file download.                                                                                         |
 | `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | Requires a preflight header on GET requests for CSRF protection.                                                                               |
@@ -237,8 +258,8 @@ builder
 | Property                      | Type   | Default | Description                                                                                                                                         |
 | ----------------------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `RegisterNodeInterface`       | `bool` | `true`  | Registers the `Node` interface. When `false`, the `node` and `nodes` fields and `[NodeResolver]` inference are disabled as well.                    |
-| `AddNodeField`                | `bool` | `true`  | Adds the `node(id: ID!): Node` field to the Query type.                                                                                             |
-| `AddNodesField`               | `bool` | `true`  | Adds a `nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                                               |
+| `AddNodeField`                | `bool` | `true`  | Adds the `#!sdl node(id: ID!): Node` field to the Query type.                                                                                       |
+| `AddNodesField`               | `bool` | `true`  | Adds a `#!sdl nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                                         |
 | `EnsureAllNodesCanBeResolved` | `bool` | `true`  | Validates during schema building that every type implementing `Node` has a corresponding node resolver configured.                                  |
 | `MaxAllowedNodeBatchSize`     | `int`  | `50`    | The maximum number of IDs a client can pass to the `nodes` field in a single request. Prevents excessive batch fetching.                            |
 | `MarkNodeFieldAsLookup`       | `bool` | `false` | Annotates the `Query.node` field with the `@lookup` directive for the composite schema spec, so a Fusion gateway can resolve entities by global ID. |

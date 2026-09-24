@@ -1,13 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The <c>context</c> command's admission algorithm: candidates are already
-/// ranked (project band first, then global; within a band, updated_at
-/// descending, then id) by the caller. Whole entries are admitted in that
-/// order until the entry count reaches the limit or the next entry would
-/// push the canonical prompt-ready rendering, separators included, past the
-/// character cap; admission then stops. An entry is never skipped,
-/// partially included, or truncated to make room for a later, smaller one.
+/// Selects whole entries in the supplied order until the count limit or rendered
+/// character budget, including separators, is reached. Stops at the first entry
+/// that does not fit; entries are never skipped or truncated.
 /// </summary>
 internal static class MemoryContextBudget
 {
