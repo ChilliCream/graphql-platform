@@ -66,7 +66,8 @@ internal sealed class StatusOpencodeHooksCommand : Command
 
     /// <summary>
     /// Returns opencode agents in this workspace with their registered endpoint and last
-    /// recorded ping diagnostics. Returns an empty list when no workspace exists.
+    /// recorded ping diagnostics. Ended and offline agents are omitted. Returns an empty
+    /// list when no workspace exists.
     /// </summary>
     private static async Task<IReadOnlyList<OpencodeSessionStatus>> ResolveOpencodeSessionsAsync(
         ICommandServices services, CancellationToken cancellationToken)
@@ -79,10 +80,13 @@ internal sealed class StatusOpencodeHooksCommand : Command
         }
 
         var agentStore = services.GetRequiredService<IAgentStore>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
+        var now = timeProvider.GetUtcNow();
         var rows = await agentStore.ListAsync(cancellationToken);
 
         return rows
             .Where(row => row.Harness == AgentSessionHarness.Opencode)
+            .Where(row => AgentStateResolver.Resolve(row, now) != AgentState.Offline)
             .OrderBy(row => row.SessionId, StringComparer.Ordinal)
             .Select(OpencodeSessionStatus.From)
             .ToArray();

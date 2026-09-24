@@ -255,6 +255,30 @@ public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : Age
         Assert.Equal("healthy", session.GetProperty("lastPingDetail").GetString());
     }
 
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_OmitTheSession_When_TheSessionHasEnded()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+        await InsertAgentRowAsync(
+            "maya",
+            "session-ended",
+            endpointKind: AgentSessionEndpointKind.OpencodeServer,
+            endpointAddr: "http://127.0.0.1:51000",
+            lastPingResult: AgentPingResult.Ok,
+            endedAt: FakeTime.GetUtcNow());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        document.RootElement.GetProperty("sessions").GetRawText().MatchInlineSnapshot("[]");
+    }
+
     /// <summary>
     /// Inserts one opencode agent row directly into the unified <c>agents</c> table with
     /// fresh timestamps and the supplied endpoint and ping state.
@@ -265,7 +289,8 @@ public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : Age
         string endpointKind = AgentSessionEndpointKind.None,
         string endpointAddr = "",
         string? lastPingResult = null,
-        string? lastPingDetail = null)
+        string? lastPingDetail = null,
+        DateTimeOffset? endedAt = null)
     {
         var now = FakeTime.GetUtcNow();
 
@@ -276,10 +301,10 @@ public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : Age
             """
             INSERT INTO agents (
                 name, harness, session_id, endpoint_kind, endpoint_addr,
-                last_ping_result, last_ping_detail, registered_at, started_at, last_seen_at
+                last_ping_result, last_ping_detail, registered_at, started_at, last_seen_at, ended_at
             ) VALUES (
                 $name, $harness, $sessionId, $endpointKind, $endpointAddr,
-                $lastPingResult, $lastPingDetail, $now, $now, $now
+                $lastPingResult, $lastPingDetail, $now, $now, $now, $endedAt
             );
             """;
         command.Parameters.AddWithValue("$name", name);
@@ -290,6 +315,7 @@ public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : Age
         command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
         command.Parameters.AddWithValue("$lastPingDetail", (object?)lastPingDetail ?? DBNull.Value);
         command.Parameters.AddWithValue("$now", now);
+        command.Parameters.AddWithValue("$endedAt", (object?)endedAt ?? DBNull.Value);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
