@@ -1,6 +1,5 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Caching;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -27,7 +26,7 @@ public class OperationPlanCacheTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
 
         // assert
         Assert.Equal(cacheCapacity, operationPlanCache.Capacity);
@@ -68,7 +67,7 @@ public class OperationPlanCacheTests : FusionTestBase
         // act
         var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var firstPlanCache = firstExecutor.Schema.Services
-            .GetRequiredService<Cache<OperationPlan>>();
+            .GetRequiredService<OperationPlanCache>();
 
         configProvider.UpdateConfiguration(
             CreateFusionConfiguration(
@@ -81,7 +80,7 @@ public class OperationPlanCacheTests : FusionTestBase
 
         var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
         var secondPlanCache = secondExecutor.Schema.Services
-            .GetRequiredService<Cache<OperationPlan>>();
+            .GetRequiredService<OperationPlanCache>();
 
         // assert
         Assert.NotSame(secondExecutor, firstExecutor);

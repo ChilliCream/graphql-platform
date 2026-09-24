@@ -1,10 +1,9 @@
 using System.Text.Json;
 using HotChocolate.CostAnalysis;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Caching;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -243,8 +242,8 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             }
             """);
         Assert.Equal(2, observation.Result!.Estimates.Length);
-        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
-        var costPlanCache = executor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<OperationPlanCache>();
+        var costPlanCache = executor.Schema.Services.GetRequiredService<CostPlanCache>();
         Assert.Equal(0, operationPlanCache.Count);
         Assert.Equal(1, costPlanCache.Count);
         Assert.Equal(0, observation.DownstreamCalls);

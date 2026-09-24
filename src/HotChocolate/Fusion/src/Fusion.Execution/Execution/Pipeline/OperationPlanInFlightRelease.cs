@@ -1,6 +1,6 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
@@ -12,13 +12,13 @@ internal sealed class OperationPlanInFlightRelease
 {
     private readonly string _operationId;
     private readonly TaskCompletionSource<OperationPlan> _completionSource;
-    private readonly Cache<OperationPlan> _cache;
+    private readonly OperationPlanCache _cache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     public OperationPlanInFlightRelease(
         string operationId,
         TaskCompletionSource<OperationPlan> completionSource,
-        Cache<OperationPlan> cache,
+        OperationPlanCache cache,
         IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
         _operationId = operationId;
@@ -38,7 +38,7 @@ internal sealed class OperationPlanInFlightRelease
             return;
         }
 
-        _cache.TryAdd(_operationId, plan);
+        _cache.TryAddPlan(_operationId, plan);
 
         // Release waiting requests before diagnostics so a throwing listener cannot leave them blocked.
         _completionSource.TrySetResult(plan);

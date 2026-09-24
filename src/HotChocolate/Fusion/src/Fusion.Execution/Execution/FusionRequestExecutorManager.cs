@@ -5,7 +5,6 @@ using System.IO.Hashing;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
@@ -478,7 +477,7 @@ internal sealed class FusionRequestExecutorManager
                     schemaIndexOptions);
             });
         services.AddSingleton(
-            static sp => new Cache<CostPlan>(
+            static sp => new CostPlanCache(
                 sp.GetRequiredService<FusionCostOptions>().CostPlanCacheSize));
 
         if (options.EnableSemanticIntrospection)
@@ -516,7 +515,7 @@ internal sealed class FusionRequestExecutorManager
             static sp =>
             {
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
-                return new Cache<OperationPlan>(
+                return new OperationPlanCache(
                     options.OperationExecutionPlanCacheSize,
                     options.OperationExecutionPlanCacheDiagnostics);
             });

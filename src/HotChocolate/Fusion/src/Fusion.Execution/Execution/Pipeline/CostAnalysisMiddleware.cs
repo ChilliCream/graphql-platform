@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
-using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.CostAnalysis;
 using HotChocolate.Fusion.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,13 +12,13 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class CostAnalysisMiddleware
 {
     private readonly CostSchemaIndex _schemaIndex;
-    private readonly Cache<CostPlan> _cache;
+    private readonly CostPlanCache _cache;
     private readonly FusionCostOptions _options;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     private CostAnalysisMiddleware(
         CostSchemaIndex schemaIndex,
-        Cache<CostPlan> cache,
+        CostPlanCache cache,
         FusionCostOptions options,
         IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
@@ -64,7 +64,7 @@ internal sealed class CostAnalysisMiddleware
         {
             var operationId = context.GetOperationId();
 
-            if (!_cache.TryGet(operationId, out var plan))
+            if (!_cache.TryGetPlan(operationId, out var plan))
             {
                 var analyses = CostAnalyses.Cost;
 
@@ -78,7 +78,7 @@ internal sealed class CostAnalysisMiddleware
                     context.GetNormalizedDocument(),
                     context.GetNormalizedOperation(),
                     analyses);
-                _cache.TryAdd(operationId, plan);
+                _cache.TryAddPlan(operationId, plan);
             }
 
             var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
@@ -322,7 +322,7 @@ internal sealed class CostAnalysisMiddleware
             (fc, next) =>
             {
                 var schemaIndex = fc.SchemaServices.GetRequiredService<CostSchemaIndex>();
-                var cache = fc.SchemaServices.GetRequiredService<Cache<CostPlan>>();
+                var cache = fc.SchemaServices.GetRequiredService<CostPlanCache>();
                 var options = fc.SchemaServices.GetRequiredService<FusionCostOptions>();
                 var diagnosticEvents =
                     fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
