@@ -144,6 +144,24 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
+    public void Render_Should_ShowTheUnreachablePresenceToken_When_AgentIsLoginOnly()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        AddUnreachableAgent(store);
+        AddOnlineAgent(store, "s-online");
+        var mode = new AgentsMode(store, time);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToAnsiText(mode);
+
+        // assert
+        AssertAnsiStylePrefixesText(text, "agents.list.presence.unreachable", "●");
+    }
+
+    [Fact]
     public void Render_Should_ShowOnlineCountAndTotal_When_HeaderIsRendered()
     {
         // arrange

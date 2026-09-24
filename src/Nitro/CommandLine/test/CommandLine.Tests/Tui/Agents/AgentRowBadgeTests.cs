@@ -144,14 +144,19 @@ public sealed class AgentRowBadgeTests
     [Fact]
     public void PresenceStyle_Should_ReturnDistinctStyles_When_StateDiffers()
     {
-        // arrange, act
-        var online = AgentRowBadge.PresenceStyle(AgentState.Online);
-        var unreachable = AgentRowBadge.PresenceStyle(AgentState.Unreachable);
-        var offline = AgentRowBadge.PresenceStyle(AgentState.Offline);
+        // arrange
+        const AgentState online = AgentState.Online;
+        const AgentState unreachable = AgentState.Unreachable;
+        const AgentState offline = AgentState.Offline;
+
+        // act
+        var onlineStyle = AgentRowBadge.PresenceStyle(online);
+        var unreachableStyle = AgentRowBadge.PresenceStyle(unreachable);
+        var offlineStyle = AgentRowBadge.PresenceStyle(offline);
 
         // assert
-        Assert.NotEqual(online, unreachable);
-        Assert.NotEqual(online, offline);
-        Assert.NotEqual(unreachable, offline);
+        Assert.NotEqual(onlineStyle, unreachableStyle);
+        Assert.NotEqual(onlineStyle, offlineStyle);
+        Assert.NotEqual(unreachableStyle, offlineStyle);
     }
 }
