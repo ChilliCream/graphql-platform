@@ -315,7 +315,7 @@ export default function LayeredDiagram({
             pulse={downstream}
           />
 
-          <div className="grid grid-cols-3 gap-2 @min-[760px]:grid-cols-7">
+          <div className="grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[760px]:grid-cols-7">
             {tiers.map((node, i) => (
               <Card
                 key={node.name}

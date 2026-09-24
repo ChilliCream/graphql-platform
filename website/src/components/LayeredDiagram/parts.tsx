@@ -42,10 +42,8 @@ export function Card({
   lit,
   tone,
 }: CardProps) {
-  // Below this container width the badge tier's cards (~95px at 375) start
-  // clipping "GRAPHQL FED"; only a badge-carrying card narrows its padding
-  // and tracking here, so the badge-less client tier stays untouched.
-  const tight = badge ? "@max-[356px]:px-1" : "";
+  // Badge cards narrow their padding below 359px, then drop it below 312px.
+  const tight = badge ? "@max-[359px]:px-1 @max-[312px]:px-0" : "";
 
   return (
     <div
@@ -57,7 +55,7 @@ export function Card({
       }}
     >
       <p
-        className="truncate font-mono"
+        className="truncate font-mono @max-[312px]:whitespace-normal"
         style={{
           color: lit ? tone : MC.ink,
           fontSize: TYPE.caption,
@@ -67,7 +65,7 @@ export function Card({
         {title}
       </p>
       <p
-        className="truncate font-mono"
+        className="truncate font-mono @max-[312px]:whitespace-normal"
         style={{
           color: MC.dim,
           fontSize: TYPE.label,
@@ -78,7 +76,7 @@ export function Card({
       </p>
       {badge ? (
         <p
-          className="mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[356px]:px-0.5 @max-[356px]:tracking-[0.01em]"
+          className="mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal"
           style={{
             background: wash(badgeColor ?? MC.dim, 14),
             color: badgeColor ?? MC.dim,
