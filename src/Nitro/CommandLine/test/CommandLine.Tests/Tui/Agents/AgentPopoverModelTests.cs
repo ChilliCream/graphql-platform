@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using Microsoft.Extensions.Time.Testing;
+using Spectre.Console;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
@@ -23,6 +24,20 @@ public sealed class AgentPopoverModelTests
     {
         var console = new TestConsole().Width(width);
         console.Write(model.Render(width, height));
+        return console.Output;
+    }
+
+    private static string RenderToAnsiText(AgentPopoverModel model, int width = 100, int height = 30)
+    {
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(width);
+        console.Write(model.Render(width, height));
+        return console.Output;
+    }
+
+    private static string RenderMarkupToAnsiText(string markupLine)
+    {
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(200);
+        console.Write(new Markup(markupLine));
         return console.Output;
     }
 
@@ -182,6 +197,68 @@ public sealed class AgentPopoverModelTests
 
 
             """);
+    }
+
+    [Fact]
+    public void HandleKey_Should_SkipTheSpacerAndSectionTitle_When_JMovesFromMailShowMoreIntoTickets()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mail = new[] { CreateMailSummary(0), CreateMailSummary(1) };
+        var tickets = new[] { TaskItemBuilder.Create("a1", "First"), TaskItemBuilder.Create("a2", "Second") };
+        var memory = new[] { CreateMemoryEntry(0), CreateMemoryEntry(1) };
+        var model = CreateModel(
+            agent.Name,
+            agentStore,
+            new FakeMailStore { ParticipationRows = mail },
+            new FakeTaskStore { ParticipationRows = tickets },
+            new FakeMemoryStore { ParticipationRows = memory });
+        model.Load();
+        var highlighted = AgentPopoverView.BuildLines(
+            agent, mail, tickets, memory, s_now, 200, (AgentPopoverSection.Tickets, false, 0));
+        var unselected = AgentPopoverView.BuildLines(
+            agent, mail, tickets, memory, s_now, 200, (AgentPopoverSection.Mail, false, 0));
+        var expectedHighlightAnsi = RenderMarkupToAnsiText(highlighted.Lines[highlighted.SelectedLineIndex]);
+        var expectedTitleAnsi = RenderMarkupToAnsiText(
+            unselected.Lines.First(line => Markup.Remove(line) == "Tickets (last 10)"));
+
+        // act
+        MoveCursorDown(model, 3);
+        var output = RenderToAnsiText(model);
+
+        // assert
+        Assert.Contains(expectedHighlightAnsi, output);
+        Assert.Contains(expectedTitleAnsi, output);
+    }
+
+    [Fact]
+    public void HandleKey_Should_SkipTheSpacerAndSectionTitle_When_KMovesFromTicketsBackToMailShowMore()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mail = new[] { CreateMailSummary(0), CreateMailSummary(1) };
+        var tickets = new[] { TaskItemBuilder.Create("a1", "First"), TaskItemBuilder.Create("a2", "Second") };
+        var memory = new[] { CreateMemoryEntry(0), CreateMemoryEntry(1) };
+        var model = CreateModel(
+            agent.Name,
+            agentStore,
+            new FakeMailStore { ParticipationRows = mail },
+            new FakeTaskStore { ParticipationRows = tickets },
+            new FakeMemoryStore { ParticipationRows = memory });
+        model.Load();
+        var highlighted = AgentPopoverView.BuildLines(
+            agent, mail, tickets, memory, s_now, 200, (AgentPopoverSection.Mail, true, -1));
+        var expectedHighlightAnsi = RenderMarkupToAnsiText(highlighted.Lines[highlighted.SelectedLineIndex]);
+
+        // act
+        MoveCursorDown(model, 3);
+        model.HandleKey(Key(ConsoleKey.K, 'k'));
+        var output = RenderToAnsiText(model);
+
+        // assert
+        Assert.Contains(expectedHighlightAnsi, output);
     }
 
     [Fact]

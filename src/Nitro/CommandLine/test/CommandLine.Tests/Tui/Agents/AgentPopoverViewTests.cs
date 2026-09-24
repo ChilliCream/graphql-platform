@@ -250,45 +250,6 @@ public sealed class AgentPopoverViewTests
     }
 
     [Fact]
-    public void BuildLines_Should_NeverSelectASpacerLine_When_EveryRowAndShowMoreRowIsSelectedInTurn()
-    {
-        // arrange
-        var row = CreateRow();
-        var mail = new[] { CreateMailSummary("t1", "Subject 0"), CreateMailSummary("t2", "Subject 1") };
-        var tickets = new[]
-        {
-            TaskItemBuilder.Create("a1", "First"),
-            TaskItemBuilder.Create("a2", "Second")
-        };
-        var memory = new[]
-        {
-            new MemoryParticipationEntry(MemoryParticipationKind.Journal, "j1", null, [], "Note one.", s_now),
-            new MemoryParticipationEntry(MemoryParticipationKind.Journal, "j2", null, [], "Note two.", s_now)
-        };
-        (AgentPopoverSection Section, bool IsShowMore, int ItemIndex)[] selections =
-        [
-            (AgentPopoverSection.Mail, false, 0),
-            (AgentPopoverSection.Mail, false, 1),
-            (AgentPopoverSection.Mail, true, -1),
-            (AgentPopoverSection.Tickets, false, 0),
-            (AgentPopoverSection.Tickets, false, 1),
-            (AgentPopoverSection.Tickets, true, -1),
-            (AgentPopoverSection.Memory, false, 0),
-            (AgentPopoverSection.Memory, false, 1),
-            (AgentPopoverSection.Memory, true, -1)
-        ];
-
-        // act
-        var selectedLines = selections
-            .Select(selected => AgentPopoverView.BuildLines(row, mail, tickets, memory, s_now, 80, selected))
-            .Select(built => built.Lines[built.SelectedLineIndex])
-            .ToList();
-
-        // assert
-        Assert.All(selectedLines, line => Assert.NotEqual(string.Empty, line));
-    }
-
-    [Fact]
     public void BuildLines_Should_MarkTheSelectedRowWithTheHighlightStyle_When_ItIsAMailRow()
     {
         // arrange
