@@ -1,9 +1,9 @@
  [T]asks   [M]ail   [A]gents   M[e]mory
 ╭─Agents (1 online / 4)───────────────────────────────────────────────────────────────────────╮
-│ > ● nora      planner Claude Code 2026-01-01 ago AG ago                                     │
-│   ● alice     -       -           2026-01-01 ago AG ago                                     │
-│   ● e2e-agent -       -           2026-01-01 ago AG ago                                     │
-│   ● bob       -       -           2026-01-01 ago 2026-01-01 ago                             │
+│ > ● nora      planner Claude Code 2026-01-01 just now                                       │
+│   ● alice     -       -           2026-01-01 just now                                       │
+│   ● e2e-agent -       -           2026-01-01 just now                                       │
+│   ● bob       -       -           2026-01-01 2026-01-01                                     │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │
