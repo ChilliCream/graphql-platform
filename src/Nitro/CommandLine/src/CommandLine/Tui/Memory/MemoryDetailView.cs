@@ -38,21 +38,61 @@ internal sealed class MemoryDetailView
             return new Markup(string.Empty);
         }
 
-        var safeWidth = Math.Max(1, width);
-        var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
-        var interiorHeight = Math.Max(1, height - PanelChromeHeight);
-
+        var interiorWidth = Math.Max(1, Math.Max(1, width) - PanelChromeWidth);
         var lines = BuildLines(state, interiorWidth);
 
+        return RenderPanel(lines, BuildHeader(state), NoSelectionMessage(state), width, height, focused);
+    }
+
+    /// <summary>
+    /// Renders a curated memory directly, for a host outside the Memory tab that already
+    /// has the record loaded (for example the agent detail popover).
+    /// </summary>
+    public IRenderable RenderCurated(MemoryRecord record, int width, int height, bool focused)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return new Markup(string.Empty);
+        }
+
+        var interiorWidth = Math.Max(1, Math.Max(1, width) - PanelChromeWidth);
+        var header = $"[dim]{Markup.Escape(record.Id)}[/]";
+
+        return RenderPanel(BuildCuratedLines(record, interiorWidth), header, "No item selected.", width, height, focused);
+    }
+
+    /// <summary>
+    /// Renders a journal entry directly, for a host outside the Memory tab that already
+    /// has the entry loaded (for example the agent detail popover).
+    /// </summary>
+    public IRenderable RenderJournal(MemoryJournalEntry entry, int width, int height, bool focused)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return new Markup(string.Empty);
+        }
+
+        var interiorWidth = Math.Max(1, Math.Max(1, width) - PanelChromeWidth);
+        var header = $"[dim]{Markup.Escape(entry.Id)}[/]";
+
+        return RenderPanel(BuildJournalLines(entry, interiorWidth), header, "No item selected.", width, height, focused);
+    }
+
+    private IRenderable RenderPanel(
+        IReadOnlyList<string> lines, string header, string emptyMessage, int width, int height, bool focused)
+    {
+        var safeWidth = Math.Max(1, width);
+        var interiorHeight = Math.Max(1, height - PanelChromeHeight);
+
         IRenderable content = lines.Count == 0
-            ? Align.Center(new Markup(Markup.Escape(NoSelectionMessage(state))), VerticalAlignment.Middle)
+            ? Align.Center(new Markup(Markup.Escape(emptyMessage)), VerticalAlignment.Middle)
             : new Rows(RenderVisibleLines(lines, interiorHeight).Select(Row));
 
         var borderToken = focused ? "board.column.border.focused" : "board.column.border";
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildHeader(state)),
+            Header = new PanelHeader(header),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,

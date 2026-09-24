@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
+using ChilliCream.Nitro.CommandLine.Tui.Input;
 using Microsoft.Extensions.Time.Testing;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -367,6 +368,310 @@ public sealed class AgentPopoverModelTests
     }
 
     [Fact]
+    public void HandleKey_Should_OpenTheMailThreadDetail_When_EnterIsPressedOnAMailRow()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
+        mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains("Body text 0", text);
+        Assert.Equal(AgentPopoverModel.DetailHints, model.Hints);
+    }
+
+    [Fact]
+    public void HandleKey_Should_LeaveReadAtUntouched_When_OpeningAMailThreadFromTheSummary()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
+        mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+
+        // act
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // assert
+        Assert.Equal(["t0"], mailStore.LoadedThreadIds);
+        Assert.False(mailStore.MarkReadCalled);
+    }
+
+    [Fact]
+    public void HandleKey_Should_OpenTheTicketDetail_When_EnterIsPressedOnATicketRow()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var task = TaskItemBuilder.Create("a1", "Fix the thing");
+        var taskStore = new FakeTaskStore { ParticipationRows = [task] };
+        taskStore.Tasks[task.Id] = task;
+        var model = CreateModel(agent.Name, agentStore, taskStore: taskStore);
+        model.Load();
+
+        // act
+        // Mail has no rows, so cursor 1 is the ticket's first item.
+        MoveCursorDown(model, 1);
+        var result = model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains("Fix the thing", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_OpenTheJournalMemoryDetail_When_EnterIsPressedOnAMemoryRow()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var memoryStore = new FakeMemoryStore { ParticipationRows = [CreateMemoryEntry(0)] };
+        memoryStore.JournalEntries["j0"] = new MemoryJournalEntry
+        {
+            Id = "j0",
+            Body = "Journal body 0",
+            CreatedAt = s_now,
+            CreatedBy = "felix"
+        };
+        var model = CreateModel(agent.Name, agentStore, memoryStore: memoryStore);
+        model.Load();
+
+        // act
+        // Mail and tickets have no rows, so cursor 2 is memory's first item.
+        MoveCursorDown(model, 2);
+        var result = model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains("Journal body 0", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_OpenTheCuratedMemoryDetail_When_TheSelectedMemoryRowIsCurated()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var memoryStore = new FakeMemoryStore
+        {
+            ParticipationRows = [new MemoryParticipationEntry(MemoryParticipationKind.Curated, "m0", "note", [], "Curated body 0", s_now)]
+        };
+        memoryStore.CuratedRecords["m0"] = new MemoryRecord
+        {
+            Id = "m0",
+            Type = "note",
+            Tags = [],
+            Body = "Curated body 0",
+            CreatedAt = s_now,
+            UpdatedAt = s_now,
+            CreatedBy = "felix"
+        };
+        var model = CreateModel(agent.Name, agentStore, memoryStore: memoryStore);
+        model.Load();
+
+        // act
+        MoveCursorDown(model, 2);
+        var result = model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains("Curated body 0", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_OpenTheItemDetail_When_EnterIsPressedInsideTheFullList()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)] };
+        mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+        MoveCursorDown(model, 2);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains("Body text 0", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_ReturnToTheSummaryWithCursorUnchanged_When_EscapeIsPressedInADetailOpenedFromTheSummary()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mail = new[] { CreateMailSummary(0), CreateMailSummary(1) };
+        var mailStore = new FakeMailStore { ParticipationRows = mail };
+        mailStore.Threads["t1"] = [CreateMailMessage("t1", "m2", "felix", "Subject 1", "Body text 1")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+        MoveCursorDown(model, 1);
+        var expected = AgentPopoverView.BuildLines(agent, mail, [], [], s_now, 200, (AgentPopoverSection.Mail, false, 1));
+        var expectedHighlightAnsi = RenderMarkupToAnsiText(expected.Lines[expected.SelectedLineIndex]);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.Escape));
+        var output = RenderToAnsiText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains(expectedHighlightAnsi, output);
+    }
+
+    [Fact]
+    public void HandleKey_Should_ReturnToTheFullList_When_EscapeIsPressedInADetailOpenedFromTheShowMoreList()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)] };
+        mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+        MoveCursorDown(model, 2);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.Escape));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Contains("Mail (2)", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_ReturnCopyItemRequestedWithTheThreadId_When_YIsPressedInAMailDetail()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
+        mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.Y, 'y'));
+
+        // assert
+        var copy = Assert.IsType<AgentPopoverResult.CopyItemRequested>(result);
+        Assert.Equal("t0", copy.Id);
+    }
+
+    [Fact]
+    public void HandleKey_Should_ReturnCopyItemRequestedWithTheTaskId_When_YIsPressedInATicketDetail()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var task = TaskItemBuilder.Create("a1", "Fix the thing");
+        var taskStore = new FakeTaskStore { ParticipationRows = [task] };
+        taskStore.Tasks[task.Id] = task;
+        var model = CreateModel(agent.Name, agentStore, taskStore: taskStore);
+        model.Load();
+        MoveCursorDown(model, 1);
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.Y, 'y'));
+
+        // assert
+        var copy = Assert.IsType<AgentPopoverResult.CopyItemRequested>(result);
+        Assert.Equal("a1", copy.Id);
+    }
+
+    [Fact]
+    public void HandleKey_Should_ScrollTheDetailBody_When_JIsPressedInAMailDetail()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
+        mailStore.Threads["t0"] =
+        [
+            CreateMailMessage("t0", "m1", "felix", "Subject 0", string.Join('\n', Enumerable.Range(0, 40).Select(i => $"Line {i}")))
+        ];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+        var before = RenderToText(model, height: 10);
+
+        // act
+        for (var i = 0; i < 5; i++)
+        {
+            model.HandleKey(Key(ConsoleKey.J, 'j'));
+        }
+
+        var after = RenderToText(model, height: 10);
+
+        // assert
+        Assert.NotEqual(before, after);
+    }
+
+    [Fact]
+    public void Hints_Should_ReturnDetailHints_When_ANestedDetailIsOpen()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
+        mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
+        var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
+        model.Load();
+
+        // act
+        model.HandleKey(Key(ConsoleKey.Enter, '\r'));
+
+        // assert
+        Assert.Equal(AgentPopoverModel.DetailHints, model.Hints);
+    }
+
+    [Fact]
+    public void SummaryHints_Should_IncludeEnterOpen_When_Inspected()
+    {
+        // arrange
+        // act
+        var hints = AgentPopoverModel.SummaryHints;
+
+        // assert
+        Assert.Contains(new KeyHint("enter", "open"), hints);
+    }
+
+    [Fact]
+    public void ListHints_Should_IncludeEnterOpen_When_Inspected()
+    {
+        // arrange
+        // act
+        var hints = AgentPopoverModel.ListHints;
+
+        // assert
+        Assert.Contains(new KeyHint("enter", "open"), hints);
+    }
+
+    [Fact]
     public void Render_Should_ShowTenRowsInTheSummaryAndAllTwentyFiveInEachShowMoreList_When_ThereAreTwentyFiveOfEachParticipationType()
     {
         // arrange
@@ -525,6 +830,16 @@ public sealed class AgentPopoverModelTests
 
     private static MemoryParticipationEntry CreateMemoryEntry(int index) =>
         new(MemoryParticipationKind.Journal, $"j{index}", null, [], $"Memory {index}", s_now);
+
+    private static MailMessage CreateMailMessage(string threadId, string id, string sender, string subject, string body) => new()
+    {
+        Id = id,
+        ThreadId = threadId,
+        Sender = sender,
+        Subject = subject,
+        Body = body,
+        CreatedAt = s_now
+    };
 
     private static MailThreadSummary CreateMailSummary(int index) => new()
     {

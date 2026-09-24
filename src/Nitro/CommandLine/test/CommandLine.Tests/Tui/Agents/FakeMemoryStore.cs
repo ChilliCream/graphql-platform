@@ -3,9 +3,10 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// An <see cref="IMemoryStore"/> exposing only <see cref="QueryParticipationAsync"/> with
-/// configurable rows, for tests of the agent detail popover's Memory section. Every other
-/// member throws <see cref="NotSupportedException"/>.
+/// An <see cref="IMemoryStore"/> exposing <see cref="QueryParticipationAsync"/>,
+/// <see cref="GetRequiredAsync"/>, and <see cref="GetRequiredJournalEntryAsync"/> with
+/// configurable rows, for tests of the agent detail popover's Memory section and its
+/// drilled-into detail view. Every other member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMemoryStore : IMemoryStore
 {
@@ -14,6 +15,18 @@ internal sealed class FakeMemoryStore : IMemoryStore
     /// limit; empty by default.
     /// </summary>
     public IReadOnlyList<MemoryParticipationEntry> ParticipationRows { get; set; } = [];
+
+    /// <summary>
+    /// The curated memories <see cref="GetRequiredAsync"/> returns, keyed by id; empty by
+    /// default.
+    /// </summary>
+    public Dictionary<string, MemoryRecord> CuratedRecords { get; } = [];
+
+    /// <summary>
+    /// The journal entries <see cref="GetRequiredJournalEntryAsync"/> returns, keyed by id;
+    /// empty by default.
+    /// </summary>
+    public Dictionary<string, MemoryJournalEntry> JournalEntries { get; } = [];
 
     public Task<IReadOnlyList<MemoryParticipationEntry>> QueryParticipationAsync(
         string agent, int? limit, CancellationToken cancellationToken)
@@ -35,7 +48,9 @@ internal sealed class FakeMemoryStore : IMemoryStore
         => throw new NotSupportedException();
 
     public Task<MemoryRecord> GetRequiredAsync(string id, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => CuratedRecords.TryGetValue(id, out var record)
+            ? Task.FromResult(record)
+            : throw new ExitException($"Memory '{id}' not found.");
 
     public Task<IReadOnlyList<MemoryRecord>> GetRecentCuratedAsync(int? limit, CancellationToken cancellationToken)
         => throw new NotSupportedException();
@@ -56,7 +71,9 @@ internal sealed class FakeMemoryStore : IMemoryStore
         => throw new NotSupportedException();
 
     public Task<MemoryJournalEntry> GetRequiredJournalEntryAsync(string id, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => JournalEntries.TryGetValue(id, out var entry)
+            ? Task.FromResult(entry)
+            : throw new ExitException($"Journal entry '{id}' not found.");
 
     public Task<IReadOnlyList<MemoryJournalEntry>> GetRecentJournalAsync(int? limit, CancellationToken cancellationToken)
         => throw new NotSupportedException();

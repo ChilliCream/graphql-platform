@@ -45,14 +45,21 @@ internal abstract record AgentPopoverResult
     /// table's y key starts, regardless of which row the table currently has selected.
     /// </summary>
     public sealed record CopyRequested(string Name, string? SessionId) : AgentPopoverResult;
+
+    /// <summary>
+    /// A drilled-into item's id should be copied: a mail thread id, a ticket id, or a
+    /// memory id.
+    /// </summary>
+    public sealed record CopyItemRequested(string Id) : AgentPopoverResult;
 }
 
 /// <summary>
 /// Loads one agent's identity plus its last mail, ticket, and memory participation, and
 /// drives the centered detail overlay opened from the Agents tab: cursor navigation across
-/// item and show-more rows, a nested full list per section, and the delete and copy-id
-/// gestures the Agents table also exposes. Reloads on <see cref="Load"/> and recomputes
-/// presence and ages on every <see cref="Tick"/>, both driven by the hosting shell.
+/// item and show-more rows, a nested full list per section, a nested read-only detail view
+/// for any mail thread, ticket, or memory item, and the delete and copy-id gestures the
+/// Agents table also exposes. Reloads on <see cref="Load"/> and recomputes presence and ages
+/// on every <see cref="Tick"/>, both driven by the hosting shell.
 /// </summary>
 internal sealed class AgentPopoverModel
 {
@@ -66,7 +73,7 @@ internal sealed class AgentPopoverModel
     public static readonly IReadOnlyList<KeyHint> SummaryHints =
     [
         new KeyHint("j/k", "move"),
-        new KeyHint("enter", "show more"),
+        new KeyHint("enter", "open"),
         new KeyHint("d", "delete"),
         new KeyHint("y", "copy id"),
         new KeyHint("esc", "close")
@@ -78,6 +85,17 @@ internal sealed class AgentPopoverModel
     public static readonly IReadOnlyList<KeyHint> ListHints =
     [
         new KeyHint("j/k", "move"),
+        new KeyHint("enter", "open"),
+        new KeyHint("esc", "back")
+    ];
+
+    /// <summary>
+    /// Footer hints while a nested item detail view is active.
+    /// </summary>
+    public static readonly IReadOnlyList<KeyHint> DetailHints =
+    [
+        new KeyHint("j/k", "scroll"),
+        new KeyHint("y", "copy id"),
         new KeyHint("esc", "back")
     ];
 
@@ -95,6 +113,7 @@ internal sealed class AgentPopoverModel
     private int _cursor;
     private AgentPopoverListMode? _listMode;
     private AgentPopoverSection? _listSection;
+    private AgentItemDetailMode? _detailMode;
 
     public AgentPopoverModel(
         string agentName,
@@ -126,10 +145,13 @@ internal sealed class AgentPopoverModel
     public AgentRow? Agent { get; private set; }
 
     /// <summary>
-    /// The current footer hints: <see cref="ListHints"/> while a show-more list is open,
-    /// otherwise <see cref="SummaryHints"/>.
+    /// The current footer hints: <see cref="DetailHints"/> while a nested item detail is
+    /// open, <see cref="ListHints"/> while a show-more list is open, otherwise
+    /// <see cref="SummaryHints"/>.
     /// </summary>
-    public IReadOnlyList<KeyHint> Hints => _listMode is null ? SummaryHints : ListHints;
+    public IReadOnlyList<KeyHint> Hints => _detailMode is not null
+        ? DetailHints
+        : _listMode is null ? SummaryHints : ListHints;
 
     /// <summary>
     /// Loads (or reloads) the agent row and its last <c>10</c> mail, ticket, and memory
@@ -204,21 +226,23 @@ internal sealed class AgentPopoverModel
     private int TotalSelectableRows => _mail.Count + 1 + _tickets.Count + 1 + _memory.Count + 1;
 
     /// <summary>
-    /// Handles one raw key: while a show-more list is open, keys route there and Escape
-    /// pops back to the summary; otherwise j/k and the arrows move the cursor, Enter opens
-    /// a show-more row's full list, d and y report the same delete and copy gestures the
-    /// Agents table exposes, and Escape closes the popover.
+    /// Handles one raw key: while a nested item detail is open, keys scroll it, y reports
+    /// copying its id, and Escape closes it back to wherever it was opened from; while a
+    /// show-more list is open (and no detail is), keys route there; otherwise j/k and the
+    /// arrows move the cursor, Enter opens the selected row's detail or full list, d and y
+    /// report the same delete and copy gestures the Agents table exposes, and Escape closes
+    /// the popover.
     /// </summary>
     public AgentPopoverResult? HandleKey(ConsoleKeyInfo info)
     {
+        if (_detailMode is not null)
+        {
+            return HandleDetailKey(info);
+        }
+
         if (_listMode is { } listMode)
         {
-            if (listMode.HandleKey(info))
-            {
-                _listMode = null;
-                _listSection = null;
-            }
-
+            HandleListKey(listMode, info);
             return null;
         }
 
@@ -235,7 +259,7 @@ internal sealed class AgentPopoverModel
                 return null;
 
             case ConsoleKey.Enter:
-                OpenShowMoreIfSelected();
+                OpenSelectedRow();
                 return null;
 
             case ConsoleKey.D when info.Modifiers == ConsoleModifiers.None:
@@ -252,6 +276,55 @@ internal sealed class AgentPopoverModel
         }
     }
 
+    /// <summary>
+    /// Routes one raw key to the open nested item detail: j/k and the arrows scroll, y
+    /// reports copying its id, and Escape closes it back to wherever it was opened from.
+    /// </summary>
+    private AgentPopoverResult? HandleDetailKey(ConsoleKeyInfo info)
+    {
+        switch (info.Key)
+        {
+            case ConsoleKey.J:
+            case ConsoleKey.DownArrow:
+                _detailMode!.ScrollDown();
+                return null;
+
+            case ConsoleKey.K:
+            case ConsoleKey.UpArrow:
+                _detailMode!.ScrollUp();
+                return null;
+
+            case ConsoleKey.Y when info.Modifiers == ConsoleModifiers.None:
+                return new AgentPopoverResult.CopyItemRequested(_detailMode!.CopyId);
+
+            case ConsoleKey.Escape:
+                _detailMode = null;
+                return null;
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Routes one raw key to the open show-more list: Escape pops back to the summary, and
+    /// Enter opens the highlighted row's item detail.
+    /// </summary>
+    private void HandleListKey(AgentPopoverListMode listMode, ConsoleKeyInfo info)
+    {
+        switch (listMode.HandleKey(info))
+        {
+            case AgentPopoverListAction.Back:
+                _listMode = null;
+                _listSection = null;
+                break;
+
+            case AgentPopoverListAction.OpenSelected:
+                _detailMode = BuildDetail(listMode.SelectedItem);
+                break;
+        }
+    }
+
     private void MoveCursor(int delta)
     {
         var total = TotalSelectableRows;
@@ -262,18 +335,55 @@ internal sealed class AgentPopoverModel
         }
     }
 
-    private void OpenShowMoreIfSelected()
+    /// <summary>
+    /// Opens the show-more list for the cursor's section when it sits on the show-more row,
+    /// otherwise opens the cursor's item as a nested detail view.
+    /// </summary>
+    private void OpenSelectedRow()
     {
         var location = Locate(_cursor);
 
-        if (!location.IsShowMore)
+        if (location.IsShowMore)
         {
+            _listSection = location.Section;
+            _listMode = BuildListMode(location.Section, selected: 0);
             return;
         }
 
-        _listSection = location.Section;
-        _listMode = BuildListMode(location.Section, selected: 0);
+        _detailMode = BuildDetail(ItemAt(location));
     }
+
+    /// <summary>
+    /// The raw participation entry the summary's <paramref name="location"/> points at, or
+    /// null for a show-more row or an out-of-range index.
+    /// </summary>
+    private object? ItemAt((AgentPopoverSection Section, bool IsShowMore, int ItemIndex) location)
+    {
+        if (location.IsShowMore || location.ItemIndex < 0)
+        {
+            return null;
+        }
+
+        return location.Section switch
+        {
+            AgentPopoverSection.Mail when location.ItemIndex < _mail.Count => _mail[location.ItemIndex],
+            AgentPopoverSection.Tickets when location.ItemIndex < _tickets.Count => _tickets[location.ItemIndex],
+            AgentPopoverSection.Memory when location.ItemIndex < _memory.Count => _memory[location.ItemIndex],
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Builds the nested detail view for one mail, ticket, or memory participation entry,
+    /// or null when <paramref name="item"/> is null or an unrecognized kind.
+    /// </summary>
+    private AgentItemDetailMode? BuildDetail(object? item) => item switch
+    {
+        MailThreadSummary mail => AgentItemDetailMode.ForThread(_mailStore, mail.ThreadId),
+        TaskItem task => AgentItemDetailMode.ForTask(_taskStore, task.Id),
+        MemoryParticipationEntry memory => AgentItemDetailMode.ForMemory(_memoryStore, memory.Kind, memory.Id),
+        _ => null
+    };
 
     private AgentPopoverListMode BuildListMode(AgentPopoverSection section, int selected) => section switch
     {
@@ -327,7 +437,7 @@ internal sealed class AgentPopoverModel
                 (now, width) => AgentPopoverView.FormatMailRow(item, now, width)))
             .ToList();
 
-        return new AgentPopoverListMode("Mail", rows, _timeProvider, selected);
+        return new AgentPopoverListMode("Mail", rows, [.. items.Cast<object>()], _timeProvider, selected);
     }
 
     private AgentPopoverListMode BuildTicketListMode(int selected)
@@ -340,7 +450,7 @@ internal sealed class AgentPopoverModel
                 (_, width) => AgentPopoverView.FormatTicketRow(item, width)))
             .ToList();
 
-        return new AgentPopoverListMode("Tickets", rows, _timeProvider, selected);
+        return new AgentPopoverListMode("Tickets", rows, [.. items.Cast<object>()], _timeProvider, selected);
     }
 
     private AgentPopoverListMode BuildMemoryListMode(int selected)
@@ -353,18 +463,23 @@ internal sealed class AgentPopoverModel
                 (now, width) => AgentPopoverView.FormatMemoryRow(item, now, width)))
             .ToList();
 
-        return new AgentPopoverListMode("Memory", rows, _timeProvider, selected);
+        return new AgentPopoverListMode("Memory", rows, [.. items.Cast<object>()], _timeProvider, selected);
     }
 
     /// <summary>
-    /// Renders the show-more list at full size when one is open, otherwise the centered
-    /// summary overlay at about 80% of the given area.
+    /// Renders the nested item detail or the show-more list at full size when one is open,
+    /// otherwise the centered summary overlay at about 80% of the given area.
     /// </summary>
     public IRenderable Render(int width, int height)
     {
         if (width <= 0 || height <= 0)
         {
             return new Markup(string.Empty);
+        }
+
+        if (_detailMode is { } detailMode)
+        {
+            return detailMode.Render(width, height);
         }
 
         if (_listMode is { } listMode)
