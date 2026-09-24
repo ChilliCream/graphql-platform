@@ -346,6 +346,57 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
         return Task.FromResult(true);
     }
 
+    public Task<bool> DeleteAsync(string name, CancellationToken cancellationToken)
+    {
+        var normalizedName = MailAgentName.Normalize(name);
+        var index = _rows.FindIndex(r => r.Name == normalizedName && !r.IsDeleted);
+
+        if (index < 0)
+        {
+            return Task.FromResult(false);
+        }
+
+        _rows[index] = DeletedRow(_rows[index], timeProvider.GetUtcNow());
+
+        return Task.FromResult(true);
+    }
+
+    public Task<int> DeleteOfflineAsync(CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+        var deletedCount = 0;
+
+        for (var index = 0; index < _rows.Count; index++)
+        {
+            var row = _rows[index];
+
+            if (row.IsDeleted || AgentStateResolver.Resolve(row, now) != AgentState.Offline)
+            {
+                continue;
+            }
+
+            _rows[index] = DeletedRow(row, now);
+            deletedCount++;
+        }
+
+        return Task.FromResult(deletedCount);
+    }
+
+    private static AgentRow DeletedRow(AgentRow row, DateTimeOffset now) => row with
+    {
+        DeletedAt = now,
+        EndpointKind = AgentSessionEndpointKind.None,
+        EndpointAddr = string.Empty,
+        EndpointSecret = null,
+        LastPingAt = null,
+        LastPingAttempt = null,
+        LastPingResult = null,
+        LastPingDetail = null,
+        AnnouncementPending = false,
+        IdlePushArmed = false,
+        BlockBudgetUsed = 0
+    };
+
     private Task<bool> ClaimFlag(
         string name, Func<AgentRow, bool> read, Func<AgentRow, bool, AgentRow> write)
     {

@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Extensions.Time.Testing;
 
@@ -73,6 +74,129 @@ public sealed class AgentStoreTests : IDisposable
         command.Parameters.AddWithValue("@name", name);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Inserts one row for the named agent into each wake and ping side table, so a delete
+    /// test can prove they are all removed.
+    /// </summary>
+    private async Task InsertSideRowsAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await new AgentDatabase().ConnectAsync(_workspaceDirectory, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+
+        async Task ExecuteAsync(string sql)
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@now", now);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await ExecuteAsync(
+            "INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at) "
+            + "VALUES (@name, 'msg-1', 'digest', @now)");
+        await ExecuteAsync(
+            "INSERT INTO agent_ping_gates (agent, attempt_id, acquired_at, expires_at) "
+            + "VALUES (@name, 'attempt-1', @now, @now)");
+        await ExecuteAsync(
+            "INSERT INTO mail_wake_outbox (actor, due_at, updated_at) VALUES (@name, @now, @now)");
+        await ExecuteAsync(
+            "INSERT INTO mail_wake_batches "
+            + "(batch_id, actor, claimed_generation, owner_id, attempt_id, claimed_at, expires_at) "
+            + "VALUES ('batch-1', @name, 0, 'owner-1', 'attempt-1', @now, @now)");
+        await ExecuteAsync(
+            "INSERT INTO mail_wake_targets (batch_id, agent, updated_at) VALUES ('batch-1', @name, @now)");
+    }
+
+    /// <summary>
+    /// Counts the named agent's rows across the wake and ping side tables.
+    /// </summary>
+    private async Task<(long Deliveries, long PingGates, long Outbox, long Batches, long Targets)> CountSideRowsAsync(
+        string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await new AgentDatabase().ConnectAsync(_workspaceDirectory, cancellationToken);
+
+        async Task<long> CountAsync(string sql)
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            command.Parameters.AddWithValue("@name", name);
+            return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
+        }
+
+        return (
+            Deliveries: await CountAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = @name"),
+            PingGates: await CountAsync("SELECT COUNT(*) FROM agent_ping_gates WHERE agent = @name"),
+            Outbox: await CountAsync("SELECT COUNT(*) FROM mail_wake_outbox WHERE actor = @name"),
+            Batches: await CountAsync("SELECT COUNT(*) FROM mail_wake_batches WHERE actor = @name"),
+            Targets: await CountAsync("SELECT COUNT(*) FROM mail_wake_targets WHERE agent = @name"));
+    }
+
+    /// <summary>
+    /// Inserts a minimal in-progress task assigned to the named agent, directly into the
+    /// shared workspace database.
+    /// </summary>
+    private async Task InsertInProgressTaskAsync(string taskId, string assignee, CancellationToken cancellationToken)
+    {
+        await using var connection = await new AgentDatabase().ConnectAsync(_workspaceDirectory, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO tasks (id, title, status, priority, task_type, assignee, created_at, updated_at)
+            VALUES (@id, 'Task', @status, 2, 'task', @assignee, @now, @now)
+            """;
+        command.Parameters.AddWithValue("@id", taskId);
+        command.Parameters.AddWithValue("@status", TaskStates.InProgress);
+        command.Parameters.AddWithValue("@assignee", assignee);
+        command.Parameters.AddWithValue("@now", now);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Reads the named task's status and assignee directly from the shared workspace database.
+    /// </summary>
+    private async Task<(string Status, string? Assignee)> QueryTaskAsync(
+        string taskId, CancellationToken cancellationToken)
+    {
+        await using var connection = await new AgentDatabase().ConnectAsync(_workspaceDirectory, cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT status, assignee FROM tasks WHERE id = @id";
+        command.Parameters.AddWithValue("@id", taskId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+
+        return (reader.GetString(0), reader.IsDBNull(1) ? null : reader.GetString(1));
+    }
+
+    /// <summary>
+    /// Reads the named task's recorded event types, in insertion order, directly from the
+    /// shared workspace database.
+    /// </summary>
+    private async Task<List<string>> QueryTaskEventTypesAsync(string taskId, CancellationToken cancellationToken)
+    {
+        await using var connection = await new AgentDatabase().ConnectAsync(_workspaceDirectory, cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT event_type FROM events WHERE task_id = @id ORDER BY id";
+        command.Parameters.AddWithValue("@id", taskId);
+
+        var eventTypes = new List<string>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            eventTypes.Add(reader.GetString(0));
+        }
+
+        return eventTypes;
     }
 
     [Fact]
@@ -1107,5 +1231,167 @@ public sealed class AgentStoreTests : IDisposable
 
         // assert
         Assert.False(updated);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_ReturnFalse_When_RowMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+
+        // act
+        var deleted = await _store.DeleteAsync("nobody", cancellationToken);
+
+        // assert
+        Assert.False(deleted);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_ReturnFalse_When_CalledTwice()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+
+        // act
+        var first = await _store.DeleteAsync(agent.Name, cancellationToken);
+        var second = await _store.DeleteAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.True(first);
+        Assert.False(second);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_StampAndClearTheRow_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        var name = minted.Row!.Name;
+        await _store.IncrementBlockBudgetAsync(name, cancellationToken);
+        await _store.TryClaimPingCooldownAsync(name, TimeSpan.FromMinutes(1), "attempt-1", cancellationToken);
+        await _store.WritePingResultAsync(name, "attempt-1", "ok", "detail", cancellationToken);
+        await _store.ArmAnnouncementAsync(name, cancellationToken);
+        await _store.RearmIdlePushAsync(name, cancellationToken);
+
+        // act
+        var deleted = await _store.DeleteAsync(name, cancellationToken);
+        var row = await _store.FindAsync(name, cancellationToken);
+
+        // assert
+        Assert.True(deleted);
+        Snapshot.Create()
+            .Add(row!.IsDeleted, "IsDeleted")
+            .Add(row.EndpointKind, "EndpointKind")
+            .Add(row.EndpointAddr, "EndpointAddr")
+            .Add(row.EndpointSecret, "EndpointSecret")
+            .Add(row.LastPingAt, "LastPingAt")
+            .Add(row.LastPingAttempt, "LastPingAttempt")
+            .Add(row.LastPingResult, "LastPingResult")
+            .Add(row.LastPingDetail, "LastPingDetail")
+            .Add(row.AnnouncementPending, "AnnouncementPending")
+            .Add(row.IdlePushArmed, "IdlePushArmed")
+            .Add(row.BlockBudgetUsed, "BlockBudgetUsed")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_RemoveWakeAndPingSideRows_When_RowExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await InsertSideRowsAsync(agent.Name, cancellationToken);
+
+        // act
+        var deleted = await _store.DeleteAsync(agent.Name, cancellationToken);
+        var counts = await CountSideRowsAsync(agent.Name, cancellationToken);
+
+        // assert
+        Assert.True(deleted);
+        Snapshot.Create()
+            .Add(counts.Deliveries, "Deliveries")
+            .Add(counts.PingGates, "PingGates")
+            .Add(counts.Outbox, "Outbox")
+            .Add(counts.Batches, "Batches")
+            .Add(counts.Targets, "Targets")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_Should_ReleaseInProgressTaskAndRecordEvent_When_AgentHasAssignedTask()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var agent = await _store.LoginAsync(cancellationToken);
+        await InsertInProgressTaskAsync("acme-1", agent.Name, cancellationToken);
+
+        // act
+        var deleted = await _store.DeleteAsync(agent.Name, cancellationToken);
+        var (status, assignee) = await QueryTaskAsync("acme-1", cancellationToken);
+        var eventTypes = await QueryTaskEventTypesAsync("acme-1", cancellationToken);
+
+        // assert
+        Assert.True(deleted);
+        Snapshot.Create()
+            .Add(status, "Status")
+            .Add(assignee, "Assignee")
+            .Add(eventTypes, "EventTypes")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task DeleteOfflineAsync_Should_DeleteOnlyOfflineRows_When_Called()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var online = await _store.StartSessionAsync(CreateRequest(sessionId: "online"), cancellationToken);
+        var unreachable = await _store.StartSessionAsync(
+            CreateRequest(
+                sessionId: "unreachable", endpointKind: AgentSessionEndpointKind.None, endpointAddr: ""),
+            cancellationToken);
+        var offline = await _store.StartSessionAsync(CreateRequest(sessionId: "offline"), cancellationToken);
+        _timeProvider.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        await _store.TouchSessionAsync(Harness, "online", cancellationToken);
+        await _store.TouchSessionAsync(Harness, "unreachable", cancellationToken);
+
+        // act
+        var deletedCount = await _store.DeleteOfflineAsync(cancellationToken);
+        var onlineRow = await _store.FindAsync(online.Row!.Name, cancellationToken);
+        var unreachableRow = await _store.FindAsync(unreachable.Row!.Name, cancellationToken);
+        var offlineRow = await _store.FindAsync(offline.Row!.Name, cancellationToken);
+
+        // assert
+        Snapshot.Create()
+            .Add(deletedCount, "DeletedCount")
+            .Add(onlineRow!.IsDeleted, "OnlineDeleted")
+            .Add(unreachableRow!.IsDeleted, "UnreachableDeleted")
+            .Add(offlineRow!.IsDeleted, "OfflineDeleted")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task StartSessionAsync_Should_ReturnIgnored_When_SessionBelongsToAgentDeletedViaDeleteAsync()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        var minted = await _store.StartSessionAsync(CreateRequest(), cancellationToken);
+        var deleted = await _store.DeleteAsync(minted.Row!.Name, cancellationToken);
+
+        // act
+        var result = await _store.StartSessionAsync(CreateRequest(harnessVersion: "9.9.9"), cancellationToken);
+
+        // assert
+        Assert.True(deleted);
+        Assert.Equal(AgentSessionStartKind.Ignored, result.Kind);
+        Assert.Null(result.Row);
     }
 }
