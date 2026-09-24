@@ -166,8 +166,8 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [InlineData("session-end")]
     public async Task Event_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession(string eventName)
     {
-        // arrange: a payload with no session id, so nothing identifies which
-        // session the event speaks for.
+        // arrange
+        // a payload with no session id, so nothing identifies which session the event speaks for
         await InitWorkspaceAsync();
         await BindAgentSessionAsync("maya", "session-1");
         SetupStandardInput(
@@ -192,9 +192,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task ClaudeHelp_ReturnsSuccess()
+    public async Task ClaudeHelp_Should_ListTheHookEvents_When_HelpIsRequested()
     {
-        // arrange & act
+        // arrange
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "claude", "--help");
 
         // assert
@@ -230,9 +231,10 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [InlineData(
         "session-end",
         "Adapt Claude Code's SessionEnd hook: mark this session's agent row as ended.")]
-    public async Task EventHelp_ReturnsSuccess(string eventName, string description)
+    public async Task EventHelp_Should_PrintTheEventDescription_When_HelpIsRequested(string eventName, string description)
     {
-        // arrange & act
+        // arrange
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "claude", eventName, "--help");
 
         // assert

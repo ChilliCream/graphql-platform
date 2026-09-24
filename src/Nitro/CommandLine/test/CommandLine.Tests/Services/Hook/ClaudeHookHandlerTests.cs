@@ -184,6 +184,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_NotCreateAProvisionalIdentity_When_SessionIdIsMissing()
     {
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new ClaudeHookPayload { SessionId = null, Cwd = _workspaceRoot };
