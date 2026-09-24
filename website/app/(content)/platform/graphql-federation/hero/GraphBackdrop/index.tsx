@@ -24,6 +24,35 @@ interface Engine {
   ctaRect: Rect | null;
 }
 
+interface BuildInputs {
+  readonly w: number;
+  readonly h: number;
+  readonly mode: LayoutMode;
+  readonly copyRect: Rect | null;
+}
+
+function sameRect(a: Rect | null, b: Rect | null): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return (
+    a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+  );
+}
+
+function sameInputs(a: BuildInputs | null, b: BuildInputs): boolean {
+  return (
+    !!a &&
+    a.w === b.w &&
+    a.h === b.h &&
+    a.mode === b.mode &&
+    sameRect(a.copyRect, b.copyRect)
+  );
+}
+
 // A static constellation backdrop: the whole scene is a still frame,
 // painted once on mount and again on resize (ResizeObserver), never from a
 // requestAnimationFrame loop. The layout is always a pure function of the
@@ -62,6 +91,7 @@ export function GraphBackdrop() {
       paragraphRect: null,
       ctaRect: null,
     };
+    let lastBuild: BuildInputs | null = null;
 
     const relRect = (rb: DOMRect, cb: DOMRect): Rect => ({
       x: rb.x - cb.x,
@@ -83,17 +113,29 @@ export function GraphBackdrop() {
         : null;
     };
 
-    const rebuild = () => {
+    // ResizeObserver fires once on observe() even with no real change (both
+    // the canvas's own and the copy block's), so a plain mount without this
+    // guard rebuilds the same graph up to three times. Skipping the build
+    // when w, h, mode and the copy rect all match the last build keeps it
+    // to once per actually-distinct input.
+    const rebuild = (): boolean => {
       if (engine.w <= 0 || engine.h <= 0) {
-        return;
+        return false;
       }
-      engine.mode = modeForSize(engine.w, engine.h);
-      engine.graph = buildGraph(
-        engine.w,
-        engine.h,
-        engine.mode,
-        engine.copyRect,
-      );
+      const mode = modeForSize(engine.w, engine.h);
+      const inputs: BuildInputs = {
+        w: engine.w,
+        h: engine.h,
+        mode,
+        copyRect: engine.copyRect,
+      };
+      engine.mode = mode;
+      if (sameInputs(lastBuild, inputs)) {
+        return false;
+      }
+      engine.graph = buildGraph(engine.w, engine.h, mode, engine.copyRect);
+      lastBuild = inputs;
+      return true;
     };
 
     const draw = () => {
@@ -133,8 +175,11 @@ export function GraphBackdrop() {
     const copyRo = copyEl
       ? new ResizeObserver(() => {
           measureCopyRect();
-          rebuild();
-          draw();
+          // Unlike resize(), this never resets the canvas backing store, so
+          // a skipped rebuild has nothing new to paint.
+          if (rebuild()) {
+            draw();
+          }
         })
       : null;
     if (copyEl && copyRo) {

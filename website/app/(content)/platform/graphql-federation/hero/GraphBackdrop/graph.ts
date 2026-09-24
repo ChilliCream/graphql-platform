@@ -47,6 +47,67 @@ function clamp01(t: number): number {
   return t < 0 ? 0 : t > 1 ? 1 : t;
 }
 
+/**
+ * A uniform grid over 2D positions, cell size >= any query radius used
+ * against it, so the 3x3 block of cells around a query point is always a
+ * superset of every inserted point within that radius (never fewer, so
+ * every predicate that consults it stays exact -- it only prunes candidates
+ * that couldn't possibly match). Cell coordinates pack into one numeric Map
+ * key (a plain multiply, well under 2^53, not a template string) since
+ * farEnough below calls this on every attempt of a saturating Poisson-disc
+ * process -- tens of thousands of them, per the ticket's own unchanged
+ * attempt budgets -- so per-call overhead is what the 50ms bar measures.
+ */
+const GRID_KEY_STRIDE = 1 << 20;
+
+class SpatialGrid {
+  private readonly cellSize: number;
+  private readonly cells = new Map<number, number[]>();
+
+  constructor(cellSize: number) {
+    this.cellSize = cellSize;
+  }
+
+  cellX(x: number): number {
+    return Math.floor(x / this.cellSize);
+  }
+
+  cellY(y: number): number {
+    return Math.floor(y / this.cellSize);
+  }
+
+  bucket(cx: number, cy: number): readonly number[] | undefined {
+    return this.cells.get(cx * GRID_KEY_STRIDE + cy);
+  }
+
+  insert(index: number, x: number, y: number): void {
+    const k = this.cellX(x) * GRID_KEY_STRIDE + this.cellY(y);
+    const bucket = this.cells.get(k);
+    if (bucket) {
+      bucket.push(index);
+    } else {
+      this.cells.set(k, [index]);
+    }
+  }
+
+  near(x: number, y: number): number[] {
+    const cx = this.cellX(x);
+    const cy = this.cellY(y);
+    const out: number[] = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const bucket = this.bucket(cx + dx, cy + dy);
+        if (bucket) {
+          for (const i of bucket) {
+            out.push(i);
+          }
+        }
+      }
+    }
+    return out;
+  }
+}
+
 export interface Point {
   readonly x: number;
   readonly y: number;
@@ -318,6 +379,20 @@ function sampleWorldNodes(
 
   const accepted: SampledPoint[] = [];
   const clears: number[] = [];
+  // Flat, parallel to `accepted`: farEnough's hot loop reads x/y straight
+  // out of these instead of through accepted[i].screen, one array hop
+  // instead of two, since it runs on every attempt of the (unchanged)
+  // attempt-budget dart-throwing process below.
+  const acceptedX: number[] = [];
+  const acceptedY: number[] = [];
+  // Cell size = nearScreenRadius, the largest clearance any point (main
+  // pass or guard) ever carries, so the 3x3 neighbourhood (gridRadius 1)
+  // around a candidate always contains every accepted point its own
+  // required distance could reach -- the same accept/reject decisions as
+  // scanning all of `accepted`, just without scanning the far ones.
+  const gridCellSize = nearScreenRadius;
+  const gridRadius = Math.ceil(nearScreenRadius / gridCellSize);
+  const grid = new SpatialGrid(gridCellSize);
 
   const onCanvas = (p: Point) =>
     p.x >= -overhang &&
@@ -326,14 +401,36 @@ function sampleWorldNodes(
     p.y <= h + overhang;
 
   const farEnough = (screen: Point, clear: number): boolean => {
-    for (let i = 0; i < accepted.length; i++) {
-      const s = accepted[i];
-      const required = Math.max(clear, clears[i], MIN_NODE_SPACING);
-      if (Math.hypot(s.screen.x - screen.x, s.screen.y - screen.y) < required) {
-        return false;
+    const cx = grid.cellX(screen.x);
+    const cy = grid.cellY(screen.y);
+    const clearFloor = Math.max(clear, MIN_NODE_SPACING);
+    for (let dx = -gridRadius; dx <= gridRadius; dx++) {
+      for (let dy = -gridRadius; dy <= gridRadius; dy++) {
+        const bucket = grid.bucket(cx + dx, cy + dy);
+        if (!bucket) {
+          continue;
+        }
+        for (const i of bucket) {
+          const required = Math.max(clearFloor, clears[i]);
+          if (
+            Math.hypot(acceptedX[i] - screen.x, acceptedY[i] - screen.y) <
+            required
+          ) {
+            return false;
+          }
+        }
       }
     }
     return true;
+  };
+
+  const accept = (world: Vec3, screen: Point, scale: number, clear: number) => {
+    const index = accepted.length;
+    accepted.push({ world, screen, scale });
+    clears.push(clear);
+    acceptedX.push(screen.x);
+    acceptedY.push(screen.y);
+    grid.insert(index, screen.x, screen.y);
   };
 
   // A point within its own clearance of the canvas boundary has only a
@@ -374,8 +471,7 @@ function sampleWorldNodes(
       fails++;
       continue;
     }
-    accepted.push({ world, screen, scale: projected.scale });
-    clears.push(clear);
+    accept(world, screen, projected.scale, clear);
     fails = 0;
   }
 
@@ -455,8 +551,7 @@ function sampleWorldNodes(
     if (!onCanvas(screen) || !farEnough(screen, clear)) {
       return false;
     }
-    accepted.push({ world, screen, scale: projected.scale });
-    clears.push(clear);
+    accept(world, screen, projected.scale, clear);
     return true;
   };
 
@@ -646,9 +741,22 @@ function buildEdges(
     edges.push({ a, b, bridge, via });
   };
 
+  // Screen-space grid, cell size = EDGE_LEN_CAP: the 3x3 neighbourhood
+  // around a node always contains every other node within the cap, so it
+  // narrows the O(n) scan below to the same candidate set a full scan
+  // would find, in the same ascending-index order the original loop built
+  // it in -- the later stable sort by 3D distance then ties exactly as
+  // before, keeping the edge list identical.
+  const screenGrid = new SpatialGrid(EDGE_LEN_CAP);
+  for (let i = 0; i < n; i++) {
+    screenGrid.insert(i, screen[i].x, screen[i].y);
+  }
+  const nearbyAscending = (i: number): number[] =>
+    screenGrid.near(screen[i].x, screen[i].y).sort((a, b) => a - b);
+
   for (let i = 0; i < n; i++) {
     const candidates = [];
-    for (let j = 0; j < n; j++) {
+    for (const j of nearbyAscending(i)) {
       if (j === i) {
         continue;
       }
@@ -785,7 +893,7 @@ function buildEdges(
       guard++;
       let target = -1;
       let bestD = Infinity;
-      for (let j = 0; j < n; j++) {
+      for (const j of nearbyAscending(i)) {
         if (
           j === i ||
           edgeSet.has(key(i, j)) ||
