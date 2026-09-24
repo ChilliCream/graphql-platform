@@ -125,8 +125,10 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
         await MarkDeletedAsync(actor, cancellationToken);
         var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
@@ -135,6 +137,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
         var after = await FindRowAsync(cancellationToken);
         Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     [Fact]
@@ -410,15 +413,19 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
         await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
-        var row = await FindRowAsync(cancellationToken);
-        Assert.Equal(0, row!.BlockBudgetUsed);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     // ---------- Stop ----------
@@ -679,22 +686,25 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
         await MarkDeletedAsync(actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
-        var row = await FindRowAsync(cancellationToken);
-        Assert.Equal(0, row!.BlockBudgetUsed);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     // ---------- SessionEnd ----------
 
     [Fact]
-    public async Task HandleSessionEndAsync_Should_StampEndedAtAndKeepTheRow()
+    public async Task HandleSessionEndAsync_Should_StampEndedAtAndKeepTheRow_When_TheSessionIsActive()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
