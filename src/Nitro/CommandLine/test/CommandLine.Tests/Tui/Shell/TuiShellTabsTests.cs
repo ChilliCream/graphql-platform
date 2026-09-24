@@ -482,19 +482,27 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_LeaveTheAgentsListUnopened_When_EnterIsPressed_ThroughATabbedShell()
+    public void Handle_Should_OpenTheAgentPopover_When_EnterIsPressed_ThroughATabbedShell()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
         var agentStore = new Agents.FakeAgentStore(time);
         LoginAgent(agentStore);
         var agentsMode = new AgentsMode(agentStore, time);
-        var shell = new TuiShell([CreateAgentsTab("Agents", agentsMode)], 100, 24, tasksTabIndex: 0);
+        var shell = new TuiShell(
+            [CreateAgentsTab("Agents", agentsMode)],
+            100,
+            24,
+            tasksTabIndex: 0,
+            store: new FakeTaskStore(),
+            agentStore: agentStore,
+            mailStore: new Agents.FakeMailStore(),
+            memoryStore: new Agents.FakeMemoryStore(),
+            timeProvider: time);
         var agentName = Assert.Single(agentsMode.State.Rows).Name;
         Assert.Contains(agentName, RenderToText(shell, width: 100));
 
         // act
-        // Enter is a no-op until the detail popover lands, so nothing new should open.
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // assert
@@ -502,6 +510,7 @@ public sealed class TuiShellTabsTests
         Assert.True(dirty);
         Assert.Equal(0, agentsMode.State.SelectedRow);
         Assert.Contains(agentName, rendered);
+        Assert.Contains("Harness:", rendered);
     }
 
     [Fact]

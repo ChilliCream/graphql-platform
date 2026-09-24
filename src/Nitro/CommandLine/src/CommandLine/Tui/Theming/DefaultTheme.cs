@@ -57,6 +57,13 @@ internal static class DefaultTheme
         ["agents.list.presence.unreachable"] = new Style(Color.Yellow),
         ["agents.list.presence.offline"] = new Style(Color.Grey50, decoration: Decoration.Dim),
 
+        ["agents.popover.label"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["agents.popover.section.title"] = new Style(decoration: Decoration.Bold),
+        ["agents.popover.row.empty"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["agents.popover.row.unread"] = new Style(Color.White, decoration: Decoration.Bold),
+        ["agents.popover.row.dimmed"] = new Style(Color.Grey, decoration: Decoration.Dim),
+        ["agents.popover.show-more"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+
         ["mail.message.unread"] = new Style(Color.White, decoration: Decoration.Bold),
 
         ["mail.row.glyph.from-me"] = new Style(Color.SkyBlue1),

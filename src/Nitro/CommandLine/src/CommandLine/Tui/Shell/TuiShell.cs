@@ -1,4 +1,6 @@
 using System.Globalization;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -38,6 +40,9 @@ internal sealed class TuiShell
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
     private readonly IAgentStore? _agentStore;
+    private readonly IMailStore? _mailStore;
+    private readonly IMemoryStore? _memoryStore;
+    private readonly TimeProvider _timeProvider;
     private readonly string? _actor;
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
@@ -61,6 +66,7 @@ internal sealed class TuiShell
     private EditingConfirmDialog? _agentDeleteDialog;
     private string? _agentDeleteTarget;
     private EditingConfirmDialog? _agentDeleteOfflineDialog;
+    private AgentPopoverModel? _agentPopover;
     private int _width;
     private int _height;
 
@@ -76,7 +82,10 @@ internal sealed class TuiShell
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
         TimeSpan? quitGateDrainBound = null,
-        IAgentStore? agentStore = null)
+        IAgentStore? agentStore = null,
+        IMailStore? mailStore = null,
+        IMemoryStore? memoryStore = null,
+        TimeProvider? timeProvider = null)
         : this(
             [new TuiTab(
                 string.Empty,
@@ -93,7 +102,10 @@ internal sealed class TuiShell
             mailWakeDaemonState,
             quitGates,
             quitGateDrainBound,
-            agentStore)
+            agentStore,
+            mailStore,
+            memoryStore,
+            timeProvider)
     {
     }
 
@@ -118,6 +130,12 @@ internal sealed class TuiShell
     /// Supplies the daemon state for the footer when no toast is shown; null omits the badge.
     /// </param>
     /// <param name="agentStore">The agent store, or null to disable the Agents tab's delete actions.</param>
+    /// <param name="mailStore">The mail store, or null to disable the agent detail popover.</param>
+    /// <param name="memoryStore">The memory store, or null to disable the agent detail popover.</param>
+    /// <param name="timeProvider">
+    /// The time source for the agent detail popover's ages and presence; <see cref="TimeProvider.System"/>
+    /// when null.
+    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
     /// </exception>
@@ -133,7 +151,10 @@ internal sealed class TuiShell
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
         TimeSpan? quitGateDrainBound = null,
-        IAgentStore? agentStore = null)
+        IAgentStore? agentStore = null,
+        IMailStore? mailStore = null,
+        IMemoryStore? memoryStore = null,
+        TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
 
@@ -155,6 +176,9 @@ internal sealed class TuiShell
         _treeView = treeView;
         _store = store;
         _agentStore = agentStore;
+        _mailStore = mailStore;
+        _memoryStore = memoryStore;
+        _timeProvider = timeProvider ?? TimeProvider.System;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
@@ -234,9 +258,11 @@ internal sealed class TuiShell
                                 ? agentDeleteOfflineDialog.Render(_width, contentHeight)
                                 : _picker is { } picker
                                     ? picker.Render(_width, contentHeight)
-                                    : _createForm is { } createForm
-                                        ? createForm.Render(_width, contentHeight)
-                                        : ActiveMode.Render(_width, contentHeight);
+                                    : _agentPopover is { } agentPopover
+                                        ? agentPopover.Render(_width, contentHeight)
+                                        : _createForm is { } createForm
+                                            ? createForm.Render(_width, contentHeight)
+                                            : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
             ?? new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
@@ -310,15 +336,21 @@ internal sealed class TuiShell
             && ReferenceEquals(ActiveMode, search)
             && search.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
         var agentsDirty = ActiveMode is AgentsMode agents && agents.Tick();
+        var agentPopoverDirty = _agentPopover?.Tick() ?? false;
 
-        return toastDirty || searchDirty || agentsDirty;
+        return toastDirty || searchDirty || agentsDirty || agentPopoverDirty;
     }
 
     /// <summary>
-    /// Refreshes every hosted tab's currently active mode, not only the
-    /// active tab's.
+    /// Refreshes every hosted tab's currently active mode, not only the active tab's, and
+    /// reloads the agent detail popover when one is open.
     /// </summary>
-    private bool HandleDataChanged() => BroadcastToTabs(new TuiMessage.RefreshRequested());
+    private bool HandleDataChanged()
+    {
+        var tabsChanged = BroadcastToTabs(new TuiMessage.RefreshRequested());
+        _agentPopover?.Load();
+        return tabsChanged;
+    }
 
     /// <summary>
     /// Sends an effect-completion message to every tab's current mode to drain
@@ -386,6 +418,11 @@ internal sealed class TuiShell
         if (_picker is not null)
         {
             return HandlePickerKey(info);
+        }
+
+        if (_agentPopover is not null)
+        {
+            return HandleAgentPopoverKey(info);
         }
 
         if (_createForm is not null)
@@ -590,6 +627,10 @@ internal sealed class TuiShell
         _agentDeleteDialog = null;
         _agentDeleteTarget = null;
 
+        // A confirmed delete from the popover closes it back to the table; the table
+        // shows the same effect through its own refresh below.
+        _agentPopover = null;
+
         var deleted = _agentStore!.DeleteAsync(name, CancellationToken.None).GetAwaiter().GetResult();
 
         HandleMessage(new TuiMessage.ShowToast(
@@ -687,6 +728,34 @@ internal sealed class TuiShell
 
             case QuickPickerResult.Applied applied:
                 return SubmitPicker(applied.SelectedId);
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Routes one raw key to the open agent detail popover, translating its terminal
+    /// results into the same delete and copy gestures the Agents table exposes.
+    /// </summary>
+    private bool HandleAgentPopoverKey(ConsoleKeyInfo info)
+    {
+        var result = _agentPopover!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case AgentPopoverResult.Closed:
+                _agentPopover = null;
+                return true;
+
+            case AgentPopoverResult.DeleteRequested deleteRequested:
+                return HandleMessage(new TuiMessage.DeleteAgentRequested(deleteRequested.Name));
+
+            case AgentPopoverResult.CopyRequested:
+                return HandleMessage(new TuiMessage.CopySelectedId());
 
             default:
                 return true;
@@ -809,6 +878,9 @@ internal sealed class TuiShell
 
             case TuiMessage.OpenSelected when ActiveMode is BoardMode:
                 return TryOpenDetail();
+
+            case TuiMessage.OpenSelected when ActiveMode is AgentsMode:
+                return TryOpenAgentPopover();
 
             case TuiMessage.FocusSearchRequested:
                 if (!IsTasksTabActive || _searchMode is not { } search)
@@ -950,6 +1022,29 @@ internal sealed class TuiShell
         _detailMode ??= new BoardDetailMode(_store);
         _detailMode.OpenOnTask(id);
         SwitchTo(_detailMode);
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the agent detail popover for the Agents tab's currently selected agent, hosted
+    /// as a shell overlay rather than switched to on the active tab's navigation stack.
+    /// </summary>
+    private bool TryOpenAgentPopover()
+    {
+        if (ActiveMode is not AgentsMode agentsMode
+            || _agentStore is null || _mailStore is null || _memoryStore is null || _store is null)
+        {
+            return false;
+        }
+
+        if (agentsMode.State.SelectedAgent is not { } agent)
+        {
+            return ShowToastNow("No agent selected.", ToastStyle.Warn);
+        }
+
+        var popover = new AgentPopoverModel(agent.Name, _agentStore, _mailStore, _store, _memoryStore, _timeProvider);
+        popover.Load();
+        _agentPopover = popover;
         return true;
     }
 
@@ -1217,6 +1312,11 @@ internal sealed class TuiShell
         if (_picker is not null)
         {
             return QuickPicker.Hints;
+        }
+
+        if (_agentPopover is { } agentPopover)
+        {
+            return agentPopover.Hints;
         }
 
         if (_createForm is not null)

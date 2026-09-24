@@ -75,6 +75,29 @@ public sealed class TuiShellTests
     private static TuiShell CreateAgentsShell(AgentsMode mode, FakeAgentStore agentStore, int width = 80) =>
         new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, 24, agentStore: agentStore);
 
+    /// <summary>
+    /// Builds an Agents-tab shell with the mail, task, and memory stores the agent detail
+    /// popover needs, wired to the same time provider as <paramref name="mode"/>.
+    /// </summary>
+    private static TuiShell CreateAgentsShellWithPopover(
+        AgentsMode mode,
+        FakeAgentStore agentStore,
+        FakeMailStore mailStore,
+        FakeTaskStore taskStore,
+        FakeMemoryStore memoryStore,
+        TimeProvider timeProvider,
+        int width = 100) =>
+        new(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            width,
+            24,
+            store: taskStore,
+            agentStore: agentStore,
+            mailStore: mailStore,
+            memoryStore: memoryStore,
+            timeProvider: timeProvider);
+
     private static AgentRow AddOnlineAgent(FakeAgentStore store, string sessionId)
         => store.StartSessionAsync(
                 new AgentSessionStartRequest
@@ -1520,5 +1543,88 @@ public sealed class TuiShellTests
 
         // assert
         Assert.False(dirty);
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTheAgentPopover_When_EnterIsPressedWithAnAgentSelected()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShellWithPopover(
+            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains(agent.Name, RenderToText(shell, 100));
+        Assert.Contains("Harness:", RenderToText(shell, 100));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_EnterIsPressedWithNoAgentSelected()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShellWithPopover(
+            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("No agent selected.", RenderToText(shell, 100));
+    }
+
+    [Fact]
+    public void Handle_Should_CloseThePopoverToTheTable_When_DeleteFromThePopoverIsConfirmed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShellWithPopover(
+            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Empty(mode.State.Rows);
+        Assert.Contains($"Deleted agent '{agent.Name}'", rendered);
+        Assert.Contains("Agents (0 online / 0)", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseThePopover_When_EscapeIsPressed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var mode = new AgentsMode(agentStore, time);
+        var shell = CreateAgentsShellWithPopover(
+            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\u001b', ConsoleKey.Escape)));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("hjkl move", rendered);
     }
 }

@@ -83,7 +83,10 @@ internal static class AgentTuiLauncher
             actor: null,
             mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
             quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()],
-            agentStore: agentStore);
+            agentStore: agentStore,
+            mailStore: mailStore,
+            memoryStore: memoryStore,
+            timeProvider: timeProvider);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
