@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
@@ -266,7 +267,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleUserPromptSubmitAsync_Should_MintTheAgentSilently_When_TheSessionIsUnknown()
+    public async Task HandleUserPromptSubmitAsync_Should_AnnounceTheName_When_TheSessionIsUnknown()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -276,8 +277,59 @@ public sealed class CodexHookHandlerTests : IDisposable
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
         // assert
-        Assert.Equal(CodexHookOutcome.Neutral, outcome);
-        Assert.NotNull(await FindRowAsync(cancellationToken));
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        outcome.AdditionalContext!.Replace(row.Name, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_AnnounceTheNameThenTheDigest_When_TheSessionIsUnknownAndMailIsPending()
+    {
+        // arrange
+        // A free pool name is reserved for mail, then freed so the mint below has to draw it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var freeName = AgentActorAllocator.BaseActors[0];
+        await SeedAgentAsync(freeName, cancellationToken);
+        var message = await SendMailAsync("bob", freeName, cancellationToken);
+        await DeleteAgentRowAsync(freeName, cancellationToken);
+        await TombstoneOtherPoolNamesAsync(freeName, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.Equal(freeName, row!.Name);
+        outcome.AdditionalContext!.Replace(message.Id, "<message-id>").MatchInlineSnapshot(
+            $$"""
+            Your Nitro actor name is "{{freeName}}". Pass this name to the `--actor` option to act under this actor explicitly.
+
+            You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor {{freeName}} --body "..."` or ack with `nitro agent mail ack --message <id> --actor {{freeName}}`; anything not shown is in `nitro agent mail inbox --unread --actor {{freeName}}`.
+            {
+              "items": [
+                {
+                  "id": "<message-id>",
+                  "threadId": "<message-id>",
+                  "inReplyTo": null,
+                  "from": "bob",
+                  "to": [
+                    "{{freeName}}"
+                  ],
+                  "cc": [],
+                  "subject": "status",
+                  "body": "please check",
+                  "createdAt": "2026-01-10T12:00:00+00:00",
+                  "read": false,
+                  "archived": false,
+                  "takeovers": []
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]
@@ -708,6 +760,41 @@ public sealed class CodexHookHandlerTests : IDisposable
         command.Parameters.AddWithValue("@name", name);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Hard-deletes the named agent's row, freeing it for the actor allocator to draw again.
+    /// </summary>
+    private async Task DeleteAgentRowAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM agents WHERE name = @name";
+        command.Parameters.AddWithValue("@name", name);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Tombstones every pool name except <paramref name="keep"/>, forcing the actor
+    /// allocator to draw that one name for the next mint.
+    /// </summary>
+    private async Task TombstoneOtherPoolNamesAsync(string keep, CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "INSERT INTO agents (name, registered_at, started_at, last_seen_at, deleted_at) "
+            + "VALUES (@name, @now, @now, @now, @now)";
+        var nameParameter = command.Parameters.Add("@name", SqliteType.Text);
+        command.Parameters.AddWithValue("@now", now);
+
+        foreach (var name in AgentActorAllocator.BaseActors.Where(name => name != keep))
+        {
+            nameParameter.Value = name;
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
     }
 }
 

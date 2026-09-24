@@ -39,18 +39,19 @@ internal sealed class CodexHookHandler(
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
     {
-        var row = await ResolveOrStartRowAsync(payload, cancellationToken);
+        var resolved = await ResolveOrStartRowAsync(payload, cancellationToken);
 
-        if (row is null)
+        if (resolved is null)
         {
             return CodexHookOutcome.Neutral;
         }
 
-        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Digest, cancellationToken);
+        var row = resolved.Row;
 
-        return digest is null
-            ? CodexHookOutcome.Neutral
-            : new CodexHookOutcome { AdditionalContext = digest.Text };
+        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Digest, cancellationToken);
+        var context = ComposeContext(resolved.Minted ? Announce(row) : null, digest?.Text);
+
+        return context is null ? CodexHookOutcome.Neutral : new CodexHookOutcome { AdditionalContext = context };
     }
 
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
@@ -79,13 +80,15 @@ internal sealed class CodexHookHandler(
             return CodexNotifyOutcome.Neutral;
         }
 
-        var row = await ResolveOrStartRowAsync(
+        var resolved = await ResolveOrStartRowAsync(
             new CodexHookPayload { SessionId = payload.ThreadId, Cwd = payload.Cwd }, cancellationToken);
 
-        if (row is null)
+        if (resolved is null)
         {
             return CodexNotifyOutcome.Neutral;
         }
+
+        var row = resolved.Row;
 
         var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Gate, cancellationToken);
 
@@ -102,11 +105,12 @@ internal sealed class CodexHookHandler(
 
     /// <summary>
     /// Resolves the current thread's row, minting one exactly like
-    /// <see cref="HandleSessionStartAsync"/> without announcing it when none is bound yet.
-    /// Returns null when the payload does not resolve, the session belongs to a deleted
-    /// agent, or the mint itself is ignored for the same reason.
+    /// <see cref="HandleSessionStartAsync"/> without announcing it here when none is bound
+    /// yet; callers decide whether the mint is announced. Returns null when the payload
+    /// does not resolve, the session belongs to a deleted agent, or the mint itself is
+    /// ignored for the same reason.
     /// </summary>
-    private async Task<AgentRow?> ResolveOrStartRowAsync(
+    private async Task<ResolvedRow?> ResolveOrStartRowAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var workspaceDirectory = Resolve(payload);
@@ -127,14 +131,30 @@ internal sealed class CodexHookHandler(
 
             await agentStore.TouchSessionAsync(AgentSessionHarness.Codex, payload.SessionId!, cancellationToken);
 
-            return row;
+            return new ResolvedRow(row, Minted: false);
         }
 
         var result = await agentStore.StartSessionAsync(
             BuildStartRequest(payload, workspaceDirectory), cancellationToken);
 
-        return result.Kind == AgentSessionStartKind.Ignored ? null : result.Row;
+        return result.Kind == AgentSessionStartKind.Ignored
+            ? null
+            : new ResolvedRow(result.Row!, result.Kind == AgentSessionStartKind.Minted);
     }
+
+    private static string Announce(AgentRow row) => AgentActorContext.Format(row.Name, row.Role);
+
+    /// <summary>
+    /// Joins the mint announcement and the mail digest with a blank line when both are
+    /// present, or returns whichever one is present, or null when neither is.
+    /// </summary>
+    private static string? ComposeContext(string? announcement, string? digest) => (announcement, digest) switch
+    {
+        (null, null) => null,
+        ({ } head, null) => head,
+        (null, { } tail) => tail,
+        ({ } head, { } tail) => $"{head}\n\n{tail}"
+    };
 
     /// <summary>
     /// Returns a digest or unread-count reminder for newly reserved messages in the
@@ -211,4 +231,9 @@ internal sealed class CodexHookHandler(
     }
 
     private sealed record MailDigestResult(string Text);
+
+    /// <summary>
+    /// A resolved thread's row, and whether resolving it just minted a new agent.
+    /// </summary>
+    private sealed record ResolvedRow(AgentRow Row, bool Minted);
 }
