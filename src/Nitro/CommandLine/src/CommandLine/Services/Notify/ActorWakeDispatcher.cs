@@ -196,7 +196,7 @@ internal sealed class ActorWakeDispatcher(
 
             if (row is null)
             {
-                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "offline");
             }
 
             if (row.EndedAt is not null)

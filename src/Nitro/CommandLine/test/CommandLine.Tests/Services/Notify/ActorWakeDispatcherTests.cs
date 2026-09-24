@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
@@ -176,6 +177,39 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(
             (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "unreachable"),
+            (receipt.Status, target.Target, target.Status, target.LastError));
+        Assert.Empty(executor.Calls);
+
+        // the batch completed instead of releasing for a retry.
+        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
+        Assert.Null(await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken));
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_SkipWithOfflineReason_When_TheAgentRowIsMissing()
+    {
+        // arrange
+        // The batch claims a target whose agent row no longer exists.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(actor, cancellationToken);
+        var executor = new FakePingSessionExecutor();
+        var missingStore = new Mock<IAgentStore>();
+        missingStore
+            .Setup(store => store.FindAsync(actor, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AgentRow?)null);
+        var dispatcher = new ActorWakeDispatcher(
+            _batches, missingStore.Object, _gateCoordinator, executor, _mail, _timeProvider);
+
+        // act
+        var receipt = await dispatcher.DispatchAsync(actor, Deadline(), cancellationToken);
+
+        // assert
+        Assert.NotNull(receipt);
+        var target = Assert.Single(receipt.Targets);
+        Assert.Equal(
+            (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "offline"),
             (receipt.Status, target.Target, target.Status, target.LastError));
         Assert.Empty(executor.Calls);
 
