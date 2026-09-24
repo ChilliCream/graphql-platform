@@ -39,7 +39,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ReplyAll_ExcludesSelf_IncludesSenderAndOtherRecipients()
+    public async Task ReplyAll_Should_ExcludeSelf_AndIncludeSenderAndOtherRecipients_When_ReplyingToAll()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -47,7 +47,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("bob");
         await SeedAgentAsync("carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
-        await SetupSuccessfulWakeAsync("host-reply-all-test", "alice", "carol");
+        await SetupSuccessfulWakeAsync("alice", "carol");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -72,7 +72,7 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         await SeedAgentAsync("carol");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob", "carol");
         await MarkAgentDeletedAsync("carol");
-        await SetupSuccessfulWakeAsync("host-reply-skip-test", "alice");
+        await SetupSuccessfulWakeAsync("alice");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -160,14 +160,14 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Reply_ThreadsUnderOriginalMessage_AndInheritsRootSubject()
+    public async Task Reply_Should_ThreadUnderOriginalMessage_AndInheritRootSubject_When_JsonOutputIsRequested()
     {
         // arrange
         await InitWorkspaceAsync();
         await SeedAgentAsync("alice");
         await SeedAgentAsync("bob");
         var originalId = await SendOriginalMessageAsync("alice", "Root subject", "bob");
-        await SetupSuccessfulWakeAsync("host-reply-thread-test", "alice");
+        await SetupSuccessfulWakeAsync("alice");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act
@@ -175,27 +175,30 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
             "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
 
         // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
         using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
         var root = document.RootElement;
 
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal(originalId, root.GetProperty("threadId").GetString());
-        Assert.Equal(originalId, root.GetProperty("inReplyTo").GetString());
-        Assert.Equal("Root subject", root.GetProperty("subject").GetString());
-        Assert.Equal(["alice"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
-        Assert.True(root.GetProperty("messageStored").GetBoolean());
+        Snapshot.Create()
+            .Add(root.GetProperty("threadId").GetString() == originalId, "ThreadIdMatchesOriginal")
+            .Add(root.GetProperty("inReplyTo").GetString() == originalId, "InReplyToMatchesOriginal")
+            .Add(root.GetProperty("subject").GetString(), "Subject")
+            .Add(root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray(), "To")
+            .Add(root.GetProperty("messageStored").GetBoolean(), "MessageStored")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]
-    public async Task Reply_Should_NudgeRecipientWithExactMessageIdAndBody()
+    public async Task Reply_Should_NudgeRecipientWithExactMessageIdAndBody_When_ReplyIsSent()
     {
         // arrange
         await InitWorkspaceAsync();
         await SeedAgentAsync("alice");
         await SeedAgentAsync("bob");
         var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
-        var queueClient = await SetupSuccessfulWakeAsync("host-reply-nudge-test", "alice");
+        var queueClient = await SetupSuccessfulWakeAsync("alice");
 
         // act
         await ExecuteCommandAsync(

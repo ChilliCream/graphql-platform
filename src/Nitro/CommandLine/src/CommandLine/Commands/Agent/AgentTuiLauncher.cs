@@ -32,14 +32,13 @@ internal static class AgentTuiLauncher
         ITaskStore taskStore,
         IMailStore mailStore,
         IMemoryStore memoryStore,
-        IAgentRegistry agentRegistry,
         IAgentStore agentStore,
         TimeProvider timeProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         CancellationToken cancellationToken)
         => RunShellAsync(
-            console, taskStore, mailStore, memoryStore, agentRegistry, agentStore,
+            console, taskStore, mailStore, memoryStore, agentStore,
             timeProvider, workspaceDirectory, mailWakeDaemonCoordinator, cancellationToken);
 
     private static async Task<int> RunShellAsync(
@@ -47,7 +46,6 @@ internal static class AgentTuiLauncher
         ITaskStore taskStore,
         IMailStore mailStore,
         IMemoryStore memoryStore,
-        IAgentRegistry agentRegistry,
         IAgentStore agentStore,
         TimeProvider timeProvider,
         string workspaceDirectory,
@@ -64,7 +62,6 @@ internal static class AgentTuiLauncher
             taskStore,
             mailStore,
             memoryStore,
-            agentRegistry,
             agentStore,
             timeProvider,
             quitCts.Token);
@@ -135,7 +132,6 @@ internal static class AgentTuiLauncher
         ITaskStore taskStore,
         IMailStore mailStore,
         IMemoryStore memoryStore,
-        IAgentRegistry agentRegistry,
         IAgentStore agentStore,
         TimeProvider timeProvider,
         CancellationToken effectCancellationToken = default)
@@ -145,7 +141,7 @@ internal static class AgentTuiLauncher
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var mailTab = BuildMailTab(
-            mailStore, agentRegistry, timeProvider,
+            mailStore, agentStore, timeProvider,
             effectCancellationToken);
 
         var agentsMode = new AgentsMode(agentStore, timeProvider);
@@ -163,14 +159,14 @@ internal static class AgentTuiLauncher
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,
-        IAgentRegistry agentRegistry,
+        IAgentStore agentStore,
         TimeProvider timeProvider,
         CancellationToken effectCancellationToken = default)
     {
         var mailMode = new MailMode(
             mailStore,
             actor: null,
-            agentRegistry,
+            agentStore,
             timeProvider,
             effectCancellationToken);
 

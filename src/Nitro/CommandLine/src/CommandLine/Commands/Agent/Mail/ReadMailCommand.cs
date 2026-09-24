@@ -32,7 +32,7 @@ internal sealed class ReadMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
-        var registry = services.GetRequiredService<IAgentRegistry>();
+        var agentStore = services.GetRequiredService<IAgentStore>();
         var ledger = services.GetRequiredService<ITakeoverLedger>();
         var actorResolver = services.GetRequiredService<IActingActorResolver>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
@@ -74,7 +74,7 @@ internal sealed class ReadMailCommand : Command
                 console.WriteLine();
             }
 
-            var sender = await registry.GetAsync(messages[i].Sender, cancellationToken);
+            var sender = await agentStore.FindAsync(messages[i].Sender, cancellationToken);
             WriteMessage(console, messages[i], sender?.Role ?? "", takeovers[i]);
         }
 

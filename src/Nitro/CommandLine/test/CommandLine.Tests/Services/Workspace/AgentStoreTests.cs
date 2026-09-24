@@ -361,23 +361,6 @@ public sealed class AgentStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task StartSessionAsync_Should_Throw_When_HarnessIsNitroBoard()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitWorkspaceAsync(cancellationToken);
-
-        // act
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => _store.StartSessionAsync(
-                CreateRequest(harness: AgentSessionHarness.NitroBoard), cancellationToken));
-
-        // assert
-        Assert.Equal("harness", exception.ParamName);
-        Assert.Empty(await _store.ListAsync(cancellationToken));
-    }
-
-    [Fact]
     public async Task TouchSessionAsync_Should_UpdateLastSeenAt_When_RowExists()
     {
         // arrange

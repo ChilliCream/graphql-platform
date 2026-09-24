@@ -203,33 +203,6 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Migrate_RewritesSessionWorkspacePaths()
-    {
-        // arrange
-        // Seed a session with the workspace path that will be migrated.
-        await InitWorkspaceAsync();
-        await QueryScalarAsync(
-            $"""
-            INSERT INTO agent_sessions (
-                harness, session_id, host, cwd, workspace_path,
-                endpoint_kind, endpoint_addr, started_at, last_beat_at)
-            VALUES (
-                'claude-code', 's1', 'host', '{WorkingDirectory}', '{WorkspaceDirectory}',
-                'none', '', '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00');
-            """);
-        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
-
-        // act
-        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal("1", await QueryScalarAsync(
-            $"SELECT COUNT(*) FROM agent_sessions WHERE workspace_path = '{GitWorkspaceDirectory}'",
-            GitDatabasePath));
-    }
-
-    [Fact]
     public async Task Migrate_Should_RewriteAgentsWorkspacePath_When_WorkspaceMoves()
     {
         // arrange
@@ -723,7 +696,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     /// prefix and gitignore content.
     /// </summary>
     [Fact]
-    public async Task PlainInit_UpgradesSchemaOnly_When_ExistingVersionIsUpgradable()
+    public async Task Init_Should_UpgradeSchemaOnly_When_ExistingVersionIsUpgradable()
     {
         // arrange
         await SeedV3WorkspaceAsync("legacy3");
@@ -741,7 +714,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         Assert.Equal(
             AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
         Assert.Equal("1", await QueryScalarAsync(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions'"));
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agents'"));
         Assert.Equal("legacy3", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
         Assert.Equal(
             "sentinel\n",
@@ -815,12 +788,11 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task TasksAndMail_ShareTheSameUnifiedWorkspace()
+    public async Task Init_Should_ShareTasksAndMailInTheSameUnifiedWorkspace_When_BothAreUsed()
     {
         // arrange
         await InitWorkspaceAsync();
         var taskId = await CreateTaskAsync("Ship the unified workspace");
-        SetupInstanceId("host-unified-workspace-test");
 
         // act
         await SeedAgentAsync("test-agent");

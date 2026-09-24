@@ -486,7 +486,7 @@ public sealed class TuiShellTabsTests
         var mailMode = new MailMode(
             mailStore,
             "actor",
-            new Agents.FakeAgentRegistry());
+            new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
         var mailTab = new TuiTab(
             () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
             mnemonic: 'M',
@@ -522,7 +522,7 @@ public sealed class TuiShellTabsTests
         var mailMode = new MailMode(
             mailStore,
             "alice",
-            new Agents.FakeAgentRegistry());
+            new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
         var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)],

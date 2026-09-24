@@ -18,7 +18,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     private readonly string _workingDirectory;
     private readonly string _workspaceDirectory;
     private readonly FakeTimeProvider _timeProvider;
-    private readonly AgentRegistry _registry;
+    private readonly AgentDatabase _database;
+    private readonly AgentStore _agentStore;
     private readonly MailStore _store;
 
     public MailModeRealStoreTests()
@@ -29,13 +30,14 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         _workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
 
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
-        _registry = new AgentRegistry(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
+        _database = new AgentDatabase();
+        _agentStore = new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, _database);
 
         _store = new MailStore(
             new TestFileSystem(_workingDirectory),
             _timeProvider,
-            new AgentDatabase(),
-            new AgentStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase()));
+            _database,
+            _agentStore);
     }
 
     public async ValueTask DisposeAsync()
@@ -64,7 +66,26 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         await _store.InitializeWorkspaceAsync(_workspaceDirectory, cancellationToken);
     }
 
-    private MailMode CreateMode(string actor) => new(_store, actor, _registry, _timeProvider);
+    private MailMode CreateMode(string actor) => new(_store, actor, _agentStore, _timeProvider);
+
+    /// <summary>
+    /// Registers the named agent directly against the unified <c>agents</c> table.
+    /// </summary>
+    private async Task SeedAgentAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES (@name, @now, @now, @now)
+            ON CONFLICT (name) DO UPDATE SET last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@now", _timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 
     /// <summary>
     /// Refreshes <see cref="MailMode"/> until a non-<see cref="ToastStyle.Info"/> outcome toast
@@ -95,13 +116,13 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task OpenSelected_Should_MarkMessageRead_AgainstTheRealStore()
+    public async Task OpenSelected_Should_MarkMessageRead_AgainstTheRealStore_When_MessageIsUnread()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
+        await SeedAgentAsync("alice", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
         var sent = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Hi", Body = "Body", To = ["alice"] },
             cancellationToken);
@@ -120,13 +141,13 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ArchiveConfirmation_Confirmed_Should_ArchiveMessage_AgainstTheRealStore()
+    public async Task ArchiveConfirmation_Confirmed_Should_ArchiveMessage_AgainstTheRealStore_When_ConfirmationIsAccepted()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
+        await SeedAgentAsync("alice", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
         var sent = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Hi", Body = "Body", To = ["alice"] },
             cancellationToken);
@@ -159,7 +180,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // Compose a message to an unregistered recipient.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
+        await SeedAgentAsync("alice", cancellationToken);
 
         var mode = CreateMode("alice");
         mode.OnEnter();
@@ -178,20 +199,20 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         // assert
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Equal("Unknown agent 'ghost'. Look the name up with 'nitro agent list'.", toast.Text);
-        var ghost = await _registry.GetAsync("ghost", cancellationToken);
+        var ghost = await _agentStore.FindAsync("ghost", cancellationToken);
         Assert.Null(ghost);
     }
 
     [Fact]
-    public async Task ReplyForm_Submit_Should_ComputeTheSameRecipientSet_AsTheCliReplyCommand()
+    public async Task ReplyForm_Submit_Should_ComputeTheSameRecipientSet_AsTheCliReplyCommand_When_ReplyingAll()
     {
         // arrange
         // Seed matching threads for a direct reply and a reply built by the form.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
-        await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
-        await _registry.RegisterAsync("bob", role: "", client: "", cancellationToken);
-        await _registry.RegisterAsync("carol", role: "", client: "", cancellationToken);
+        await SeedAgentAsync("alice", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SeedAgentAsync("carol", cancellationToken);
 
         var cliOriginal = await _store.SendMessageAsync(
             new MailMessageCreation { Sender = "bob", Subject = "Plan", Body = "Body", To = ["alice"], Cc = ["carol"] },

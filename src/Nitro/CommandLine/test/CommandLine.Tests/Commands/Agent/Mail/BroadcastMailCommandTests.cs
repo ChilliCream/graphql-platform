@@ -37,7 +37,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ExcludesSender_SendsToOthersOrderedByName()
+    public async Task Broadcast_Should_ExcludeSenderAndOrderOthersByName_When_MultipleAgentsAreRegistered()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -45,7 +45,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
         await ExecuteCommandAsync("agent", "register", "--actor", "alpha");
-        await SetupSuccessfulWakeAsync("host-broadcast-order-test", "alpha", "zeta");
+        await SetupSuccessfulWakeAsync("alpha", "zeta");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -78,16 +78,15 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Broadcast_Should_SendToEveryNonDeletedAgent_When_LegacyImplicitRowsExist()
+    public async Task Broadcast_Should_SendToEveryNonDeletedAgent_When_AgentWasNeverExplicitlyRegistered()
     {
         // arrange
-        // The legacy implicit flag no longer gates broadcast recipients.
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
-        await CreateRegistry().EnsureImplicitAsync("implicit-agent", TestContext.Current.CancellationToken);
-        await SetupSuccessfulWakeAsync("host-broadcast-implicit-row-test", "zeta");
+        await SeedAgentAsync("implicit-agent");
+        await SetupSuccessfulWakeAsync("zeta");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -112,7 +111,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
         await ExecuteCommandAsync("agent", "register", "--actor", "zeta");
         await SeedAgentAsync("gone");
         await MarkAgentDeletedAsync("gone");
-        await SetupSuccessfulWakeAsync("host-broadcast-deleted-row-test", "zeta");
+        await SetupSuccessfulWakeAsync("zeta");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -249,13 +248,12 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        SetupInstanceId("host-broadcast-role-ping-test");
         var queueClient = new FakeCodexQueueClient();
         SetupCodexQueueClient(queueClient);
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("zeta", "orchestrator");
         await SeedAliveSessionAsync(
-            "session-zeta", "zeta", "orchestrator", "host-broadcast-role-ping-test",
+            "session-zeta", "zeta", "orchestrator",
             endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-zeta");
 
         // act
@@ -291,14 +289,14 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task JsonOutput_ReturnsMessageResult()
+    public async Task Broadcast_Should_ReturnMessageResult_When_JsonOutputIsRequested()
     {
         // arrange
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
         await ExecuteCommandAsync("agent", "register", "--actor", "bob");
-        await SetupSuccessfulWakeAsync("host-broadcast-json-test", "bob");
+        await SetupSuccessfulWakeAsync("bob");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
         // act

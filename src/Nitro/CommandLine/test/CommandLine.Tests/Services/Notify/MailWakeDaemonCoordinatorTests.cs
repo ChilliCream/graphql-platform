@@ -36,7 +36,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     private readonly AgentDatabase _database;
     private readonly MailWakeBatchStore _batches;
     private readonly SessionGateCoordinator _gateCoordinator;
-    private AgentRegistry _agentRegistry = null!;
+    private TestAgentSeeder _agentSeeder = null!;
     private AgentStore _agentStore = null!;
     private MailStore _mail = null!;
 
@@ -54,17 +54,62 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     }
 
     /// <summary>
-    /// Builds the agent registry, agent store and mail store from <paramref name="timeProvider"/>,
+    /// Builds the agent seeder, agent store and mail store from <paramref name="timeProvider"/>,
     /// so every store the coordinator reads or writes through shares the test's fake clock.
     /// </summary>
     private void CreateStores(FakeTimeProvider timeProvider)
     {
-        _agentRegistry = new AgentRegistry(_fileSystem, timeProvider, _database);
+        _agentSeeder = new TestAgentSeeder(_workspaceDirectory, timeProvider, _database);
         _agentStore = new AgentStore(_fileSystem, timeProvider, _database);
         _mail = new MailStore(_fileSystem, timeProvider, _database, _agentStore);
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
+
+    /// <summary>
+    /// Seeds rows directly against the unified <c>agents</c> table for tests that need an
+    /// actor to exist without going through <see cref="IAgentStore"/>'s allocated-name contract.
+    /// </summary>
+    private sealed class TestAgentSeeder(string workspaceDirectory, TimeProvider timeProvider, AgentDatabase database)
+    {
+        /// <summary>
+        /// Ensures the named actor exists, leaving an existing row unchanged.
+        /// </summary>
+        public Task EnsureAsync(string name, CancellationToken cancellationToken)
+            => UpsertAsync(name, role: null, cancellationToken);
+
+        /// <summary>
+        /// Registers the normalized name and role, refreshing last-seen time.
+        /// </summary>
+        public Task RegisterAsync(string name, string role, CancellationToken cancellationToken)
+            => UpsertAsync(name, role, cancellationToken);
+
+        private async Task UpsertAsync(string name, string? role, CancellationToken cancellationToken)
+        {
+            await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = role is null
+                ? """
+                  INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+                  VALUES (@name, @now, @now, @now)
+                  ON CONFLICT (name) DO NOTHING;
+                  """
+                : """
+                  INSERT INTO agents (name, role, registered_at, started_at, last_seen_at)
+                  VALUES (@name, @role, @now, @now, @now)
+                  ON CONFLICT (name) DO UPDATE SET role = excluded.role, last_seen_at = excluded.last_seen_at;
+                  """;
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@now", timeProvider.GetUtcNow());
+
+            if (role is not null)
+            {
+                command.Parameters.AddWithValue("@role", role);
+            }
+
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+    }
 
     [Fact]
     public async Task StartAsync_Should_BecomeReady_When_NoOtherLeaderExists()
@@ -461,7 +506,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         CreateStores(timeProvider);
-        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await _agentSeeder.EnsureAsync(Actor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, Actor);
         var ticks = new LoopTickSignal();
         await using var coordinator = new MailWakeDaemonCoordinator(
@@ -542,7 +587,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await ready;
         gatedLeaderStore.HoldNextRenewal();
         timeProvider.Advance(s_fastPolicy.LeaderLeaseDuration + s_fastPolicy.HeartbeatInterval);
-        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await _agentSeeder.EnsureAsync(Actor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, Actor);
         insertedAt = timeProvider.GetUtcNow();
         await AdvanceUntilAsync(
@@ -570,7 +615,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         CreateStores(timeProvider);
-        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await _agentSeeder.EnsureAsync(Actor, cancellationToken);
         var events = new ConcurrentQueue<string>();
         var leaderStore = new OrderedReleaseLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database), events);
         var dispatcher = new AlwaysDeniedDispatcher();
@@ -615,8 +660,8 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         CreateStores(timeProvider);
         const string firstActor = "actor-1";
         const string secondActor = "actor-2";
-        await _agentRegistry.EnsureImplicitAsync(firstActor, cancellationToken);
-        await _agentRegistry.EnsureImplicitAsync(secondActor, cancellationToken);
+        await _agentSeeder.EnsureAsync(firstActor, cancellationToken);
+        await _agentSeeder.EnsureAsync(secondActor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, firstActor);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, secondActor);
         var dispatcher = new ConcurrentEntryDispatcher(expectedActors: 2);
@@ -751,7 +796,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         CreateStores(timeProvider);
-        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await _agentSeeder.EnsureAsync(Actor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, Actor);
         var shortShutdownPolicy = s_fastPolicy with { ShutdownWait = TimeSpan.FromMilliseconds(50) };
         var dispatcher = new HangingDispatcher();
@@ -813,8 +858,8 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         CreateStores(timeProvider);
         const string deniedActor = "denied-actor";
         const string hungActor = "hung-actor";
-        await _agentRegistry.EnsureImplicitAsync(deniedActor, cancellationToken);
-        await _agentRegistry.EnsureImplicitAsync(hungActor, cancellationToken);
+        await _agentSeeder.EnsureAsync(deniedActor, cancellationToken);
+        await _agentSeeder.EnsureAsync(hungActor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, deniedActor);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, hungActor);
         var events = new ConcurrentQueue<string>();
@@ -888,7 +933,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
         foreach (var actor in actors)
         {
-            await _agentRegistry.EnsureImplicitAsync(actor, cancellationToken);
+            await _agentSeeder.EnsureAsync(actor, cancellationToken);
             await InsertDueOutboxRowAsync(cancellationToken, timeProvider, actor);
         }
 
@@ -960,7 +1005,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
         CreateStores(timeProvider);
-        await _agentRegistry.EnsureImplicitAsync(Actor, cancellationToken);
+        await _agentSeeder.EnsureAsync(Actor, cancellationToken);
         await InsertDueOutboxRowAsync(cancellationToken, timeProvider, Actor);
         var dispatcher = new HangingDispatcher();
         var releaseStore = new ReleaseSignalLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database));
@@ -1063,7 +1108,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     private async Task<MailMessage> SendEnqueuedMailAsync(CancellationToken cancellationToken, string actor)
     {
         // Registers the mail sender behind the store's sender-usability check.
-        await _agentRegistry.RegisterAsync("pascal", role: "", client: "", cancellationToken);
+        await _agentSeeder.RegisterAsync("pascal", role: "", cancellationToken);
 
         return await _mail.SendMessageAsync(
             new MailMessageCreation

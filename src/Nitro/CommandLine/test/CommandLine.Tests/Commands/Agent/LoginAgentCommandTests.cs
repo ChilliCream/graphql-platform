@@ -73,7 +73,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task Login_Should_BindNoSession()
+    public async Task Login_Should_BindNoSession_When_OnlyLoginHasRun()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -81,11 +81,11 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         // act
         var result = await ExecuteCommandAsync("agent", "login");
 
-        // assert: the name exists but belongs to nobody until register binds it.
+        // assert
+        // The name exists but belongs to nobody until register binds it.
         Assert.Equal(0, result.ExitCode);
         Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_session_identities"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE harness IS NOT NULL"));
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
-    public async Task Login_Should_AllocateAnActor_ThatRegisterAccepts()
+    public async Task Login_Should_AllocateAnActor_ThatRegisterAccepts_When_TheActorWasOnlyAllocated()
     {
         // arrange
         await InitWorkspaceAsync();
@@ -131,17 +131,18 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         // act
         var result = await ExecuteCommandAsync("agent", "register", "--actor", actor!);
 
-        // assert: registering the allocated name needs no session of any kind.
+        // assert
+        // Registering the allocated name needs no session of any kind.
         Assert.Equal(0, result.ExitCode);
         Assert.Equal($"✓ Actor '{actor}'.", result.StdOut.Trim());
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_session_identities"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync($"SELECT harness FROM agents WHERE name = '{actor}'"));
     }
 
     [Fact]
-    public async Task Login_Should_AllocateAnActor_ThatActsWithoutASession()
+    public async Task Login_Should_AllocateAnActor_ThatActsWithoutASession_When_TheActorWasOnlyAllocated()
     {
-        // arrange: no harness session at all, only the allocated name.
+        // arrange
+        // No harness session at all, only the allocated name.
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "login");
         var actor = await QueryScalarAsync("SELECT name FROM agents");
@@ -150,12 +151,13 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
         var result = await ExecuteCommandAsync(
             "agent", "tasks", "create", "Fix the parser", "--actor", actor!);
 
-        // assert: a session is only ever needed to push mail, never to act.
+        // assert
+        // A session is only ever needed to push mail, never to act.
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(
             actor,
             await QueryScalarAsync("SELECT actor FROM events WHERE event_type = 'created'"));
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync($"SELECT harness FROM agents WHERE name = '{actor}'"));
     }
 
     [Fact]

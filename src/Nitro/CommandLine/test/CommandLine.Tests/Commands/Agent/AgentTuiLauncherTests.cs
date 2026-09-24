@@ -34,28 +34,31 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_OpenWithoutAnActor()
-    {
-        var store = new FakeMailStore();
-
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            store,
-            new Tui.Agents.FakeAgentRegistry(),
-            new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
-
-        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
-        Assert.Null(mailMode.State.Actor);
-    }
-
-    [Fact]
-    public void BuildMailTab_Should_HostAWorkingMailMode()
+    public void BuildMailTab_Should_OpenWithoutAnActor_When_NoActorIsGiven()
     {
         // arrange
         var store = new FakeMailStore();
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(s_now),
+            store,
+            new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
+            new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
+
+        // assert
+        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
+        Assert.Null(mailMode.State.Actor);
+    }
+
+    [Fact]
+    public void BuildMailTab_Should_HostAWorkingMailMode_When_MailStoreIsGiven()
+    {
+        // arrange
+        var store = new FakeMailStore();
+
+        // act
+        var mailTab = AgentTuiLauncher.BuildMailTab(
+            store, new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)), new FakeTimeProvider(s_now),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -69,7 +72,6 @@ public sealed class AgentTuiLauncherTests
         // arrange
         var taskStore = new FakeTaskStore();
         var mailStore = new FakeMailStore();
-        var agentRegistry = new Tui.Agents.FakeAgentRegistry();
         var timeProvider = new FakeTimeProvider(s_now);
 
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
@@ -89,7 +91,6 @@ public sealed class AgentTuiLauncherTests
                 taskStore,
                 mailStore,
                 memoryStore,
-                agentRegistry,
                 agentStore,
                 timeProvider,
                 TestContext.Current.CancellationToken);
@@ -160,7 +161,7 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public async Task RunAsync_Should_StartAndStopTheMailWakeDaemonCoordinator_AroundTheApplicationLoop()
+    public async Task RunAsync_Should_StartAndStopTheMailWakeDaemonCoordinator_When_TheApplicationLoopIsCancelled()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -201,7 +202,6 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new Tui.Agents.FakeAgentRegistry(),
                 new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,
@@ -267,7 +267,6 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new Tui.Agents.FakeAgentRegistry(),
                 new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,

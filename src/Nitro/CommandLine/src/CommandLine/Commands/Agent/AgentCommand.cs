@@ -57,7 +57,6 @@ internal sealed class AgentCommand : Command
             {
                 var mailStore = services.GetRequiredService<IMailStore>();
                 var memoryStore = services.GetRequiredService<IMemoryStore>();
-                var agentRegistry = services.GetRequiredService<IAgentRegistry>();
                 var agentStore = services.GetRequiredService<IAgentStore>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
@@ -67,7 +66,6 @@ internal sealed class AgentCommand : Command
                     taskStore,
                     mailStore,
                     memoryStore,
-                    agentRegistry,
                     agentStore,
                     timeProvider,
                     workspaceDirectory,

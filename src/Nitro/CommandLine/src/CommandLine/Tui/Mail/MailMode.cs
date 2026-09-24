@@ -109,7 +109,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     ];
 
     private readonly IMailStore _store;
-    private readonly IAgentRegistry _agentRegistry;
+    private readonly IAgentStore _agentStore;
     private readonly MailState _state;
     private readonly MailDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
@@ -134,10 +134,10 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private readonly List<TuiEffectCompletion<MailSendOutcome>> _deferredCompletions = [];
 
     /// <summary>
-    /// Every registered agent's <see cref="AgentRecord.Client"/>, keyed by
-    /// name (case-insensitively), loaded once per <see cref="RefreshBlocking"/>.
+    /// Every agent's harness display name, keyed by agent name (case-insensitively),
+    /// loaded once per <see cref="RefreshBlocking"/>.
     /// </summary>
-    private IReadOnlyDictionary<string, string> _clientsByName =
+    private IReadOnlyDictionary<string, string> _harnessesByName =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     private ConfirmDialog? _archiveDialog;
@@ -160,7 +160,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <see cref="MailMailbox.Workspace"/> is then reachable, and every
     /// write is refused.
     /// </param>
-    /// <param name="agentRegistry">Resolves every registered agent's client attribution.</param>
+    /// <param name="agentStore">Resolves every agent's harness attribution.</param>
     /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>.</param>
     /// <param name="effectCancellationToken">
     /// Passed to submitted effects; the current send and reply effects do not use it
@@ -169,15 +169,15 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     public MailMode(
         IMailStore store,
         string? actor,
-        IAgentRegistry agentRegistry,
+        IAgentStore agentStore,
         TimeProvider? timeProvider = null,
         CancellationToken effectCancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(store);
-        ArgumentNullException.ThrowIfNull(agentRegistry);
+        ArgumentNullException.ThrowIfNull(agentStore);
 
         _store = store;
-        _agentRegistry = agentRegistry;
+        _agentStore = agentStore;
         _state = new MailState(actor, new MailDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
         _effectCancellationToken = effectCancellationToken;
@@ -966,14 +966,17 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return [new TuiMessage.ShowToast(AgentFilterRequiresWorkspaceMessage, ToastStyle.Warn)];
         }
 
-        var agents = _agentRegistry.ListAsync(role: null, staleBefore: null, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var agents = _agentStore.ListAsync(CancellationToken.None)
+            .GetAwaiter()
+            .GetResult()
+            .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         _agentPicker = BuildAgentPicker(agents, _state.AgentFilter);
         return [];
     }
 
-    private static QuickPicker BuildAgentPicker(IReadOnlyList<AgentRecord> agents, string? selectedAgent)
+    private static QuickPicker BuildAgentPicker(IReadOnlyList<AgentRow> agents, string? selectedAgent)
     {
         var options = new List<QuickPickerOption> { new(AllAgentsOptionId, "All agents") };
         options.AddRange(agents.Select(a => new QuickPickerOption(a.Name, FormatAgentOptionMarkup(a))));
@@ -983,12 +986,14 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// An agent picker row's markup: the name, plus its
-    /// <see cref="AgentRecord.Client"/> in dim parentheses when non-empty.
+    /// <see cref="AgentRow.Harness"/> display name in dim parentheses when non-empty.
     /// </summary>
-    private static string FormatAgentOptionMarkup(AgentRecord agent)
+    private static string FormatAgentOptionMarkup(AgentRow agent)
     {
         var name = Markup.Escape(agent.Name);
-        return agent.Client.Length == 0 ? name : $"{name} [dim]({Markup.Escape(agent.Client)})[/]";
+        return agent.Harness is not { Length: > 0 } harness
+            ? name
+            : $"{name} [dim]({Markup.Escape(AgentHarnessDisplay.Name(harness))})[/]";
     }
 
     private IReadOnlyList<TuiMessage> HandleAgentPickerKey(ConsoleKeyInfo info)
@@ -1194,7 +1199,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     };
 
     private IRenderable RenderDetailPane(int width, int height)
-        => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _clientsByName);
+        => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _harnessesByName);
 
     /// <summary>
     /// Renders the heading and visible list rows with aligned columns, scroll
@@ -1312,12 +1317,14 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             ? 0
             : _store.CountUnreadAsync(_state.Actor, CancellationToken.None).GetAwaiter().GetResult();
 
-        var agents = _agentRegistry.ListAsync(role: null, staleBefore: null, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var agents = _agentStore.ListAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         // First-wins on duplicate names (case-insensitive).
-        _clientsByName = agents
-            .ToLookup(a => a.Name, a => a.Client, StringComparer.OrdinalIgnoreCase)
+        _harnessesByName = agents
+            .ToLookup(
+                a => a.Name,
+                a => a.Harness is { Length: > 0 } h ? AgentHarnessDisplay.Name(h) : string.Empty,
+                StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 }

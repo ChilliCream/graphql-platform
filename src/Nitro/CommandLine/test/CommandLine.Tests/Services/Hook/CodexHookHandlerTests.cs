@@ -19,7 +19,6 @@ public sealed class CodexHookHandlerTests : IDisposable
     private readonly TestFileSystem _fileSystem;
     private readonly FakeTimeProvider _timeProvider;
     private readonly AgentDatabase _database;
-    private readonly AgentRegistry _agentRegistry;
     private readonly AgentStore _agentStore;
     private readonly AgentDeliveryLedger _ledger;
     private readonly MailStore _mail;
@@ -35,7 +34,6 @@ public sealed class CodexHookHandlerTests : IDisposable
         _fileSystem = new TestFileSystem(_workspaceRoot);
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _database = new AgentDatabase();
-        _agentRegistry = new AgentRegistry(_fileSystem, _timeProvider, _database);
         _agentStore = new AgentStore(_fileSystem, _timeProvider, _database);
         _ledger = new AgentDeliveryLedger(_fileSystem, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentStore);
@@ -652,7 +650,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     private async Task<MailMessage> SendMailAsync(string sender, string recipient, CancellationToken cancellationToken)
     {
         // Registers the mail sender behind the store's sender-usability check.
-        await _agentRegistry.RegisterAsync(sender, role: "", client: "", cancellationToken);
+        await SeedAgentAsync(sender, cancellationToken);
 
         return await _mail.SendMessageAsync(
             new MailMessageCreation { Sender = sender, Subject = "status", Body = "please check", To = [recipient] },
@@ -677,6 +675,25 @@ public sealed class CodexHookHandlerTests : IDisposable
         command.CommandText = "SELECT COUNT(*) FROM agents;";
 
         return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
+    }
+
+    /// <summary>
+    /// Registers the named agent directly against the unified <c>agents</c> table.
+    /// </summary>
+    private async Task SeedAgentAsync(string name, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES (@name, @now, @now, @now)
+            ON CONFLICT (name) DO UPDATE SET last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@now", _timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>

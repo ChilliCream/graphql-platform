@@ -31,10 +31,10 @@ internal sealed class MailDetailView
     private const int MaxIndicatorSettlePasses = 3;
 
     /// <summary>
-    /// The <see cref="Render"/> default when no client lookup is given,
+    /// The <see cref="Render"/> default when no harness lookup is given,
     /// resolving every name to no attribution.
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, string> s_emptyClients =
+    private static readonly IReadOnlyDictionary<string, string> s_emptyHarnesses =
         new Dictionary<string, string>();
 
     private readonly Viewport _bodyViewport = new(0, 0);
@@ -65,15 +65,15 @@ internal sealed class MailDetailView
     public void ResetScroll() => _bodyViewport.Update(0, 0);
 
     /// <summary>
-    /// Renders the selected message or thread with optional <see cref="AgentRecord.Client"/>
-    /// attribution. A null lookup or an absent or empty client entry adds no attribution.
+    /// Renders the selected message or thread with optional <see cref="AgentRow.Harness"/>
+    /// attribution. A null lookup or an absent or empty harness entry adds no attribution.
     /// </summary>
     public IRenderable Render(
         MailState state,
         int width,
         int height,
         bool focused,
-        IReadOnlyDictionary<string, string>? clientsByName = null)
+        IReadOnlyDictionary<string, string>? harnessesByName = null)
     {
         if (width <= 0 || height <= 0)
         {
@@ -83,11 +83,11 @@ internal sealed class MailDetailView
         var safeWidth = Math.Max(1, width);
         var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
         var interiorHeight = Math.Max(1, height - PanelChromeHeight);
-        var clients = clientsByName ?? s_emptyClients;
+        var harnesses = harnessesByName ?? s_emptyHarnesses;
 
         var lines = state.ViewMode == MailViewMode.Thread
-            ? BuildThreadLines(state, interiorWidth, clients)
-            : BuildMessageLines(state, interiorWidth, clients);
+            ? BuildThreadLines(state, interiorWidth, harnesses)
+            : BuildMessageLines(state, interiorWidth, harnesses);
 
         IRenderable content = lines.Count == 0
             ? Align.Center(new Markup(Markup.Escape(NoMessageMessage(state))), VerticalAlignment.Middle)
@@ -147,7 +147,7 @@ internal sealed class MailDetailView
         => state.Messages.Count == 0 ? "No messages." : "No message selected.";
 
     private static IReadOnlyList<TaskDetailBodyLine> BuildMessageLines(
-        MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
+        MailState state, int width, IReadOnlyDictionary<string, string> harnessesByName)
     {
         if (state.SelectedMessage is not { } message)
         {
@@ -156,7 +156,7 @@ internal sealed class MailDetailView
 
         var lines = new List<TaskDetailBodyLine>
         {
-            FieldLine("From", AttributeClient(message.Sender, clientsByName)),
+            FieldLine("From", AttributeHarness(message.Sender, harnessesByName)),
             FieldLine("To", string.Join(", ", RecipientNames(message, MailRecipientKinds.To)))
         };
 
@@ -168,7 +168,7 @@ internal sealed class MailDetailView
         }
 
         lines.Add(FieldLine("Date", FormatTimestamp(message.CreatedAt)));
-        lines.AddRange(BuildRecipientStateLines(message, clientsByName));
+        lines.AddRange(BuildRecipientStateLines(message, harnessesByName));
         lines.Add(PlainLine(string.Empty));
         lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));
 
@@ -176,34 +176,34 @@ internal sealed class MailDetailView
     }
 
     /// <summary>
-    /// Returns the name with a non-empty client attribution in parentheses, or the
+    /// Returns the name with a non-empty harness attribution in parentheses, or the
     /// name alone when no attribution is available. The returned text is unescaped.
     /// </summary>
-    private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
-        => clientsByName.TryGetValue(name, out var client) && client.Length > 0
-            ? $"{name} ({client})"
+    private static string AttributeHarness(string name, IReadOnlyDictionary<string, string> harnessesByName)
+        => harnessesByName.TryGetValue(name, out var harness) && harness.Length > 0
+            ? $"{name} ({harness})"
             : name;
 
     /// <summary>
     /// Returns each recipient's read and archived state in recipient ordinal order,
-    /// with optional client attribution.
+    /// with optional harness attribution.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> BuildRecipientStateLines(
-        MailMessage message, IReadOnlyDictionary<string, string> clientsByName)
+        MailMessage message, IReadOnlyDictionary<string, string> harnessesByName)
         => message.Recipients
             .OrderBy(r => r.Ordinal)
-            .Select(r => FormatRecipientState(r, clientsByName))
+            .Select(r => FormatRecipientState(r, harnessesByName))
             .ToList();
 
     private static TaskDetailBodyLine FormatRecipientState(
-        MailRecipient recipient, IReadOnlyDictionary<string, string> clientsByName)
+        MailRecipient recipient, IReadOnlyDictionary<string, string> harnessesByName)
     {
         var unread = recipient.ReadAt is null;
         var state = recipient.ReadAt is { } readAt
             ? $"read {FormatTimestamp(readAt)}"
             : "unread";
 
-        var label = AttributeClient(recipient.Name, clientsByName);
+        var label = AttributeHarness(recipient.Name, harnessesByName);
         var text = recipient.ArchivedAt is not null
             ? $"{label}: {state}, archived"
             : $"{label}: {state}";
@@ -217,7 +217,7 @@ internal sealed class MailDetailView
     }
 
     private static IReadOnlyList<TaskDetailBodyLine> BuildThreadLines(
-        MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
+        MailState state, int width, IReadOnlyDictionary<string, string> harnessesByName)
     {
         if (state.ThreadMessages.Count == 0)
         {
@@ -236,7 +236,7 @@ internal sealed class MailDetailView
 
             var message = state.ThreadMessages[i];
             lines.Add(SectionHeaderLine(
-                $"{AttributeClient(message.Sender, clientsByName)} - {FormatTimestamp(message.CreatedAt)}"));
+                $"{AttributeHarness(message.Sender, harnessesByName)} - {FormatTimestamp(message.CreatedAt)}"));
             lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));
         }
 
