@@ -62,7 +62,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a implementer Claude Code just now just now", line);
+        Assert.Equal("  ● agent-a         implementer     Claude Code     just now      just now  ", line);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a - Claude Code just now just now", line);
+        Assert.Equal("  ● agent-a         -               Claude Code     just now      just now  ", line);
     }
 
     [Fact]
@@ -92,14 +92,14 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a - - just now just now", line);
+        Assert.Equal("  ● agent-a         -               -               just now      just now  ", line);
     }
 
     [Fact]
     public void Render_Should_DropStartedColumn_When_WidthIsTooNarrowForAllColumns()
     {
         // arrange
-        const int maxWidth = 45;
+        const int maxWidth = 65;
         var row = CreateRow(role: "implementer");
         var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
@@ -107,14 +107,14 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a implementer Claude Code just now", line);
+        Assert.Equal("  ● agent-a         implementer     Claude Code     just now  ", line);
     }
 
     [Fact]
     public void Render_Should_DropRoleColumn_When_WidthIsTooNarrowForRoleAndHarness()
     {
         // arrange
-        const int maxWidth = 35;
+        const int maxWidth = 50;
         var row = CreateRow(role: "implementer");
         var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
@@ -122,14 +122,14 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a Claude Code just now", line);
+        Assert.Equal("  ● agent-a         Claude Code     just now  ", line);
     }
 
     [Fact]
     public void Render_Should_TruncateName_When_WidthIsTooNarrowForHarness()
     {
         // arrange
-        const int maxWidth = 14;
+        const int maxWidth = 30;
         var row = CreateRow(name: "a-long-agent-name", role: "implementer");
         var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
@@ -154,7 +154,8 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth: 80, widths));
 
         // assert
-        Assert.EndsWith(expectedAge, line);
+        // The Last Seen column is padded to the "LAST SEEN" header's width, so a shorter age has trailing fill spaces.
+        Assert.EndsWith(expectedAge, line.TrimEnd());
     }
 
     [Fact]
@@ -169,7 +170,58 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth: 80, widths));
 
         // assert
-        Assert.EndsWith(lastSeenAt.ToUniversalTime().ToString("yyyy-MM-dd"), line);
+        Assert.EndsWith(lastSeenAt.ToUniversalTime().ToString("yyyy-MM-dd"), line.TrimEnd());
+    }
+
+    [Fact]
+    public void RenderHeader_Should_AlignColumnsWithRow_When_WidthIsWide()
+    {
+        // arrange
+        const int maxWidth = 80;
+        var row = CreateRow(role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var header = Markup.Remove(AgentRowBadge.RenderHeader(maxWidth, widths));
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+        var nameOffset = header.IndexOf("NAME", StringComparison.Ordinal);
+        var roleOffset = header.IndexOf("ROLE", StringComparison.Ordinal);
+        var harnessOffset = header.IndexOf("HARNESS", StringComparison.Ordinal);
+        var startedOffset = header.IndexOf("STARTED", StringComparison.Ordinal);
+        var lastSeenOffset = header.IndexOf("LAST SEEN", StringComparison.Ordinal);
+        var columnsAtHeaderOffsets = (
+            Name: line.Substring(nameOffset, 7),
+            Role: line.Substring(roleOffset, 11),
+            Harness: line.Substring(harnessOffset, 11),
+            Started: line.Substring(startedOffset, 8),
+            LastSeen: line.Substring(lastSeenOffset, 8));
+
+        // assert
+        Assert.Equal(
+            (Name: "agent-a", Role: "implementer", Harness: "Claude Code", Started: "just now", LastSeen: "just now"),
+            columnsAtHeaderOffsets);
+    }
+
+    [Fact]
+    public void RenderHeader_Should_DropTheSameColumnsAsRow_When_WidthIsNarrow()
+    {
+        // arrange
+        const int maxWidth = 50;
+        var row = CreateRow(role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var header = Markup.Remove(AgentRowBadge.RenderHeader(maxWidth, widths));
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+        var actual = (
+            HeaderHasRole: header.Contains("ROLE", StringComparison.Ordinal),
+            RowHasRole: line.Contains("implementer", StringComparison.Ordinal),
+            HeaderHasStarted: header.Contains("STARTED", StringComparison.Ordinal),
+            HeaderHasHarness: header.Contains("HARNESS", StringComparison.Ordinal),
+            RowHasHarness: line.Contains("Claude Code", StringComparison.Ordinal));
+
+        // assert
+        Assert.Equal((false, false, false, true, true), actual);
     }
 
     [Fact]

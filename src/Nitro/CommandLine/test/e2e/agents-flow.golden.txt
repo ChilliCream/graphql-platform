@@ -1,13 +1,13 @@
  [T]asks   [M]ail   [A]gents   M[e]mory
 ╭─Agents (1 online / 4)───────────────────────────────────────────────────────────────────────╮
-│ > ● nora      planner Claude Code 2026-01-01 AG ago                                         │
-│   ● alice     -       -           2026-01-01 AG ago                                         │
-│   ● e2e-agent -       -           2026-01-01 AG ago                                         │
-│   ● bob       -       -           2026-01-01 2026-01-01                                     │
 │                                                                                             │
+│     NAME            ROLE            HARNESS         STARTED       LAST SEEN                 │
+│ ─────────────────────────────────────────────────────────────────────────────────────────── │
 │                                                                                             │
-│                                                                                             │
-│                                                                                             │
+│ > ● nora            planner         Claude Code     2026-01-01    AG ago                    │
+│   ● alice           -               -               2026-01-01    AG ago                    │
+│   ● e2e-agent       -               -               2026-01-01    AG ago                    │
+│   ● bob             -               -               2026-01-01    2026-01-01                │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │

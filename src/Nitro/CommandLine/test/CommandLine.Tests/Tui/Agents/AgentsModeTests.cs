@@ -411,6 +411,60 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
+    public void Render_Should_ReserveFourLinesForTheHeaderBlock_When_SizingTheRowViewport()
+    {
+        // arrange
+        // Four rows exactly fill a viewport four lines shorter than the pane interior (10 - 2 chrome - 4 header = 4).
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        var rows = Enumerable.Range(0, 4).Select(i => AddOnlineAgent(store, $"s-{i}")).ToArray();
+        var mode = new AgentsMode(store, time);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode, width: 100, height: 10);
+        var allLines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var interiorLines = allLines.Skip(1).Take(allLines.Length - 2).ToArray();
+        var rowLineCount = interiorLines.Count(line => rows.Any(row => line.Contains(row.Name, StringComparison.Ordinal)));
+
+        // assert
+        Assert.Equal(8, interiorLines.Length);
+        Assert.Equal(4, rowLineCount);
+    }
+
+    [Fact]
+    public void Render_Should_ShowHeaderRuleAndRows_When_ThreeAgentsArePresent()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        AddOnlineAgent(store, "s-a");
+        AddOnlineAgent(store, "s-b");
+        AddOnlineAgent(store, "s-c");
+        var mode = new AgentsMode(store, time);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 9));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Agents (3 online / 3)────────────────────────────────────────────────────────────────────────────╮
+            │                                                                                                  │
+            │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
+            │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
+            │                                                                                                  │
+            │ > ● ackbar          -               Claude Code     just now      just now                       │
+            │   ● ahsoka          -               Claude Code     just now      just now                       │
+            │   ● aladdin         -               Claude Code     just now      just now                       │
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
     public void RefreshRequested_Should_ReloadRowsFromTheStore_When_ANewAgentWasAdded()
     {
         // arrange

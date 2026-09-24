@@ -20,6 +20,11 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     private const int PanelChromeWidth = 4;
     private const int PanelChromeHeight = 2;
     private const int MaxIndicatorSettlePasses = 3;
+    private const int HeaderLineCount = 4;
+
+    // A single space, not an empty string: the panel's row renderer collapses an empty line
+    // out of the layout instead of reserving its row.
+    private const string BlankLine = " ";
 
     private const string EmptyStateMessage =
         "No agents yet. Start a harness with Nitro hooks installed, or run nitro agent login.";
@@ -220,9 +225,12 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Renders the visible rows, padded with blank lines to <paramref name="interiorHeight"/>, with "N
-    /// more above/below" indicators once the rows no longer fit. Column widths are computed from this
-    /// call's visible slice. Shows the empty-state message instead when there are no agents at all.
+    /// Renders the header block (a blank line, the header row, its rule, and a blank line),
+    /// then the visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
+    /// with "N more above/below" indicators once the rows no longer fit. Column widths are
+    /// computed from this call's visible slice and the header titles, so the header and rows
+    /// always agree on where each column starts. Shows the empty-state message below the header
+    /// block when there are no agents at all.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, DateTimeOffset now)
     {
@@ -231,9 +239,22 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
             return [];
         }
 
+        var headerLineCount = Math.Min(HeaderLineCount, interiorHeight);
+        var rowsHeight = Math.Max(0, interiorHeight - headerLineCount);
+        var lines = new List<string>(interiorHeight);
+
         if (_state.TotalCount == 0)
         {
-            return [DisplayWidth.Truncate(EmptyStateMessage, contentWidth)];
+            var widths = AgentRowBadge.ComputeWidths([], now);
+            AddHeaderLines(lines, headerLineCount, contentWidth, widths);
+
+            if (rowsHeight > 0)
+            {
+                lines.Add(DisplayWidth.Truncate(EmptyStateMessage, contentWidth));
+            }
+
+            PadTo(lines, interiorHeight);
+            return lines;
         }
 
         var rows = _state.Rows;
@@ -241,7 +262,7 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
         {
-            var windowHeight = Math.Max(0, interiorHeight - reservedRows);
+            var windowHeight = Math.Max(0, rowsHeight - reservedRows);
             _listViewport.Update(rows.Count, windowHeight);
             _listViewport.EnsureVisible(_state.SelectedRow);
 
@@ -263,8 +284,8 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
             visibleRows.Add(rows[start + i]);
         }
 
-        var widths = AgentRowBadge.ComputeWidths(visibleRows, now);
-        var lines = new List<string>(interiorHeight);
+        var rowWidths = AgentRowBadge.ComputeWidths(visibleRows, now);
+        AddHeaderLines(lines, headerLineCount, contentWidth, rowWidths);
 
         if (_listViewport.HiddenAbove > 0)
         {
@@ -274,7 +295,7 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
         for (var i = 0; i < visibleCount; i++)
         {
             var selected = start + i == _state.SelectedRow;
-            lines.Add(AgentRowBadge.Render(visibleRows[i], now, selected, contentWidth, widths));
+            lines.Add(AgentRowBadge.Render(visibleRows[i], now, selected, contentWidth, rowWidths));
         }
 
         if (_listViewport.HiddenBelow > 0)
@@ -282,12 +303,47 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
             lines.Add(FormatIndicator(_listViewport.HiddenBelow, "below"));
         }
 
-        while (lines.Count < interiorHeight)
+        PadTo(lines, interiorHeight);
+        return lines;
+    }
+
+    /// <summary>
+    /// Appends the header block to <paramref name="lines"/>: a blank line, the header title
+    /// row, its rule, and a trailing blank line, up to <paramref name="headerLineCount"/> of
+    /// the four (later lines are dropped first when the interior is too short to hold all of
+    /// them). The blank lines are a single space, not an empty string, so the panel's row
+    /// renderer keeps them as lines instead of collapsing them.
+    /// </summary>
+    private static void AddHeaderLines(
+        List<string> lines, int headerLineCount, int contentWidth, AgentRowBadge.Widths widths)
+    {
+        if (headerLineCount >= 1)
+        {
+            lines.Add(BlankLine);
+        }
+
+        if (headerLineCount >= 2)
+        {
+            lines.Add(AgentRowBadge.RenderHeader(contentWidth, widths));
+        }
+
+        if (headerLineCount >= 3)
+        {
+            lines.Add(AgentRowBadge.RenderRule(contentWidth));
+        }
+
+        if (headerLineCount >= 4)
+        {
+            lines.Add(BlankLine);
+        }
+    }
+
+    private static void PadTo(List<string> lines, int height)
+    {
+        while (lines.Count < height)
         {
             lines.Add(string.Empty);
         }
-
-        return lines;
     }
 
     private static string FormatIndicator(int hiddenCount, string direction) => $"  {hiddenCount} more {direction}";
