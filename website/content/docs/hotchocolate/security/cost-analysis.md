@@ -433,7 +433,7 @@ builder
 
 # Real-World Example
 
-Consider a product catalog API with this schema. Both `products` and `reviews` are paginated fields without a pure resolver, so each carries `@cost(weight: "10")`, and `MaxPageSize` is `50`:
+Consider a product catalog API with this schema. Both `products` and `reviews` are paginated fields without a pure resolver, so each carries `#!sdl @cost(weight: "10")`, and `MaxPageSize` is `50`:
 
 ```graphql
 type Query {
@@ -502,7 +502,7 @@ public static IQueryable<Review> GetReviews([Parent] Product product, CatalogCon
     => db.Reviews.Where(r => r.ProductId == product.Id);
 ```
 
-With `reviews(first: 10)`, the field cost drops to `1 611` and the type cost to `1 652`. The field cost is still above the default `MaxFieldCost`, so either raise the limit to `2_000` or lower the `products` page size as well. With both connections at `10`, the field cost is `331` and the type cost is `332`, well within the defaults.
+With `#!graphql reviews(first: 10)`, the field cost drops to `1 611` and the type cost to `1 652`. The field cost is still above the default `MaxFieldCost`, so either raise the limit to `2_000` or lower the `products` page size as well. With both connections at `10`, the field cost is `331` and the type cost is `332`, well within the defaults.
 
 # Options Reference
 

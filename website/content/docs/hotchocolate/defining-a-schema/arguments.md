@@ -92,7 +92,7 @@ public static partial class UserQueries
 }
 ```
 
-This produces `user(name: String!): User` in the schema.
+This produces `#!sdl user(name: String!): User` in the schema.
 
 # Optional Arguments
 
@@ -136,7 +136,7 @@ public static partial class ProductQueries
 }
 ```
 
-This produces `products(limit: Int! = 10): [Product!]!`.
+This produces `#!sdl products(limit: Int! = 10): [Product!]!`.
 
 C# default parameter values also work:
 
@@ -158,7 +158,7 @@ public static partial class ProductQueries
 }
 ```
 
-This produces `products(filter: BookFilterInput! = { title: null, year: 2024 }): [Product!]!`. The string is parsed as a GraphQL value literal at schema build time.
+This produces `#!sdl products(filter: BookFilterInput! = { title: null, year: 2024 }): [Product!]!`. The string is parsed as a GraphQL value literal at schema build time.
 
 # The ID Attribute
 

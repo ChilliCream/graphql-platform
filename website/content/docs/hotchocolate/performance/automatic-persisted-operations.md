@@ -29,13 +29,13 @@ Open your preferred terminal and select a directory for this tutorial.
 
 1. Install the Hot Chocolate templates.
 
-```bash
+```shell
 dotnet new install HotChocolate.Templates
 ```
 
 2. Create a new Hot Chocolate GraphQL server project.
 
-```bash
+```shell
 dotnet new graphql
 ```
 
@@ -84,7 +84,7 @@ Now that your server is set up with automatic persisted operations, verify that 
 
 1. Start the GraphQL server.
 
-```bash
+```shell
 dotnet run
 ```
 
@@ -92,7 +92,7 @@ dotnet run
 
 **Request**
 
-```bash
+```shell
 curl -g 'http://localhost:5000/graphql/?extensions={"persistedQuery":{"version":1,"md5Hash":"71yeex4k3iYWQgg9TilDIg=="}}'
 ```
 
@@ -115,7 +115,7 @@ The response indicates, as expected, that this operation is unknown.
 
 **Request**
 
-```bash
+```shell
 curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persistedQuery":{"version":1,"md5Hash":"71yeex4k3iYWQgg9TilDIg=="}}'
 ```
 
@@ -139,7 +139,7 @@ The GraphQL server responds with the operation result and indicates that the ope
 
 **Request**
 
-```bash
+```shell
 curl -g 'http://localhost:5000/graphql/?extensions={"persistedQuery":{"version":1,"md5Hash":"71yeex4k3iYWQgg9TilDIg=="}}'
 ```
 
@@ -172,7 +172,7 @@ builder
 
 2. Start the GraphQL server.
 
-```bash
+```shell
 dotnet run
 ```
 
@@ -180,7 +180,7 @@ dotnet run
 
 **Request**
 
-```bash
+```shell
 curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persistedQuery":{"version":1,"sha256Hash":"7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"}}'
 ```
 
@@ -204,7 +204,7 @@ If you run multiple Hot Chocolate server instances and want to preserve stored o
 
 1. Set up a Redis Docker container.
 
-```bash
+```shell
 docker run --name redis-stitching -p 7000:6379 -d redis
 ```
 
@@ -228,7 +228,7 @@ builder
 
 4. Start the GraphQL server.
 
-```bash
+```shell
 dotnet run
 ```
 
@@ -236,7 +236,7 @@ dotnet run
 
 **Request**
 
-```bash
+```shell
 curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persistedQuery":{"version":1,"sha256Hash":"7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"}}'
 ```
 
@@ -258,7 +258,7 @@ curl -g 'http://localhost:5000/graphql/?query={__typename}&extensions={"persiste
 
 7. Start your GraphQL server again.
 
-```bash
+```shell
 dotnet run
 ```
 
@@ -266,7 +266,7 @@ dotnet run
 
 **Request**
 
-```bash
+```shell
 curl -g 'http://localhost:5000/graphql/?extensions={"persistedQuery":{"version":1,"sha256Hash":"7f56e67dd21ab3f30d1ff8b7bed08893f0a0db86449836189b361dd1e56ddb4b"}}'
 ```
 

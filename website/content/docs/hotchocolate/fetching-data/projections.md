@@ -95,7 +95,7 @@ private static SortDefinition<Product> DefaultOrder(SortDefinition<Product> sort
     => sort.IfEmpty(o => o.AddDescending(t => t.Name)).AddAscending(t => t.Id);
 ```
 
-The `IfEmpty` method applies the default sort only when the client did not provide a sort argument. The `AddAscending(t => t.Id)` call always appends a tiebreaker to ensure stable cursor-based pagination.
+The `IfEmpty` method applies the default sort only when the client did not provide a sort argument. The `#!csharp AddAscending(t => t.Id)` call always appends a tiebreaker to ensure stable cursor-based pagination.
 
 # Using QueryContext with Services
 
@@ -278,7 +278,7 @@ public static async Task<List<Supplier?>> GetSupplierAsync(
 }
 ```
 
-The `.Include(s => s.Id)` call adds the `Id` property to the projection selector so it is always available for the dictionary key, even if the client did not request it.
+The `#!csharp .Include(s => s.Id)` call adds the `Id` property to the projection selector so it is always available for the dictionary key, even if the client did not request it.
 
 # Always and Never Projected Fields
 

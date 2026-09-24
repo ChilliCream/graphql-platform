@@ -355,7 +355,7 @@ if (context.Result is OperationResult result)
 
 Most of the properties you'd want to modify are now immutable data structures that can be modified.
 
-`OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
+`OperationResultBuilder.CreateError(error)` can be simply replaced with `#!csharp new OperationResult([error])`.
 
 ## Page and cursor API changes
 
@@ -570,7 +570,7 @@ public sealed class BookDTO
 ```
 
 Note that this change implies that all type parameters of the generic `ID<Type>`-attribute must now be valid GraphQL types.
-If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `[ID("BookDTO")]`.
+If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `#!csharp [ID("BookDTO")]`.
 
 ## DescriptorAttribute attributeProvider is nullable
 
@@ -1415,7 +1415,7 @@ app.MapGraphQLSemanticNonNullSchema();
 
 If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
 
-```bash
+```shell
 dotnet run -- schema export --output schema.graphql --semantic-non-null
 ```
 

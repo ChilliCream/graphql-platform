@@ -435,12 +435,12 @@ builder
 
 A custom scalar converts values between the GraphQL wire format and a .NET runtime type. Each custom scalar handles four conversion scenarios:
 
-| Method                 | Direction               | Purpose                                                           |
-| ---------------------- | ----------------------- | ----------------------------------------------------------------- |
-| `OnCoerceInputLiteral` | GraphQL literal to .NET | Parses values embedded in a query, e.g. `{ field(arg: "value") }` |
-| `OnCoerceInputValue`   | JSON to .NET            | Parses values provided as variables in the request                |
-| `OnCoerceOutputValue`  | .NET to JSON            | Writes resolver results to the response                           |
-| `OnValueToLiteral`     | .NET to GraphQL literal | Converts default values for schema introspection                  |
+| Method                 | Direction               | Purpose                                                                     |
+| ---------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| `OnCoerceInputLiteral` | GraphQL literal to .NET | Parses values embedded in a query, e.g. `#!graphql { field(arg: "value") }` |
+| `OnCoerceInputValue`   | JSON to .NET            | Parses values provided as variables in the request                          |
+| `OnCoerceOutputValue`  | .NET to JSON            | Writes resolver results to the response                                     |
+| `OnValueToLiteral`     | .NET to GraphQL literal | Converts default values for schema introspection                            |
 
 Extend `ScalarType<TRuntimeType, TLiteral>` to create a custom scalar:
 

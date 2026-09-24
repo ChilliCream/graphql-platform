@@ -11,7 +11,7 @@ By the end of this section, you will have a Mocha bus connected to RabbitMQ with
 
 ## Install the package
 
-```bash
+```shell
 dotnet add package Mocha.Transport.RabbitMQ
 ```
 
@@ -19,7 +19,7 @@ dotnet add package Mocha.Transport.RabbitMQ
 
 The most common setup uses the Aspire RabbitMQ component for connection management:
 
-```bash
+```shell
 dotnet add package Aspire.RabbitMQ.Client
 ```
 

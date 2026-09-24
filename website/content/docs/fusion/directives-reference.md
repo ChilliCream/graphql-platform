@@ -44,7 +44,7 @@ directive @key(fields: FieldSelectionSet!) repeatable on OBJECT | INTERFACE
 
 Each `@key` directive on a type specifies one distinct unique key for that entity. Apply multiple `@key` directives to define alternative keys that the gateway can use to resolve the entity. Fields referenced in a key are implicitly shareable across subgraphs -- you do not need to add `@shareable` to key fields.
 
-Key fields may supply constant arguments to select a specific variant of a field (for example, `@key(fields: "id(scope: LOCAL)")`). Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied. Composition reports unknown, incompatible, or missing-required arguments as `KEY_INVALID_ARGUMENTS`.
+Key fields may supply constant arguments to select a specific variant of a field (for example, `#!sdl @key(fields: "id(scope: LOCAL)")`). Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied. Composition reports unknown, incompatible, or missing-required arguments as `KEY_INVALID_ARGUMENTS`.
 
 **Example -- single key:**
 
@@ -88,7 +88,7 @@ type Product @key(fields: "id sku") {
 }
 ```
 
-> **In C#:** `[EntityKey("id")]` attribute. See [Entities and Lookups](./entities-and-lookups.md).
+> **In C#:** `#!csharp [EntityKey("id")]` attribute. See [Entities and Lookups](./entities-and-lookups.md).
 
 ---
 
@@ -146,7 +146,7 @@ directive @is(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 | -------- | -------------------- | ----------------------------------------------------------------------------- |
 | `field`  | `FieldSelectionMap!` | A selection map that describes the mapping from entity fields to the argument |
 
-When a lookup argument name matches the corresponding field on the return type, you can omit `@is`. Use `@is` when the names differ or when the mapping involves nested fields. Fields in the selection map may carry constant arguments (for example, `@is(field: "id(scope: LOCAL)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `IS_INVALID_FIELDS`.
+When a lookup argument name matches the corresponding field on the return type, you can omit `@is`. Use `@is` when the names differ or when the mapping involves nested fields. Fields in the selection map may carry constant arguments (for example, `#!sdl @is(field: "id(scope: LOCAL)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `IS_INVALID_FIELDS`.
 
 **Example -- argument name differs from field name:**
 
@@ -294,7 +294,7 @@ directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 | -------- | -------------------- | ----------------------------------------------------------------------- |
 | `field`  | `FieldSelectionMap!` | A selection map describing which fields from the entity type are needed |
 
-Use `@require` when a resolver in one subgraph needs data that another subgraph owns. The gateway handles the data fetching automatically. This shifts cross-service data dependencies from hidden runtime failures to validated build-time contracts. Fields in the selection map may carry constant arguments to select a specific variant (for example, `@require(field: "dimension(unit: METRIC)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `REQUIRE_INVALID_FIELDS`.
+Use `@require` when a resolver in one subgraph needs data that another subgraph owns. The gateway handles the data fetching automatically. This shifts cross-service data dependencies from hidden runtime failures to validated build-time contracts. Fields in the selection map may carry constant arguments to select a specific variant (for example, `#!sdl @require(field: "dimension(unit: METRIC)")`); argument values must be constant literals (no variables), must match the field's argument definitions, and all required arguments must be supplied. Argument errors surface as `REQUIRE_INVALID_FIELDS`.
 
 **Example -- scalar requirement:**
 
@@ -419,7 +419,7 @@ type User {
 }
 ```
 
-> **In C#:** `[Provides("email")]` attribute. See [Field Ownership](./field-ownership-and-sharing.md).
+> **In C#:** `#!csharp [Provides("email")]` attribute. See [Field Ownership](./field-ownership-and-sharing.md).
 
 ---
 
@@ -510,7 +510,7 @@ type Product {
 }
 ```
 
-> **In C#:** `[Override("Catalog")]` attribute (from `HotChocolate.ApolloFederation.Types`). See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
+> **In C#:** `#!csharp [Override("Catalog")]` attribute (from `HotChocolate.ApolloFederation.Types`). See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
 
 ---
 

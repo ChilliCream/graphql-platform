@@ -409,10 +409,10 @@ The full set of properties available on `GraphQLServerOptions` is listed below. 
 
 The `Sockets` property contains a `GraphQLSocketOptions` object with these properties:
 
-| Property                          | Type        | Default                    | Description                                                              |
-| --------------------------------- | ----------- | -------------------------- | ------------------------------------------------------------------------ |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | `TimeSpan.FromSeconds(10)` | Time the client has to send `connection_init` after opening a WebSocket. |
-| `KeepAliveInterval`               | `TimeSpan?` | `TimeSpan.FromSeconds(5)`  | Interval for server keep-alive pings. `null` disables keep-alive.        |
+| Property                          | Type        | Default                             | Description                                                              |
+| --------------------------------- | ----------- | ----------------------------------- | ------------------------------------------------------------------------ |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | `#!csharp TimeSpan.FromSeconds(10)` | Time the client has to send `connection_init` after opening a WebSocket. |
+| `KeepAliveInterval`               | `TimeSpan?` | `#!csharp TimeSpan.FromSeconds(5)`  | Interval for server keep-alive pings. `null` disables keep-alive.        |
 
 # Per-Endpoint Configuration with WithOptions
 

@@ -566,7 +566,7 @@ Each source schema requires a `schema-settings.json` file alongside its `.graphq
 
 **Type:** `string` (required)
 
-The unique source schema name used in composition. Must match the name used in `builder.AddGraphQL("products-api")`.
+The unique source schema name used in composition. Must match the name used in `#!csharp builder.AddGraphQL("products-api")`.
 
 ### `transports.http.url`
 
@@ -606,7 +606,7 @@ The same as `transports.http.devUrl`, for the WebSocket URL of the source schema
 
 **Type:** `string` (optional, defaults to `"fusion"`)
 
-The named HTTP client the gateway uses to communicate with this subgraph. Must match what the gateway configures via `builder.Services.AddHttpClient("fusion")`.
+The named HTTP client the gateway uses to communicate with this subgraph. Must match what the gateway configures via `#!csharp builder.Services.AddHttpClient("fusion")`.
 
 ### `transports.subscriptions.transport`
 
