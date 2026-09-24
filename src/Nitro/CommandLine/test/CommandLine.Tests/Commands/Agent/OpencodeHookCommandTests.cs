@@ -16,12 +16,12 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     private const string ServerUrl = "http://127.0.0.1:4096";
 
     [Fact]
-    public async Task SessionCreated_Should_RegisterThePresenceRow_And_WriteNeutralResponse()
+    public async Task SessionCreated_Should_BindTheAgentRowToTheSession_When_TheIdentityIsAlreadySeeded()
     {
-        // arrange: an identity already bound to this session id, so the
-        // registered row binds to the seeded name rather than an allocated one.
+        // arrange
+        // an agent already bound to this session id, so the started row binds to the seeded name
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupHookPayload();
 
         // act
@@ -29,17 +29,17 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("maya", await QueryScalarAsync("SELECT agent_name FROM agent_sessions"));
+        Assert.Equal("maya", await QueryScalarAsync("SELECT name FROM agents WHERE session_id = 'session-1'"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
     [Fact]
     public async Task SessionCreated_Should_WriteNeutralResponse_When_ThePayloadNamesNoServerUrl()
     {
-        // arrange: a payload with no server URL, so nothing identifies the
-        // session's opencode server endpoint.
+        // arrange
+        // a payload with no server URL, so nothing identifies the session's opencode server endpoint
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupStandardInput(
             $$"""{"sessionId":"{{SessionId}}","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
 
@@ -48,17 +48,17 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Equal("none", await QueryScalarAsync("SELECT endpoint_kind FROM agents WHERE name = 'maya'"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
     [Fact]
     public async Task ChatMessage_Should_AppendTheActorAnnouncement_When_ItIsTheFirstMessage()
     {
-        // arrange: session-created armed the first-message announcement, so
-        // the first chat-message event claims it.
+        // arrange
+        // session-created armed the first-message announcement, so the first chat-message event claims it
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
         SetupHookPayload();
@@ -76,10 +76,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task ChatMessage_Should_AppendTheMailDigest_When_TheActorHasUnreadMail()
     {
-        // arrange: the announcement already claimed on session-created, and
-        // one unread message sent to the bound actor afterward.
+        // arrange
+        // the announcement already claimed on session-created, and one unread message sent afterward
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         await SeedAgentAsync("ada");
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
@@ -102,10 +102,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task ChatMessage_Should_WriteNeutralResponse_When_NoMailIsUnread_And_AnnouncementAlreadyClaimed()
     {
-        // arrange: the announcement already claimed and no mail waiting, so
-        // this event has nothing left to say.
+        // arrange
+        // the announcement already claimed and no mail waiting, so this event has nothing left to say
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
         SetupHookPayload();
@@ -123,10 +123,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task ChatMessage_Should_WriteNeutralResponse_When_ThePayloadIsMarkedNitroPushed()
     {
-        // arrange: a marked, Nitro-pushed turn never receives the
-        // announcement or digest this event exists to add.
+        // arrange
+        // a marked, Nitro-pushed turn never receives the announcement or digest this event exists to add
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
         SetupStandardInput(
@@ -145,9 +145,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task SessionIdle_Should_WriteNeutralResponse_When_NoMailIsUnread()
     {
-        // arrange: a presence row bound to the actor, with an empty inbox.
+        // arrange
+        // a presence row bound to the actor, with an empty inbox
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
         SetupHookPayload();
@@ -166,36 +167,34 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
         // arrange
         // Start the session and send unread mail before invoking session-idle.
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         await SeedAgentAsync("ada");
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
         await ExecuteCommandAsync(
             "agent", "mail", "send", "--body", "All good.", "--to", "maya", "--subject", "Status", "--actor", "ada");
         SetupHookPayload();
-
-        // Capture the delivery count after the send and before session-idle.
-        var deliveriesBefore = await QueryScalarAsync("SELECT COUNT(*) FROM session_deliveries");
+        var deliveriesBefore = await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries");
 
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "opencode", "session-idle");
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal(
-            deliveriesBefore, await QueryScalarAsync("SELECT COUNT(*) FROM session_deliveries"));
+        Assert.Equal(deliveriesBefore, await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
     [Fact]
-    public async Task SessionDeleted_Should_RemoveThePresenceRow()
+    public async Task SessionDeleted_Should_StampEndedAtAndKeepTheRow_When_TheSessionIsActive()
     {
-        // arrange: a presence row this session started.
+        // arrange
+        // a presence row this session started
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupHookPayload();
         await ExecuteCommandAsync("agent", "hook", "opencode", "session-created");
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
         SetupHookPayload();
 
         // act
@@ -203,7 +202,8 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.NotNull(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'maya'"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
@@ -213,10 +213,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [InlineData("session-deleted")]
     public async Task Event_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession(string eventName)
     {
-        // arrange: a payload with no session id, so nothing identifies which
-        // session the event speaks for.
+        // arrange
+        // a payload with no session id, so nothing identifies which session the event speaks for
         await InitWorkspaceAsync();
-        await InsertOpencodeIdentityAsync("maya");
+        await SeedOpencodeIdentityAsync();
         SetupStandardInput(
             $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}},"serverUrl":"{{ServerUrl}}"}""");
 
@@ -231,7 +231,7 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task HookHelp_ShouldBeInvisible()
     {
-        // arrange & act
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "--help");
 
         // assert
@@ -241,7 +241,7 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task OpencodeHelp_ReturnsSuccess()
     {
-        // arrange & act
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "opencode", "--help");
 
         // assert
@@ -277,9 +277,9 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [InlineData(
         "session-deleted",
         "Adapt opencode's session.deleted event: remove this session's presence row.")]
-    public async Task EventHelp_ReturnsSuccess(string eventName, string description)
+    public async Task EventHelp_Should_PrintTheEventDescription_When_HelpIsRequested(string eventName, string description)
     {
-        // arrange & act
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "opencode", eventName, "--help");
 
         // assert
@@ -296,8 +296,8 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
             """);
     }
 
-    private Task InsertOpencodeIdentityAsync(string actor)
-        => InsertSessionIdentityAsync(actor, SessionId, AgentSessionHarness.Opencode);
+    private Task SeedOpencodeIdentityAsync()
+        => BindAgentSessionAsync("maya", SessionId, AgentSessionHarness.Opencode);
 
     /// <summary>
     /// Feeds one shim event payload to stdin. Every command run consumes

@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
 
@@ -190,27 +189,12 @@ public sealed class OpencodeHookExecutorTests
             var fileSystem = new TestFileSystem(workspaceRoot);
             var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
             var database = new AgentDatabase();
-            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
-            var sessions = new AgentSessionRegistry(
-                fileSystem,
-                timeProvider,
-                database,
-                agentRegistry,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
-            var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(
-                fileSystem, timeProvider, database, new AgentStore(fileSystem, timeProvider, database));
+            var agentStore = new AgentStore(fileSystem, timeProvider, database);
+            var ledger = new AgentDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentStore);
             var environmentVariables = new FixedEnvironmentVariableProvider();
             var handler = new OpencodeHookHandler(
-                fileSystem,
-                timeProvider,
-                sessions,
-                ledger,
-                mail,
-                environmentVariables,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+                fileSystem, timeProvider, agentStore, ledger, mail, environmentVariables);
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
@@ -231,7 +215,7 @@ public sealed class OpencodeHookExecutorTests
             await using (var lockCommand = lockConnection.CreateCommand())
             {
                 lockCommand.Transaction = lockTransaction;
-                lockCommand.CommandText = "UPDATE agent_sessions SET last_beat_at = last_beat_at;";
+                lockCommand.CommandText = "UPDATE agents SET last_seen_at = last_seen_at;";
                 await lockCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
@@ -278,26 +262,11 @@ public sealed class OpencodeHookExecutorTests
             var fileSystem = new TestFileSystem(workspaceRoot);
             var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
             var database = new AgentDatabase();
-            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
-            var sessions = new AgentSessionRegistry(
-                fileSystem,
-                timeProvider,
-                database,
-                agentRegistry,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
-            var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(
-                fileSystem, timeProvider, database, new AgentStore(fileSystem, timeProvider, database));
+            var agentStore = new AgentStore(fileSystem, timeProvider, database);
+            var ledger = new AgentDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentStore);
             var handler = new OpencodeHookHandler(
-                fileSystem,
-                timeProvider,
-                sessions,
-                ledger,
-                mail,
-                new FixedEnvironmentVariableProvider(),
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+                fileSystem, timeProvider, agentStore, ledger, mail, new FixedEnvironmentVariableProvider());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
