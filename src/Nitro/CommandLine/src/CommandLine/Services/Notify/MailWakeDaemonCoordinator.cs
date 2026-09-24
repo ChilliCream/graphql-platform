@@ -20,14 +20,31 @@ internal sealed class MailWakeDaemonCoordinator(
     private const int MaxTransientAttempts = 5;
 
     /// <summary>
-    /// Invoked at the end of every admission loop iteration, before its poll delay.
+    /// Invoked after its poll delay is armed, at the end of every admission loop iteration.
     /// </summary>
     internal Func<CancellationToken, Task>? AfterAdmissionTickAsync { get; init; }
 
     /// <summary>
-    /// Invoked at the end of every standby loop iteration, before its poll delay.
+    /// Invoked after its poll delay is armed, at the end of every standby loop iteration.
     /// </summary>
     internal Func<CancellationToken, Task>? AfterStandbyTickAsync { get; init; }
+
+    /// <summary>
+    /// Invoked once leadership is ending, either because <see cref="StopAsync"/> was called
+    /// or the coordinator degraded itself, before it bounds its wait for the heartbeat and
+    /// admission loops to drain.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterLeadershipEndedAsync { get; init; }
+
+    /// <summary>
+    /// Invoked after a transient busy-retry delay is armed, before it is awaited.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterRetryDelayArmedAsync { get; init; }
+
+    /// <summary>
+    /// Invoked after a bounded wait for shutdown is armed, before it is awaited.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterShutdownWaitArmedAsync { get; init; }
 
     private readonly string _ownerToken = $"daemon-{Guid.NewGuid():N}";
     private readonly object _statusLock = new();
@@ -104,7 +121,14 @@ internal sealed class MailWakeDaemonCoordinator(
         try
         {
             await lifetime.CancelAsync();
-            await runTask.WaitAsync(policy.ShutdownWait, cancellationToken);
+            var stopped = runTask.WaitAsync(policy.ShutdownWait, timeProvider, cancellationToken);
+
+            if (AfterShutdownWaitArmedAsync is { } afterShutdownWaitArmedAsync)
+            {
+                await afterShutdownWaitArmedAsync(cancellationToken);
+            }
+
+            await stopped;
         }
         catch (TimeoutException)
         {
@@ -154,9 +178,16 @@ internal sealed class MailWakeDaemonCoordinator(
             {
                 UpdateStatus(s => s with { State = MailWakeDaemonState.Standby, LastError = Bound(ex.Message) });
 
+                var delay = Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+
+                if (AfterRetryDelayArmedAsync is { } afterRetryDelayArmedAsync)
+                {
+                    await afterRetryDelayArmedAsync(stopToken);
+                }
+
                 try
                 {
-                    await Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+                    await delay;
                 }
                 catch (OperationCanceledException)
                 {
@@ -195,6 +226,8 @@ internal sealed class MailWakeDaemonCoordinator(
                 }
             }
 
+            var delay = Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+
             if (AfterStandbyTickAsync is { } afterStandbyTickAsync)
             {
                 await afterStandbyTickAsync(stopToken);
@@ -202,7 +235,7 @@ internal sealed class MailWakeDaemonCoordinator(
 
             try
             {
-                await Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+                await delay;
             }
             catch (OperationCanceledException)
             {
@@ -229,11 +262,46 @@ internal sealed class MailWakeDaemonCoordinator(
 
         var heartbeatTask = HeartbeatLoopAsync(degradedSource, leaderSource.Token);
         var admissionTask = AdmissionLoopAsync(degradedSource, leaderSource.Token);
+        var loopsCompleted = Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
 
-        await Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
-
-        if (stopToken.IsCancellationRequested || Status.State == MailWakeDaemonState.Degraded)
+        // Cheap and never blocked by an in-flight dispatch: leaderSource cancels the moment
+        // either StopAsync is called or the coordinator degrades itself.
+        try
         {
+            await Task.Delay(Timeout.InfiniteTimeSpan, leaderSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        if (stopToken.IsCancellationRequested || degradedSource.IsCancellationRequested)
+        {
+            if (AfterLeadershipEndedAsync is { } afterLeadershipEndedAsync)
+            {
+                await afterLeadershipEndedAsync(CancellationToken.None);
+            }
+
+            // Bounded so a dispatch that ignores its cancellation token cannot hold the
+            // lease forever; the loops keep draining in the background either way.
+            var drained = loopsCompleted.WaitAsync(policy.ShutdownWait, timeProvider, CancellationToken.None);
+
+            if (AfterShutdownWaitArmedAsync is { } afterShutdownWaitArmedAsync)
+            {
+                await afterShutdownWaitArmedAsync(CancellationToken.None);
+            }
+
+            try
+            {
+                await drained;
+            }
+            catch (TimeoutException)
+            {
+                UpdateStatus(s => s with
+                {
+                    LastError = Bound("A dispatch ignored cancellation past the shutdown wait; leadership was released anyway.")
+                });
+            }
+
             await ReleaseWithRetryAsync(CancellationToken.None);
         }
     }
@@ -336,12 +404,14 @@ internal sealed class MailWakeDaemonCoordinator(
                     UpdateStatus(s => s with { LastError = Bound(ex.Message) });
                 }
 
+                var delay = Task.Delay(policy.AdmissionPollInterval, timeProvider, loopToken);
+
                 if (AfterAdmissionTickAsync is { } afterAdmissionTickAsync)
                 {
                     await afterAdmissionTickAsync(loopToken);
                 }
 
-                await Task.Delay(policy.AdmissionPollInterval, timeProvider, loopToken);
+                await delay;
             }
         }
         finally
@@ -481,7 +551,14 @@ internal sealed class MailWakeDaemonCoordinator(
                     return false;
                 }
 
-                await Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+                var delay = Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+
+                if (AfterRetryDelayArmedAsync is { } afterRetryDelayArmedAsync)
+                {
+                    await afterRetryDelayArmedAsync(cancellationToken);
+                }
+
+                await delay;
             }
         }
 
@@ -504,7 +581,14 @@ internal sealed class MailWakeDaemonCoordinator(
                     return default;
                 }
 
-                await Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+                var delay = Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+
+                if (AfterRetryDelayArmedAsync is { } afterRetryDelayArmedAsync)
+                {
+                    await afterRetryDelayArmedAsync(cancellationToken);
+                }
+
+                await delay;
             }
         }
 
