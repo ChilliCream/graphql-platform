@@ -3,22 +3,26 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Time.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="MailWakeDaemonCoordinator"/> against a real workspace
-/// database with a fast injected <see cref="MailWakeDaemonPolicy"/> and real
-/// wall-clock time (no <c>FakeTimeProvider</c>, so there is no race between
-/// advancing a fake clock and a background loop reaching its next await):
-/// first acquisition, staying standby behind another owner's live lease,
-/// taking over once that lease expires, exactly one leader winning (and the
-/// other staying standby) when two coordinators race the same lease with
-/// different owner tokens, the admission/execution loops actually draining
-/// outstanding actor wake work through the reused
+/// database with a fast injected <see cref="MailWakeDaemonPolicy"/>: first
+/// acquisition, staying standby behind another owner's live lease, taking
+/// over once that lease expires, the admission/execution loops actually
+/// draining outstanding actor wake work through the reused
 /// <see cref="IActorWakeDispatcher"/>, self-degradation on a daemon-side
-/// Claude access denial without disturbing the winning standby, and a
-/// bounded, leadership-releasing graceful stop.
+/// Claude access denial without disturbing the winning standby, a bounded,
+/// leadership-releasing graceful stop, and demotion to standby (cancelling
+/// its own in-flight dispatch) when its renewal is lost or fenced by a
+/// second owner that already holds the lease. Most of these run on real
+/// wall-clock time, since racing a background loop against an advancing
+/// fake clock is itself a source of flakiness; the lease-fencing test alone
+/// drives a shared <see cref="FakeTimeProvider"/>, sequencing the second
+/// owner's acquire and the holder's own next heartbeat deterministically
+/// instead of racing two live coordinators.
 /// </summary>
 public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 {
@@ -256,6 +260,55 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         Assert.NotEqual(MailWakeTargetStatus.Delivered, status);
         Assert.Null(coordinator.Status.OwnerToken);
         Assert.Null(coordinator.Status.LeaseExpiresAt);
+
+        await coordinator.StopAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task RunningLeader_Should_DemoteToStandby_When_ASecondOwnerAcquiresTheLease_And_FencesTheHoldersNextRenewal()
+    {
+        // arrange
+        // A raw second acquire stands in for a second coordinator winning the row.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
+        var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
+        await SendEnqueuedMailAsync(cancellationToken, actor);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var executor = new FakePingSessionExecutor { HangUntilCancelled = true };
+        await using var coordinator = new MailWakeDaemonCoordinator(
+            leaderStore,
+            new ActorWakeDispatcher(_batches, _agentStore, _gateCoordinator, executor, _mail, timeProvider),
+            _fileSystem,
+            _database,
+            timeProvider,
+            s_fastPolicy);
+
+        // act
+        await coordinator.StartAsync(cancellationToken);
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
+        await executor.Entered.Task.WaitAsync(s_waitTimeout, cancellationToken);
+
+        // The second owner wins with a "now" already past the holder's lease,
+        // ahead of the holder's own next heartbeat.
+        var secondOwnerAcquired = await leaderStore.TryAcquireAsync(
+            "second-owner",
+            timeProvider.GetUtcNow() + s_fastPolicy.LeaderLeaseDuration + TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(30),
+            cancellationToken);
+
+        // The holder's next heartbeat now finds a lease it no longer owns.
+        timeProvider.Advance(s_fastPolicy.HeartbeatInterval + TimeSpan.FromMilliseconds(10));
+        await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Standby, cancellationToken);
+
+        // assert
+        // The second owner holds the row; the fenced-out holder never recorded a delivery.
+        Assert.True(secondOwnerAcquired);
+        Assert.Equal("second-owner", await ReadLeaderOwnerTokenAsync(cancellationToken));
+        Assert.Null(coordinator.Status.OwnerToken);
+        Assert.Null(coordinator.Status.LeaseExpiresAt);
+        var status = await ReadTargetStatusAsync(actor, cancellationToken);
+        Assert.NotEqual(MailWakeTargetStatus.Delivered, status);
 
         await coordinator.StopAsync(cancellationToken);
     }
