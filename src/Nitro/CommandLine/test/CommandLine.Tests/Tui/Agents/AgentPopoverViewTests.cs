@@ -269,6 +269,20 @@ public sealed class AgentPopoverViewTests
     }
 
     [Fact]
+    public void FormatMemoryRow_Should_TrimTheTrailingCarriageReturn_When_TheBodyUsesCrlfLineEndings()
+    {
+        // arrange
+        var entry = new MemoryParticipationEntry(
+            MemoryParticipationKind.Journal, "j1", null, [], "First line.\r\nSecond line.", s_now);
+
+        // act
+        var line = AgentPopoverView.FormatMemoryRow(entry, s_now, 80);
+
+        // assert
+        Assert.Equal("journal  now  First line.", line);
+    }
+
+    [Fact]
     public void Highlight_Should_WrapContentInTheSelectionStyle_When_Called()
     {
         // arrange

@@ -755,8 +755,8 @@ internal sealed class TuiShell
             case AgentPopoverResult.DeleteRequested deleteRequested:
                 return HandleMessage(new TuiMessage.DeleteAgentRequested(deleteRequested.Name));
 
-            case AgentPopoverResult.CopyRequested:
-                return HandleMessage(new TuiMessage.CopySelectedId());
+            case AgentPopoverResult.CopyRequested copyRequested:
+                return HandleMessage(AgentsMode.BuildCopyIdToast(copyRequested.Name, copyRequested.SessionId));
 
             default:
                 return true;
