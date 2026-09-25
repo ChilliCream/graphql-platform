@@ -56,7 +56,6 @@ public class FilterFieldDescriptor
         if (Configuration.Expression is LambdaExpression lambda)
         {
             Configuration.Type = convention.GetFieldType(lambda.ReturnType);
-            Configuration.RuntimeType = lambda.ReturnType;
         }
     }
 
