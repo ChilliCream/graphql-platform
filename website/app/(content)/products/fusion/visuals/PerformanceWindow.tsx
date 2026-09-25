@@ -4,17 +4,6 @@ import { AppWindow } from "@/src/components/AppWindow";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 
-/**
- * The `performance-by-design` panel: an AppWindow tracing one request's
- * execution top to bottom — a precomputed plan, a plan-cache hit,
- * deduplicated downstream fetches, then incremental delivery via
- * `@defer`/`@stream`. Rows reveal on scroll with a staggered delay; the rest
- * frame (every row settled) is always the final state, so `motion-reduce`
- * needs nothing special beyond what `RevealOnScroll` already honours. Below
- * 500px of the window's own width the timing value drops under the label
- * instead of sharing its row, via a container query scoped to this window.
- */
-
 type Tone = "success" | "warning";
 
 const TONE_TEXT: Record<Tone, string> = {

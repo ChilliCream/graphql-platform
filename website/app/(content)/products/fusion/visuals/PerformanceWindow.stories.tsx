@@ -2,12 +2,6 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
 import { PerformanceWindow } from "./PerformanceWindow";
 
-/**
- * Widths match the Fusion FeatureRow panel's measured content box at the
- * page's gate viewports (375, 768, 1024, 1440, 1920), so the container
- * query the window relies on is exercised at the sizes it actually renders
- * at in production.
- */
 const PANEL_WIDTHS = {
   375: 335,
   768: 672,
