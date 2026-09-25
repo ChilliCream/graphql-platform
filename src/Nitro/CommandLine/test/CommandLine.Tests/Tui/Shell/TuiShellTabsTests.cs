@@ -76,12 +76,17 @@ public sealed class TuiShellTabsTests
         return new MemoryStore(new TestFileSystem(root.FullName), time, new AgentDatabase());
     }
 
-    private static void SaveMemory(MemoryStore store, string text) => store.SaveAsync(
+    private static MemoryRecord SaveMemory(MemoryStore store, string text) => store.SaveAsync(
         new MemoryRecordCreation { Text = text, Type = "fact", Actor = "test-agent" },
         TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     private static void LogMemory(MemoryStore store, string text) => store.LogAsync(
         new MemoryJournalEntryCreation { Text = text, Actor = "test-agent" },
+        TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    private static void UpdateMemoryBody(MemoryStore store, string id, string text) => store.UpdateAsync(
+        id,
+        new MemoryRecordUpdate { Text = text, TextGiven = true },
         TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     [Fact]
@@ -811,6 +816,175 @@ public sealed class TuiShellTabsTests
             // assert
             Assert.Collection(memoryMode.State.Rows, r => Assert.Equal("Deploy note.", r.Body));
             Assert.Contains("Deploy note.", RenderToText(shell));
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTheMemoryEntryPopover_When_EnterIsPressedWithARowSelected()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Restart the worker on failure.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // act
+            var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains(saved.Id, rendered);
+            Assert.Contains("Kind: curated", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheEntryIdToast_When_YIsPressedInTheMemoryEntryPopover()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Ops note.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('y', ConsoleKey.Y)));
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            var statusLine = rendered.TrimEnd().Split('\n')[^1].Trim();
+            Assert.Equal($"i {saved.Id}", statusLine);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_CloseTheMemoryEntryPopover_When_EscapeIsPressed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Ops note.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\u001b', ConsoleKey.Escape)));
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("KIND", rendered);
+            Assert.Contains("Ops note.", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ReloadTheMemoryEntryPopover_When_ADataChangedEventArrives()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Original body.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            UpdateMemoryBody(store, saved.Id, "Distinctnewbody");
+            var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("Distinctnewbody", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ShowNoItemSelectedToast_When_EnterIsPressedOnAnEmptyMemoryTab()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // act
+            var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("No item selected.", RenderToText(shell, width: 100));
         }
         finally
         {
