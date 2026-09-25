@@ -613,13 +613,11 @@ internal sealed class MailWakeDaemonCoordinator(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var row = await connection.QueryFirstOrDefaultAsync<LeaseRow>(
-            new CommandDefinition(
-                """
+            """
                 SELECT owner_token AS OwnerToken, expires_at AS ExpiresAt
                 FROM mail_wake_daemons
                 WHERE id = 1
-                """,
-                cancellationToken: cancellationToken));
+                """);
 
         return row is null
             ? null
@@ -631,13 +629,11 @@ internal sealed class MailWakeDaemonCoordinator(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var actors = await connection.QueryAsync<string>(
-            new CommandDefinition(
-                """
+            """
                 SELECT actor FROM mail_wake_outbox
                 WHERE settled_generation < requested_generation AND due_at <= @now
                 """,
-                new { now },
-                cancellationToken: cancellationToken));
+                new { now });
 
         return actors.AsList();
     }
