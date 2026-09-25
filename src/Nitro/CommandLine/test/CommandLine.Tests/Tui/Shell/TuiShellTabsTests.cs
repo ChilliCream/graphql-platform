@@ -263,13 +263,13 @@ public sealed class TuiShellTabsTests
         Assert.Empty(mailMode.HandledMessages);
 
         // act
-        // Switch to the mail tab and press 'r' again.
+        // Switch to the mail tab, where 'p' resolves through the Mail key map instead.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
         tasksMode.HandledMessages.Clear();
-        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('p', ConsoleKey.P)));
 
         // assert
-        Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.RefreshRequested);
+        Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.AgentFilterPickerRequested);
         Assert.Empty(tasksMode.HandledMessages);
     }
 
@@ -527,6 +527,77 @@ public sealed class TuiShellTabsTests
 
         // assert
         Assert.Contains("Mail (2)", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMailTabToPickedAgent_When_AgentFilterPickerAppliedThroughTheShell()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new Agents.FakeAgentStore(time);
+        LoginAgent(agentStore);
+        var agentName = agentStore.Rows[0].Name;
+        mailStore.Messages.Add(MailMessageBuilder.Create("m1", sender: agentName, threadId: "t-1"));
+        mailStore.Messages.Add(MailMessageBuilder.Create("m2", sender: "outsider", threadId: "t-2"));
+        var mailMode = new MailMode(mailStore, agentStore, time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: agentStore,
+            mailStore: new Agents.FakeMailStore(),
+            memoryStore: new Agents.FakeMemoryStore(),
+            timeProvider: time);
+
+        // act
+        // Switch to the Mail tab, open the agent picker, move to the seeded agent, and apply it.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('p', ConsoleKey.P)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\0', ConsoleKey.DownArrow)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Contains($"Mail: {agentName} (1)", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMailTabRows_When_SearchSubmittedThroughTheShell()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", sender: "alice", subject: "Status update", threadId: "t-1"));
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m2", sender: "bob", subject: "Lunch plans", threadId: "t-2"));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time),
+            mailStore: new Agents.FakeMailStore(),
+            memoryStore: new Agents.FakeMemoryStore(),
+            timeProvider: time);
+
+        // act
+        // Switch to the Mail tab, open search, type a subject fragment, and submit with the save chord.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+        foreach (var c in "status")
+        {
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo(c, ConsoleKey.NoName)));
+        }
+
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S, ConsoleModifiers.Control)));
+
+        // assert
+        Assert.Collection(mailMode.State.Threads, t => Assert.Equal("Status update", t.Subject));
+        Assert.Contains("Status update", RenderToText(shell));
     }
 
     [Fact]
