@@ -15,7 +15,7 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
     /// <summary>
     /// Every non-deleted agent matching <see cref="SearchText"/>, sorted by state group
     /// (Online, Unreachable, Offline) as of the last <see cref="RefreshAsync"/> or
-    /// <see cref="ApplySearch"/> call, then by last seen descending, then by name.
+    /// <see cref="ApplySearch"/> call, then by last-seen window descending, then by name.
     /// </summary>
     public IReadOnlyList<AgentRow> Rows { get; private set; } = [];
 
@@ -121,7 +121,7 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
 
         Rows = filtered
             .OrderBy(row => StateRank(AgentStateResolver.Resolve(row, now)))
-            .ThenByDescending(row => row.LastSeenAt)
+            .ThenByDescending(row => AgentStateResolver.LastSeenWindowStart(row.LastSeenAt))
             .ThenBy(row => row.Name, StringComparer.Ordinal)
             .ToList();
     }

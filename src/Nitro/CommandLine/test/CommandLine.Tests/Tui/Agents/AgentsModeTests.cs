@@ -86,6 +86,65 @@ public sealed class AgentsModeTests
     private static void Touch(FakeAgentStore store, string name)
         => store.TouchAsync(name, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
+    /// <summary>
+    /// Seeds an online agent last seen at exactly <paramref name="lastSeenAt"/>, for tests
+    /// that need precise control over its last-seen window rather than the current clock.
+    /// </summary>
+    private static AgentRow AddOnlineAgentSeenAt(FakeAgentStore store, string name, DateTimeOffset lastSeenAt)
+    {
+        var row = new AgentRow
+        {
+            Name = name,
+            Role = string.Empty,
+            Harness = AgentSessionHarness.ClaudeCode,
+            HarnessVersion = "1.0.0",
+            SessionId = $"session-{name}",
+            Cwd = string.Empty,
+            WorkspacePath = string.Empty,
+            RegisteredAt = lastSeenAt,
+            StartedAt = lastSeenAt,
+            LastSeenAt = lastSeenAt,
+            EndpointKind = AgentSessionEndpointKind.ClaudePeer,
+            EndpointAddr = "peer-1",
+            BlockBudgetUsed = 0,
+            AnnouncementPending = false,
+            IdlePushArmed = false
+        };
+
+        store.Seed(row);
+        return row;
+    }
+
+    /// <summary>
+    /// Seeds an offline agent (its session already ended) last seen at exactly
+    /// <paramref name="lastSeenAt"/>.
+    /// </summary>
+    private static AgentRow AddOfflineAgentSeenAt(FakeAgentStore store, string name, DateTimeOffset lastSeenAt)
+    {
+        var row = new AgentRow
+        {
+            Name = name,
+            Role = string.Empty,
+            Harness = AgentSessionHarness.ClaudeCode,
+            HarnessVersion = "1.0.0",
+            SessionId = $"session-{name}",
+            Cwd = string.Empty,
+            WorkspacePath = string.Empty,
+            RegisteredAt = lastSeenAt,
+            StartedAt = lastSeenAt,
+            LastSeenAt = lastSeenAt,
+            EndedAt = lastSeenAt,
+            EndpointKind = AgentSessionEndpointKind.ClaudePeer,
+            EndpointAddr = "peer-1",
+            BlockBudgetUsed = 0,
+            AnnouncementPending = false,
+            IdlePushArmed = false
+        };
+
+        store.Seed(row);
+        return row;
+    }
+
     private static int CountOccurrences(string text, string value)
     {
         var count = 0;
@@ -291,6 +350,92 @@ public sealed class AgentsModeTests
         var staleIndex = text.IndexOf(stale.Name, StringComparison.Ordinal);
         Assert.True(dirty && freshIndex >= 0 && offlineIndex > freshIndex && staleIndex > offlineIndex);
         Assert.Equal(stale.Name, mode.State.SelectedAgent?.Name);
+    }
+
+    [Fact]
+    public void Rows_Should_OrderByNameAscending_When_TwoOnlineAgentsLastSeenFallInTheSameFiveMinuteWindow()
+    {
+        // arrange
+        // 10:01 and 10:04 both floor to the 10:00 window; "zed" is seen later but must not
+        // sort first once the tie is broken by name instead of raw last-seen time.
+        var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(windowStart.AddMinutes(6));
+        var store = new FakeAgentStore(time);
+        AddOnlineAgentSeenAt(store, "zed", windowStart.AddMinutes(4));
+        AddOnlineAgentSeenAt(store, "ann", windowStart.AddMinutes(1));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Collection(
+            mode.State.Rows,
+            row => Assert.Equal("ann", row.Name),
+            row => Assert.Equal("zed", row.Name));
+    }
+
+    [Fact]
+    public void Rows_Should_SortTheLaterWindowFirst_When_OneAgentsLastSeenCrossedTheNextFiveMinuteBoundary()
+    {
+        // arrange
+        // "aaa" is seen at 10:06 (the 10:05 window), ahead of "zzz" and "yyy" in the 10:00
+        // window, even though it would sort last by name.
+        var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(windowStart.AddMinutes(7));
+        var store = new FakeAgentStore(time);
+        AddOnlineAgentSeenAt(store, "zzz", windowStart.AddMinutes(1));
+        AddOnlineAgentSeenAt(store, "yyy", windowStart.AddMinutes(4));
+        AddOnlineAgentSeenAt(store, "aaa", windowStart.AddMinutes(6));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal("aaa", mode.State.Rows[0].Name);
+    }
+
+    [Fact]
+    public void Rows_Should_PlaceTwoLastSeenTimesInDifferentWindows_When_OneLandsRightBeforeAndOneRightAtTheBoundary()
+    {
+        // arrange
+        // "b" lands exactly on the 10:05 boundary; "a" lands one second earlier, still in the
+        // 10:00 window, even though "a" sorts first by name.
+        var boundary = new DateTimeOffset(2026, 1, 1, 10, 5, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(boundary.AddMinutes(1));
+        var store = new FakeAgentStore(time);
+        AddOnlineAgentSeenAt(store, "b", boundary);
+        AddOnlineAgentSeenAt(store, "a", boundary - TimeSpan.FromSeconds(1));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal("b", mode.State.Rows[0].Name);
+        Assert.Equal("a", mode.State.Rows[1].Name);
+    }
+
+    [Fact]
+    public void Rows_Should_KeepOnlineBeforeOffline_When_TheOfflineAgentsWindowIsLaterThanTheOnlineAgents()
+    {
+        // arrange
+        // The offline agent's window is later, but its state group still loses to the
+        // online agent's, so the window comparison never applies across groups.
+        var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(windowStart.AddMinutes(20));
+        var store = new FakeAgentStore(time);
+        var online = AddOnlineAgentSeenAt(store, "zzz", windowStart);
+        var offline = AddOfflineAgentSeenAt(store, "aaa", windowStart.AddMinutes(15));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal(online.Name, mode.State.Rows[0].Name);
+        Assert.Equal(offline.Name, mode.State.Rows[1].Name);
     }
 
     [Fact]

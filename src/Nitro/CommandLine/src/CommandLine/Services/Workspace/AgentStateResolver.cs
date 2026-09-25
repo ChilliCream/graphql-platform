@@ -11,6 +11,25 @@ internal static class AgentStateResolver
     public static readonly TimeSpan OnlineWindow = TimeSpan.FromMinutes(30);
 
     /// <summary>
+    /// The width of the clock-aligned window used to group agents by last-seen time for
+    /// ordering, so a beat every minute does not reorder the list every tick.
+    /// </summary>
+    public static readonly TimeSpan LastSeenWindow = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Floors <paramref name="value"/> to the start of its <see cref="LastSeenWindow"/>, aligned
+    /// to the UTC clock (for example 10:00, 10:05, 10:10) rather than to <paramref name="value"/>
+    /// itself.
+    /// </summary>
+    public static DateTimeOffset LastSeenWindowStart(DateTimeOffset value)
+    {
+        var utc = value.ToUniversalTime();
+        var windowTicks = LastSeenWindow.Ticks;
+        var flooredTicks = utc.Ticks - (utc.Ticks % windowTicks);
+        return new DateTimeOffset(flooredTicks, TimeSpan.Zero);
+    }
+
+    /// <summary>
     /// Resolves the state of <paramref name="row"/> as of <paramref name="now"/>.
     /// </summary>
     public static AgentState Resolve(AgentRow row, DateTimeOffset now)
