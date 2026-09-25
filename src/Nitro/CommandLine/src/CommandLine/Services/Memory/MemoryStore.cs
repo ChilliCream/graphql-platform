@@ -198,7 +198,7 @@ internal sealed class MemoryStore(
         }
 
         var ids = await connection.QueryAsync<string>(
-            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+            sql, parameters);
 
         return await LoadCuratedAsync(connection, ids.ToList());
     }
@@ -306,12 +306,10 @@ internal sealed class MemoryStore(
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var entry = await connection.QueryFirstOrDefaultAsync<JournalRow>(
-            new CommandDefinition(
-                "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
                 + "FROM memory_journal WHERE id = @journalId;",
                 new { journalId },
-                transaction,
-                cancellationToken: cancellationToken))
+                transaction)
             ?? throw new ExitException($"Journal entry '{journalId}' does not exist.");
 
         var id = MemoryPromotedId.Derive(journalId);
@@ -348,8 +346,7 @@ internal sealed class MemoryStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rows = await connection.QueryAsync<ParticipationRow>(
-            new CommandDefinition(
-                """
+            """
                 SELECT id AS Id, 'curated' AS Kind, created_at AS CreatedAt
                 FROM memory_curated
                 WHERE created_by = @agent
@@ -361,8 +358,7 @@ internal sealed class MemoryStore(
                 ORDER BY CreatedAt DESC, Id
                 LIMIT @limit;
                 """,
-                new { agent, limit = limit ?? -1 },
-                cancellationToken: cancellationToken));
+                new { agent, limit = limit ?? -1 });
 
         var ordered = rows.ToList();
         var curatedIds = ordered.Where(row => row.Kind == "curated").Select(row => row.Id).ToList();
@@ -459,28 +455,52 @@ internal sealed class MemoryStore(
         string id,
         CancellationToken cancellationToken)
     {
-        var row = await connection.QueryFirstOrDefaultAsync<CuratedRow>(
-            new CommandDefinition(
-                "SELECT id AS Id, type AS Type, body AS Body, created_at AS CreatedAt, "
-                + "updated_at AS UpdatedAt, created_by AS CreatedBy, promoted_from AS PromotedFrom "
-                + "FROM memory_curated WHERE id = @id;",
-                new { id },
-                transaction,
-                cancellationToken: cancellationToken));
+        await using var command = connection.CreateCommand();
+        command.Transaction = (SqliteTransaction?)transaction;
+        command.CommandText =
+            "SELECT id, type, body, created_at, updated_at, created_by, promoted_from "
+            + "FROM memory_curated WHERE id = @id;";
+        command.Parameters.AddWithValue("@id", id);
+
+        CuratedRow? row;
+
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            row = await reader.ReadAsync(cancellationToken)
+                ? new CuratedRow
+                {
+                    Id = reader.GetString(0),
+                    Type = reader.GetString(1),
+                    Body = reader.GetString(2),
+                    CreatedAt = reader.GetString(3),
+                    UpdatedAt = reader.GetString(4),
+                    CreatedBy = reader.GetString(5),
+                    PromotedFrom = reader.IsDBNull(6) ? null : reader.GetString(6)
+                }
+                : null;
+        }
 
         if (row is null)
         {
             return null;
         }
 
-        var tags = await connection.QueryAsync<string>(
-            new CommandDefinition(
-                "SELECT tag FROM memory_curated_tags WHERE id = @id ORDER BY tag;",
-                new { id },
-                transaction,
-                cancellationToken: cancellationToken));
+        var tags = new List<string>();
 
-        return row.ToRecord(tags.ToArray());
+        await using var tagsCommand = connection.CreateCommand();
+        tagsCommand.Transaction = (SqliteTransaction?)transaction;
+        tagsCommand.CommandText = "SELECT tag FROM memory_curated_tags WHERE id = @id ORDER BY tag;";
+        tagsCommand.Parameters.AddWithValue("@id", id);
+
+        await using (var reader = await tagsCommand.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                tags.Add(reader.GetString(0));
+            }
+        }
+
+        return row.ToRecord(tags);
     }
 
     private static async Task<MemoryRecord> FindPromotedAsync(
@@ -490,11 +510,9 @@ internal sealed class MemoryStore(
         CancellationToken cancellationToken)
     {
         var id = await connection.QueryFirstAsync<string>(
-            new CommandDefinition(
-                "SELECT id FROM memory_curated WHERE promoted_from = @journalId;",
+            "SELECT id FROM memory_curated WHERE promoted_from = @journalId;",
                 new { journalId },
-                transaction,
-                cancellationToken: cancellationToken));
+                transaction);
 
         return (await FindCuratedAsync(connection, transaction, id, cancellationToken))!;
     }
@@ -579,14 +597,14 @@ internal sealed class MemoryStore(
         return trimmed;
     }
 
-    private sealed class ParticipationRow
+    internal sealed class ParticipationRow
     {
         public required string Id { get; init; }
         public required string Kind { get; init; }
         public required string CreatedAt { get; init; }
     }
 
-    private sealed class JournalRow
+    internal sealed class JournalRow
     {
         public required string Id { get; init; }
         public required string Body { get; init; }
@@ -602,13 +620,13 @@ internal sealed class MemoryStore(
         };
     }
 
-    private sealed class CuratedTagRow
+    internal sealed class CuratedTagRow
     {
         public required string Id { get; init; }
         public required string Tag { get; init; }
     }
 
-    private sealed class CuratedRow
+    internal sealed class CuratedRow
     {
         public required string Id { get; init; }
         public required string Type { get; init; }
