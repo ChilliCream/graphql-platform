@@ -133,6 +133,16 @@ jobs:
             exit 1
           fi
 
+          if ! search_output="$("$nitro_bin" agent memory search "smoke" --output json)"; then
+            echo "::error::agent memory search \"smoke\" --output json failed." >&2
+            exit 1
+          fi
+          echo "$search_output"
+          if ! printf '%s' "$search_output" | grep -q '"id"'; then
+            echo "::error::agent memory search \"smoke\" --output json did not report any memories." >&2
+            exit 1
+          fi
+
           if ! "$nitro_bin" agent tasks close "$task_id" --actor "$actor" --reason "smoke"; then
             echo "::error::agent tasks close \"$task_id\" --actor \"$actor\" --reason \"smoke\" failed." >&2
             exit 1
