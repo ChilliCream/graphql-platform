@@ -1,3 +1,6 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
@@ -25,19 +28,40 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     private const string EmptyStateMessage =
         "No agents yet. Start a harness with Nitro hooks installed, or run nitro agent login.";
 
+    private readonly IAgentStore _agentStore;
     private readonly TimeProvider _timeProvider;
     private readonly AgentsState _state;
     private readonly Viewport _listViewport = new(0, 0);
 
     private AgentSearchForm? _searchForm;
+    private IMailStore? _mailStore;
+    private ITaskStore? _taskStore;
+    private IMemoryStore? _memoryStore;
 
     public AgentsMode(IAgentStore agentStore, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(agentStore);
 
+        _agentStore = agentStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _state = new AgentsState(agentStore, _timeProvider);
         KeyMap = AgentsKeyMap.CreateDefault(() => _state.SelectedAgent?.Name);
+    }
+
+    /// <summary>
+    /// Supplies the stores the agent detail popover needs to load mail, ticket, and memory
+    /// participation. <see cref="TryCreatePopover"/> returns null for every selection until
+    /// this has been called.
+    /// </summary>
+    public void ConfigurePopover(IMailStore mailStore, ITaskStore taskStore, IMemoryStore memoryStore)
+    {
+        ArgumentNullException.ThrowIfNull(mailStore);
+        ArgumentNullException.ThrowIfNull(taskStore);
+        ArgumentNullException.ThrowIfNull(memoryStore);
+
+        _mailStore = mailStore;
+        _taskStore = taskStore;
+        _memoryStore = memoryStore;
     }
 
     /// <summary>
@@ -94,11 +118,40 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.MoveCursor(CursorDirection.Up) => Move(-1),
         TuiMessage.MoveCursor(CursorDirection.Down) => Move(1),
         TuiMessage.MoveToEdge(var edge) => MoveToEdge(edge),
-        // OpenSelected is handled by TuiShell before it reaches here: the shell opens an
-        // AgentPopoverModel for the selected agent.
+        // Reached only when TryCreatePopover found no selected agent to open: the shell falls
+        // back to dispatching OpenSelected here for the no-selection toast.
+        TuiMessage.OpenSelected => OpenSelectedFallback(),
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CopySelectedId => CopySelectedId(),
         TuiMessage.SearchRequested => OpenSearchForm(),
+        _ => []
+    };
+
+    /// <inheritdoc />
+    public IPopover? TryCreatePopover()
+    {
+        if (_mailStore is null || _taskStore is null || _memoryStore is null)
+        {
+            return null;
+        }
+
+        if (_state.SelectedAgent is not { } agent)
+        {
+            return null;
+        }
+
+        return new AgentPopoverModel(agent.Name, _agentStore, _mailStore, _taskStore, _memoryStore, _timeProvider);
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<TuiMessage> HandlePopoverRequest(PopoverResult.Request request) => request.Payload switch
+    {
+        AgentPopoverRequest.DeleteRequested deleteRequested =>
+            [new TuiMessage.DeleteAgentRequested(deleteRequested.Name)],
+        AgentPopoverRequest.CopyRequested copyRequested =>
+            [BuildCopyIdToast(copyRequested.Name, copyRequested.SessionId)],
+        AgentPopoverRequest.CopyItemRequested copyItemRequested =>
+            [new TuiMessage.ShowToast(copyItemRequested.Id, ToastStyle.Info)],
         _ => []
     };
 
@@ -150,6 +203,15 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
         RefreshBlocking();
         return [];
     }
+
+    /// <summary>
+    /// Reports the no-selection toast the shell shows when <see cref="TryCreatePopover"/>
+    /// found no agent to open; a no-op when an agent is selected (the popover already opened).
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenSelectedFallback() =>
+        _state.SelectedAgent is null
+            ? [new TuiMessage.ShowToast("No agent selected.", ToastStyle.Warn)]
+            : [];
 
     private IReadOnlyList<TuiMessage> CopySelectedId()
     {
