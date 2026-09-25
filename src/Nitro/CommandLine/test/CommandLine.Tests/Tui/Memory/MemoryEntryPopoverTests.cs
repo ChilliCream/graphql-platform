@@ -211,6 +211,70 @@ public sealed class MemoryEntryPopoverModelTests
     }
 
     [Fact]
+    public void Render_Should_ShowTheFullPopoverLayout_When_AJournalEntryIsLoaded()
+    {
+        // arrange
+        var store = new FakeMemoryStore();
+        store.JournalEntries["jrn-1"] = CreateJournalEntry(body: "Follow up needed.", createdAt: s_now, createdBy: "alice");
+        var model = CreateModel("jrn-1", MemoryCollectionFilter.Journal, store, new FakeTimeProvider(s_now));
+        model.Load(TestContext.Current.CancellationToken);
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(model.Render(100, 30));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+
+
+
+                      ╭─jrn-1────────────────────────────────────────────────────────────────────────╮
+                      │                                                                              │
+                      │ Kind: journal                                                                │
+                      │ Created: just now by alice                                                   │
+                      │                                                                              │
+                      │ Follow up needed.                                                            │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      │                                                                              │
+                      ╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTheMissingState_When_TheEntryNoLongerExists()
+    {
+        // arrange
+        var store = new FakeMemoryStore();
+        var model = CreateModel("mem-1", MemoryCollectionFilter.Curated, store);
+        model.Load(TestContext.Current.CancellationToken);
+
+        // act
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Contains("This entry no longer exists.", text);
+    }
+
+    [Fact]
     public void HandleKey_Should_ScrollTheBody_When_JIsPressedRepeatedly()
     {
         // arrange

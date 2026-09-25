@@ -73,9 +73,10 @@ internal sealed class MemoryEntryPopoverModel : IPopover
     public IReadOnlyList<KeyHint> Hints => DefaultHints;
 
     /// <summary>
-    /// Loads (or reloads) the entry: <see cref="IMemoryStore.GetRequiredAsync"/> for a curated
-    /// memory or <see cref="IMemoryStore.GetRequiredJournalEntryAsync"/> for a journal entry,
-    /// blocking the caller.
+    /// Loads (or reloads) the entry: <see cref="IMemoryStore.FindAsync"/> for a curated memory
+    /// or <see cref="IMemoryStore.FindJournalEntryAsync"/> for a journal entry, blocking the
+    /// caller. A null lookup, such as one forgotten since the popover opened, clears the loaded
+    /// entry and renders the missing state instead.
     /// </summary>
     public void Load(CancellationToken cancellationToken = default) =>
         LoadAsync(cancellationToken).GetAwaiter().GetResult();
@@ -84,11 +85,11 @@ internal sealed class MemoryEntryPopoverModel : IPopover
     {
         if (_kind == MemoryCollectionFilter.Curated)
         {
-            _curated = await _memoryStore.GetRequiredAsync(_id, cancellationToken);
+            _curated = await _memoryStore.FindAsync(_id, cancellationToken);
         }
         else
         {
-            _journal = await _memoryStore.GetRequiredJournalEntryAsync(_id, cancellationToken);
+            _journal = await _memoryStore.FindJournalEntryAsync(_id, cancellationToken);
         }
 
         _lastAgeSignature = ComputeAgeSignature(_timeProvider.GetUtcNow());
@@ -222,6 +223,7 @@ internal static class MemoryEntryPopoverView
     private const string CuratedKindText = "curated";
     private const string JournalKindText = "journal";
     private const string NoTags = "-";
+    private const string MissingStateText = "This entry no longer exists.";
 
     /// <summary>
     /// The panel title: the entry id.
@@ -229,8 +231,9 @@ internal static class MemoryEntryPopoverView
     public static string BuildHeader(string id) => Markup.Escape(id);
 
     /// <summary>
-    /// Builds every line of the popover: a leading blank line, the header fields for the loaded
-    /// curated memory or journal entry, a blank line, then the wrapped body.
+    /// Builds every line of the popover: a leading blank line, then either the header fields
+    /// for the loaded curated memory or journal entry followed by a blank line and the wrapped
+    /// body, or a single missing-state line when neither is loaded.
     /// </summary>
     public static IReadOnlyList<string> BuildLines(
         MemoryRecord? curated, MemoryJournalEntry? journal, DateTimeOffset now, int width)
@@ -248,6 +251,10 @@ internal static class MemoryEntryPopoverView
             AppendJournalFields(lines, entry, now);
             lines.Add(BlankLine);
             AppendBody(lines, entry.Body, width);
+        }
+        else
+        {
+            lines.Add(MissingStateText);
         }
 
         return lines;

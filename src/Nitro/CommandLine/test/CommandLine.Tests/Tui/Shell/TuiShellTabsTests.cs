@@ -89,6 +89,9 @@ public sealed class TuiShellTabsTests
         new MemoryRecordUpdate { Text = text, TextGiven = true },
         TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
+    private static void ForgetMemory(MemoryStore store, string id) => store.ForgetAsync(
+        id, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
     [Fact]
     public void Constructor_Should_CallOnEnter_When_EveryHostedTabIsConstructed()
     {
@@ -954,6 +957,41 @@ public sealed class TuiShellTabsTests
             // assert
             Assert.True(dirty);
             Assert.Contains("Distinctnewbody", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheMissingState_When_TheOpenMemoryEntryIsForgotten()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Original body.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            ForgetMemory(store, saved.Id);
+            var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("This entry no longer exists.", rendered);
         }
         finally
         {
