@@ -36,9 +36,11 @@
 -- bob is left untouched here (mail-send-flow.tape's `register --actor bob`,
 -- no --role, only touches last_seen_at itself and reports his role as is,
 -- so leaving it empty here keeps that flow's existing "Actor 'bob'."
--- output unchanged); his stale last_seen_at also happens to make him
--- Offline in the Agents tab, alongside e2e-agent, for a different reason
--- than either.
+-- output unchanged); his stale last_seen_at does not change his state in
+-- the Agents tab, since AgentStateResolver checks the missing endpoint
+-- before the idle window, so bob resolves Unreachable just like alice
+-- (tied with her there, broken by last-seen recency: alice fresh, bob
+-- stale).
 --
 -- e2e-agent is the one ended agent: ended_at is set to a fixed past
 -- timestamp. AgentStateResolver checks ended_at before last_seen_at at
