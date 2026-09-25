@@ -149,9 +149,8 @@ internal static class MemoryRowBadge
 
     /// <summary>
     /// Appends the Memory table's fixed top block to <paramref name="lines"/>: a blank line,
-    /// the header row, the rule and a trailing blank line, keeping only the first
-    /// <paramref name="headerLineCount"/> of the four. A <paramref name="maxWidth"/> of 0 or
-    /// less appends nothing.
+    /// the header row and the rule, keeping only the first <paramref name="headerLineCount"/> of
+    /// the three. A <paramref name="maxWidth"/> of 0 or less appends nothing.
     /// </summary>
     public static void AddHeaderLines(List<string> lines, int headerLineCount, int maxWidth, Widths widths)
     {

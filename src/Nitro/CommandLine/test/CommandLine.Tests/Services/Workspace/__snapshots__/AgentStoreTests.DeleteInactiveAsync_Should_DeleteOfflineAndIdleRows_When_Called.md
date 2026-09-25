@@ -1,9 +1,9 @@
-# DeleteOfflineAsync_Should_DeleteOnlyOfflineRows_When_Called
+# DeleteInactiveAsync_Should_DeleteOfflineAndIdleRows_When_Called
 
 ## DeletedCount
 
 ```json
-1
+2
 ```
 
 ## OnlineDeleted
@@ -16,6 +16,12 @@ false
 
 ```json
 false
+```
+
+## IdleDeleted
+
+```json
+true
 ```
 
 ## OfflineDeleted

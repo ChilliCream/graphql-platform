@@ -61,6 +61,25 @@ Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
+# `nitro agent list` (ListAgentCommand.Order) breaks ties between agents in
+# the same state by their last-seen time floored to a clock-aligned 5-minute
+# window, then by name (see AgentStateResolver.LastSeenWindowStart). The two
+# live `register` calls below each touch last_seen_at to the real wall clock
+# at the instant they run, so if they straddle a window boundary (e.g. one
+# lands at 10:04:59, the next at 10:05:00) bob's newer window would sort him
+# ahead of alice, flipping the two rows the `list` step asserts and failing
+# the golden on an unlucky run. Shadow `nitro` with a function that, after
+# every real `agent register`, pins both agents' last_seen_at to one
+# identical timestamp computed once and written in a single statement, so
+# both get the exact same value regardless of the real elapsed time between
+# the two registrations, forcing the tie back onto name order every run.
+# `command nitro` still resolves the real binary via the PATH exported
+# above. The VHS image has no `sqlite3` CLI, only `python3`'s stdlib
+# `sqlite3` module; the written format matches the `Microsoft.Data.Sqlite`-
+# persisted `DateTimeOffset` text fixtures/agents-seed.sql already uses for
+# the same column. This lives in the hidden setup, not the visible demo, so
+# `register`'s own printed output (and the recorded frame) is unaffected.
+Type `nitro() { command nitro "$@"; local rc=$?; if [ "$1 $2" = "agent register" ]; then python3 -c 'import sqlite3, datetime; now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S") + ".0000000+00:00"; c = sqlite3.connect(".nitro/agents/agents.db"); c.execute("UPDATE agents SET last_seen_at = ? WHERE name IN (?, ?)", (now, "alice", "bob")); c.commit()'; fi; return $rc; }` Enter
 Type `clear` Enter
 Show
 

@@ -83,6 +83,16 @@ public sealed class AgentsModeTests
         return row;
     }
 
+    /// <summary>
+    /// Adds an idle agent: a valid endpoint, but a last-seen beat past the online window.
+    /// </summary>
+    private static AgentRow AddIdleAgent(FakeAgentStore store, string sessionId, FakeTimeProvider time)
+    {
+        var row = AddOnlineAgent(store, sessionId);
+        time.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        return row;
+    }
+
     private static void Touch(FakeAgentStore store, string name)
         => store.TouchAsync(name, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
@@ -164,6 +174,32 @@ public sealed class AgentsModeTests
         var unreachableIndex = text.IndexOf(unreachable.Name, StringComparison.Ordinal);
         var offlineIndex = text.IndexOf(offline.Name, StringComparison.Ordinal);
         Assert.True(onlineIndex >= 0 && unreachableIndex > onlineIndex && offlineIndex > unreachableIndex);
+    }
+
+    [Fact]
+    public void Render_Should_ListIdleBetweenOnlineAndUnreachable_When_AllFourStatesArePresent()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = new FakeAgentStore(time);
+        var offline = AddOfflineAgent(store, "s-offline");
+        var unreachable = AddUnreachableAgent(store);
+        var idle = AddIdleAgent(store, "s-idle", time);
+        var online = AddOnlineAgent(store, "s-online");
+        var mode = CreateMode(store, time);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        var onlineIndex = text.IndexOf(online.Name, StringComparison.Ordinal);
+        var idleIndex = text.IndexOf(idle.Name, StringComparison.Ordinal);
+        var unreachableIndex = text.IndexOf(unreachable.Name, StringComparison.Ordinal);
+        var offlineIndex = text.IndexOf(offline.Name, StringComparison.Ordinal);
+        Assert.True(
+            onlineIndex >= 0 && idleIndex > onlineIndex && unreachableIndex > idleIndex
+            && offlineIndex > unreachableIndex);
     }
 
     [Fact]
@@ -286,7 +322,7 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_ShowAnUpdatedAgeAndBubble_When_TimeAdvancesPastTheOnlineWindowWithoutARefresh()
+    public void Render_Should_ShowAnUpdatedAgeAndIdleBubble_When_TimeAdvancesPastTheOnlineWindowWithoutARefresh()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
@@ -307,11 +343,11 @@ public sealed class AgentsModeTests
         // assert
         Assert.Contains("just now", initialText);
         Assert.Contains("31m ago", RenderToText(mode));
-        AssertAnsiStylePrefixesText(text, "agents.list.presence.offline", "●");
+        AssertAnsiStylePrefixesText(text, "agents.list.presence.idle", "●");
     }
 
     [Fact]
-    public void Tick_Should_MoveTheSelectedAgentToTheOfflineGroupByName_When_ItsOnlineWindowElapses()
+    public void Tick_Should_MoveTheSelectedAgentToTheIdleGroupByName_When_ItsOnlineWindowElapses()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
@@ -333,10 +369,11 @@ public sealed class AgentsModeTests
         var text = RenderToText(mode);
 
         // assert
+        // The now-idle stale agent sorts ahead of the (still) offline group.
         var freshIndex = text.IndexOf(fresh.Name, StringComparison.Ordinal);
-        var offlineIndex = text.IndexOf(alreadyOffline.Name, StringComparison.Ordinal);
         var staleIndex = text.IndexOf(stale.Name, StringComparison.Ordinal);
-        Assert.True(dirty && freshIndex >= 0 && offlineIndex > freshIndex && staleIndex > offlineIndex);
+        var offlineIndex = text.IndexOf(alreadyOffline.Name, StringComparison.Ordinal);
+        Assert.True(dirty && freshIndex >= 0 && staleIndex > freshIndex && offlineIndex > staleIndex);
         Assert.Equal(stale.Name, mode.State.SelectedAgent?.Name);
     }
 
@@ -538,23 +575,24 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void CountOfflineAgents_Should_CountOnlyOfflineRows_When_ASearchFilterIsActive()
+    public void CountInactiveAgents_Should_CountOfflineAndIdleRows_When_ASearchFilterIsActive()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
         AddOfflineAgent(store, "s-a");
-        AddOfflineAgent(store, "s-b");
+        var idle = AddIdleAgent(store, "s-b", time);
         AddOnlineAgent(store, "s-c");
         var mode = CreateMode(store, time);
         mode.OnEnter();
         mode.State.ApplySearch("no-agent-matches-this");
 
         // act
-        var offlineCount = mode.CountOfflineAgents();
+        var inactiveCount = mode.CountInactiveAgents();
 
         // assert
-        Assert.Equal(2, offlineCount);
+        Assert.Equal(2, inactiveCount);
+        Assert.Equal(AgentState.Idle, AgentStateResolver.Resolve(idle, time.GetUtcNow()));
     }
 
     [Fact]
@@ -583,11 +621,11 @@ public sealed class AgentsModeTests
             │                                                                                                  │
             │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-            │                                                                                                  │
             │ > ● ackbar          -               Claude Code     just now      just now                       │
             │   ● ahsoka          -               Claude Code     just now      just now                       │
             │   ● aladdin         -               Claude Code     just now      just now                       │
-            │   3 more below                                                                                   │
+            │   ● albus           -               Claude Code     just now      just now                       │
+            │   2 more below                                                                                   │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);
@@ -616,10 +654,10 @@ public sealed class AgentsModeTests
             │                                                                                                  │
             │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-            │                                                                                                  │
             │ > ● ackbar          -               Claude Code     just now      just now                       │
             │   ● ahsoka          -               Claude Code     just now      just now                       │
             │   ● aladdin         -               Claude Code     just now      just now                       │
+            │                                                                                                  │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);

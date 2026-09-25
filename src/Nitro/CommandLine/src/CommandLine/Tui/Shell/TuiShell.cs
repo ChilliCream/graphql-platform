@@ -643,9 +643,10 @@ internal sealed class TuiShell
     {
         _agentDeleteOfflineDialog = null;
 
-        var deletedCount = _agentStore.DeleteOfflineAsync(CancellationToken.None).GetAwaiter().GetResult();
+        var deletedCount = _agentStore.DeleteInactiveAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-        HandleMessage(new TuiMessage.ShowToast($"Deleted {deletedCount} offline agents.", ToastStyle.Info));
+        HandleMessage(
+            new TuiMessage.ShowToast($"Deleted {deletedCount} offline or idle agents.", ToastStyle.Info));
         HandleMessage(new TuiMessage.RefreshRequested());
         return true;
     }
@@ -1157,8 +1158,8 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Opens the delete-all-offline confirmation. Does nothing outside the Agents tab, and
-    /// shows a toast instead of a dialog when there are no offline agents.
+    /// Opens the delete-all-offline-or-idle confirmation. Does nothing outside the Agents tab,
+    /// and shows a toast instead of a dialog when there are no offline or idle agents.
     /// </summary>
     private bool TryOpenAgentDeleteOfflineDialog()
     {
@@ -1167,15 +1168,15 @@ internal sealed class TuiShell
             return false;
         }
 
-        var offlineCount = agentsMode.CountOfflineAgents();
+        var inactiveCount = agentsMode.CountInactiveAgents();
 
-        if (offlineCount == 0)
+        if (inactiveCount == 0)
         {
-            return ShowToastNow("No offline agents to delete.", ToastStyle.Warn);
+            return ShowToastNow("No offline or idle agents to delete.", ToastStyle.Warn);
         }
 
         _agentDeleteOfflineDialog = new EditingConfirmDialog(
-            $"Delete {offlineCount} offline agents? This cannot be undone.",
+            $"Delete {inactiveCount} offline or idle agents? This cannot be undone.",
             "Delete",
             ButtonKind.Danger);
         return true;

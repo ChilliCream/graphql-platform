@@ -106,6 +106,20 @@ public sealed class AgentPopoverViewTests
     }
 
     [Fact]
+    public void BuildLines_Should_ShowIdle_When_LastSeenIsPastTheOnlineWindow()
+    {
+        // arrange
+        var row = CreateRow(lastSeenAt: s_now - AgentStateResolver.OnlineWindow - TimeSpan.FromMinutes(1));
+
+        // act
+        var built = AgentPopoverView.BuildLines(row, [], [], [], s_now, 80, s_noSelection);
+        var text = PlainText(built);
+
+        // assert
+        Assert.Contains("State: ● Idle", text);
+    }
+
+    [Fact]
     public void BuildLines_Should_ShowTheEndedRow_When_EndedAtIsSet()
     {
         // arrange

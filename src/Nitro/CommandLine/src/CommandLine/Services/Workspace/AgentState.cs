@@ -6,6 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal enum AgentState
 {
     Online,
+    Idle,
     Unreachable,
     Offline
 }

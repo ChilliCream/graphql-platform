@@ -185,7 +185,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void RenderTopBlock_Should_EmitBlankHeaderRuleBlank_When_FourLinesFit()
+    public void RenderTopBlock_Should_EmitBlankHeaderRule_When_ThreeLinesFit()
     {
         // arrange
         var lines = new List<string>();
@@ -193,15 +193,14 @@ public sealed class TableRendererTests
 
         // act
         TableRenderer.RenderTopBlock(
-            lines, lineCount: 4, width: 19, "  ", new TableCellSpec(" "), s_columns, layout, "bold", "grey");
+            lines, lineCount: 3, width: 19, "  ", new TableCellSpec(" "), s_columns, layout, "bold", "grey");
 
         // assert
         lines.MatchInlineSnapshots(
             [
                 " ",
                 "    [bold]NAME[/]    [bold]ROLE[/]    [bold]AGE[/]",
-                "[grey]───────────────────[/]",
-                " "
+                "[grey]───────────────────[/]"
             ]);
     }
 

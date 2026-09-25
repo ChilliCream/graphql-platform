@@ -15,7 +15,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 /// Displays every non-deleted agent as one full-width table: a presence bubble and name,
 /// role, harness, and started/last-seen ages. State and ages are recomputed from
 /// <see cref="TimeProvider.GetUtcNow"/> on every render, so bubbles and ages change without
-/// a database event. Delete and delete-offline are requested here but confirmed and applied
+/// a database event. Delete and delete-inactive are requested here but confirmed and applied
 /// by the hosting shell.
 /// </summary>
 internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
@@ -23,7 +23,7 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     private const int PanelChromeWidth = 4;
     private const int PanelChromeHeight = 2;
     private const int MaxIndicatorSettlePasses = 3;
-    private const int HeaderLineCount = 4;
+    private const int HeaderLineCount = TableRenderer.TopBlockLineCount;
 
     private const string EmptyStateMessage =
         "No agents yet. Start a harness with Nitro hooks installed, or run nitro agent login.";
@@ -95,10 +95,10 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Counts the agents currently resolving to <see cref="AgentState.Offline"/>, for the
-    /// shell's delete-offline confirmation.
+    /// Counts the agents currently resolving to <see cref="AgentState.Offline"/> or
+    /// <see cref="AgentState.Idle"/>, for the shell's delete-inactive confirmation.
     /// </summary>
-    public int CountOfflineAgents() => _state.CountOffline(_timeProvider.GetUtcNow());
+    public int CountInactiveAgents() => _state.CountInactive(_timeProvider.GetUtcNow());
 
     /// <summary>
     /// Recomputes state and ages as of now, re-sorting when they changed and preserving the
@@ -273,12 +273,12 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Renders the header block (a blank line, the header row, its rule, and a blank line),
-    /// then the visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
-    /// with "N more above/below" indicators once the rows no longer fit. Column widths are
-    /// computed from this call's visible slice and the header titles, so the header and rows
-    /// always agree on where each column starts. Shows the empty-state message below the header
-    /// block when there are no agents at all.
+    /// Renders the header block (a blank line, the header row, and its rule), then the visible
+    /// rows, padded with blank lines to <paramref name="interiorHeight"/>, with "N more
+    /// above/below" indicators once the rows no longer fit. Column widths are computed from
+    /// this call's visible slice and the header titles, so the header and rows always agree on
+    /// where each column starts. Shows the empty-state message below the header block when
+    /// there are no agents at all.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, DateTimeOffset now)
     {
@@ -357,9 +357,9 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// Appends the header block to <paramref name="lines"/>: a blank line, the header title
-    /// row, its rule, and a trailing blank line, up to <paramref name="headerLineCount"/> of
-    /// the four (later lines are dropped first when the interior is too short to hold all of
-    /// them).
+    /// row, and its rule, up to <paramref name="headerLineCount"/> of
+    /// <see cref="HeaderLineCount"/> (later lines are dropped first when the interior is too
+    /// short to hold all of them).
     /// </summary>
     private static void AddHeaderLines(
         List<string> lines, int headerLineCount, int contentWidth, AgentRowBadge.Widths widths) =>

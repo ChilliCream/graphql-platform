@@ -1484,7 +1484,7 @@ public sealed class TuiShellTests
 
         // assert
         Assert.True(dirty);
-        Assert.Contains("Delete 2 offline agents?", RenderToText(shell));
+        Assert.Contains("Delete 2 offline or idle agents?", RenderToText(shell));
     }
 
     [Fact]
@@ -1500,7 +1500,7 @@ public sealed class TuiShellTests
 
         // assert
         Assert.True(dirty);
-        Assert.Contains("No offline agents to delete.", RenderToText(shell));
+        Assert.Contains("No offline or idle agents to delete.", RenderToText(shell));
     }
 
     [Fact]
@@ -1522,11 +1522,34 @@ public sealed class TuiShellTests
         Assert.True(dirty);
         var remaining = Assert.Single(mode.State.Rows);
         Assert.Equal(online.Name, remaining.Name);
-        Assert.Contains("Deleted 2 offline agents.", rendered);
+        Assert.Contains("Deleted 2 offline or idle agents.", rendered);
     }
 
     [Fact]
-    public void Handle_Should_ReportDirtyAndShowTheOfflineBubble_When_ATickAdvancesPastTheOnlineWindow()
+    public void Handle_Should_DeleteEveryIdleAgentAndRefresh_When_TheDeleteOfflineDialogIsConfirmed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        time.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        var online = AddOnlineAgent(agentStore, "s-b");
+        var shell = CreateAgentsShell(out var mode, agentStore, time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.True(dirty);
+        var remaining = Assert.Single(mode.State.Rows);
+        Assert.Equal(online.Name, remaining.Name);
+        Assert.Contains("Deleted 1 offline or idle agents.", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReportDirtyAndShowTheIdleBubble_When_ATickAdvancesPastTheOnlineWindow()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
@@ -1545,7 +1568,7 @@ public sealed class TuiShellTests
 
         // assert
         Assert.True(dirty);
-        AssertAnsiStylePrefixesText(rendered, "agents.list.presence.offline", "●");
+        AssertAnsiStylePrefixesText(rendered, "agents.list.presence.idle", "●");
         Assert.Contains("31m ago", rendered);
     }
 

@@ -58,7 +58,7 @@ Type `nitro agent` Enter
 
 # Initial frame: the Tasks tab's board (same sentinel every other bare-launch
 # tape asserts first).
-Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Shift+E: TabSwitchKeys.ResolveMnemonic jumps straight to the Memory tab.
 Type "E"

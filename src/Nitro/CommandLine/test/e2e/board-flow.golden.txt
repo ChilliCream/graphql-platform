@@ -3,14 +3,14 @@ Blocked (3)
 
 Deferred (1)
 
-Ready (0)
-
 ╭─In Progress (1)─────────────────────────────────────────────────────────────────────────────╮
 │                                                                                             │
-│     TYPE    PRIO    ID              TITLE                                                   │
+│     TYPE        PRIO    ID              TITLE                                               │
 │ ─────────────────────────────────────────────────────────────────────────────────────────── │
+│ > ● task          P2    acme-epic1.1    Draft new pricing copy                              │
 │                                                                                             │
-│ > ● T         P2    acme-epic1.1    Draft new pricing copy                                  │
+│                                                                                             │
+│                                                                                             │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │

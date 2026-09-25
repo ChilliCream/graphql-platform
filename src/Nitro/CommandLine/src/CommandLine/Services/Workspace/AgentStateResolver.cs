@@ -6,7 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal static class AgentStateResolver
 {
     /// <summary>
-    /// The window after <see cref="AgentRow.LastSeenAt"/> during which an agent counts as online.
+    /// The window after <see cref="AgentRow.LastSeenAt"/> during which an agent counts as online
+    /// rather than idle.
     /// </summary>
     public static readonly TimeSpan OnlineWindow = TimeSpan.FromMinutes(30);
 
@@ -29,7 +30,9 @@ internal static class AgentStateResolver
     }
 
     /// <summary>
-    /// Resolves the state of <paramref name="row"/> as of <paramref name="now"/>.
+    /// Resolves the state of <paramref name="row"/> as of <paramref name="now"/>. A login-only
+    /// row (no endpoint) resolves to <see cref="AgentState.Unreachable"/> regardless of its age,
+    /// checked before the idle window so it never reports idle instead.
     /// </summary>
     public static AgentState Resolve(AgentRow row, DateTimeOffset now)
     {
@@ -43,14 +46,14 @@ internal static class AgentStateResolver
             return AgentState.Offline;
         }
 
-        if (now - row.LastSeenAt > OnlineWindow)
-        {
-            return AgentState.Offline;
-        }
-
         if (row.EndpointKind == AgentSessionEndpointKind.None)
         {
             return AgentState.Unreachable;
+        }
+
+        if (now - row.LastSeenAt > OnlineWindow)
+        {
+            return AgentState.Idle;
         }
 
         return AgentState.Online;

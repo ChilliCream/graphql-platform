@@ -3,10 +3,10 @@
 │                                                                                             │
 │    SUBJECT                     FROM          TO             MESSAGES    LAST ACTIVITY       │
 │ ─────────────────────────────────────────────────────────────────────────────────────────── │
-│                                                                                             │
 │ >  Billing review              bob           e2e-agent+1           1    2026-01-01          │
 │    Standup notes               e2e-agent     bob                   1    2026-01-01          │
 │    Deploy window               alice         bob                   1    2026-01-01          │
+│                                                                                             │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │

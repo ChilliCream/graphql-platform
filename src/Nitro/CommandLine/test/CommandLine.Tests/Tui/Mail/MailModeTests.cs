@@ -135,10 +135,10 @@ public sealed class MailModeTests
             │                                                                                                  │
             │    SUBJECT                     FROM          TO            MESSAGES    LAST ACTIVITY             │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-            │                                                                                                  │
             │ >  Subject                     bob           alice                1    just now                  │
             │    Subject                     dave          alice                1    1m ago                    │
             │    Subject                     carol         alice                1    2m ago                    │
+            │                                                                                                  │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);

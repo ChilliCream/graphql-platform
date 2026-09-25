@@ -3,8 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Exercises <see cref="AgentStateResolver"/>: the boundary of the online window and the
-/// precedence of deleted, ended and unreachable rows over it.
+/// Exercises <see cref="AgentStateResolver"/>: the boundary of the online window, its idle
+/// side, and the precedence of deleted, ended and unreachable rows over it.
 /// </summary>
 public sealed class AgentStateResolverTests
 {
@@ -47,7 +47,7 @@ public sealed class AgentStateResolverTests
     }
 
     [Fact]
-    public void Resolve_Should_ReturnOffline_When_LastBeatIsJustPastTheWindow()
+    public void Resolve_Should_ReturnIdle_When_LastBeatIsJustPastTheWindow()
     {
         // arrange
         var row = CreateRow() with { LastSeenAt = s_now - TimeSpan.FromMinutes(30).Add(TimeSpan.FromSeconds(1)) };
@@ -56,7 +56,7 @@ public sealed class AgentStateResolverTests
         var state = AgentStateResolver.Resolve(row, s_now);
 
         // assert
-        Assert.Equal(AgentState.Offline, state);
+        Assert.Equal(AgentState.Idle, state);
     }
 
     [Fact]
@@ -83,6 +83,27 @@ public sealed class AgentStateResolverTests
             SessionId = null,
             EndpointKind = AgentSessionEndpointKind.None,
             EndpointAddr = string.Empty
+        };
+
+        // act
+        var state = AgentStateResolver.Resolve(row, s_now);
+
+        // assert
+        Assert.Equal(AgentState.Unreachable, state);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnUnreachable_When_EndpointKindIsNoneWithAStaleBeat()
+    {
+        // arrange
+        // The endpoint-none check runs before the idle window check, so age never matters here.
+        var row = CreateRow() with
+        {
+            Harness = null,
+            SessionId = null,
+            EndpointKind = AgentSessionEndpointKind.None,
+            EndpointAddr = string.Empty,
+            LastSeenAt = s_now - TimeSpan.FromDays(30)
         };
 
         // act

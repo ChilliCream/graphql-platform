@@ -21,7 +21,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private const int PanelChromeWidth = 4;
     private const int PanelChromeHeight = 2;
     private const int MaxIndicatorSettlePasses = 3;
-    private const int HeaderLineCount = 4;
+    private const int HeaderLineCount = TableRenderer.TopBlockLineCount;
 
     private const string EmptyStateMessage = "No mail yet.";
 
@@ -328,12 +328,12 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         : $"Mail ({state.TotalCount})";
 
     /// <summary>
-    /// Renders the header block (a blank line, the header row, its rule, and a blank line),
-    /// then the visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
-    /// with "N more above/below" indicators once the rows no longer fit. Column widths are
-    /// computed from this call's visible slice and the header titles, so the header and rows
-    /// always agree on where each column starts. Shows the empty-state message below the
-    /// header block when there is no mail at all.
+    /// Renders the header block (a blank line, the header row, and its rule), then the visible
+    /// rows, padded with blank lines to <paramref name="interiorHeight"/>, with "N more
+    /// above/below" indicators once the rows no longer fit. Column widths are computed from
+    /// this call's visible slice and the header titles, so the header and rows always agree on
+    /// where each column starts. Shows the empty-state message below the header block when
+    /// there is no mail at all.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, DateTimeOffset now)
     {

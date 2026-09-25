@@ -14,7 +14,7 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
 
     /// <summary>
     /// Every non-deleted agent matching <see cref="SearchText"/>, sorted by state group
-    /// (Online, Unreachable, Offline) as of the last <see cref="RefreshAsync"/> or
+    /// (Online, Idle, Unreachable, Offline) as of the last <see cref="RefreshAsync"/> or
     /// <see cref="ApplySearch"/> call, then by last-seen window descending, then by name.
     /// </summary>
     public IReadOnlyList<AgentRow> Rows { get; private set; } = [];
@@ -98,11 +98,13 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
     }
 
     /// <summary>
-    /// Counts the agents currently resolving to <see cref="AgentState.Offline"/> as of
-    /// <paramref name="now"/>, among every non-deleted agent, ignoring the search filter.
+    /// Counts the agents currently resolving to <see cref="AgentState.Offline"/> or
+    /// <see cref="AgentState.Idle"/> as of <paramref name="now"/>, among every non-deleted
+    /// agent, ignoring the search filter.
     /// </summary>
-    public int CountOffline(DateTimeOffset now)
-        => _allRows.Count(row => AgentStateResolver.Resolve(row, now) == AgentState.Offline);
+    public int CountInactive(DateTimeOffset now)
+        => _allRows.Count(row =>
+            AgentStateResolver.Resolve(row, now) is AgentState.Offline or AgentState.Idle);
 
     /// <summary>
     /// Counts the agents currently resolving to <see cref="AgentState.Online"/> as of
@@ -150,8 +152,9 @@ internal sealed class AgentsState(IAgentStore store, TimeProvider timeProvider)
     private static int StateRank(AgentState state) => state switch
     {
         AgentState.Online => 0,
-        AgentState.Unreachable => 1,
-        _ => 2
+        AgentState.Idle => 1,
+        AgentState.Unreachable => 2,
+        _ => 3
     };
 
     private static int IndexOf(IReadOnlyList<AgentRow> rows, string name)

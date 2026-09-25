@@ -39,14 +39,14 @@ public sealed class BoardTaskRowTests
         var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
 
         // assert
-        Assert.Equal("  ○ B         P0    hc-10-abc     Fix bug", line.TrimEnd());
+        Assert.Equal("  ○ bug           P0    hc-10-abc     Fix bug", line.TrimEnd());
     }
 
     [Fact]
     public void Render_Should_DropPriorityColumn_When_WidthIsTooNarrowForAllColumns()
     {
         // arrange
-        const int maxWidth = 26;
+        const int maxWidth = 30;
         var task = CreateTask(priority: TaskPriorities.Critical, type: TaskTypes.Bug);
         var widths = BoardTaskRow.ComputeWidths([task]);
 
@@ -54,7 +54,7 @@ public sealed class BoardTaskRowTests
         var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
 
         // assert
-        Assert.Equal("  ○ B       hc-10-abc", line.TrimEnd());
+        Assert.Equal("  ○ bug         hc-10-abc", line.TrimEnd());
         Assert.True(line.GetCellWidth() <= maxWidth);
     }
 
@@ -106,20 +106,20 @@ public sealed class BoardTaskRowTests
         var idOffset = header.IndexOf("ID", StringComparison.Ordinal);
         var titleOffset = header.IndexOf("TITLE", StringComparison.Ordinal);
         var columnsAtHeaderOffsets = (
-            Type: line.Substring(typeOffset, 1),
+            Type: line.Substring(typeOffset, widths.Type).TrimEnd(),
             Prio: line.Substring(prioOffset, widths.Priority).Trim(),
             Id: line.Substring(idOffset, widths.Id).TrimEnd(),
             Title: line.Substring(titleOffset, 7));
 
         // assert
-        Assert.Equal((Type: "B", Prio: "P0", Id: "hc-10-abc", Title: "Fix bug"), columnsAtHeaderOffsets);
+        Assert.Equal((Type: "bug", Prio: "P0", Id: "hc-10-abc", Title: "Fix bug"), columnsAtHeaderOffsets);
     }
 
     [Fact]
     public void RenderHeader_Should_DropTheSameColumnsAsRow_When_WidthIsNarrow()
     {
         // arrange
-        const int maxWidth = 26;
+        const int maxWidth = 30;
         var task = CreateTask(priority: TaskPriorities.Critical, type: TaskTypes.Bug);
         var widths = BoardTaskRow.ComputeWidths([task]);
 
@@ -128,8 +128,8 @@ public sealed class BoardTaskRowTests
         var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
 
         // assert
-        Assert.Equal("    TYPE    ID", header.TrimEnd());
-        Assert.Equal("  ○ B       hc-10-abc", line.TrimEnd());
+        Assert.Equal("    TYPE        ID", header.TrimEnd());
+        Assert.Equal("  ○ bug         hc-10-abc", line.TrimEnd());
     }
 
     [Fact]
@@ -158,5 +158,46 @@ public sealed class BoardTaskRowTests
 
         // assert
         Assert.Equal("hc-10-a-very-long-id".Length, widths.Id);
+    }
+
+    [Fact]
+    public void ComputeWidths_Should_UseMinimumOfEight_When_TypeIsShorterThanMinimum()
+    {
+        // arrange
+        var rows = new[] { CreateTask(type: TaskTypes.Bug) };
+
+        // act
+        var widths = BoardTaskRow.ComputeWidths(rows);
+
+        // assert
+        Assert.Equal(8, widths.Type);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFullTypeName_When_TypeIsQuestion()
+    {
+        // arrange
+        const int maxWidth = 60;
+        var task = CreateTask(type: TaskTypes.Question);
+        var widths = BoardTaskRow.ComputeWidths([task]);
+
+        // act
+        var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
+
+        // assert
+        Assert.Contains("question", line);
+    }
+
+    [Fact]
+    public void ComputeWidths_Should_WidenTypeColumn_When_CustomTypeExceedsMinimum()
+    {
+        // arrange
+        var rows = new[] { CreateTask(type: "documentation") };
+
+        // act
+        var widths = BoardTaskRow.ComputeWidths(rows);
+
+        // assert
+        Assert.Equal("documentation".Length, widths.Type);
     }
 }

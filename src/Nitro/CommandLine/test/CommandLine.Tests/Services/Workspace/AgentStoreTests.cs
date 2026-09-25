@@ -1330,7 +1330,7 @@ public sealed class AgentStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteOfflineAsync_Should_DeleteOnlyOfflineRows_When_Called()
+    public async Task DeleteInactiveAsync_Should_DeleteOfflineAndIdleRows_When_Called()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -1340,15 +1340,18 @@ public sealed class AgentStoreTests : IDisposable
             CreateRequest(
                 sessionId: "unreachable", endpointKind: AgentSessionEndpointKind.None, endpointAddr: ""),
             cancellationToken);
+        var idle = await _store.StartSessionAsync(CreateRequest(sessionId: "idle"), cancellationToken);
         var offline = await _store.StartSessionAsync(CreateRequest(sessionId: "offline"), cancellationToken);
+        await _store.EndSessionAsync(Harness, "offline", cancellationToken);
         _timeProvider.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
         await _store.TouchSessionAsync(Harness, "online", cancellationToken);
         await _store.TouchSessionAsync(Harness, "unreachable", cancellationToken);
 
         // act
-        var deletedCount = await _store.DeleteOfflineAsync(cancellationToken);
+        var deletedCount = await _store.DeleteInactiveAsync(cancellationToken);
         var onlineRow = await _store.FindAsync(online.Row!.Name, cancellationToken);
         var unreachableRow = await _store.FindAsync(unreachable.Row!.Name, cancellationToken);
+        var idleRow = await _store.FindAsync(idle.Row!.Name, cancellationToken);
         var offlineRow = await _store.FindAsync(offline.Row!.Name, cancellationToken);
 
         // assert
@@ -1356,6 +1359,7 @@ public sealed class AgentStoreTests : IDisposable
             .Add(deletedCount, "DeletedCount")
             .Add(onlineRow!.IsDeleted, "OnlineDeleted")
             .Add(unreachableRow!.IsDeleted, "UnreachableDeleted")
+            .Add(idleRow!.IsDeleted, "IdleDeleted")
             .Add(offlineRow!.IsDeleted, "OfflineDeleted")
             .MatchMarkdownSnapshot();
     }

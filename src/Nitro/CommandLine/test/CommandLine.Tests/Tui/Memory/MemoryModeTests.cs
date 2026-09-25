@@ -149,10 +149,10 @@ public sealed class MemoryModeTests : MemoryTestBase
             │                                                                                                  │
             │    KIND        TYPE          TAGS                                                     AGE        │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-            │                                                                                                  │
             │ >  journal     -             -                                                        just now   │
             │    curated     decision      -                                                        1m ago     │
             │    curated     fact          ops                                                      2m ago     │
+            │                                                                                                  │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);

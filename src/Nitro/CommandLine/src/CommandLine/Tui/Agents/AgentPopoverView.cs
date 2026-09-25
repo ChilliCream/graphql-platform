@@ -82,6 +82,7 @@ internal static class AgentPopoverView
         var stateText = state switch
         {
             AgentState.Online => "Online",
+            AgentState.Idle => "Idle",
             AgentState.Unreachable => "Unreachable",
             _ => "Offline"
         };

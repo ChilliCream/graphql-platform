@@ -39,7 +39,8 @@ internal sealed class MailNudge(
             {
                 var row = await agentStore.FindAsync(actor, cancellationToken);
 
-                if (row is null || AgentStateResolver.Resolve(row, timeProvider.GetUtcNow()) != AgentState.Online)
+                if (row is null
+                    || AgentStateResolver.Resolve(row, timeProvider.GetUtcNow()) is not (AgentState.Online or AgentState.Idle))
                 {
                     // Nudging only reaches an actor the wake system could itself target.
                     continue;

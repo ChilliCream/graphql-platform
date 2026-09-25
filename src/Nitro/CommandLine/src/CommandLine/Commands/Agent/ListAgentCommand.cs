@@ -69,8 +69,8 @@ internal sealed class ListAgentCommand : Command
     }
 
     /// <summary>
-    /// Orders rows the way the board does: online agents first, then unreachable, then
-    /// offline, with ties broken by the most recently seen window and then by name.
+    /// Orders rows the way the board does: online agents first, then idle, then unreachable,
+    /// then offline, with ties broken by the most recently seen window and then by name.
     /// </summary>
     private static IReadOnlyList<AgentRow> Order(IReadOnlyList<AgentRow> rows, DateTimeOffset now)
         => rows

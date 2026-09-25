@@ -10,11 +10,14 @@
 # jumps straight to Agents.
 #
 # AgentsMode renders every non-deleted agent as one full-width table
-# (AgentRowBadge), sorted Online, then Unreachable, then Offline
+# (AgentRowBadge), sorted Online, then Idle, then Unreachable, then Offline
 # (AgentsState.ApplyFilterAndSort). fixtures/agents-seed.sql gives nora that
-# Online state (a role, a harness, a live session, a non-'none' endpoint),
-# alice Unreachable (no harness/session, recently seen), and bob/e2e-agent
-# both Offline (bob stale, e2e-agent ended_at set); wren is soft-deleted and
+# Online state (a role, a harness, a live session, a non-'none' endpoint);
+# alice and bob are both login-only (no harness/session, endpoint_kind
+# 'none'), so both are Unreachable regardless of how stale bob's own beat
+# is (AgentStateResolver checks the missing endpoint before the idle
+# window), tied and broken by last-seen recency (alice fresh, bob stale);
+# e2e-agent is the only Offline row (ended_at set). wren is soft-deleted and
 # so never appears in the table's "1 online / 4" header count either (see
 # that file's own header for why these four states land on these four
 # names, and why the Online one specifically is a fresh name rather than
@@ -40,11 +43,12 @@
 # cursor and the show-more list's own scrolling. The first Escape backs
 # out of that list to the summary popover, and the second Escape closes
 # the popover entirely, returning to the table. From there, Shift+D
-# presses the table's own delete-offline binding (AgentsKeyMap's D,
+# presses the table's own delete-offline-or-idle binding (AgentsKeyMap's D,
 # distinct from the popover's per-agent 'd'), opening the confirmation
-# TuiShell.TryOpenAgentDeleteOfflineDialog shows for the currently Offline
-# agents, bob and e2e-agent ("Delete 2 offline agents? This cannot be
-# undone."). A final Escape cancels it: TuiShell's Cancelled branch just
+# TuiShell.TryOpenAgentDeleteOfflineDialog shows for the one currently
+# Offline agent, e2e-agent ("Delete 1 offline or idle agents? This cannot
+# be undone."); bob does not count, being Unreachable rather than Offline
+# or Idle. A final Escape cancels it: TuiShell's Cancelled branch just
 # clears the dialog, so the final frame is the table itself, unchanged.
 #
 # nora's last_seen_at is refreshed to the real current time by
@@ -84,7 +88,7 @@ Type `nitro agent` Enter
 
 # Initial frame: the Tasks tab's board (same sentinel as board-flow.tape's
 # and mail-board-flow.tape's first Wait+Screen).
-Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Shift+A: TabSwitchKeys.ResolveMnemonic jumps straight to the Agents tab.
 Type "A"
@@ -141,11 +145,12 @@ Wait+Screen@30s /State: ● Online/
 Escape
 Wait+Screen@30s /Agents \(1 online \/ 4\)/
 
-# Shift+D opens the table-level delete-offline confirmation (distinct from
-# the popover's per-agent 'd'), counting bob and e2e-agent; Esc cancels it,
-# returning to the table.
+# Shift+D opens the table-level delete-offline-or-idle confirmation
+# (distinct from the popover's per-agent 'd'), counting only e2e-agent
+# (bob is Unreachable, not Offline or Idle); Esc cancels it, returning to
+# the table.
 Type "D"
-Wait+Screen@30s /Delete 2 offline agents\? This cannot be undone\./
+Wait+Screen@30s /Delete 1 offline or idle agents\? This cannot be undone\./
 Escape
 Wait+Screen@30s /Agents \(1 online \/ 4\)/
 Wait+Screen@30s /> ● nora/
