@@ -116,10 +116,15 @@ internal sealed class AgentStore(
 
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var rowsAffected = await connection.ExecuteAsync(
+        await using var command = connection.CreateCommand();
+        command.CommandText =
             "UPDATE agents SET last_seen_at = @now "
-                + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
-                new { now, harness, sessionId });
+                + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL";
+        command.Parameters.AddWithValue("@now", now);
+        command.Parameters.AddWithValue("@harness", harness);
+        command.Parameters.AddWithValue("@sessionId", sessionId);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return rowsAffected > 0;
     }
@@ -146,10 +151,15 @@ internal sealed class AgentStore(
 
         await using var connection = await ConnectAsync(cancellationToken);
 
-        var rowsAffected = await connection.ExecuteAsync(
+        await using var command = connection.CreateCommand();
+        command.CommandText =
             "UPDATE agents SET ended_at = @now "
-                + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
-                new { now, harness, sessionId });
+                + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL";
+        command.Parameters.AddWithValue("@now", now);
+        command.Parameters.AddWithValue("@harness", harness);
+        command.Parameters.AddWithValue("@sessionId", sessionId);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return rowsAffected > 0;
     }
@@ -260,9 +270,11 @@ internal sealed class AgentStore(
 
         await using var connection = await ConnectAsync(cancellationToken);
 
-        await connection.ExecuteAsync(
-            "UPDATE agents SET block_budget_used = 0 WHERE name = @name AND deleted_at IS NULL",
-                new { name = normalizedName });
+        await using var command = connection.CreateCommand();
+        command.CommandText = "UPDATE agents SET block_budget_used = 0 WHERE name = @name AND deleted_at IS NULL";
+        command.Parameters.AddWithValue("@name", normalizedName);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
 
         return 0;
     }
@@ -274,11 +286,14 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
 
-        var rowsAffected = await connection.ExecuteAsync(
+        await using var updateCommand = connection.CreateCommand();
+        updateCommand.Transaction = transaction;
+        updateCommand.CommandText =
             "UPDATE agents SET block_budget_used = block_budget_used + 1 "
-                + "WHERE name = @name AND deleted_at IS NULL",
-                new { name = normalizedName },
-                transaction: transaction);
+                + "WHERE name = @name AND deleted_at IS NULL";
+        updateCommand.Parameters.AddWithValue("@name", normalizedName);
+
+        var rowsAffected = await updateCommand.ExecuteNonQueryAsync(cancellationToken);
 
         if (rowsAffected == 0)
         {
@@ -286,14 +301,16 @@ internal sealed class AgentStore(
             return 0;
         }
 
-        var updated = await connection.ExecuteScalarAsync<int>(
-            "SELECT block_budget_used FROM agents WHERE name = @name",
-                new { name = normalizedName },
-                transaction: transaction);
+        await using var selectCommand = connection.CreateCommand();
+        selectCommand.Transaction = transaction;
+        selectCommand.CommandText = "SELECT block_budget_used FROM agents WHERE name = @name";
+        selectCommand.Parameters.AddWithValue("@name", normalizedName);
+
+        var updated = (long)(await selectCommand.ExecuteScalarAsync(cancellationToken))!;
 
         await transaction.CommitAsync(cancellationToken);
 
-        return updated;
+        return (int)updated;
     }
 
     public async Task<bool> TryClaimPingCooldownAsync(
