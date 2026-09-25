@@ -4,8 +4,8 @@ $ nitro agent register --actor bob
 ✓ Actor 'bob'.
 $ nitro agent list
 nora       planner   Claude Code  2026-01-01  AG   yes
-bob        -         -            2026-01-01  AG   no
 alice      reviewer  -            2026-01-01  AG   no
+bob        -         -            2026-01-01  AG   no
 e2e-agent  -         -            2026-01-01  AG   no
 $ nitro agent mail send --to bob --actor alice --cc alice --subject Status --body All-good
 ✓ Sent 'm-XXX' to bob, alice.
