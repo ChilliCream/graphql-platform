@@ -155,12 +155,24 @@ public class IsProjectedSelectorTests : IDisposable
             Xunit.TestContext.Current.CancellationToken);
 
         // assert
+#if NET10_0_OR_GREATER
         Assert.Single(queries).MatchInlineSnapshot(
             """
             SELECT "p"."AlwaysFetched", "p"."Name", "p"."Id"
             FROM "Products" AS "p"
             WHERE "p"."Id" = @keys1
             """);
+#else
+        Assert.Single(queries).MatchInlineSnapshot(
+            """
+            SELECT "p"."AlwaysFetched", "p"."Name", "p"."Id"
+            FROM "Products" AS "p"
+            WHERE "p"."Id" IN (
+                SELECT "k"."value"
+                FROM json_each(@__keys_0) AS "k"
+            )
+            """);
+#endif
         result.MatchInlineSnapshot(
             """
             {
