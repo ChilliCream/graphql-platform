@@ -65,28 +65,12 @@ internal static class DefaultTheme
         ["agents.popover.row.dimmed"] = new Style(Color.Grey, decoration: Decoration.Dim),
         ["agents.popover.show-more"] = new Style(Color.Grey58, decoration: Decoration.Dim),
 
-        ["mail.message.unread"] = new Style(Color.White, decoration: Decoration.Bold),
-
-        ["mail.row.glyph.from-me"] = new Style(Color.SkyBlue1),
-        ["mail.row.glyph.direct"] = new Style(Color.Green),
-        ["mail.row.glyph.broadcast"] = new Style(Color.Orange1),
-        ["mail.row.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
-
-        ["mail.row.heading"] = new Style(Color.Grey70, decoration: Decoration.Bold),
-        ["mail.row.from"] = new Style(Color.White),
-        ["mail.row.from.me"] = new Style(Color.SkyBlue1),
-        ["mail.row.to"] = new Style(Color.Grey70),
-        ["mail.row.preview"] = new Style(Color.Grey58, decoration: Decoration.Dim),
-        ["mail.row.unread-to-me"] = new Style(Color.Black, Color.Yellow, decoration: Decoration.Bold),
-        ["mail.row.thread.fold"] = new Style(Color.Grey70),
-        ["mail.row.thread.count"] = new Style(Color.Grey58, decoration: Decoration.Dim),
-        ["mail.row.thread.membership"] = new Style(Color.Grey50),
-
-        ["mail.detail.recipient.unread"] = new Style(Color.Yellow, decoration: Decoration.Bold),
-        ["mail.detail.recipient.read"] = new Style(Color.Grey70),
-
-        ["mail.mailbox.workspace.border"] = new Style(Color.Purple),
-        ["mail.mailbox.workspace.border.focused"] = new Style(Color.MediumOrchid1, decoration: Decoration.Bold),
+        ["mail.list.header"] = new Style(Color.Grey70, decoration: Decoration.Bold),
+        ["mail.list.subject"] = new Style(Color.White),
+        ["mail.list.from"] = new Style(Color.Grey70),
+        ["mail.list.to"] = new Style(Color.Grey70),
+        ["mail.list.messages"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["mail.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
 
         ["memory.list.type"] = new Style(Color.SkyBlue1),
         ["memory.list.tags"] = new Style(Color.Grey70),

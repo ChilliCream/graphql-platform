@@ -21,8 +21,6 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 /// </summary>
 internal static class AgentTuiLauncher
 {
-    private static readonly TimeSpan s_pendingSendShutdownTimeout = TimeSpan.FromSeconds(2);
-
     /// <summary>
     /// Runs the TUI and owns its mail wake daemon. The board is an
     /// observer: it takes no actor and refuses every write.
@@ -55,19 +53,9 @@ internal static class AgentTuiLauncher
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
 
-        // Pass the host shutdown token to the event loop and Mail tab.
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        var tabs = BuildTabs(
-            taskStore,
-            mailStore,
-            memoryStore,
-            agentStore,
-            timeProvider,
-            quitCts.Token);
-
-        // An unavailable Mail tab has no send effects to drain on exit.
-        var mailMode = tabs.Select(t => t.RootMode).OfType<MailMode>().FirstOrDefault();
+        var tabs = BuildTabs(taskStore, mailStore, memoryStore, agentStore, timeProvider);
 
         var shell = new TuiShell(
             tabs,
@@ -82,27 +70,16 @@ internal static class AgentTuiLauncher
             treeView: treeView,
             store: taskStore,
             actor: null,
-            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
-            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
+            mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         shell.QuitConfirmed += quitCts.Cancel;
 
-        if (mailMode is not null)
-        {
-            shell.QuitCancelled += mailMode.ResumeSendAcceptance;
-        }
-
         // Start only after the shell is ready to report daemon status.
         await mailWakeDaemonCoordinator.StartAsync(cancellationToken);
 
         var eventSources = new List<TuiEventSource> { dbWatcher.RunAsync };
-
-        if (mailMode is not null)
-        {
-            eventSources.Add(mailMode.RunSendEffectEventsAsync);
-        }
 
         try
         {
@@ -112,13 +89,6 @@ internal static class AgentTuiLauncher
         {
             // Stop background delivery even when the event loop fails.
             await mailWakeDaemonCoordinator.StopAsync(CancellationToken.None);
-
-            // Ctrl+C bypasses the quit gate. Give a started store write a
-            // brief chance to commit before the process exits.
-            if (mailMode is not null)
-            {
-                await mailMode.ShieldPendingSendsAsync(s_pendingSendShutdownTimeout, CancellationToken.None);
-            }
         }
 
         return ExitCodes.Success;
@@ -133,16 +103,13 @@ internal static class AgentTuiLauncher
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentStore agentStore,
-        TimeProvider timeProvider,
-        CancellationToken effectCancellationToken = default)
+        TimeProvider timeProvider)
     {
         var loader = new BoardDataLoader(taskStore, timeProvider);
         var boardMode = new BoardMode(loader);
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-        var mailTab = BuildMailTab(
-            mailStore, agentStore, timeProvider,
-            effectCancellationToken);
+        var mailTab = BuildMailTab(mailStore, agentStore, timeProvider);
 
         var agentsMode = new AgentsMode(agentStore, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
@@ -154,24 +121,18 @@ internal static class AgentTuiLauncher
     }
 
     /// <summary>
-    /// Builds the Mail tab without an acting identity, showing the workspace-wide
-    /// mailbox and refusing writes.
+    /// Builds the Mail tab: a read-only table of every workspace thread. The board has no
+    /// acting agent, so the tab title never carries an unread count.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,
         IAgentStore agentStore,
-        TimeProvider timeProvider,
-        CancellationToken effectCancellationToken = default)
+        TimeProvider timeProvider)
     {
-        var mailMode = new MailMode(
-            mailStore,
-            actor: null,
-            agentStore,
-            timeProvider,
-            effectCancellationToken);
+        var mailMode = new MailMode(mailStore, agentStore, timeProvider);
 
         return new TuiTab(
-            () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
+            "Mail",
             mnemonic: 'M',
             mailMode,
             new KeyDispatcher(MailKeyMap.CreateDefault()));
