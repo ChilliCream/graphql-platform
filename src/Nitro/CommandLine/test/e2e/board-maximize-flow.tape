@@ -44,7 +44,7 @@ Type `nitro agent` Enter
 # Initial frame: five-column grid, focus on "Blocked" (index 0), selection
 # on its first row (acme-a1b); tolerant of the task table's column padding
 # via " +".
-Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # z: maximize the focused column ("Blocked", 1 of 5, 3 cards).
 Type "z"

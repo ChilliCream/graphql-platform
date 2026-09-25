@@ -61,7 +61,7 @@ Type `nitro agent` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape): focus starts on
 # "Blocked", selection on its first row, acme-a1b.
-Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # '/' jumps into search mode (TuiShell.HandleMessage FocusSearchRequested),
 # focus on the query input. The pending query from mode entry (TaskQuery.Empty)

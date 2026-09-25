@@ -35,7 +35,7 @@ Show
 Type `nitro agent` Enter
 
 # Initial frame: the Tasks tab's board.
-Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Move to Mail. Actor-less boards always open the read-only Workspace mailbox,
 # rendered as one full-width table of every thread (MailTable/MailMode).

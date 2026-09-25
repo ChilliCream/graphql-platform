@@ -84,7 +84,7 @@ Type `nitro agent` Enter
 
 # Initial frame: the Tasks tab's board (same sentinel as board-flow.tape's
 # and mail-board-flow.tape's first Wait+Screen).
-Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Shift+A: TabSwitchKeys.ResolveMnemonic jumps straight to the Agents tab.
 Type "A"

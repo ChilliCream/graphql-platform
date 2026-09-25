@@ -9,9 +9,9 @@ In Progress (1)
 
 ╭─Closed (1)──────────────────────────────────────────────────────────────────────────────────╮
 │                                                                                             │
-│     TYPE    PRIO    ID            TITLE                                                     │
+│     TYPE        PRIO    ID            TITLE                                                 │
 │ ─────────────────────────────────────────────────────────────────────────────────────────── │
-│ > ✓ F         P3    acme-c3d      Add dark mode toggle                                      │
+│ > ✓ feature       P3    acme-c3d      Add dark mode toggle                                  │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │

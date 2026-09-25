@@ -7,9 +7,9 @@ Ready (0)
 
 ╭─In Progress (1)─────────────────────────────────────────────────────────────────────────────╮
 │                                                                                             │
-│     TYPE    PRIO    ID              TITLE                                                   │
+│     TYPE        PRIO    ID              TITLE                                               │
 │ ─────────────────────────────────────────────────────────────────────────────────────────── │
-│ > ● T         P2    acme-epic1.1    Draft new pricing copy                                  │
+│ > ● task          P2    acme-epic1.1    Draft new pricing copy                              │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │
