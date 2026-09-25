@@ -5,8 +5,9 @@
 # column at full width with a "<index>/<count>" header suffix (rendered as
 # "<Name> - <index>/<count> (<count>)" by BoardMode.RenderMaximized +
 # ColumnPane.Render), Right moves which column is maximized, and a second
-# 'z' returns to the five-column grid. Every transition syncs on a
-# Wait+Screen sentinel anchored on a literal column header (with its
+# 'z' returns to the four-column grid (the fixture's empty "Ready" column is
+# hidden, so <count> is 4, not the view's full five). Every transition syncs
+# on a Wait+Screen sentinel anchored on a literal column header (with its
 # fixture task count) or card row from fixtures/seed.sql, never on Sleep.
 # Fixed geometry (Width/Height below) is the stability lever for this
 # full-screen layout: changing it requires `--update` of every board-flow*
@@ -46,28 +47,26 @@ Type `nitro agent` Enter
 # via " +".
 Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
-# z: maximize the focused column ("Blocked", 1 of 5, 3 cards).
+# z: maximize the focused column ("Blocked", 1 of 4, 3 cards). The empty
+# "Ready" column is hidden, so the visible count is 4, not the view's full
+# five (see board-flow.tape's header).
 Type "z"
-Wait+Screen@30s /Blocked - 1\/5 \(3\)/
+Wait+Screen@30s /Blocked - 1\/4 \(3\)/
 
-# Right: the maximized column follows focus to "Deferred" (2 of 5, 1 card).
+# Right: the maximized column follows focus to "Deferred" (2 of 4, 1 card).
 Right
-Wait+Screen@30s /Deferred - 2\/5 \(1\)/
+Wait+Screen@30s /Deferred - 2\/4 \(1\)/
 
-# Right: "Ready" (3 of 5, 0 cards: both open tasks in this fixture are
-# blocked, see board-flow.tape's header).
+# Right: "In Progress" (3 of 4, 1 card). The hidden "Ready" column is
+# skipped, so this single Right press moves focus straight past it.
 Right
-Wait+Screen@30s /Ready - 3\/5 \(0\)/
+Wait+Screen@30s /In Progress - 3\/4 \(1\)/
 
-# Right: "In Progress" (4 of 5, 1 card).
+# Right: "Closed" (4 of 4, 1 card).
 Right
-Wait+Screen@30s /In Progress - 4\/5 \(1\)/
+Wait+Screen@30s /Closed - 4\/4 \(1\)/
 
-# Right: "Closed" (5 of 5, 1 card).
-Right
-Wait+Screen@30s /Closed - 5\/5 \(1\)/
-
-# z: restore the five-column grid, still focused on "Closed". Final state
+# z: restore the four-column grid, still focused on "Closed". Final state
 # for the golden: the neighboring "In Progress (1)" column header is visible
 # again, which only happens outside Maximized layout (Maximized shows one
 # column).

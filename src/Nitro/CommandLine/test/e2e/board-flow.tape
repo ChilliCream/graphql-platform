@@ -3,13 +3,13 @@
 #
 # The board TUI (raw-key event loop, full-screen alternate-screen rendering)
 # cannot be exercised by the in-process test tier; this is the VHS tier's job.
-# Drives column focus (Left/Right) and row selection (Up/Down) across all
-# five of the fixture's columns (see fixtures/seed.sql and BoardView.Default),
-# syncing every transition on a Wait+Screen sentinel anchored on the
-# selection prefix ("> ") next to a card's glyph, type, priority, id, and
-# title cells (tolerant of the table's column padding via " +"), or (for the
-# empty "Ready" column) the focused panel's own box-drawing top border, never
-# on Sleep. Fixed geometry (Width/Height below) is the stability lever for
+# Drives column focus (Left/Right) and row selection (Up/Down) across the
+# fixture's four non-empty columns (see fixtures/seed.sql and
+# BoardView.Default; the empty "Ready" column is hidden, so it is never
+# focused), syncing every transition on a Wait+Screen sentinel anchored on
+# the selection prefix ("> ") next to a card's glyph, type, priority, id, and
+# title cells (tolerant of the table's column padding via " +"), never on
+# Sleep. Fixed geometry (Width/Height below) is the stability lever for
 # this full-screen layout: changing it requires `--update` of every
 # board-flow* golden.
 #
@@ -19,7 +19,7 @@
 # (acme-epic1.2), so it lands in "Blocked" (not "Ready"); acme-epic1.2 is
 # open but blocked by the still-in_progress acme-epic1.1, so it is also in
 # "Blocked"; acme-a1b is blocked by acme-epic1.2. That leaves the "Ready"
-# column empty for this fixture.
+# column empty for this fixture, and hidden from the board entirely.
 #
 # Launched via bare `nitro agent` so the tab strip
 # is on screen throughout, and closes by demonstrating the epic's visible
@@ -75,13 +75,9 @@ Wait+Screen@30s /> ○ +epic +P1 +acme-epic1 +Launch v2 pricing page/
 Right
 Wait+Screen@30s /> ⏸ +chore +P4 +acme-e5f +Rotate staging API keys/
 
-# Right: focus "Ready" (index 2). Empty for this fixture (both open tasks
-# are blocked), so sync on the focused panel's own top border instead of a
-# card row.
-Right
-Wait+Screen@30s /╭─Ready \(0\)─/
-
 # Right: focus "In Progress" (index 3), whose only card is acme-epic1.1.
+# The empty "Ready" column (index 2) is hidden, so this single Right press
+# moves focus straight past it.
 Right
 Wait+Screen@30s /> ● +task +P2 +acme-epic1\.1 +Draft new pricing copy/
 
