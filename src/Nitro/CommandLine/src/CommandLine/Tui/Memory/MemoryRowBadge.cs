@@ -1,46 +1,88 @@
-using ChilliCream.Nitro.CommandLine.Services.Memory;
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
+using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Renders a curated-memory row with a selection prefix, type, tags, and
-/// relative modification time.
+/// Renders the Memory table's header row and each row: kind, type, tags, age, and body
+/// columns. Narrow widths drop the Tags column first, identically for the header and the
+/// rows so the two always agree; Body is sized to whatever width the other columns leave, so
+/// it always shows. Built on the shared <see cref="TableLayout"/> and
+/// <see cref="TableRenderer"/> table widget.
 /// </summary>
 internal static class MemoryRowBadge
 {
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
+    private const string NoType = "-";
     private const string NoTags = "-";
+    private const string CuratedKindText = "curated";
+    private const string JournalKindText = "journal";
 
-    public readonly record struct Widths(int Type, int Age);
+    private const string KindHeader = "KIND";
+    private const string TypeHeader = "TYPE";
+    private const string TagsHeader = "TAGS";
+    private const string AgeHeader = "AGE";
+    private const string BodyHeader = "BODY";
+
+    private const int MinKindWidth = 8;
+    private const int MinTypeWidth = 10;
+    private const int MinTagsWidth = 12;
+    private const int MinAgeWidth = 10;
+
+    private const string NowLabel = "now";
+    private const string JustNowLabel = "just now";
+    private const string AgoSuffix = " ago";
+    private const string IsoDateFormat = "yyyy-MM-dd";
+
+    // Tags drops first when the row no longer fits; Kind, Type, and Age have no drop
+    // priority, and Body is not part of this list at all: it is sized separately to whatever
+    // width Kind, Type, Tags, and Age leave, so it always shows.
+    private static readonly IReadOnlyList<TableColumnSpec> s_fixedColumns =
+    [
+        new TableColumnSpec(KindHeader, MinKindWidth),
+        new TableColumnSpec(TypeHeader, MinTypeWidth),
+        new TableColumnSpec(TagsHeader, MinTagsWidth, DropPriority: 0),
+        new TableColumnSpec(AgeHeader, MinAgeWidth)
+    ];
+
+    private static readonly TableColumnSpec s_bodyColumn = new(BodyHeader, MinWidth: 0);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, the rows about to be rendered.
+    /// The column widths a set of rows agree on for Kind, Type, Tags, and Age: each padded to
+    /// at least its minimum width, and wider still when its header title or a row's value
+    /// needs more room. Body has no fixed width; it is sized per call from the space these
+    /// columns leave.
     /// </summary>
-    public static Widths ComputeWidths(IReadOnlyList<MemoryRecord> rows, DateTimeOffset now)
-    {
-        var typeWidth = 0;
-        var ageWidth = 0;
+    public readonly record struct Widths(int Kind, int Type, int Tags, int Age);
 
-        foreach (var record in rows)
+    /// <summary>
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, with each column no
+    /// narrower than its minimum width or its header title.
+    /// </summary>
+    public static Widths ComputeWidths(IReadOnlyList<MemoryRow> rows, DateTimeOffset now)
+    {
+        var rowValues = new List<IReadOnlyList<string>>(rows.Count);
+
+        foreach (var row in rows)
         {
-            typeWidth = Math.Max(typeWidth, DisplayWidth.Measure(record.Type));
-            ageWidth = Math.Max(ageWidth, DisplayWidth.Measure(MailAges.Format(record.UpdatedAt, now)));
+            rowValues.Add([KindText(row), TypeText(row), TagsText(row), FormatAge(row.Time, now)]);
         }
 
-        return new Widths(typeWidth, ageWidth);
+        var widths = TableLayout.ComputeWidths(s_fixedColumns, rowValues);
+        return new Widths(widths[0], widths[1], widths[2], widths[3]);
     }
 
     /// <summary>
-    /// Builds the markup line for one curated memory row, padding
-    /// scope/type/age to <paramref name="widths"/> and truncating the tags
-    /// column with an ellipsis so the whole line still fits within
-    /// <paramref name="maxWidth"/> display columns. A <paramref name="maxWidth"/>
-    /// of 0 or less produces an empty line.
+    /// Builds the markup line for one row. Columns are padded to <paramref name="widths"/>.
+    /// When the full set of columns does not fit within <paramref name="maxWidth"/> display
+    /// columns, Tags is dropped first; Kind, Type, and Age always remain, and Body shrinks (as
+    /// a last resort, to nothing) to absorb whatever the others leave. A
+    /// <paramref name="maxWidth"/> of 0 or less produces an empty line.
     /// </summary>
-    public static string Render(MemoryRecord record, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
+    public static string Render(MemoryRow row, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
     {
         if (maxWidth <= 0)
         {
@@ -48,83 +90,182 @@ internal static class MemoryRowBadge
         }
 
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var type = DisplayWidth.PadRight(record.Type, widths.Type);
-        var age = DisplayWidth.PadRight(MailAges.Format(record.UpdatedAt, now), widths.Age);
-        var tagsText = record.Tags.Count == 0 ? NoTags : string.Join(",", record.Tags);
-
-        var fixedPlainWidth = DisplayWidth.Measure(prefix)
-            + DisplayWidth.Measure(type) + 1
-            + DisplayWidth.Measure(age) + 1;
-
-        var tagsBudget = Math.Max(0, maxWidth - fixedPlainWidth);
-        var truncatedTags = DisplayWidth.Truncate(tagsText, tagsBudget);
-
+        var kindStyle = ThemeTokens.GetStyle("memory.list.kind").ToMarkup();
         var typeStyle = ThemeTokens.GetStyle("memory.list.type").ToMarkup();
         var tagsStyle = ThemeTokens.GetStyle("memory.list.tags").ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
+        var bodyStyle = ThemeTokens.GetStyle("memory.list.body").ToMarkup();
 
-        var line = fixedPlainWidth > maxWidth
-            ? RenderNarrow(prefix, maxWidth, type, typeStyle, age, ageStyle)
-            : $"{Markup.Escape(prefix)}"
-                + $"{Stylize(typeStyle, Markup.Escape(type))} "
-                + $"{Stylize(tagsStyle, Markup.Escape(truncatedTags))} "
-                + $"{Stylize(ageStyle, Markup.Escape(age))}";
+        var cells = new TableCellSpec[]
+        {
+            new(KindText(row), kindStyle),
+            new(TypeText(row), typeStyle),
+            new(TagsText(row), tagsStyle),
+            new(FormatAge(row.Time, now), ageStyle),
+            new(FirstLine(row.Body), bodyStyle)
+        };
+
+        var budget = maxWidth - PrefixWidth(prefix);
+        var (columns, layout) = PlanColumns(budget, widths);
+        var line = TableRenderer.RenderRow(prefix, new TableCellSpec(string.Empty), cells, columns, layout);
 
         if (selected)
         {
             var highlightStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
-            line = Stylize(highlightStyle, line);
+            line = TableRenderer.Stylize(highlightStyle, line);
         }
 
         return line;
     }
 
-    private static string Stylize(string styleMarkup, string content) =>
-        styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
-
-    private static string RenderNarrow(
-        string prefix,
-        int maxWidth,
-        string type,
-        string typeStyle,
-        string age,
-        string ageStyle)
+    /// <summary>
+    /// Builds the header title line shown above the rows: KIND, TYPE, TAGS, AGE, BODY, aligned
+    /// to <paramref name="widths"/>. Columns are dropped using the same thresholds as
+    /// <see cref="Render"/>, so the header always agrees with the rows below it. A
+    /// <paramref name="maxWidth"/> of 0 or less produces an empty line.
+    /// </summary>
+    public static string RenderHeader(int maxWidth, Widths widths)
     {
-        var prefixText = DisplayWidth.Slice(prefix, maxWidth);
-        var line = Markup.Escape(prefixText);
-        var remaining = maxWidth - DisplayWidth.Measure(prefixText);
-        var hasColumn = false;
+        if (maxWidth <= 0)
+        {
+            return string.Empty;
+        }
 
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, type, typeStyle);
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, age, ageStyle);
+        var headerStyle = ThemeTokens.GetStyle("memory.list.header").ToMarkup();
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var (columns, layout) = PlanColumns(budget, widths);
 
-        return line;
+        return TableRenderer.RenderRow(
+            UnselectedPrefix, new TableCellSpec(string.Empty), BuildHeaderCells(columns, headerStyle), columns, layout);
     }
 
-    private static void AppendNarrowColumn(
-        ref string line,
-        ref int remaining,
-        ref bool hasColumn,
-        string value,
-        string styleMarkup)
+    /// <summary>
+    /// Builds the dashed rule line under the header, filling <paramref name="maxWidth"/>
+    /// display columns. A <paramref name="maxWidth"/> of 0 or less produces an empty line.
+    /// </summary>
+    public static string RenderRule(int maxWidth)
     {
-        var separatorWidth = hasColumn ? 1 : 0;
-        var valueBudget = remaining - separatorWidth;
+        var ruleStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
+        return TableRenderer.RenderRule(maxWidth, ruleStyle);
+    }
 
-        if (valueBudget <= 0)
+    /// <summary>
+    /// Appends the Memory table's fixed top block to <paramref name="lines"/>: a blank line,
+    /// the header row, the rule and a trailing blank line, keeping only the first
+    /// <paramref name="headerLineCount"/> of the four. A <paramref name="maxWidth"/> of 0 or
+    /// less appends nothing.
+    /// </summary>
+    public static void AddHeaderLines(List<string> lines, int headerLineCount, int maxWidth, Widths widths)
+    {
+        if (maxWidth <= 0)
         {
             return;
         }
 
-        var truncatedValue = DisplayWidth.Truncate(value, valueBudget);
+        var headerStyle = ThemeTokens.GetStyle("memory.list.header").ToMarkup();
+        var ruleStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var (columns, layout) = PlanColumns(budget, widths);
 
-        if (truncatedValue.Length == 0)
+        TableRenderer.RenderTopBlock(
+            lines,
+            headerLineCount,
+            maxWidth,
+            UnselectedPrefix,
+            new TableCellSpec(string.Empty),
+            columns,
+            layout,
+            headerStyle,
+            ruleStyle);
+    }
+
+    /// <summary>
+    /// Plans the five-column layout for <paramref name="budget"/> display columns: Kind,
+    /// Type, and Age always show, Tags drops first when they do not all fit, and Body is
+    /// appended last, sized to whatever width remains (zero when nothing does).
+    /// </summary>
+    private static (IReadOnlyList<TableColumnSpec> Columns, IReadOnlyList<ColumnLayout> Layout) PlanColumns(
+        int budget, Widths widths)
+    {
+        var fixedLayout = TableLayout.Plan(budget, s_fixedColumns, ToWidthList(widths));
+
+        var usedWidth = 0;
+        var visibleFixedCount = 0;
+
+        foreach (var column in fixedLayout)
         {
-            return;
+            if (!column.Visible)
+            {
+                continue;
+            }
+
+            usedWidth += column.Width;
+            visibleFixedCount++;
         }
 
-        line += (hasColumn ? " " : string.Empty) + Stylize(styleMarkup, Markup.Escape(truncatedValue));
-        remaining -= separatorWidth + DisplayWidth.Measure(truncatedValue);
-        hasColumn = true;
+        if (visibleFixedCount > 0)
+        {
+            usedWidth += DisplayWidth.Measure(TableLayout.Gutter) * visibleFixedCount;
+        }
+
+        var bodyWidth = Math.Max(0, budget - usedWidth);
+
+        var columns = new List<TableColumnSpec>(s_fixedColumns) { s_bodyColumn };
+        var layout = new List<ColumnLayout>(fixedLayout) { new(true, bodyWidth) };
+
+        return (columns, layout);
     }
+
+    private static TableCellSpec[] BuildHeaderCells(IReadOnlyList<TableColumnSpec> columns, string headerStyle)
+    {
+        var cells = new TableCellSpec[columns.Count];
+
+        for (var i = 0; i < columns.Count; i++)
+        {
+            cells[i] = new TableCellSpec(columns[i].Title, headerStyle);
+        }
+
+        return cells;
+    }
+
+    private static int PrefixWidth(string prefix) => DisplayWidth.Measure(prefix) + 1;
+
+    private static IReadOnlyList<int> ToWidthList(Widths widths) => [widths.Kind, widths.Type, widths.Tags, widths.Age];
+
+    private static string KindText(MemoryRow row) =>
+        row.Kind == MemoryCollectionFilter.Curated ? CuratedKindText : JournalKindText;
+
+    private static string TypeText(MemoryRow row) => row.Type ?? NoType;
+
+    private static string TagsText(MemoryRow row) => row.Tags.Count == 0 ? NoTags : string.Join(",", row.Tags);
+
+    /// <summary>
+    /// Returns the first line of <paramref name="body"/>, trimmed.
+    /// </summary>
+    private static string FirstLine(string body)
+    {
+        var newlineIndex = body.IndexOfAny(['\r', '\n']);
+        return (newlineIndex < 0 ? body : body[..newlineIndex]).Trim();
+    }
+
+    /// <summary>
+    /// Formats the elapsed time between <paramref name="value"/> and <paramref name="now"/>:
+    /// "just now" under a minute, a relative duration ("26m", "3h", "2d") with an " ago"
+    /// suffix, or an absolute date once the row is a week or older.
+    /// </summary>
+    private static string FormatAge(DateTimeOffset value, DateTimeOffset now)
+    {
+        var formatted = MailAges.Format(value, now);
+
+        if (formatted == NowLabel)
+        {
+            return JustNowLabel;
+        }
+
+        return IsAbsoluteDate(formatted) ? formatted : formatted + AgoSuffix;
+    }
+
+    private static bool IsAbsoluteDate(string formatted) =>
+        DateTime.TryParseExact(
+            formatted, IsoDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
 }

@@ -72,10 +72,12 @@ internal static class DefaultTheme
         ["mail.list.messages"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["mail.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
 
+        ["memory.list.header"] = new Style(Color.Grey70, decoration: Decoration.Bold),
+        ["memory.list.kind"] = new Style(Color.MediumPurple1),
         ["memory.list.type"] = new Style(Color.SkyBlue1),
         ["memory.list.tags"] = new Style(Color.Grey70),
-        ["memory.list.scope"] = new Style(Color.Grey50),
         ["memory.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
+        ["memory.list.body"] = new Style(Color.White),
 
         ["detail.section.header"] = new Style(decoration: Decoration.Bold),
         ["detail.section.border"] = new Style(Color.Grey),

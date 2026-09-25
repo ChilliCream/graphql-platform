@@ -3,8 +3,9 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Loads up to 200 curated memories or journal entries for the parsed query.
-/// Type and tag filters apply only to curated memories.
+/// Loads up to 200 curated memories or up to 200 journal entries for the parsed query, for
+/// <see cref="MemoryState"/> to merge into one table. Type and tag filters apply only to
+/// curated memories.
 /// </summary>
 internal sealed class MemoryDataLoader(IMemoryStore store)
 {
