@@ -126,4 +126,25 @@
   <data name="DocumentRewriter_FragmentDoesNotExist" xml:space="preserve">
     <value>A fragment with the name '{0}' does not exist.</value>
   </data>
+  <data name="ErrorHelper_MaxFieldCostReached" xml:space="preserve">
+    <value>The maximum allowed field cost was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_MaxTypeCostReached" xml:space="preserve">
+    <value>The maximum allowed type cost was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_MaxResponseSizeReached" xml:space="preserve">
+    <value>The maximum allowed response size was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_ResponseSizeAnalysisNotEnabled" xml:space="preserve">
+    <value>The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.</value>
+  </data>
+  <data name="ErrorHelper_EmptyVariableBatch" xml:space="preserve">
+    <value>A variable batch request must contain at least one variable set.</value>
+  </data>
+  <data name="ErrorHelper_IncrementalDeliveryNotAcceptable" xml:space="preserve">
+    <value>The client does not accept a response content type that supports incremental delivery.</value>
+  </data>
+  <data name="ErrorHelper_OperationKindNotAllowed" xml:space="preserve">
+    <value>The specified operation kind is not allowed.</value>
+  </data>
 </root>

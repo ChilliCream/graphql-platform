@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -944,8 +946,182 @@ public class OperationCompilerTests
             schema);
 
         // assert
+        Assert.False(operation.HasIncrementalParts);
         MatchSnapshot(document, operation);
     }
+
+    [Fact]
+    public void Stream_With_Statically_True_Skip_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream on a field that is itself statically excluded via @skip(if: true) never
+        // reaches the compiled operation, so it must not be reported as incremental either.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream @skip(if: true)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Stream_If_False_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream(if: false) is a literal false if argument, so the field must not be
+        // reported as incremental even though it is not statically excluded.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream(if: false)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Defer_On_Statically_Skipped_Fragment_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // The fragment spread itself is statically excluded via @skip(if: true), so the
+        // @defer nested inside its definition never reaches the compiled operation.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Q {
+              hero(episode: EMPIRE) {
+                ...F @skip(if: true)
+              }
+            }
+
+            fragment F on Character {
+              ... @defer {
+                name
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            "Q",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
+    {
+        // arrange
+        // Both documents contain @defer, but only one carries the normalization marker.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddStarWarsTypes()
+            .AddStarWarsRepositories()
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+
+        var unmarkedDocument = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+
+        var unmarkedDefinition = (OperationDefinitionNode)unmarkedDocument.Definitions[0];
+        var markedDefinition = unmarkedDefinition.WithDirectives(
+            [.. unmarkedDefinition.Directives, new DirectiveNode(InternalDirectiveNames.HasIncrementalParts)]);
+        var markedDocument = unmarkedDocument.WithDefinitions([markedDefinition]);
+
+        // act
+        var notIncremental = operationCompiler.Compile(
+            "opid-1",
+            "opid-1",
+            operationName: null,
+            unmarkedDocument,
+            executor);
+
+        var incremental = operationCompiler.Compile(
+            "opid-2",
+            "opid-2",
+            operationName: null,
+            markedDocument,
+            executor);
+
+        // assert
+        Assert.False(notIncremental.HasIncrementalParts);
+        Assert.True(incremental.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_TakesOnlyNormalizedDocuments_OnTheInstanceOverload()
+    {
+        // arrange
+        var actualSignatures = typeof(OperationCompiler)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.Name == nameof(OperationCompiler.Compile))
+            .Select(DescribeSignature)
+            .ToHashSet();
+
+        var expectedSignatures = new HashSet<string>
+        {
+            "static(String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
+
+            "instance(String, String, String, DocumentNode, IFeatureProvider)"
+        };
+
+        // act & assert
+        Assert.Equal(expectedSignatures, actualSignatures);
+    }
+
+    private static string DescribeSignature(MethodInfo method)
+        => $"{(method.IsStatic ? "static" : "instance")}"
+            + $"({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))})";
 
     [Fact]
     public async Task Defer_Different_Branches_Overlapping_Fields()

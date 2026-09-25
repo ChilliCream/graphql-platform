@@ -1,0 +1,15 @@
+{
+  "id": "negative_root_type_weight_is_clamped_at_zero",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\nscalar Text\ntype Query @cost(weight: \"-3\") { value: Text }\n",
+  "operation": "{ value }",
+  "operationName": null,
+  "variables": {},
+  "defaultListSize": 10,
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 0,
+    "fieldCost": 0
+  },
+  "notes": "Port of estimator.rs test `negative_root_type_weight_is_clamped_at_zero` at line 825, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. The source asserts the same result for both backends; this fixture carries the ExactCase row."
+}

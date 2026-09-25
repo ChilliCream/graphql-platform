@@ -1,0 +1,8 @@
+query Typical($limit: Int!, $includeDetails: Boolean!) {
+  items(limit: $limit) {
+    value
+    details @include(if: $includeDetails) {
+      label
+    }
+  }
+}

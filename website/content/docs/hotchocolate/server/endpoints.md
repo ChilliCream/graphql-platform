@@ -42,7 +42,7 @@ endpoints.MapGraphQL("/my/graphql/endpoint");
 
 Calling `MapGraphQL()` enables the following functionality on the specified endpoint:
 
-- HTTP GET and HTTP POST GraphQL requests are handled (Multipart included)
+- HTTP GET, HTTP POST (Multipart included), and, when enabled, HTTP QUERY GraphQL requests are handled
 - WebSocket GraphQL requests are handled (if the ASP.NET Core WebSocket middleware has been registered)
 - Including the query string `?sdl` after the endpoint downloads the GraphQL schema
 - Accessing the endpoint from a browser loads the [Nitro](/products/nitro) GraphQL IDE
@@ -86,6 +86,16 @@ endpoints.MapGraphQL().WithOptions(o => o.AllowedGetOperations = AllowedGetOpera
 If [EnableGetRequests](#enablegetrequests) is `true`, you can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
 
 By default, only queries are accepted via HTTP GET. You can also allow mutations by setting `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation`.
+
+### EnableQueryRequests
+
+```csharp
+endpoints.MapGraphQL().WithOptions(o => o.EnableQueryRequests = true);
+```
+
+This setting controls whether the GraphQL server handles GraphQL operations sent with the HTTP QUERY method. It is `false` by default. A QUERY request carries a JSON body like a POST request and executes a single query operation.
+
+[Learn more about QUERY requests](./http-transport.md#query-requests)
 
 ### EnableMultipartRequests
 
@@ -245,7 +255,7 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-With the above configuration, you can issue HTTP GET/POST requests against the `/graphql/http` endpoint.
+With the above configuration, you can issue HTTP GET and POST requests, and HTTP QUERY requests when `EnableQueryRequests` is `true`, against the `/graphql/http` endpoint.
 
 ## GraphQLServerOptions
 
@@ -289,6 +299,16 @@ app.UseEndpoints(endpoints =>
 
 With the above configuration, you can download your `schema.graphql` file from the `/graphql/schema` endpoint.
 
+Append `?spec-version=<value>` to `/graphql/schema.graphql`, `/graphql/schema` (including `/graphql/schema/`), or `/graphql/semantic-non-null-schema.graphql` to download SDL compatible with a GraphQL specification edition. Supported values are `october-2021` (also `2021-10`) and `september-2025` (also `2025-09`); values are case-insensitive.
+
+For example:
+
+```text
+/graphql/schema.graphql?spec-version=october-2021
+```
+
+An unknown, empty, or whitespace-only value returns `400 Bad Request` with a GraphQL error such as `The spec version 'invalid' is not supported. Supported values: october-2021, september-2025.` The `?types=` query parameter ignores `spec-version`. Schema responses are cached separately for each specification edition and have their own ETag values.
+
 # MapGraphQLPersistedOperations
 
 Call `MapGraphQLPersistedOperations()` on the `IEndpointRouteBuilder` to expose persisted operations via REST-like URLs. This enables clients to execute pre-registered GraphQL operations using a simple URL pattern instead of sending a full GraphQL request body.
@@ -316,7 +336,7 @@ The default path is `/graphql/persisted`. The endpoint supports two URL patterns
 | `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
 | `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
 
-Both GET and POST requests are supported. With POST requests, you can pass variables and extensions in the request body.
+GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in the request body. A QUERY request executes query operations only.
 
 ## Custom Path
 
@@ -363,7 +383,7 @@ builder.AddGraphQL(
 
 When `false` (the default), `AddGraphQL()` automatically enables these security features:
 
-- **Cost analysis**: Protects against expensive queries by analyzing the computational cost of each operation.
+- **Cost analysis**: Enforces a maximum field cost of `1_000` and a maximum type cost of `10_000`. Lists without applicable `@listSize` metadata use a default size of `50`, the paging max page size. Change it with `ModifyCostOptions`.
 - **Introspection disabled in production**: Introspection is automatically turned off when `IHostEnvironment.IsDevelopment()` returns `false`.
 - **MaxAllowedFieldCycleDepthRule**: Prevents deeply cyclic field selections in production.
 
@@ -386,6 +406,7 @@ The full set of properties available on `GraphQLServerOptions` is listed below. 
 | ----------------------------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | `EnableGetRequests`                       | `bool`                 | `true`             | Controls whether HTTP GET requests are accepted.                                                                                |
 | `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
+| `EnableQueryRequests`                     | `bool`                 | `false`            | Controls whether HTTP QUERY requests are accepted. A QUERY request executes a single query operation.                           |
 | `EnableMultipartRequests`                 | `bool`                 | `true`             | Controls whether multipart form requests (file uploads) are accepted.                                                           |
 | `EnableSchemaRequests`                    | `bool`                 | `true`             | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
 | `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Controls whether the schema SDL is served as a downloadable file.                                                               |
@@ -398,10 +419,10 @@ The full set of properties available on `GraphQLServerOptions` is listed below. 
 
 The `Sockets` property contains a `GraphQLSocketOptions` object with these properties:
 
-| Property                          | Type        | Default                    | Description                                                              |
-| --------------------------------- | ----------- | -------------------------- | ------------------------------------------------------------------------ |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | `TimeSpan.FromSeconds(10)` | Time the client has to send `connection_init` after opening a WebSocket. |
-| `KeepAliveInterval`               | `TimeSpan?` | `TimeSpan.FromSeconds(5)`  | Interval for server keep-alive pings. `null` disables keep-alive.        |
+| Property                          | Type        | Default                             | Description                                                              |
+| --------------------------------- | ----------- | ----------------------------------- | ------------------------------------------------------------------------ |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | `#!csharp TimeSpan.FromSeconds(10)` | Time the client has to send `connection_init` after opening a WebSocket. |
+| `KeepAliveInterval`               | `TimeSpan?` | `#!csharp TimeSpan.FromSeconds(5)`  | Interval for server keep-alive pings. `null` disables keep-alive.        |
 
 # Per-Endpoint Configuration with WithOptions
 

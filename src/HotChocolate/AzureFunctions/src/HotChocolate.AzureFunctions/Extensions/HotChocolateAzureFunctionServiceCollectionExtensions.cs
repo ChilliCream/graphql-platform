@@ -98,6 +98,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                 .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+                .Use(MiddlewareFactory.CreateHttpQueryMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
                 .UseNitroApp(path, serverOptions.Tool)

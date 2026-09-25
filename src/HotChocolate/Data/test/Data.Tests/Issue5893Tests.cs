@@ -11,6 +11,7 @@ public class Issue5893Tests
     {
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddProjections()
             .AddQueryType<Issue5893Query>()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);

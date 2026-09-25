@@ -195,11 +195,11 @@ builder.Services
 
 Use these extension methods to target specific destination types when configuring outbound routes:
 
-| Method             | URI Scheme  | Example                           |
-| ------------------ | ----------- | --------------------------------- |
-| `ToQueue(name)`    | `queue:`    | `r.ToQueue("payment-queue")`      |
-| `ToExchange(name)` | `exchange:` | `r.ToExchange("events-exchange")` |
-| `ToTopic(name)`    | `topic:`    | `r.ToTopic("orders.placed")`      |
+| Method             | URI Scheme  | Example                                    |
+| ------------------ | ----------- | ------------------------------------------ |
+| `ToQueue(name)`    | `queue:`    | `#!csharp r.ToQueue("payment-queue")`      |
+| `ToExchange(name)` | `exchange:` | `#!csharp r.ToExchange("events-exchange")` |
+| `ToTopic(name)`    | `topic:`    | `#!csharp r.ToTopic("orders.placed")`      |
 
 The URI schemes (`queue:`, `exchange:`, `topic:`) tell Mocha what kind of transport entity to target. `queue:` addresses a point-to-point queue directly. `exchange:` addresses a fan-out exchange (RabbitMQ) or equivalent. `topic:` addresses a topic-based routing entity. The transport interprets these schemes and maps them to its native concepts.
 
@@ -417,7 +417,7 @@ transport.Queue($"tenant-events-{instanceId}")
 
 `Temporary()` is a lifecycle intent, not a message setting. It controls how long the endpoint's backing queue exists, not how long an individual message on that queue lives - do not confuse it with a message TTL.
 
-A uniquely named temporary queue binds to its publish topic or exchange the same way any other subscribe endpoint does. If every running instance calls `Queue($"tenant-events-{instanceId}")` with its own `instanceId`, each instance gets its own queue bound to the same source, so every live instance receives a copy of every published message. If two instances instead pass the same queue name, they share one queue and become competing consumers on it - each message goes to only one of them.
+A uniquely named temporary queue binds to its publish topic or exchange the same way any other subscribe endpoint does. If every running instance calls `#!csharp Queue($"tenant-events-{instanceId}")` with its own `instanceId`, each instance gets its own queue bound to the same source, so every live instance receives a copy of every published message. If two instances instead pass the same queue name, they share one queue and become competing consumers on it - each message goes to only one of them.
 
 Each transport maps `Temporary()` to a different native mechanism:
 

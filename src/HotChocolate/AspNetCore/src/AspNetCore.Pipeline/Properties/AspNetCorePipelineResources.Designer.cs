@@ -266,6 +266,12 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ErrorHelper_InvalidTypeName", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_InvalidSpecVersion {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidSpecVersion", resourceCulture);
+            }
+        }
         
         internal static string ErrorHelper_TypeNameIsEmpty {
             get {
@@ -294,6 +300,24 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_RequestBatchingDisabled {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequestBatchingDisabled", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBatchingNotSupportedForQuery {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBatchingNotSupportedForQuery", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_VariableBatchingNotSupportedForQuery {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingNotSupportedForQuery", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBodyHasNoRequestForQuery {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBodyHasNoRequestForQuery", resourceCulture);
             }
         }
     }

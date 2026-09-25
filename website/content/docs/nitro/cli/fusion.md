@@ -299,7 +299,7 @@ Local schema files do not use `--source-schema-settings-file`. For a local file,
 
 For remote sources, repeat `--source-schema-url` and `--source-schema-settings-file` the same number of times. Nitro pairs them by occurrence: the first URL uses the first settings file, the second URL uses the second settings file, and so on. Keep each pair adjacent so the relationship remains visible in scripts.
 
-The paired settings file selects the acquisition protocol. An absent `apolloFederationSupport` marker makes Nitro GET raw SDL from the exact URL. Exact `"1.0"` and `"2.0"` markers make Nitro POST an Apollo `_service { sdl }` query. See [Getting the Subgraph Schema](../../fusion/connectors/apollofederation.md#getting-the-subgraph-schema) for the settings shape and protocol details.
+The paired settings file selects the acquisition protocol. An absent `apolloFederationSupport` marker makes Nitro GET raw SDL from the exact URL. Exact `"1.0"` and `"2.0"` markers make Nitro POST an Apollo `#!graphql _service { sdl }` query. See [Getting the Subgraph Schema](../../fusion/connectors/apollofederation.md#getting-the-subgraph-schema) for the settings shape and protocol details.
 
 ## Examples
 
@@ -383,17 +383,18 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> \
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                         |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------- |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key.            |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | Choose how `@cacheControl` directives are merged.                   |
-| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | Choose how enum values are merged across source schemas.            |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields and types by tag.                                    |
-| `global-object-identification`           | `true`, `false`                        | Enable global object identification through `Query.node`.           |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics.                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` identifiers.                       |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields. |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | Choose how `@tag` directives are merged.                            |
+| Setting                                  | Values                                   | Description                                                         |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                          | Allow Apollo interface objects without a resolvable key.            |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`   | Choose how `@cacheControl` directives are merged.                   |
+| `default-list-size`                      | Non-negative integer, or `null` to unset | Assumed size for lists without applicable `@listSize` metadata.     |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                | Choose how enum values are merged across source schemas.            |
+| `exclude-by-tag`                         | Comma-separated tags                     | Exclude fields and types by tag.                                    |
+| `global-object-identification`           | `true`, `false`                          | Enable global object identification through `Query.node`.           |
+| `include-satisfiability-paths`           | `true`, `false`                          | Include paths in satisfiability diagnostics.                        |
+| `node-resolution`                        | `gateway`, `source-schema`               | Choose who resolves `Query.node` identifiers.                       |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`   | Choose routing for type-conditioned selections on shareable fields. |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`   | Choose how `@tag` directives are merged.                            |
 
 ## Examples
 

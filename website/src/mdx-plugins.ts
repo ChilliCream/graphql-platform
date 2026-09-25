@@ -6,6 +6,7 @@ import codeBlockMeta from "./remark/codeBlockMeta.mjs";
 import demoteHeadings from "./remark/demoteHeadings.mjs";
 import extractToc from "./remark/extractToc.mjs";
 import headingTags from "./remark/headingTags.mjs";
+import inlineCodeLanguage from "./remark/inlineCodeLanguage.mjs";
 import rewriteMdLinks from "./remark/rewriteMdLinks.mjs";
 import youtubeEmbed from "./remark/youtubeEmbed.mjs";
 import styleStringToObject from "./rehype/styleStringToObject.mjs";
@@ -25,6 +26,12 @@ const remarkPipeline: { spec: string; plugin: Pluggable }[] = [
   { spec: "remark-gfm", plugin: remarkGfm },
   { spec: path.join(remarkRoot, "rewriteMdLinks.mjs"), plugin: rewriteMdLinks },
   { spec: path.join(remarkRoot, "codeBlockMeta.mjs"), plugin: codeBlockMeta },
+  // Before extractToc: TOC entries and heading ids must not include the
+  // `#!lang` prefix of inline code.
+  {
+    spec: path.join(remarkRoot, "inlineCodeLanguage.mjs"),
+    plugin: inlineCodeLanguage,
+  },
   { spec: path.join(remarkRoot, "demoteHeadings.mjs"), plugin: demoteHeadings },
   { spec: path.join(remarkRoot, "extractToc.mjs"), plugin: extractToc },
   // After extractToc: heading ids and TOC entries stay derived from the

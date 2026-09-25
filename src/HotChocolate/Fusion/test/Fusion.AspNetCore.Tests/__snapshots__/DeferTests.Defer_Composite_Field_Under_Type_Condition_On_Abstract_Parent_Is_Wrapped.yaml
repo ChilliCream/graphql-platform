@@ -369,7 +369,7 @@ operationPlan:
           }
         }
       name: ConnectorDetailsQuery
-      hash: b0bc69b8f141920cd280ac8292e05c09
+      hash: fdf38f87112ff3a7b4e0e331217bd94c
       searchSpace: 1
       expandedNodes: 1
   nodes:

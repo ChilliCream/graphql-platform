@@ -18,6 +18,9 @@ internal static class SettingsExtensions
                     CacheControlMergeBehavior =
                         compositionSettings.Merger.CacheControlMergeBehavior
                         ?? settings.Merger.CacheControlMergeBehavior,
+                    DefaultListSize =
+                        compositionSettings.Merger.DefaultListSize
+                        ?? settings.Merger.DefaultListSize,
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
@@ -109,6 +112,11 @@ internal static class SettingsExtensions
             if (mergerSettings.CacheControlMergeBehavior is { } cacheControlMergeBehavior)
             {
                 mergerOptions.CacheControlMergeBehavior = cacheControlMergeBehavior;
+            }
+
+            if (mergerSettings.DefaultListSize is { } defaultListSize)
+            {
+                mergerOptions.DefaultListSize = defaultListSize;
             }
 
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)

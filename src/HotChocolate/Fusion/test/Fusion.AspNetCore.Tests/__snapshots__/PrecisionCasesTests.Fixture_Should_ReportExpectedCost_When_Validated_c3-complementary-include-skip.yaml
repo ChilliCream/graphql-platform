@@ -1,0 +1,41 @@
+title: Fixture_Should_ReportExpectedCost_When_Validated
+request:
+  document: |
+    query Example($x: Boolean!) {
+      left {
+        costly @include(if: $x)
+      }
+      right {
+        costly @skip(if: $x)
+      }
+    }
+  variables: |
+    {
+      "x": true
+    }
+response:
+  body: |
+    {}
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        left: Side
+        right: Side
+      }
+
+      type Side {
+        costly: Int @cost(weight: "10")
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION

@@ -815,6 +815,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<BrandsQuery>()
             .AddTypeExtension(typeof(BrandListExtensions))
             .ExecuteRequestAsync(
@@ -849,6 +850,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<ProductsWithNullPropertyQuery>()
             .ExecuteRequestAsync(
                 """

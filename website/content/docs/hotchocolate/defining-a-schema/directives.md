@@ -9,13 +9,13 @@ There are two kinds of directives: executable directives, which annotate parts o
 
 The GraphQL specification defines five built-in directives that every server must support:
 
-| Directive      | Kind        | SDL                                                                                                                                                 |
-| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@skip`        | Executable  | `directive @skip(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                      |
-| `@include`     | Executable  | `directive @include(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                   |
-| `@deprecated`  | Type-system | `directive @deprecated(reason: String! = "No longer supported") on FIELD_DEFINITION \| ARGUMENT_DEFINITION \| INPUT_FIELD_DEFINITION \| ENUM_VALUE` |
-| `@specifiedBy` | Type-system | `directive @specifiedBy(url: String!) on SCALAR`                                                                                                    |
-| `@oneOf`       | Type-system | `directive @oneOf on INPUT_OBJECT`                                                                                                                  |
+| Directive      | Kind        | SDL                                                                                                                                                       |
+| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@skip`        | Executable  | `#!sdl directive @skip(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                      |
+| `@include`     | Executable  | `#!sdl directive @include(if: Boolean!) on FIELD \| FRAGMENT_SPREAD \| INLINE_FRAGMENT`                                                                   |
+| `@deprecated`  | Type-system | `#!sdl directive @deprecated(reason: String! = "No longer supported") on FIELD_DEFINITION \| ARGUMENT_DEFINITION \| INPUT_FIELD_DEFINITION \| ENUM_VALUE` |
+| `@specifiedBy` | Type-system | `#!sdl directive @specifiedBy(url: String!) on SCALAR`                                                                                                    |
+| `@oneOf`       | Type-system | `#!sdl directive @oneOf on INPUT_OBJECT`                                                                                                                  |
 
 `@skip` and `@include` are executable directives used in queries to conditionally exclude or include fields. `@deprecated` marks schema elements as deprecated. `@specifiedBy` provides a URL pointing to the specification of a custom scalar type. `@oneOf` marks an input object as requiring exactly one of its fields to be set.
 
@@ -453,7 +453,7 @@ extend directive @custom @deprecated(reason: "Use something else.")
 Introspection exposes this surface, mirroring how deprecated fields, enum values, and arguments behave.
 
 - `__Directive` exposes `isDeprecated: Boolean!` and `deprecationReason: String`.
-- `__Schema.directives(includeDeprecated: Boolean = false)` hides deprecated directives by default. Pass `includeDeprecated: true` to include them.
+- `#!sdl __Schema.directives(includeDeprecated: Boolean = false)` hides deprecated directives by default. Pass `includeDeprecated: true` to include them.
 - `__DirectiveLocation` includes `DIRECTIVE_DEFINITION`.
 
 ```graphql
@@ -481,7 +481,7 @@ Introspection exposes this surface, mirroring how deprecated fields, enum values
 - **Cause:** The applied directive's definition does not include the `DIRECTIVE_DEFINITION` location.
 - **Solution:** Add `DIRECTIVE_DEFINITION` to that directive's locations (`on DIRECTIVE_DEFINITION` in SDL, or `descriptor.Location(DirectiveLocation.DirectiveDefinition)` in code-first).
 
-**Problem:** The directive extension `extend directive @unknown` targets an undefined directive.
+**Problem:** The directive extension `#!sdl extend directive @unknown` targets an undefined directive.
 
 - **Cause:** `extend directive` references a directive that is not defined.
 - **Solution:** Define the directive before extending it.

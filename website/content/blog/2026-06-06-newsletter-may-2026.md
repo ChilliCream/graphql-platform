@@ -63,7 +63,7 @@ Read the full post: [From GraphQL to MCP in Two Lines](./2026-05-28-mcp-hotchoco
 
 Alongside the CLI, we are publishing our first skill for the platform: `graphql-schema-design` for schema design and review. More are on the way, including `graphql-backend` for Hot Chocolate v16 backend patterns and `dataloader` for Green Donut DataLoaders.
 
-```bash
+```shell
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 ```
 

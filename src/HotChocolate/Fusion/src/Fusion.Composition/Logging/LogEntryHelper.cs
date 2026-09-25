@@ -699,6 +699,44 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    /// <summary>
+    /// Creates a composition error for a negative default list size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidDefaultListSizeSettingRange(int value)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingRange, value)
+            .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for a default list-size literal outside the supported Int32 range,
+    /// with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidDefaultListSizeSettingRange(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingRange, rawValue)
+            .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for a non-integer default list-size setting,
+    /// with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidDefaultListSizeSettingType(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingType, rawValue)
+            .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
     public static LogEntry InvalidFieldSharing(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -728,6 +766,46 @@ internal static class LogEntryHelper
                 exceptionMessage)
             .SetCode(LogEntryCodes.InvalidGraphQL)
             .SetSeverity(LogSeverity.Error)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InvalidListSizeArgumentNegativeValue(
+        string argumentName,
+        IValueNode value,
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidListSizeArgumentNegativeValue,
+                argumentName,
+                field.Coordinate.ToString(),
+                schema.Name,
+                value.ToString())
+            .SetCode(LogEntryCodes.InvalidGraphQL)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry InvalidListSizeArgumentType(
+        string argumentName,
+        IValueNode value,
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidListSizeArgumentType,
+                argumentName,
+                field.Coordinate.ToString(),
+                schema.Name,
+                value.ToString())
+            .SetCode(LogEntryCodes.InvalidGraphQL)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
             .SetSchema(schema)
             .Build();
     }

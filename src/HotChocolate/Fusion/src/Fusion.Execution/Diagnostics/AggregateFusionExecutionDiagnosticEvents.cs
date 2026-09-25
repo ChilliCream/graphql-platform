@@ -121,6 +121,26 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public IDisposable AnalyzeOperationCost(RequestContext context)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].AnalyzeOperationCost(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public void OperationCost(RequestContext context, double fieldCost, double typeCost)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].OperationCost(context, fieldCost, typeCost);
+        }
+    }
+
     public IDisposable PlanOperation(RequestContext context, string operationPlanId)
     {
         var scopes = new IDisposable[listeners.Length];

@@ -42,7 +42,7 @@ For each subgraph in your repository, the existing `subgraph-config.json` file n
 
 You can run the following command in the root of your repository and it will find all `subgraph-config.json` files and automatically convert them into `schema-settings.json` files:
 
-```bash
+```shell
 dnx ChilliCream.Nitro.CommandLine fusion migrate subgraph-config
 ```
 
@@ -94,7 +94,7 @@ If your subgraph is using a version older than the latest HotChocolate v15 or yo
 
 Fusion v1 let you set environment-specific values from the pipeline with `fusion subgraph config set`:
 
-```bash
+```shell
 dotnet fusion subgraph config set http \
     --url https://dev.example.com/graphql \
     -c subgraph.fsp
@@ -130,9 +130,9 @@ Composition resolves the placeholders against a chosen environment. Pass `--envi
 
 ### Batch resolvers
 
-The concept of batch resolvers like `productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
+The concept of batch resolvers like `#!sdl productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `#!sdl Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `#!sdl Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
-Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](../../hotchocolate/fetching-data/batching/dataloader.md). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
+Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `#!sdl Query.node(id: ID!): Node` field) are using [`DataLoader`](../../hotchocolate/fetching-data/batching/dataloader.md). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
 
 If an entity currently only has batch `Query` root fields in your subgraph, you'll also have to add a singular field:
 
@@ -188,7 +188,7 @@ In practice this means three changes to your existing deployment pipeline:
 
 Below is the existing v15 pipeline for reference:
 
-```bash
+```shell
 # BUILD JOB
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
 dotnet fusion subgraph pack -w ./src/SubgraphA
@@ -254,7 +254,7 @@ Add a step to the build job that uploads the exported source schema to Nitro. Th
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet nitro fusion upload \
   --tag "<tag>" \
   --api-id "<api-id>" \
@@ -320,7 +320,7 @@ Replace it with `dotnet nitro fusion publish`, passing the freshly composed `gat
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet nitro fusion publish \
   --tag "<tag>" \
   --stage "<stage>" \
@@ -343,7 +343,7 @@ dotnet nitro fusion publish \
 
 In addition to the deployment pipeline, most subgraph repositories have a PR validation pipeline that downloads the latest archive, runs composition with the proposed change, and verifies that the composed schema introduces no breaking changes. Below are the relevant v15 steps for reference:
 
-```bash
+```shell
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
 dotnet fusion subgraph pack -w ./src/SubgraphA
 dotnet nitro fusion-configuration download \
@@ -405,7 +405,7 @@ As with the deployment pipeline, the v15 download and compose steps stay in plac
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet nitro fusion validate \
   --stage "<stage>" \
   --api-id "<api-id>" \
@@ -454,7 +454,7 @@ Remove `"version": "1.0.0"` from `schema-settings.json`:
 
 Without `"version": "1.0.0"` the composition treats the subgraph as a Fusion v2 subgraph: the full validations are enforced and the Fusion v1 inferences (such as fields ending in `ById` being treated as `@lookup`) are no longer applied. As a result, a few things that used to be inferred now have to be explicit.
 
-Annotate `By<Field>` lookup fields like `productById(id: ID!): Product` with `[Lookup]` (`@lookup`):
+Annotate `By<Field>` lookup fields like `#!sdl productById(id: ID!): Product` with `[Lookup]` (`@lookup`):
 
 ```diff
 [QueryType]

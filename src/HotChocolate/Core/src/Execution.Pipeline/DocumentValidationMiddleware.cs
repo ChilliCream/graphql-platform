@@ -28,7 +28,15 @@ internal sealed class DocumentValidationMiddleware
     public async ValueTask InvokeAsync(RequestContext context)
     {
         var documentInfo = context.OperationDocumentInfo;
-        if (documentInfo.Document is null || documentInfo.Id.IsEmpty)
+        if (documentInfo.Document is null
+            && context.Request.Document is null
+            && !documentInfo.IsCached
+            && !documentInfo.IsPersisted)
+        {
+            // The request carries only a document ID or hash that no earlier step resolved.
+            context.Result = ErrorHelper.OperationDocumentNotFound();
+        }
+        else if (documentInfo.Document is null || documentInfo.Id.IsEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForDocumentValidation();
         }

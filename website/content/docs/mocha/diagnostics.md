@@ -652,7 +652,7 @@ public partial class OrderServiceJsonContext : JsonSerializerContext;
 
 ### Cause
 
-Emitted only when `PublishAot` is enabled and a call site publishes a type not covered by the declared `JsonContext`. For example, `bus.PublishAsync<T>()` is called with a type that has no matching `[JsonSerializable(typeof(T))]` on the `JsonSerializerContext` referenced by `[assembly: MessagingModule(..., JsonContext = typeof(...))]`. This is similar to [MO0016](#mo0016), but applies to types discovered at call sites rather than handler registrations. Without the declaration, the message cannot be serialized at runtime in an AOT environment.
+Emitted only when `PublishAot` is enabled and a call site publishes a type not covered by the declared `JsonContext`. For example, `bus.PublishAsync<T>()` is called with a type that has no matching `[JsonSerializable(typeof(T))]` on the `JsonSerializerContext` referenced by `#!csharp [assembly: MessagingModule(..., JsonContext = typeof(...))]`. This is similar to [MO0016](#mo0016), but applies to types discovered at call sites rather than handler registrations. Without the declaration, the message cannot be serialized at runtime in an AOT environment.
 
 This diagnostic does not fire when `PublishAot` is unset, even if `JsonContext` is declared on the module - opting into a source-generated context for non-AOT reasons does not require every call-site type to appear in it.
 

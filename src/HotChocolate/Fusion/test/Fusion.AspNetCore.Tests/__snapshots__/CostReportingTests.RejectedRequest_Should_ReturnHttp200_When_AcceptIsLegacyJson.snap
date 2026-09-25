@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/json; charset=utf-8
+-------------------------->
+Status Code: OK
+-------------------------->
+{"errors":[{"message":"The maximum allowed type cost was exceeded.","extensions":{"code":"HC0047","typeCost":2001,"maxTypeCost":1000}}]}
