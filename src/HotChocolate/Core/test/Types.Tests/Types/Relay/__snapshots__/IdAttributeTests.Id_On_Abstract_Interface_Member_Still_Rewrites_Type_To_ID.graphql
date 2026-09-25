@@ -1,0 +1,15 @@
+schema {
+  query: AbstractIdNodeQuery
+}
+
+type AbstractIdNodeQuery {
+  abstractIdNode: AbstractIdNodeInterface!
+}
+
+type AbstractIdNode implements AbstractIdNodeInterface {
+  id: ID!
+}
+
+interface AbstractIdNodeInterface {
+  id: ID!
+}
