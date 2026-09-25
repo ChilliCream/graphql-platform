@@ -20,12 +20,11 @@ public sealed class MemoryRowBadgeTests
         => new(MemoryCollectionFilter.Journal, id, Type: null, Tags: [], body, time ?? s_now);
 
     /// <summary>
-    /// The Body column's width for a single-row <see cref="MemoryRowBadge.Widths"/>: whatever
-    /// <paramref name="maxWidth"/> leaves after the prefix, Kind, Type, Tags, Age, and their
-    /// gutters.
+    /// The Tags column's width for a single-row <see cref="MemoryRowBadge.Widths"/>: whatever
+    /// <paramref name="maxWidth"/> leaves after the prefix, Kind, Type, Age, and their gutters.
     /// </summary>
-    private static int BodyWidth(MemoryRowBadge.Widths widths, int maxWidth)
-        => maxWidth - 3 - (widths.Kind + widths.Type + widths.Tags + widths.Age + 4 * 4);
+    private static int TagsWidth(MemoryRowBadge.Widths widths, int maxWidth)
+        => maxWidth - 3 - (widths.Kind + widths.Type + widths.Age + 3 * 4);
 
     [Fact]
     public void Render_Should_ReturnEmpty_When_MaxWidthIsZero()
@@ -46,7 +45,7 @@ public sealed class MemoryRowBadgeTests
     {
         // arrange
         const int maxWidth = 80;
-        var row = CuratedRow(type: "fact", tags: ["ops"], body: "Deploy checklist.");
+        var row = CuratedRow(type: "fact", tags: ["ops"]);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
 
         // act
@@ -56,9 +55,8 @@ public sealed class MemoryRowBadgeTests
         var expected = "   "
             + "curated".PadRight(widths.Kind)
             + "    " + "fact".PadRight(widths.Type)
-            + "    " + "ops".PadRight(widths.Tags)
-            + "    " + "just now".PadRight(widths.Age)
-            + "    " + "Deploy checklist.".PadRight(BodyWidth(widths, maxWidth));
+            + "    " + "ops".PadRight(TagsWidth(widths, maxWidth))
+            + "    " + "just now".PadRight(widths.Age);
         Assert.Equal(expected, line);
     }
 
@@ -67,7 +65,7 @@ public sealed class MemoryRowBadgeTests
     {
         // arrange
         const int maxWidth = 80;
-        var row = JournalRow(body: "Note.");
+        var row = JournalRow();
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
 
         // act
@@ -77,9 +75,8 @@ public sealed class MemoryRowBadgeTests
         var expected = "   "
             + "journal".PadRight(widths.Kind)
             + "    " + "-".PadRight(widths.Type)
-            + "    " + "-".PadRight(widths.Tags)
-            + "    " + "just now".PadRight(widths.Age)
-            + "    " + "Note.".PadRight(BodyWidth(widths, maxWidth));
+            + "    " + "-".PadRight(TagsWidth(widths, maxWidth))
+            + "    " + "just now".PadRight(widths.Age);
         Assert.Equal(expected, line);
     }
 
@@ -88,7 +85,7 @@ public sealed class MemoryRowBadgeTests
     {
         // arrange
         const int maxWidth = 80;
-        var row = CuratedRow(tags: [], body: "Note.");
+        var row = CuratedRow(tags: []);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
 
         // act
@@ -98,28 +95,9 @@ public sealed class MemoryRowBadgeTests
         var expected = "   "
             + "curated".PadRight(widths.Kind)
             + "    " + "fact".PadRight(widths.Type)
-            + "    " + "-".PadRight(widths.Tags)
-            + "    " + "just now".PadRight(widths.Age)
-            + "    " + "Note.".PadRight(BodyWidth(widths, maxWidth));
+            + "    " + "-".PadRight(TagsWidth(widths, maxWidth))
+            + "    " + "just now".PadRight(widths.Age);
         Assert.Equal(expected, line);
-    }
-
-    [Fact]
-    public void Render_Should_ShowOnlyTheFirstLine_When_BodyHasMultipleLines()
-    {
-        // arrange
-        const int maxWidth = 80;
-        var row = CuratedRow(body: "First line.\nSecond line.");
-        var widths = MemoryRowBadge.ComputeWidths([row], s_now);
-
-        // act
-        var line = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
-        var actual = (
-            HasFirstLine: line.Contains("First line.", StringComparison.Ordinal),
-            HasSecondLine: line.Contains("Second line.", StringComparison.Ordinal));
-
-        // assert
-        Assert.Equal((true, false), actual);
     }
 
     [Theory]
@@ -128,7 +106,7 @@ public sealed class MemoryRowBadgeTests
     public void Render_Should_FormatAge_When_AgeIsFreshOrMinutesOld(int elapsedSeconds, string expectedAge)
     {
         // arrange
-        var row = CuratedRow(body: "", time: s_now.AddSeconds(-elapsedSeconds));
+        var row = CuratedRow(time: s_now.AddSeconds(-elapsedSeconds));
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
 
         // act
@@ -143,7 +121,7 @@ public sealed class MemoryRowBadgeTests
     {
         // arrange
         var time = s_now.AddDays(-8);
-        var row = CuratedRow(body: "", time: time);
+        var row = CuratedRow(time: time);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
 
         // act
@@ -154,58 +132,58 @@ public sealed class MemoryRowBadgeTests
     }
 
     [Fact]
-    public void Render_Should_DropTagsColumn_When_WidthIsTooNarrowForEveryColumn()
+    public void Render_Should_DropTypeColumn_When_WidthIsTooNarrowForEveryColumn()
     {
         // arrange
         var row = CuratedRow(tags: ["ops"]);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
         var wide = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, maxWidth: 80, widths));
-        var narrowMaxWidth = widths.Kind + 3 + widths.Type + 4 + widths.Age + 4;
+        var narrowMaxWidth = widths.Kind + 3 + widths.Age + 4;
 
         // act
         var narrow = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, narrowMaxWidth, widths));
         var actual = (
-            WideHasTags: wide.Contains("ops", StringComparison.Ordinal),
-            NarrowHasTags: narrow.Contains("ops", StringComparison.Ordinal),
-            NarrowHasType: narrow.Contains("fact", StringComparison.Ordinal));
+            WideHasType: wide.Contains("fact", StringComparison.Ordinal),
+            NarrowHasType: narrow.Contains("fact", StringComparison.Ordinal),
+            NarrowHasKind: narrow.Contains("curated", StringComparison.Ordinal),
+            NarrowHasAge: narrow.Contains("just now", StringComparison.Ordinal));
 
         // assert
-        Assert.Equal((true, false, true), actual);
+        Assert.Equal((true, false, true, true), actual);
     }
 
     [Fact]
-    public void Render_Should_KeepKindTypeAndAge_When_WidthIsTooNarrowForTagsAndBody()
+    public void Render_Should_DropAgeColumn_When_WidthIsTooNarrowForTypeAndAge()
     {
         // arrange
-        var row = CuratedRow(tags: ["ops"], body: "Deploy checklist for staging.");
+        var row = CuratedRow(tags: ["ops"]);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
-        var narrowMaxWidth = widths.Kind + 3 + widths.Type + 4 + widths.Age + 4;
+        var narrowMaxWidth = widths.Kind + 3;
 
         // act
         var narrow = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, narrowMaxWidth, widths));
         var actual = (
             HasKind: narrow.Contains("curated", StringComparison.Ordinal),
             HasType: narrow.Contains("fact", StringComparison.Ordinal),
-            HasAge: narrow.Contains("just now", StringComparison.Ordinal),
-            HasBody: narrow.Contains("Deploy checklist", StringComparison.Ordinal));
+            HasAge: narrow.Contains("just now", StringComparison.Ordinal));
 
         // assert
-        Assert.Equal((true, true, true, false), actual);
+        Assert.Equal((true, false, false), actual);
     }
 
     [Fact]
-    public void Render_Should_ShowBody_When_WidthLeavesRoomAfterTheFixedColumns()
+    public void Render_Should_TruncateTags_When_WidthLeavesNoRoomForTheFullList()
     {
         // arrange
-        var row = CuratedRow(tags: ["ops"], body: "Deploy checklist.");
+        var row = CuratedRow(tags: ["deploy", "staging", "rollback", "database"]);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
-        var wideMaxWidth = widths.Kind + widths.Type + widths.Tags + widths.Age + (4 * 5) + 40;
+        var narrowMaxWidth = widths.Kind + 3 + widths.Type + 4 + widths.Age + 4 + 10;
 
         // act
-        var line = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, wideMaxWidth, widths));
+        var line = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, narrowMaxWidth, widths));
 
         // assert
-        Assert.Contains("Deploy checklist.", line, StringComparison.Ordinal);
+        Assert.Contains('…', line);
     }
 
     [Fact]
@@ -233,16 +211,16 @@ public sealed class MemoryRowBadgeTests
         // arrange
         var row = CuratedRow(tags: ["ops"]);
         var widths = MemoryRowBadge.ComputeWidths([row], s_now);
-        var narrowMaxWidth = widths.Kind + 3 + widths.Type + 4 + widths.Age + 4;
+        var narrowMaxWidth = widths.Kind + 3 + widths.Age + 4;
 
         // act
         var header = Markup.Remove(MemoryRowBadge.RenderHeader(narrowMaxWidth, widths));
         var line = Markup.Remove(MemoryRowBadge.Render(row, s_now, selected: false, narrowMaxWidth, widths));
         var actual = (
-            HeaderHasTags: header.Contains("TAGS", StringComparison.Ordinal),
-            RowHasTags: line.Contains("ops", StringComparison.Ordinal),
             HeaderHasType: header.Contains("TYPE", StringComparison.Ordinal),
-            RowHasType: line.Contains("fact", StringComparison.Ordinal));
+            RowHasType: line.Contains("fact", StringComparison.Ordinal),
+            HeaderHasAge: header.Contains("AGE", StringComparison.Ordinal),
+            RowHasAge: line.Contains("just now", StringComparison.Ordinal));
 
         // assert
         Assert.Equal((false, false, true, true), actual);

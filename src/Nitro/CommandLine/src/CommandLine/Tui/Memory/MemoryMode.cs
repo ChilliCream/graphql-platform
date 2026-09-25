@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
 /// Displays every curated memory and journal entry in the workspace as one read-only,
-/// full-width table: kind, type, tags, age, and body columns. The board has no acting agent,
+/// full-width table: kind, type, tags, and age columns. The board has no acting agent,
 /// so promoting a journal entry or forgetting a curated memory is unavailable here; Enter opens
 /// the selected row in a read-only popover instead.
 /// </summary>
