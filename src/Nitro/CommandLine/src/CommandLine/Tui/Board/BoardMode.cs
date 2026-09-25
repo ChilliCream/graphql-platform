@@ -295,8 +295,12 @@ internal sealed class BoardMode : ITuiMode
     }
 
     /// <summary>
-    /// Renders one column's visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
-    /// with "N more above/below" indicators once the column's tasks no longer fit.
+    /// Renders one column's task table: the fixed header block (a blank line, the header row,
+    /// its rule, and a blank line), then the visible rows, padded with blank lines to
+    /// <paramref name="interiorHeight"/>, with "N more above/below" indicators once the
+    /// column's tasks no longer fit. Column widths are computed from this call's visible
+    /// slice and the header titles, so the header and rows always agree on where each column
+    /// starts.
     /// </summary>
     private static IReadOnlyList<string> RenderColumnLines(
         BoardColumnState column,
@@ -310,11 +314,15 @@ internal sealed class BoardMode : ITuiMode
             return [];
         }
 
+        var headerLineCount = Math.Min(
+            BoardTaskRow.HeaderLineCount,
+            column.Tasks.Count > 0 ? Math.Max(0, interiorHeight - 1) : interiorHeight);
+        var rowsHeight = Math.Max(0, interiorHeight - headerLineCount);
         var reservedRows = 0;
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
         {
-            var windowHeight = Math.Max(0, interiorHeight - reservedRows);
+            var windowHeight = Math.Max(0, rowsHeight - reservedRows);
             viewport.Update(column.Tasks.Count, windowHeight);
             viewport.EnsureVisible(column.SelectedRow);
 
@@ -329,7 +337,16 @@ internal sealed class BoardMode : ITuiMode
         }
 
         var (start, visibleCount) = viewport.Slice();
+        var visibleTasks = new List<TaskItem>(visibleCount);
+
+        for (var i = 0; i < visibleCount; i++)
+        {
+            visibleTasks.Add(column.Tasks[start + i]);
+        }
+
+        var widths = BoardTaskRow.ComputeWidths(visibleTasks);
         var lines = new List<string>(interiorHeight);
+        BoardTaskRow.AddHeaderLines(lines, headerLineCount, contentWidth, widths);
 
         if (viewport.HiddenAbove > 0)
         {
@@ -338,10 +355,8 @@ internal sealed class BoardMode : ITuiMode
 
         for (var i = 0; i < visibleCount; i++)
         {
-            var task = column.Tasks[start + i];
             var selected = focused && start + i == column.SelectedRow;
-            lines.Add(TaskBadge.Render(
-                task.Id, task.Title, task.Status, task.Priority, task.Type, selected, contentWidth));
+            lines.Add(BoardTaskRow.Render(visibleTasks[i], selected, contentWidth, widths));
         }
 
         if (viewport.HiddenBelow > 0)

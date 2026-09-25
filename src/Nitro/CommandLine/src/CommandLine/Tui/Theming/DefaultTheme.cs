@@ -21,6 +21,8 @@ internal static class DefaultTheme
         ["board.column.status.closed"] = new Style(Color.Grey, decoration: Decoration.Dim),
         ["board.column.status.closed.focused"] = new Style(Color.Grey, decoration: Decoration.Bold),
 
+        ["board.column.header"] = new Style(Color.Grey70, decoration: Decoration.Bold),
+
         ["badge.priority.p0"] = new Style(Color.Red),
         ["badge.priority.p1"] = new Style(Color.Orange1),
         ["badge.priority.p2"] = new Style(Color.Yellow),
