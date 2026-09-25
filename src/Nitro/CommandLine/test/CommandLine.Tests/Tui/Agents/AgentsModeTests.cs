@@ -144,20 +144,6 @@ public sealed class AgentsModeTests
         return row;
     }
 
-    private static int CountOccurrences(string text, string value)
-    {
-        var count = 0;
-        var index = 0;
-
-        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
-        {
-            count++;
-            index += value.Length;
-        }
-
-        return count;
-    }
-
     [Fact]
     public void Render_Should_ListOnlineBeforeUnreachableBeforeOffline_When_AllThreeStatesArePresent()
     {
@@ -273,7 +259,7 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_DropTheStartedAge_When_WidthIsTooNarrowForEveryColumn()
+    public void Render_Should_KeepOnlyNameAndRole_When_WidthIsTooNarrowForEveryOtherColumn()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
@@ -286,14 +272,17 @@ public sealed class AgentsModeTests
         var wide = RenderToText(mode, width: 100);
 
         // act
+        // At this width, Started, Harness and Last Seen all drop before Name or Role would.
         var narrow = RenderToText(mode, width: 35);
+        var actual = (
+            HasName: narrow.Contains(agent.Name, StringComparison.Ordinal),
+            HasHarness: narrow.Contains("Claude Code", StringComparison.Ordinal),
+            HasStartedAge: narrow.Contains("10m ago", StringComparison.Ordinal),
+            HasLastSeenAge: narrow.Contains("just now", StringComparison.Ordinal));
 
         // assert
-        // Last Seen is fresh ("just now", no suffix); an "ago" would mean Started survived too.
         Assert.Contains("10m ago", wide);
-        Assert.Contains("just now", wide);
-        Assert.Equal(0, CountOccurrences(narrow, "ago"));
-        Assert.Contains("just now", narrow);
+        Assert.Equal((true, false, false, false), actual);
     }
 
     [Fact]
