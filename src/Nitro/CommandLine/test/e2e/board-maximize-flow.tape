@@ -10,7 +10,9 @@
 # fixture task count) or card row from fixtures/seed.sql, never on Sleep.
 # Fixed geometry (Width/Height below) is the stability lever for this
 # full-screen layout: changing it requires `--update` of every board-flow*
-# golden.
+# golden. Height matches board-flow.tape: tall enough that the initial
+# five-column grid's stacked columns fit their task table's header block
+# plus every fixture row before 'z' first maximizes one of them.
 #
 # Launched via bare `nitro agent`, same as
 # board-flow.tape, so the tab strip is on screen throughout; this flow's own
@@ -23,7 +25,7 @@ Output board-maximize-flow.txt
 Set Shell bash
 Set FontSize 18
 Set Width 1100
-Set Height 850
+Set Height 1250
 Set Padding 14
 Set TypingSpeed 50ms
 Set CursorBlink false
@@ -42,8 +44,9 @@ Show
 Type `nitro agent` Enter
 
 # Initial frame: five-column grid, focus on "Blocked" (index 0), selection
-# on its first row (acme-a1b).
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+# on its first row (acme-a1b); tolerant of the task table's column padding
+# via " +".
+Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 
 # z: maximize the focused column ("Blocked", 1 of 5, 3 cards).
 Type "z"

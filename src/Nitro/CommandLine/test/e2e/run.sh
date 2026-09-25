@@ -53,7 +53,12 @@ declare -A MARKERS=(
   [close-reopen]="Reopened task 'acme-a1b'."
   [dep-tree]="acme-epic1.1"
   [error]="[nitro exit: 1]"
-  [board]="> ● [T] P2 acme-epic1.1 Draft new pricing copy"
+  # The board's task table pads TYPE and PRIO to a constant 4 cells each (their
+  # own header titles are that long, so no row ever needs more) and gutters
+  # every column with 4 spaces, so the 9 spaces before "P2" and the 4 before
+  # "acme-epic1.1" are exact regardless of which other tasks share this
+  # fixture's "In Progress" column.
+  [board]="> ● T         P2    acme-epic1.1    Draft new pricing copy"
   [board-maximize]="In Progress (1)"
   [search]="> ● parent-child <-"
   [detail]="acme-epic1 · blocking · depended on by"

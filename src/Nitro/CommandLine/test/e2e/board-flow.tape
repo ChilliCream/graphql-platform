@@ -6,11 +6,14 @@
 # Drives column focus (Left/Right) and row selection (Up/Down) across all
 # five of the fixture's columns (see fixtures/seed.sql and BoardView.Default),
 # syncing every transition on a Wait+Screen sentinel anchored on the
-# selection prefix ("> ") next to a literal card title, or (for the empty
-# "Ready" column) the focused panel's own box-drawing top border, never on
-# Sleep. Fixed geometry (Width/Height below) is the stability lever for this
-# full-screen layout: changing it requires `--update` of every board-flow*
-# golden.
+# selection prefix ("> ") next to a card's glyph, type, priority, id, and
+# title cells (tolerant of the table's column padding via " +"), or (for the
+# empty "Ready" column) the focused panel's own box-drawing top border, never
+# on Sleep. Fixed geometry (Width/Height below) is the stability lever for
+# this full-screen layout: changing it requires `--update` of every
+# board-flow* golden. Height is tall enough that every stacked column's
+# interior fits its task table's four-line header block plus every one of
+# the fixture's rows (the "Blocked" column needs the most, three).
 #
 # Column membership below is computed by BoardDataLoader/TaskStore
 # ComputeBlockedAsync against fixtures/seed.sql, not just each task's own
@@ -34,7 +37,7 @@ Output board-flow.txt
 Set Shell bash
 Set FontSize 18
 Set Width 1100
-Set Height 850
+Set Height 1250
 Set Padding 14
 Set TypingSpeed 50ms
 Set CursorBlink false
@@ -55,24 +58,24 @@ Type `nitro agent` Enter
 # Initial frame: focus starts on "Blocked" (index 0, 3 cards), selection on
 # its first row (acme-a1b, P0, sorted ahead of acme-epic1 P1 and
 # acme-epic1.2 P2).
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Down: move selection onto the column's second row (acme-epic1, an epic
 # blocked by its own open children).
 Down
-Wait+Screen@30s /> ○ \[E\] P1 acme-epic1 Launch v2 pricing page/
+Wait+Screen@30s /> ○ +E +P1 +acme-epic1 +Launch v2 pricing page/
 
 # Down: onto the third row (acme-epic1.2).
 Down
-Wait+Screen@30s /> ○ \[T\] P2 acme-epic1\.2 Wire up billing API/
+Wait+Screen@30s /> ○ +T +P2 +acme-epic1\.2 +Wire up billing API/
 
 # Up: back onto the second row (acme-epic1).
 Up
-Wait+Screen@30s /> ○ \[E\] P1 acme-epic1 Launch v2 pricing page/
+Wait+Screen@30s /> ○ +E +P1 +acme-epic1 +Launch v2 pricing page/
 
 # Right: focus "Deferred" (index 1), whose only card is acme-e5f.
 Right
-Wait+Screen@30s /> ⏸ \[C\] P4 acme-e5f Rotate staging API keys/
+Wait+Screen@30s /> ⏸ +C +P4 +acme-e5f +Rotate staging API keys/
 
 # Right: focus "Ready" (index 2). Empty for this fixture (both open tasks
 # are blocked), so sync on the focused panel's own top border instead of a
@@ -82,15 +85,15 @@ Wait+Screen@30s /╭─Ready \(0\)─/
 
 # Right: focus "In Progress" (index 3), whose only card is acme-epic1.1.
 Right
-Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
+Wait+Screen@30s /> ● +T +P2 +acme-epic1\.1 +Draft new pricing copy/
 
 # Right: focus "Closed" (index 4), whose only card is acme-c3d.
 Right
-Wait+Screen@30s /> ✓ \[F\] P3 acme-c3d Add dark mode toggle/
+Wait+Screen@30s /> ✓ +F +P3 +acme-c3d +Add dark mode toggle/
 
 # Left: back to "In Progress".
 Left
-Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
+Wait+Screen@30s /> ● +T +P2 +acme-epic1\.1 +Draft new pricing copy/
 
 # ']': TabSwitchKeys moves to the next tab (Mail), whose data comes from
 # the same fixture's mail-seed.sql (see mail-board-flow.tape). MailState
@@ -103,7 +106,7 @@ Wait+Screen@30s /Mail \(5\)/
 # Mail was active, so the selection is exactly where it was left ("In
 # Progress", acme-epic1.1). Final state for the golden.
 Type "["
-Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
+Wait+Screen@30s /> ● +T +P2 +acme-epic1\.1 +Draft new pricing copy/
 
 Sleep 1500ms
 Screenshot board-flow-final.png
