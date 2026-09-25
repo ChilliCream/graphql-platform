@@ -7,219 +7,54 @@ public sealed class MailDataLoaderTests
     private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public async Task LoadInboxAsync_Should_ExcludeArchived_When_FilterIsInbox()
+    public async Task LoadWorkspaceThreadsAsync_Should_ReturnEveryThread_When_AgentIsNull()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2",
-            createdAt: s_now,
-            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
+            "m-1", sender: "bob", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         var loader = new MailDataLoader(store);
 
         // act
-        var messages = await loader.LoadInboxAsync("alice", MailListFilter.Inbox, CancellationToken.None);
+        var threads = await loader.LoadWorkspaceThreadsAsync(agent: null, CancellationToken.None);
 
         // assert
-        Assert.Equal(["m-1"], messages.Select(m => m.Id));
+        Assert.Equal(["t-1"], threads.Select(t => t.ThreadId));
     }
 
     [Fact]
-    public async Task LoadInboxAsync_Should_OnlyReturnUnread_When_FilterIsUnread()
+    public async Task LoadWorkspaceThreadsAsync_Should_NarrowToThreadsTheAgentSentOrReceived_When_AgentIsGiven()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice", readAt: s_now)]));
+            "m-1", sender: "alice", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", sender: "carol", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var loader = new MailDataLoader(store);
 
         // act
-        var messages = await loader.LoadInboxAsync("alice", MailListFilter.Unread, CancellationToken.None);
+        var threads = await loader.LoadWorkspaceThreadsAsync("alice", CancellationToken.None);
 
         // assert
-        Assert.Equal(["m-2"], messages.Select(m => m.Id));
+        Assert.Equal(["t-1"], threads.Select(t => t.ThreadId));
     }
 
     [Fact]
-    public async Task LoadInboxAsync_Should_OnlyReturnArchived_When_FilterIsArchived()
+    public async Task LoadWorkspaceThreadsAsync_Should_ReturnNewestActivityFirst_When_MultipleThreadsExist()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var loader = new MailDataLoader(store);
 
         // act
-        var messages = await loader.LoadInboxAsync("alice", MailListFilter.Archived, CancellationToken.None);
+        var threads = await loader.LoadWorkspaceThreadsAsync(agent: null, CancellationToken.None);
 
         // assert
-        Assert.Equal(["m-1"], messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadInboxAsync_Should_ReturnNewestFirst()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var messages = await loader.LoadInboxAsync("alice", MailListFilter.Inbox, CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-2", "m-1"], messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadSentAsync_Should_ReturnMessagesTheActorSent_ExcludingReceivedMail()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var messages = await loader.LoadSentAsync("alice", CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-1"], messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadSentAsync_Should_ReturnAnUnrepliedThreadRootMessage()
-    {
-        // arrange
-        // Alice sends to bob and has no recipient row on the message.
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", threadId: "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var inbox = await loader.LoadInboxAsync("alice", MailListFilter.Inbox, CancellationToken.None);
-        var sent = await loader.LoadSentAsync("alice", CancellationToken.None);
-
-        // assert
-        Assert.Empty(inbox);
-        Assert.Equal(["m-1"], sent.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadAllAsync_Should_ReturnMessagesTheActorSentOrReceived()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "bob", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", sender: "bob", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("carol")]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var messages = await loader.LoadAllAsync("alice", CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-2", "m-1"], messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadWorkspaceAsync_Should_ReturnEveryMessage_IncludingBetweenTwoOtherAgents()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var inbox = await loader.LoadInboxAsync("alice", MailListFilter.Inbox, CancellationToken.None);
-        var sent = await loader.LoadSentAsync("alice", CancellationToken.None);
-        var all = await loader.LoadAllAsync("alice", CancellationToken.None);
-        var workspace = await loader.LoadWorkspaceAsync(agent: null, CancellationToken.None);
-
-        // assert
-        Assert.Empty(inbox);
-        Assert.Empty(sent);
-        Assert.Empty(all);
-        Assert.Equal(["m-1"], workspace.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadWorkspaceAsync_Should_ReturnMessagesTheAgentSentOrReceived_When_AgentGiven()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", sender: "carol", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var messages = await loader.LoadWorkspaceAsync("alice", CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-2", "m-1"], messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadWorkspaceAsync_Should_ReturnMessageExactlyOnce_When_AgentIsOneOfSeveralCcRecipients()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1",
-            sender: "carol",
-            createdAt: s_now,
-            recipients:
-            [
-                MailMessageBuilder.ToRecipient("bob"),
-                MailMessageBuilder.CcRecipient("alice", ordinal: 1),
-                MailMessageBuilder.CcRecipient("dave", ordinal: 2)
-            ]));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var messages = await loader.LoadWorkspaceAsync("alice", CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-1"], messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task LoadThreadAsync_Should_ReturnEveryMessageInTheThread_OldestFirst()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", threadId: "t-other", createdAt: s_now));
-        var loader = new MailDataLoader(store);
-
-        // act
-        var messages = await loader.LoadThreadAsync("t-1", CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-1", "m-2"], messages.Select(m => m.Id));
+        Assert.Equal(["t-2", "t-1"], threads.Select(t => t.ThreadId));
     }
 }

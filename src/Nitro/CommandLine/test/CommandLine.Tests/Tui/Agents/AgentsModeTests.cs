@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using Microsoft.Extensions.Time.Testing;
@@ -12,6 +13,23 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 public sealed class AgentsModeTests
 {
     private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    /// <summary>
+    /// Builds an <see cref="AgentsMode"/>, defaulting the mail, task, and memory stores the
+    /// agent detail popover needs when a test does not care about them.
+    /// </summary>
+    private static AgentsMode CreateMode(
+        FakeAgentStore store,
+        FakeTimeProvider time,
+        FakeMailStore? mailStore = null,
+        FakeTaskStore? taskStore = null,
+        FakeMemoryStore? memoryStore = null) =>
+        new(
+            store,
+            mailStore ?? new FakeMailStore(),
+            taskStore ?? new FakeTaskStore(),
+            memoryStore ?? new FakeMemoryStore(),
+            time);
 
     private static ConsoleKeyInfo Key(char c) => new(c, ConsoleKey.NoName, false, false, false);
 
@@ -91,7 +109,7 @@ public sealed class AgentsModeTests
         var offline = AddOfflineAgent(store, "s-offline");
         var unreachable = AddUnreachableAgent(store);
         var online = AddOnlineAgent(store, "s-online");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -112,7 +130,7 @@ public sealed class AgentsModeTests
         var store = new FakeAgentStore(time);
         AddOnlineAgent(store, "s-online");
         AddOfflineAgent(store, "s-offline");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -132,7 +150,7 @@ public sealed class AgentsModeTests
         var store = new FakeAgentStore(time);
         AddOfflineAgent(store, "s-offline");
         AddOnlineAgent(store, "s-online");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -151,7 +169,7 @@ public sealed class AgentsModeTests
         var store = new FakeAgentStore(time);
         AddUnreachableAgent(store);
         AddOnlineAgent(store, "s-online");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -170,7 +188,7 @@ public sealed class AgentsModeTests
         AddOnlineAgent(store, "s-a");
         AddOnlineAgent(store, "s-b");
         AddOfflineAgent(store, "s-c");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -186,7 +204,7 @@ public sealed class AgentsModeTests
         // arrange
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -205,7 +223,7 @@ public sealed class AgentsModeTests
         var agent = AddOnlineAgent(store, "s-a");
         time.Advance(TimeSpan.FromMinutes(10));
         Touch(store, agent.Name);
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         var wide = RenderToText(mode, width: 100);
 
@@ -228,7 +246,7 @@ public sealed class AgentsModeTests
         var store = new FakeAgentStore(time);
         AddOnlineAgent(store, "s-a");
         AddOnlineAgent(store, "s-b");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         // Move off row 0 so its bubble is never selection-highlighted, before or after the tick.
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
@@ -256,7 +274,7 @@ public sealed class AgentsModeTests
         var alreadyOffline = AddOfflineAgent(store, "s-off");
         time.Advance(TimeSpan.FromMinutes(4));
         var fresh = AddOnlineAgent(store, "s-c");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
         Assert.Equal(stale.Name, mode.State.SelectedAgent?.Name);
@@ -283,7 +301,7 @@ public sealed class AgentsModeTests
         var store = new FakeAgentStore(time);
         AddOnlineAgent(store, "s-a");
         AddOnlineAgent(store, "s-b");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -303,7 +321,7 @@ public sealed class AgentsModeTests
         AddOnlineAgent(store, "s-a");
         AddOnlineAgent(store, "s-b");
         AddOnlineAgent(store, "s-c");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -320,7 +338,7 @@ public sealed class AgentsModeTests
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
         AddOnlineAgent(store, "s-a");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -339,7 +357,7 @@ public sealed class AgentsModeTests
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
         var agent = AddUnreachableAgent(store);
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -357,7 +375,7 @@ public sealed class AgentsModeTests
         // arrange
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
 
         // act
@@ -376,7 +394,7 @@ public sealed class AgentsModeTests
         var store = new FakeAgentStore(time);
         var first = AddOnlineAgent(store, "s-a");
         AddOnlineAgent(store, "s-b");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SearchRequested());
         Type(mode, first.Name);
@@ -399,7 +417,7 @@ public sealed class AgentsModeTests
         AddOfflineAgent(store, "s-a");
         AddOfflineAgent(store, "s-b");
         AddOnlineAgent(store, "s-c");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         mode.State.ApplySearch("no-agent-matches-this");
 
@@ -422,7 +440,7 @@ public sealed class AgentsModeTests
         AddOnlineAgent(store, "s-d");
         AddOnlineAgent(store, "s-e");
         AddOnlineAgent(store, "s-f");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         var console = new TestConsole().Width(100);
 
@@ -455,7 +473,7 @@ public sealed class AgentsModeTests
         AddOnlineAgent(store, "s-a");
         AddOnlineAgent(store, "s-b");
         AddOnlineAgent(store, "s-c");
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         var console = new TestConsole().Width(100);
 
@@ -484,7 +502,7 @@ public sealed class AgentsModeTests
         // arrange
         var time = new FakeTimeProvider(s_now);
         var store = new FakeAgentStore(time);
-        var mode = new AgentsMode(store, time);
+        var mode = CreateMode(store, time);
         mode.OnEnter();
         Assert.Empty(mode.State.Rows);
         AddOnlineAgent(store, "s-a");

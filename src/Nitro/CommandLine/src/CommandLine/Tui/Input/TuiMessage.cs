@@ -152,66 +152,9 @@ internal abstract record TuiMessage
     public sealed record CreateEpicRequested : TuiMessage;
 
     /// <summary>
-    /// The active mode's currently selected item should toggle between read
-    /// and unread.
-    /// </summary>
-    public sealed record ToggleReadRequested : TuiMessage;
-
-    /// <summary>
-    /// The archive confirmation should open for the active mode's currently
-    /// selected item.
-    /// </summary>
-    public sealed record ArchiveRequested : TuiMessage;
-
-    /// <summary>
-    /// The compose form should open.
-    /// </summary>
-    public sealed record ComposeRequested : TuiMessage;
-
-    /// <summary>
-    /// The reply form should open for the active mode's currently selected
-    /// item.
-    /// </summary>
-    public sealed record ReplyRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's Inbox mailbox should become the active mailbox.
-    /// </summary>
-    public sealed record SelectInboxRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's Sent mailbox should become the active mailbox.
-    /// </summary>
-    public sealed record SelectSentRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's All mailbox should become the active mailbox.
-    /// </summary>
-    public sealed record SelectAllMailRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's Workspace mailbox should become the active mailbox.
-    /// </summary>
-    public sealed record SelectWorkspaceMailRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's agent filter quick picker should open, scoped to
-    /// <see cref="Mail.MailMailbox.Workspace"/>.
+    /// The active mode's agent filter quick picker should open.
     /// </summary>
     public sealed record AgentFilterPickerRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's list pane should toggle between <see cref="Mail.MailListMode.Threads"/>
-    /// and <see cref="Mail.MailListMode.Flat"/> (Shift+V).
-    /// </summary>
-    public sealed record ToggleListModeRequested : TuiMessage;
-
-    /// <summary>
-    /// The mail board's list pane should enter its fold-prefix capture
-    /// state (the vim <c>z</c> prefix): the next raw key resolves one of
-    /// za/zo/zc/zR/zM, or is dropped when it matches none of them.
-    /// </summary>
-    public sealed record FoldPrefixRequested : TuiMessage;
 
     /// <summary>
     /// The active mode's own inline search input should gain focus.

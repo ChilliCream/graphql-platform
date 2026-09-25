@@ -4,9 +4,9 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
 /// An <see cref="IMemoryStore"/> exposing <see cref="QueryParticipationAsync"/>,
-/// <see cref="GetRequiredAsync"/>, and <see cref="GetRequiredJournalEntryAsync"/> with
-/// configurable rows, for tests of the agent detail popover's Memory section and its
-/// drilled-into detail view. Every other member throws <see cref="NotSupportedException"/>.
+/// <see cref="FindAsync"/>, and <see cref="FindJournalEntryAsync"/> with configurable rows, for
+/// tests of the agent detail popover's Memory section and its drilled-into detail view. Every
+/// other member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMemoryStore : IMemoryStore
 {
@@ -17,14 +17,13 @@ internal sealed class FakeMemoryStore : IMemoryStore
     public IReadOnlyList<MemoryParticipationEntry> ParticipationRows { get; set; } = [];
 
     /// <summary>
-    /// The curated memories <see cref="GetRequiredAsync"/> returns, keyed by id; empty by
-    /// default.
+    /// The curated memories <see cref="FindAsync"/> returns, keyed by id; empty by default.
     /// </summary>
     public Dictionary<string, MemoryRecord> CuratedRecords { get; } = [];
 
     /// <summary>
-    /// The journal entries <see cref="GetRequiredJournalEntryAsync"/> returns, keyed by id;
-    /// empty by default.
+    /// The journal entries <see cref="FindJournalEntryAsync"/> returns, keyed by id; empty by
+    /// default.
     /// </summary>
     public Dictionary<string, MemoryJournalEntry> JournalEntries { get; } = [];
 
@@ -45,7 +44,7 @@ internal sealed class FakeMemoryStore : IMemoryStore
         => throw new NotSupportedException();
 
     public Task<MemoryRecord?> FindAsync(string id, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult(CuratedRecords.TryGetValue(id, out var record) ? record : null);
 
     public Task<MemoryRecord> GetRequiredAsync(string id, CancellationToken cancellationToken)
         => CuratedRecords.TryGetValue(id, out var record)
@@ -68,7 +67,7 @@ internal sealed class FakeMemoryStore : IMemoryStore
         => throw new NotSupportedException();
 
     public Task<MemoryJournalEntry?> FindJournalEntryAsync(string id, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        => Task.FromResult(JournalEntries.TryGetValue(id, out var entry) ? entry : null);
 
     public Task<MemoryJournalEntry> GetRequiredJournalEntryAsync(string id, CancellationToken cancellationToken)
         => JournalEntries.TryGetValue(id, out var entry)

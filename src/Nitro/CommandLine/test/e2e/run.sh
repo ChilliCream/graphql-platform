@@ -59,10 +59,11 @@ declare -A MARKERS=(
   [detail]="acme-epic1 · blocking · depended on by"
   [mail-send]="Thanks-noted"
   [mail-error]="[nitro exit: 1]"
-  [mail-board]="Workspace: bob (3)"
+  [mail-board]="Mail: bob (3)"
   [agents]="Agents (1 online / 4)"
+  [memory-board]="Journal (4)"
 )
-ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
+ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents memory-board)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.
@@ -186,6 +187,7 @@ fi
 FIXTURE_TASK_MARKER="acme-epic1"
 FIXTURE_MAIL_MARKER="Retro notes"
 FIXTURE_AGENTS_MARKER="planner"
+FIXTURE_MEMORY_MARKER="e2emem00000000000000000001"
 
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
@@ -220,6 +222,11 @@ if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/agents-seed.sql"; then
   echo "    the agents schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/memory-seed.sql"; then
+  echo "==> fixture prepare FAILED: memory-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the memory schema likely drifted from fixtures/memory-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
 
 if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_TASK_MARKER"; then
   echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_TASK_MARKER'" >&2
@@ -235,6 +242,12 @@ fi
 if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent list ) | grep -q "$FIXTURE_AGENTS_MARKER"; then
   echo "==> fixture guard FAILED: 'nitro agent list' did not show '$FIXTURE_AGENTS_MARKER'" >&2
   echo "    the agents schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent memory recent --collection all ) \
+    | grep -q "$FIXTURE_MEMORY_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent memory recent' did not show '$FIXTURE_MEMORY_MARKER'" >&2
+  echo "    the memory schema likely drifted from fixtures/memory-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
 echo "    fixture ready, guard passed"

@@ -1,10 +1,10 @@
 # Fixture agent workspace
 
-`seed.sql`, `mail-seed.sql`, and `agents-seed.sql` are a deterministic
-dataset for the `nitro agent` e2e tapes: task data, mail data, and agent
-presence data, applied to the same unified workspace database. IDs,
-timestamps, and actors are all hardcoded so a recording that reads this data
-is byte-stable across runs, wall-clock time, and machines.
+`seed.sql`, `mail-seed.sql`, `agents-seed.sql`, and `memory-seed.sql` are a
+deterministic dataset for the `nitro agent` e2e tapes: task data, mail data,
+agent presence data, and memory data, applied to the same unified workspace
+database. IDs, timestamps, and actors are all hardcoded so a recording that
+reads this data is byte-stable across runs, wall-clock time, and machines.
 
 ## How run.sh uses it
 
@@ -26,21 +26,25 @@ Before recording any flow, `run.sh` prepares `out/fixture/acme/` on the host
    that the seed files are out of date. Seed drift against a real schema
    change is instead caught by the `sqlite3` apply step failing on a missing
    column and by the `FIXTURE_*_MARKER` guard queries below.
-4. Apply `seed.sql`, then `mail-seed.sql`, then `agents-seed.sql`, with the
-   `sqlite3` CLI against `out/fixture/acme/.nitro/agents/agents.db`.
-   `seed.sql` (`tasks`/`dependencies`/`labels`/`comments`/`events`/
-   `child_counters`) and `mail-seed.sql` (`agents`/`messages`/
-   `message_recipients`) insert into disjoint tables, so their own order
-   does not matter; `agents-seed.sql` must run after `mail-seed.sql` since
-   it updates two of the `agents` rows `mail-seed.sql` inserts (`alice`,
-   `e2e-agent`) rather than inserting them itself, alongside two further
-   agents of its own (`nora`, `wren`).
+4. Apply `seed.sql`, then `mail-seed.sql`, then `agents-seed.sql`, then
+   `memory-seed.sql`, with the `sqlite3` CLI against
+   `out/fixture/acme/.nitro/agents/agents.db`. `seed.sql`
+   (`tasks`/`dependencies`/`labels`/`comments`/`events`/`child_counters`),
+   `mail-seed.sql` (`agents`/`messages`/`message_recipients`), and
+   `memory-seed.sql` (`memory_curated`/`memory_journal`) insert into disjoint
+   tables, so their own order does not matter relative to each other;
+   `agents-seed.sql` must run after `mail-seed.sql` since it updates two of
+   the `agents` rows `mail-seed.sql` inserts (`alice`, `e2e-agent`) rather
+   than inserting them itself, alongside two further agents of its own
+   (`nora`, `wren`).
 5. Guard: run `bin/nitro agent tasks list` inside `out/fixture/acme` and grep
    for `acme-epic1`, then run `bin/nitro agent mail inbox` (as `e2e-agent`)
    and grep for `Retro notes`, then run `bin/nitro agent list` and grep for
-   `planner`. If any marker is missing, schema drift is failing fast
-   here, with a pointer back to this file, instead of surfacing later as a
-   confusing golden diff inside a tape's `Hide` block.
+   `planner`, then run `bin/nitro agent memory recent --collection all` and
+   grep for the id `e2emem00000000000000000001`. If any marker is missing,
+   schema drift is failing fast here, with a pointer back to this file,
+   instead of surfacing later as a confusing golden diff inside a tape's
+   `Hide` block.
 
 A tape only ever `cp -r`s the prepared `out/fixture/acme` directory into its
 own throwaway `/tmp/work`; no task- or mail-mutating command inside a tape's
@@ -123,12 +127,26 @@ golden even though this ticket touches only agents-flow and mail-send-flow.
 shifts mail-board-flow.tape's own agent-filter picker navigation either. See
 `agents-seed.sql`'s own header for the full reasoning.
 
+## The memory dataset
+
+`memory-seed.sql` inserts two curated memories and one journal entry
+directly into `memory_curated`/`memory_journal`, at the same fixed-past
+`created_at`/`updated_at` timestamps `mail-seed.sql` uses for its messages,
+so the Memory tab's age column is likewise always a fixed `yyyy-MM-dd`
+string. Every id is a syntactically valid `MemoryId` (26 lowercase Crockford
+base32 characters), the same check a popover load runs before it can render
+a row. The Memory tab shows every entry in the workspace, so this file's
+three rows sit alongside the three journal entries `agents-seed.sql` already
+seeded for `nora`; see `memory-seed.sql`'s own header for the combined
+counts memory-board-flow.tape asserts.
+
 ## Regenerating after a schema change
 
-`seed.sql`/`mail-seed.sql`/`agents-seed.sql` are plain lists of `INSERT`/
-`UPDATE` statements against `TaskStoreSchema.Create`/`MailStoreSchema.Create`/
-`AgentRegistrySchema.Create`; there is no code generator. After changing any
-of the three schemas (a new column, a new `NOT NULL` constraint, a renamed
+`seed.sql`/`mail-seed.sql`/`agents-seed.sql`/`memory-seed.sql` are plain
+lists of `INSERT`/`UPDATE` statements against `TaskStoreSchema.Create`/
+`MailStoreSchema.Create`/`AgentRegistrySchema.Create`/
+`MemoryStoreSchema.Create`; there is no code generator. After changing any
+of the four schemas (a new column, a new `NOT NULL` constraint, a renamed
 table):
 
 1. Bump `AgentDatabase.CurrentVersion` as usual for the production change.
@@ -137,9 +155,8 @@ table):
    string/`NULL` per the column's own default, unless the fixture should
    exercise the new column specifically).
 3. Re-run `./run.sh help` (or any flow). The prepare-fixture step reapplies
-   all three seed files from scratch every run, so a missed column surfaces
-   immediately as a `sqlite3` constraint error, and the three guard queries
-   catch a renamed table or column before any tape records against stale
-   data.
+   all four seed files from scratch every run, so a missed column surfaces
+   immediately as a `sqlite3` constraint error, and the guard queries catch
+   a renamed table or column before any tape records against stale data.
 4. To inspect the seeded data directly:
    `sqlite3 out/fixture/acme/.nitro/agents/agents.db ".dump"`.

@@ -32,8 +32,9 @@ layer: a handful of representative flows, not exhaustive.
 | `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
 | `mail-send` | `agent register/list/mail send/inbox/reply/read --thread` over a copy of the fixture | the mail send/inbox/reply/read round trip, one actor registered with a role, and the unified `agent list` shape |
 | `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
-| `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | read-only navigation, fold/list/thread toggles, and per-agent filtering |
+| `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | the read-only thread table, per-agent filtering, and the Enter thread popover |
 | `agents` | the Agents tab (bare `nitro agent`, `A` to switch) | the unified agent table's presence states and header counts, and the Enter detail popover |
+| `memory-board` | the Memory tab (bare `nitro agent`, `E` to switch) | the curated/journal table, the kind filter, and the Enter entry popover |
 
 `help` is a trivial smoke flow that proves the pipeline itself,
 independently of the fixture-backed flows below it. It asks for help on
@@ -81,6 +82,15 @@ refreshed to the real current time at fixture-prepare time instead, and
 the resulting relative age needs its own `agents` SCRUBS entry in
 [`run.sh`](run.sh), the same reason `mail-send` needs one for the agent it
 registers live.
+
+`memory-board` runs against the same shared fixture, extended by
+[`fixtures/memory-seed.sql`](fixtures/memory-seed.sql) with two curated
+memories and one journal entry, at the same fixed-past timestamps as
+`mail-seed.sql`'s messages, so it too needs no SCRUBS entry. The Memory tab
+shows every entry in the workspace, so its rows sit alongside the three
+journal entries `agents-seed.sql` already seeds for `nora`; see
+`memory-seed.sql`'s own header for the resulting combined row counts.
+Memory commands need no auth, they never call the Nitro backend.
 
 Keep `MARKERS`/`ALL_FLOWS` in [`run.sh`](run.sh) in sync with the tape set as
 flows are added.

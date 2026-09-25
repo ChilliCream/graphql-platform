@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Microsoft.Extensions.Time.Testing;
 using Spectre.Console;
 using Spectre.Console.Testing;
@@ -86,7 +87,7 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = AddOnlineAgent(agentStore, "s-a");
         var model = CreateModel(agent.Name, agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var text = RenderToText(model);
@@ -103,7 +104,7 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = LoginAgent(agentStore);
         var model = CreateModel(agent.Name, agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var text = RenderToText(model);
@@ -121,7 +122,7 @@ public sealed class AgentPopoverModelTests
         var agent = AddOnlineAgent(agentStore, "s-a");
         EndSession(agentStore, agent);
         var model = CreateModel(agent.Name, agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var text = RenderToText(model);
@@ -136,7 +137,7 @@ public sealed class AgentPopoverModelTests
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var model = CreateModel("nobody", agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var text = RenderToText(model);
@@ -158,7 +159,7 @@ public sealed class AgentPopoverModelTests
         };
         var memoryStore = new FakeMemoryStore { ParticipationRows = [CreateMemoryEntry(0), CreateMemoryEntry(1)] };
         var model = CreateModel(agent.Name, agentStore, mailStore, taskStore, memoryStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         var console = new TestConsole().Width(100);
 
         // act
@@ -215,7 +216,7 @@ public sealed class AgentPopoverModelTests
             new FakeMailStore { ParticipationRows = mail },
             new FakeTaskStore { ParticipationRows = tickets },
             new FakeMemoryStore { ParticipationRows = memory });
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         var highlighted = AgentPopoverView.BuildLines(
             agent, mail, tickets, memory, s_now, 200, (AgentPopoverSection.Tickets, false, 0));
         var unselected = AgentPopoverView.BuildLines(
@@ -248,7 +249,7 @@ public sealed class AgentPopoverModelTests
             new FakeMailStore { ParticipationRows = mail },
             new FakeTaskStore { ParticipationRows = tickets },
             new FakeMemoryStore { ParticipationRows = memory });
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         var highlighted = AgentPopoverView.BuildLines(
             agent, mail, tickets, memory, s_now, 200, (AgentPopoverSection.Mail, true, -1));
         var expectedHighlightAnsi = RenderMarkupToAnsiText(highlighted.Lines[highlighted.SelectedLineIndex]);
@@ -273,7 +274,7 @@ public sealed class AgentPopoverModelTests
             ParticipationRows = [.. Enumerable.Range(0, 12).Select(CreateMailSummary)]
         };
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var text = RenderToText(model);
@@ -295,7 +296,7 @@ public sealed class AgentPopoverModelTests
             ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)]
         };
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         model.HandleKey(Key(ConsoleKey.J, 'j'));
         model.HandleKey(Key(ConsoleKey.J, 'j'));
 
@@ -319,7 +320,7 @@ public sealed class AgentPopoverModelTests
             ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)]
         };
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         model.HandleKey(Key(ConsoleKey.J, 'j'));
         model.HandleKey(Key(ConsoleKey.J, 'j'));
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
@@ -340,13 +341,14 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = AddOnlineAgent(agentStore, "s-a");
         var model = CreateModel(agent.Name, agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var result = model.HandleKey(Key(ConsoleKey.D, 'd'));
 
         // assert
-        var delete = Assert.IsType<AgentPopoverResult.DeleteRequested>(result);
+        var request = Assert.IsType<PopoverResult.Request>(result);
+        var delete = Assert.IsType<AgentPopoverRequest.DeleteRequested>(request.Payload);
         Assert.Equal(agent.Name, delete.Name);
     }
 
@@ -357,13 +359,14 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = AddOnlineAgent(agentStore, "s-a");
         var model = CreateModel(agent.Name, agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var result = model.HandleKey(Key(ConsoleKey.Y, 'y'));
 
         // assert
-        var copy = Assert.IsType<AgentPopoverResult.CopyRequested>(result);
+        var request = Assert.IsType<PopoverResult.Request>(result);
+        var copy = Assert.IsType<AgentPopoverRequest.CopyRequested>(request.Payload);
         Assert.Equal((agent.Name, agent.SessionId), (copy.Name, copy.SessionId));
     }
 
@@ -376,7 +379,7 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
         mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var result = model.HandleKey(Key(ConsoleKey.Enter, '\r'));
@@ -397,7 +400,7 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
         mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
@@ -417,7 +420,7 @@ public sealed class AgentPopoverModelTests
         var taskStore = new FakeTaskStore { ParticipationRows = [task] };
         taskStore.Tasks[task.Id] = task;
         var model = CreateModel(agent.Name, agentStore, taskStore: taskStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         // Mail has no rows, so cursor 1 is the ticket's first item.
@@ -445,7 +448,7 @@ public sealed class AgentPopoverModelTests
             CreatedBy = "felix"
         };
         var model = CreateModel(agent.Name, agentStore, memoryStore: memoryStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         // Mail and tickets have no rows, so cursor 2 is memory's first item.
@@ -473,7 +476,7 @@ public sealed class AgentPopoverModelTests
             CreatedBy = "felix"
         };
         var model = CreateModel(agent.Name, agentStore, memoryStore: memoryStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         // Mail and tickets have no rows, so cursor 2 is memory's first item.
@@ -539,7 +542,7 @@ public sealed class AgentPopoverModelTests
             CreatedBy = "felix"
         };
         var model = CreateModel(agent.Name, agentStore, memoryStore: memoryStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         MoveCursorDown(model, 2);
@@ -560,7 +563,7 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)] };
         mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         MoveCursorDown(model, 2);
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
 
@@ -583,7 +586,7 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = mail };
         mailStore.Threads["t1"] = [CreateMailMessage("t1", "m2", "felix", "Subject 1", "Body text 1")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         MoveCursorDown(model, 1);
         var expected = AgentPopoverView.BuildLines(agent, mail, [], [], s_now, 200, (AgentPopoverSection.Mail, false, 1));
         var expectedHighlightAnsi = RenderMarkupToAnsiText(expected.Lines[expected.SelectedLineIndex]);
@@ -607,7 +610,7 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0), CreateMailSummary(1)] };
         mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         MoveCursorDown(model, 2);
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
@@ -630,14 +633,15 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
         mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
 
         // act
         var result = model.HandleKey(Key(ConsoleKey.Y, 'y'));
 
         // assert
-        var copy = Assert.IsType<AgentPopoverResult.CopyItemRequested>(result);
+        var request = Assert.IsType<PopoverResult.Request>(result);
+        var copy = Assert.IsType<AgentPopoverRequest.CopyItemRequested>(request.Payload);
         Assert.Equal("t0", copy.Id);
     }
 
@@ -651,7 +655,7 @@ public sealed class AgentPopoverModelTests
         var taskStore = new FakeTaskStore { ParticipationRows = [task] };
         taskStore.Tasks[task.Id] = task;
         var model = CreateModel(agent.Name, agentStore, taskStore: taskStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         MoveCursorDown(model, 1);
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
 
@@ -659,7 +663,8 @@ public sealed class AgentPopoverModelTests
         var result = model.HandleKey(Key(ConsoleKey.Y, 'y'));
 
         // assert
-        var copy = Assert.IsType<AgentPopoverResult.CopyItemRequested>(result);
+        var request = Assert.IsType<PopoverResult.Request>(result);
+        var copy = Assert.IsType<AgentPopoverRequest.CopyItemRequested>(request.Payload);
         Assert.Equal("a1", copy.Id);
     }
 
@@ -675,7 +680,7 @@ public sealed class AgentPopoverModelTests
             CreateMailMessage("t0", "m1", "felix", "Subject 0", string.Join('\n', Enumerable.Range(0, 40).Select(i => $"Line {i}")))
         ];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
         var before = RenderToText(model, height: 10);
 
@@ -700,7 +705,7 @@ public sealed class AgentPopoverModelTests
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0)] };
         mailStore.Threads["t0"] = [CreateMailMessage("t0", "m1", "felix", "Subject 0", "Body text 0")];
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
@@ -750,7 +755,7 @@ public sealed class AgentPopoverModelTests
             ParticipationRows = [.. Enumerable.Range(0, 25).Select(CreateMemoryEntry)]
         };
         var model = CreateModel(agent.Name, agentStore, mailStore, taskStore, memoryStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         // height 100 keeps every section and its show-more row on screen; show-more rows sit at cursor 10, 21 and 32
@@ -787,13 +792,13 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = AddOnlineAgent(agentStore, "s-a");
         var model = CreateModel(agent.Name, agentStore);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var result = model.HandleKey(Key(ConsoleKey.Escape));
 
         // assert
-        Assert.IsType<AgentPopoverResult.Closed>(result);
+        Assert.IsType<PopoverResult.Closed>(result);
     }
 
     [Fact]
@@ -804,7 +809,7 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(time);
         var agent = AddOnlineAgent(agentStore, "s-a");
         var model = CreateModel(agent.Name, agentStore, timeProvider: time);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         var dirty = model.Tick();
@@ -821,7 +826,7 @@ public sealed class AgentPopoverModelTests
         var agentStore = new FakeAgentStore(time);
         var agent = AddOnlineAgent(agentStore, "s-a");
         var model = CreateModel(agent.Name, agentStore, timeProvider: time);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         time.Advance(TimeSpan.FromMinutes(2));
@@ -844,7 +849,7 @@ public sealed class AgentPopoverModelTests
         time.Advance(TimeSpan.FromDays(2));
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0) with { LastMessageAt = time.GetUtcNow() }] };
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore, timeProvider: time);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
 
         // act
         time.Advance(TimeSpan.FromMinutes(2));
@@ -866,7 +871,7 @@ public sealed class AgentPopoverModelTests
         time.Advance(TimeSpan.FromDays(2));
         var mailStore = new FakeMailStore { ParticipationRows = [CreateMailSummary(0) with { LastMessageAt = time.GetUtcNow() }] };
         var model = CreateModel(agent.Name, agentStore, mailStore: mailStore, timeProvider: time);
-        model.Load();
+        model.Load(TestContext.Current.CancellationToken);
         model.HandleKey(Key(ConsoleKey.J, 'j'));
         model.HandleKey(Key(ConsoleKey.Enter, '\r'));
 

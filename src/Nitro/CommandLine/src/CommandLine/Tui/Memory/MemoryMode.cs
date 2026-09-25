@@ -1,164 +1,115 @@
 using ChilliCream.Nitro.CommandLine.Services.Memory;
-using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Rendering;
-using ConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDialog;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Displays searchable curated memories and journal entries with a detail pane.
-/// Supports promoting journal entries and permanently deleting curated memories.
+/// Displays every curated memory and journal entry in the workspace as one read-only,
+/// full-width table: kind, type, tags, age, and body columns. The board has no acting agent,
+/// so promoting a journal entry or forgetting a curated memory is unavailable here; Enter opens
+/// the selected row in a read-only popover instead.
 /// </summary>
 internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 {
     private const int PanelChromeWidth = 4;
     private const int PanelChromeHeight = 2;
     private const int MaxIndicatorSettlePasses = 3;
-    private const int ListWidthNumerator = 2;
-    private const int ListWidthDenominator = 5;
+    private const int HeaderLineCount = 4;
 
-    private readonly IMemoryStore _store;
-    private readonly MemoryState _state;
-    private readonly MemoryDetailView _detailView = new();
+    private const string EmptyStateMessage = "No memory yet.";
+
+    private readonly IMemoryStore _memoryStore;
     private readonly TimeProvider _timeProvider;
-    private readonly Func<bool> _hasIdentity;
+    private readonly MemoryState _state;
     private readonly Viewport _listViewport = new(0, 0);
 
     private MemorySearchForm? _searchForm;
-    private MemoryPromoteForm? _promoteForm;
-    private ConfirmDialog? _forgetDialog;
-    private MemoryRecord? _forgetTarget;
-    private ConfirmDialog? _discardDialog;
-    private bool _pendingRefresh;
 
-    public MemoryMode(
-        IMemoryStore store,
-        TimeProvider? timeProvider = null,
-        Func<bool>? hasIdentity = null)
+    public MemoryMode(IMemoryStore store, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(store);
 
-        _store = store;
-        _state = new MemoryState(new MemoryDataLoader(store));
+        _memoryStore = store;
         _timeProvider = timeProvider ?? TimeProvider.System;
-        _hasIdentity = hasIdentity ?? (static () => false);
+        _state = new MemoryState(new MemoryDataLoader(store));
     }
 
     /// <summary>
-    /// The loaded memory items, collection, search text, selection, and focus.
+    /// The board's current live state: the loaded rows, kind filter, and selection.
     /// </summary>
     public MemoryState State => _state;
-
-    /// <inheritdoc />
-    public bool IsInputCapturing
-        => _discardDialog is not null
-        || _forgetDialog is not null
-        || _promoteForm is not null
-        || _searchForm is not null;
-
-    /// <inheritdoc />
-    public IReadOnlyList<KeyHint> CapturingHints
-        => _discardDialog is not null ? ConfirmDialog.Hints
-        : _forgetDialog is not null ? ConfirmDialog.Hints
-        : _promoteForm is not null ? MemoryPromoteForm.Hints
-        : _searchForm is not null ? MemorySearchForm.Hints
-        : [];
 
     /// <inheritdoc />
     public KeyMap? KeyMap => null;
 
     /// <inheritdoc />
-    /// <remarks>
-    /// Schedules a refresh for the next <see cref="Render"/> or <see cref="Handle"/> call.
-    /// </remarks>
-    public void OnEnter() => _pendingRefresh = true;
+    public bool IsInputCapturing => _searchForm is not null;
+
+    /// <inheritdoc />
+    public IReadOnlyList<KeyHint> CapturingHints => _searchForm is not null ? MemorySearchForm.Hints : [];
+
+    /// <inheritdoc />
+    public void OnEnter() => RefreshBlocking();
 
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Layout is recomputed during rendering.
+        // Layout and viewport state are recomputed from Render's parameters every frame.
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<TuiMessage> Handle(TuiMessage message)
+    public IReadOnlyList<TuiMessage> Handle(TuiMessage message) => message switch
     {
-        EnsureLoaded();
+        TuiMessage.MoveCursor(CursorDirection.Up) => Move(-1),
+        TuiMessage.MoveCursor(CursorDirection.Down) => Move(1),
+        TuiMessage.MoveToEdge(var edge) => MoveToEdge(edge),
+        // Reached only when TryCreatePopover found no selected row to open: the shell falls
+        // back to dispatching OpenSelected here for the no-selection toast.
+        TuiMessage.OpenSelected => OpenSelectedFallback(),
+        TuiMessage.RefreshRequested => Refresh(),
+        TuiMessage.CycleView(var delta) => CycleFilter(delta),
+        TuiMessage.CopySelectedId => CopySelectedId(),
+        TuiMessage.SearchRequested => OpenSearchForm(),
+        _ => []
+    };
 
-        return message switch
+    /// <inheritdoc />
+    public IPopover? TryCreatePopover()
+    {
+        if (_state.SelectedItem is not { } item)
         {
-            TuiMessage.MoveCursor(CursorDirection.Up) => MoveOrScroll(-1),
-            TuiMessage.MoveCursor(CursorDirection.Down) => MoveOrScroll(1),
-            TuiMessage.MoveCursor(CursorDirection.Left) => TogglePane(),
-            TuiMessage.MoveCursor(CursorDirection.Right) => TogglePane(),
-            TuiMessage.MoveToEdge(var edge) => MoveOrScrollToEdge(edge),
-            TuiMessage.OpenSelected => FocusDetail(),
-            TuiMessage.RefreshRequested => Refresh(),
-            TuiMessage.CycleView(var delta) => CycleCollection(delta),
-            TuiMessage.SearchRequested => OpenSearchForm(),
-            TuiMessage.PromoteRequested => OpenPromoteForm(),
-            TuiMessage.ForgetRequested => OpenForgetDialog(),
-            TuiMessage.CopySelectedId => CopySelectedId(),
-            _ => []
-        };
+            return null;
+        }
+
+        return new MemoryEntryPopoverModel(item.Id, item.Kind, _memoryStore, _timeProvider);
     }
+
+    /// <inheritdoc />
+    public IReadOnlyList<TuiMessage> HandlePopoverRequest(PopoverResult.Request request) => request.Payload switch
+    {
+        MemoryEntryPopoverRequest.CopyRequested copyRequested =>
+            [new TuiMessage.ShowToast(copyRequested.EntryId, ToastStyle.Info)],
+        _ => []
+    };
 
     /// <summary>
-    /// Handles one raw key while <see cref="IsInputCapturing"/> is true, routed
-    /// here by the host instead of through the semantic <see cref="TuiMessage"/> dispatch.
+    /// Handles one raw key while <see cref="IsInputCapturing"/> is true, routed here by
+    /// the host instead of through the semantic <see cref="TuiMessage"/> dispatch.
     /// </summary>
     public IReadOnlyList<TuiMessage> HandleRawKey(ConsoleKeyInfo info)
-    {
-        if (_discardDialog is not null)
-        {
-            return HandleDiscardDialogKey(info);
-        }
-
-        if (_forgetDialog is not null)
-        {
-            return HandleForgetDialogKey(info);
-        }
-
-        if (_promoteForm is not null)
-        {
-            return HandlePromoteFormKey(info);
-        }
-
-        if (_searchForm is not null)
-        {
-            return HandleSearchFormKey(info);
-        }
-
-        return [];
-    }
+        => _searchForm is not null ? HandleSearchFormKey(info) : [];
 
     /// <inheritdoc />
     public IRenderable Render(int width, int height)
     {
-        EnsureLoaded();
-
         if (width <= 0 || height <= 0)
         {
             return new Markup(string.Empty);
-        }
-
-        if (_discardDialog is { } discardDialog)
-        {
-            return discardDialog.Render(width, height);
-        }
-
-        if (_forgetDialog is { } forgetDialog)
-        {
-            return forgetDialog.Render(width, height);
-        }
-
-        if (_promoteForm is { } promoteForm)
-        {
-            return promoteForm.Render(width, height);
         }
 
         if (_searchForm is { } searchForm)
@@ -166,77 +117,26 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
             return searchForm.Render(width, height);
         }
 
-        var listWidth = Math.Max(1, width * ListWidthNumerator / ListWidthDenominator);
-        var detailWidth = Math.Max(1, width - listWidth);
-
-        return new Layout("memory").SplitColumns(
-            new Layout("list", RenderListPane(listWidth, height)).Size(listWidth),
-            new Layout("detail", RenderDetailPane(detailWidth, height)));
+        return RenderListPane(width, height);
     }
 
-    private IReadOnlyList<TuiMessage> MoveOrScroll(int delta)
+    private IReadOnlyList<TuiMessage> Move(int delta)
     {
-        if (_state.Focus == MemoryFocus.List)
+        if (_state.Rows.Count > 0)
         {
-            if (_state.ItemCount > 0)
-            {
-                var selectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.ItemCount - 1);
-
-                if (selectedRow != _state.SelectedRow)
-                {
-                    _state.SelectedRow = selectedRow;
-                    _detailView.ResetScroll();
-                }
-            }
-        }
-        else if (delta > 0)
-        {
-            _detailView.ScrollDown();
-        }
-        else
-        {
-            _detailView.ScrollUp();
+            _state.SelectedRow = Math.Clamp(_state.SelectedRow + delta, 0, _state.Rows.Count - 1);
         }
 
         return [];
     }
 
-    private IReadOnlyList<TuiMessage> MoveOrScrollToEdge(EdgeTarget edge)
+    private IReadOnlyList<TuiMessage> MoveToEdge(EdgeTarget edge)
     {
-        if (_state.Focus == MemoryFocus.List)
+        if (_state.Rows.Count > 0)
         {
-            if (_state.ItemCount > 0)
-            {
-                var selectedRow = edge == EdgeTarget.Top ? 0 : _state.ItemCount - 1;
-
-                if (selectedRow != _state.SelectedRow)
-                {
-                    _state.SelectedRow = selectedRow;
-                    _detailView.ResetScroll();
-                }
-            }
-        }
-        else if (edge == EdgeTarget.Top)
-        {
-            _detailView.ScrollToTop();
-        }
-        else
-        {
-            _detailView.ScrollToBottom();
+            _state.SelectedRow = edge == EdgeTarget.Top ? 0 : _state.Rows.Count - 1;
         }
 
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> TogglePane()
-    {
-        _state.Focus = _state.Focus == MemoryFocus.List ? MemoryFocus.Detail : MemoryFocus.List;
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> FocusDetail()
-    {
-        _state.Focus = MemoryFocus.Detail;
         return [];
     }
 
@@ -246,11 +146,29 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         return [];
     }
 
-    private IReadOnlyList<TuiMessage> CycleCollection(int delta)
+    private IReadOnlyList<TuiMessage> CycleFilter(int delta)
     {
-        _state.CycleCollectionAsync(delta, CancellationToken.None).GetAwaiter().GetResult();
-        _detailView.ResetScroll();
+        _state.CycleFilterAsync(delta, CancellationToken.None).GetAwaiter().GetResult();
         return [];
+    }
+
+    /// <summary>
+    /// Reports the no-selection toast the shell shows when <see cref="TryCreatePopover"/>
+    /// found no row to open; a no-op when a row is selected (the popover already opened).
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenSelectedFallback() =>
+        _state.SelectedItem is null
+            ? [new TuiMessage.ShowToast("No item selected.", ToastStyle.Warn)]
+            : [];
+
+    private IReadOnlyList<TuiMessage> CopySelectedId()
+    {
+        if (_state.SelectedItem is not { } item)
+        {
+            return [new TuiMessage.ShowToast("No item selected.", ToastStyle.Warn)];
+        }
+
+        return [new TuiMessage.ShowToast(item.Id, ToastStyle.Info)];
     }
 
     private IReadOnlyList<TuiMessage> OpenSearchForm()
@@ -283,309 +201,83 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     {
         var text = _searchForm!.Text;
         _searchForm = null;
-
         _state.ApplySearchAsync(text, CancellationToken.None).GetAwaiter().GetResult();
-        _detailView.ResetScroll();
-
         return [];
-    }
-
-    private IReadOnlyList<TuiMessage> OpenPromoteForm()
-    {
-        if (RefuseIfIdentityUnavailable() is { } refusal)
-        {
-            return refusal;
-        }
-
-        if (_state.SelectedJournalEntry is not { } entry)
-        {
-            return [new TuiMessage.ShowToast("No journal entry selected.", ToastStyle.Warn)];
-        }
-
-        _promoteForm = new MemoryPromoteForm(entry);
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> HandlePromoteFormKey(ConsoleKeyInfo info)
-    {
-        var result = _promoteForm!.HandleKey(info);
-
-        return result switch
-        {
-            null => [],
-            FormResult.Cancelled => TryDiscardPromote(),
-            FormResult.ButtonActivated { ButtonId: MemoryPromoteForm.CancelButtonId } => TryDiscardPromote(),
-            FormResult.Submitted submitted => SubmitPromote(submitted),
-            _ => []
-        };
-    }
-
-    private IReadOnlyList<TuiMessage> TryDiscardPromote()
-    {
-        if (_promoteForm!.IsDirty)
-        {
-            _discardDialog = CreateDiscardDialog();
-            return [];
-        }
-
-        _promoteForm = null;
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> SubmitPromote(FormResult.Submitted submitted)
-    {
-        if (RefuseIfIdentityUnavailable() is { } refusal)
-        {
-            return refusal;
-        }
-
-        var outcome = _promoteForm!.SubmitAsync(_store, submitted.Values, CancellationToken.None)
-            .GetAwaiter().GetResult();
-
-        if (outcome is not MemoryPromoteOutcome.Succeeded)
-        {
-            return [outcome.ToShowToast()];
-        }
-
-        _promoteForm = null;
-        RefreshBlocking();
-
-        return [outcome.ToShowToast()];
-    }
-
-    private IReadOnlyList<TuiMessage> OpenForgetDialog()
-    {
-        if (RefuseIfIdentityUnavailable() is { } refusal)
-        {
-            return refusal;
-        }
-
-        if (_state.SelectedCuratedRecord is not { } record)
-        {
-            return [new TuiMessage.ShowToast("No curated memory selected.", ToastStyle.Warn)];
-        }
-
-        _forgetTarget = record;
-        _forgetDialog = MemoryLifecycleActions.CreateForgetDialog(record);
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> HandleForgetDialogKey(ConsoleKeyInfo info)
-    {
-        var result = _forgetDialog!.HandleKey(info);
-
-        return result switch
-        {
-            null => [],
-            ConfirmDialogResult.Cancelled => CancelForgetDialog(),
-            ConfirmDialogResult.Confirmed => SubmitForget(),
-            _ => []
-        };
-    }
-
-    private IReadOnlyList<TuiMessage> CancelForgetDialog()
-    {
-        _forgetDialog = null;
-        _forgetTarget = null;
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> SubmitForget()
-    {
-        if (RefuseIfIdentityUnavailable() is { } refusal)
-        {
-            return refusal;
-        }
-
-        var target = _forgetTarget!;
-        _forgetDialog = null;
-        _forgetTarget = null;
-
-        var outcome = MemoryLifecycleActions.ForgetAsync(_store, target, CancellationToken.None)
-            .GetAwaiter().GetResult();
-
-        RefreshBlocking();
-
-        return [outcome.ToShowToast()];
-    }
-
-    private IReadOnlyList<TuiMessage>? RefuseIfIdentityUnavailable() =>
-        _hasIdentity()
-            ? null
-            : [new TuiMessage.ShowToast(BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
-
-    private IReadOnlyList<TuiMessage> HandleDiscardDialogKey(ConsoleKeyInfo info)
-    {
-        var result = _discardDialog!.HandleKey(info);
-
-        return result switch
-        {
-            null => [],
-            ConfirmDialogResult.Confirmed => ConfirmDiscard(),
-            ConfirmDialogResult.Cancelled => CancelDiscard(),
-            _ => []
-        };
-    }
-
-    private IReadOnlyList<TuiMessage> ConfirmDiscard()
-    {
-        _discardDialog = null;
-        _promoteForm = null;
-        return [];
-    }
-
-    private IReadOnlyList<TuiMessage> CancelDiscard()
-    {
-        _discardDialog = null;
-        return [];
-    }
-
-    private static ConfirmDialog CreateDiscardDialog()
-        => new("Discard unsaved changes?", "Discard", ButtonKind.Danger);
-
-    private IReadOnlyList<TuiMessage> CopySelectedId()
-    {
-        var id = _state.Collection == MemoryCollectionFilter.Curated
-            ? _state.SelectedCuratedRecord?.Id
-            : _state.SelectedJournalEntry?.Id;
-
-        return id is null
-            ? [new TuiMessage.ShowToast("No item selected.", ToastStyle.Warn)]
-            : [new TuiMessage.ShowToast(id, ToastStyle.Info)];
     }
 
     private IRenderable RenderListPane(int width, int height)
     {
-        var focused = _state.Focus == MemoryFocus.List;
         var safeWidth = Math.Max(1, width);
         var contentWidth = Math.Max(0, safeWidth - PanelChromeWidth);
         var interiorHeight = Math.Max(0, height - PanelChromeHeight);
+        var now = _timeProvider.GetUtcNow();
 
-        var lines = RenderListLines(contentWidth, interiorHeight, focused);
-        var panel = ColumnPane.Render(ListTitle(), _state.ItemCount, lines, focused);
+        var lines = RenderListLines(contentWidth, interiorHeight, now);
+        var header = BuildHeader(_state);
+        var panel = ColumnPane.RenderWithHeader(header, lines, focused: true);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
         return panel;
     }
 
-    private string ListTitle()
+    /// <summary>
+    /// The panel header: "Memory (N)", "Curated (N)", or "Journal (N)" for the active kind
+    /// filter, with " (filtered)" appended once a search is set.
+    /// </summary>
+    private static string BuildHeader(MemoryState state)
     {
-        var collectionName = _state.Collection == MemoryCollectionFilter.Curated ? "Curated" : "Journal";
-
-        if (_state.Collection == MemoryCollectionFilter.Curated)
+        var label = state.Filter switch
         {
-            var suffix = _state.SearchText.Length > 0 ? " (filtered)" : "";
-            return collectionName + suffix;
-        }
+            MemoryCollectionFilter.Curated => "Curated",
+            MemoryCollectionFilter.Journal => "Journal",
+            _ => "Memory"
+        };
 
-        var parsed = MemoryQueryParser.Parse(_state.SearchText);
-        var filteredSuffix = parsed.Text.Length > 0 ? " (filtered)" : "";
-        var ignoredSuffix = parsed.Type is not null || parsed.Tags.Count > 0 ? " (type/tag ignored)" : "";
-        return collectionName + filteredSuffix + ignoredSuffix;
-    }
-
-    private IRenderable RenderDetailPane(int width, int height)
-        => _detailView.Render(_state, width, height, _state.Focus == MemoryFocus.Detail);
-
-    private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, bool focused)
-        => _state.Collection == MemoryCollectionFilter.Curated
-            ? RenderCuratedListLines(contentWidth, interiorHeight, focused)
-            : RenderJournalListLines(contentWidth, interiorHeight, focused);
-
-    private IReadOnlyList<string> RenderCuratedListLines(int contentWidth, int interiorHeight, bool focused)
-    {
-        if (interiorHeight <= 0)
-        {
-            return [];
-        }
-
-        var records = _state.CuratedRecords;
-        var (start, visibleCount) = SliceViewport(records.Count, interiorHeight);
-        var now = _timeProvider.GetUtcNow();
-
-        var visibleRecords = new List<MemoryRecord>(visibleCount);
-
-        for (var i = 0; i < visibleCount; i++)
-        {
-            visibleRecords.Add(records[start + i]);
-        }
-
-        var widths = MemoryRowBadge.ComputeWidths(visibleRecords, now);
-        var lines = new List<string>(interiorHeight);
-
-        if (_listViewport.HiddenAbove > 0)
-        {
-            lines.Add(FormatIndicator(_listViewport.HiddenAbove, "above"));
-        }
-
-        for (var i = 0; i < visibleCount; i++)
-        {
-            var selected = focused && start + i == _state.SelectedRow;
-            lines.Add(MemoryRowBadge.Render(visibleRecords[i], now, selected, contentWidth, widths));
-        }
-
-        if (_listViewport.HiddenBelow > 0)
-        {
-            lines.Add(FormatIndicator(_listViewport.HiddenBelow, "below"));
-        }
-
-        return PadLines(lines, interiorHeight);
-    }
-
-    private IReadOnlyList<string> RenderJournalListLines(int contentWidth, int interiorHeight, bool focused)
-    {
-        if (interiorHeight <= 0)
-        {
-            return [];
-        }
-
-        var entries = _state.JournalEntries;
-        var (start, visibleCount) = SliceViewport(entries.Count, interiorHeight);
-
-        var visibleEntries = new List<MemoryJournalEntry>(visibleCount);
-
-        for (var i = 0; i < visibleCount; i++)
-        {
-            visibleEntries.Add(entries[start + i]);
-        }
-
-        var widths = MemoryJournalRowBadge.ComputeWidths(visibleEntries);
-        var lines = new List<string>(interiorHeight);
-
-        if (_listViewport.HiddenAbove > 0)
-        {
-            lines.Add(FormatIndicator(_listViewport.HiddenAbove, "above"));
-        }
-
-        for (var i = 0; i < visibleCount; i++)
-        {
-            var selected = focused && start + i == _state.SelectedRow;
-            lines.Add(MemoryJournalRowBadge.Render(visibleEntries[i], selected, contentWidth, widths));
-        }
-
-        if (_listViewport.HiddenBelow > 0)
-        {
-            lines.Add(FormatIndicator(_listViewport.HiddenBelow, "below"));
-        }
-
-        return PadLines(lines, interiorHeight);
+        var suffix = state.SearchText.Length > 0 ? " (filtered)" : "";
+        return $"{label} ({state.Rows.Count}){suffix}";
     }
 
     /// <summary>
-    /// Resolves the visible window into a list of <paramref name="itemCount"/>
-    /// items for <see cref="_listViewport"/>, reserving rows for "N more
-    /// above/below" indicators once the items no longer fit
-    /// <paramref name="interiorHeight"/>.
+    /// Renders the header block (a blank line, the header row, its rule, and a blank line),
+    /// then the visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
+    /// with "N more above/below" indicators once the rows no longer fit. Column widths are
+    /// computed from this call's visible slice and the header titles, so the header and rows
+    /// always agree on where each column starts. Shows the empty-state message below the
+    /// header block when there is no memory at all.
     /// </summary>
-    private (int Start, int Count) SliceViewport(int itemCount, int interiorHeight)
+    private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, DateTimeOffset now)
     {
+        if (interiorHeight <= 0)
+        {
+            return [];
+        }
+
+        var headerLineCount = Math.Min(HeaderLineCount, interiorHeight);
+        var rowsHeight = Math.Max(0, interiorHeight - headerLineCount);
+        var lines = new List<string>(interiorHeight);
+
+        if (_state.Rows.Count == 0)
+        {
+            var widths = MemoryRowBadge.ComputeWidths([], now);
+            MemoryRowBadge.AddHeaderLines(lines, headerLineCount, contentWidth, widths);
+
+            if (rowsHeight > 0)
+            {
+                lines.Add(DisplayWidth.Truncate(_state.LoadError ?? EmptyStateMessage, contentWidth));
+            }
+
+            PadTo(lines, interiorHeight);
+            return lines;
+        }
+
+        var rows = _state.Rows;
         var reservedRows = 0;
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
         {
-            var windowHeight = Math.Max(0, interiorHeight - reservedRows);
-            _listViewport.Update(itemCount, windowHeight);
+            var windowHeight = Math.Max(0, rowsHeight - reservedRows);
+            _listViewport.Update(rows.Count, windowHeight);
             _listViewport.EnsureVisible(_state.SelectedRow);
 
             var needed = (_listViewport.HiddenAbove > 0 ? 1 : 0) + (_listViewport.HiddenBelow > 0 ? 1 : 0);
@@ -598,34 +290,46 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
             reservedRows = needed;
         }
 
-        return _listViewport.Slice();
+        var (start, visibleCount) = _listViewport.Slice();
+        var visibleRows = new List<MemoryRow>(visibleCount);
+
+        for (var i = 0; i < visibleCount; i++)
+        {
+            visibleRows.Add(rows[start + i]);
+        }
+
+        var rowWidths = MemoryRowBadge.ComputeWidths(visibleRows, now);
+        MemoryRowBadge.AddHeaderLines(lines, headerLineCount, contentWidth, rowWidths);
+
+        if (_listViewport.HiddenAbove > 0)
+        {
+            lines.Add(FormatIndicator(_listViewport.HiddenAbove, "above"));
+        }
+
+        for (var i = 0; i < visibleCount; i++)
+        {
+            var selected = start + i == _state.SelectedRow;
+            lines.Add(MemoryRowBadge.Render(visibleRows[i], now, selected, contentWidth, rowWidths));
+        }
+
+        if (_listViewport.HiddenBelow > 0)
+        {
+            lines.Add(FormatIndicator(_listViewport.HiddenBelow, "below"));
+        }
+
+        PadTo(lines, interiorHeight);
+        return lines;
     }
 
-    private static IReadOnlyList<string> PadLines(List<string> lines, int interiorHeight)
+    private static void PadTo(List<string> lines, int height)
     {
-        while (lines.Count < interiorHeight)
+        while (lines.Count < height)
         {
             lines.Add(string.Empty);
         }
-
-        return lines;
     }
 
     private static string FormatIndicator(int hiddenCount, string direction) => $"  {hiddenCount} more {direction}";
 
     private void RefreshBlocking() => _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
-
-    /// <summary>
-    /// Performs a pending refresh once after entering the tab.
-    /// </summary>
-    private void EnsureLoaded()
-    {
-        if (!_pendingRefresh)
-        {
-            return;
-        }
-
-        _pendingRefresh = false;
-        RefreshBlocking();
-    }
 }

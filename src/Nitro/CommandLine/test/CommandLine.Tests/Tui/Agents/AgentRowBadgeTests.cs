@@ -141,6 +141,36 @@ public sealed class AgentRowBadgeTests
         Assert.True(line.GetCellWidth() <= maxWidth);
     }
 
+    [Fact]
+    public void Render_Should_PadNameToItsColumn_When_OnlyNameAndLastSeenFit()
+    {
+        // arrange
+        const int maxWidth = 35;
+        var row = CreateRow(name: "agent-a", role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("  ● agent-a         just now  ", line);
+    }
+
+    [Fact]
+    public void RenderHeader_Should_PadNameToItsColumn_When_OnlyNameAndLastSeenFit()
+    {
+        // arrange
+        const int maxWidth = 35;
+        var row = CreateRow(name: "agent-a", role: "implementer");
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var header = Markup.Remove(AgentRowBadge.RenderHeader(maxWidth, widths));
+
+        // assert
+        Assert.Equal("    NAME            LAST SEEN ", header);
+    }
+
     [Theory]
     [InlineData(0, "just now")]
     [InlineData(90, "1m ago")]

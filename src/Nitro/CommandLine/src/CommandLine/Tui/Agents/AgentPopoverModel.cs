@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 using Spectre.Console.Rendering;
 
@@ -19,38 +20,32 @@ internal enum AgentPopoverSection
 }
 
 /// <summary>
-/// A terminal outcome of <see cref="AgentPopoverModel.HandleKey"/> that the hosting
-/// <see cref="Shell.TuiShell"/> is expected to act on. A null return means the key was
-/// consumed without a shell-level effect.
+/// A tab-specific request payload carried by <see cref="PopoverResult.Request"/>, interpreted
+/// by <see cref="AgentsMode.HandlePopoverRequest"/>.
 /// </summary>
-internal abstract record AgentPopoverResult
+internal abstract record AgentPopoverRequest
 {
-    private AgentPopoverResult()
+    private AgentPopoverRequest()
     {
     }
-
-    /// <summary>
-    /// The popover should be dismissed.
-    /// </summary>
-    public sealed record Closed : AgentPopoverResult;
 
     /// <summary>
     /// The delete confirmation should open for the agent named <paramref name="Name"/>,
     /// the same flow the Agents table's d key starts.
     /// </summary>
-    public sealed record DeleteRequested(string Name) : AgentPopoverResult;
+    public sealed record DeleteRequested(string Name) : AgentPopoverRequest;
 
     /// <summary>
     /// The popover's own agent's session id should be copied, the same flow the Agents
     /// table's y key starts, regardless of which row the table currently has selected.
     /// </summary>
-    public sealed record CopyRequested(string Name, string? SessionId) : AgentPopoverResult;
+    public sealed record CopyRequested(string Name, string? SessionId) : AgentPopoverRequest;
 
     /// <summary>
     /// A drilled-into item's id should be copied: a mail thread id, a ticket id, or a
     /// memory id.
     /// </summary>
-    public sealed record CopyItemRequested(string Id) : AgentPopoverResult;
+    public sealed record CopyItemRequested(string Id) : AgentPopoverRequest;
 }
 
 /// <summary>
@@ -61,7 +56,7 @@ internal abstract record AgentPopoverResult
 /// Agents table also exposes. Reloads on <see cref="Load"/> and recomputes presence and ages
 /// on every <see cref="Tick"/>, both driven by the hosting shell.
 /// </summary>
-internal sealed class AgentPopoverModel
+internal sealed class AgentPopoverModel : IPopover
 {
     private const int SectionLimit = 10;
     private const int PanelChromeWidth = 4;
@@ -158,7 +153,8 @@ internal sealed class AgentPopoverModel
     /// participation rows, blocking the caller. Keeps the cursor clamped to the reloaded
     /// row count.
     /// </summary>
-    public void Load() => LoadAsync(CancellationToken.None).GetAwaiter().GetResult();
+    public void Load(CancellationToken cancellationToken = default) =>
+        LoadAsync(cancellationToken).GetAwaiter().GetResult();
 
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
@@ -233,7 +229,7 @@ internal sealed class AgentPopoverModel
     /// report the same delete and copy gestures the Agents table exposes, and Escape closes
     /// the popover.
     /// </summary>
-    public AgentPopoverResult? HandleKey(ConsoleKeyInfo info)
+    public PopoverResult? HandleKey(ConsoleKeyInfo info)
     {
         if (_detailMode is not null)
         {
@@ -263,13 +259,14 @@ internal sealed class AgentPopoverModel
                 return null;
 
             case ConsoleKey.D when info.Modifiers == ConsoleModifiers.None:
-                return new AgentPopoverResult.DeleteRequested(_agentName);
+                return new PopoverResult.Request(new AgentPopoverRequest.DeleteRequested(_agentName));
 
             case ConsoleKey.Y when info.Modifiers == ConsoleModifiers.None:
-                return new AgentPopoverResult.CopyRequested(Agent?.Name ?? _agentName, Agent?.SessionId);
+                return new PopoverResult.Request(
+                    new AgentPopoverRequest.CopyRequested(Agent?.Name ?? _agentName, Agent?.SessionId));
 
             case ConsoleKey.Escape:
-                return new AgentPopoverResult.Closed();
+                return new PopoverResult.Closed();
 
             default:
                 return null;
@@ -280,7 +277,7 @@ internal sealed class AgentPopoverModel
     /// Routes one raw key to the open nested item detail: j/k and the arrows scroll, y
     /// reports copying its id, and Escape closes it back to wherever it was opened from.
     /// </summary>
-    private AgentPopoverResult? HandleDetailKey(ConsoleKeyInfo info)
+    private PopoverResult? HandleDetailKey(ConsoleKeyInfo info)
     {
         switch (info.Key)
         {
@@ -295,7 +292,7 @@ internal sealed class AgentPopoverModel
                 return null;
 
             case ConsoleKey.Y when info.Modifiers == ConsoleModifiers.None:
-                return new AgentPopoverResult.CopyItemRequested(_detailMode!.CopyId);
+                return new PopoverResult.Request(new AgentPopoverRequest.CopyItemRequested(_detailMode!.CopyId));
 
             case ConsoleKey.Escape:
                 _detailMode = null;
