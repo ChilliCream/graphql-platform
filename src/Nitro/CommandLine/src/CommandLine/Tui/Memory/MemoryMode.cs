@@ -86,7 +86,24 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
             return null;
         }
 
-        return new MemoryEntryPopoverModel(item.Id, item.Kind, _memoryStore, _timeProvider);
+        return new MemoryEntryPopoverModel(item.Id, item.Kind, _memoryStore, _timeProvider, MoveSelection);
+    }
+
+    /// <summary>
+    /// Moves the table selection <paramref name="delta"/> rows away from the current one and
+    /// returns the row landed on, or null at the first or last row.
+    /// </summary>
+    private MemoryRow? MoveSelection(int delta)
+    {
+        var next = _state.SelectedRow + delta;
+
+        if (next < 0 || next >= _state.Rows.Count)
+        {
+            return null;
+        }
+
+        _state.SelectedRow = next;
+        return _state.Rows[next];
     }
 
     /// <inheritdoc />

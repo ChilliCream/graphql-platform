@@ -41,32 +41,40 @@ internal sealed class MemoryEntryPopoverModel : IPopover
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> DefaultHints =
     [
-        new KeyHint("j/k", "scroll"),
+        new KeyHint("up/down", "prev/next"),
+        new KeyHint("pgup/pgdn", "scroll"),
         new KeyHint("y", "copy id"),
         new KeyHint("esc", "close")
     ];
 
-    private readonly string _id;
-    private readonly MemoryCollectionFilter _kind;
     private readonly IMemoryStore _memoryStore;
     private readonly TimeProvider _timeProvider;
+    private readonly Func<int, MemoryRow?> _moveSelection;
     private readonly Viewport _bodyViewport = new(0, 0);
 
+    private string _id;
+    private MemoryCollectionFilter _kind;
     private MemoryRecord? _curated;
     private MemoryJournalEntry? _journal;
     private string _lastAgeSignature = string.Empty;
 
     public MemoryEntryPopoverModel(
-        string id, MemoryCollectionFilter kind, IMemoryStore memoryStore, TimeProvider timeProvider)
+        string id,
+        MemoryCollectionFilter kind,
+        IMemoryStore memoryStore,
+        TimeProvider timeProvider,
+        Func<int, MemoryRow?> moveSelection)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(memoryStore);
         ArgumentNullException.ThrowIfNull(timeProvider);
+        ArgumentNullException.ThrowIfNull(moveSelection);
 
         _id = id;
         _kind = kind;
         _memoryStore = memoryStore;
         _timeProvider = timeProvider;
+        _moveSelection = moveSelection;
     }
 
     /// <inheritdoc />
@@ -128,21 +136,30 @@ internal sealed class MemoryEntryPopoverModel : IPopover
     }
 
     /// <summary>
-    /// Handles one raw key: j/k and the arrows scroll, g/G jump to the first or last line, y
-    /// reports copying the entry id, and Escape closes the popover.
+    /// Handles one raw key: Up/Down and j/k move to the previous or next table row and reload
+    /// onto it, PageUp/PageDown and Ctrl+U/Ctrl+D scroll the body, g/G jump to the first or last
+    /// line, y reports copying the entry id, and Escape closes the popover.
     /// </summary>
     public PopoverResult? HandleKey(ConsoleKeyInfo info)
     {
         switch (info.Key)
         {
-            case ConsoleKey.J:
             case ConsoleKey.DownArrow:
-                _bodyViewport.ScrollBy(1);
+            case ConsoleKey.J:
+                return MoveSelection(1);
+
+            case ConsoleKey.UpArrow:
+            case ConsoleKey.K:
+                return MoveSelection(-1);
+
+            case ConsoleKey.PageDown:
+            case ConsoleKey.D when info.Modifiers == ConsoleModifiers.Control:
+                ScrollByPage(1);
                 return null;
 
-            case ConsoleKey.K:
-            case ConsoleKey.UpArrow:
-                _bodyViewport.ScrollBy(-1);
+            case ConsoleKey.PageUp:
+            case ConsoleKey.U when info.Modifiers == ConsoleModifiers.Control:
+                ScrollByPage(-1);
                 return null;
 
             case ConsoleKey.G when info.Modifiers == ConsoleModifiers.None:
@@ -163,6 +180,28 @@ internal sealed class MemoryEntryPopoverModel : IPopover
                 return null;
         }
     }
+
+    /// <summary>
+    /// Moves to the row <paramref name="delta"/> steps away from the current one in the owning
+    /// table, reloads onto it, and resets the body scroll to the top. Does nothing at the first
+    /// or last row.
+    /// </summary>
+    private PopoverResult? MoveSelection(int delta)
+    {
+        if (_moveSelection(delta) is not { } next)
+        {
+            return null;
+        }
+
+        _id = next.Id;
+        _kind = next.Kind;
+        Load();
+        _bodyViewport.ScrollBy(int.MinValue / 2);
+        return null;
+    }
+
+    private void ScrollByPage(int direction) =>
+        _bodyViewport.ScrollBy(direction * Math.Max(1, _bodyViewport.WindowHeight / 2));
 
     /// <summary>
     /// Renders the centered detail overlay at about 80% of the given area.

@@ -258,6 +258,68 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
+    public async Task HandleKey_Should_MoveTheModeSelectionToTheNextRow_When_DownArrowIsPressedOnThePopover()
+    {
+        // arrange
+        // rows sort by time descending, so "Second." lands at row 0 and "First." at row 1
+        var first = await SaveAsync("First.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+        var console = new TestConsole().Width(100);
+        console.Write(popover.Render(100, 30));
+
+        // assert
+        Assert.Equal(1, mode.State.SelectedRow);
+        Assert.Contains(first.Id, console.Output);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_LeaveTheModeSelectionUnchanged_When_UpArrowIsPressedOnThePopoverAtTheFirstRow()
+    {
+        // arrange
+        await SaveAsync("First.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.UpArrow));
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_LeaveTheModeSelectionOnTheRowReached_When_EscapeIsPressedOnThePopoverAfterMovingDown()
+    {
+        // arrange
+        await SaveAsync("First.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.IsType<PopoverResult.Closed>(result);
+        Assert.Equal(1, mode.State.SelectedRow);
+    }
+
+    [Fact]
     public void HandlePopoverRequest_Should_ReturnACopyToast_When_TheEntryPopoverRequestsACopy()
     {
         // arrange

@@ -268,6 +268,69 @@ public sealed class MailModeTests
     }
 
     [Fact]
+    public void HandleKey_Should_MoveTheModeSelectionToTheNextThread_When_DownArrowIsPressedOnThePopover()
+    {
+        // arrange
+        // threads sort by last activity descending, so t-2 lands at row 0 and t-1 at row 1
+        var store = new FakeMailStore();
+        AddThread(store, "t-1", "bob", "alice", s_now);
+        AddThread(store, "t-2", "carol", "alice", s_now.AddMinutes(1));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+        var console = new TestConsole().Width(100);
+        console.Write(popover.Render(100, 30));
+
+        // assert
+        Assert.Equal(1, mode.State.SelectedRow);
+        Assert.Contains("Participants: alice, bob", console.Output);
+    }
+
+    [Fact]
+    public void HandleKey_Should_LeaveTheModeSelectionUnchanged_When_UpArrowIsPressedOnThePopoverAtTheFirstThread()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddThread(store, "t-1", "bob", "alice", s_now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.UpArrow));
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void HandleKey_Should_LeaveTheModeSelectionOnTheThreadReached_When_EscapeIsPressedOnThePopoverAfterMovingDown()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddThread(store, "t-1", "bob", "alice", s_now);
+        AddThread(store, "t-2", "carol", "alice", s_now.AddMinutes(1));
+        var mode = CreateMode(store);
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.IsType<PopoverResult.Closed>(result);
+        Assert.Equal(1, mode.State.SelectedRow);
+    }
+
+    [Fact]
     public void HandlePopoverRequest_Should_ReturnACopyToast_When_TheThreadPopoverRequestsACopy()
     {
         // arrange
