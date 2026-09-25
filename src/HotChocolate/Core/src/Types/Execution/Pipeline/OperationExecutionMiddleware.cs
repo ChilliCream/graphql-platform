@@ -98,6 +98,11 @@ internal sealed class OperationExecutionMiddleware
 
             await _next(context).ConfigureAwait(false);
         }
+        else if (context.Request is VariableBatchRequest variableBatchRequest
+            && variableBatchRequest.VariableValues.Document.RootElement.GetArrayLength() == 0)
+        {
+            context.Result = ErrorHelper.EmptyVariableBatch();
+        }
         else
         {
             context.Result = ErrorHelper.StateInvalidForOperationExecution();

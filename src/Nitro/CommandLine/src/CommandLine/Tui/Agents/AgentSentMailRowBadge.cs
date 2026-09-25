@@ -4,22 +4,17 @@ using ChilliCream.Nitro.CommandLine.Tui.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders one sent-message row for the agent detail view's sent mail
-/// section as a single Spectre markup line: age, subject, and recipients.
-/// Read-only: unlike the mail board's own row rendering (<see cref="MailTable"/>)
-/// there is no selection prefix or unread marker, since this section has no
-/// drill-in.
+/// Renders one sent-message row for the agent detail view's sent mail section as a single Spectre
+/// markup line: age, subject, and recipients. Carries no selection prefix or unread marker.
 /// </summary>
 internal static class AgentSentMailRowBadge
 {
-    private const string Ellipsis = "…";
     private const string NoRecipients = "-";
     private const string Arrow = "-> ";
+    private const string Ellipsis = "…";
 
     /// <summary>
-    /// The largest share of the available width the recipients list may
-    /// claim, so a long recipient list cannot crowd the subject out
-    /// entirely.
+    /// The maximum character budget for the recipients column.
     /// </summary>
     private const int MaxRecipientsBudget = 24;
 
@@ -40,37 +35,25 @@ internal static class AgentSentMailRowBadge
         var recipients = string.Join(", ", message.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
         var recipientsText = recipients.Length == 0 ? NoRecipients : recipients;
 
-        // Plain-text length of everything but the subject and recipients, so
-        // the remaining width can be split between them.
-        var fixedPlainLength = age.Length + 1 + Arrow.Length;
-        var remaining = Math.Max(0, maxWidth - fixedPlainLength);
-        var recipientsBudget = Math.Min(MaxRecipientsBudget, remaining / 2);
-        var truncatedRecipients = Truncate(recipientsText, recipientsBudget);
+        // Terminal-cell width of everything but the subject and recipients.
+        var fixedPlainWidth = DisplayWidth.Measure(age) + 2 + DisplayWidth.Measure(Arrow);
+        var remaining = Math.Max(0, maxWidth - fixedPlainWidth);
+        var recipientsBudget = Math.Min(MaxRecipientsBudget, (remaining + 1) / 2);
+        var truncatedRecipients = DisplayWidth.Truncate(recipientsText, recipientsBudget);
 
-        var subjectBudget = Math.Max(0, remaining - truncatedRecipients.Length - 1);
-        var truncatedSubject = Truncate(message.Subject, subjectBudget);
+        var subjectBudget = Math.Max(0, remaining - DisplayWidth.Measure(truncatedRecipients));
+        var truncatedSubject = DisplayWidth.Truncate(message.Subject, subjectBudget);
 
-        return
-            $"{Markup.Escape(age)} {Markup.Escape(truncatedSubject)} {Arrow}{Markup.Escape(truncatedRecipients)}";
+        return fixedPlainWidth > maxWidth
+            ? RenderNarrow(age, maxWidth)
+            : $"{Markup.Escape(age)} {Markup.Escape(truncatedSubject)} {Arrow}{Markup.Escape(truncatedRecipients)}";
     }
 
-    private static string Truncate(string value, int width)
+    private static string RenderNarrow(string age, int maxWidth)
     {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
+        var remaining = maxWidth - DisplayWidth.Measure(Ellipsis);
+        var prefix = DisplayWidth.Slice($"{age}  {Arrow}", remaining);
 
-        if (value.Length <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
+        return Markup.Escape(prefix) + Ellipsis;
     }
 }

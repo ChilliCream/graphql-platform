@@ -1,9 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
-/// One recipient of a message. Null <see cref="ReadAt"/> or
-/// <see cref="ArchivedAt"/> mean the recipient has not yet read or archived
-/// the message.
+/// A message recipient and its current read and archive state.
+/// Null timestamps mean unread or unarchived, respectively.
 /// </summary>
 internal sealed record MailRecipient
 {

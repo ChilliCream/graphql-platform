@@ -1,11 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Curated memories and the journal, stored in the workspace database
-/// beside tasks and mail. There is one store per workspace and no scope:
-/// a memory belongs to the workspace it was written in, the same way a task
-/// does. Every method throws <see cref="ExitException"/> when no agent
-/// workspace resolves from the current directory.
+/// Stores curated memories and journal entries in the current agent workspace.
+/// Storage operations throw <see cref="ExitException"/> when no workspace resolves;
+/// <see cref="FindWorkspaceDirectory"/> returns null instead.
 /// </summary>
 internal interface IMemoryStore
 {
@@ -23,10 +21,10 @@ internal interface IMemoryStore
     Task<MemoryRecord> SaveAsync(MemoryRecordCreation creation, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Updates one or more fields of an existing curated memory. Adding a
-    /// tag that is already present, or removing one that is not, is a no-op
-    /// for that tag. Throws <see cref="ExitException"/> when the memory does
-    /// not exist, or when a given type or tag is invalid.
+    /// Updates the supplied fields and refreshes the memory's modification time,
+    /// removing tags before adding tags. Throws <see cref="ExitException"/> for a
+    /// missing memory or invalid type or tag; duplicate additions and absent removals
+    /// do not change the tag set.
     /// </summary>
     Task<MemoryRecord> UpdateAsync(string id, MemoryRecordUpdate update, CancellationToken cancellationToken);
 
@@ -110,15 +108,9 @@ internal interface IMemoryStore
     Task<IReadOnlyList<MemoryJournalEntry>> GetUnpromotedJournalEntriesAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Mechanically copies the journal entry with the given id into a new
-    /// curated memory. The curated id is derived deterministically from the
-    /// journal id and <c>promoted_from</c> is unique, so promoting the same
-    /// entry again, including concurrently, is idempotent: the existing
-    /// curated memory is returned with
-    /// <see cref="MemoryPromotionOutcome.AlreadyPromoted"/> true instead of
-    /// failing or duplicating. Throws <see cref="ExitException"/> when the
-    /// journal entry does not exist, or when the given type or a tag is
-    /// invalid.
+    /// Copies a journal entry into a curated memory, or returns its existing promotion
+    /// with <see cref="MemoryPromotionOutcome.AlreadyPromoted"/> set.
+    /// Throws <see cref="ExitException"/> for a missing journal entry or invalid type or tag.
     /// </summary>
     Task<MemoryPromotionOutcome> PromoteAsync(
         string journalId,

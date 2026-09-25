@@ -4,61 +4,22 @@ using ChilliCream.Nitro.CommandLine.Tui.Editing;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Mark-read, mark-unread, and archive actions for the selected message:
-/// builds the archive confirmation dialog and applies each action to the
-/// mail store, the same store members the CLI's read, ack, and archive
-/// commands call. Also owns the shared "refuse-with-reason" text
-/// <see cref="MailMode"/> shows for every mutating gesture, u, a, c, and
-/// r, while <see cref="MailMailbox.Workspace"/> is the active mailbox,
-/// rather than each gesture reaching this class's own attempt-and-catch
-/// store calls (below) or the store's <c>ResolveReplyAsync</c> check only
-/// to fail.
+/// Applies read-state and archive changes and builds archive confirmations.
+/// Store rejections represented by <see cref="ExitException"/> become failed outcomes.
 /// </summary>
 internal static class MailLifecycleActions
 {
     /// <summary>
-    /// The toast shown when <see cref="IsReadOnly"/> refuses a mutating
-    /// gesture, u, a, c, or r, before it ever reaches the store.
-    /// <see cref="MailMailbox.Workspace"/> shows every agent's mail, so it
-    /// is read-only by default rather than by warning: this narrows the
-    /// mode's capability outright, so muscle memory from the personal
-    /// mailboxes cannot do damage, instead of letting a mutation fail
-    /// against the store's <c>ValidateRecipientOwnershipAsync</c> or
-    /// <c>ResolveReplyAsync</c> authorization checks and surface as a raw
-    /// <see cref="ExitException"/> message the user did not ask for. This
-    /// applies uniformly, including to reply on a thread the actor
-    /// participates in and would otherwise be allowed to answer: Workspace
-    /// stays a single predictable read-only mode rather than one whose
-    /// gestures work or fail per message. If a mutating action is ever
-    /// allowed here later, its confirmation must name the message's
-    /// owner (for example "Archive message in 'planner's mailbox?"), not
-    /// the actor, since most messages Workspace shows are not the actor's.
+    /// The refusal toast for writes attempted in the Workspace mailbox.
     /// </summary>
     public const string WorkspaceReadOnlyMessage =
         "Workspace is read-only. Press Shift+I for Inbox to make changes.";
 
     /// <summary>
     /// Whether <paramref name="mailbox"/> refuses every mutating gesture
-    /// under <paramref name="actor"/>: always when it is null, since the
-    /// board then has no identity to record a write under and refuses with
-    /// <see cref="Shell.BoardIdentity.NoIdentityMessage"/>, and otherwise
-    /// showing <see cref="WorkspaceReadOnlyMessage"/> instead of reaching
-    /// the store or opening a form or confirmation. See
-    /// <see cref="WorkspaceReadOnlyMessage"/> for why.
+    /// under <paramref name="actor"/>: always when it is null, and
+    /// otherwise when <paramref name="mailbox"/> is <see cref="MailMailbox.Workspace"/>.
     /// </summary>
-    /// <remarks>
-    /// Because this is currently the only gate on a Workspace-wide action,
-    /// no bulk action exists yet that needs to state its target explicitly.
-    /// Workspace also carries a per-agent filter (<see cref="MailState.AgentFilter"/>,
-    /// applied through <see cref="MailMailbox.Workspace"/> only), so once a
-    /// bulk action is added here it must name the active filter and the
-    /// affected count in its confirmation text (for example "Archive 4
-    /// messages for 'bob'?" vs. "Archive 12 messages?"), since a filtered
-    /// list makes "all" ambiguous between "everything shown" and "every
-    /// message in Workspace". Mailpit special-cased this with a distinct
-    /// "Delete all messages matching search" action rather than overloading
-    /// its plain "Delete all".
-    /// </remarks>
     public static bool IsReadOnly(MailMailbox mailbox, string? actor)
         => actor is null || mailbox == MailMailbox.Workspace;
 
@@ -109,8 +70,8 @@ internal static class MailLifecycleActions
     }
 
     /// <summary>
-    /// Marks <paramref name="message"/> unread when <paramref name="actor"/>
-    /// has already read it, or read otherwise.
+    /// Marks an unread recipient copy read, or marks it unread otherwise.
+    /// The store rejects an actor who is not a recipient.
     /// </summary>
     public static Task<MailActionOutcome> ToggleReadAsync(
         IMailStore store,

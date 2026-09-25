@@ -7,15 +7,12 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 internal enum WakeReservationFailure
 {
     /// <summary>
-    /// The target's <c>session_ping_gates</c> row is held by another
-    /// unexpired attempt: either genuinely busy, or still within the
-    /// cooldown a prior success on this exact generation extended it to.
+    /// The session gate has an unexpired reservation or cooldown.
     /// </summary>
     GateBusy,
 
     /// <summary>
-    /// The gate was acquired, but every one of the four shared
-    /// <c>ping_leases</c> slots was already held by an unexpired attempt.
+    /// All shared transport slots are occupied by unexpired reservations.
     /// </summary>
     CapacityDropped
 }

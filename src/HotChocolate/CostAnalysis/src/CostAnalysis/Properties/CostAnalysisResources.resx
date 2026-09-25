@@ -27,4 +27,16 @@
   <data name="ErrorHelper_MaxTypeCostReached" xml:space="preserve">
     <value>The maximum allowed type cost was exceeded.</value>
   </data>
+  <data name="ErrorHelper_MaxResponseSizeReached" xml:space="preserve">
+    <value>The maximum allowed response size was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForCostAnalysis" xml:space="preserve">
+    <value>The query request contains no document or no document id.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues" xml:space="preserve">
+    <value>The cost analysis requires at least one coerced variable value set.</value>
+  </data>
+  <data name="ErrorHelper_ResponseSizeAnalysisNotEnabled" xml:space="preserve">
+    <value>The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.</value>
+  </data>
 </root>

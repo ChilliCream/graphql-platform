@@ -43,15 +43,11 @@ internal sealed class SearchMemoryCommand : Command
         var since = parseResult.GetValue(Opt<MemorySinceOption>.Instance);
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
 
-        // Collection band, curated first: `--tag`/`--type` can never match a
-        // journal entry, a journal entry has neither until it is promoted,
-        // so a tag/type filter excludes the journal band entirely.
+        // A tag or type filter excludes the journal band.
         var hasCuratedFilter = tags.Length > 0 || type is not null;
 
-        // Both bands are queried under --collection all: split an explicit
-        // limit across them (curated gets the ceiling half) instead of
-        // handing each band the full limit and truncating the concatenation
-        // afterward, which let curated results starve the journal band.
+        // With --collection all and no curated-only filter, split an explicit limit
+        // between both bands, giving curated entries the ceiling half.
         var splitBands = collection is MemoryCollections.All && !hasCuratedFilter;
         var curatedLimit = limit;
         var journalLimit = limit;
@@ -72,8 +68,6 @@ internal sealed class SearchMemoryCommand : Command
 
             if (splitBands && limit is not null)
             {
-                // Unused remainder from a short curated band flows to
-                // the journal band.
                 journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
                     curatedLimit!.Value, curatedRecords.Count, journalLimit!.Value);
             }
@@ -91,8 +85,6 @@ internal sealed class SearchMemoryCommand : Command
                 && journalEntries.Count < journalLimit
                 && curated.Count == curatedLimit)
             {
-                // Unused remainder from a short journal band flows back
-                // to the curated band.
                 var curatedShare = MemoryBandLimit.GrowCuratedWithJournalShortfall(
                     journalExplicitLimit, journalEntries.Count);
                 var curatedRecords = await store.SearchCuratedAsync(

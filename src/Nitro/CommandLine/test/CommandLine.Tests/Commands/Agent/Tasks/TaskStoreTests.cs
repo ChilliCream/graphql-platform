@@ -1,3 +1,4 @@
+using System.Data.Common;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
@@ -6,11 +7,8 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
 /// <summary>
-/// Exercises the backend-agnostic read surface of <see cref="TaskStore"/>
-/// directly against a real SQLite workspace, seeded with raw SQL since the
-/// write surface is not implemented yet. Covers the DapperAOT-sensitive
-/// paths: TEXT timestamp columns, IN-array expansion, and record
-/// materialization.
+/// Tests <see cref="TaskStore"/> queries, state transitions, dependencies,
+/// and audit events against a real SQLite workspace.
 /// </summary>
 public sealed class TaskStoreTests : IAsyncDisposable
 {
@@ -535,6 +533,61 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ReassignAsync_MovesActiveTasksAndRecordsCommentsAndEvents()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        var originalUpdatedAt = _timeProvider.GetUtcNow();
+        await InsertTaskAsync(
+            connection, "acme-2", status: TaskStates.Open, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-3", status: TaskStates.Closed, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-4", status: TaskStates.Archived, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-5", status: TaskStates.Open, priority: 2, assignee: "unrelated");
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+
+        // act
+        var reassigned = await _store.ReassignAsync(
+            "from", "to", "actor", "Reassigned by handoff.", cancellationToken);
+        var audit = await GetReassignmentAuditAsync(
+            connection,
+            ["acme-1", "acme-2", "acme-3", "acme-4", "acme-5"],
+            originalUpdatedAt,
+            cancellationToken);
+        var repeated = await _store.ReassignAsync(
+            "from", "to", "actor", "Reassigned by handoff.", cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1", "acme-2"], reassigned);
+        Assert.Equal(
+            [
+                "acme-1|to|True|Reassigned by handoff.|assignee_changed:actor,commented:actor",
+                "acme-2|to|True|Reassigned by handoff.|assignee_changed:actor,commented:actor",
+                "acme-3|from|False||",
+                "acme-4|from|False||",
+                "acme-5|unrelated|False||"
+            ],
+            audit);
+        Assert.Empty(repeated);
+    }
+
+    [Fact]
+    public async Task ReassignAsync_SourceAndTargetAreEqual_Throws()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReassignAsync("same", "same", "actor", "Comment.", cancellationToken));
+    }
+
+    [Fact]
     public async Task CloseTaskAsync_AllOrNothing_ThrowsWhenAnyIsAlreadyClosed()
     {
         // arrange
@@ -703,8 +756,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_AllChildrenClosedOrArchived_ClosesEpic()
     {
-        // arrange: one child closed, one child archived; both count as
-        // closed for eligibility purposes.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
@@ -728,8 +780,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_ArchivedEpic_IsNotReClosed()
     {
-        // arrange: an already-archived epic must not be picked up again,
-        // even though all of its children are closed.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2, type: TaskTypes.Epic);
@@ -747,12 +798,88 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task CloseTaskAsync_DoesNotArchive_WhenSelectedClosedTaskIsReopened()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var seedConnection = await SeedAsync(cancellationToken);
+        var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
+
+        for (var i = 1; i <= TaskStates.ClosedTaskCap; i++)
+        {
+            await InsertTaskAsync(
+                seedConnection,
+                $"acme-{i}",
+                status: TaskStates.Closed,
+                priority: 2,
+                closedAt: baseTime.AddMinutes(i));
+        }
+
+        await InsertTaskAsync(seedConnection, "acme-101", TaskStates.Open, 2);
+
+        var store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase())
+        {
+            AfterClosedTasksSelectedAsync = (_, connection, transaction, _) => ReopenTaskStateAsync(
+                connection, transaction, "acme-1")
+        };
+
+        // act
+        await store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(
+            TaskStates.Open,
+            (await _store.GetRequiredTaskAsync("acme-1", cancellationToken)).Status);
+        Assert.Empty(await QueryEventTypesAsync(seedConnection, "acme-1"));
+        Assert.Equal(
+            TaskStates.Closed,
+            (await _store.GetRequiredTaskAsync("acme-101", cancellationToken)).Status);
+        Assert.Equal(
+            TaskStates.ClosedTaskCap,
+            (await _store.QueryTasksAsync(
+                new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken)).Count);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_DoesNotClose_WhenOpenChildIsAddedAfterEligibilityRead()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var seedConnection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(seedConnection, "acme-1", TaskStates.Open, 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(seedConnection, "acme-1.1", TaskStates.Closed, 2);
+        await InsertDependencyAsync(seedConnection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+
+        var store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase())
+        {
+            AfterEligibleEpicsReadAsync = async (connection, transaction, _) =>
+            {
+                await InsertTaskAsync(
+                    connection, "acme-1.2", TaskStates.Open, 2, transaction: transaction);
+                await InsertDependencyAsync(
+                    connection, "acme-1.2", "acme-1", TaskDependencyTypes.ParentChild, transaction);
+            }
+        };
+
+        // act
+        var closed = await store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        Assert.Empty(closed);
+        Assert.Equal(
+            TaskStates.Open,
+            (await _store.GetRequiredTaskAsync("acme-1", cancellationToken)).Status);
+        Assert.Equal(
+            TaskStates.Open,
+            (await _store.GetRequiredTaskAsync("acme-1.2", cancellationToken)).Status);
+        Assert.Empty(await QueryEventTypesAsync(seedConnection, "acme-1"));
+    }
+
+    [Fact]
     public async Task CloseEligibleEpicsAsync_ClosingPastCap_ArchivesOverflow()
     {
-        // arrange: the cap's worth of closed tasks already exist, plus an
-        // epic whose only child is closed; closing the epic itself is the
-        // close that pushes the total past the cap, so the epic-close path
-        // must also run ArchiveExcessClosedTasksAsync.
+        // arrange
+        // Seed the closed-task cap plus a closed child, then close its open epic.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
@@ -801,8 +928,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseTaskAsync_ClosingBeyondCap_ArchivesOldestClosedTask()
     {
-        // arrange: 100 already-closed tasks with strictly increasing
-        // closed_at, plus one open task about to become the 101st close.
+        // arrange
+        // Seed closed tasks with increasing closed_at values before closing one more task.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
@@ -822,9 +949,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
         // act
         await _store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
 
-        // assert: the oldest closed task (acme-1) archived; everything else,
-        // including the newly closed task, stays closed; exactly the cap
-        // remains closed.
+        // assert
         var oldest = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
         Assert.Equal(TaskStates.Archived, oldest.Status);
         Assert.Equal(
@@ -1085,9 +1210,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Returns the event_type column for every audit-log row on a task,
-    /// ordered by id, via plain ADO.NET so the test does not need its own
-    /// Dapper.AOT-compatible call shape.
+    /// Returns the task's audit event types in event-id order, or an empty list
+    /// when it has no events.
     /// </summary>
     private static async Task<List<string>> QueryEventTypesAsync(SqliteConnection connection, string taskId)
     {
@@ -1106,6 +1230,49 @@ public sealed class TaskStoreTests : IAsyncDisposable
         return types;
     }
 
+    private async Task<List<string>> GetReassignmentAuditAsync(
+        SqliteConnection connection,
+        IReadOnlyList<string> ids,
+        DateTimeOffset originalUpdatedAt,
+        CancellationToken cancellationToken)
+    {
+        var audit = new List<string>(ids.Count);
+
+        foreach (var id in ids)
+        {
+            var task = await _store.GetTaskAsync(id, cancellationToken)
+                ?? throw new InvalidOperationException($"Task '{id}' was not found.");
+            var comments = await _store.GetCommentsAsync(id, cancellationToken);
+            var events = await QueryEventActorsAsync(connection, id, cancellationToken);
+            audit.Add(
+                $"{task.Id}|{task.Assignee}|{task.UpdatedAt > originalUpdatedAt}|"
+                + $"{string.Join(",", comments.Select(comment => comment.Text))}|"
+                + string.Join(",", events));
+        }
+
+        return audit;
+    }
+
+    private static async Task<List<string>> QueryEventActorsAsync(
+        SqliteConnection connection,
+        string taskId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT event_type, actor FROM events WHERE task_id = @taskId ORDER BY id";
+        command.Parameters.AddWithValue("@taskId", taskId);
+
+        var events = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            events.Add($"{reader.GetString(0)}:{reader.GetString(1)}");
+        }
+
+        return events;
+    }
+
     private async Task<SqliteConnection> SeedAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
@@ -1121,19 +1288,24 @@ public sealed class TaskStoreTests : IAsyncDisposable
         int priority,
         string title = "Task",
         string type = TaskTypes.Task,
-        DateTimeOffset? closedAt = null)
+        DateTimeOffset? closedAt = null,
+        string? assignee = null,
+        DbTransaction? transaction = null)
     {
         var now = _timeProvider.GetUtcNow();
 
         return ExecuteAsync(
             connection,
+            transaction,
             """
-            INSERT INTO tasks (id, title, status, priority, task_type, created_at, updated_at, closed_at)
-            VALUES (@id, @title, @status, @priority, @type, @now, @now, @closedAt)
+            INSERT INTO tasks (
+                id, title, status, priority, task_type, assignee, created_at, updated_at, closed_at)
+            VALUES (@id, @title, @status, @priority, @type, @assignee, @now, @now, @closedAt)
             """,
             ("@id", id), ("@title", title), ("@status", status),
             ("@priority", priority), ("@type", type), ("@now", now),
-            ("@closedAt", (object?)closedAt ?? DBNull.Value));
+            ("@closedAt", (object?)closedAt ?? DBNull.Value),
+            ("@assignee", (object?)assignee ?? DBNull.Value));
     }
 
     private Task InsertLabelAsync(SqliteConnection connection, string taskId, string label)
@@ -1146,12 +1318,14 @@ public sealed class TaskStoreTests : IAsyncDisposable
         SqliteConnection connection,
         string taskId,
         string dependsOnId,
-        string type)
+        string type,
+        DbTransaction? transaction = null)
     {
         var now = _timeProvider.GetUtcNow();
 
         return ExecuteAsync(
             connection,
+            transaction,
             """
             INSERT INTO dependencies (task_id, depends_on_id, dependency_type, created_at)
             VALUES (@taskId, @dependsOnId, @type, @now)
@@ -1172,18 +1346,40 @@ public sealed class TaskStoreTests : IAsyncDisposable
             ("@taskId", taskId), ("@text", text), ("@now", now));
     }
 
+    private static Task ReopenTaskStateAsync(
+        SqliteConnection connection,
+        DbTransaction? transaction,
+        string id)
+        => ExecuteAsync(
+            connection,
+            transaction,
+            """
+            UPDATE tasks
+            SET status = @status,
+                closed_at = NULL,
+                close_reason = ''
+            WHERE id = @id
+            """,
+            ("@id", id), ("@status", TaskStates.Open));
+
     /// <summary>
-    /// Runs a parameterized statement via plain ADO.NET, sidestepping
-    /// Dapper.AOT's interceptor so the test project does not need its own
-    /// AOT-compatible call shapes.
+    /// Executes the SQL statement with the supplied named parameter values.
     /// </summary>
+    private static Task ExecuteAsync(
+        SqliteConnection connection,
+        string sql,
+        params (string Name, object Value)[] parameters)
+        => ExecuteAsync(connection, null, sql, parameters);
+
     private static async Task ExecuteAsync(
         SqliteConnection connection,
+        DbTransaction? transaction,
         string sql,
         params (string Name, object Value)[] parameters)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
+        command.Transaction = (SqliteTransaction?)transaction;
 
         foreach (var (name, value) in parameters)
         {

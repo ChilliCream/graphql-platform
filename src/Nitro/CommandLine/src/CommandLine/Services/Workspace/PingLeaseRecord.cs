@@ -1,10 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// A row of <c>ping_leases</c>: one of the four fixed concurrency slots a
-/// ping child holds while running. Acquisition is an atomic
-/// insert-or-steal-expired claim; release deletes by (slot, attempt_id). See
-/// <see cref="IPingLeaseStore"/>.
+/// A ping attempt's lease on one of the four workspace concurrency slots.
 /// </summary>
 internal sealed record PingLeaseRecord
 {
@@ -25,8 +22,7 @@ internal sealed record PingLeaseRecord
     public required DateTimeOffset AcquiredAt { get; init; }
 
     /// <summary>
-    /// The ping child's hard timeout is strictly shorter than this, so an
-    /// expired lease can never be stolen while its child still runs.
+    /// The time at which the lease expires and its slot becomes available for another attempt.
     /// </summary>
     public required DateTimeOffset ExpiresAt { get; init; }
 }

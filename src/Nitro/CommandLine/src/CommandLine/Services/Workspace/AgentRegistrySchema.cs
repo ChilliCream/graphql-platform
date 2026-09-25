@@ -3,11 +3,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 internal static class AgentRegistrySchema
 {
     /// <summary>
-    /// The complete schema for a freshly created database. Statements are
-    /// idempotent so applying them to an existing database is
-    /// non-destructive; upgrading an existing v2 database's agents table
-    /// (created before role and implicit existed) is a separate, explicit
-    /// step in <see cref="AgentDatabase"/>.
+    /// Creates the agent registry table if it does not exist; existing tables are unchanged.
     /// </summary>
     public const string Create =
         """

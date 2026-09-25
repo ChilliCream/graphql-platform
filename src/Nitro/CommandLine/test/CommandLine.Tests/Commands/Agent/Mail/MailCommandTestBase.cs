@@ -1,7 +1,10 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Data.Sqlite;
+using TestFileSystem = ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
@@ -108,12 +111,9 @@ public abstract class MailCommandTestBase : CommandTestBase
             TestContext.Current.CancellationToken);
 
     /// <summary>
-    /// Seeds an alive, explicitly-claimed <c>codex-thread</c> session for
-    /// <paramref name="agentName"/> directly against the workspace database,
-    /// on the host id <see cref="CommandTestBase.SetupInstanceId"/> was pointed at (a test
-    /// calling this must call that first, so the notifier's own host
-    /// resolution matches this row). Used to exercise auto-ping through the
-    /// CLI without a live harness process.
+    /// Seeds a fresh <c>codex-thread</c> session explicitly bound to <paramref name="agentName"/>
+    /// on <paramref name="host"/>. Configure <see cref="CommandTestBase.SetupInstanceId"/>
+    /// with the same host when the command must discover this session.
     /// </summary>
     private protected Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
         => SeedAliveSessionAsync(
@@ -122,13 +122,14 @@ public abstract class MailCommandTestBase : CommandTestBase
 
     /// <summary>
     /// Configures successful foreground wake delivery for each named agent.
-    /// Use this in command tests whose primary concern requires a successful
-    /// send but is unrelated to the wake transport itself.
     /// </summary>
-    private protected async Task SetupSuccessfulWakeAsync(string host, params string[] agentNames)
+    private protected async Task<FakeCodexQueueClient> SetupSuccessfulWakeAsync(
+        string host,
+        params string[] agentNames)
     {
         SetupInstanceId(host);
-        SetupCodexQueueClient(new FakeCodexQueueClient());
+        var queueClient = new FakeCodexQueueClient();
+        SetupCodexQueueClient(queueClient);
 
         foreach (var agentName in agentNames)
         {
@@ -137,16 +138,50 @@ public abstract class MailCommandTestBase : CommandTestBase
                 endpointKind: AgentSessionEndpointKind.CodexThread,
                 endpointAddr: $"thread-{agentName}");
         }
+
+        return queueClient;
+    }
+
+    private protected MailNudge CreateMailNudge(string host, FakeCodexQueueClient queueClient)
+    {
+        var fileSystem = new TestFileSystem(WorkingDirectory);
+        var database = new AgentDatabase();
+
+        return new MailNudge(
+            CreateSessions(host),
+            CreateStore(),
+            new SessionDeliveryLedger(fileSystem, database),
+            new FakeClaudePeerClient(),
+            queueClient,
+            FakeTime);
+    }
+
+    private protected static (string ThreadId, string Id, string Body) ReadDigestCall(
+        (string ThreadId, string Message) call)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+        var item = document.RootElement.GetProperty("items")[0];
+
+        return (
+            call.ThreadId,
+            item.GetProperty("id").GetString()!,
+            item.GetProperty("body").GetString()!);
+    }
+
+    private protected static bool ReadDigestReadFlag((string ThreadId, string Message) call)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+
+        return document.RootElement.GetProperty("items")[0].GetProperty("read").GetBoolean();
     }
 
     /// <summary>
-    /// Seeds an alive <c>agent_sessions</c> row directly against the
-    /// workspace database, on the host id <see cref="CommandTestBase.SetupInstanceId"/> was
-    /// pointed at (a test calling this must call that first, so the
-    /// notifier's own host resolution matches this row). A null
-    /// <paramref name="agentName"/> seeds an unbound row. Used to exercise
-    /// role-targeted mail discovery and auto-ping through the CLI without a
-    /// live harness process.
+    /// Seeds a fresh session on <paramref name="host"/>, explicitly bound to
+    /// <paramref name="agentName"/> or unbound when it is <see langword="null"/>.
+    /// Configure <see cref="CommandTestBase.SetupInstanceId"/> with the same host
+    /// when the command must discover this session.
     /// </summary>
     private protected async Task SeedAliveSessionAsync(
         string sessionId,
@@ -215,9 +250,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Runs a non-query statement against the workspace database, for
-    /// mutating a seeded row mid-test (e.g. simulating a role change or a
-    /// session ending between discovery and send).
+    /// Runs a non-query SQL statement against the workspace database.
     /// </summary>
     protected async Task ExecuteAsync(string sql)
     {

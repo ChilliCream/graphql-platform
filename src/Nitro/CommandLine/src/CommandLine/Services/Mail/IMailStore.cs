@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
-/// Backend-agnostic mail store used by every mail command. No member exposes
-/// ADO.NET or SQLite types, so the backend can change without touching a
-/// command and the interface can be mocked for the TUI.
+/// Stores, queries, and updates workspace mail and per-recipient read and archive state.
 /// </summary>
 internal interface IMailStore
 {
@@ -22,39 +20,22 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Sends a message: normalizes the sender and recipients, auto-registers
-    /// the sender (upsert, bumps last_seen_at), dedupes recipients (to wins
-    /// over cc, first occurrence order preserved), and writes the message
-    /// and its recipient rows in one transaction. Starts a new thread:
-    /// <c>ThreadId</c> equals the new message's id. A recipient that has
-    /// never registered gets an implicit agent row rather than failing the
-    /// send; the returned message's <see cref="MailMessage.Unregistered"/>
-    /// lists every recipient, implicit before or because of this call, that
-    /// has still never registered. When <see cref="MailMessageCreation.WakePolicy"/>
-    /// is <see cref="MailWakePolicy.Enqueue"/>, the same transaction also
-    /// increments <c>mail_wake_outbox.requested_generation</c> once per
-    /// distinct recipient, and the returned message's
-    /// <see cref="MailMessage.WakeReceipts"/> carries each recipient's
-    /// resulting generation; <see cref="MailWakePolicy.Skip"/> leaves every
-    /// recipient's wake intent untouched and returns no receipts. Throws
-    /// <see cref="ExitException"/> when the subject is empty, a recipient
-    /// name is invalid, or no recipient remains after dedupe.
+    /// Starts a thread with normalized addresses and recipients deduplicated in first
+    /// occurrence order (To wins over Cc), registering the sender and creating implicit identities for unknown recipients.
+    /// Stores the message and recipients atomically with wake generations when
+    /// <see cref="MailMessageCreation.WakePolicy"/> requests them; invalid addresses,
+    /// a trimmed subject outside 1 to 500 characters, or no recipients cause an
+    /// <see cref="ExitException"/>.
     /// </summary>
     Task<MailMessage> SendMessageAsync(
         MailMessageCreation creation,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Replies to a message: the acting agent must be the sender or a
-    /// recipient of the message being replied to. The reply's recipients
-    /// are the original message's sender plus its to and cc recipients,
-    /// minus the acting agent; its subject is inherited from the thread
-    /// root and its thread_id copied from the original message. Follows the
-    /// same wake-enqueue and receipt rules <see cref="SendMessageAsync"/>
-    /// documents for <paramref name="wakePolicy"/>. Throws
-    /// <see cref="ExitException"/> when the original message does not
-    /// exist, the actor is not authorized to reply, or the computed
-    /// recipient set is empty.
+    /// Replies in the original thread with its root subject, addressing the original
+    /// sender and recipients as To recipients except the replying actor, and applying
+    /// <paramref name="wakePolicy"/>. Throws <see cref="ExitException"/> if the message
+    /// is missing, the actor is not a participant, or no recipients remain.
     /// </summary>
     Task<MailMessage> ReplyMessageAsync(
         string inReplyToId,
@@ -64,10 +45,7 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Back-compat overload for a caller not yet migrated to select a wake
-    /// policy explicitly: forwards to the five-argument overload with
-    /// <see cref="MailWakePolicy.Skip"/>, so no recipient's wake intent
-    /// advances.
+    /// Replies without advancing any recipient's wake generation.
     /// </summary>
     Task<MailMessage> ReplyMessageAsync(
         string inReplyToId,
@@ -77,8 +55,17 @@ internal interface IMailStore
         => ReplyMessageAsync(inReplyToId, sender, body, MailWakePolicy.Skip, cancellationToken);
 
     /// <summary>
-    /// Returns the message with the given ID, with its recipients embedded,
-    /// or null.
+    /// Transfers mail participation from one agent to another. Recipient
+    /// conflicts preserve the target agent's recipient state.
+    /// </summary>
+    Task<MailTransferResult> TransferParticipationAsync(
+        string from,
+        string to,
+        CancellationToken cancellationToken)
+        => Task.FromException<MailTransferResult>(new NotSupportedException());
+
+    /// <summary>
+    /// Returns the message and its recipients, or null when the id does not exist.
     /// </summary>
     Task<MailMessage?> GetMessageAsync(
         string id,
@@ -110,21 +97,17 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns every message in the workspace matching the given filter,
-    /// with recipients embedded, ordered by created_at then id, newest
-    /// first. Unlike every other read on this interface, this is not
-    /// scoped to an actor.
+    /// Returns matching workspace messages with their recipients, ordered by creation
+    /// time and id, newest first. No acting-actor scope is applied.
     /// </summary>
     Task<IReadOnlyList<MailMessage>> QueryWorkspaceMessagesAsync(
         MailWorkspaceFilter filter,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Marks every given message read for the acting agent. All ids are
-    /// validated as addressed to the actor before any write happens: either
-    /// every message is marked or none is. Throws
-    /// <see cref="ExitException"/> when any message is not addressed to the
-    /// actor.
+    /// Marks every supplied message read for the actor atomically.
+    /// Throws <see cref="ExitException"/> without changing any message if an id is missing
+    /// or is not addressed to the actor.
     /// </summary>
     Task MarkReadAsync(
         IReadOnlyList<string> messageIds,
@@ -132,11 +115,9 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Marks every given message unread for the acting agent. All ids are
-    /// validated as addressed to the actor before any write happens: either
-    /// every message is marked or none is. Throws
-    /// <see cref="ExitException"/> when any message is not addressed to the
-    /// actor.
+    /// Marks every supplied message unread for the actor atomically.
+    /// Throws <see cref="ExitException"/> without changing any message if an id is missing
+    /// or is not addressed to the actor.
     /// </summary>
     Task MarkUnreadAsync(
         IReadOnlyList<string> messageIds,
@@ -144,11 +125,9 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Archives every given message for the acting agent. All ids are
-    /// validated as addressed to the actor before any write happens: either
-    /// every message is archived or none is. Throws
-    /// <see cref="ExitException"/> when any message is not addressed to the
-    /// actor.
+    /// Marks every supplied message archived for the actor atomically.
+    /// Throws <see cref="ExitException"/> without changing any message if an id is missing
+    /// or is not addressed to the actor.
     /// </summary>
     Task ArchiveAsync(
         IReadOnlyList<string> messageIds,
@@ -156,29 +135,19 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns every thread the given agent sent or received a message in,
-    /// as sent or received (archived or not) counts as participation,
-    /// ordered by the thread's last message, newest first. This is the
-    /// "All" mailbox scope; <see cref="MailThreadSummary.UnreadCount"/> is
-    /// the actor's unread count.
+    /// Returns threads in which the actor sent or received mail, including archived mail,
+    /// ordered by last-message time and thread id, newest first.
+    /// Unread and archived counts are scoped to the actor.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QueryThreadsAsync(
         string actor,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns every thread with at least one message addressed to the
-    /// given actor as a to or cc recipient (the "Inbox" mailbox scope),
-    /// ordered by the thread's last message, newest first. By default
-    /// (<paramref name="includeArchived"/> false), excludes threads whose
-    /// only messages to the actor are archived, mirroring
-    /// <see cref="MailInboxFilter.IncludeArchived"/>'s message-level
-    /// semantics in <see cref="QueryInboxAsync"/>; passing
-    /// <paramref name="includeArchived"/> true includes those threads too,
-    /// the same "include, don't require" sense <see cref="MailInboxFilter.IncludeArchived"/>
-    /// has for messages. <see cref="MailThreadSummary.UnreadCount"/> and
-    /// <see cref="MailThreadSummary.ArchivedCount"/> are the actor's own
-    /// counts.
+    /// Returns threads with mail addressed to the actor, ordered by last-message time
+    /// and thread id, newest first, with actor-scoped counts.
+    /// When <paramref name="includeArchived"/> is false, a thread must contain
+    /// at least one unarchived message addressed to the actor.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
         string actor,
@@ -186,34 +155,26 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns every thread with at least one message the given actor sent
-    /// (the "Sent" mailbox scope), ordered by the thread's last message,
-    /// newest first. <see cref="MailThreadSummary.UnreadCount"/> is the
-    /// actor's unread count, which can be non-zero when other agents replied
-    /// in a thread the actor started.
+    /// Returns threads containing mail sent by the actor, ordered by last-message time
+    /// and thread id, newest first. Unread and archived counts are scoped to the actor.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
         string actor,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns every thread in the workspace (the "Workspace" mailbox
-    /// scope), across every agent, ordered by the thread's last message,
-    /// newest first. When <paramref name="agent"/> is given, narrows to
-    /// threads that agent sent or received a message in; null returns every
-    /// thread. Unlike every other thread query, this is not actor-scoped:
-    /// <see cref="MailThreadSummary.UnreadCount"/> is always null, even when
-    /// <paramref name="agent"/> is given, so a workspace rollup never
-    /// exposes another agent's read state.
+    /// Returns workspace threads ordered by last-message time and thread id, newest first,
+    /// with null unread and archived counts. A nonempty <paramref name="agent"/> restricts
+    /// results to that actor's sent or received threads.
     /// </summary>
     Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
         string? agent,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the messages the given agent sent or received whose subject
-    /// or body contains the given text, matched case-insensitively over
-    /// ASCII, ordered by created_at then id, newest first.
+    /// Returns the actor's sent or received messages whose subject, body, or sender
+    /// contains the text, matching ASCII case-insensitively.
+    /// Results include recipients and are ordered by creation time and id, newest first.
     /// </summary>
     Task<IReadOnlyList<MailMessage>> SearchAsync(
         string actor,
@@ -229,14 +190,9 @@ internal interface IMailStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the messages the given agent sent, regardless of recipients,
-    /// with recipients embedded, ordered by created_at then id, newest
-    /// first, optionally capped at <paramref name="limit"/>. A sender has no
-    /// <c>message_recipients</c> row for its own sent messages, so read and
-    /// archived state does not exist for them, except when the sender
-    /// addressed the message to itself: <see cref="SendMessageAsync"/>
-    /// inserts a recipient row for every To/Cc recipient, sender included,
-    /// so a self-addressed message has real read/archived state.
+    /// Returns the sender's messages with their recipients, ordered by creation time
+    /// and id, newest first. A null <paramref name="limit"/> leaves results uncapped;
+    /// read and archived state belong only to message recipients.
     /// </summary>
     Task<IReadOnlyList<MailMessage>> QuerySentAsync(
         string sender,

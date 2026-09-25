@@ -8,6 +8,7 @@ internal sealed class ClaudeHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     IAgentSessionRegistry sessionRegistry,
+    IAgentRegistry agentRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
     IClaudeSessionFileReader sessionFileReader,
@@ -15,25 +16,21 @@ internal sealed class ClaudeHookHandler(
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
 {
     /// <summary>
-    /// The per-turn Stop gate block budget, reset on <c>UserPromptSubmit</c>
-    /// so normal mail volume can never silently disable the gate for the
-    /// rest of the conversation.
+    /// The maximum number of Stop blocks per turn, reset on <c>UserPromptSubmit</c>.
     /// </summary>
     public const int MaxBlocksPerTurn = 3;
-
-    /// <summary>
-    /// How many unread messages one nudge accounts for.
-    /// </summary>
-    public const int MaxDigestMessages = 10;
 
     private static string BlockReason(string actor)
         => $"Unread nitro mail is waiting. Read it with `nitro agent mail inbox --actor {actor}` "
             + "before ending this turn, or ignore this once if it is not actionable right now.";
 
+    private const string BlockDigestPreamble =
+        "Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.";
+
     public async Task<ClaudeHookOutcome> HandleSessionStartAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
         {
@@ -60,16 +57,19 @@ internal sealed class ClaudeHookHandler(
                 resolved.Generation, resolved.HarnessVersion, cancellationToken);
         }
 
+        var role = await AgentEffectiveRole.ResolveAsync(
+            session.Role, session.AgentName!, agentRegistry, cancellationToken);
+
         return new ClaudeHookOutcome
         {
-            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+            AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
         };
     }
 
     public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
         {
@@ -105,26 +105,23 @@ internal sealed class ClaudeHookHandler(
 
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
-        // The actor name is not repeated here: SessionStart already announces
-        // it on startup, resume, clear, compact, and fork, which covers every
-        // point the session could have lost it. This event only speaks up
-        // when there is unread mail to announce.
-        var digest = await BuildDigestAsync(resolved.Generation, row.AgentName, cancellationToken);
+        var digest = await BuildDigestAsync(
+            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
         return digest is null
             ? ClaudeHookOutcome.Neutral
-            : new ClaudeHookOutcome { AdditionalContext = digest };
+            : new ClaudeHookOutcome { AdditionalContext = digest.Text };
     }
 
     public async Task<ClaudeHookOutcome> HandleStopAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
         if (payload.StopHookActive)
         {
             return ClaudeHookOutcome.Neutral;
         }
 
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
         {
@@ -142,31 +139,14 @@ internal sealed class ClaudeHookHandler(
 
         if (row.BlockBudgetUsed >= MaxBlocksPerTurn)
         {
-            // Over budget: candidates are left unreserved so a fresh
-            // UserPromptSubmit budget reset can still gate them later,
-            // instead of permanently marking them delivered on the gate
-            // channel while never actually blocking for them.
+            // The exhausted budget leaves candidates unreserved for a later turn.
             return ClaudeHookOutcome.Neutral;
         }
 
-        var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
-            cancellationToken);
+        var digest = await BuildDigestAsync(
+            resolved.Generation, row.AgentName, AgentSessionChannel.Gate, cancellationToken);
 
-        if (unread.Count == 0)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        var reserved = await ledger.ReserveAsync(
-            resolved.Generation.Harness,
-            resolved.Generation.SessionId,
-            unread.Select(m => m.Id).ToList(),
-            AgentSessionChannel.Gate,
-            timeProvider.GetUtcNow(),
-            cancellationToken);
-
-        if (reserved.Count == 0)
+        if (digest is null)
         {
             return ClaudeHookOutcome.Neutral;
         }
@@ -175,18 +155,23 @@ internal sealed class ClaudeHookHandler(
 
         if (incremented is null)
         {
-            // The row was deleted (SessionEnd) between the FindByGenerationAsync
-            // above and this increment: nothing left to gate on behalf of.
+            // The session ended before the budget could be incremented.
             return ClaudeHookOutcome.Neutral;
         }
 
-        return new ClaudeHookOutcome { Block = true, BlockReason = BlockReason(row.AgentName) };
+        return new ClaudeHookOutcome
+        {
+            Block = true,
+            BlockReason = digest.HasMessages
+                ? $"{BlockDigestPreamble}\n{digest.Text}"
+                : BlockReason(row.AgentName)
+        };
     }
 
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is not null)
         {
@@ -197,17 +182,17 @@ internal sealed class ClaudeHookHandler(
     }
 
     /// <summary>
-    /// The unread-mail nudge for this session, or null when nothing is
-    /// unread or every unread message was already announced to it. It names
-    /// the command that reads the mail; the mail itself stays in the inbox.
+    /// Returns a digest or unread-count reminder for newly reserved messages in the
+    /// current inbox batch, or null when that batch yields no reservations.
     /// </summary>
-    private async Task<string?> BuildDigestAsync(
+    private async Task<MailDigestResult?> BuildDigestAsync(
         AgentSessionGeneration generation,
         string actor,
+        string channel,
         CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
+            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)
@@ -215,11 +200,13 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
+        var messageIds = unread.Select(message => message.Id).ToList();
+        var delivered = await ledger.FindDeliveredAsync(generation, messageIds, cancellationToken);
         var reserved = await ledger.ReserveAsync(
             generation.Harness,
             generation.SessionId,
-            unread.Select(m => m.Id).ToList(),
-            AgentSessionChannel.Digest,
+            messageIds,
+            channel,
             timeProvider.GetUtcNow(),
             cancellationToken);
 
@@ -228,19 +215,25 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+        var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+        var messages = unread
+            .Where(message => reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+            .ToList();
+        var unreadTotal = await mailStore.CountUnreadAsync(actor, cancellationToken);
+
+        return new MailDigestResult(
+            MailDigest.Render(actor, messages, unreadTotal),
+            messages.Count > 0);
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload
-    /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable cwd, a missing session id, no agent workspace at that
-    /// cwd, or this process's own cwd resolving to a different workspace
-    /// than the payload's cwd does. In a dry run the session file is not
-    /// consulted at all, so a fixture payload resolves without one.
+    /// Resolves the session identity and workspace, or null when the session id or cwd
+    /// is missing, no workspace is found, or the payload and process workspaces differ.
+    /// The session-file lookup is skipped when <paramref name="skipSessionFileLookup"/> is true.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(payload.Cwd) || string.IsNullOrWhiteSpace(payload.SessionId))
         {
@@ -255,11 +248,9 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        // The event names its own session, so the session file that carries
-        // that id describes it exactly. Nothing is inferred from the process
-        // tree, and a session with no file still resolves: the file only
-        // supplies the peer address and the harness version.
-        var session = dryRun ? null : sessionFileReader.Find(payload.SessionId);
+        // A session with no file still resolves; the file only supplies the peer
+        // address and the harness version.
+        var session = skipSessionFileLookup ? null : sessionFileReader.Find(payload.SessionId);
 
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
@@ -276,4 +267,6 @@ internal sealed class ClaudeHookHandler(
         string WorkspaceDirectory,
         string? EndpointName,
         string HarnessVersion);
+
+    private sealed record MailDigestResult(string Text, bool HasMessages);
 }

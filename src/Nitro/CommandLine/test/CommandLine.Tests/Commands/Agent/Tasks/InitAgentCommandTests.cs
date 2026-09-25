@@ -33,16 +33,18 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
               nitro agent init [options]
 
             Options:
-              --prefix <prefix>  The task ID prefix (defaults to the current directory name)
-              --force            Reinitialize an existing agent workspace
-              --migrate          Move an existing .nitro/agents workspace into the repository's .git/nitro directory
-              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help     Show help and usage information
+              --prefix <prefix>                The task ID prefix (defaults to the current directory name)
+              --force                          Reinitialize an existing agent workspace
+              --migrate                        Move an existing .nitro/agents workspace into the repository's .git/nitro directory
+              --database-path <database-path>  Create the workspace in this .nitro directory instead of the nearest existing one
+              --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                   Show help and usage information
 
             Example:
               nitro agent init
               nitro agent init --prefix "app"
               nitro agent init --migrate
+              nitro agent init --database-path "./.nitro"
             """);
     }
 
@@ -55,8 +57,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init");
 
-        // assert: the workspace lives inside .git, no .nitro directory and
-        // no .gitignore are created.
+        // assert
         result.AssertSuccess(
             """
             ✓ Initialized agent workspace at '.git/nitro'.
@@ -70,8 +71,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task GitRepository_FreshInitFromLinkedWorktree_UsesCommonGitDirectory()
     {
-        // arrange: a .git pointer file as a linked worktree has, naming a
-        // gitdir under the main checkout's .git with a commondir redirect.
+        // arrange
+        // A linked-worktree gitdir redirects to the main checkout through commondir.
         var mainGitDirectory = Path.Combine(WorkingDirectory, "main", ".git");
         var worktreeGitDirectory = Path.Combine(mainGitDirectory, "worktrees", "wt");
         Directory.CreateDirectory(worktreeGitDirectory);
@@ -87,8 +88,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init");
 
-        // assert: the workspace lands in the main checkout's .git and the
-        // prefix derives from the main checkout's directory name.
+        // assert
         result.AssertSuccess(
             """
             ✓ Initialized agent workspace at '.git/nitro'.
@@ -100,9 +100,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task GitRepository_BareNitroDirectoryAboveRepo_DoesNotHijackInit()
     {
-        // arrange: an empty leftover .nitro/agents in an ancestor directory
-        // outside the repository, plus a git repository at the current
-        // directory.
+        // arrange
+        // Create an empty fallback directory above the repository.
         var ancestorFallback = Path.Combine(
             Path.GetDirectoryName(WorkingDirectory)!, ".nitro", "agents");
         Directory.CreateDirectory(ancestorFallback);
@@ -111,7 +110,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init");
 
-        // assert: the nearer repository wins over the farther bare directory.
+        // assert
         result.AssertSuccess(
             """
             ✓ Initialized agent workspace at '.git/nitro'.
@@ -124,8 +123,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task GitRepository_ExistingNitroWorkspace_TakesPrecedence_AndHintsMigrate()
     {
-        // arrange: a .nitro/agents workspace initialized before the
-        // directory became a git repository.
+        // arrange
+        // Initialize the fallback workspace before creating the Git directory.
         await InitWorkspaceAsync();
         Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
 
@@ -152,8 +151,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init", "--migrate");
 
-        // assert: the database moved with its data, the old .nitro tree and
-        // the fallback .gitignore are gone.
+        // assert
         result.AssertSuccess(
             """
             ✓ Moved agent workspace from '.nitro/agents' to '.git/nitro'.
@@ -207,8 +205,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task Migrate_RewritesSessionWorkspacePaths()
     {
-        // arrange: a session row recorded against the pre-migration
-        // workspace path.
+        // arrange
+        // Seed a session with the workspace path that will be migrated.
         await InitWorkspaceAsync();
         await QueryScalarAsync(
             $"""
@@ -305,6 +303,57 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             """);
     }
 
+    /// <summary>
+    /// Tests schema upgrades in an existing <c>.git/nitro</c> workspace.
+    /// </summary>
+    [Fact]
+    public async Task Migrate_WorkspaceAlreadyInGitDirectory_UpgradesStaleSchema()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        await SeedV3WorkspaceAsync("legacy3", GitWorkspaceDirectory);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Upgraded agent workspace schema at '.git/nitro' to v{AgentDatabase.CurrentVersion}.
+            """);
+        Assert.Equal(
+            AgentDatabase.CurrentVersion.ToString(),
+            await QueryScalarAsync("PRAGMA user_version;", GitDatabasePath));
+        Assert.Equal(
+            "legacy3", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'", GitDatabasePath));
+    }
+
+    [Fact]
+    public async Task Migrate_WorkspaceAlreadyInGitDirectory_NewerSchema_Errors()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        Directory.CreateDirectory(GitWorkspaceDirectory);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using (var connection = new SqliteConnection($"Data Source={GitDatabasePath};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = $"PRAGMA user_version = {AgentDatabase.CurrentVersion + 1};";
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        result.AssertError(
+            $"""
+            The agent workspace was created by a newer version of the Nitro CLI (schema v{AgentDatabase.CurrentVersion + 1}, supported up to v{AgentDatabase.CurrentVersion}). Update the CLI to use it.
+            """);
+    }
+
     [Theory]
     [InlineData("--force")]
     [InlineData("--prefix", "app")]
@@ -316,6 +365,269 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(1, result.ExitCode);
         Assert.Contains("'--migrate' cannot be combined with '--force' or '--prefix'.", result.StdErr);
+    }
+
+    [Fact]
+    public async Task Migrate_CannotCombineWithDatabasePath()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "agent", "init", "--migrate", "--database-path", "./.nitro");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("'--migrate' cannot be combined with '--database-path'.", result.StdErr);
+    }
+
+    /// <summary>
+    /// Tests creation of a nested workspace with <c>--database-path</c> while
+    /// preserving the parent workspace's prefix and task count.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_ParentHasInitializedBoard_CreatesNestedBoard()
+    {
+        // arrange
+        var parentWorkspaceDirectory = await InitParentWorkspaceAsync("parent");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+        Assert.True(File.Exists(DatabasePath));
+        Assert.Equal("acme", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
+        Assert.Equal("parent", await QueryScalarAsync(
+            "SELECT value FROM config WHERE key = 'prefix'",
+            AgentWorkspace.GetDatabasePath(parentWorkspaceDirectory)));
+        Assert.Equal("0", await QueryScalarAsync(
+            "SELECT COUNT(*) FROM tasks", AgentWorkspace.GetDatabasePath(parentWorkspaceDirectory)));
+    }
+
+    /// <summary>
+    /// Tests omission of the migration hint when <c>--database-path</c> explicitly
+    /// selects a fallback workspace inside a Git repository.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_GitRepositoryExists_DoesNotPrintMigrateHint()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+    }
+
+    /// <summary>
+    /// Tests that task creation uses the explicitly initialized nested workspace
+    /// without repeating <c>--database-path</c>.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_LaterCommandsWithoutFlag_UseNestedBoard()
+    {
+        // arrange
+        var parentWorkspaceDirectory = await InitParentWorkspaceAsync("parent");
+        var initResult = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+        Assert.Equal(0, initResult.ExitCode);
+
+        // act
+        var taskId = await CreateTaskAsync("Nested board task");
+
+        // assert
+        Assert.Equal("1", await QueryScalarAsync($"SELECT COUNT(*) FROM tasks WHERE id = '{taskId}'"));
+        Assert.Equal("0", await QueryScalarAsync(
+            "SELECT COUNT(*) FROM tasks", AgentWorkspace.GetDatabasePath(parentWorkspaceDirectory)));
+    }
+
+    [Fact]
+    public async Task DatabasePathOption_BareNitroDirectoryInParent_DoesNotHijackInit()
+    {
+        // arrange
+        // The parent fallback directory has no database.
+        var parentFallback = Path.Combine(
+            Path.GetDirectoryName(WorkingDirectory)!, ".nitro", "agents");
+        Directory.CreateDirectory(parentFallback);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+        Assert.True(File.Exists(DatabasePath));
+        Assert.False(File.Exists(Path.Combine(parentFallback, "agents.db")));
+    }
+
+    [Theory]
+    [InlineData("./boards")]
+    [InlineData("./.nitro/agents")]
+    public async Task DatabasePathOption_LastSegmentNotNitro_ErrorsAndCreatesNothing(string value)
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", value);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("'--database-path' must name a '.nitro' directory", result.StdErr);
+        Assert.False(Directory.Exists(Path.Combine(WorkingDirectory, ".nitro")));
+        Assert.False(Directory.Exists(Path.Combine(WorkingDirectory, "boards")));
+    }
+
+    /// <summary>
+    /// Tests creation of a workspace below the current directory with a prefix
+    /// derived from its project directory.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_SubdirectoryValue_CreatesBoardAtThatDirectory()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'sub'.
+            """);
+        var databasePath = AgentWorkspace.GetDatabasePath(
+            Path.Combine(WorkingDirectory, "sub", ".nitro", "agents"));
+        Assert.True(File.Exists(databasePath));
+        Assert.Equal("sub", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'", databasePath));
+    }
+
+    /// <summary>
+    /// Tests workspace creation and prefix initialization at an absolute
+    /// <c>--database-path</c> outside the current directory.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_AbsoluteValueOutsideWorkingDirectory_CreatesBoardAtThatDirectory()
+    {
+        // arrange
+        var externalRoot = Directory.CreateTempSubdirectory("nitro-database-path-test");
+
+        try
+        {
+            var nitroDirectory = Path.Combine(externalRoot.FullName, "other-project", ".nitro");
+
+            // act
+            var result = await ExecuteCommandAsync("agent", "init", "--database-path", nitroDirectory);
+
+            // assert
+            result.AssertSuccess(
+                """
+                ✓ Initialized agent workspace at '.nitro/agents'.
+                ✓ Task ID prefix set to 'other-project'.
+                """);
+            var databasePath = AgentWorkspace.GetDatabasePath(Path.Combine(nitroDirectory, "agents"));
+            Assert.True(File.Exists(databasePath));
+            Assert.Equal("other-project", await QueryScalarAsync(
+                "SELECT value FROM config WHERE key = 'prefix'", databasePath));
+        }
+        finally
+        {
+            externalRoot.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Tests that upgrading an explicitly selected nested workspace preserves its prefix.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_Upgrade_UsesNestedBoardOwnPrefix()
+    {
+        // arrange
+        var workspaceDirectory = Path.Combine(WorkingDirectory, "sub", ".nitro", "agents");
+        await SeedV3WorkspaceAsync("legacy-nested", workspaceDirectory);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Upgraded agent workspace schema at '.nitro/agents' to v{AgentDatabase.CurrentVersion}.
+            """);
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
+        Assert.Equal(
+            AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;", databasePath));
+        Assert.Equal("legacy-nested", await QueryScalarAsync(
+            "SELECT value FROM config WHERE key = 'prefix'", databasePath));
+    }
+
+    [Fact]
+    public async Task DatabasePathOption_AlreadyInitialized_ReturnsError()
+    {
+        // arrange
+        var firstResult = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+        Assert.Equal(0, firstResult.ExitCode);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+
+        // assert
+        result.AssertError(
+            """
+            Already initialized at '.nitro/agents'. Use --force to reinitialize.
+            """);
+    }
+
+    /// <summary>
+    /// Tests that <c>--force</c> changes the explicitly selected workspace's prefix
+    /// and preserves the current directory's workspace prefix.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_Force_ReinitializesOnlyTheFlaggedBoard()
+    {
+        // arrange
+        var nestedInitResult = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+        Assert.Equal(0, nestedInitResult.ExitCode);
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "init", "--force", "--database-path", "./sub/.nitro", "--prefix", "forced");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'forced'.
+            """);
+        var nestedDatabasePath = AgentWorkspace.GetDatabasePath(
+            Path.Combine(WorkingDirectory, "sub", ".nitro", "agents"));
+        Assert.Equal("forced", await QueryScalarAsync(
+            "SELECT value FROM config WHERE key = 'prefix'", nestedDatabasePath));
+        Assert.Equal("acme", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
+    }
+
+    /// <summary>
+    /// Initializes a workspace in the parent of <c>WorkingDirectory</c> with the
+    /// supplied prefix and returns its workspace directory.
+    /// </summary>
+    private async Task<string> InitParentWorkspaceAsync(string prefix)
+    {
+        var parentDirectory = Path.GetDirectoryName(WorkingDirectory)!;
+        var parentWorkspaceDirectory = AgentWorkspace.GetDirectory(parentDirectory);
+        Directory.CreateDirectory(parentWorkspaceDirectory);
+        var store = new TaskStore(new TestFileSystem(parentDirectory), FakeTime, new AgentDatabase());
+
+        await store.InitializeWorkspaceAsync(
+            parentWorkspaceDirectory, prefix, TestContext.Current.CancellationToken);
+
+        return parentWorkspaceDirectory;
     }
 
     [Fact]
@@ -386,11 +698,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// The migration path this bead adds: plain <c>init</c> (no --force)
-    /// against an existing database at an upgradable schema version (v3,
-    /// this bead's starting point) applies the non-destructive schema
-    /// upgrade in place instead of throwing "Already initialized", and
-    /// touches neither the prefix nor the gitignore.
+    /// Tests that plain <c>init</c> upgrades a v3 database while preserving its
+    /// prefix and gitignore content.
     /// </summary>
     [Fact]
     public async Task PlainInit_UpgradesSchemaOnly_When_ExistingVersionIsUpgradable()
@@ -497,8 +806,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         var sendResult = await ExecuteCommandAsync(
             "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "Merged.");
 
-        // assert: the recipient has no live session, which is not an error;
-        // the mail is stored and bob reads it on his next pull.
+        // assert
         Assert.Equal(0, sendResult.ExitCode);
         Assert.Equal(
             AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
@@ -509,18 +817,23 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Seeds a full v3-shaped unified database (this bead's starting schema:
-    /// tasks, agents with role/implicit/client, and mail, but none of the
-    /// v4 session tables) directly at the unified path, with the given
-    /// prefix in config, mirroring an existing workspace from before this
-    /// bead.
+    /// Seeds a database marked as schema v3 at the fallback workspace path with
+    /// task, agent, and mail tables and the supplied prefix, without session tables.
     /// </summary>
-    private async Task SeedV3WorkspaceAsync(string prefix)
+    private Task SeedV3WorkspaceAsync(string prefix)
+        => SeedV3WorkspaceAsync(prefix, WorkspaceDirectory);
+
+    /// <summary>
+    /// Seeds a database marked as schema v3 at the specified workspace path with
+    /// task, agent, and mail tables and the supplied prefix, without session tables.
+    /// </summary>
+    private async Task SeedV3WorkspaceAsync(string prefix, string workspaceDirectory)
     {
-        Directory.CreateDirectory(WorkspaceDirectory);
+        Directory.CreateDirectory(workspaceDirectory);
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await using var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
         await connection.OpenAsync(cancellationToken);
 
         await using (var command = connection.CreateCommand())

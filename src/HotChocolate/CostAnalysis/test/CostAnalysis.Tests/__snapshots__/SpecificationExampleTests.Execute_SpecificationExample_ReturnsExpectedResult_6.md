@@ -11,7 +11,7 @@ query Example {
 ## ExpectedFieldCost
 
 ```json
-5.0
+4.0
 ```
 
 ## Result
@@ -23,7 +23,7 @@ query Example {
   },
   "extensions": {
     "operationCost": {
-      "fieldCost": 5,
+      "fieldCost": 4,
       "typeCost": 1
     }
   }

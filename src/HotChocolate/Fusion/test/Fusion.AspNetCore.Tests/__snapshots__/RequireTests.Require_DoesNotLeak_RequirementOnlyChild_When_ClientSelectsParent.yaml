@@ -246,7 +246,7 @@ sourceSchemas:
           document: |
             query Op_f023728f_3(
               $__fusion_2_id: Int!
-                $__fusion_3_dimension: BookDimensionInput!
+              $__fusion_3_dimension: BookDimensionInput!
             ) {
               book(id: $__fusion_2_id) {
                 estimatedDelivery(dimension: $__fusion_3_dimension)
@@ -345,7 +345,7 @@ operationPlan:
             }
           }
         }
-      hash: f023728fb4d1cbe8d380fa94a4561ff1
+      hash: 10cf9e9c0318745b5da8be93926096b5
       searchSpace: 2
       expandedNodes: 6
   nodes:
@@ -387,7 +387,7 @@ operationPlan:
       operation: |
         query Op_f023728f_3(
           $__fusion_2_id: Int!
-            $__fusion_3_dimension: BookDimensionInput!
+          $__fusion_3_dimension: BookDimensionInput!
         ) {
           book(id: $__fusion_2_id) {
             estimatedDelivery(dimension: $__fusion_3_dimension)

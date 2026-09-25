@@ -11,6 +11,7 @@ public class SchemaOptionsTests
             QueryTypeName = "Q",
             StrictValidation = false,
             EnableObjectDeprecation = true,
+            EnableCovariantFieldMerging = true,
             EnableFlagEnums = true,
             SortFieldsByName = true
         };

@@ -9,11 +9,10 @@ internal static class AgentSessionHarness
     public const string ClaudeCode = "claude-code";
     public const string Codex = "codex";
     public const string Copilot = "copilot";
+    public const string Opencode = "opencode";
 
     /// <summary>
-    /// A running unified Nitro agent TUI, bound to the durable human mail
-    /// actor as an operator participant rather than to a coding-harness hook. See
-    /// <see cref="AgentSessionEndpointKind.DbWatch"/>.
+    /// A Nitro agent board session.
     /// </summary>
     public const string NitroBoard = "nitro-board";
 }

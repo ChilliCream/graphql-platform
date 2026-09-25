@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal enum CodexQueueResult
 {
     /// <summary>
-    /// The subprocess exited zero: the message was durably queued.
+    /// The queue subprocess reported success.
     /// </summary>
     Ok,
 
@@ -16,8 +16,7 @@ internal enum CodexQueueResult
     EndpointGone,
 
     /// <summary>
-    /// A spawn failure, a timeout, or any other nonzero exit that is not the
-    /// gone-thread signature.
+    /// A queue failure, timeout, or cancellation without a gone-thread result.
     /// </summary>
     Error
 }

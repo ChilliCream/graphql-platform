@@ -5,23 +5,14 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The fail-open envelope every <c>nitro agent hook codex &lt;event&gt;</c>
-/// stdin-based subcommand (<c>session-start</c>, <c>user-prompt-submit</c>,
-/// <c>session-end</c>) runs its handler through - the Codex analog of
-/// <see cref="ClaudeHookExecutor"/>, same contract: malformed payload,
-/// database contention, a schema version mismatch, a missing workspace, any
-/// exception a handler raises, and the timeout itself all resolve to the
-/// same neutral <c>{}</c> response. The separate <c>notify</c> command is
-/// NOT run through this: it reads its payload from argv, not stdin, and its
-/// exit code (not just its stdout) has to carry the foreign-wrapping
-/// contract, see <c>CodexNotifyHookCommand</c>.
+/// Executes Codex hook handlers with a timeout and writes their JSON responses.
+/// Malformed input, handler failures, and timeouts produce a neutral response; a
+/// schema mismatch also writes a diagnostic to stderr and returns exit code 1.
 /// </summary>
 internal static class CodexHookExecutor
 {
     /// <summary>
-    /// Same failure ceiling as <see cref="ClaudeHookExecutor.EntryTimeout"/>:
-    /// not a latency target, the point past which a hung handler must not be
-    /// allowed to wedge Codex's turn any longer.
+    /// The default timeout for reading the payload and running the handler.
     /// </summary>
     public static readonly TimeSpan EntryTimeout = TimeSpan.FromSeconds(10);
 
@@ -36,11 +27,6 @@ internal static class CodexHookExecutor
         => RunAsync(
             environmentVariables, input, output, error, handle, hookEventName, EntryTimeout, cancellationToken);
 
-    /// <summary>
-    /// Overload taking an explicit <paramref name="timeout"/> instead of
-    /// <see cref="EntryTimeout"/>, so a test can prove the timeout path
-    /// fails open without waiting out the real entry timeout.
-    /// </summary>
     internal static async Task<int> RunAsync(
         IEnvironmentVariableProvider environmentVariables,
         TextReader input,
@@ -75,17 +61,10 @@ internal static class CodexHookExecutor
                 outcome = await runTask;
             }
 
-            // Else: the entry timeout won the race. `outcome` stays
-            // CodexHookOutcome.Neutral without awaiting `runTask` - a handler
-            // ignoring cancellation must not be allowed to keep this call,
-            // and Codex, waiting past the timeout.
+            // A timeout leaves the outcome neutral without waiting for the handler to finish.
         }
         catch (AgentWorkspaceSchemaMismatchException exception)
         {
-            // Reported rather than swallowed, the same as the Claude
-            // adapter: a stale schema keeps every hook of every session
-            // inert until someone migrates it, and nothing else ever says
-            // so.
             await error.WriteLineAsync(exception.Message.AsMemory(), cancellationToken);
             await WriteAsync(output, CodexHookOutcome.Neutral, hookEventName, cancellationToken);
 
@@ -93,10 +72,6 @@ internal static class CodexHookExecutor
         }
         catch
         {
-            // Fail-open on EVERYTHING else: an empty or malformed payload or
-            // a handler exception (database contention, for example).
-            // `outcome` is still CodexHookOutcome.Neutral, so Codex always
-            // gets a valid neutral response, never an error.
             outcome = CodexHookOutcome.Neutral;
         }
 
@@ -117,14 +92,10 @@ internal static class CodexHookExecutor
         return payload is null ? CodexHookOutcome.Neutral : await handle(payload, cancellationToken);
     }
 
-    // Always success: a hook adapter reports failure to Codex through its
-    // own JSON protocol (or silently, via the neutral response), never
-    // through the process exit code.
     private const int ExitCode = 0;
 
     /// <summary>
-    /// The nonzero exit a hook uses to report a condition the user has to
-    /// act on, mirroring <see cref="ClaudeHookExecutor"/>.
+    /// The exit code returned for a workspace schema mismatch.
     /// </summary>
     private const int FailureExitCode = 1;
 

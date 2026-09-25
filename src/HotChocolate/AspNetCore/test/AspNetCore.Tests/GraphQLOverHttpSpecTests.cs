@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Features;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -15,6 +16,7 @@ using static System.Net.Http.HttpCompletionOption;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.HttpTransportVersion;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
+using OperationInfo = HotChocolate.Execution.Pipeline.OperationInfo;
 using WellKnownRequestMiddleware = HotChocolate.Execution.WellKnownRequestMiddleware;
 
 namespace HotChocolate.AspNetCore;
@@ -22,6 +24,7 @@ namespace HotChocolate.AspNetCore;
 public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
+    private static readonly HttpMethod s_queryMethod = new("QUERY");
 
     private const string NotWellFormedRequest = """{ "query": 123 }""";
     private const string EmptyBatchRequest = "[]";
@@ -31,6 +34,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     private const string VariablesNotJsonQuery = "?query=%7B%20__typename%20%7D&variables=%7B";
     private const string ExtensionsNotJsonQuery = "?query=%7B%20__typename%20%7D&extensions=%7B";
     private const string ExtensionsOnlyNotJsonQuery = "?extensions=%7B";
+    private const string GraphQLResponseAndEventStream =
+        "application/graphql-response+json, text/event-stream";
     private const string InvalidVariableRequest =
         """
         {
@@ -979,6 +984,287 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
+    // A pipeline step that finds the request state an earlier step provides missing is a failure
+    // inside the server, and is answered 500 like one.
+    [Theory]
+    [InlineData("""{ "query": "{ __typename }" }""", Draft20250508)]
+    [InlineData("""{ "query": "{ __typename }" }""", Draft20260903)]
+    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Draft20250508)]
+    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Draft20260903)]
+    public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeValidation(
+        string body,
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.DocumentValidationMiddleware,
+            context => context.OperationDocumentInfo.Document = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnInternalServerError_When_CachedDocumentIsMissing(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        // the first request puts its document into the document cache under the document ID
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.DocumentValidationMiddleware,
+            context =>
+            {
+                if (context.OperationDocumentInfo.IsCached)
+                {
+                    context.OperationDocumentInfo.Document = null;
+                }
+            });
+
+        using var cacheRequest = new HttpRequestMessage(HttpMethod.Post, s_url);
+        cacheRequest.Content = new StringContent(
+            """{ "id": "cached-document", "query": "{ __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+        using var cacheResponse = await client.SendAsync(
+            cacheRequest,
+            TestContext.Current.CancellationToken);
+        Assert.Equal(OK, cacheResponse.StatusCode);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "id": "cached-document" }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    // A request that carries only a document ID, sent to a pipeline without persisted
+    // operations, is a request error.
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_DocumentIdIsNotResolved(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/test"));
+        request.Content = new StringContent("""{ "id": "abc" }""", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"The query request contains no document or no document id.","extensions":{"code":"HC0015"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeCompilation(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationCompilerMiddleware,
+            context => context.OperationDocumentInfo.Document = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Either no query document exists or the document validation result is invalid."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnInternalServerError_When_OperationIsMissingBeforeExecution(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationExecutionMiddleware,
+            context => context.Features.GetRequired<OperationInfo>().Operation = null);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Either no compiled operation was found or the variables have not been coerced."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData("""{ "query": "{ __typename }" }""", Draft20250508)]
+    [InlineData("""{ "query": "{ __typename }" }""", Draft20260903)]
+    [InlineData("""{ "query": "{ __typename }", "variables": [{}] }""", Draft20250508)]
+    [InlineData("""{ "query": "{ __typename }", "variables": [{}] }""", Draft20260903)]
+    public async Task Post_Should_ReturnInternalServerError_When_VariablesAreMissingBeforeExecution(
+        string body,
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(
+            transportVersion,
+            WellKnownRequestMiddleware.OperationExecutionMiddleware,
+            context => context.VariableValues = []);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Either no compiled operation was found or the variables have not been coerced."}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        // with the cost analyzer skipped, the empty batch reaches operation execution
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyCostOptions(o => o.SkipAnalyzer = true)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "query": "query($id: String!) { human(id: $id) { name } }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set."}]}
+                """);
+    }
+
     [Theory]
     [InlineData("application/json")]
     [InlineData("Application/Json")]
@@ -1121,6 +1407,161 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
+    // When QUERY requests are enabled the endpoint lists the method in Allow and advertises the
+    // body media type it accepts through Accept-Query (RFC 10008, section 3).
+    [Fact]
+    public async Task Options_Should_ListQuery_When_QueryRequestsAreEnabled()
+    {
+        // arrange
+        var client = GetQueryClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NoContent, response.StatusCode);
+        Assert.Equal(["GET", "HEAD", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Options_Should_NotReturnAcceptQuery_When_QueryRequestsAreDisabled()
+    {
+        // arrange
+        var client = GetClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NoContent, response.StatusCode);
+        Assert.False(response.Headers.Contains("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Put_Should_ListQuery_When_QueryRequestsAreEnabled()
+    {
+        // arrange
+        var client = GetQueryClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Put, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["GET", "HEAD", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Get_Should_ListQuery_When_GetRequestsAreDisabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = Draft20260903
+                }),
+            configureConventions: b => b.WithOptions(o =>
+            {
+                o.EnableGetRequests = false;
+                o.EnableQueryRequests = true;
+                o.Tool.Enable = false;
+            }));
+        var client = server.CreateClient();
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    // A QUERY request the endpoint does not accept because of its Content-Type is a 415 that
+    // names the accepted media type. Without QUERY enabled the method itself is refused.
+    [Theory]
+    [InlineData(Draft20250508, NotFound, false)]
+    [InlineData(Draft20260903, UnsupportedMediaType, true)]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        bool expectAcceptQuery)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent("{ __typename }", Encoding.UTF8, "text/plain");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectAcceptQuery, response.Headers.Contains("Accept-Query"));
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound)]
+    [InlineData(Draft20260903, UnsupportedMediaType)]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new ByteArrayContent("""{ "query": "{ __typename }" }"""u8.ToArray());
+        request.Content.Headers.ContentType = null;
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Query_Should_ReturnMethodNotAllowed_When_QueryRequestsAreDisabled(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.False(response.Headers.Contains("Accept-Query"));
+    }
+
     [Theory]
     [InlineData(Draft20250508, NotFound)]
     [InlineData(Draft20260903, UnsupportedMediaType)]
@@ -1207,6 +1648,217 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    // A QUERY request runs query operations only. A mutation is refused before execution with
+    // 422, which the application/json rule of the older revisions turns into 200.
+    [Theory]
+    [InlineData(
+        Legacy,
+        ContentType.GraphQLResponse,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Legacy, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20250508,
+        ContentType.GraphQLResponse,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20250508, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20260903,
+        ContentType.GraphQLResponse,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_MutationIsSent(
+        HttpTransportVersion transportVersion,
+        string acceptHeader,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "mutation { __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Empty(response.Content.Headers.Allow);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // A QUERY request runs query operations only. A subscription is refused before execution
+    // with 422, which the application/json rule of the older revisions turns into 200.
+    [Theory]
+    [InlineData(
+        Legacy,
+        GraphQLResponseAndEventStream,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Legacy, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20250508,
+        GraphQLResponseAndEventStream,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20250508, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20260903,
+        GraphQLResponseAndEventStream,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_SubscriptionIsSent(
+        HttpTransportVersion transportVersion,
+        string acceptHeader,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "subscription { delay(count: 1, delay: 15000) }" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Empty(response.Content.Headers.Allow);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // An empty request array is read but is not a well-formed GraphQL over HTTP request.
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_BodyIsEmptyArray(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(EmptyBatchRequest, Encoding.UTF8, "application/json");
+        AddAcceptHeader(request, ContentType.GraphQLResponse);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(
+            """{"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(Latest)]
+    [InlineData(Legacy)]
+    public async Task Query_Should_ReturnBareNotAcceptable_When_EveryMediaTypeIsRejected(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, "application/graphql-response+json;q=0");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Null(response.Content.Headers.ContentType);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // A body without a JSON token is one the server cannot read and is 400 under every revision.
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Query_Should_ReturnBadRequest_When_BodyHasNoJsonToken(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent("   ", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid JSON document.","extensions":{"code":"HC0012"}}]}
+                """);
+    }
+
+    // A document that cannot be parsed in a QUERY request is answered on the same terms as one
+    // in a POST request.
+    [Theory]
+    [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    public async Task Query_Should_ApplyContentTypeRule_When_DocumentCannotBeParsed(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
     [Fact]
@@ -1651,6 +2303,44 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 {
                     HttpTransportVersion = serverTransportVersion
                 }));
+
+        return server.CreateClient();
+    }
+
+    private HttpClient GetClient(
+        HttpTransportVersion serverTransportVersion,
+        string nextMiddleware,
+        Action<Execution.RequestContext> modifyContext)
+    {
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .UseRequest(
+                    next => context =>
+                    {
+                        modifyContext(context);
+                        return next(context);
+                    },
+                    key: "ModifyContext",
+                    before: nextMiddleware)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = serverTransportVersion
+                    }));
+
+        return server.CreateClient();
+    }
+
+    private HttpClient GetQueryClient(HttpTransportVersion serverTransportVersion)
+    {
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = serverTransportVersion
+                }),
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
 
         return server.CreateClient();
     }

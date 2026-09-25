@@ -8,6 +8,7 @@ internal sealed class CodexHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     IAgentSessionRegistry sessionRegistry,
+    IAgentRegistry agentRegistry,
     ISessionDeliveryLedger ledger,
     IMailStore mailStore,
     ICodexHarnessVersionResolver harnessVersionResolver,
@@ -19,6 +20,7 @@ internal sealed class CodexHookHandler(
         IFileSystem fileSystem,
         TimeProvider timeProvider,
         IAgentSessionRegistry sessionRegistry,
+        IAgentRegistry agentRegistry,
         ISessionDeliveryLedger ledger,
         IMailStore mailStore,
         IEnvironmentVariableProvider environmentVariableProvider,
@@ -30,6 +32,7 @@ internal sealed class CodexHookHandler(
             fileSystem,
             timeProvider,
             sessionRegistry,
+            agentRegistry,
             ledger,
             mailStore,
             harnessVersionResolver,
@@ -40,13 +43,8 @@ internal sealed class CodexHookHandler(
         ArgumentNullException.ThrowIfNull(environmentVariableProvider);
     }
 
-    /// <summary>
-    /// How many unread messages one nudge accounts for.
-    /// </summary>
-    public const int MaxDigestMessages = 10;
-
     public async Task<CodexHookOutcome> HandleSessionStartAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var resolved = await ResolveAsync(payload, cancellationToken);
 
@@ -55,9 +53,8 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        // The Codex endpoint address is the thread id itself, which equals
-        // the session id. Unlike Claude's session file, Codex publishes no
-        // separate peer name to address.
+        // The Codex endpoint address is the thread id itself, which equals the
+        // session id.
         var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
             ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
             : (AgentSessionEndpointKind.None, string.Empty);
@@ -78,14 +75,17 @@ internal sealed class CodexHookHandler(
             await sessionRegistry.RecordHarnessVersionAsync(resolved.Generation, harnessVersion, cancellationToken);
         }
 
+        var role = await AgentEffectiveRole.ResolveAsync(
+            session.Role, session.AgentName!, agentRegistry, cancellationToken);
+
         return new CodexHookOutcome
         {
-            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+            AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
         };
     }
 
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var resolved = await ResolveAsync(payload, cancellationToken);
 
@@ -120,20 +120,16 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        // The actor name is not repeated here, the same as the Claude
-        // adapter: session-start already announces it whenever a session
-        // begins or resumes. This event only speaks up when there is unread
-        // mail to announce.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
         return digest is null
             ? CodexHookOutcome.Neutral
-            : new CodexHookOutcome { AdditionalContext = digest };
+            : new CodexHookOutcome { AdditionalContext = digest.Text };
     }
 
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var resolved = await ResolveAsync(payload, cancellationToken);
 
@@ -146,7 +142,7 @@ internal sealed class CodexHookHandler(
     }
 
     public async Task<CodexNotifyOutcome> HandleNotifyAsync(
-        CodexNotifyPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexNotifyPayload payload, CancellationToken cancellationToken)
     {
         if (payload.Type != CodexNotifyPayload.AgentTurnComplete)
         {
@@ -183,31 +179,24 @@ internal sealed class CodexHookHandler(
             return CodexNotifyOutcome.Neutral;
         }
 
-        // Reserve-then-emit (the plan's documented crash policy): the ledger
-        // claim above already stands regardless of whether this call
-        // actually succeeds, so a `codex queue` failure here suppresses this
-        // digest on the gate channel from then on rather than retrying or
-        // duplicating it - the message stays visible to a direct inbox read
-        // and to the digest channel either way.
-        var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest, cancellationToken);
+        // Gate reservations remain claimed even if queueing fails.
+        var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest.Text, cancellationToken);
 
         return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
     }
 
     /// <summary>
-    /// The unread-mail nudge for this session on <paramref name="channel"/>,
-    /// or null when nothing is unread or every unread message was already
-    /// announced there. It names the command that reads the mail; the mail
-    /// itself stays in the inbox.
+    /// Returns a digest or unread-count reminder for newly reserved messages in the
+    /// current inbox batch, or null when that batch yields no reservations.
     /// </summary>
-    private async Task<string?> BuildDigestAsync(
+    private async Task<MailDigestResult?> BuildDigestAsync(
         AgentSessionGeneration generation,
         string actor,
         string channel,
         CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
+            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)
@@ -215,10 +204,12 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
+        var messageIds = unread.Select(message => message.Id).ToList();
+        var delivered = await ledger.FindDeliveredAsync(generation, messageIds, cancellationToken);
         var reserved = await ledger.ReserveAsync(
             generation.Harness,
             generation.SessionId,
-            unread.Select(m => m.Id).ToList(),
+            messageIds,
             channel,
             timeProvider.GetUtcNow(),
             cancellationToken);
@@ -228,16 +219,20 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+        var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+        var messages = unread
+            .Where(message => reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+            .ToList();
+        var unreadTotal = await mailStore.CountUnreadAsync(actor, cancellationToken);
+
+        return new MailDigestResult(
+            MailDigest.Render(actor, messages, unreadTotal));
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload
-    /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable cwd, a missing session/thread id, no agent workspace
-    /// at that cwd, or this process's own cwd resolving to a different
-    /// workspace than the payload's cwd does. Mirrors
-    /// <c>ClaudeHookHandler.ResolveAsync</c>.
+    /// Resolves the session identity and workspace, or null when the session id or cwd
+    /// is missing, no workspace is found, or the payload and process workspaces differ.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
@@ -263,8 +258,6 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        // The event names its own session and delivery addresses the thread
-        // id, so no process is involved in identifying the row.
         var generation = new AgentSessionGeneration(
             AgentSessionHarness.Codex, payload.SessionId, host);
 
@@ -272,4 +265,6 @@ internal sealed class CodexHookHandler(
     }
 
     private sealed record ResolvedGeneration(AgentSessionGeneration Generation, string WorkspaceDirectory);
+
+    private sealed record MailDigestResult(string Text);
 }

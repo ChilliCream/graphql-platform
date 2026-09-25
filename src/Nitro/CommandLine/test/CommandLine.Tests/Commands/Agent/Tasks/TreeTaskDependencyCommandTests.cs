@@ -86,8 +86,7 @@ public sealed class TreeTaskDependencyCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "dep", "tree", root);
 
         // assert
-        // Children of the root are sorted by (type, depends-on-id); both edges
-        // are type "blocks", so the ordinally smaller ID comes first.
+        // Both root edges are blocks; the ordinally smaller dependency ID comes first.
         var firstIsLeft = string.CompareOrdinal(left, right) < 0;
         var first = firstIsLeft ? left : right;
         var firstTitle = firstIsLeft ? "Left branch" : "Right branch";

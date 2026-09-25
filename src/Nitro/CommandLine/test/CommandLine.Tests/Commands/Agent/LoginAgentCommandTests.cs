@@ -104,8 +104,7 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
     [Fact]
     public async Task Login_Should_AllocateAnActor_ThatRegisterAccepts()
     {
-        // arrange: the login name is the only thing `register --actor` will
-        // now accept, since actor names are allocated and never invented.
+        // arrange
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "login");
         var actor = await QueryScalarAsync("SELECT name FROM agents");
@@ -158,8 +157,8 @@ public sealed class LoginAgentCommandTests(NitroCommandFixture fixture) : AgentC
     [Fact]
     public async Task Register_Should_Fail_When_TheActorWasNeverAllocated_AndASessionIsLive()
     {
-        // arrange: a live Claude session mints its own actor, which still
-        // does not make an unrelated name usable.
+        // arrange
+        // Allocate a session actor before attempting to register a different name.
         await InitWorkspaceAsync();
         SetupStandardInput(
             $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");

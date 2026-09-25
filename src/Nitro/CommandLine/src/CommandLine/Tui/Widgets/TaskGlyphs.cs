@@ -4,16 +4,13 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets;
 
 /// <summary>
-/// Maps task status and type codes to their display glyph, independent of
-/// any specific row layout, so the search results list, detail sidebar and
-/// dependency sections, and tree explorer render the same glyphs as
-/// <see cref="TaskBadge"/> without composing a full badge line.
+/// Maps task status and type codes to their display glyph, independent of any specific row layout.
 /// </summary>
 internal static class TaskGlyphs
 {
     /// <summary>
-    /// The plain-text status glyph: closed, in progress, open, deferred,
-    /// blocked. Unknown or custom states fall back to the open glyph.
+    /// Returns the status glyph, using a check mark for closed and archived tasks.
+    /// Unknown states use the open-task glyph.
     /// </summary>
     public static string Status(string status) => status switch
     {
@@ -34,9 +31,8 @@ internal static class TaskGlyphs
         => Stylize(ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup(), Status(status));
 
     /// <summary>
-    /// The plain-text bracketed type code (for example <c>B</c> for bug,
-    /// <c>F</c> for feature). Unknown types fall back to the first letter of
-    /// <paramref name="type"/>, or <c>?</c> for an empty type.
+    /// Returns the unbracketed type code. Unknown types use their uppercase first
+    /// character, or <c>?</c> for an empty type.
     /// </summary>
     public static string TypeCode(string type) => type switch
     {

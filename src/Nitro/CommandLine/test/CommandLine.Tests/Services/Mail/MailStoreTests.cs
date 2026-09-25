@@ -41,11 +41,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     /// <summary>
     /// Creates a new <see cref="MailStore"/> bound to this test's file
     /// system, clock, database, and registry, with a fixed instance id and
-    /// global config directory so <see cref="MailWakePolicy.Enqueue"/> can
-    /// resolve without touching the real machine. Concurrency tests create
-    /// one of these per racing caller, mirroring
-    /// <c>MailWakeBatchStoreTests</c>' "separate connections racing the same
-    /// file" shape.
+    /// global config directory. Concurrency tests create one of these per
+    /// racing caller.
     /// </summary>
     private MailStore CreateStore()
         => new(
@@ -370,8 +367,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // act
         var message = await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
 
-        // assert: the default policy is Skip, matching every other test in
-        // this file that does not pass wakePolicy explicitly.
+        // assert
         Assert.Empty(message.WakeReceipts);
         Assert.Null(await ReadOutboxRowAsync("bob", cancellationToken));
     }
@@ -425,8 +421,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var earliestDueAt = _timeProvider.GetUtcNow();
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        // act: settled_generation is still 0 (no batch has completed), so
-        // this second enqueue must not push due_at later than the first.
+        // act
         await SendAsync("claude", "second", ["bob"], null, cancellationToken, wakePolicy: MailWakePolicy.Enqueue);
 
         // assert
@@ -438,17 +433,16 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_AdvanceGenerationsWithoutLoss_When_ConcurrentSendsRaceTheSameRecipient()
     {
-        // arrange: separate MailStore instances (Pooling=False, matching
-        // production) racing the same file for the same recipient, mirroring
-        // MailWakeBatchStoreTests' concurrency shape.
+        // arrange: separate MailStore instances race the same recipient, matching production's non-pooled connections.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
         const int concurrentSends = 5;
 
         // act
-        var messages = await Task.WhenAll(Enumerable.Range(1, concurrentSends).Select(i =>
-            CreateStore().SendMessageAsync(
+        var messages = await ConcurrentTestHarness.RunAsync(
+            concurrentSends,
+            i => CreateStore().SendMessageAsync(
                 new MailMessageCreation
                 {
                     Sender = "claude",
@@ -457,11 +451,9 @@ public sealed class MailStoreTests : IAsyncDisposable
                     To = ["bob"],
                     WakePolicy = MailWakePolicy.Enqueue
                 },
-                cancellationToken)));
+                cancellationToken));
 
-        // assert: every generation from 1 through concurrentSends was
-        // handed out exactly once - no lost update collapsed two sends onto
-        // the same generation.
+        // assert: every generation from 1 through concurrentSends was handed out exactly once.
         var generations = messages.Select(m => Assert.Single(m.WakeReceipts).Generation).Order().ToArray();
         Assert.Equal(Enumerable.Range(1, concurrentSends).Select(i => (long)i), generations);
         var row = await ReadOutboxRowAsync("bob", cancellationToken);
@@ -471,10 +463,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_RollBackMessageAndRecipients_When_WakeOutboxWriteFailsMidTransaction()
     {
-        // arrange: an injected constraint failure - a trigger that aborts
-        // the wake-outbox write for one specific actor - proves the message,
-        // its recipient row, and the wake increment commit as a single unit:
-        // none of them exist afterward, not just the outbox row.
+        // arrange
+        // Abort the outbox insert for actor boom with a database trigger.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection = await SeedAsync(cancellationToken))
         {
@@ -506,9 +496,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_PersistNothing_When_CancelledBeforeAnyWriteObservesIt()
     {
-        // arrange: an already-cancelled token proves the "cancel before
-        // rollback" case - nothing about this send, including the wake
-        // increment, is observable afterward.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -527,11 +515,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_BeReconcilableByItsReturnedId_When_CommitSucceeds()
     {
-        // arrange: proves the mechanism a caller uses to reconcile an
-        // ambiguous outcome (a cancellation or transport failure observed
-        // only after the commit already landed) - re-querying by the id the
-        // store handed back always reflects the true committed state,
-        // message, recipients, and wake generation alike.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -551,10 +535,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Counts rows in <paramref name="table"/> matching
-    /// <paramref name="whereClause"/>, both compile-time literals at every
-    /// call site (never user input), for asserting a rolled-back write left
-    /// nothing behind.
+    /// Counts rows in <paramref name="table"/> matching <paramref name="whereClause"/>.
+    /// Both arguments are SQL fragments supplied by the test.
     /// </summary>
     private async Task<long> CountAsync(string table, string whereClause, CancellationToken cancellationToken)
     {
@@ -867,6 +849,200 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task TransferParticipationAsync_Should_MoveRecipientAndPreserveReadState()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var targetMessage = await SendAsync("claude", "target", ["target"], null, cancellationToken);
+        var unreadMessage = await SendAsync("claude", "unread", ["old"], null, cancellationToken);
+        var readMessage = await SendAsync("claude", "read", ["old"], null, cancellationToken);
+        await _store.MarkReadAsync([targetMessage.Id], "target", cancellationToken);
+        await _store.MarkReadAsync([readMessage.Id], "old", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("OLD", "TARGET", cancellationToken);
+        var inbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "target" }, cancellationToken);
+        var sourceInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken);
+
+        // assert
+        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
+            + $"{string.Join(",", result.SenderMessageIds)}|"
+            + string.Join(",", result.RecipientMessageIds))
+            .MatchInlineSnapshot(
+                $"2|0|0||{string.Join(",", new[] { readMessage.Id, unreadMessage.Id }.Order())}");
+        Assert.Equal(
+            new[] { readMessage.Id, targetMessage.Id, unreadMessage.Id }.Order(),
+            inbox.Select(t => t.Id).Order());
+        Assert.Equal(
+            [true, true, false],
+            inbox.OrderBy(t => t.Subject).Select(t => t.Recipients.Single().ReadAt is not null));
+        Assert.Empty(sourceInbox);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_AllowThirdPartyReplyToTransferredSentMessage()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var message = await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        var transfer = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var reply = await _store.ReplyMessageAsync(message.Id, "bob", "reply", cancellationToken);
+
+        // assert
+        ($"{transfer.RecipientsMoved}|{transfer.SendersMoved}|{transfer.Dropped}|"
+            + $"{string.Join(",", transfer.SenderMessageIds)}|"
+            + string.Join(",", transfer.RecipientMessageIds))
+            .MatchInlineSnapshot($"0|1|0|{message.Id}|");
+        Assert.Equal("bob", reply.Sender);
+        Assert.Equal(["target"], reply.Recipients.Select(t => t.Name));
+        Assert.Equal(message.ThreadId, reply.ThreadId);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_AllowTargetReplyToTransferredReceivedMessage()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var message = await SendAsync("claude", "received", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var reply = await _store.ReplyMessageAsync(message.Id, "target", "reply", cancellationToken);
+
+        // assert
+        Assert.Equal("target", reply.Sender);
+        Assert.Equal(["claude"], reply.Recipients.Select(t => t.Name));
+        Assert.Equal(message.ThreadId, reply.ThreadId);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_DropConflictingRecipientAndPreserveTargetState()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var message = await SendAsync("claude", "shared", ["old", "target"], null, cancellationToken);
+        await _store.MarkReadAsync([message.Id], "target", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+        var reloaded = await _store.GetRequiredMessageAsync(message.Id, cancellationToken);
+
+        // assert
+        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
+            + $"{string.Join(",", result.SenderMessageIds)}|"
+            + string.Join(",", result.RecipientMessageIds))
+            .MatchInlineSnapshot("0|0|1||");
+        var recipient = Assert.Single(reloaded.Recipients);
+        Assert.Equal("target", recipient.Name);
+        Assert.NotNull(recipient.ReadAt);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_IncludeTransferredParticipationInThreads()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var sent = await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        var received = await SendAsync("claude", "received", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var threads = await _store.QueryThreadsAsync("target", cancellationToken);
+
+        // assert
+        Assert.Equal(2, threads.Count);
+        Assert.Contains(threads, t => t.ThreadId == sent.ThreadId);
+        Assert.Contains(threads, t => t.ThreadId == received.ThreadId);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_IncludeTransferredParticipationInSearch()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var sent = await SendAsync("old", "matching", ["bob"], null, cancellationToken);
+        var received = await SendAsync("claude", "matching", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var results = await _store.SearchAsync("target", "matching", cancellationToken);
+
+        // assert
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, m => m.Id == sent.Id);
+        Assert.Contains(results, m => m.Id == received.Id);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_ReturnZeros_WhenRepeated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        await SendAsync("claude", "received", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // assert
+        Assert.Equal(new MailTransferResult(0, 0, 0), result);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_Throw_When_AgentsAreTheSame()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.TransferParticipationAsync("target", "TARGET", cancellationToken));
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_Throw_When_TargetAgentDoesNotExist()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.TransferParticipationAsync("old", "target", cancellationToken));
+    }
+
+    [Fact]
     public async Task MarkReadAsync_Should_RollBackAll_When_AnyIdNotAddressedToActor()
     {
         // arrange
@@ -935,9 +1111,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QueryInboxThreadsAsync_Should_ExcludeThread_When_OnlyMessageToActorIsArchived()
     {
-        // arrange: bob's only message in this thread is archived for him, so
-        // the default (includeArchived: false) query excludes the thread,
-        // matching BuildInboxQuery's message-level semantics.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -973,11 +1147,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QueryInboxThreadsAsync_Should_IncludeThread_When_SomeButNotAllMessagesToActorAreArchived()
     {
-        // arrange: bob is addressed by two separate messages in the same
-        // thread (claude replying into his own first message, still to
-        // bob), only one archived - the default query keeps the thread (it
-        // is not the case that "only" his messages are archived) and
-        // ArchivedCount reports 1.
+        // arrange
+        // Archive one of the two messages addressed to bob.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -1020,12 +1191,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QuerySentThreadsAsync_Should_ReportNonZeroUnreadCount_When_OtherAgentRepliedInThread()
     {
-        // arrange: bob's unread count on his own Sent thread is normally 0
-        // (see QuerySentThreadsAsync_Should_ReturnOnlyThreadsActorSentInto),
-        // but the doc contract on IMailStore.QuerySentThreadsAsync says it
-        // "can be non-zero when other agents replied in a thread the actor
-        // started" - carol's reply addresses bob, so bob has an unread
-        // recipient row on the thread he sent into.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);

@@ -172,6 +172,13 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables merging of fields whose return types differ only in nullability,
+    /// as proposed in GraphQL specification PR 883; defaults to <c>false</c>.
+    /// When disabled, such fields are a field selection merging validation error.
+    /// </summary>
+    bool EnableCovariantFieldMerging { get; }
+
+    /// <summary>
     /// Enables empty selection sets according to GraphQL specification PR 1227; defaults to <c>false</c>.
     /// When disabled, an empty selection set is a validation error, and an empty subscription root is invalid in either state.
     /// </summary>

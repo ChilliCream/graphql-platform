@@ -183,8 +183,18 @@ public class PagingTests
 
         // act
         var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
 
         // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("HC0082", error.Code);
+        Assert.Collection(
+            error.Locations!,
+            location =>
+            {
+                Assert.Equal(2, location.Line);
+                Assert.Equal(5, location.Column);
+            });
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
@@ -535,6 +545,7 @@ public class PagingTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument(operation)
+                .SetVariableValues("""{ "where": { "title": { "eq": "abc" } } }""")
                 .ReportCost()
                 .Build();
 
@@ -555,7 +566,7 @@ public class PagingTests
             JsonDocument.Parse(
                 """
                 {
-                    "fieldCost": 10,
+                    "fieldCost": 32,
                     "typeCost": 12
                 }
                 """);

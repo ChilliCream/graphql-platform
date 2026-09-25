@@ -5,18 +5,13 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The loaded state behind the agent detail view: the selected live
-/// participant's session diagnostics, the durable identity its session is
-/// bound to (if any), the tasks assigned to that identity, and the mail it
-/// has sent, each re-fetched independently on every <see cref="LoadAsync"/>
-/// call. An unbound session loads no tasks or mail: there is no actor to
-/// query them by.
+/// The selected participant, its bound identity, assigned tasks, and recent sent
+/// mail. An unbound session has no tasks or sent mail.
 /// </summary>
 internal sealed class AgentDetailModel
 {
     /// <summary>
-    /// The cap on how many sent messages are loaded, matching the ticket's
-    /// "sent mail, limit ~20" direction.
+    /// The cap on how many sent messages are loaded.
     /// </summary>
     private const int SentMailLimit = 20;
 
@@ -42,10 +37,8 @@ internal sealed class AgentDetailModel
     public AgentSessionParticipant? Participant { get; private set; }
 
     /// <summary>
-    /// The tasks assigned to the loaded participant's bound actor, empty for
-    /// an unbound session, in-progress tasks first, then open, then any
-    /// other non-closed, non-tombstone status, each group in the store's own
-    /// order.
+    /// Non-terminal tasks assigned to the bound actor, with in-progress tasks first,
+    /// then open tasks, then other states in store order. Empty for an unbound session.
     /// </summary>
     public IReadOnlyList<TaskItem> Tasks { get; private set; } = [];
 
@@ -85,12 +78,7 @@ internal sealed class AgentDetailModel
     }
 
     /// <summary>
-    /// Resets the model to its unloaded state: no current key, participant,
-    /// tasks, or sent mail. Used when the previously selected participant
-    /// vanishes (for example a refresh whose session ended or was reaped),
-    /// so the detail pane falls back to its "no session selected" state
-    /// instead of continuing to show the vanished session's stale
-    /// diagnostics.
+    /// Resets the model to its unloaded state: no current key, participant, tasks, or sent mail.
     /// </summary>
     public void Clear()
     {

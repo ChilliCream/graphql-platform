@@ -21,10 +21,8 @@ internal abstract record MailListRow
     public sealed record Thread(MailThreadSummary Summary, bool Expanded) : MailListRow;
 
     /// <summary>
-    /// A single message row: a flat-mode row when its <c>ThreadChild</c>
-    /// value is false, or one of an expanded thread's indented children when
-    /// true. Named <c>MessageRow</c>, not <c>Message</c>, because a
-    /// positional record cannot name a member the same as its own type.
+    /// A message row, indented beneath its thread when <c>ThreadChild</c> is true,
+    /// or shown in the flat list otherwise.
     /// </summary>
     public sealed record MessageRow(MailMessage Message, bool ThreadChild) : MailListRow;
 }

@@ -33,5 +33,10 @@ public enum HttpRequestKind
     /// <summary>
     /// HTTP POST GraphQL-SSE
     /// </summary>
-    HttpSse
+    HttpSse,
+
+    /// <summary>
+    /// HTTP QUERY GraphQL Request.
+    /// </summary>
+    HttpQuery
 }

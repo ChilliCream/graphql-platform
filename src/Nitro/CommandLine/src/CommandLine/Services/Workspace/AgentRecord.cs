@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// A registered agent, shared by every workspace feature that needs
-/// identity: tasks, mail, and anything added afterward.
+/// An agent identity shared by workspace features.
 /// </summary>
 internal sealed record AgentRecord
 {
@@ -18,15 +17,12 @@ internal sealed record AgentRecord
     public required string Role { get; init; }
 
     /// <summary>
-    /// The client program the agent runs as, e.g. "claude-code" or "codex",
-    /// free text, normalized lowercase. Empty means unknown. Provenance
-    /// only: nothing filters or branches on it.
+    /// The normalized lowercase client program name, or empty when unknown.
     /// </summary>
     public required string Client { get; init; }
 
     /// <summary>
-    /// True when this row was created for an unknown recipient that has
-    /// never acted itself, rather than by an explicit registration.
+    /// True for a placeholder identity that has not been registered or marked active.
     /// </summary>
     public required bool Implicit { get; init; }
 

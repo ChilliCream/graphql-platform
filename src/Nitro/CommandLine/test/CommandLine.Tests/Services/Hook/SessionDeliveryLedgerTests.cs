@@ -3,16 +3,14 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="SessionDeliveryLedger"/>'s reserve-then-emit
-/// contract directly against a real workspace database: at-most-once
-/// reservation per (session, message, channel), channel independence, and
-/// the crash-between-reserve-and-emit and simultaneous-handler scenarios
-/// named in the mail notification plan's required tests.
+/// Tests <see cref="SessionDeliveryLedger"/> reservation uniqueness, channel
+/// independence, delivery lookup, and session ownership against a real workspace database.
 /// </summary>
 public sealed class SessionDeliveryLedgerTests : IDisposable
 {
     private const string Harness = "claude-code";
     private const string SessionId = "session-1";
+    private static readonly AgentSessionGeneration s_generation = new(Harness, SessionId, "host-1");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -38,13 +36,67 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        // act: no workspace was even initialized - proves this short-circuits
-        // before opening a connection.
+        // act
+        // The workspace directory has no initialized database.
         var reserved = await _ledger.ReserveAsync(
-            Harness, SessionId, [], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, [], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Empty(reserved);
+    }
+
+    [Fact]
+    public async Task FindDeliveredAsync_Should_ReturnEmpty_When_MessageIdsIsEmpty()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var generation = new AgentSessionGeneration(Harness, SessionId, "host-1");
+
+        // act
+        var delivered = await _ledger.FindDeliveredAsync(generation, [], cancellationToken);
+
+        // assert
+        Assert.Empty(delivered);
+    }
+
+    [Fact]
+    public async Task FindDeliveredAsync_Should_ReturnDeliveredMessageIdsInInputOrder_When_DeliveredAcrossChannels()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var generation = new AgentSessionGeneration(Harness, SessionId, "host-1");
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
+        await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-1"], AgentSessionChannel.Digest, DateTimeOffset.UtcNow, cancellationToken);
+        await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-2"], AgentSessionChannel.Gate, DateTimeOffset.UtcNow, cancellationToken);
+        await _ledger.ReserveAsync(
+            Harness, SessionId, ["m-3"], AgentSessionChannel.Ping, DateTimeOffset.UtcNow, cancellationToken);
+
+        // act
+        var delivered = await _ledger.FindDeliveredAsync(
+            generation, ["m-3", "m-missing", "m-1", "m-2"], cancellationToken);
+
+        // assert
+        Assert.Equal(["m-3", "m-1", "m-2"], delivered);
+    }
+
+    [Fact]
+    public async Task FindDeliveredAsync_Should_IgnoreRowsFromDifferentSession()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var generation = new AgentSessionGeneration(Harness, SessionId, "host-1");
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, "session-2");
+        await _ledger.ReserveAsync(
+            Harness, "session-2", ["m-1"], AgentSessionChannel.Digest, DateTimeOffset.UtcNow, cancellationToken);
+
+        // act
+        var delivered = await _ledger.FindDeliveredAsync(generation, ["m-1"], cancellationToken);
+
+        // assert
+        Assert.Empty(delivered);
     }
 
     [Fact]
@@ -52,11 +104,11 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAndSessionAsync(cancellationToken);
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
 
         // act
         var reserved = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-1", "m-2", "m-3"], reserved);
@@ -65,18 +117,15 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     [Fact]
     public async Task ReserveAsync_Should_ExcludeAlreadyReservedMessageId_When_CalledAgain()
     {
-        // arrange: simulates crash-between-reserve-and-emit - the first call
-        // reserves and is treated as delivered even though nothing ever
-        // "emits" past it, and a later call for the same message on the
-        // same channel must not reserve it a second time.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAndSessionAsync(cancellationToken);
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
         await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // act
         var reserved = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1", "m-2", "m-3"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-3"], reserved);
@@ -85,18 +134,17 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     [Fact]
     public async Task ReserveAsync_Should_ReserveIndependently_When_ChannelDiffers()
     {
-        // arrange: a digest reservation must never suppress the same message
-        // on the gate or ping channel.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAndSessionAsync(cancellationToken);
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
         await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
         // act
         var reservedGate = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
         var reservedPing = await _ledger.ReserveAsync(
-            Harness, SessionId, ["m-1"], "ping", DateTimeOffset.UtcNow, cancellationToken);
+            s_generation, ["m-1"], "ping", DateTimeOffset.UtcNow, cancellationToken);
 
         // assert
         Assert.Equal(["m-1"], reservedGate);
@@ -106,23 +154,42 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     [Fact]
     public async Task ReserveAsync_Should_SplitReservationExactlyOnce_When_TwoSimultaneousHandlersRaceTheSameMessage()
     {
-        // arrange: two "handlers" (Stop and a retried notify, for example)
-        // race to reserve the same message on the same channel.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAndSessionAsync(cancellationToken);
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
 
         // act
-        var results = await Task.WhenAll(
-            _ledger.ReserveAsync(Harness, SessionId, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken),
-            _ledger.ReserveAsync(Harness, SessionId, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
+        var results = await ConcurrentTestHarness.RunAsync(
+            2,
+            _ => new SessionDeliveryLedger(_fileSystem, _database)
+                .ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
 
-        // assert: exactly one of the two calls won the reservation, never
-        // both and never neither.
+        // assert
         var totalReserved = results.Sum(r => r.Count);
         Assert.Equal(1, totalReserved);
     }
 
-    private async Task InitializeWorkspaceAndSessionAsync(CancellationToken cancellationToken)
+    [Fact]
+    public async Task ReserveAsync_Should_ExcludeAStaleGeneration_When_TheSessionHostWasReplaced()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var replacement = new AgentSessionGeneration(Harness, SessionId, "host-2");
+        await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
+        await ReplaceSessionHostAsync(replacement.Host, cancellationToken);
+
+        // act
+        var staleReserved = await _ledger.ReserveAsync(
+            s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+        var replacementReserved = await _ledger.ReserveAsync(
+            replacement, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken);
+
+        // assert
+        Assert.Empty(staleReserved);
+        Assert.Equal(["m-1"], replacementReserved);
+    }
+
+    private async Task InitializeWorkspaceAndSessionAsync(CancellationToken cancellationToken, string sessionId)
     {
         await using var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
         await using var command = connection.CreateCommand();
@@ -132,10 +199,25 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
                 harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
             ) VALUES (
-                'claude-code', 'session-1', NULL, 'none', 'host-1',
+                'claude-code', @sessionId, NULL, 'none', 'host-1',
                 '/work', '/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00Z', '2026-01-10T12:00:00Z'
             );
             """;
+
+        command.Parameters.AddWithValue("@sessionId", sessionId);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private async Task ReplaceSessionHostAsync(string host, CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET host = @host WHERE harness = @harness AND session_id = @sessionId";
+        command.Parameters.AddWithValue("@host", host);
+        command.Parameters.AddWithValue("@harness", Harness);
+        command.Parameters.AddWithValue("@sessionId", SessionId);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }

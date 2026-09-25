@@ -552,6 +552,47 @@ public partial class ActivityExecutionDiagnosticListenerTests
     }
 
     [Fact]
+    public async Task CostAnalyzer_RejectedRequest_ReportsOperationFromNormalizedDocument()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var services = new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                    o.Scopes = ActivityScopes.All)
+                .AddCostAnalyzer()
+                .ModifyCostOptions(o => o.MaxTypeCost = 0)
+                .AddQueryType<SimpleQuery>()
+                .UseRequest(
+                    next => context =>
+                    {
+                        context.OperationDocumentInfo.NormalizedDocument =
+                            Utf8GraphQLParser.Parse("query GetHello { sayHello }");
+                        return next(context);
+                    },
+                    key: "TestNormalizedDocument",
+                    after: WellKnownRequestMiddleware.DocumentValidationMiddleware)
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query GetHello { sayHello } query Other { sayHello }")
+                .SetOperationName("Other")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task DataLoader_BatchExecution_RecordsBatchSpan()
     {
         using (CaptureActivities(out var activities))

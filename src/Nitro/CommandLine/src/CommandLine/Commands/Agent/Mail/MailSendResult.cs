@@ -25,9 +25,7 @@ internal sealed record MailSendResult
     public required IReadOnlyList<string> Unregistered { get; init; }
 
     /// <summary>
-    /// Always true: this result exists only after the message durably
-    /// committed. Storage failures never produce a <see cref="MailSendResult"/>;
-    /// they surface through the ordinary command error path instead.
+    /// Always true: this result exists only after the message durably committed.
     /// </summary>
     public required bool MessageStored { get; init; }
 

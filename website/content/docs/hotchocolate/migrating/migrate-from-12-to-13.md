@@ -446,7 +446,7 @@ public IQueryable<User> GetUsers(MyDbContext dbContext)
     => dbContext.Users;
 ```
 
-If you've been using `[ScopedService]` without a pooled `DbContext`, you can recreate its behavior by switching it out for `[LocalState("FullName")]` (where `FullName` is the [full name](https://learn.microsoft.com/dotnet/api/system.type.fullname) of the method argument type).
+If you've been using `[ScopedService]` without a pooled `DbContext`, you can recreate its behavior by switching it out for `#!csharp [LocalState("FullName")]` (where `FullName` is the [full name](https://learn.microsoft.com/dotnet/api/system.type.fullname) of the method argument type).
 
 ## SubscribeAndResolve
 

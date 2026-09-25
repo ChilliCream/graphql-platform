@@ -24,9 +24,7 @@ internal sealed class SessionGateCoordinator(
 
         if (slot is null)
         {
-            // The gate was reserved for nothing: release it immediately so
-            // this rejected attempt never costs the target an undeserved
-            // cooldown.
+            // Releases the session gate when no transport slot is available.
             await gateStore.ReleaseAsync(target, attemptId, cancellationToken);
             return WakeReservationResult.Rejected(WakeReservationFailure.CapacityDropped);
         }
@@ -44,10 +42,7 @@ internal sealed class SessionGateCoordinator(
 
         if (success)
         {
-            // Extends the gate rather than releasing it: a successful
-            // attempt starts this generation's cooldown, so an immediately
-            // following wake for the same actor finds it busy instead of
-            // re-pinging a session that was just reached.
+            // A successful attempt starts the session's cooldown.
             await gateStore.TryRenewAsync(
                 reservation.Target, reservation.AttemptId, now, PingPolicy.Cooldown, cancellationToken);
         }

@@ -3,17 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Loads the memory tab's curated and journal lists from the memory store,
-/// through the same reads the CLI's <c>recent</c> and <c>search</c> commands
-/// use: <see cref="IMemoryStore.SearchCuratedAsync"/>/<see cref="IMemoryStore.SearchJournalAsync"/>
-/// once a <see cref="MemoryQuery"/> carries free text, or
-/// <see cref="IMemoryStore.GetRecentCuratedAsync"/>/<see cref="IMemoryStore.GetRecentJournalAsync"/>
-/// otherwise, narrowed client side by a <see cref="MemoryQuery"/>'s type and
-/// tags when it has no free text (an empty FTS5 literal match is not a
-/// query the store's search API is asked to answer): the recent read pulls
-/// every candidate row unbounded, filters, then applies the limit, so a
-/// type or tag filter narrows the returned page instead of narrowing an
-/// already-limited page. Issues no SQL of its own.
+/// Loads up to 200 curated memories or journal entries for the parsed query.
+/// Type and tag filters apply only to curated memories.
 /// </summary>
 internal sealed class MemoryDataLoader(IMemoryStore store)
 {

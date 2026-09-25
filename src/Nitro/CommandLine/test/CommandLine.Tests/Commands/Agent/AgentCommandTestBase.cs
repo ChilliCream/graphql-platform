@@ -66,13 +66,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts a live <c>agent_sessions</c> row on <paramref name="host"/>
-    /// for the current test process's own pid and start time, so the
-    /// registry's liveness check reports it alive when <paramref name="host"/>
-    /// is the workspace's current instance id. Used to seed presence
-    /// scenarios (<c>agent list</c>'s presence column, the TUI Agents tab's
-    /// presence badge) without going through the (not-yet-built) hook
-    /// adapters.
+    /// Inserts a session on <paramref name="host"/> with fresh start and heartbeat timestamps
+    /// and the supplied endpoint and ping state. A null <paramref name="agentName"/>
+    /// leaves the session without an associated agent.
     /// </summary>
     protected async Task InsertAliveSessionRowAsync(
         string host,
@@ -83,7 +79,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
         string endpointKind = "none",
         string endpointAddr = "",
         string role = "",
-        string harnessVersion = "")
+        string harnessVersion = "",
+        string? lastPingResult = null,
+        string? lastPingDetail = null)
     {
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
@@ -105,11 +103,11 @@ public abstract class AgentCommandTestBase : CommandTestBase
             INSERT INTO agent_sessions (
                 harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                role, harness_version
+                role, harness_version, last_ping_result, last_ping_detail
             ) VALUES (
                 $harness, $sessionId, $agentName, $bindingKind, $host,
                 '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now,
-                $role, $harnessVersion
+                $role, $harnessVersion, $lastPingResult, $lastPingDetail
             );
             """;
         command.Parameters.AddWithValue("$harness", harness);
@@ -122,15 +120,15 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
         command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
+        command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
+        command.Parameters.AddWithValue("$lastPingDetail", (object?)lastPingDetail ?? DBNull.Value);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 
     /// <summary>
-    /// Updates the mutable role on the session row matching <paramref name="host"/>
-    /// and <paramref name="sessionId"/>, standing in for the same-row role
-    /// promotion <c>IAgentSessionRegistry.RegisterAsync</c> applies, without
-    /// requiring a detectable harness ancestor process in the test.
+    /// Updates the role on all session rows matching <paramref name="host"/>
+    /// and <paramref name="sessionId"/>.
     /// </summary>
     protected async Task UpdateSessionRoleAsync(string host, string sessionId, string role)
     {

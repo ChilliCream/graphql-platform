@@ -58,7 +58,7 @@ operationPlan:
           b @skip(if: $s)
         }
       name: testQuery
-      hash: 337dd2aac6522eb1350cd6b4ea833dc0
+      hash: fb1ca071f02029360c5f14e331eb4443
       searchSpace: 1
       expandedNodes: 1
   nodes:

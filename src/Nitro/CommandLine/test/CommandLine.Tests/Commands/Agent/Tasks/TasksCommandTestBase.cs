@@ -4,8 +4,7 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
 /// <summary>
-/// Runs task commands against a real SQLite workspace in a per-test temp
-/// directory named "acme", so the derived task ID prefix is deterministic.
+/// Provides a temporary <c>acme</c> directory for task commands and database helpers.
 /// </summary>
 public abstract class TasksCommandTestBase : CommandTestBase
 {
@@ -58,15 +57,15 @@ public abstract class TasksCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Runs a scalar query against the workspace database and returns the
-    /// first column of the first row as a string.
+    /// Returns the first column of the first query row from the workspace database
+    /// as a string, or null for no row or a SQL null.
     /// </summary>
     protected Task<string?> QueryScalarAsync(string sql)
         => QueryScalarAsync(sql, DatabasePath);
 
     /// <summary>
-    /// Runs a scalar query against the database at the given path and
-    /// returns the first column of the first row as a string.
+    /// Returns the first column of the first query row from the specified database
+    /// as a string, or null for no row or a SQL null.
     /// </summary>
     protected async Task<string?> QueryScalarAsync(string sql, string databasePath)
     {
@@ -85,10 +84,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts a dependency edge directly into the workspace database,
-    /// bypassing ITaskStore's cycle rejection. Used to seed a cycle that
-    /// reached the database some other way (a legacy import, a manual
-    /// edit) so cycle-detection commands have something to find.
+    /// Inserts a dependency edge without checking for cycles.
     /// </summary>
     protected async Task InsertDependencyAsync(string taskId, string dependsOnId, string type = "blocks")
     {
@@ -111,9 +107,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Sets a task's status directly in the workspace database, bypassing
-    /// ITaskStore's transition rules. Used to seed a task in a status the
-    /// normal command surface cannot reach directly, such as archived.
+    /// Sets the status of an existing task without enforcing transition rules.
     /// </summary>
     protected async Task SetTaskStatusAsync(string taskId, string status)
     {

@@ -3,27 +3,19 @@ using System.Text.Json;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The fail-open envelope <c>nitro agent hook codex notify</c> runs through:
-/// argv-based (not stdin, unlike every other member of this namespace, spike
-/// S2), and its exit code IS part of the contract rather than always
-/// success, because the install-flow's foreign-wrapping guarantee
-/// ("preserving argv/stdin/cwd/exit code") requires this process to finish
-/// with the WRAPPED foreign program's own exit code when one is configured.
-/// Our own work never blocks the foreign program from running: a malformed
-/// payload, a handler exception, or the entry timeout all still fall through
-/// to attempting the foreign exec.
+/// Runs Nitro notify handling, then attempts the configured foreign notify command
+/// even if Nitro handling fails or times out. Returns the foreign exit code when
+/// available, or zero when no exit code is obtained.
 /// </summary>
 internal static class CodexNotifyExecutor
 {
     /// <summary>
-    /// Same failure ceiling as <see cref="CodexHookExecutor.EntryTimeout"/>.
+    /// The default timeout for Nitro notify handling, excluding the foreign command.
     /// </summary>
     public static readonly TimeSpan EntryTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// The exit code when no foreign program is configured (nothing to
-    /// preserve an exit code FROM): success, the same fail-open contract
-    /// every other adapter in this namespace uses.
+    /// The exit code when no foreign exit code is available.
     /// </summary>
     private const int NoForeignExitCode = 0;
 
@@ -36,11 +28,6 @@ internal static class CodexNotifyExecutor
         => RunAsync(
             environmentVariables, handleOurWork, execForeign, payloadJson, EntryTimeout, cancellationToken);
 
-    /// <summary>
-    /// Overload taking an explicit <paramref name="timeout"/> so a test can
-    /// prove the timeout path still reaches the foreign exec without waiting
-    /// out the real entry timeout.
-    /// </summary>
     internal static async Task<int> RunAsync(
         IEnvironmentVariableProvider environmentVariables,
         Func<CodexNotifyPayload, CancellationToken, Task<CodexNotifyOutcome>> handleOurWork,
@@ -54,10 +41,7 @@ internal static class CodexNotifyExecutor
             await RunOurWorkAsync(handleOurWork, payloadJson, timeout, cancellationToken);
         }
 
-        // Suppressed or not, our own no-loop reentrancy guard
-        // (NITRO_HOOK_SUPPRESS) is only about OUR mail work re-entering
-        // through a spawned relay - it must never suppress the foreign
-        // program the operator originally configured.
+        // NITRO_HOOK_SUPPRESS does not suppress the foreign notify command.
         var foreignExitCode = await TryExecForeignAsync(execForeign, cancellationToken);
 
         return foreignExitCode ?? NoForeignExitCode;
@@ -87,18 +71,11 @@ internal static class CodexNotifyExecutor
 
             await Task.WhenAny(runTask, timeoutTask);
 
-            // Either the handler finished (its outcome is not otherwise
-            // consumed here - the foreign exec below is unconditional) or
-            // the entry timeout won the race, in which case `runTask` is
-            // deliberately abandoned rather than awaited, same reasoning as
-            // CodexHookExecutor: a handler ignoring cancellation must not be
-            // allowed to keep this call past the deadline.
+            // The foreign command is attempted after the handler completes or the timeout elapses.
         }
         catch
         {
-            // Fail-open on EVERYTHING: malformed payload JSON or a handler
-            // exception (database contention, a schema version mismatch).
-            // The foreign exec below still runs regardless.
+            // Nitro handling failures do not prevent the foreign command from being attempted.
         }
     }
 
@@ -111,8 +88,7 @@ internal static class CodexNotifyExecutor
         }
         catch
         {
-            // Fail-open: a spawn-time failure in the caller's own foreign-exec
-            // delegate must not crash this process either.
+            // A failed foreign invocation supplies no exit code.
             return null;
         }
     }

@@ -26,7 +26,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
               --subject <subject> (REQUIRED)  The message subject
               --body <body>                   The message body; use --body-file to read it from a file instead
               --body-file <body-file>         A file to read the message body from; use it instead of --body
-              --role <role>                   The actor role, normalized lowercase
+              --role <role>                   The actor role, normalized lowercase. Known roles: orchestrator, planner, implementer, reviewer, researcher; any other value is accepted.
               --actor <actor> (REQUIRED)      The actor performing this command; allocate one with `nitro agent login`
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
@@ -103,8 +103,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_SendsOnlyToLiveAgentsWithThatRole()
     {
-        // arrange: durable registration alone is not enough - each candidate
-        // needs a live session bound with that role, per the fix direction.
+        // arrange
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-role-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -154,9 +153,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ExcludesClosedHistoricalIdentity_ReturnsNoLiveRecipientError()
     {
-        // arrange: zeta once registered as orchestrator, but has no live
-        // session at all now (the session ended, its row was reaped or
-        // deleted) - a planner-style role lookup must not find it.
+        // arrange
+        // Seed a registered orchestrator identity without a session.
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("zeta", "orchestrator");
@@ -176,10 +174,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_FallsBackToTheDurableRole_When_TheLiveSessionsOwnRoleIsBlank()
     {
-        // arrange: a session bound before role-aware registration (xy9.5)
-        // never had its own role written, so discovery falls back to the
-        // durable identity's role for it - but a closed identity with the
-        // same durable role and no live session at all still is not found.
+        // arrange
+        // Only zeta has a live session, with a blank role and an orchestrator identity.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-fallback-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -206,9 +202,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ExcludesAnImplicitIdentity_EvenWhenItsLiveSessionHasTheRole()
     {
-        // arrange: an implicit identity (never registered itself) whose live
-        // session was directly given a matching role - still excluded,
-        // mirroring the plain broadcast's exclusion of implicit rows.
+        // arrange
+        // Seed an implicit identity with a live backend session.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-implicit-test");
@@ -231,8 +226,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_DedupesMultipleLiveSessionsForTheSameActor()
     {
-        // arrange: zeta has two live sessions both claiming orchestrator -
-        // the broadcast must reach the actor once, not twice.
+        // arrange
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-dedup-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -264,9 +258,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ReflectsTheCurrentRole_AfterTheLiveSessionsRoleChanges()
     {
-        // arrange: zeta's live session starts as backend, then its role
-        // changes to orchestrator - discovery must follow the session's
-        // current role, not the role it had when the row was created.
+        // arrange
+        // Change the session role from backend to orchestrator before discovery.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-rolechange-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -300,9 +293,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ExcludesAnUnboundSession()
     {
-        // arrange: a role can only end up on a session together with a
-        // binding through RegisterAsync, but discovery must not trust the
-        // role column alone - it must also require the session be bound.
+        // arrange
+        // Seed a session with an orchestrator role and no bound agent.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-unbound-test");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
@@ -324,13 +316,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task MailRoleRecipients_ResolvedRecipient_StillDeliversDurably_When_TheSessionEndsBeforeSend()
     {
-        // arrange: this pins MailRoleRecipients composed directly with
-        // IMailStore.SendMessageAsync, not BroadcastMailCommand's own wiring
-        // (its resolve-then-send has no interleaving point to race). Resolve
-        // the role-targeted recipient, then end the session before the
-        // durable send actually runs - discovery only feeds durable actor
-        // names into the same async send path every mail command uses, so
-        // the send must not depend on the row still existing.
+        // arrange
+        // Resolve the recipient before deleting its session and sending through the mail store.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
@@ -383,7 +370,7 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
             ✓ Sent '{id}' to zeta.
             """);
         var call = Assert.Single(queueClient.Calls);
-        Assert.Equal("thread-zeta", call.ThreadId);
+        Assert.Equal(("thread-zeta", id, "Deploying."), ReadDigestCall(call));
     }
 
     [Fact]

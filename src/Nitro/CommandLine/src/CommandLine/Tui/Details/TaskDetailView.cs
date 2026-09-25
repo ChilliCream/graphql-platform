@@ -35,9 +35,7 @@ internal sealed class TaskDetailView
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the body's
-    /// viewport can settle on, bounding how many times reserving space for
-    /// them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
@@ -124,11 +122,8 @@ internal sealed class TaskDetailView
     }
 
     /// <summary>
-    /// The number of rows the sidebar's content occupies once its lines wrap
-    /// to the interior width the sidebar panel renders at <paramref name="width"/>,
-    /// matching the wrapping <see cref="RenderSidebarPanel"/>'s underlying
-    /// panel applies so the fixed panel height it is sized against never
-    /// clips a wrapped line.
+    /// The number of rows the sidebar's content occupies once its lines wrap to the interior width
+    /// <see cref="RenderSidebarPanel"/> renders at <paramref name="width"/>.
     /// </summary>
     private int SidebarLineCount(int width)
     {
@@ -198,11 +193,9 @@ internal sealed class TaskDetailView
             : "Detail";
 
     /// <summary>
-    /// Slices the body's visible window, reserving rows for "N more
-    /// above/below" indicators once the lines no longer fit
-    /// <paramref name="interiorHeight"/>, keeping the selected dependency or
-    /// blocks row visible when the row selection changes, and padding the
-    /// result with blank lines so the panel's border reaches the bottom.
+    /// Slices the body's visible window, reserving rows for "N more above/below" indicators once the
+    /// lines no longer fit <paramref name="interiorHeight"/>, keeps the selected dependency or blocks
+    /// row visible when the row selection changes, and pads the result with blank lines to that height.
     /// </summary>
     private IReadOnlyList<string> RenderBodyLines(IReadOnlyList<TaskDetailBodyLine> lines, int interiorHeight)
     {
@@ -255,9 +248,7 @@ internal sealed class TaskDetailView
     }
 
     /// <summary>
-    /// Wraps one already-escaped display line as markup. A blank line is
-    /// rendered as a single space: <see cref="Panel"/> silently drops a
-    /// literal empty content row instead of showing it blank.
+    /// Wraps one already-escaped display line as markup. A blank line is rendered as a single space.
     /// </summary>
     private static IRenderable Row(string line) => new Markup(line.Length == 0 ? " " : line);
 

@@ -7,24 +7,8 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Exercises <see cref="AgentDatabase"/>'s version state machine and the
-/// unified schema it applies, against a real SQLite file: empty/v0
-/// initialization, v2-in-place upgrade preserving existing rows, a v3
-/// database that predates the client column and the v4 session tables
-/// gaining both in place, a v4 database gaining the v5 agent_sessions role,
-/// harness_version, and process_scope columns in place without losing its
-/// session, delivery, or bound-agent rows, a v5 database gaining the v6
-/// agent_sessions proc_start_legacy column in place with every existing row
-/// marked legacy (its proc_start predates raw start ticks) without losing
-/// its proc_start value, v2/v3/v4/v5 connection rejection, unified-path v1
-/// rejection, v7 (newer-than-current) rejection (including re-initializing
-/// an already-current file, the shape --force reinit takes), the
-/// agent_sessions table's foreign-key and cross-column CHECK constraints
-/// under foreign_keys=ON, a v4 database whose last_ping_result CHECK
-/// constraint predates 'unsupported' gaining the rebuilt constraint in
-/// place without losing rows or its session_deliveries cascade (and every
-/// row it carries forward marked proc_start_legacy since it predates raw
-/// ticks too), and that task and mail data coexist in one file.
+/// Tests <see cref="AgentDatabase"/> initialization, supported schema upgrades,
+/// version rejection, and schema constraints against real SQLite files.
 /// </summary>
 public sealed class AgentDatabaseTests : IDisposable
 {
@@ -145,6 +129,82 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     [Fact]
+    public async Task InitializeAsync_Should_UpgradeV11AndPreserveRows_When_TakeoverTablesAreMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO tasks (id, title, created_at, updated_at)
+                VALUES ('task-v11', 'Preserve me', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+                DROP TABLE agent_takeover_items;
+                DROP TABLE agent_takeovers;
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("Preserve me", await QueryScalarStringAsync(
+            upgraded, "SELECT title FROM tasks WHERE id = 'task-v11'", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
+            cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
+            cancellationToken));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_LeaveTakeoverRowsUnchanged_When_DatabaseIsCurrent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agent_takeovers (
+                    id, from_actor, to_actor, actor, created_at, forced, role, reason
+                ) VALUES (
+                    'to-current', 'maya', 'nora', 'maya', '2026-01-10T12:00:00+00:00', 1, NULL, NULL
+                );
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var reopened = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(reopened, "PRAGMA user_version", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            reopened, "SELECT COUNT(*) FROM agent_takeovers WHERE id = 'to-current'", cancellationToken));
+    }
+
+    [Fact]
+    public void IsUpgradableVersion_Should_ReturnTrue_When_VersionIs11()
+    {
+        // act
+        var isUpgradable = AgentDatabase.IsUpgradableVersion(11);
+
+        // assert
+        Assert.True(isUpgradable);
+    }
+
+    [Fact]
     public async Task InitializeAsync_Should_BeIdempotent_When_CalledAgainOnCurrentVersion()
     {
         // arrange
@@ -161,11 +221,270 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(AgentDatabase.CurrentVersion, version);
     }
 
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ConstraintPredatesOpencode()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                DROP TABLE agent_session_identities;
+                CREATE TABLE agent_session_identities (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    actor TEXT NOT NULL UNIQUE REFERENCES agents (name),
+                    role TEXT NOT NULL DEFAULT '',
+                    actor_revision INTEGER NOT NULL DEFAULT 1 CHECK (actor_revision > 0),
+                    created_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id)
+                );
+                CREATE INDEX idx_agent_session_identities_actor
+                    ON agent_session_identities (actor);
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await ExecuteAsync(
+            upgraded,
+            """
+            INSERT INTO agents (name, registered_at, last_seen_at)
+            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agent_session_identities (
+                harness, session_id, actor, created_at, last_seen_at
+            ) VALUES (
+                'opencode', 'session-1', 'maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("opencode", await QueryScalarStringAsync(
+            upgraded,
+            "SELECT harness FROM agent_session_identities WHERE session_id = 'session-1'",
+            cancellationToken));
+    }
+
     /// <summary>
-    /// Seeds a raw v2-shaped agents table, predating the role and implicit
-    /// columns, with one row, mirroring a database left by a pre-.8 CLI.
-    /// InitializeAsync must add the columns in place, without losing the
-    /// row, and stamp the current version.
+    /// Seeds a raw v13-shaped <c>agent_sessions</c> table, predating the v14
+    /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns, with
+    /// one populated row. InitializeAsync must add both columns defaulted
+    /// to <c>0</c>, without losing the existing row, and stamp the current
+    /// version.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AddAnnouncementAndIdlePushColumns_When_ExistingVersionIsV13()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL REFERENCES agents (name),
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    endpoint_secret TEXT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    role TEXT NOT NULL DEFAULT '',
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+                ) VALUES (
+                    'opencode', 'session-v13', 'maya', 'explicit', 'host-a',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096',
+                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+                );
+
+                PRAGMA user_version = 13;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+
+        var columns = (await QueryColumnNamesAsync(upgraded, "agent_sessions", cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("announcement_pending", columns);
+        Assert.Contains("idle_push_armed", columns);
+
+        var survivingIdentity = await QueryScalarStringAsync(
+            upgraded,
+            """
+            SELECT agent_name || '|' || host || '|' || endpoint_addr
+            FROM agent_sessions
+            WHERE session_id = 'session-v13'
+            """,
+            cancellationToken);
+        Assert.Equal("maya|host-a|http://127.0.0.1:4096", survivingIdentity);
+
+        var armedFlags = await QueryScalarLongAsync(
+            upgraded,
+            "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v13'",
+            cancellationToken);
+        Assert.Equal(0, armedFlags);
+    }
+
+    /// <summary>
+    /// Tests upgrading a v13 database with Opencode endpoint and announcement
+    /// fields but no takeover tables. Preserves the seeded session and agent values
+    /// while adding takeover tables and stamping the current version.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AddTakeoverLedgerTables_When_ExistingVersionIsPreMergeBranchStamped13()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL REFERENCES agents (name),
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    endpoint_secret TEXT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    role TEXT NOT NULL DEFAULT '',
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    announcement_pending INTEGER NOT NULL DEFAULT 0 CHECK (announcement_pending IN (0, 1)),
+                    idle_push_armed INTEGER NOT NULL DEFAULT 0 CHECK (idle_push_armed IN (0, 1)),
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
+                    announcement_pending, idle_push_armed
+                ) VALUES (
+                    'opencode', 'session-premerge13', 'maya', 'explicit', 'host-a',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096', 'top-secret',
+                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                    1, 1
+                );
+
+                PRAGMA user_version = 13;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
+            cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
+            cancellationToken));
+
+        var survivingSession = await QueryScalarStringAsync(
+            upgraded,
+            """
+            SELECT agent_name || '|' || endpoint_addr || '|' || endpoint_secret
+            FROM agent_sessions
+            WHERE session_id = 'session-premerge13'
+            """,
+            cancellationToken);
+        Assert.Equal("maya|http://127.0.0.1:4096|top-secret", survivingSession);
+
+        var preservedFlags = await QueryScalarLongAsync(
+            upgraded,
+            "SELECT announcement_pending + idle_push_armed FROM agent_sessions "
+            + "WHERE session_id = 'session-premerge13'",
+            cancellationToken);
+        Assert.Equal(2, preservedFlags);
+
+        var survivingAgent = await QueryScalarStringAsync(
+            upgraded, "SELECT client FROM agents WHERE name = 'maya'", cancellationToken);
+        Assert.Equal("opencode", survivingAgent);
+    }
+
+    /// <summary>
+    /// Tests upgrading a v2 agents table with an existing row to the current schema,
+    /// including default role, implicit, and client values and a session table.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_UpgradeAgentsTableInPlace_When_ExistingVersionIsUpgradable()
@@ -219,14 +538,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a v3-shaped agents table (role and implicit present, client
-    /// absent) with no session tables, mirroring an existing workspace at
-    /// this bead's start, such as this repo's own `.nitro/agents/` before
-    /// `init --force`. Column upgrades are never gated on
-    /// version == a single UpgradableVersion, so a v3 database gains both
-    /// the client column and the new v4 session tables in the same pass,
-    /// and reads through <see cref="AgentRecord.Columns"/> succeed
-    /// afterward instead of failing with "no such column: client".
+    /// Tests adding client metadata and a session table to a database stamped v3
+    /// while preserving the existing agent role.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AddClientColumn_When_ExistingVersionIsCurrentButPredatesClient()
@@ -280,14 +593,9 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a fully v4-shaped database, predating the v5
-    /// <c>role</c>/<c>harness_version</c>/<c>process_scope</c> columns, with
-    /// a populated <c>agent_sessions</c> row bound to a real agent and a
-    /// cascading <c>session_deliveries</c> row, mirroring an existing
-    /// workspace at this bead's start. InitializeAsync must add the three
-    /// new columns in place, defaulted to the empty string, without losing
-    /// the session row, the delivery ledger row, or the bound agent
-    /// identity.
+    /// Tests upgrading v4 session metadata with blank role and harness-version
+    /// defaults and no process-scope column. Preserves the session, its delivery
+    /// row, and the bound agent's role.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_UpgradeAgentSessionsMetadataColumns_When_ExistingVersionIsV4()
@@ -414,17 +722,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a fully v5-shaped database (role, harness_version, and
-    /// process_scope already present), predating the v6
-    /// <c>proc_start_legacy</c> column, with a populated <c>agent_sessions</c>
-    /// row whose <c>proc_start</c> still carries the pre-v6 DateTimeOffset
-    /// text (this is exactly what every real v5 row looks like, since raw
-    /// ticks did not exist yet). InitializeAsync must add the column, mark
-    /// that existing row legacy (it cannot be converted to ticks without the
-    /// writing host's boot time), and leave its <c>proc_start</c> value
-    /// completely untouched so the legacy wall-clock liveness rule keeps
-    /// reading it correctly until the row's own next SessionStart rewrites
-    /// it fresh.
+    /// Tests upgrading a v5 session to the current schema without process-start
+    /// columns, preserving its role and delivery row.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_DropTheProcessColumns_When_ExistingVersionIsV5()
@@ -541,16 +840,9 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a v4 database whose <c>agent_sessions</c> table carries the
-    /// original CHECK constraint on <c>last_ping_result</c>, from before
-    /// <c>unsupported</c> was added to the enum, with one row already
-    /// present and a <c>session_deliveries</c> row that cascades from it.
-    /// SQLite cannot ALTER a CHECK constraint in place, so
-    /// InitializeAsync must detect the stale constraint and rebuild the
-    /// table: the existing row must survive, the new value must be
-    /// writable afterward where it was rejected before, the cascade to
-    /// session_deliveries must still fire, and the constraint must still
-    /// reject a genuinely invalid value.
+    /// Tests upgrading a v4 ping-result constraint to accept <c>unsupported</c>
+    /// while preserving the session and delivery cascade. Invalid ping results
+    /// remain rejected.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_RebuildAgentSessionsCheckConstraint_When_ExistingV4DatabasePredatesUnsupported()
@@ -640,8 +932,7 @@ public sealed class AgentDatabaseTests : IDisposable
         // act
         await using var connection2 = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
 
-        // assert: version unchanged (this was never a version-keyed gap), row and cascade-owned
-        // delivery survive, and the constraint now accepts 'unsupported'.
+        // assert
         var version = await QueryScalarLongAsync(connection2, "PRAGMA user_version;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
 
@@ -672,8 +963,7 @@ public sealed class AgentDatabaseTests : IDisposable
             cancellationToken);
         Assert.Equal("unsupported", updatedLastPingResult);
 
-        // The FK to agent_sessions must still enforce (not left dangling by the rebuild):
-        // cascading the delivery row still works, and a bad reference still fails.
+        // Deleting the session still cascades to its delivery row.
         await ExecuteAsync(
             connection2, "DELETE FROM agent_sessions WHERE session_id = 'session-old';", cancellationToken);
         var deliveryCountAfterCascade = await QueryScalarLongAsync(
@@ -699,11 +989,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// A freshly created database is unaffected by the constraint-rebuild
-    /// path: <see cref="AgentSessionSchema.Create"/> already carries
-    /// <c>unsupported</c>, so InitializeAsync detects the current
-    /// constraint and skips the rebuild, and the value is writable on the
-    /// first attempt.
+    /// Tests that a fresh session table accepts <c>unsupported</c> as a ping result.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AcceptUnsupportedLastPingResult_When_DatabaseIsFreshlyCreated()
@@ -728,10 +1014,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// A freshly created database already carries the v8 CHECK values
-    /// directly: <see cref="AgentSessionSchema.Create"/> lists <c>nitro-board</c>
-    /// and <c>db-watch</c> from the start, so no rebuild is needed and both
-    /// are writable on the first attempt.
+    /// Tests that a fresh session table accepts the <c>nitro-board</c> harness
+    /// and <c>db-watch</c> endpoint.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AcceptNitroBoardHarnessAndDbWatchEndpoint_When_DatabaseIsFreshlyCreated()
@@ -779,9 +1063,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Mirrors what a <c>--force</c> reinitialize does today: it calls the
-    /// same InitializeAsync path unconditionally. A database newer than this
-    /// CLI understands must still be rejected, force or not.
+    /// Tests rejection when an initialized database is restamped with a schema
+    /// version newer than the CLI supports.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_Throw_When_ForceReinitializingAgainstAVersionNewerThanCurrent()
@@ -1071,8 +1354,7 @@ public sealed class AgentDatabaseTests : IDisposable
 
     /// <summary>
     /// <c>session_deliveries</c> rows cascade-delete with their owning
-    /// <c>agent_sessions</c> row, so reaping or ending a session clears its
-    /// ledger in the same statement instead of leaking orphaned rows.
+    /// <c>agent_sessions</c> row.
     /// </summary>
     [Fact]
     public async Task SessionDeliveriesTable_Should_CascadeDelete_When_OwningAgentSessionRowIsDeleted()
@@ -1210,13 +1492,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a fully v6-shaped database (every table through
-    /// <c>proc_start_legacy</c>, none of the v7 mail-wake or
-    /// session-ping-gate tables) with one row in each of agents, messages,
-    /// message_recipients, agent_sessions, session_deliveries, and
-    /// ping_leases, mirroring a real workspace at this bead's start (fo9's
-    /// schema v6, merged). InitializeAsync must add every v7 table without
-    /// losing any of those rows, and stamp the current version.
+    /// Tests adding mail-wake and session-ping-gate tables and indexes to a
+    /// database stamped v6 that lacks them, preserving its seeded rows.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AddMailWakeAndSessionPingGateTables_When_ExistingVersionIsV6()
@@ -1319,18 +1596,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a fully v7-shaped database: every table through v7's mail-wake
-    /// and session-ping-gate tables, with <c>agent_sessions</c> already
-    /// carrying its v5/v6 columns and the <c>unsupported</c> last_ping_result
-    /// value, but its <c>harness</c> and <c>endpoint_kind</c> CHECK
-    /// constraints still predating <c>nitro-board</c>/<c>db-watch</c> (this
-    /// bead's own gap), with a populated, claimed session row and a
-    /// cascading delivery row, mirroring a real workspace at this bead's
-    /// start. InitializeAsync must rebuild <c>agent_sessions</c> to accept
-    /// the new values without losing the existing row's role,
-    /// harness_version, process_scope, or proc_start_legacy, and without
-    /// losing the delivery row or the FK enforcement session_deliveries
-    /// relies on.
+    /// Tests upgrading a v7 session table to accept <c>nitro-board</c> and
+    /// <c>db-watch</c>, preserving session metadata, delivery rows, and their cascade.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_UpgradeAgentSessionsHarnessCheckConstraint_When_ExistingVersionIsV7()
@@ -1467,7 +1734,7 @@ public sealed class AgentDatabaseTests : IDisposable
             connection2, "SELECT COUNT(*) FROM agent_sessions WHERE harness = 'nitro-board'", cancellationToken);
         Assert.Equal(1, boardSessionCount);
 
-        // The FK to agent_sessions must still enforce (not left dangling by the rebuild).
+        // Deleting the session still cascades to its delivery row.
         await ExecuteAsync(
             connection2, "DELETE FROM agent_sessions WHERE session_id = 'session-v7';", cancellationToken);
         var deliveryCountAfterCascade = await QueryScalarLongAsync(
@@ -1478,14 +1745,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a fully v7-shaped database whose <c>mail_wake_targets</c> and
-    /// <c>session_ping_gates</c> tables still carry their pre-v8
-    /// <c>harness</c> CHECK constraint (predating <c>nitro-board</c>), with a
-    /// populated row in each and the <c>mail_wake_batches</c> owner the
-    /// target row cascades from, mirroring a real workspace at this bead's
-    /// start. InitializeAsync must rebuild both tables to accept the new
-    /// value without losing the existing rows or the FK enforcement
-    /// <c>mail_wake_targets</c> relies on against <c>mail_wake_batches</c>.
+    /// Tests upgrading v7 wake-target and ping-gate tables to accept
+    /// <c>nitro-board</c>, preserving existing rows and the wake-target cascade.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_UpgradeMailWakeTargetsAndSessionPingGatesHarnessCheckConstraint_When_ExistingVersionIsV7()
@@ -1504,10 +1765,7 @@ public sealed class AgentDatabaseTests : IDisposable
             await ExecuteAsync(connection, MailWakeSchema.Create, cancellationToken);
             await ExecuteAsync(connection, SessionPingGateSchema.Create, cancellationToken);
 
-            // Downgrade mail_wake_targets and session_ping_gates to their
-            // pre-v8 harness CHECK constraint, mirroring how the
-            // agent_sessions v7 test above hand-rolls its own stale
-            // constraint.
+            // Downgrade mail_wake_targets and session_ping_gates to their pre-v8 harness CHECK constraint.
             await ExecuteAsync(
                 connection,
                 """
@@ -1612,7 +1870,7 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(1, boardTargetCount);
         Assert.Equal(1, boardGateCount);
 
-        // The FK to mail_wake_batches must still enforce (not left dangling by the rebuild).
+        // Deleting the batch still cascades to its target rows.
         await ExecuteAsync(
             connection2, "DELETE FROM mail_wake_batches WHERE batch_id = 'batch-v7';", cancellationToken);
         var targetCountAfterCascade = await QueryScalarLongAsync(
@@ -1623,12 +1881,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// A freshly created database already carries the v8 <c>harness</c>
-    /// CHECK values directly on <c>mail_wake_targets</c> and
-    /// <c>session_ping_gates</c>: <see cref="MailWakeSchema.Create"/> and
-    /// <see cref="SessionPingGateSchema.Create"/> list <c>nitro-board</c>
-    /// from the start, so no rebuild is needed and it is writable on the
-    /// first attempt.
+    /// Tests that fresh wake-target and ping-gate tables accept <c>nitro-board</c>.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_AcceptNitroBoardHarnessInMailWakeTargetsAndSessionPingGates_When_DatabaseIsFreshlyCreated()
@@ -1812,10 +2065,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// <c>session_ping_gates</c> is keyed by the full session generation
-    /// (harness, session_id, host, pid, proc_start), independent of
-    /// <c>agent_sessions</c>: no foreign key ties the two, so a gate row
-    /// survives the session it names being deleted.
+    /// Tests that a session ping gate survives deletion of the corresponding session row.
     /// </summary>
     [Fact]
     public async Task SessionPingGatesTable_Should_SurviveAgentSessionDeletion_When_NoForeignKeyTiesThem()
@@ -1845,10 +2095,8 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// The full session generation is exactly the primary key: a second row
-    /// naming the same (harness, session_id, host, pid, proc_start) is
-    /// rejected, the schema-level half of the mutual exclusion
-    /// <see cref="ISessionPingGateStore"/> provides at the store level.
+    /// Tests that the ping-gate primary key rejects a duplicate
+    /// (harness, session_id, host) generation.
     /// </summary>
     [Fact]
     public async Task SessionPingGatesTable_Should_RejectDuplicateGeneration_When_PrimaryKeyFires()
@@ -1875,10 +2123,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Writes a database file that carries only a stamped PRAGMA
-    /// user_version, no schema, mirroring a raw file at the unified path
-    /// with a version this bead's state machine must reject before touching
-    /// DDL.
+    /// Opens a database file and sets its <c>PRAGMA user_version</c> without creating tables.
     /// </summary>
     private async Task StampVersionOnNewFileAsync(int version, CancellationToken cancellationToken)
     {

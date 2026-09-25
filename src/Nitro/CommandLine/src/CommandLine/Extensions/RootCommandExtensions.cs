@@ -18,11 +18,9 @@ internal static class RootCommandExtensions
 
         var console = services.GetRequiredService<INitroConsole>();
 
-        // Parse command
         var parseResult = rootCommand.Parse(args);
 
-        // Short-circuit on parse errors: let InvokeAsync report them and return the
-        // corresponding exit code.
+        // On parse errors, delegate to InvokeAsync to report them and return the exit code.
         if (parseResult.Errors.Count > 0)
         {
             return await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
@@ -35,21 +33,17 @@ internal static class RootCommandExtensions
             console.SetOutputFormat(format.Value);
         }
 
-        // Initialize session
         await services
             .GetRequiredService<ISessionService>()
             .LoadSessionAsync(cancellationToken);
 
         var session = services.GetRequiredService<ISessionService>().Session;
 
-        // Configure Nitro client context
         var context = services.GetRequiredService<NitroClientContext>();
         ConfigureClientContext(context, parseResult, session);
 
-        // Execute command
         var exitCode = await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
 
-        // Print result
         var resultHolder = services.GetRequiredService<IResultHolder>();
         var formatter = services.GetRequiredService<IResultFormatter>();
 
@@ -64,7 +58,7 @@ internal static class RootCommandExtensions
         }
         else if (format is OutputFormat.Json && exitCode == 0)
         {
-            console.Out.WriteLine("{}");
+            console.WriteRawLine("{}");
         }
 
         return exitCode;
@@ -75,9 +69,8 @@ internal static class RootCommandExtensions
         ParseResult parseResult,
         Session? session)
     {
-        // The option resolves explicit --cloud-url, then the NITRO_CLOUD_URL env var.
-        // We then fall back to the session's URL, and finally Constants.ApiUrl
-        // (applied by NitroClientContext.Configure when apiUrl is null).
+        // Resolution order: explicit --cloud-url, then NITRO_CLOUD_URL, then the session's
+        // URL, then Constants.ApiUrl (via NitroClientContext.Configure).
         var apiUrl = parseResult.GetValue(Opt<OptionalCloudUrlOption>.Instance);
 
         if (string.IsNullOrWhiteSpace(apiUrl))

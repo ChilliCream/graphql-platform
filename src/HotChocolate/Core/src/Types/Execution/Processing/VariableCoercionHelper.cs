@@ -69,7 +69,7 @@ internal sealed class VariableCoercionHelper
 
             var hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
 
-            if (!hasValue && variableDefinition.DefaultValue is { Kind: not SyntaxKind.NullValue } defaultValue)
+            if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
             {
                 var runtimeValue = _inputParser.ParseLiteral(
                     defaultValue,
@@ -88,27 +88,15 @@ internal sealed class VariableCoercionHelper
 
                 // if we do not have any value we will not create an entry to the
                 // coerced variables.
-                if (!hasValue)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                coercedValues[variableName] =
-                    new VariableValue(
-                        variableName,
-                        variableType,
-                        null,
-                        NullValueNode.Default);
-            }
-            else
-            {
-                coercedValues[variableName] =
-                    CoerceVariableValue(
-                        variableDefinition,
-                        variableType,
-                        propertyValue,
-                        context);
-            }
+            coercedValues[variableName] =
+                CoerceVariableValue(
+                    variableDefinition,
+                    variableType,
+                    propertyValue,
+                    context);
         }
     }
 
