@@ -87,8 +87,7 @@ public sealed class AgentsModeTests
         => store.TouchAsync(name, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     /// <summary>
-    /// Seeds an online agent last seen at exactly <paramref name="lastSeenAt"/>, for tests
-    /// that need precise control over its last-seen window rather than the current clock.
+    /// Seeds an online agent last seen at exactly <paramref name="lastSeenAt"/>.
     /// </summary>
     private static AgentRow AddOnlineAgentSeenAt(FakeAgentStore store, string name, DateTimeOffset lastSeenAt)
     {
@@ -356,8 +355,7 @@ public sealed class AgentsModeTests
     public void Rows_Should_OrderByNameAscending_When_TwoOnlineAgentsLastSeenFallInTheSameFiveMinuteWindow()
     {
         // arrange
-        // 10:01 and 10:04 both floor to the 10:00 window; "zed" is seen later but must not
-        // sort first once the tie is broken by name instead of raw last-seen time.
+        // 10:01 and 10:04 share the 10:00 window
         var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
         var time = new FakeTimeProvider(windowStart.AddMinutes(6));
         var store = new FakeAgentStore(time);
@@ -379,8 +377,7 @@ public sealed class AgentsModeTests
     public void Rows_Should_SortTheLaterWindowFirst_When_OneAgentsLastSeenCrossedTheNextFiveMinuteBoundary()
     {
         // arrange
-        // "aaa" is seen at 10:06 (the 10:05 window), ahead of "zzz" and "yyy" in the 10:00
-        // window, even though it would sort last by name.
+        // 10:06 falls in the 10:05 window, 10:01 and 10:04 in the 10:00 window
         var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
         var time = new FakeTimeProvider(windowStart.AddMinutes(7));
         var store = new FakeAgentStore(time);
@@ -400,8 +397,7 @@ public sealed class AgentsModeTests
     public void Rows_Should_PlaceTwoLastSeenTimesInDifferentWindows_When_OneLandsRightBeforeAndOneRightAtTheBoundary()
     {
         // arrange
-        // "b" lands exactly on the 10:05 boundary; "a" lands one second earlier, still in the
-        // 10:00 window, even though "a" sorts first by name.
+        // 10:04:59 is in the 10:00 window, 10:05:00 starts the 10:05 window
         var boundary = new DateTimeOffset(2026, 1, 1, 10, 5, 0, TimeSpan.Zero);
         var time = new FakeTimeProvider(boundary.AddMinutes(1));
         var store = new FakeAgentStore(time);
@@ -421,8 +417,7 @@ public sealed class AgentsModeTests
     public void Rows_Should_KeepOnlineBeforeOffline_When_TheOfflineAgentsWindowIsLaterThanTheOnlineAgents()
     {
         // arrange
-        // The offline agent's window is later, but its state group still loses to the
-        // online agent's, so the window comparison never applies across groups.
+        // The offline agent's window is later than the online agent's
         var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
         var time = new FakeTimeProvider(windowStart.AddMinutes(20));
         var store = new FakeAgentStore(time);

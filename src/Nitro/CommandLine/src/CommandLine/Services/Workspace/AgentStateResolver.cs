@@ -11,8 +11,7 @@ internal static class AgentStateResolver
     public static readonly TimeSpan OnlineWindow = TimeSpan.FromMinutes(30);
 
     /// <summary>
-    /// The width of the clock-aligned window used to group agents by last-seen time for
-    /// ordering, so a beat every minute does not reorder the list every tick.
+    /// The width of the clock-aligned window that groups agents by last-seen time for ordering.
     /// </summary>
     public static readonly TimeSpan LastSeenWindow = TimeSpan.FromMinutes(5);
 
