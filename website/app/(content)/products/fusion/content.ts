@@ -25,7 +25,7 @@ export interface CopySection {
 export const HERO = {
   title: "Fusion",
   teaser:
-    "The API gateway that composes your teams' subgraphs into one coherent graph and executes every query across them. Fusion is the only API gateway that supports both the GraphQL Federation specification and Apollo Federation, and it composes OpenAPI and gRPC sources too.",
+    "Fusion is a high-performance API gateway for connecting GraphQL, REST, and gRPC APIs at scale. It brings APIs from across your organization together into one coherent graph and executes every request across the services behind it. Fusion natively supports the GraphQL Federation specification and Apollo Federation, so you can federate existing APIs without locking yourself into a single ecosystem.",
   buttons: [
     { label: "Get Started", href: "/docs/fusion/getting-started" },
     {
