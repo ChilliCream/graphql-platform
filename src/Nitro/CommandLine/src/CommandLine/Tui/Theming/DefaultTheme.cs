@@ -18,8 +18,8 @@ internal static class DefaultTheme
         ["board.column.status.ready.focused"] = new Style(Color.Green, decoration: Decoration.Bold),
         ["board.column.status.inprogress"] = new Style(Color.Blue),
         ["board.column.status.inprogress.focused"] = new Style(Color.Blue, decoration: Decoration.Bold),
-        ["board.column.status.closed"] = new Style(Color.Grey, decoration: Decoration.Dim),
-        ["board.column.status.closed.focused"] = new Style(Color.Grey, decoration: Decoration.Bold),
+        ["board.column.status.closed"] = new Style(Color.MediumPurple),
+        ["board.column.status.closed.focused"] = new Style(Color.MediumPurple, decoration: Decoration.Bold),
 
         ["board.column.header"] = new Style(Color.Grey70, decoration: Decoration.Bold),
 
