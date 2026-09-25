@@ -5,12 +5,14 @@ namespace ChilliCream.Nitro.CommandLine.Tests;
 public sealed class DapperCommandDefinitionUsageTests
 {
     [Fact]
-    public void SourceFiles_Should_NotContainCommandDefinition_When_UnderServicesOrCommands()
+    public void SourceFiles_Should_NotContainCommandDefinitionOrDynamicParameters_When_UnderServicesOrCommands()
     {
         // arrange
-        // Dapper.AOT does not intercept CommandDefinition calls, which crash under native AOT.
+        // Dapper.AOT does not intercept CommandDefinition or DynamicParameters calls, which fall
+        // back to reflection Dapper and crash under native AOT.
         var sourceRoot = GetCommandLineSourceRoot();
         var scannedDirectories = new[] { "Services", "Commands" };
+        var bannedTokens = new[] { "new CommandDefinition(", "DynamicParameters" };
 
         // act
         var offenders = new List<string>();
@@ -21,7 +23,9 @@ public sealed class DapperCommandDefinitionUsageTests
 
             foreach (var file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
             {
-                if (File.ReadAllText(file).Contains("new CommandDefinition(", StringComparison.Ordinal))
+                var content = File.ReadAllText(file);
+
+                if (bannedTokens.Any(token => content.Contains(token, StringComparison.Ordinal)))
                 {
                     offenders.Add(Path.GetRelativePath(sourceRoot, file));
                 }
