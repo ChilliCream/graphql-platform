@@ -109,7 +109,7 @@ public class JsonOperationRequestSerializerTests
 
         operationRequest.Extensions.Add(nameof(Single), (float)123.123);
         operationRequest.Extensions.Add(nameof(Double), 123.123);
-        operationRequest.Extensions.Add(nameof(Decimal), (decimal)123.123);
+        operationRequest.Extensions.Add(nameof(Decimal), 123.123m);
 
         operationRequest.Extensions.Add(nameof(Uri), new Uri("http://local"));
 
