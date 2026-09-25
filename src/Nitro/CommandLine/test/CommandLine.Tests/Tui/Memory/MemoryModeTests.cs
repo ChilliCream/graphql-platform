@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -205,6 +206,71 @@ public sealed class MemoryModeTests : MemoryTestBase
         // assert
         Assert.Empty(followUp);
         Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void OpenSelected_Should_ReturnAWarning_When_NoRowIsSelected()
+    {
+        // arrange
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
+    }
+
+    [Fact]
+    public void TryCreatePopover_Should_ReturnNull_When_NoRowIsSelected()
+    {
+        // arrange
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var popover = mode.TryCreatePopover();
+
+        // assert
+        Assert.Null(popover);
+    }
+
+    [Fact]
+    public async Task TryCreatePopover_Should_ReturnAPopoverForTheSelectedRow_When_ARowIsSelected()
+    {
+        // arrange
+        var saved = await SaveAsync("First.");
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var popover = mode.TryCreatePopover();
+        popover?.Load(TestContext.Current.CancellationToken);
+        var console = new TestConsole().Width(100);
+        console.Write(popover!.Render(100, 30));
+
+        // assert
+        Assert.NotNull(popover);
+        Assert.Contains(saved.Id, console.Output);
+    }
+
+    [Fact]
+    public void HandlePopoverRequest_Should_ReturnACopyToast_When_TheEntryPopoverRequestsACopy()
+    {
+        // arrange
+        var mode = CreateMode();
+        var request = new PopoverResult.Request(new MemoryEntryPopoverRequest.CopyRequested("mem-1"));
+
+        // act
+        var followUp = mode.HandlePopoverRequest(request);
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(("mem-1", ToastStyle.Info), (shown.Text, shown.Style));
     }
 
     [Fact]

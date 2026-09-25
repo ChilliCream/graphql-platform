@@ -11,8 +11,8 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <summary>
 /// Displays every curated memory and journal entry in the workspace as one read-only,
 /// full-width table: kind, type, tags, age, and body columns. The board has no acting agent,
-/// so promoting a journal entry or forgetting a curated memory is unavailable here; opening a
-/// row is a no-op until the entry popover ships.
+/// so promoting a journal entry or forgetting a curated memory is unavailable here; Enter opens
+/// the selected row in a read-only popover instead.
 /// </summary>
 internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -23,6 +23,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private const string EmptyStateMessage = "No memory yet.";
 
+    private readonly IMemoryStore _memoryStore;
     private readonly TimeProvider _timeProvider;
     private readonly MemoryState _state;
     private readonly Viewport _listViewport = new(0, 0);
@@ -33,6 +34,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     {
         ArgumentNullException.ThrowIfNull(store);
 
+        _memoryStore = store;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _state = new MemoryState(new MemoryDataLoader(store));
     }
@@ -66,11 +68,32 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.MoveCursor(CursorDirection.Up) => Move(-1),
         TuiMessage.MoveCursor(CursorDirection.Down) => Move(1),
         TuiMessage.MoveToEdge(var edge) => MoveToEdge(edge),
-        // OpenSelected opens the entry popover from a later ticket; a no-op until then.
+        // Reached only when TryCreatePopover found no selected row to open: the shell falls
+        // back to dispatching OpenSelected here for the no-selection toast.
+        TuiMessage.OpenSelected => OpenSelectedFallback(),
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CycleView(var delta) => CycleFilter(delta),
         TuiMessage.CopySelectedId => CopySelectedId(),
         TuiMessage.SearchRequested => OpenSearchForm(),
+        _ => []
+    };
+
+    /// <inheritdoc />
+    public IPopover? TryCreatePopover()
+    {
+        if (_state.SelectedItem is not { } item)
+        {
+            return null;
+        }
+
+        return new MemoryEntryPopoverModel(item.Id, item.Kind, _memoryStore, _timeProvider);
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<TuiMessage> HandlePopoverRequest(PopoverResult.Request request) => request.Payload switch
+    {
+        MemoryEntryPopoverRequest.CopyRequested copyRequested =>
+            [new TuiMessage.ShowToast(copyRequested.EntryId, ToastStyle.Info)],
         _ => []
     };
 
@@ -128,6 +151,15 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
         _state.CycleFilterAsync(delta, CancellationToken.None).GetAwaiter().GetResult();
         return [];
     }
+
+    /// <summary>
+    /// Reports the no-selection toast the shell shows when <see cref="TryCreatePopover"/>
+    /// found no row to open; a no-op when a row is selected (the popover already opened).
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenSelectedFallback() =>
+        _state.SelectedItem is null
+            ? [new TuiMessage.ShowToast("No item selected.", ToastStyle.Warn)]
+            : [];
 
     private IReadOnlyList<TuiMessage> CopySelectedId()
     {
