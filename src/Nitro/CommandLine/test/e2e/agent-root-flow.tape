@@ -39,10 +39,10 @@ Show
 # --- the demo ---
 Type `nitro agent` Enter
 
-# Initial frame: same sentinel as board-flow.tape's first Wait+Screen (the
-# Tasks tab's board, focus on "Blocked", selection on acme-a1b), now with
-# the tab strip rendered above it.
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+# Initial frame: the Tasks tab's board, focused panel's own box-drawing top
+# border and task count, now with the tab strip rendered above it (this flow
+# only needs the board to have loaded before quitting, not any specific row).
+Wait+Screen@30s /╭─Blocked \(3\)─/
 
 # 'q' requests quit; the shell renders the "Quit? (y/n)" confirmation dialog.
 Type "q"

@@ -59,9 +59,10 @@ Show
 # --- the demo ---
 Type `nitro agent` Enter
 
-# Board's initial frame (same sentinel as board-flow.tape): focus starts on
-# "Blocked", selection on its first row, acme-a1b.
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+# Board's initial frame: the focused panel's own box-drawing top border and
+# task count (this flow only needs the board to have loaded before jumping
+# into search, not any specific row).
+Wait+Screen@30s /╭─Blocked \(3\)─/
 
 # '/' jumps into search mode (TuiShell.HandleMessage FocusSearchRequested),
 # focus on the query input. The pending query from mode entry (TaskQuery.Empty)
