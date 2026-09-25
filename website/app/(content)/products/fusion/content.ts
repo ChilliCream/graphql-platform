@@ -44,8 +44,9 @@ export const SECTIONS: readonly CopySection[] = [
     id: "what-is-fusion",
     title: "What is Fusion?",
     paragraphs: [
-      "Fusion is an API gateway. Your teams keep their own services and their own schemas; Fusion composes those subgraphs into one coherent graph and serves it at a single endpoint. A client sends one query, the gateway works out which subgraphs hold the data, calls them, and returns one response.",
-      "Composition happens in your build, not at runtime, so contract conflicts are caught before anything is deployed. A subgraph is an ordinary service: a GraphQL server in any language, or a service that publishes an OpenAPI document or a gRPC definition. If federation itself is new to you, start with the GraphQL Federation page.",
+      "Fusion sits between your clients and the APIs owned by your teams. Each team keeps its own service, technology stack, and schema, while Fusion brings those APIs together into a single coherent graph.",
+      "When a client sends a query, Fusion determines which services are needed, coordinates the requests across them, and combines the results into a single response. Those services can expose GraphQL, REST through OpenAPI, or gRPC. They do not need to use the same language, framework, or API technology.",
+      "Fusion composes your graph at build time, so schema conflicts and incompatible changes are caught before they reach production. For GraphQL services, Fusion supports both the GraphQL Federation specification and Apollo Federation. If federation is new to you, start with the GraphQL Federation page.",
     ],
     links: [
       {
