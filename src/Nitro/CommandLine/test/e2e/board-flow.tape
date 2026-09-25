@@ -11,9 +11,7 @@
 # empty "Ready" column) the focused panel's own box-drawing top border, never
 # on Sleep. Fixed geometry (Width/Height below) is the stability lever for
 # this full-screen layout: changing it requires `--update` of every
-# board-flow* golden. Height is tall enough that every stacked column's
-# interior fits its task table's four-line header block plus every one of
-# the fixture's rows (the "Blocked" column needs the most, three).
+# board-flow* golden.
 #
 # Column membership below is computed by BoardDataLoader/TaskStore
 # ComputeBlockedAsync against fixtures/seed.sql, not just each task's own
@@ -37,7 +35,7 @@ Output board-flow.txt
 Set Shell bash
 Set FontSize 18
 Set Width 1100
-Set Height 1250
+Set Height 850
 Set Padding 14
 Set TypingSpeed 50ms
 Set CursorBlink false

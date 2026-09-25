@@ -34,10 +34,8 @@ Show
 # --- the demo ---
 Type `nitro agent` Enter
 
-# Initial frame: the Tasks tab's board, focused panel's own box-drawing top
-# border and task count (this flow only needs the board to have loaded
-# before switching to the Mail tab, not any specific row).
-Wait+Screen@30s /╭─Blocked \(3\)─/
+# Initial frame: the Tasks tab's board.
+Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Move to Mail. Actor-less boards always open the read-only Workspace mailbox,
 # rendered as one full-width table of every thread (MailTable/MailMode).

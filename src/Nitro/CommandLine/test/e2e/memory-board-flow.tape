@@ -56,10 +56,9 @@ Show
 # --- the demo ---
 Type `nitro agent` Enter
 
-# Initial frame: the Tasks tab's board, focused panel's own box-drawing top
-# border and task count (the same style of sentinel every other bare-launch
-# tape now asserts first, since none of them need a specific row).
-Wait+Screen@30s /╭─Blocked \(3\)─/
+# Initial frame: the Tasks tab's board (same sentinel every other bare-launch
+# tape asserts first).
+Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 
 # Shift+E: TabSwitchKeys.ResolveMnemonic jumps straight to the Memory tab.
 Type "E"

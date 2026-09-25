@@ -63,10 +63,8 @@ Show
 # --- the demo ---
 Type `nitro agent` Enter
 
-# Board's initial frame: the focused panel's own box-drawing top border and
-# task count (this flow only needs the board to have loaded before jumping
-# into search, not any specific row).
-Wait+Screen@30s /╭─Blocked \(3\)─/
+# Board's initial frame (same sentinel as board-flow.tape).
+Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 
 # '/' into search mode; the pending empty query resolves to all six fixture
 # tasks on the next tick, ordered by priority then created_at, selection on

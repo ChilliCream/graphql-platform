@@ -10,9 +10,7 @@
 # fixture task count) or card row from fixtures/seed.sql, never on Sleep.
 # Fixed geometry (Width/Height below) is the stability lever for this
 # full-screen layout: changing it requires `--update` of every board-flow*
-# golden. Height matches board-flow.tape: tall enough that the initial
-# five-column grid's stacked columns fit their task table's header block
-# plus every fixture row before 'z' first maximizes one of them.
+# golden. Height matches board-flow.tape.
 #
 # Launched via bare `nitro agent`, same as
 # board-flow.tape, so the tab strip is on screen throughout; this flow's own
@@ -25,7 +23,7 @@ Output board-maximize-flow.txt
 Set Shell bash
 Set FontSize 18
 Set Width 1100
-Set Height 1250
+Set Height 850
 Set Padding 14
 Set TypingSpeed 50ms
 Set CursorBlink false
