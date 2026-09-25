@@ -5,7 +5,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// Renders a board column's task table: a status glyph cell, type code, priority, id, and
+/// Renders a board column's task table: a status glyph cell, type name, priority, id, and
 /// title columns. Narrow widths drop priority first, then type; id and title are never
 /// dropped, with title taking whatever width remains and truncating with an ellipsis. Built
 /// on the shared <see cref="TableLayout"/> and <see cref="TableRenderer"/> table widget,
@@ -22,7 +22,7 @@ internal static class BoardTaskRow
     private const string IdHeader = "ID";
     private const string TitleHeader = "TITLE";
 
-    private const int MinTypeWidth = 4;
+    private const int MinTypeWidth = 8;
     private const int MinPriorityWidth = 4;
     private const int MinIdWidth = 10;
 
@@ -69,7 +69,7 @@ internal static class BoardTaskRow
 
         foreach (var row in rows)
         {
-            rowValues.Add([TaskGlyphs.TypeCode(row.Type), TaskPriorities.Format(row.Priority), row.Id]);
+            rowValues.Add([TaskGlyphs.TypeName(row.Type), TaskPriorities.Format(row.Priority), row.Id]);
         }
 
         var widths = TableLayout.ComputeWidths(s_columns, rowValues);
@@ -98,7 +98,7 @@ internal static class BoardTaskRow
 
         var cells = new TableCellSpec[]
         {
-            new(TaskGlyphs.TypeCode(task.Type), typeStyle),
+            new(TaskGlyphs.TypeName(task.Type), typeStyle),
             new(TaskPriorities.Format(task.Priority), priorityStyle),
             new(task.Id, string.Empty),
             new(task.Title, string.Empty)
@@ -182,12 +182,15 @@ internal static class BoardTaskRow
 
     /// <summary>
     /// Plans type, priority, and id against <paramref name="budget"/>, then appends a title
-    /// column sized to whatever width remains after the visible columns and their gutters.
+    /// column sized to whatever width remains after the visible columns and their gutters. Id
+    /// is never dropped, so a gutter always separates it from the appended title column; that
+    /// gutter is reserved up front so the drop decision leaves room for it.
     /// </summary>
     private static (IReadOnlyList<TableColumnSpec> Columns, IReadOnlyList<ColumnLayout> Layout) PlanWithTitle(
         int budget, Widths widths)
     {
-        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+        var planBudget = Math.Max(0, budget - DisplayWidth.Measure(TableLayout.Gutter));
+        var layout = TableLayout.Plan(planBudget, s_columns, ToWidthList(widths));
         var titleWidth = ComputeTitleWidth(budget, layout);
 
         var columns = new List<TableColumnSpec>(s_columns) { new(TitleHeader, 0, FixedWidth: titleWidth) };

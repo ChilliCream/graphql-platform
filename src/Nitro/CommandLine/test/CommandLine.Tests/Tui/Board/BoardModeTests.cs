@@ -615,7 +615,7 @@ public sealed class BoardModeTests
             """
             ╭─Open - 1/2 (2)───────────────────────────────────────────────────────────────╮
             │                                                                              │
-            │     TYPE    PRIO    ID            TITLE                                      │
+            │     TYPE        PRIO    ID            TITLE                                  │
             │ ──────────────────────────────────────────────────────────────────────────── │
             │   2 more below                                                               │
             ╰──────────────────────────────────────────────────────────────────────────────╯
@@ -664,7 +664,7 @@ public sealed class BoardModeTests
             console.Output.Split('\n'), line => line.Contains("blocked-1", StringComparison.Ordinal));
         Assert.NotNull(selectedLine);
         selectedLine.MatchInlineSnapshot(
-            "│ > ○ T         P2    blocked-1     blocked-1                                                 │");
+            "│ > ○ task          P2    blocked-1     blocked-1                                             │");
     }
 
     [Fact]
@@ -698,11 +698,11 @@ public sealed class BoardModeTests
             """
             ╭─Open (3)─────────────────────────────────────────────────╮
             │                                                          │
-            │     TYPE    PRIO    ID            TITLE                  │
+            │     TYPE        PRIO    ID            TITLE              │
             │ ──────────────────────────────────────────────────────── │
-            │ > ○ B         P0    a-1           Fix bug                │
-            │   ● F         P2    a-2           Add feature            │
-            │   ○ D         P3    a-3           Write docs             │
+            │ > ○ bug           P0    a-1           Fix bug            │
+            │   ● feature       P2    a-2           Add feature        │
+            │   ○ docs          P3    a-3           Write docs         │
             │                                                          │
             │                                                          │
             │                                                          │
@@ -743,11 +743,11 @@ public sealed class BoardModeTests
             """
             ╭─Open - 1/1 (3)───────────────────────────────────────────╮
             │                                                          │
-            │     TYPE    PRIO    ID            TITLE                  │
+            │     TYPE        PRIO    ID            TITLE              │
             │ ──────────────────────────────────────────────────────── │
-            │ > ○ B         P0    a-1           Fix bug                │
-            │   ● F         P2    a-2           Add feature            │
-            │   ○ D         P3    a-3           Write docs             │
+            │ > ○ bug           P0    a-1           Fix bug            │
+            │   ● feature       P2    a-2           Add feature        │
+            │   ○ docs          P3    a-3           Write docs         │
             │                                                          │
             │                                                          │
             │                                                          │
