@@ -478,7 +478,32 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Render_Should_ShowTheMailTabsThreadCount_When_MailStoreHasThreads()
+    public void Render_Should_ShowTheMailTabsThreadCount_When_MailTabIsSelected()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create("m1"));
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
+        var mailTab = new TuiTab("Mail", mnemonic: 'M', mailMode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time),
+            mailStore: new Agents.FakeMailStore(),
+            memoryStore: new Agents.FakeMemoryStore(),
+            timeProvider: time);
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+
+        // assert
+        Assert.Contains("Mail (1)", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Render_Should_UpdateTheMailTabsThreadCount_When_DataChangedEventArrives()
     {
         // arrange
         var mailStore = new FakeMailStore();
@@ -495,9 +520,6 @@ public sealed class TuiShellTabsTests
             memoryStore: new Agents.FakeMemoryStore(),
             timeProvider: time);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
-
-        // assert
-        Assert.Contains("Mail (1)", RenderToText(shell));
 
         // act
         mailStore.Messages.Add(MailMessageBuilder.Create("m2", threadId: "m2"));
