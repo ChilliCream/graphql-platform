@@ -34,23 +34,6 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_OpenWithoutAnActor_When_NoActorIsGiven()
-    {
-        // arrange
-        var store = new FakeMailStore();
-
-        // act
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            store,
-            new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
-            new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
-
-        // assert
-        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
-        Assert.Null(mailMode.State.Actor);
-    }
-
-    [Fact]
     public void BuildMailTab_Should_HostAWorkingMailMode_When_MailStoreIsGiven()
     {
         // arrange
@@ -58,8 +41,7 @@ public sealed class AgentTuiLauncherTests
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)), new FakeTimeProvider(s_now),
-            TestContext.Current.CancellationToken);
+            store, new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)), new FakeTimeProvider(s_now));
 
         // assert
         Assert.IsType<MailMode>(mailTab.RootMode);
@@ -92,8 +74,7 @@ public sealed class AgentTuiLauncherTests
                 mailStore,
                 memoryStore,
                 agentStore,
-                timeProvider,
-                TestContext.Current.CancellationToken);
+                timeProvider);
 
             var shell = new TuiShell(
                 tabs,

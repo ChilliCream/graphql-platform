@@ -7,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 public sealed class MailKeyMapTests
 {
     [Fact]
-    public void CreateDefault_Should_MapJAndDownArrow_ToMoveCursorDown()
+    public void CreateDefault_Should_ReturnMoveCursorDown_When_JOrDownArrowIsResolved()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
@@ -24,7 +24,41 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
-    public void CreateDefault_Should_MapEnter_ToOpenSelected()
+    public void CreateDefault_Should_ReturnMoveCursorUp_When_KOrUpArrowIsResolved()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var k = new KeyChord(ConsoleKey.K, ConsoleModifiers.None, 'k');
+        var up = new KeyChord(ConsoleKey.UpArrow, ConsoleModifiers.None, '\0');
+
+        // act
+        keyMap.TryResolve(k, out var kMessage);
+        keyMap.TryResolve(up, out var upMessage);
+
+        // assert
+        Assert.Equal(CursorDirection.Up, Assert.IsType<TuiMessage.MoveCursor>(kMessage).Direction);
+        Assert.Equal(CursorDirection.Up, Assert.IsType<TuiMessage.MoveCursor>(upMessage).Direction);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_ReturnMoveToEdge_When_GOrShiftGIsResolved()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var g = new KeyChord(ConsoleKey.G, ConsoleModifiers.None, 'g');
+        var shiftG = new KeyChord(ConsoleKey.G, ConsoleModifiers.Shift, 'G');
+
+        // act
+        keyMap.TryResolve(g, out var top);
+        keyMap.TryResolve(shiftG, out var bottom);
+
+        // assert
+        Assert.Equal(EdgeTarget.Top, Assert.IsType<TuiMessage.MoveToEdge>(top).Edge);
+        Assert.Equal(EdgeTarget.Bottom, Assert.IsType<TuiMessage.MoveToEdge>(bottom).Edge);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_ReturnOpenSelected_When_EnterIsResolved()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
@@ -39,232 +73,7 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
-    public void CreateDefault_Should_MapTab_ToMoveCursorRight()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var tab = new KeyChord(ConsoleKey.Tab, ConsoleModifiers.None, '\t');
-
-        // act
-        var resolved = keyMap.TryResolve(tab, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(CursorDirection.Right, Assert.IsType<TuiMessage.MoveCursor>(message).Direction);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapF_ToCycleViewForward()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var f = new KeyChord(ConsoleKey.F, ConsoleModifiers.None, 'f');
-
-        // act
-        var resolved = keyMap.TryResolve(f, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(1, Assert.IsType<TuiMessage.CycleView>(message).Delta);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftF_ToCycleViewBackward()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftF = new KeyChord(ConsoleKey.F, ConsoleModifiers.Shift, 'F');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftF, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.Equal(-1, Assert.IsType<TuiMessage.CycleView>(message).Delta);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapT_ToToggleMaximize()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var t = new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't');
-
-        // act
-        var resolved = keyMap.TryResolve(t, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.ToggleMaximize>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapU_ToToggleReadRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var u = new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u');
-
-        // act
-        var resolved = keyMap.TryResolve(u, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.ToggleReadRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapA_ToArchiveRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var a = new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a');
-
-        // act
-        var resolved = keyMap.TryResolve(a, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.ArchiveRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapR_ToReplyRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var r = new KeyChord(ConsoleKey.R, ConsoleModifiers.None, 'r');
-
-        // act
-        var resolved = keyMap.TryResolve(r, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.ReplyRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapC_ToComposeRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var c = new KeyChord(ConsoleKey.C, ConsoleModifiers.None, 'c');
-
-        // act
-        var resolved = keyMap.TryResolve(c, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.ComposeRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftR_ToRefreshRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftR = new KeyChord(ConsoleKey.R, ConsoleModifiers.Shift, 'R');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftR, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.RefreshRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapQ_ToQuitRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var q = new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q');
-
-        // act
-        var resolved = keyMap.TryResolve(q, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.QuitRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapEscape_ToBack()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var escape = new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, '');
-
-        // act
-        var resolved = keyMap.TryResolve(escape, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.Back>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftI_ToSelectInboxRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftI = new KeyChord(ConsoleKey.I, ConsoleModifiers.Shift, 'I');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftI, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.SelectInboxRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftS_ToSelectSentRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftS = new KeyChord(ConsoleKey.S, ConsoleModifiers.Shift, 'S');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftS, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.SelectSentRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftL_ToSelectAllMailRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftL = new KeyChord(ConsoleKey.L, ConsoleModifiers.Shift, 'L');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftL, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.SelectAllMailRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftW_ToSelectWorkspaceMailRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftW = new KeyChord(ConsoleKey.W, ConsoleModifiers.Shift, 'W');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftW, out var message);
-
-        // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.SelectWorkspaceMailRequested>(message);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapP_ToAgentFilterPickerRequested()
+    public void CreateDefault_Should_ReturnAgentFilterPickerRequested_When_PIsResolved()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
@@ -279,78 +88,116 @@ public sealed class MailKeyMapTests
     }
 
     [Fact]
-    public void CreateDefault_Should_CarryADedicatedInboxHint_Separate_FromTheOtherMailboxJumps()
+    public void CreateDefault_Should_ReturnSearchRequested_When_SlashIsResolved()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
+        var slash = new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/');
 
         // act
-        var inboxHint = keyMap.Hints.Single(h => h.Key == "I");
-
-        // assert
-        Assert.Contains("inbox", inboxHint.Action, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain(keyMap.Hints, h => h.Key.Contains('I') && h.Key != "I");
-    }
-
-    [Fact]
-    public void CreateDefault_Should_NotBind_TaskOnlyGestures()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var e = new KeyChord(ConsoleKey.E, ConsoleModifiers.None, 'e');
-        var t = new KeyChord(ConsoleKey.X, ConsoleModifiers.Shift, 'X');
-
-        // act
-        var eResolved = keyMap.TryResolve(e, out _);
-        var xResolved = keyMap.TryResolve(t, out _);
-
-        // assert
-        Assert.False(eResolved);
-        Assert.False(xResolved);
-    }
-
-    [Fact]
-    public void CreateDefault_Should_MapShiftT_ToToggleListModeRequested()
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var shiftV = new KeyChord(ConsoleKey.V, ConsoleModifiers.Shift, 'V');
-
-        // act
-        var resolved = keyMap.TryResolve(shiftV, out var message);
+        var resolved = keyMap.TryResolve(slash, out var message);
 
         // assert
         Assert.True(resolved);
-        Assert.IsType<TuiMessage.ToggleListModeRequested>(message);
+        Assert.IsType<TuiMessage.SearchRequested>(message);
     }
 
     [Fact]
-    public void CreateDefault_Should_MapZ_ToFoldPrefixRequested()
+    public void CreateDefault_Should_ReturnCopySelectedId_When_YIsResolved()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
+        var y = new KeyChord(ConsoleKey.Y, ConsoleModifiers.None, 'y');
+
+        // act
+        var resolved = keyMap.TryResolve(y, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.CopySelectedId>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_ReturnRefreshRequested_When_RIsResolved()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var r = new KeyChord(ConsoleKey.R, ConsoleModifiers.None, 'r');
+
+        // act
+        var resolved = keyMap.TryResolve(r, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.RefreshRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_ReturnQuitRequested_When_QIsResolved()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var q = new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q');
+
+        // act
+        var resolved = keyMap.TryResolve(q, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.QuitRequested>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_ReturnBack_When_EscapeIsResolved()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var escape = new KeyChord(ConsoleKey.Escape, ConsoleModifiers.None, '\u001b');
+
+        // act
+        var resolved = keyMap.TryResolve(escape, out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.Back>(message);
+    }
+
+    [Fact]
+    public void CreateDefault_Should_NotResolveWriteGestures_When_TheyMatchTheRetiredSplitPaneBoard()
+    {
+        // arrange
+        var keyMap = MailKeyMap.CreateDefault();
+        var u = new KeyChord(ConsoleKey.U, ConsoleModifiers.None, 'u');
+        var a = new KeyChord(ConsoleKey.A, ConsoleModifiers.None, 'a');
+        var c = new KeyChord(ConsoleKey.C, ConsoleModifiers.None, 'c');
+        var shiftV = new KeyChord(ConsoleKey.V, ConsoleModifiers.Shift, 'V');
         var z = new KeyChord(ConsoleKey.Z, ConsoleModifiers.None, 'z');
 
         // act
-        var resolved = keyMap.TryResolve(z, out var message);
+        var uResolved = keyMap.TryResolve(u, out _);
+        var aResolved = keyMap.TryResolve(a, out _);
+        var cResolved = keyMap.TryResolve(c, out _);
+        var vResolved = keyMap.TryResolve(shiftV, out _);
+        var zResolved = keyMap.TryResolve(z, out _);
 
         // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.FoldPrefixRequested>(message);
+        Assert.False(uResolved);
+        Assert.False(aResolved);
+        Assert.False(cResolved);
+        Assert.False(vResolved);
+        Assert.False(zResolved);
     }
 
     [Fact]
-    public void CreateDefault_Should_KeepLowercaseT_Bound_ToToggleMaximize()
+    public void CreateDefault_Should_ListHintsInBindingOrder_When_KeyMapIsBuilt()
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
-        var t = new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't');
 
         // act
-        var resolved = keyMap.TryResolve(t, out var message);
+        var keys = keyMap.Hints.Select(h => h.Key).ToList();
 
         // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.ToggleMaximize>(message);
+        Assert.Equal(["hjkl", "enter", "p", "/", "y", "r", "esc", "q"], keys);
     }
 }

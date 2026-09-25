@@ -269,7 +269,7 @@ public sealed class TuiShellTabsTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
 
         // assert
-        Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.ReplyRequested);
+        Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.RefreshRequested);
         Assert.Empty(tasksMode.HandledMessages);
     }
 
@@ -478,20 +478,13 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Render_Should_ShowTheMailTabsUnreadBadge_When_DataChanged()
+    public void Render_Should_ShowTheMailTabsThreadCount_When_MailStoreHasThreads()
     {
         // arrange
         var mailStore = new FakeMailStore();
         mailStore.Messages.Add(MailMessageBuilder.Create("m1"));
-        var mailMode = new MailMode(
-            mailStore,
-            "actor",
-            new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
-        var mailTab = new TuiTab(
-            () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
-            mnemonic: 'M',
-            mailMode,
-            new KeyDispatcher(MailKeyMap.CreateDefault()));
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
+        var mailTab = new TuiTab("Mail", mnemonic: 'M', mailMode, new KeyDispatcher(MailKeyMap.CreateDefault()));
         var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
@@ -501,83 +494,17 @@ public sealed class TuiShellTabsTests
             mailStore: new Agents.FakeMailStore(),
             memoryStore: new Agents.FakeMemoryStore(),
             timeProvider: time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
         // assert
-        Assert.Contains("[M]ail (1)", RenderToText(shell));
+        Assert.Contains("Mail (1)", RenderToText(shell));
 
         // act
-        mailStore.Messages.Add(MailMessageBuilder.Create("m2"));
+        mailStore.Messages.Add(MailMessageBuilder.Create("m2", threadId: "m2"));
         shell.Handle(new TuiEvent.DataChangedEvent());
 
         // assert
-        Assert.Contains("[M]ail (2)", RenderToText(shell));
-    }
-
-    [Fact]
-    public async Task HandleDataChanged_Should_ShowTheMailTabsSendOutcomeToast_When_TheTasksTabIsActive()
-    {
-        // arrange
-        var testToken = TestContext.Current.CancellationToken;
-        var mailStore = new FakeMailStore();
-        var mailMode = new MailMode(
-            mailStore,
-            "alice",
-            new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
-        var time = new FakeTimeProvider(s_now);
-        var shell = new TuiShell(
-            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)],
-            80,
-            24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
-        mailMode.Handle(new TuiMessage.SelectInboxRequested());
-        mailMode.Handle(new TuiMessage.ComposeRequested());
-
-        foreach (var c in "bob")
-        {
-            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
-        }
-
-        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.Tab));
-
-        foreach (var c in "Status")
-        {
-            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
-        }
-
-        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.Tab));
-
-        foreach (var c in "Body")
-        {
-            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
-        }
-
-        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.S, ConsoleModifiers.Control));
-
-        // act
-        // Expire the current toast before each refresh until the terminal toast renders.
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-        var dirty = false;
-        var rendered = RenderToText(shell);
-
-        while (!rendered.Contains("Sent", StringComparison.Ordinal))
-        {
-            shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow + Toaster.s_duration));
-            dirty = shell.Handle(new TuiEvent.DataChangedEvent());
-            rendered = RenderToText(shell);
-
-            if (!rendered.Contains("Sent", StringComparison.Ordinal))
-            {
-                await Task.Delay(5, timeoutCts.Token);
-            }
-        }
-
-        // assert
-        Assert.True(dirty);
-        Assert.Contains("Sent", rendered);
+        Assert.Contains("Mail (2)", RenderToText(shell));
     }
 
     [Fact]
