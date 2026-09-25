@@ -313,11 +313,13 @@ internal sealed class AgentDatabase
         return connection;
     }
 
-    private static Task ConfigureAcceptedConnectionAsync(
+    private static async Task ConfigureAcceptedConnectionAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken)
-        => connection.ExecuteAsync(
-            new CommandDefinition(
-                "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;",
-                cancellationToken: cancellationToken));
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;";
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

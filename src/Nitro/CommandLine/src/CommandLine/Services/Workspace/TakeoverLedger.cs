@@ -36,8 +36,7 @@ internal sealed class TakeoverLedger(
             transaction);
 
         await connection.ExecuteAsync(
-            new CommandDefinition(
-                """
+            """
             INSERT INTO agent_takeovers (
                 id, from_actor, to_actor, actor, created_at, forced, role, reason
             )
@@ -56,20 +55,17 @@ internal sealed class TakeoverLedger(
                     creation.Role,
                     creation.Reason
                 },
-                transaction,
-                cancellationToken: cancellationToken));
+                transaction);
 
         foreach (var item in items)
         {
             await connection.ExecuteAsync(
-                new CommandDefinition(
-                    """
+                """
                 INSERT INTO agent_takeover_items (takeover_id, kind, item_id)
                 VALUES (@TakeoverId, @Kind, @ItemId);
                 """,
                     new { TakeoverId = id, item.Kind, item.ItemId },
-                    transaction,
-                    cancellationToken: cancellationToken));
+                    transaction);
         }
 
         await transaction.CommitAsync(cancellationToken);
@@ -282,21 +278,22 @@ internal sealed class TakeoverLedger(
         CancellationToken cancellationToken,
         DbTransaction transaction)
     {
-        var takeoverCount = await connection.ExecuteScalarAsync<long>(
-            new CommandDefinition(
-                "SELECT COUNT(*) FROM agent_takeovers",
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+        await using var countCommand = connection.CreateCommand();
+        countCommand.Transaction = (SqliteTransaction)transaction;
+        countCommand.CommandText = "SELECT COUNT(*) FROM agent_takeovers";
+
+        var takeoverCount = (long)(await countCommand.ExecuteScalarAsync(cancellationToken))!;
 
         for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
             var id = IdPrefix + CreateIdSuffix(seed, takeoverCount, attempt);
-            var exists = await connection.ExecuteScalarAsync<long>(
-                new CommandDefinition(
-                    "SELECT COUNT(*) FROM agent_takeovers WHERE id = @Id",
-                    new { Id = id },
-                    transaction,
-                    cancellationToken: cancellationToken));
+
+            await using var existsCommand = connection.CreateCommand();
+            existsCommand.Transaction = (SqliteTransaction)transaction;
+            existsCommand.CommandText = "SELECT COUNT(*) FROM agent_takeovers WHERE id = @Id";
+            existsCommand.Parameters.AddWithValue("@Id", id);
+
+            var exists = (long)(await existsCommand.ExecuteScalarAsync(cancellationToken))!;
 
             if (exists == 0)
             {

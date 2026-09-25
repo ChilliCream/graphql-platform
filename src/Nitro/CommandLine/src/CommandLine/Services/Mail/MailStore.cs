@@ -315,20 +315,22 @@ internal sealed class MailStore(
 
         foreach (var recipient in recipients)
         {
-            var generation = await connection.QueryFirstOrDefaultAsync<long>(
-                new CommandDefinition(
-                    """
-                    INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
-                    VALUES (@actor, 1, 0, @now, @now)
-                    ON CONFLICT (actor) DO UPDATE SET
-                        requested_generation = requested_generation + 1,
-                        due_at = MIN(due_at, excluded.due_at),
-                        updated_at = excluded.updated_at
-                    RETURNING requested_generation
-                    """,
-                    new { actor = recipient.Name, now },
-                    transaction: transaction,
-                    cancellationToken: cancellationToken));
+            await using var command = connection.CreateCommand();
+            command.Transaction = (SqliteTransaction)transaction;
+            command.CommandText =
+                """
+                INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+                VALUES (@actor, 1, 0, @now, @now)
+                ON CONFLICT (actor) DO UPDATE SET
+                    requested_generation = requested_generation + 1,
+                    due_at = MIN(due_at, excluded.due_at),
+                    updated_at = excluded.updated_at
+                RETURNING requested_generation
+                """;
+            command.Parameters.AddWithValue("@actor", recipient.Name);
+            command.Parameters.AddWithValue("@now", now);
+
+            var generation = (long)(await command.ExecuteScalarAsync(cancellationToken))!;
 
             receipts.Add(new MailWakeReceipt { Actor = recipient.Name, Generation = generation });
         }
@@ -972,16 +974,14 @@ internal sealed class MailStore(
 
         var rollups = normalizedAgent is null
             ? await connection.QueryAsync<ThreadRollupRow>(
-                new CommandDefinition(
-                    """
+                """
                     SELECT
                         thread_id AS ThreadId,
                         COUNT(*) AS MessageCount,
                         MAX(created_at) AS LastMessageAt
                     FROM messages
                     GROUP BY thread_id
-                    """,
-                    cancellationToken: cancellationToken))
+                    """)
             : await connection.QueryAsync<ThreadRollupRow>(
                 """
                 SELECT

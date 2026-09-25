@@ -117,11 +117,9 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET last_seen_at = @now "
+            "UPDATE agents SET last_seen_at = @now "
                 + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
-                new { now, harness, sessionId },
-                cancellationToken: cancellationToken));
+                new { now, harness, sessionId });
 
         return rowsAffected > 0;
     }
@@ -134,10 +132,8 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET last_seen_at = @now WHERE name = @name AND deleted_at IS NULL",
-                new { now, name = normalizedName },
-                cancellationToken: cancellationToken));
+            "UPDATE agents SET last_seen_at = @now WHERE name = @name AND deleted_at IS NULL",
+                new { now, name = normalizedName });
 
         return rowsAffected > 0;
     }
@@ -151,11 +147,9 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET ended_at = @now "
+            "UPDATE agents SET ended_at = @now "
                 + "WHERE harness = @harness AND session_id = @sessionId AND deleted_at IS NULL",
-                new { now, harness, sessionId },
-                cancellationToken: cancellationToken));
+                new { now, harness, sessionId });
 
         return rowsAffected > 0;
     }
@@ -267,10 +261,8 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET block_budget_used = 0 WHERE name = @name AND deleted_at IS NULL",
-                new { name = normalizedName },
-                cancellationToken: cancellationToken));
+            "UPDATE agents SET block_budget_used = 0 WHERE name = @name AND deleted_at IS NULL",
+                new { name = normalizedName });
 
         return 0;
     }
@@ -283,12 +275,10 @@ internal sealed class AgentStore(
         await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET block_budget_used = block_budget_used + 1 "
+            "UPDATE agents SET block_budget_used = block_budget_used + 1 "
                 + "WHERE name = @name AND deleted_at IS NULL",
                 new { name = normalizedName },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+                transaction: transaction);
 
         if (rowsAffected == 0)
         {
@@ -297,11 +287,9 @@ internal sealed class AgentStore(
         }
 
         var updated = await connection.ExecuteScalarAsync<int>(
-            new CommandDefinition(
-                "SELECT block_budget_used FROM agents WHERE name = @name",
+            "SELECT block_budget_used FROM agents WHERE name = @name",
                 new { name = normalizedName },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+                transaction: transaction);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -318,8 +306,7 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                """
+            """
                 UPDATE agents SET
                     last_ping_at = @now,
                     last_ping_attempt = @attemptId,
@@ -328,8 +315,7 @@ internal sealed class AgentStore(
                 WHERE name = @name AND deleted_at IS NULL
                     AND (last_ping_at IS NULL OR last_ping_at <= @cutoff);
                 """,
-                new { now, attemptId, name = normalizedName, cutoff },
-                cancellationToken: cancellationToken));
+                new { now, attemptId, name = normalizedName, cutoff });
 
         return rowsAffected > 0;
     }
@@ -342,11 +328,9 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET last_ping_result = @result, last_ping_detail = @detail "
+            "UPDATE agents SET last_ping_result = @result, last_ping_detail = @detail "
                 + "WHERE name = @name AND deleted_at IS NULL AND last_ping_attempt = @attemptId",
-                new { result, detail, name = normalizedName, attemptId },
-                cancellationToken: cancellationToken));
+                new { result, detail, name = normalizedName, attemptId });
     }
 
     public Task ArmAnnouncementAsync(string name, CancellationToken cancellationToken)
@@ -372,11 +356,9 @@ internal sealed class AgentStore(
         await using var connection = await ConnectAsync(cancellationToken);
 
         var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agents SET harness_version = @harnessVersion "
+            "UPDATE agents SET harness_version = @harnessVersion "
                 + "WHERE name = @name AND deleted_at IS NULL",
-                new { harnessVersion, name = normalizedName },
-                cancellationToken: cancellationToken));
+                new { harnessVersion, name = normalizedName });
 
         return rowsAffected > 0;
     }
@@ -467,26 +449,28 @@ internal sealed class AgentStore(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                """
-                UPDATE agents SET
-                    deleted_at = @now,
-                    endpoint_kind = 'none',
-                    endpoint_addr = '',
-                    endpoint_secret = NULL,
-                    last_ping_at = NULL,
-                    last_ping_attempt = NULL,
-                    last_ping_result = NULL,
-                    last_ping_detail = NULL,
-                    announcement_pending = 0,
-                    idle_push_armed = 0,
-                    block_budget_used = 0
-                WHERE name = @name AND deleted_at IS NULL
-                """,
-                new { now, name },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            UPDATE agents SET
+                deleted_at = @now,
+                endpoint_kind = 'none',
+                endpoint_addr = '',
+                endpoint_secret = NULL,
+                last_ping_at = NULL,
+                last_ping_attempt = NULL,
+                last_ping_result = NULL,
+                last_ping_detail = NULL,
+                announcement_pending = 0,
+                idle_push_armed = 0,
+                block_budget_used = 0
+            WHERE name = @name AND deleted_at IS NULL
+            """;
+        command.Parameters.AddWithValue("@now", now);
+        command.Parameters.AddWithValue("@name", name);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return rowsAffected > 0;
     }
@@ -501,40 +485,24 @@ internal sealed class AgentStore(
         string name,
         CancellationToken cancellationToken)
     {
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                "DELETE FROM agent_deliveries WHERE agent = @name",
-                new { name },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+        string[] statements =
+        [
+            "DELETE FROM agent_deliveries WHERE agent = @name",
+            "DELETE FROM agent_ping_gates WHERE agent = @name",
+            "DELETE FROM mail_wake_targets WHERE agent = @name",
+            "DELETE FROM mail_wake_batches WHERE actor = @name",
+            "DELETE FROM mail_wake_outbox WHERE actor = @name"
+        ];
 
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                "DELETE FROM agent_ping_gates WHERE agent = @name",
-                new { name },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+        foreach (var statement in statements)
+        {
+            await using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = statement;
+            command.Parameters.AddWithValue("@name", name);
 
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                "DELETE FROM mail_wake_targets WHERE agent = @name",
-                new { name },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
-
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                "DELETE FROM mail_wake_batches WHERE actor = @name",
-                new { name },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
-
-        await connection.ExecuteAsync(
-            new CommandDefinition(
-                "DELETE FROM mail_wake_outbox WHERE actor = @name",
-                new { name },
-                transaction: transaction,
-                cancellationToken: cancellationToken));
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
     }
 
     /// <summary>
