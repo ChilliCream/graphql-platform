@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Microsoft.Extensions.Time.Testing;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
@@ -229,6 +230,58 @@ public sealed class MailModeTests
         var toast = Assert.Single(followUp);
         var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
         Assert.Equal(ToastStyle.Warn, shown.Style);
+    }
+
+    [Fact]
+    public void TryCreatePopover_Should_ReturnNull_When_NoThreadIsSelected()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act
+        var popover = mode.TryCreatePopover();
+
+        // assert
+        Assert.Null(popover);
+    }
+
+    [Fact]
+    public void TryCreatePopover_Should_ReturnAPopoverForTheSelectedThread_When_AThreadIsSelected()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        AddThread(store, "t-1", "bob", "alice", s_now);
+        var mode = CreateMode(store);
+        mode.OnEnter();
+
+        // act
+        var popover = mode.TryCreatePopover();
+        popover?.Load(TestContext.Current.CancellationToken);
+        var console = new TestConsole().Width(100);
+        console.Write(popover!.Render(100, 30));
+
+        // assert
+        Assert.NotNull(popover);
+        Assert.Contains("Participants: alice, bob", console.Output);
+    }
+
+    [Fact]
+    public void HandlePopoverRequest_Should_ReturnACopyToast_When_TheThreadPopoverRequestsACopy()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        var mode = CreateMode(store);
+        var request = new PopoverResult.Request(new MailThreadPopoverRequest.CopyRequested("t-1"));
+
+        // act
+        var followUp = mode.HandlePopoverRequest(request);
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(("t-1", ToastStyle.Info), (shown.Text, shown.Style));
     }
 
     [Fact]

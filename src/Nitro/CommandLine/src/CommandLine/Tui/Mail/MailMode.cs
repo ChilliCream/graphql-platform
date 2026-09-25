@@ -13,8 +13,8 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// <summary>
 /// Displays every thread in the workspace as one read-only, full-width table: subject,
 /// from, to, message count, and last-activity columns. The board has no acting agent, so
-/// every mail write (compose, reply, read/unread, archive) is unavailable here; opening a
-/// thread is a no-op until the thread popover ships.
+/// every mail write (compose, reply, read/unread, archive) is unavailable here; Enter opens
+/// the selected thread in a read-only popover instead.
 /// </summary>
 internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -31,6 +31,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// </summary>
     private const string AllAgentsOptionId = "";
 
+    private readonly IMailStore _mailStore;
     private readonly IAgentStore _agentStore;
     private readonly TimeProvider _timeProvider;
     private readonly MailState _state;
@@ -44,6 +45,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         ArgumentNullException.ThrowIfNull(store);
         ArgumentNullException.ThrowIfNull(agentStore);
 
+        _mailStore = store;
         _agentStore = agentStore;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _state = new MailState(new MailDataLoader(store));
@@ -81,11 +83,32 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         TuiMessage.MoveCursor(CursorDirection.Up) => Move(-1),
         TuiMessage.MoveCursor(CursorDirection.Down) => Move(1),
         TuiMessage.MoveToEdge(var edge) => MoveToEdge(edge),
-        // OpenSelected opens the thread popover from a later ticket; a no-op until then.
+        // Reached only when TryCreatePopover found no selected thread to open: the shell falls
+        // back to dispatching OpenSelected here for the no-selection toast.
+        TuiMessage.OpenSelected => OpenSelectedFallback(),
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CopySelectedId => CopySelectedId(),
         TuiMessage.SearchRequested => OpenSearchForm(),
         TuiMessage.AgentFilterPickerRequested => OpenAgentFilterPicker(),
+        _ => []
+    };
+
+    /// <inheritdoc />
+    public IPopover? TryCreatePopover()
+    {
+        if (_state.SelectedThread is not { } thread)
+        {
+            return null;
+        }
+
+        return new MailThreadPopoverModel(thread.ThreadId, _mailStore, _agentStore, _timeProvider);
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<TuiMessage> HandlePopoverRequest(PopoverResult.Request request) => request.Payload switch
+    {
+        MailThreadPopoverRequest.CopyRequested copyRequested =>
+            [new TuiMessage.ShowToast(copyRequested.ThreadId, ToastStyle.Info)],
         _ => []
     };
 
@@ -154,6 +177,15 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
         return [new TuiMessage.ShowToast(thread.ThreadId, ToastStyle.Info)];
     }
+
+    /// <summary>
+    /// Reports the no-selection toast the shell shows when <see cref="TryCreatePopover"/>
+    /// found no thread to open; a no-op when a thread is selected (the popover already opened).
+    /// </summary>
+    private IReadOnlyList<TuiMessage> OpenSelectedFallback() =>
+        _state.SelectedThread is null
+            ? [new TuiMessage.ShowToast("No thread selected.", ToastStyle.Warn)]
+            : [];
 
     private IReadOnlyList<TuiMessage> OpenSearchForm()
     {
