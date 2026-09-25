@@ -150,7 +150,8 @@ public sealed class BoardStateTests
         var state = new BoardState(view, new BoardDataLoader(store, new FakeTimeProvider(s_now)));
         await state.RefreshAsync(CancellationToken.None);
 
-        // act: the middle column (Deferred) is empty and must be skipped
+        // act
+        // the middle column (Deferred) is empty and must be skipped
         state.FocusAdjacentVisibleColumn(1);
 
         // assert
@@ -182,7 +183,8 @@ public sealed class BoardStateTests
         await state.RefreshAsync(CancellationToken.None);
         state.FocusColumn(1);
 
-        // act: the focused (Closed) column's only task disappears
+        // act
+        // the focused (Closed) column's only task disappears
         store.Tasks.RemoveAt(1);
         await state.RefreshAsync(CancellationToken.None);
 

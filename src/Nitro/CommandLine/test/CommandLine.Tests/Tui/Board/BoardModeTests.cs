@@ -327,45 +327,49 @@ public sealed class BoardModeTests
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
-        var console = new TestConsole().Width(80).Height(20);
+        var console = new TestConsole().Width(80).Height(6);
 
         // act
-        console.Write(mode.Render(80, 20));
+        console.Write(mode.Render(80, 6));
 
         // assert
-        Assert.Contains("Open (1)", console.Output);
-        Assert.DoesNotContain("Closed", console.Output);
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open (1)─────────────────────────────────────────────────────────────────────╮
+            │                                                                              │
+            │     TYPE        PRIO    ID            TITLE                                  │
+            │ ──────────────────────────────────────────────────────────────────────────── │
+            │ > ○ task          P2    a-1           a-1                                    │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+            """);
     }
 
     [Fact]
     public void Render_Should_ShareWidthAmongVisibleColumnsOnly_When_SomeColumnsAreEmpty()
     {
         // arrange
-        // three columns, only two have tasks: the empty one must not claim a share of the width
+        // Ready, In Progress and Closed each get one task; Blocked and Deferred stay empty
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
         store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.InProgress));
-        var view = new BoardView
-        {
-            Name = "Test",
-            Columns =
-            [
-                new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] },
-                new ColumnDefinition { Name = "Deferred", Statuses = [TaskStates.Deferred] },
-                new ColumnDefinition { Name = "In Progress", Statuses = [TaskStates.InProgress] }
-            ]
-        };
-        var mode = CreateMode(store, view);
+        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Closed));
+        var mode = CreateMode(store, BoardView.Default);
         mode.OnEnter();
-        var console = new TestConsole().Width(90).Height(20);
+        var console = new TestConsole().Width(90).Height(6);
 
         // act
-        console.Write(mode.Render(90, 20));
+        console.Write(mode.Render(90, 6));
 
         // assert
-        var lines = TrimTrailingNewline(console.Output.Split('\n'));
-        Assert.Contains(lines, line => line.Contains('╭') && line.Length == 90);
-        Assert.DoesNotContain("Deferred", console.Output);
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Ready (1)──────────────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
+            │                            ││                            ││                            │
+            │     ID            TITLE    ││     ID            TITLE    ││     ID            TITLE    │
+            │ ────────────────────────── ││ ────────────────────────── ││ ────────────────────────── │
+            │ > ○ a-1           a-1      ││   ● a-2           a-2      ││   ✓ a-3           a-3      │
+            ╰────────────────────────────╯╰────────────────────────────╯╰────────────────────────────╯
+            """);
     }
 
     [Fact]
@@ -375,16 +379,22 @@ public sealed class BoardModeTests
         var store = new FakeTaskStore();
         var mode = CreateMode(store, BoardView.Default);
         mode.OnEnter();
-        var console = new TestConsole().Width(80).Height(20);
+        var console = new TestConsole().Width(80).Height(6);
 
         // act
-        console.Write(mode.Render(80, 20));
+        console.Write(mode.Render(80, 6));
 
         // assert
-        Assert.Contains("Board (0)", console.Output);
-        Assert.Contains("No tasks yet.", console.Output);
-        Assert.DoesNotContain("Blocked", console.Output);
-        Assert.DoesNotContain("Ready", console.Output);
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Board (0)────────────────────────────────────────────────────────────────────╮
+            │ No tasks yet.                                                                │
+            │                                                                              │
+            │                                                                              │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            """);
     }
 
     [Fact]
@@ -428,7 +438,8 @@ public sealed class BoardModeTests
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
         Assert.Equal(1, mode.State.FocusedColumnIndex);
 
-        // act: the focused column's only task closes out of it
+        // act
+        // the focused column's only task closes out of it
         store.Tasks.RemoveAt(1);
         await mode.State.RefreshAsync(CancellationToken.None);
 
