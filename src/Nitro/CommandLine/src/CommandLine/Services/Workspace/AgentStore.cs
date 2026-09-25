@@ -409,7 +409,7 @@ internal sealed class AgentStore(
         return true;
     }
 
-    public async Task<int> DeleteOfflineAsync(CancellationToken cancellationToken)
+    public async Task<int> DeleteInactiveAsync(CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
 
@@ -426,7 +426,9 @@ internal sealed class AgentStore(
 
         foreach (var candidate in candidates)
         {
-            if (AgentStateResolver.Resolve(candidate, now) != AgentState.Offline)
+            var state = AgentStateResolver.Resolve(candidate, now);
+
+            if (state != AgentState.Offline && state != AgentState.Idle)
             {
                 continue;
             }

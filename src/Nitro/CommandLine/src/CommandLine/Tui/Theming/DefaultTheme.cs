@@ -57,6 +57,7 @@ internal static class DefaultTheme
         ["agents.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["agents.list.presence"] = new Style(Color.Grey70),
         ["agents.list.presence.online"] = new Style(Color.Green),
+        ["agents.list.presence.idle"] = new Style(Color.Orange1),
         ["agents.list.presence.unreachable"] = new Style(Color.Yellow),
         ["agents.list.presence.offline"] = new Style(Color.Grey50, decoration: Decoration.Dim),
 

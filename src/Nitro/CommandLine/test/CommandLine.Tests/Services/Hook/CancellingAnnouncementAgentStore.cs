@@ -86,6 +86,6 @@ internal sealed class CancellingAnnouncementAgentStore(
     public Task<bool> DeleteAsync(string name, CancellationToken cancellationToken)
         => inner.DeleteAsync(name, cancellationToken);
 
-    public Task<int> DeleteOfflineAsync(CancellationToken cancellationToken)
-        => inner.DeleteOfflineAsync(cancellationToken);
+    public Task<int> DeleteInactiveAsync(CancellationToken cancellationToken)
+        => inner.DeleteInactiveAsync(cancellationToken);
 }

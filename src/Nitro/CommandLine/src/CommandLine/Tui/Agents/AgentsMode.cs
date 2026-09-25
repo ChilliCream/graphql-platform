@@ -15,7 +15,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 /// Displays every non-deleted agent as one full-width table: a presence bubble and name,
 /// role, harness, and started/last-seen ages. State and ages are recomputed from
 /// <see cref="TimeProvider.GetUtcNow"/> on every render, so bubbles and ages change without
-/// a database event. Delete and delete-offline are requested here but confirmed and applied
+/// a database event. Delete and delete-inactive are requested here but confirmed and applied
 /// by the hosting shell.
 /// </summary>
 internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
@@ -95,10 +95,10 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Counts the agents currently resolving to <see cref="AgentState.Offline"/>, for the
-    /// shell's delete-offline confirmation.
+    /// Counts the agents currently resolving to <see cref="AgentState.Offline"/> or
+    /// <see cref="AgentState.Idle"/>, for the shell's delete-inactive confirmation.
     /// </summary>
-    public int CountOfflineAgents() => _state.CountOffline(_timeProvider.GetUtcNow());
+    public int CountInactiveAgents() => _state.CountInactive(_timeProvider.GetUtcNow());
 
     /// <summary>
     /// Recomputes state and ages as of now, re-sorting when they changed and preserving the

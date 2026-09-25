@@ -218,6 +218,38 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
         Assert.StartsWith("aaa", lines[1]);
     }
 
+    [Fact]
+    public async Task Execute_Should_OrderIdleBetweenOnlineAndUnreachable_When_AgentsAreInEveryState()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var startedAt = FakeTime.GetUtcNow();
+        await InsertOnlineAgentSeenAtAsync("idle", startedAt);
+        await InsertAgentRowAsync("unreachable", startedAt: startedAt, lastSeenAt: startedAt);
+        await InsertAgentRowAsync(
+            "offline",
+            harness: AgentSessionHarness.ClaudeCode,
+            sessionId: "session-offline",
+            endpointKind: AgentSessionEndpointKind.ClaudePeer,
+            startedAt: startedAt,
+            lastSeenAt: startedAt,
+            endedAt: startedAt);
+        FakeTime.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        await InsertOnlineAgentSeenAtAsync("online", FakeTime.GetUtcNow());
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var lines = result.StdOut.Trim().Split('\n');
+        Assert.Collection(
+            lines,
+            line => Assert.StartsWith("online", line),
+            line => Assert.StartsWith("idle", line),
+            line => Assert.StartsWith("unreachable", line),
+            line => Assert.StartsWith("offline", line));
+    }
+
     /// <summary>
     /// Inserts an online Claude Code agent last seen at exactly <paramref name="lastSeenAt"/>.
     /// </summary>

@@ -244,6 +244,7 @@ internal static class AgentRowBadge
         var token = state switch
         {
             AgentState.Online => "agents.list.presence.online",
+            AgentState.Idle => "agents.list.presence.idle",
             AgentState.Unreachable => "agents.list.presence.unreachable",
             _ => "agents.list.presence.offline"
         };

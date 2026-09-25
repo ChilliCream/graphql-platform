@@ -146,9 +146,10 @@ internal interface IAgentStore
     Task<bool> DeleteAsync(string name, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Soft-deletes every agent currently resolving to <see cref="AgentState.Offline"/>,
-    /// applying the same effect as <see cref="DeleteAsync"/> to each. Online and
-    /// unreachable agents are left untouched. Returns the number of agents deleted.
+    /// Soft-deletes every agent currently resolving to <see cref="AgentState.Offline"/> or
+    /// <see cref="AgentState.Idle"/>, applying the same effect as <see cref="DeleteAsync"/> to
+    /// each. Online and unreachable agents are left untouched. Returns the number of agents
+    /// deleted.
     /// </summary>
-    Task<int> DeleteOfflineAsync(CancellationToken cancellationToken);
+    Task<int> DeleteInactiveAsync(CancellationToken cancellationToken);
 }

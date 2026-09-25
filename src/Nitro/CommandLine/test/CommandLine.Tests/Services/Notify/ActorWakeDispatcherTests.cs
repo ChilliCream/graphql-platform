@@ -72,10 +72,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_SkipWithOfflineReason_When_TheAgentIsPastTheOnlineWindow()
+    public async Task DispatchAsync_Should_AttemptTransport_When_TheAgentIsIdle()
     {
         // arrange
-        // A session-bound agent, advanced well past the online window.
+        // A session-bound agent, advanced well past the online window into idle.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -89,15 +89,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // assert
         Assert.NotNull(receipt);
+        Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
         var target = Assert.Single(receipt.Targets);
-        Assert.Equal(
-            (MailWakeTargetStatus.Skipped, actor, MailWakeTargetStatus.Skipped, "offline"),
-            (receipt.Status, target.Target, target.Status, target.LastError));
-        Assert.Empty(executor.Calls);
-
-        // the batch completed instead of releasing for a retry.
-        _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
-        Assert.Null(await dispatcher.DispatchAsync(actor, LeaderToken, Deadline(), cancellationToken));
+        Assert.Equal(MailWakeTargetStatus.Delivered, target.Status);
+        Assert.Single(executor.Calls);
     }
 
     [Fact]

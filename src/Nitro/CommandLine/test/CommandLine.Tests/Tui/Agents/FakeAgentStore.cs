@@ -367,7 +367,7 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
         return Task.FromResult(true);
     }
 
-    public Task<int> DeleteOfflineAsync(CancellationToken cancellationToken)
+    public Task<int> DeleteInactiveAsync(CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
         var deletedCount = 0;
@@ -375,8 +375,9 @@ internal sealed class FakeAgentStore(TimeProvider timeProvider) : IAgentStore
         for (var index = 0; index < _rows.Count; index++)
         {
             var row = _rows[index];
+            var state = AgentStateResolver.Resolve(row, now);
 
-            if (row.IsDeleted || AgentStateResolver.Resolve(row, now) != AgentState.Offline)
+            if (row.IsDeleted || (state != AgentState.Offline && state != AgentState.Idle))
             {
                 continue;
             }
