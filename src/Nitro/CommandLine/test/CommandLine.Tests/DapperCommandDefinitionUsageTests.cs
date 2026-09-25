@@ -8,8 +8,7 @@ public sealed class DapperCommandDefinitionUsageTests
     public void SourceFiles_Should_NotContainCommandDefinitionOrDynamicParameters_When_UnderServicesOrCommands()
     {
         // arrange
-        // Dapper.AOT does not intercept CommandDefinition or DynamicParameters calls, which fall
-        // back to reflection Dapper and crash under native AOT.
+        // Dapper.AOT does not intercept CommandDefinition or DynamicParameters calls.
         var sourceRoot = GetCommandLineSourceRoot();
         var scannedDirectories = new[] { "Services", "Commands" };
         var bannedTokens = new[] { "new CommandDefinition(", "DynamicParameters" };
