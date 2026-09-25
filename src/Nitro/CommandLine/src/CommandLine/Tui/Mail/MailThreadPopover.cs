@@ -225,7 +225,7 @@ internal static class MailThreadPopoverView
     /// The panel title: the thread's subject, or a placeholder when it has no messages.
     /// </summary>
     public static string BuildHeader(IReadOnlyList<MailMessage> messages) =>
-        messages.Count > 0 ? messages[0].Subject : "Thread";
+        messages.Count > 0 ? Markup.Escape(messages[0].Subject) : "Thread";
 
     /// <summary>
     /// Builds every line of the popover: a leading blank line, the header block

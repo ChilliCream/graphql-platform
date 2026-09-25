@@ -88,6 +88,22 @@ public sealed class MailThreadPopoverModelTests
     }
 
     [Fact]
+    public void Render_Should_ShowTheSubjectLiterally_When_TheSubjectContainsBrackets()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(CreateMessage("m1", "t1", "bob", "[Fusion] Add x", "Hello.", s_now));
+        var model = CreateModel("t1", store);
+        model.Load(TestContext.Current.CancellationToken);
+
+        // act
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Contains("[Fusion] Add x", text);
+    }
+
+    [Fact]
     public void Render_Should_ShowParticipantsMessageCountAndAges_When_ThreadHasThreeMessages()
     {
         // arrange
