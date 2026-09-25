@@ -32,7 +32,7 @@ layer: a handful of representative flows, not exhaustive.
 | `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
 | `mail-send` | `agent register/list/mail send/inbox/reply/read --thread` over a copy of the fixture | the mail send/inbox/reply/read round trip, one actor registered with a role, and the unified `agent list` shape |
 | `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
-| `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | read-only navigation, fold/list/thread toggles, and per-agent filtering |
+| `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | the read-only thread table, per-agent filtering, and the Enter thread popover |
 | `agents` | the Agents tab (bare `nitro agent`, `A` to switch) | the unified agent table's presence states and header counts, and the Enter detail popover |
 
 `help` is a trivial smoke flow that proves the pipeline itself,

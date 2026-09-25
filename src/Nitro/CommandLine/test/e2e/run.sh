@@ -59,7 +59,7 @@ declare -A MARKERS=(
   [detail]="acme-epic1 · blocking · depended on by"
   [mail-send]="Thanks-noted"
   [mail-error]="[nitro exit: 1]"
-  [mail-board]="Workspace: bob (3)"
+  [mail-board]="Mail: bob (3)"
   [agents]="Agents (1 online / 4)"
 )
 ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
