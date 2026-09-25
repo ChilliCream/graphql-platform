@@ -101,7 +101,24 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
             return null;
         }
 
-        return new MailThreadPopoverModel(thread.ThreadId, _mailStore, _agentStore, _timeProvider);
+        return new MailThreadPopoverModel(thread.ThreadId, _mailStore, _agentStore, _timeProvider, MoveSelection);
+    }
+
+    /// <summary>
+    /// Moves the table selection <paramref name="delta"/> rows away from the current one and
+    /// returns the thread landed on, or null at the first or last thread.
+    /// </summary>
+    private MailThreadSummary? MoveSelection(int delta)
+    {
+        var next = _state.SelectedRow + delta;
+
+        if (next < 0 || next >= _state.Threads.Count)
+        {
+            return null;
+        }
+
+        _state.SelectedRow = next;
+        return _state.Threads[next];
     }
 
     /// <inheritdoc />

@@ -70,12 +70,12 @@ internal sealed class ListAgentCommand : Command
 
     /// <summary>
     /// Orders rows the way the board does: online agents first, then unreachable, then
-    /// offline, with ties broken by the most recently seen and then by name.
+    /// offline, with ties broken by the most recently seen window and then by name.
     /// </summary>
     private static IReadOnlyList<AgentRow> Order(IReadOnlyList<AgentRow> rows, DateTimeOffset now)
         => rows
             .OrderBy(row => (int)AgentStateResolver.Resolve(row, now))
-            .ThenByDescending(row => row.LastSeenAt)
+            .ThenByDescending(row => AgentStateResolver.LastSeenWindowStart(row.LastSeenAt))
             .ThenBy(row => row.Name, StringComparer.Ordinal)
             .ToArray();
 

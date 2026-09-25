@@ -108,11 +108,11 @@ public sealed class MemoryModeTests : MemoryTestBase
     public async Task Render_Should_OrderRowsByTimeDescending_When_CuratedAndJournalRowsExist()
     {
         // arrange
-        await SaveAsync("Oldest curated.");
+        await SaveAsync("Oldest curated.", type: "alpha");
         TimeProvider.Advance(TimeSpan.FromMinutes(1));
         await LogAsync("Middle journal.");
         TimeProvider.Advance(TimeSpan.FromMinutes(1));
-        await SaveAsync("Newest curated.");
+        await SaveAsync("Newest curated.", type: "omega");
         var mode = CreateMode();
         mode.OnEnter();
 
@@ -120,9 +120,9 @@ public sealed class MemoryModeTests : MemoryTestBase
         var text = RenderToText(mode);
 
         // assert
-        var newestIndex = text.IndexOf("Newest curated.", StringComparison.Ordinal);
-        var middleIndex = text.IndexOf("Middle journal.", StringComparison.Ordinal);
-        var oldestIndex = text.IndexOf("Oldest curated.", StringComparison.Ordinal);
+        var newestIndex = text.IndexOf("omega", StringComparison.Ordinal);
+        var middleIndex = text.IndexOf("journal", StringComparison.Ordinal);
+        var oldestIndex = text.IndexOf("alpha", StringComparison.Ordinal);
         Assert.True(newestIndex >= 0 && middleIndex > newestIndex && oldestIndex > middleIndex);
     }
 
@@ -147,12 +147,12 @@ public sealed class MemoryModeTests : MemoryTestBase
             """
             ╭─Memory (3)───────────────────────────────────────────────────────────────────────────────────────╮
             │                                                                                                  │
-            │    KIND        TYPE          TAGS            AGE           BODY                                  │
+            │    KIND        TYPE          TAGS                                                     AGE        │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
             │                                                                                                  │
-            │ >  journal     -             -               just now      Follow up needed.                     │
-            │    curated     decision      -               1m ago        Deploy notes.                         │
-            │    curated     fact          ops             2m ago        Ops runbook.                          │
+            │ >  journal     -             -                                                        just now   │
+            │    curated     decision      -                                                        1m ago     │
+            │    curated     fact          ops                                                      2m ago     │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);
@@ -255,6 +255,68 @@ public sealed class MemoryModeTests : MemoryTestBase
         // assert
         Assert.NotNull(popover);
         Assert.Contains(saved.Id, console.Output);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_MoveTheModeSelectionToTheNextRow_When_DownArrowIsPressedOnThePopover()
+    {
+        // arrange
+        // rows sort by time descending, so "Second." lands at row 0 and "First." at row 1
+        var first = await SaveAsync("First.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+        var console = new TestConsole().Width(100);
+        console.Write(popover.Render(100, 30));
+
+        // assert
+        Assert.Equal(1, mode.State.SelectedRow);
+        Assert.Contains(first.Id, console.Output);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_LeaveTheModeSelectionUnchanged_When_UpArrowIsPressedOnThePopoverAtTheFirstRow()
+    {
+        // arrange
+        await SaveAsync("First.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.UpArrow));
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_LeaveTheModeSelectionOnTheRowReached_When_EscapeIsPressedOnThePopoverAfterMovingDown()
+    {
+        // arrange
+        await SaveAsync("First.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.IsType<PopoverResult.Closed>(result);
+        Assert.Equal(1, mode.State.SelectedRow);
     }
 
     [Fact]
@@ -472,7 +534,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task Render_Should_DropTagsColumn_When_WidthIsTooNarrowForEveryColumn()
+    public async Task Render_Should_DropTypeColumn_When_WidthIsTooNarrowForEveryColumn()
     {
         // arrange
         await SaveAsync("Deploy checklist.", tags: ["ops"]);
@@ -481,11 +543,11 @@ public sealed class MemoryModeTests : MemoryTestBase
         var wide = RenderToText(mode, width: 100);
 
         // act
-        var narrow = RenderToText(mode, width: 55);
+        var narrow = RenderToText(mode, width: 35);
         var actual = (
-            WideHasTags: wide.Contains("ops", StringComparison.Ordinal),
-            NarrowHasTags: narrow.Contains("ops", StringComparison.Ordinal),
-            NarrowHasType: narrow.Contains("fact", StringComparison.Ordinal));
+            WideHasType: wide.Contains("fact", StringComparison.Ordinal),
+            NarrowHasType: narrow.Contains("fact", StringComparison.Ordinal),
+            NarrowHasKind: narrow.Contains("curated", StringComparison.Ordinal));
 
         // assert
         Assert.Equal((true, false, true), actual);

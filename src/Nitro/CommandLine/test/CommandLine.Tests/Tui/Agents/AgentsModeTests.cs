@@ -86,18 +86,62 @@ public sealed class AgentsModeTests
     private static void Touch(FakeAgentStore store, string name)
         => store.TouchAsync(name, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
-    private static int CountOccurrences(string text, string value)
+    /// <summary>
+    /// Seeds an online agent last seen at exactly <paramref name="lastSeenAt"/>.
+    /// </summary>
+    private static AgentRow AddOnlineAgentSeenAt(FakeAgentStore store, string name, DateTimeOffset lastSeenAt)
     {
-        var count = 0;
-        var index = 0;
-
-        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        var row = new AgentRow
         {
-            count++;
-            index += value.Length;
-        }
+            Name = name,
+            Role = string.Empty,
+            Harness = AgentSessionHarness.ClaudeCode,
+            HarnessVersion = "1.0.0",
+            SessionId = $"session-{name}",
+            Cwd = string.Empty,
+            WorkspacePath = string.Empty,
+            RegisteredAt = lastSeenAt,
+            StartedAt = lastSeenAt,
+            LastSeenAt = lastSeenAt,
+            EndpointKind = AgentSessionEndpointKind.ClaudePeer,
+            EndpointAddr = "peer-1",
+            BlockBudgetUsed = 0,
+            AnnouncementPending = false,
+            IdlePushArmed = false
+        };
 
-        return count;
+        store.Seed(row);
+        return row;
+    }
+
+    /// <summary>
+    /// Seeds an offline agent (its session already ended) last seen at exactly
+    /// <paramref name="lastSeenAt"/>.
+    /// </summary>
+    private static AgentRow AddOfflineAgentSeenAt(FakeAgentStore store, string name, DateTimeOffset lastSeenAt)
+    {
+        var row = new AgentRow
+        {
+            Name = name,
+            Role = string.Empty,
+            Harness = AgentSessionHarness.ClaudeCode,
+            HarnessVersion = "1.0.0",
+            SessionId = $"session-{name}",
+            Cwd = string.Empty,
+            WorkspacePath = string.Empty,
+            RegisteredAt = lastSeenAt,
+            StartedAt = lastSeenAt,
+            LastSeenAt = lastSeenAt,
+            EndedAt = lastSeenAt,
+            EndpointKind = AgentSessionEndpointKind.ClaudePeer,
+            EndpointAddr = "peer-1",
+            BlockBudgetUsed = 0,
+            AnnouncementPending = false,
+            IdlePushArmed = false
+        };
+
+        store.Seed(row);
+        return row;
     }
 
     [Fact]
@@ -215,7 +259,7 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_DropTheStartedAge_When_WidthIsTooNarrowForEveryColumn()
+    public void Render_Should_KeepOnlyNameAndRole_When_WidthIsTooNarrowForEveryOtherColumn()
     {
         // arrange
         var time = new FakeTimeProvider(s_now);
@@ -228,14 +272,17 @@ public sealed class AgentsModeTests
         var wide = RenderToText(mode, width: 100);
 
         // act
+        // At this width, Started, Harness and Last Seen all drop before Name or Role would.
         var narrow = RenderToText(mode, width: 35);
+        var actual = (
+            HasName: narrow.Contains(agent.Name, StringComparison.Ordinal),
+            HasHarness: narrow.Contains("Claude Code", StringComparison.Ordinal),
+            HasStartedAge: narrow.Contains("10m ago", StringComparison.Ordinal),
+            HasLastSeenAge: narrow.Contains("just now", StringComparison.Ordinal));
 
         // assert
-        // Last Seen is fresh ("just now", no suffix); an "ago" would mean Started survived too.
         Assert.Contains("10m ago", wide);
-        Assert.Contains("just now", wide);
-        Assert.Equal(0, CountOccurrences(narrow, "ago"));
-        Assert.Contains("just now", narrow);
+        Assert.Equal((true, false, false, false), actual);
     }
 
     [Fact]
@@ -291,6 +338,88 @@ public sealed class AgentsModeTests
         var staleIndex = text.IndexOf(stale.Name, StringComparison.Ordinal);
         Assert.True(dirty && freshIndex >= 0 && offlineIndex > freshIndex && staleIndex > offlineIndex);
         Assert.Equal(stale.Name, mode.State.SelectedAgent?.Name);
+    }
+
+    [Fact]
+    public void Rows_Should_OrderByNameAscending_When_TwoOnlineAgentsLastSeenFallInTheSameFiveMinuteWindow()
+    {
+        // arrange
+        // 10:01 and 10:04 share the 10:00 window
+        var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(windowStart.AddMinutes(6));
+        var store = new FakeAgentStore(time);
+        AddOnlineAgentSeenAt(store, "zed", windowStart.AddMinutes(4));
+        AddOnlineAgentSeenAt(store, "ann", windowStart.AddMinutes(1));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Collection(
+            mode.State.Rows,
+            row => Assert.Equal("ann", row.Name),
+            row => Assert.Equal("zed", row.Name));
+    }
+
+    [Fact]
+    public void Rows_Should_SortTheLaterWindowFirst_When_OneAgentsLastSeenCrossedTheNextFiveMinuteBoundary()
+    {
+        // arrange
+        // 10:06 falls in the 10:05 window, 10:01 and 10:04 in the 10:00 window
+        var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(windowStart.AddMinutes(7));
+        var store = new FakeAgentStore(time);
+        AddOnlineAgentSeenAt(store, "zzz", windowStart.AddMinutes(1));
+        AddOnlineAgentSeenAt(store, "yyy", windowStart.AddMinutes(4));
+        AddOnlineAgentSeenAt(store, "aaa", windowStart.AddMinutes(6));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal("aaa", mode.State.Rows[0].Name);
+    }
+
+    [Fact]
+    public void Rows_Should_PlaceTwoLastSeenTimesInDifferentWindows_When_OneLandsRightBeforeAndOneRightAtTheBoundary()
+    {
+        // arrange
+        // 10:04:59 is in the 10:00 window, 10:05:00 starts the 10:05 window
+        var boundary = new DateTimeOffset(2026, 1, 1, 10, 5, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(boundary.AddMinutes(1));
+        var store = new FakeAgentStore(time);
+        AddOnlineAgentSeenAt(store, "b", boundary);
+        AddOnlineAgentSeenAt(store, "a", boundary - TimeSpan.FromSeconds(1));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal("b", mode.State.Rows[0].Name);
+        Assert.Equal("a", mode.State.Rows[1].Name);
+    }
+
+    [Fact]
+    public void Rows_Should_KeepOnlineBeforeOffline_When_TheOfflineAgentsWindowIsLaterThanTheOnlineAgents()
+    {
+        // arrange
+        // The offline agent's window is later than the online agent's
+        var windowStart = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        var time = new FakeTimeProvider(windowStart.AddMinutes(20));
+        var store = new FakeAgentStore(time);
+        var online = AddOnlineAgentSeenAt(store, "zzz", windowStart);
+        var offline = AddOfflineAgentSeenAt(store, "aaa", windowStart.AddMinutes(15));
+        var mode = CreateMode(store, time);
+
+        // act
+        mode.OnEnter();
+
+        // assert
+        Assert.Equal(online.Name, mode.State.Rows[0].Name);
+        Assert.Equal(offline.Name, mode.State.Rows[1].Name);
     }
 
     [Fact]

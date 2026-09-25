@@ -6,9 +6,11 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
 /// Renders the Agents table's header row and each agent row: a presence bubble and name,
-/// role, harness, and age columns. Narrow widths drop the Started column first, then Role,
-/// then Harness, identically for the header and the rows so the two always agree. Built on
-/// the shared <see cref="TableLayout"/> and <see cref="TableRenderer"/> table widget.
+/// role, harness, and age columns. Name and Role are never dropped; narrow widths drop the
+/// Started column first, then Harness, then Last Seen, identically for the header and the
+/// rows so the two always agree. When even Name and Role no longer fit, Role is truncated
+/// first, then Name, with an ellipsis. Built on the shared <see cref="TableLayout"/> and
+/// <see cref="TableRenderer"/> table widget.
 /// </summary>
 internal static class AgentRowBadge
 {
@@ -29,15 +31,28 @@ internal static class AgentRowBadge
     private const int MinStartedWidth = 10;
     private const int MinLastSeenWidth = 10;
 
-    // Started drops first, then Role, then Harness; Name and Last Seen have no drop priority
-    // so they are never dropped.
+    // Started drops first, then Harness, then Last Seen; Name and Role have no drop priority
+    // so they are never dropped. This is the display order the columns render in.
     private static readonly IReadOnlyList<TableColumnSpec> s_columns =
     [
         new TableColumnSpec(NameHeader, MinNameWidth),
-        new TableColumnSpec(RoleHeader, MinRoleWidth, DropPriority: 1),
-        new TableColumnSpec(HarnessHeader, MinHarnessWidth, DropPriority: 2),
+        new TableColumnSpec(RoleHeader, MinRoleWidth),
+        new TableColumnSpec(HarnessHeader, MinHarnessWidth, DropPriority: 1),
         new TableColumnSpec(StartedHeader, MinStartedWidth, DropPriority: 0),
-        new TableColumnSpec(LastSeenHeader, MinLastSeenWidth)
+        new TableColumnSpec(LastSeenHeader, MinLastSeenWidth, DropPriority: 2)
+    ];
+
+    // Same columns, with Role ordered before Name, used only to plan widths: TableLayout.Plan
+    // truncates the first never-dropped column that is still visible once every droppable
+    // column is gone, so putting Role first here makes Role truncate before Name while the
+    // rendered column order above stays Name, then Role.
+    private static readonly IReadOnlyList<TableColumnSpec> s_widthPlanColumns =
+    [
+        new TableColumnSpec(RoleHeader, MinRoleWidth),
+        new TableColumnSpec(NameHeader, MinNameWidth),
+        new TableColumnSpec(HarnessHeader, MinHarnessWidth, DropPriority: 1),
+        new TableColumnSpec(StartedHeader, MinStartedWidth, DropPriority: 0),
+        new TableColumnSpec(LastSeenHeader, MinLastSeenWidth, DropPriority: 2)
     ];
 
     /// <summary>
@@ -73,9 +88,9 @@ internal static class AgentRowBadge
     /// <summary>
     /// Builds the markup line for one agent row. Columns are padded to <paramref name="widths"/>.
     /// When the full set of columns does not fit within <paramref name="maxWidth"/> display
-    /// columns, Started is dropped first, then Role; Name and Last Seen always remain, with
-    /// Name truncated as a last resort. A <paramref name="maxWidth"/> of 0 or less produces an
-    /// empty line.
+    /// columns, Started is dropped first, then Harness, then Last Seen; Name and Role always
+    /// remain, with Role truncated first and then Name as a last resort. A
+    /// <paramref name="maxWidth"/> of 0 or less produces an empty line.
     /// </summary>
     public static string Render(
         AgentRow row, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
@@ -103,7 +118,7 @@ internal static class AgentRowBadge
         };
 
         var budget = maxWidth - PrefixWidth(prefix);
-        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+        var layout = PlanLayout(budget, widths);
         var line = TableRenderer.RenderRow(
             prefix, new TableCellSpec(BubbleGlyph, bubbleStyle), cells, s_columns, layout);
 
@@ -133,7 +148,7 @@ internal static class AgentRowBadge
         var headerStyle = ThemeTokens.GetStyle("agents.list.header").ToMarkup();
         var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
         var budget = maxWidth - PrefixWidth(UnselectedPrefix);
-        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+        var layout = PlanLayout(budget, widths);
 
         return TableRenderer.RenderRow(
             UnselectedPrefix, new TableCellSpec(blankBubble), BuildHeaderCells(headerStyle), s_columns, layout);
@@ -166,7 +181,7 @@ internal static class AgentRowBadge
         var ruleStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
         var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
         var budget = maxWidth - PrefixWidth(UnselectedPrefix);
-        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+        var layout = PlanLayout(budget, widths);
 
         TableRenderer.RenderTopBlock(
             lines,
@@ -192,8 +207,33 @@ internal static class AgentRowBadge
     private static int PrefixWidth(string prefix) =>
         DisplayWidth.Measure(prefix) + DisplayWidth.Measure(BubbleGlyph) + 1;
 
-    private static IReadOnlyList<int> ToWidthList(Widths widths) =>
-        [widths.Name, widths.Role, widths.Harness, widths.Started, widths.LastSeen];
+    /// <summary>
+    /// Plans column visibility and widths for <paramref name="budget"/> display columns, in the
+    /// display order Name, Role, Harness, Started, Last Seen.
+    /// </summary>
+    private static IReadOnlyList<ColumnLayout> PlanLayout(int budget, Widths widths)
+    {
+        IReadOnlyList<int> planWidths = [widths.Role, widths.Name, widths.Harness, widths.Started, widths.LastSeen];
+        var planLayout = TableLayout.Plan(budget, s_widthPlanColumns, planWidths).ToArray();
+        var role = planLayout[0];
+        var name = planLayout[1];
+
+        // TableLayout.Plan only truncates the first still-visible column once every droppable
+        // column is gone, which is Role here. When Role alone does not free enough room, also
+        // shrink Name to what is left so the row still fits within budget.
+        if (role.Visible && name.Visible)
+        {
+            var used = role.Width + name.Width + DisplayWidth.Measure(TableLayout.Gutter);
+
+            if (used > budget)
+            {
+                var nameWidth = Math.Max(0, budget - role.Width - DisplayWidth.Measure(TableLayout.Gutter));
+                planLayout[1] = new ColumnLayout(true, nameWidth);
+            }
+        }
+
+        return [planLayout[1], planLayout[0], planLayout[2], planLayout[3], planLayout[4]];
+    }
 
     /// <summary>
     /// Resolves the theme style for an agent's presence state: a dedicated

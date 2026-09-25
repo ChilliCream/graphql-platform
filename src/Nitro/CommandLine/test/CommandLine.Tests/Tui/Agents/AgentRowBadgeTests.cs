@@ -111,7 +111,7 @@ public sealed class AgentRowBadgeTests
     }
 
     [Fact]
-    public void Render_Should_DropRoleColumn_When_WidthIsTooNarrowForRoleAndHarness()
+    public void Render_Should_DropHarnessColumn_When_WidthIsTooNarrowForHarnessAndStarted()
     {
         // arrange
         const int maxWidth = 50;
@@ -122,11 +122,11 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a         Claude Code     just now  ", line);
+        Assert.Equal("  ● agent-a         implementer     just now  ", line);
     }
 
     [Fact]
-    public void Render_Should_TruncateName_When_WidthIsTooNarrowForHarness()
+    public void Render_Should_TruncateRole_When_WidthIsTooNarrowForNameAndRole()
     {
         // arrange
         const int maxWidth = 30;
@@ -137,12 +137,11 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Contains("just now", line);
-        Assert.True(line.GetCellWidth() <= maxWidth);
+        Assert.Equal("  ● a-long-agent-name    impl…", line);
     }
 
     [Fact]
-    public void Render_Should_PadNameToItsColumn_When_OnlyNameAndLastSeenFit()
+    public void Render_Should_ShowNameAndRoleOnly_When_WidthIsTooNarrowForLastSeen()
     {
         // arrange
         const int maxWidth = 35;
@@ -153,11 +152,11 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Equal("  ● agent-a         just now  ", line);
+        Assert.Equal("  ● agent-a         implementer ", line);
     }
 
     [Fact]
-    public void RenderHeader_Should_PadNameToItsColumn_When_OnlyNameAndLastSeenFit()
+    public void RenderHeader_Should_ShowNameAndRoleOnly_When_WidthIsTooNarrowForLastSeen()
     {
         // arrange
         const int maxWidth = 35;
@@ -168,7 +167,7 @@ public sealed class AgentRowBadgeTests
         var header = Markup.Remove(AgentRowBadge.RenderHeader(maxWidth, widths));
 
         // assert
-        Assert.Equal("    NAME            LAST SEEN ", header);
+        Assert.Equal("    NAME            ROLE        ", header);
     }
 
     [Theory]
@@ -251,7 +250,7 @@ public sealed class AgentRowBadgeTests
             RowHasHarness: line.Contains("Claude Code", StringComparison.Ordinal));
 
         // assert
-        Assert.Equal((false, false, false, true, true), actual);
+        Assert.Equal((true, true, false, false, false), actual);
     }
 
     [Fact]

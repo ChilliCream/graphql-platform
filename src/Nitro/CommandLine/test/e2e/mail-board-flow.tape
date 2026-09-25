@@ -41,7 +41,7 @@ Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 # rendered as one full-width table of every thread (MailTable/MailMode).
 Type "]"
 Wait+Screen@30s /Mail \(5\)/
-Wait+Screen@30s /SUBJECT\s+FROM\s+TO\s+MSGS\s+ACTIVITY/
+Wait+Screen@30s /SUBJECT\s+FROM\s+TO\s+MESSAGES\s+LAST ACTIVITY/
 
 # Filter the Workspace mailbox to bob. The picker is ordered as All agents,
 # alice, bob, e2e-agent, so bob is two rows below the default selection.

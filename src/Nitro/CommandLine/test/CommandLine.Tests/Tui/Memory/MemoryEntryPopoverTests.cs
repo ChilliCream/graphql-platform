@@ -27,8 +27,12 @@ public sealed class MemoryEntryPopoverModelTests
     }
 
     private static MemoryEntryPopoverModel CreateModel(
-        string id, MemoryCollectionFilter kind, FakeMemoryStore store, TimeProvider? timeProvider = null)
-        => new(id, kind, store, timeProvider ?? new FakeTimeProvider(s_now));
+        string id,
+        MemoryCollectionFilter kind,
+        FakeMemoryStore store,
+        TimeProvider? timeProvider = null,
+        Func<int, MemoryRow?>? moveSelection = null)
+        => new(id, kind, store, timeProvider ?? new FakeTimeProvider(s_now), moveSelection ?? (_ => null));
 
     private static MemoryRecord CreateCuratedRecord(
         string id = "mem-1",
@@ -275,7 +279,7 @@ public sealed class MemoryEntryPopoverModelTests
     }
 
     [Fact]
-    public void HandleKey_Should_ScrollTheBody_When_JIsPressedRepeatedly()
+    public void HandleKey_Should_ScrollTheBody_When_PageDownIsPressedRepeatedly()
     {
         // arrange
         var store = new FakeMemoryStore();
@@ -288,13 +292,51 @@ public sealed class MemoryEntryPopoverModelTests
         // act
         for (var i = 0; i < 5; i++)
         {
-            model.HandleKey(Key(ConsoleKey.J, 'j'));
+            model.HandleKey(Key(ConsoleKey.PageDown));
         }
 
         var after = RenderToText(model, height: 10);
 
         // assert
         Assert.NotEqual(before, after);
+    }
+
+    [Fact]
+    public void HandleKey_Should_MoveToTheNextRowAndReload_When_DownArrowIsPressed()
+    {
+        // arrange
+        var store = new FakeMemoryStore();
+        store.CuratedRecords["mem-1"] = CreateCuratedRecord();
+        store.CuratedRecords["mem-2"] = CreateCuratedRecord(id: "mem-2", body: "Second entry.");
+        var next = new MemoryRow(MemoryCollectionFilter.Curated, "mem-2", "fact", [], "Second entry.", s_now);
+        var model = CreateModel("mem-1", MemoryCollectionFilter.Curated, store, moveSelection: delta => delta == 1 ? next : null);
+        model.Load(TestContext.Current.CancellationToken);
+
+        // act
+        model.HandleKey(Key(ConsoleKey.DownArrow));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Contains("mem-2", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_DoNothing_When_UpArrowIsPressedAtTheFirstRow()
+    {
+        // arrange
+        var store = new FakeMemoryStore();
+        store.CuratedRecords["mem-1"] = CreateCuratedRecord();
+        var model = CreateModel("mem-1", MemoryCollectionFilter.Curated, store, moveSelection: _ => null);
+        model.Load(TestContext.Current.CancellationToken);
+        var before = RenderToText(model);
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.UpArrow));
+        var after = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(before, after);
     }
 
     [Fact]
@@ -391,7 +433,7 @@ public sealed class MemoryEntryPopoverModelTests
     }
 
     [Fact]
-    public void DefaultHints_Should_ListScrollCopyIdAndClose_When_Inspected()
+    public void DefaultHints_Should_ListMovePageScrollCopyIdAndClose_When_Inspected()
     {
         // arrange
         // act
@@ -399,7 +441,12 @@ public sealed class MemoryEntryPopoverModelTests
 
         // assert
         Assert.Equal(
-            [new("j/k", "scroll"), new("y", "copy id"), new("esc", "close")],
+            [
+                new("up/down", "prev/next"),
+                new("pgup/pgdn", "scroll"),
+                new("y", "copy id"),
+                new("esc", "close")
+            ],
             hints);
     }
 }

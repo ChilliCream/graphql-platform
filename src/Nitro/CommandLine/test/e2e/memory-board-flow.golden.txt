@@ -1,13 +1,13 @@
  [T]asks   [M]ail   [A]gents   M[e]mory
 ╭─Journal (4)─────────────────────────────────────────────────────────────────────────────────╮
 │                                                                                             │
-│    KIND        TYPE          TAGS            AGE           BODY                             │
+│    KIND        TYPE          TAGS                                                AGE        │
 │ ─────────────────────────────────────────────────────────────────────────────────────────── │
 │                                                                                             │
-│    journal     -             -               2026-01-01    Fusion warnings are non-fatal.   │
-│    journal     -             -               2026-01-01    Staging resets nightly at 02:00… │
-│ >  journal     -             -               2026-01-01    Follow up on the flaky checkout… │
-│    journal     -             -               2026-01-01    Prefer small PRs over big chang… │
+│    journal     -             -                                                   2026-01-01 │
+│    journal     -             -                                                   2026-01-01 │
+│ >  journal     -             -                                                   2026-01-01 │
+│    journal     -             -                                                   2026-01-01 │
 │                                                                                             │
 │                                                                                             │
 │                                                                                             │

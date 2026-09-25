@@ -744,7 +744,7 @@ public sealed class TuiShellTabsTests
             var rendered = RenderToText(shell);
             Assert.Contains("Memory (1)", rendered);
             Assert.Contains("KIND", rendered);
-            Assert.Contains("BODY", rendered);
+            Assert.Contains("TAGS", rendered);
         }
         finally
         {
@@ -818,7 +818,7 @@ public sealed class TuiShellTabsTests
 
             // assert
             Assert.Collection(memoryMode.State.Rows, r => Assert.Equal("Deploy note.", r.Body));
-            Assert.Contains("Deploy note.", RenderToText(shell));
+            Assert.Contains("Memory (1) (filtered)", RenderToText(shell));
         }
         finally
         {
@@ -921,7 +921,7 @@ public sealed class TuiShellTabsTests
             // assert
             Assert.True(dirty);
             Assert.Contains("KIND", rendered);
-            Assert.Contains("Ops note.", rendered);
+            Assert.Contains("curated", rendered);
         }
         finally
         {

@@ -37,8 +37,17 @@ public sealed class MailThreadPopoverModelTests
     }
 
     private static MailThreadPopoverModel CreateModel(
-        string threadId, FakeMailStore mailStore, FakeAgentStore? agentStore = null, TimeProvider? timeProvider = null)
-        => new(threadId, mailStore, agentStore ?? new FakeAgentStore(new FakeTimeProvider(s_now)), timeProvider ?? new FakeTimeProvider(s_now));
+        string threadId,
+        FakeMailStore mailStore,
+        FakeAgentStore? agentStore = null,
+        TimeProvider? timeProvider = null,
+        Func<int, MailThreadSummary?>? moveSelection = null)
+        => new(
+            threadId,
+            mailStore,
+            agentStore ?? new FakeAgentStore(new FakeTimeProvider(s_now)),
+            timeProvider ?? new FakeTimeProvider(s_now),
+            moveSelection ?? (_ => null));
 
     private static MailMessage CreateMessage(
         string id,
@@ -251,7 +260,7 @@ public sealed class MailThreadPopoverModelTests
     }
 
     [Fact]
-    public void HandleKey_Should_ScrollTheBody_When_JIsPressedRepeatedly()
+    public void HandleKey_Should_ScrollTheBody_When_PageDownIsPressedRepeatedly()
     {
         // arrange
         var store = new FakeMailStore();
@@ -264,13 +273,62 @@ public sealed class MailThreadPopoverModelTests
         // act
         for (var i = 0; i < 5; i++)
         {
-            model.HandleKey(Key(ConsoleKey.J, 'j'));
+            model.HandleKey(Key(ConsoleKey.PageDown));
         }
 
         var after = RenderToText(model, height: 10);
 
         // assert
         Assert.NotEqual(before, after);
+    }
+
+    [Fact]
+    public void HandleKey_Should_MoveToTheNextThreadAndReload_When_DownArrowIsPressed()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(CreateMessage("m1", "t1", "bob", "First subject", "First.", s_now));
+        store.Messages.Add(CreateMessage("m2", "t2", "bob", "Second subject", "Second.", s_now));
+        var next = new MailThreadSummary
+        {
+            ThreadId = "t2",
+            Subject = "Second subject",
+            MessageCount = 1,
+            LastMessageAt = s_now,
+            LastSender = "bob",
+            LastRecipients = [],
+            BodyPreview = "Second.",
+            UnreadCount = null,
+            ArchivedCount = null
+        };
+        var model = CreateModel("t1", store, moveSelection: delta => delta == 1 ? next : null);
+        model.Load(TestContext.Current.CancellationToken);
+
+        // act
+        model.HandleKey(Key(ConsoleKey.DownArrow));
+        var text = RenderToText(model);
+
+        // assert
+        Assert.Contains("Second subject", text);
+    }
+
+    [Fact]
+    public void HandleKey_Should_DoNothing_When_UpArrowIsPressedAtTheFirstThread()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(CreateMessage("m1", "t1", "bob", "Subject", "Body.", s_now));
+        var model = CreateModel("t1", store, moveSelection: _ => null);
+        model.Load(TestContext.Current.CancellationToken);
+        var before = RenderToText(model);
+
+        // act
+        var result = model.HandleKey(Key(ConsoleKey.UpArrow));
+        var after = RenderToText(model);
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(before, after);
     }
 
     [Fact]
@@ -367,7 +425,7 @@ public sealed class MailThreadPopoverModelTests
     }
 
     [Fact]
-    public void DefaultHints_Should_ListScrollCopyIdAndClose_When_Inspected()
+    public void DefaultHints_Should_ListMovePageScrollCopyIdAndClose_When_Inspected()
     {
         // arrange
         // act
@@ -375,7 +433,12 @@ public sealed class MailThreadPopoverModelTests
 
         // assert
         Assert.Equal(
-            [new("j/k", "scroll"), new("y", "copy id"), new("esc", "close")],
+            [
+                new("up/down", "prev/next"),
+                new("pgup/pgdn", "scroll"),
+                new("y", "copy id"),
+                new("esc", "close")
+            ],
             hints);
     }
 }

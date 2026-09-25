@@ -131,6 +131,105 @@ public sealed class ListAgentCommandTests(NitroCommandFixture fixture) : AgentCo
             """);
     }
 
+    [Fact]
+    public async Task Execute_Should_OrderByName_When_TwoOnlineAgentsLastSeenFallInTheSameFiveMinuteWindow()
+    {
+        // arrange
+        // 10:01 and 10:04 share the 10:00 window
+        await InitWorkspaceAsync();
+        var windowStart = FakeTime.GetUtcNow();
+        await InsertOnlineAgentSeenAtAsync("zed", windowStart.AddMinutes(4));
+        await InsertOnlineAgentSeenAtAsync("ann", windowStart.AddMinutes(1));
+        FakeTime.Advance(TimeSpan.FromMinutes(6));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var lines = result.StdOut.Trim().Split('\n');
+        Assert.StartsWith("ann", lines[0]);
+        Assert.StartsWith("zed", lines[1]);
+    }
+
+    [Fact]
+    public async Task Execute_Should_SortTheLaterWindowFirst_When_OneAgentsLastSeenCrossedTheNextFiveMinuteBoundary()
+    {
+        // arrange
+        // 10:06 falls in the 10:05 window, 10:01 and 10:04 in the 10:00 window
+        await InitWorkspaceAsync();
+        var windowStart = FakeTime.GetUtcNow();
+        await InsertOnlineAgentSeenAtAsync("zzz", windowStart.AddMinutes(1));
+        await InsertOnlineAgentSeenAtAsync("yyy", windowStart.AddMinutes(4));
+        await InsertOnlineAgentSeenAtAsync("aaa", windowStart.AddMinutes(6));
+        FakeTime.Advance(TimeSpan.FromMinutes(7));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var lines = result.StdOut.Trim().Split('\n');
+        Assert.StartsWith("aaa", lines[0]);
+    }
+
+    [Fact]
+    public async Task Execute_Should_PlaceTwoLastSeenTimesInDifferentWindows_When_OneLandsRightBeforeAndOneRightAtTheBoundary()
+    {
+        // arrange
+        // 10:04:59 is in the 10:00 window, 10:05:00 starts the 10:05 window
+        await InitWorkspaceAsync();
+        var boundary = FakeTime.GetUtcNow().AddMinutes(5);
+        await InsertOnlineAgentSeenAtAsync("b", boundary);
+        await InsertOnlineAgentSeenAtAsync("a", boundary - TimeSpan.FromSeconds(1));
+        FakeTime.Advance(TimeSpan.FromMinutes(6));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var lines = result.StdOut.Trim().Split('\n');
+        Assert.StartsWith("b", lines[0]);
+        Assert.StartsWith("a", lines[1]);
+    }
+
+    [Fact]
+    public async Task Execute_Should_KeepOnlineBeforeOffline_When_TheOfflineAgentsWindowIsLaterThanTheOnlineAgents()
+    {
+        // arrange
+        // The offline agent's window is later than the online agent's
+        await InitWorkspaceAsync();
+        var windowStart = FakeTime.GetUtcNow();
+        await InsertOnlineAgentSeenAtAsync("zzz", windowStart);
+        await InsertAgentRowAsync(
+            "aaa",
+            harness: AgentSessionHarness.ClaudeCode,
+            sessionId: "session-aaa",
+            endpointKind: AgentSessionEndpointKind.ClaudePeer,
+            startedAt: windowStart,
+            lastSeenAt: windowStart.AddMinutes(15),
+            endedAt: windowStart.AddMinutes(15));
+        FakeTime.Advance(TimeSpan.FromMinutes(20));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "list");
+
+        // assert
+        var lines = result.StdOut.Trim().Split('\n');
+        Assert.StartsWith("zzz", lines[0]);
+        Assert.StartsWith("aaa", lines[1]);
+    }
+
+    /// <summary>
+    /// Inserts an online Claude Code agent last seen at exactly <paramref name="lastSeenAt"/>.
+    /// </summary>
+    private Task InsertOnlineAgentSeenAtAsync(string name, DateTimeOffset lastSeenAt)
+        => InsertAgentRowAsync(
+            name,
+            harness: AgentSessionHarness.ClaudeCode,
+            sessionId: $"session-{name}",
+            endpointKind: AgentSessionEndpointKind.ClaudePeer,
+            startedAt: lastSeenAt,
+            lastSeenAt: lastSeenAt);
+
     /// <summary>
     /// Seeds one online Claude Code hook agent ("maya"), one login-only agent with no
     /// harness or session ("nova", unreachable since it has no endpoint), one Codex agent

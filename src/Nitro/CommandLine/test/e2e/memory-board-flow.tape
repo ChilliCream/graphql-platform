@@ -63,7 +63,7 @@ Wait+Screen@30s /> ○ +B +P0 +acme-a1b +Checkout crashes on Safari/
 # Shift+E: TabSwitchKeys.ResolveMnemonic jumps straight to the Memory tab.
 Type "E"
 Wait+Screen@30s /Memory \(6\)/
-Wait+Screen@30s /KIND\s+TYPE\s+TAGS\s+AGE\s+BODY/
+Wait+Screen@30s /KIND\s+TYPE\s+TAGS\s+AGE/
 
 # 'f' cycles the kind filter: All -> Curated -> Journal. Pressing it twice
 # lands on Journal (nora's three seeded entries plus this flow's own).
@@ -72,9 +72,9 @@ Type "f"
 Wait+Screen@30s /Journal \(4\)/
 
 # This flow's own journal entry is the third Journal row (see header
-# comment); two `j` presses move the selection onto it. Its body truncates
-# in the table's own BODY column, so the popover below is this step's own
-# assertion that the right row was reached.
+# comment); two `j` presses move the selection onto it. The table no longer
+# shows its body, so the popover below is this step's own assertion that
+# the right row was reached.
 Type "j"
 Type "j"
 

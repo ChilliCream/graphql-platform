@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
 /// Displays every curated memory and journal entry in the workspace as one read-only,
-/// full-width table: kind, type, tags, age, and body columns. The board has no acting agent,
+/// full-width table: kind, type, tags, and age columns. The board has no acting agent,
 /// so promoting a journal entry or forgetting a curated memory is unavailable here; Enter opens
 /// the selected row in a read-only popover instead.
 /// </summary>
@@ -86,7 +86,24 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
             return null;
         }
 
-        return new MemoryEntryPopoverModel(item.Id, item.Kind, _memoryStore, _timeProvider);
+        return new MemoryEntryPopoverModel(item.Id, item.Kind, _memoryStore, _timeProvider, MoveSelection);
+    }
+
+    /// <summary>
+    /// Moves the table selection <paramref name="delta"/> rows away from the current one and
+    /// returns the row landed on, or null at the first or last row.
+    /// </summary>
+    private MemoryRow? MoveSelection(int delta)
+    {
+        var next = _state.SelectedRow + delta;
+
+        if (next < 0 || next >= _state.Rows.Count)
+        {
+            return null;
+        }
+
+        _state.SelectedRow = next;
+        return _state.Rows[next];
     }
 
     /// <inheritdoc />

@@ -46,7 +46,7 @@ public sealed class MailTableTests
     public void Render_Should_ShowEveryColumn_When_MaxWidthFits()
     {
         // arrange
-        const int maxWidth = 80;
+        const int maxWidth = 90;
         var thread = Thread();
         var widths = MailTable.ComputeWidths([thread], s_now);
 
@@ -67,7 +67,7 @@ public sealed class MailTableTests
     public void Render_Should_ShowFirstRecipientPlusOverflowCount_When_ThreadHasMultipleRecipients()
     {
         // arrange
-        const int maxWidth = 80;
+        const int maxWidth = 90;
         var thread = Thread(lastRecipients: ["alice", "carol", "dave"]);
         var widths = MailTable.ComputeWidths([thread], s_now);
 
@@ -82,14 +82,14 @@ public sealed class MailTableTests
     public void Render_Should_RightAlignMessageCount_When_ColumnIsWiderThanTheDigits()
     {
         // arrange
-        const int maxWidth = 80;
+        const int maxWidth = 90;
         var thread = Thread(messageCount: 1);
         var widths = MailTable.ComputeWidths([thread], s_now);
 
         // act
         var header = Markup.Remove(MailTable.RenderHeader(maxWidth, widths));
         var line = Markup.Remove(MailTable.Render(thread, s_now, selected: false, maxWidth, widths));
-        var messagesOffset = header.IndexOf("MSGS", StringComparison.Ordinal);
+        var messagesOffset = header.IndexOf("MESSAGES", StringComparison.Ordinal);
 
         // assert
         Assert.Equal("1".PadLeft(widths.Messages), line.Substring(messagesOffset, widths.Messages));
@@ -132,7 +132,7 @@ public sealed class MailTableTests
         // arrange
         var thread = Thread();
         var widths = MailTable.ComputeWidths([thread], s_now);
-        var wide = Markup.Remove(MailTable.Render(thread, s_now, selected: false, maxWidth: 80, widths));
+        var wide = Markup.Remove(MailTable.Render(thread, s_now, selected: false, maxWidth: 90, widths));
 
         // act
         var narrowMaxWidth = widths.Subject + 3 + widths.From + 4 + widths.Messages + 4 + widths.LastActivity + 4;
@@ -204,7 +204,7 @@ public sealed class MailTableTests
     public void RenderHeader_Should_AlignColumnsWithRow_When_WidthIsWide()
     {
         // arrange
-        const int maxWidth = 80;
+        const int maxWidth = 90;
         var thread = Thread();
         var widths = MailTable.ComputeWidths([thread], s_now);
 
