@@ -12,12 +12,15 @@ export interface CopyLink {
  * A titled block of the page copy, where a paragraph's linked phrase appears
  * in `links` with its href and verbatim in one of the paragraphs.
  * `inPractice` holds the links of the trailing "In practice: ..." line,
- * rendered as the labels joined by " and " and closed with a period.
+ * rendered as the labels joined by " and " and closed with a period. A
+ * section with `bullets` renders them with the shared `CheckList` instead of
+ * a description paragraph; `paragraphs` is empty for those sections.
  */
 export interface CopySection {
   readonly id: string;
   readonly title: string;
   readonly paragraphs: readonly string[];
+  readonly bullets?: readonly string[];
   readonly links: readonly CopyLink[];
   readonly inPractice: readonly CopyLink[];
 }
@@ -57,50 +60,52 @@ export const SECTIONS: readonly CopySection[] = [
     inPractice: [],
   },
   {
-    id: "both-specifications",
-    title: "Both specifications, one gateway",
-    paragraphs: [
-      "Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation. Subgraphs written to either protocol compose into the same graph, so a team can adopt either one, run both side by side, or move a single subgraph across without a coordinated cutover.",
-      "Fusion also composes sources that are not GraphQL servers at all: a service that publishes an OpenAPI document or a gRPC definition joins the same graph, with its contract validated in the same composition step.",
+    id: "performance",
+    title: "Performance by design",
+    paragraphs: [],
+    bullets: [
+      "Run your graph on a high-performance router built for low latency and high throughput.",
+      "Cache query plans so repeated operations can execute without rebuilding the execution plan.",
+      "Deduplicate downstream requests to avoid fetching the same data multiple times during a single operation.",
+      "Stream results incrementally with @defer and @stream so clients can receive useful data sooner.",
+      "Precompute operation plans at build time so there is no planning overhead at runtime.",
     ],
     links: [],
-    inPractice: [
-      {
-        label: "migrating a subgraph from Apollo Federation",
-        href: "/docs/fusion/migration/coming-from-apollo-federation",
-      },
-    ],
+    inPractice: [],
   },
   {
-    id: "any-server",
-    title: "Any GraphQL server, no plugin",
-    paragraphs: [
-      "Subgraphs can be written in any language. A GraphQL subgraph stays an ordinary GraphQL server: it declares its keys and lookups in its own schema, the gateway calls it with ordinary GraphQL queries, and there is no distributed-runtime package or vendor protocol layer to install alongside it. The servers listed on the GraphQL Federation page qualify on the same terms, and so does any other GraphQL server.",
-      "The one build step you add is composition. It validates the subgraphs against one another, and type conflicts, missing fields and incompatible enums fail the pipeline instead of the gateway.",
+    id: "security",
+    title: "Centralized API security",
+    paragraphs: [],
+    bullets: [
+      "Enforce policies centrally at the gateway before requests reach your services.",
+      "Safelist trusted GraphQL operations to reduce unexpected workloads and make API behavior more predictable.",
+      "Integrate directly with Open Policy Agent (OPA) for centralized, policy-based authorization.",
+      "Plug in custom policy providers when your organization needs its own authorization or governance logic.",
+      "Generate an audit trail for every request and persist it in Nitro for security reviews, compliance, and debugging.",
     ],
-    links: [
-      {
-        label: "listed on the GraphQL Federation page",
-        href: "/platform/graphql-federation#specification",
-      },
+    links: [],
+    inPractice: [],
+  },
+  {
+    id: "insights",
+    title: "Deep operational insights",
+    paragraphs: [],
+    bullets: [
+      "Trace every request with full OpenTelemetry support and see how it executes across your graph.",
+      "Combine telemetry with Fusion operation plans to understand where time is spent and which services drive latency.",
+      "Score request cost using the GraphQL Cost Specification and apply cost-based rate limiting.",
+      "Collect cost and usage data in Nitro to understand API consumption and support usage-based billing.",
     ],
-    inPractice: [
-      {
-        label: "how composition validates subgraphs",
-        href: "/docs/fusion/composition",
-      },
-      {
-        label: "how to run it in your pipeline",
-        href: "/docs/fusion/deployment-and-ci-cd",
-      },
-    ],
+    links: [],
+    inPractice: [],
   },
   {
     id: "client-safety",
-    title: "Composition protects the graph, Nitro protects your clients",
+    title: "Protect your clients",
     paragraphs: [
-      "Composition catches conflicts between subgraphs, and that is where federation's guarantees end. Nothing in it stops a team from removing a field that a mobile app still queries: the subgraphs still compose, the build stays green, and the query fails in the hands of a client the subgraph team never sees.",
-      "Nitro closes that gap. Its schema governance compares every schema change with the operations published by real clients and tells the team what is safe, risky or breaking before the change is merged.",
+      "Composition ensures your subgraphs work together, but a valid graph can still break a client that depends on a field being changed or removed.",
+      "Nitro closes that gap by comparing every schema change against the operations used by your clients. Teams can see whether a change is safe, risky, or breaking before it reaches production.",
     ],
     links: [],
     inPractice: [
@@ -109,15 +114,12 @@ export const SECTIONS: readonly CopySection[] = [
   },
 ];
 
-export const NITRO_BAND = {
-  id: "nitro",
-  title: "Know what a schema change does to real clients.",
+export const CLOSING_BAND = {
+  id: "get-started",
+  title: "Bring your APIs together with Fusion",
   description:
-    "Nitro validates every schema change against the operations your registered clients actually run, and its Fusion dashboard reports latency, throughput and error rate for the gateway and for each subgraph behind it.",
-  buttons: [
-    { label: "Start Nitro for Free", href: "https://nitro.chillicream.com" },
-    { label: "Meet Nitro", href: "/products/nitro" },
-  ],
+    "Connect GraphQL, REST, and gRPC APIs behind one high-performance gateway and evolve your graph without locking your teams into a single federation ecosystem.",
+  buttons: HERO.buttons,
 } as const satisfies {
   readonly id: string;
   readonly title: string;
@@ -132,33 +134,33 @@ export interface Feature {
 
 export const FEATURES: readonly Feature[] = [
   {
-    title: "Both Federation Protocols",
+    title: "Connect every API",
     description:
-      "Subgraphs written to the GraphQL Federation specification and subgraphs written to Apollo Federation compose into the same graph, so you can move one subgraph at a time.",
+      "Bring GraphQL, REST, and gRPC services into the same graph and validate their contracts together during composition.",
   },
   {
-    title: "OpenAPI and gRPC Sources",
+    title: "Keep your existing stack",
     description:
-      "A service that publishes an OpenAPI document or a gRPC definition joins the same graph, with its contract validated in the same composition step.",
+      "Use the languages, frameworks, and servers your teams already know. Fusion does not require a distributed runtime or vendor-specific package inside your services.",
   },
   {
-    title: "Any Language, Any Server",
+    title: "Adopt without disruption",
     description:
-      "A GraphQL subgraph stays an ordinary GraphQL server that declares its keys and lookups in its own schema. There is no distributed-runtime package to install alongside it.",
+      "Run GraphQL Federation and Apollo Federation side by side, and migrate one subgraph at a time without requiring a coordinated cutover across teams.",
   },
   {
-    title: "Composition in Your Pipeline",
+    title: "Performance by design",
     description:
-      "Composition validates the subgraphs against one another before deployment, so type conflicts, missing fields, and incompatible enums fail the build instead of the gateway.",
+      "Precompute operation plans, cache execution plans, deduplicate downstream requests, and stream results incrementally with @defer and @stream.",
   },
   {
-    title: "Hot-Swapped Configuration",
+    title: "Centralize API security",
     description:
-      "Publish a composed Fusion configuration from your pipeline to Nitro. The gateway subscribes to the latest archive and swaps it in without a restart.",
+      "Enforce policies at the gateway, integrate with Open Policy Agent or custom policy providers, and keep unauthorized traffic away from your services.",
   },
   {
-    title: "Federated Subscriptions",
+    title: "See what happens in production",
     description:
-      "Stream results that span several subgraphs with broker-backed federated event streams, or subscribe to a subgraph over Server-Sent Events.",
+      "Trace requests across your graph with OpenTelemetry, understand execution through operation plans, and use Nitro to analyze cost, usage, and performance.",
   },
 ];

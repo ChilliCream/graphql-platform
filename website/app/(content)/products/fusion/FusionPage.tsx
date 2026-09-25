@@ -4,7 +4,7 @@ import type { ReactElement, ReactNode } from "react";
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CardGrid } from "@/src/components/CardGrid";
-import { ClassificationCard } from "@/src/components/ClassificationCard";
+import { CheckList } from "@/src/components/CheckList";
 import { ClientImpactMatrix } from "@/src/components/ClientImpactMatrix";
 import { FeatureRow } from "@/src/components/FeatureRow";
 import LayeredDiagram from "@/src/components/LayeredDiagram/index";
@@ -21,14 +21,16 @@ import { Card } from "@/src/design-system/Card";
 import { Link } from "@/src/design-system/Link";
 
 import type { CopyLink } from "./content";
-import { FEATURES, NITRO_BAND, SECTIONS } from "./content";
+import { CLOSING_BAND, FEATURES, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
-import { CompositionWindow } from "./visuals/CompositionWindow";
+import { InsightsWindow } from "./visuals/InsightsWindow";
+import { PerformanceWindow } from "./visuals/PerformanceWindow";
 import { ProtocolsWindow } from "./visuals/ProtocolsWindow";
+import { SecurityWindow } from "./visuals/SecurityWindow";
 
 /**
  * The Fusion product page: hero copy and buttons, then the diagram panel,
- * one feature row per claim, the feature grid, and the closing Nitro band.
+ * one feature row per claim, the feature grid, and the closing band.
  * All words come from `./content`.
  */
 
@@ -58,13 +60,6 @@ const CLIENT_IMPACT_ROWS = [
     total: 6,
     status: "ok",
   },
-] as const;
-
-/** Nitro band aside: a schema-governance verdict for the same orders-api v14 change. */
-const NITRO_BAND_CHANGES = [
-  { kind: "safe", text: "+ Order.deliveryEstimate" },
-  { kind: "dangerous", text: "~ Product.price: Float → Money" },
-  { kind: "breaking", text: "- Product.rating" },
 ] as const;
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
@@ -128,8 +123,9 @@ const VISUALS: Readonly<Record<string, Panel>> = {
       />
     ),
   },
-  "both-specifications": { visual: <ProtocolsWindow /> },
-  "any-server": { visual: <CompositionWindow /> },
+  performance: { visual: <PerformanceWindow /> },
+  security: { visual: <SecurityWindow /> },
+  insights: { visual: <InsightsWindow /> },
   "client-safety": {
     visual: (
       <ClientImpactMatrix
@@ -148,13 +144,16 @@ export function FusionPage() {
 
       {SECTIONS.map((section, i) => {
         const panel = VISUALS[section.id];
+        const { bullets } = section;
         const [firstParagraph, ...restParagraphs] = section.paragraphs;
 
         return (
           <section key={section.id} id={section.id} className="py-16">
             <FeatureRow
               title={section.title}
-              body={withLinks(firstParagraph, section.links)}
+              body={
+                bullets ? undefined : withLinks(firstParagraph, section.links)
+              }
               visual={
                 <div className={`${PANEL_CLASS} overflow-hidden`}>
                   {panel.visual}
@@ -162,7 +161,10 @@ export function FusionPage() {
               }
               reverse={i % 2 === 1}
             >
-              {restParagraphs.length > 0 && (
+              {bullets && (
+                <CheckList items={bullets} size="base" className="mt-4" />
+              )}
+              {!bullets && restParagraphs.length > 0 && (
                 <div className="text-cc-ink mt-4 space-y-4 text-base">
                   {restParagraphs.map((paragraph) => (
                     <p key={paragraph}>{withLinks(paragraph, section.links)}</p>
@@ -190,7 +192,7 @@ export function FusionPage() {
         </CardGrid>
       </Section>
 
-      <div id={NITRO_BAND.id} className="scroll-mt-24">
+      <div id={CLOSING_BAND.id} className="scroll-mt-24">
         <Band
           className="py-16"
           skin="accent"
@@ -198,28 +200,23 @@ export function FusionPage() {
           main={
             <div>
               <SectionHeading
-                title={NITRO_BAND.title}
-                description={NITRO_BAND.description}
+                title={CLOSING_BAND.title}
+                description={CLOSING_BAND.description}
               />
               <ButtonRow align="start" className="mt-9">
-                <SolidButton href={NITRO_BAND.buttons[0].href}>
-                  {NITRO_BAND.buttons[0].label}
+                <SolidButton href={CLOSING_BAND.buttons[0].href}>
+                  {CLOSING_BAND.buttons[0].label}
                 </SolidButton>
-                <OutlineButton href={NITRO_BAND.buttons[1].href}>
-                  {NITRO_BAND.buttons[1].label}
+                <OutlineButton href={CLOSING_BAND.buttons[1].href}>
+                  {CLOSING_BAND.buttons[1].label}
                 </OutlineButton>
               </ButtonRow>
             </div>
           }
           aside={
-            <ClassificationCard
-              density="comfortable"
-              title="orders-api"
-              version="v14"
-              verdict="publish blocked"
-              changes={NITRO_BAND_CHANGES}
-              footer="1 safe · 1 dangerous · 1 breaking"
-            />
+            <div className={`${PANEL_CLASS} overflow-hidden`}>
+              <ProtocolsWindow />
+            </div>
           }
         />
       </div>

@@ -4,7 +4,7 @@ import { tk } from "@/src/components/syntaxTokens";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 
 /**
- * The `both-specifications` panel: a DOM window, in the release-safety
+ * The closing band's panel: a DOM window, in the release-safety
  * impact-matrix rhythm, listing one row per subgraph with the specification
  * it composes through. Rows reveal on scroll with a staggered delay; a rest
  * frame (every subgraph composed) is always the final state, so
