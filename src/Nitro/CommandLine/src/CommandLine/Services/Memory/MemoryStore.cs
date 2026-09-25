@@ -171,36 +171,50 @@ internal sealed class MemoryStore(
             sql += "\n  AND c.type = @type";
         }
 
-        if (since is { } minimum)
+        if (since is not null)
         {
-            _ = minimum;
             sql += "\n  AND c.updated_at >= @since";
         }
 
-        foreach (var (tag, index) in normalizedTags.Select((tag, index) => (tag, index)))
+        for (var index = 0; index < normalizedTags.Count; index++)
         {
-            _ = tag;
             sql += "\n  AND EXISTS (SELECT 1 FROM memory_curated_tags t "
                 + $"WHERE t.id = c.id AND t.tag = @tag{index})";
         }
 
         sql += "\nORDER BY f.rank, c.updated_at DESC, c.id\nLIMIT @limit;";
 
-        var parameters = new DynamicParameters();
-        parameters.Add("match", match);
-        parameters.Add("type", normalizedType);
-        parameters.Add("since", since);
-        parameters.Add("limit", limit ?? -1);
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("@match", match);
+        command.Parameters.AddWithValue("@limit", limit ?? -1);
+
+        if (normalizedType is not null)
+        {
+            command.Parameters.AddWithValue("@type", normalizedType);
+        }
+
+        if (since is { } minimum)
+        {
+            command.Parameters.AddWithValue("@since", minimum);
+        }
 
         for (var index = 0; index < normalizedTags.Count; index++)
         {
-            parameters.Add($"tag{index}", normalizedTags[index]);
+            command.Parameters.AddWithValue($"@tag{index}", normalizedTags[index]);
         }
 
-        var ids = await connection.QueryAsync<string>(
-            sql, parameters);
+        var ids = new List<string>();
 
-        return await LoadCuratedAsync(connection, ids.ToList());
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                ids.Add(reader.GetString(0));
+            }
+        }
+
+        return await LoadCuratedAsync(connection, ids);
     }
 
     public async Task<MemoryJournalEntry> LogAsync(
