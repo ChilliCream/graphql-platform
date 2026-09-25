@@ -887,15 +887,111 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         Assert.Null(row!.EndedAt);
     }
 
+    // ---------- Subagent sessions ----------
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutMintingOrAnnouncing_When_AgentTypeIsSet()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(
+            Payload(SessionId, agentType: "general-purpose"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.Null(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutralWithoutMintingOrDigest_When_AgentIdIsSet()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(
+            Payload(SessionId, agentId: "agent-1"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.True(await _mail.CountUnreadAsync(actor, cancellationToken) > 0);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_ReturnNeutralWithoutBlockingOrDigest_When_AgentIdIsSet()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleStopAsync(
+            Payload(SessionId, agentId: "agent-1"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.True(await _mail.CountUnreadAsync(actor, cancellationToken) > 0);
+    }
+
+    [Fact]
+    public async Task HandleNotificationAsync_Should_ReturnNeutralWithoutMinting_When_AgentTypeIsSetAndNotificationTypeIsIdlePrompt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleNotificationAsync(
+            Payload(SessionId, notificationType: "idle_prompt", agentType: "general-purpose"),
+            skipSessionFileLookup: true,
+            cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.Null(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionEndAsync_Should_ReturnNeutralWithoutStampingEndedAt_When_AgentIdIsSet()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await StartAndGetActorAsync(cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionEndAsync(
+            Payload(SessionId, agentId: "agent-1"), skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.Null((await FindRowAsync(cancellationToken))!.EndedAt);
+    }
+
     // ---------- helpers ----------
 
-    private ClaudeHookPayload Payload(string sessionId, bool stopHookActive = false, string? notificationType = null) => new()
-    {
-        SessionId = sessionId,
-        Cwd = _workspaceRoot,
-        StopHookActive = stopHookActive,
-        NotificationType = notificationType
-    };
+    private ClaudeHookPayload Payload(
+        string sessionId,
+        bool stopHookActive = false,
+        string? notificationType = null,
+        string? agentId = null,
+        string? agentType = null) => new()
+        {
+            SessionId = sessionId,
+            Cwd = _workspaceRoot,
+            StopHookActive = stopHookActive,
+            NotificationType = notificationType,
+            AgentId = agentId,
+            AgentType = agentType
+        };
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
