@@ -57,6 +57,35 @@ public static class EntityKeyDescriptorExtensions
 
     /// <summary>
     /// <para>
+    /// Adds a @key directive to this object type to specify the fields that make up the unique key for an entity.
+    /// </para>
+    /// <para>
+    /// One can specify multiple @key directives for an object type.
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--key"/>
+    /// </para>
+    /// </summary>
+    /// <param name="descriptor">The object type descriptor.</param>
+    /// <param name="fields">The fields that are used to identify an entity.</param>
+    /// <returns>The object type descriptor with the @key directive applied.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> or the paramref name="fields"/> parameter is <c>null</c>.
+    /// </exception>
+    /// <exception cref="SyntaxException">
+    /// The syntax used in the <paramref name="fields"/> parameter is invalid.
+    /// </exception>
+    public static IObjectTypeDescriptor<T> EntityKey<T>(
+        this IObjectTypeDescriptor<T> descriptor,
+        string fields)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ((IObjectTypeDescriptor)descriptor).EntityKey(fields);
+        return descriptor;
+    }
+
+    /// <summary>
+    /// <para>
     /// Adds a @key directive to this interface type to specify the fields that make up the unique key for an entity.
     /// </para>
     /// <para>
