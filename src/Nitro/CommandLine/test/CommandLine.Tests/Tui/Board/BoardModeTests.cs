@@ -626,8 +626,8 @@ public sealed class BoardModeTests
     [Fact]
     public void Render_Should_ShowTask_When_InteriorHeightAddsOneRowPastHeaderBlock()
     {
-        // arrange: one more interior row than the header block needs, so the column's one
-        // task fits below it.
+        // arrange
+        // one interior row past the header block fits the column's one task
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open));
         var mode = CreateMode(store, TwoColumnView());
