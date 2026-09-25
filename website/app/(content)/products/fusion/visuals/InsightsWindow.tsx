@@ -5,14 +5,6 @@ import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { TraceWaterfall } from "@/src/nitro";
 import type { Trace } from "@/src/nitro/lib/data/types";
 
-/**
- * The `deep-operational-insights` panel: reuses the site's TraceWaterfall
- * primitive unchanged for one Fusion request, then a footer that names the
- * latency driver and the request's cost. `reducedMotion="user"` (rather than
- * NitroFrame's own default) makes the waterfall honour the visitor's actual
- * preference, so its rest frame is the reduced-motion frame.
- */
-
 const OPERATION_TRACE: Trace = {
   totalMs: 150,
   spans: [
@@ -87,7 +79,7 @@ export function InsightsWindow() {
         </div>
       }
     >
-      <div className="px-4 py-4">
+      <div className="px-4 py-4" style={{ zoom: 1.25 }}>
         <NitroFrame reducedMotion="user">
           <TraceWaterfall
             trace={OPERATION_TRACE}
