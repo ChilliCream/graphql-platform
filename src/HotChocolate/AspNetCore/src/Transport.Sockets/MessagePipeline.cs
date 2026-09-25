@@ -1,7 +1,11 @@
 using System.Collections.Immutable;
 using System.IO.Pipelines;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets;
+#else
 namespace HotChocolate.Transport.Sockets;
+#endif
 
 /// <summary>
 /// Incoming message pipeline.
