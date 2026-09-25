@@ -52,12 +52,9 @@ public sealed class BoardTaskRowTests
 
         // act
         var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
-        var actual = (
-            HasPriority: line.Contains("P0", StringComparison.Ordinal),
-            HasType: line.Contains("B", StringComparison.Ordinal));
 
         // assert
-        Assert.Equal((HasPriority: false, HasType: true), actual);
+        Assert.Equal("  ○ B       hc-10-abc", line.TrimEnd());
         Assert.True(line.GetCellWidth() <= maxWidth);
     }
 
@@ -73,7 +70,7 @@ public sealed class BoardTaskRowTests
         var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
 
         // assert
-        Assert.Contains("hc-10-abc", line);
+        Assert.Equal("  ○ hc-10-abc     F…", line.TrimEnd());
         Assert.True(line.GetCellWidth() <= maxWidth);
     }
 
@@ -129,14 +126,25 @@ public sealed class BoardTaskRowTests
         // act
         var header = Markup.Remove(BoardTaskRow.RenderHeader(maxWidth, widths));
         var line = Markup.Remove(BoardTaskRow.Render(task, selected: false, maxWidth: maxWidth, widths));
-        var actual = (
-            HeaderHasPriority: header.Contains("PRIO", StringComparison.Ordinal),
-            RowHasPriority: line.Contains("P0", StringComparison.Ordinal),
-            HeaderHasType: header.Contains("TYPE", StringComparison.Ordinal),
-            RowHasType: line.Contains("B", StringComparison.Ordinal));
 
         // assert
-        Assert.Equal((false, false, true, true), actual);
+        Assert.Equal("    TYPE    ID", header.TrimEnd());
+        Assert.Equal("  ○ B       hc-10-abc", line.TrimEnd());
+    }
+
+    [Fact]
+    public void RenderHeader_Should_DropTypeColumn_When_WidthIsTooNarrowForTypeAndPriority()
+    {
+        // arrange
+        const int maxWidth = 20;
+        var task = CreateTask(id: "hc-10-abc", priority: TaskPriorities.Critical, type: TaskTypes.Bug);
+        var widths = BoardTaskRow.ComputeWidths([task]);
+
+        // act
+        var header = Markup.Remove(BoardTaskRow.RenderHeader(maxWidth, widths));
+
+        // assert
+        Assert.Equal("    ID            T…", header.TrimEnd());
     }
 
     [Fact]
