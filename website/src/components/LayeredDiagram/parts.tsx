@@ -42,7 +42,9 @@ export function Card({
   lit,
   tone,
 }: CardProps) {
-  const tight = badge ? "@max-[359px]:px-1 @max-[312px]:px-0" : "";
+  const tight = badge
+    ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[760px]:@max-[868px]:px-1"
+    : "";
 
   return (
     <div
@@ -75,7 +77,7 @@ export function Card({
       </p>
       {badge ? (
         <p
-          className="mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal"
+          className="mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[760px]:@max-[868px]:px-0.5 @min-[760px]:@max-[868px]:tracking-[0.01em]"
           style={{
             background: wash(badgeColor ?? MC.dim, 14),
             color: badgeColor ?? MC.dim,
