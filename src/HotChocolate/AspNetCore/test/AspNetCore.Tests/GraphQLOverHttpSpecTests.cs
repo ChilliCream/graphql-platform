@@ -1265,6 +1265,36 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
+    [Fact]
+    public async Task Post_Should_ExecuteOnce_When_VariableBatchIsEmptyAndNoVariableIsDeclared()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"__typename":"Query"}}
+                """);
+    }
+
     [Theory]
     [InlineData("application/json")]
     [InlineData("Application/Json")]

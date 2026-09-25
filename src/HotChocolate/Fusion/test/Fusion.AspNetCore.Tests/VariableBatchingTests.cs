@@ -1,8 +1,13 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.Execution;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
+using VariableBatchRequest = HotChocolate.Transport.VariableBatchRequest;
 
 namespace HotChocolate.Fusion;
 
@@ -112,6 +117,165 @@ public class VariableBatchingTests : FusionTestBase
 
         // assert
         Assert.Equal(["first", "second", "third"], [.. values.OrderBy(v => v)]);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.BadRequest)]
+    [InlineData(HttpTransportVersion.Draft20260903, HttpStatusCode.UnprocessableContent)]
+    public async Task Execute_Should_ReturnRequestError_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        // with the cost analyzer skipped, the empty batch reaches operation execution
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b
+                .ModifyCostOptions(o => o.SkipAnalyzer = true)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+
+        using var client = gateway.CreateClient();
+
+        const string body =
+            """
+            {
+                "query": "query testQuery($input: String!) { field(input: $input) }",
+                "variables": []
+            }
+            """;
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set."}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ExecuteOnce_When_VariableBatchIsEmptyAndNoVariableIsDeclared()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        const string body =
+            """
+            {
+                "query": "{ __typename }",
+                "variables": []
+            }
+            """;
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"__typename":"Query"}}
+                """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReturnInternalServerError_When_CoercedVariablesAreMissing()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b.UseRequest(
+                next => context =>
+                {
+                    context.VariableValues = [];
+                    return next(context);
+                },
+                key: "ClearVariableValues",
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
+
+        using var client = gateway.CreateClient();
+
+        const string body =
+            """
+            {
+                "query": "query testQuery($input: String!) { field(input: $input) }",
+                "variables": [{ "input": "first" }]
+            }
+            """;
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Unexpected Execution Error"}]}
+                """);
     }
 
     public static class SourceSchema

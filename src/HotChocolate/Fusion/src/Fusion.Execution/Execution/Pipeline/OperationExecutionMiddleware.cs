@@ -29,6 +29,14 @@ internal sealed class OperationExecutionMiddleware
                 "There is no operation plan available to be executed.");
         }
 
+        if (context.VariableValues.IsEmpty
+            && context.Request is VariableBatchRequest variableBatchRequest
+            && variableBatchRequest.VariableValues.Document.RootElement.GetArrayLength() == 0)
+        {
+            context.Result = ErrorHelper.EmptyVariableBatch();
+            return;
+        }
+
         // the incremental delivery check depends on the accepted response content types alone
         // and runs before the operation kind check.
         if (!IsIncrementalDeliveryAllowed(operationPlan, context.Request))
