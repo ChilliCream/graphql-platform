@@ -10,12 +10,18 @@ internal readonly record struct TableCellSpec(string Text, string StyleMarkup = 
 /// Renders a table's fixed top block and rows from a <see cref="TableColumnSpec"/> layout: a
 /// leading cursor cell and glyph cell followed by the column cells, each column separated by
 /// <see cref="TableLayout.Gutter"/> and padded or truncated to its planned width. The top block
-/// is a blank line, the header row, the rule and a trailing blank line.
+/// is a blank line, the header row and the rule.
 /// </summary>
 internal static class TableRenderer
 {
     private const char RuleGlyph = '─';
     private const string BlankLine = " ";
+
+    /// <summary>
+    /// The number of lines <see cref="RenderTopBlock"/> spends on the blank line, header row,
+    /// and rule, before any table row is drawn.
+    /// </summary>
+    public const int TopBlockLineCount = 3;
 
     /// <summary>
     /// Builds the markup line for one row: <paramref name="prefix"/> and <paramref name="glyph"/>
@@ -69,8 +75,9 @@ internal static class TableRenderer
     /// <summary>
     /// Appends the table's fixed top block to <paramref name="lines"/>: a blank line, the header
     /// row built from each column's <see cref="TableColumnSpec.Title"/> in
-    /// <paramref name="headerStyle"/>, the dashed rule, and a trailing blank line, keeping only
-    /// the first <paramref name="lineCount"/> of the four (later lines are dropped first).
+    /// <paramref name="headerStyle"/>, and the dashed rule, keeping only the first
+    /// <paramref name="lineCount"/> of the <see cref="TopBlockLineCount"/> (later lines are
+    /// dropped first).
     /// </summary>
     public static void RenderTopBlock(
         List<string> lines,
@@ -94,8 +101,7 @@ internal static class TableRenderer
         [
             BlankLine,
             RenderRow(prefix, glyph, headerCells, columns, layout),
-            RenderRule(width, ruleStyle),
-            BlankLine
+            RenderRule(width, ruleStyle)
         ];
 
         for (var i = 0; i < lineCount && i < block.Length; i++)

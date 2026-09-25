@@ -28,9 +28,9 @@ internal static class BoardTaskRow
 
     /// <summary>
     /// The lines a column panel's task table top block spends on the blank line, header row,
-    /// rule, and trailing blank line, before any task row is drawn.
+    /// and rule, before any task row is drawn.
     /// </summary>
-    internal const int HeaderLineCount = 4;
+    internal const int HeaderLineCount = TableRenderer.TopBlockLineCount;
 
     /// <summary>
     /// The terminal-cell width every status glyph occupies, used to size the leading cell.
@@ -152,9 +152,9 @@ internal static class BoardTaskRow
 
     /// <summary>
     /// Appends the task table's fixed top block to <paramref name="lines"/>: a blank line,
-    /// the header row, the rule, and a trailing blank line, keeping only the first
-    /// <paramref name="headerLineCount"/> of the four. A <paramref name="maxWidth"/> of 0 or
-    /// less appends nothing.
+    /// the header row, and the rule, keeping only the first
+    /// <paramref name="headerLineCount"/> of <see cref="HeaderLineCount"/>. A
+    /// <paramref name="maxWidth"/> of 0 or less appends nothing.
     /// </summary>
     public static void AddHeaderLines(List<string> lines, int headerLineCount, int maxWidth, Widths widths)
     {

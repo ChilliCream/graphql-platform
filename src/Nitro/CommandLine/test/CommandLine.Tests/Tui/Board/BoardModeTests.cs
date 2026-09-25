@@ -700,10 +700,10 @@ public sealed class BoardModeTests
             │                                                          │
             │     TYPE    PRIO    ID            TITLE                  │
             │ ──────────────────────────────────────────────────────── │
-            │                                                          │
             │ > ○ B         P0    a-1           Fix bug                │
             │   ● F         P2    a-2           Add feature            │
             │   ○ D         P3    a-3           Write docs             │
+            │                                                          │
             │                                                          │
             │                                                          │
             │                                                          │
@@ -745,10 +745,10 @@ public sealed class BoardModeTests
             │                                                          │
             │     TYPE    PRIO    ID            TITLE                  │
             │ ──────────────────────────────────────────────────────── │
-            │                                                          │
             │ > ○ B         P0    a-1           Fix bug                │
             │   ● F         P2    a-2           Add feature            │
             │   ○ D         P3    a-3           Write docs             │
+            │                                                          │
             │                                                          │
             │                                                          │
             │                                                          │

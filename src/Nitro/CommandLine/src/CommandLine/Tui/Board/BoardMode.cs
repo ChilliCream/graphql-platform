@@ -296,7 +296,7 @@ internal sealed class BoardMode : ITuiMode
 
     /// <summary>
     /// Renders one column's task table: the fixed header block (a blank line, the header row,
-    /// its rule, and a blank line), then the visible rows, padded with blank lines to
+    /// and its rule), then the visible rows, padded with blank lines to
     /// <paramref name="interiorHeight"/>, with "N more above/below" indicators once the
     /// column's tasks no longer fit. Column widths are computed from this call's visible
     /// slice and the header titles, so the header and rows always agree on where each column

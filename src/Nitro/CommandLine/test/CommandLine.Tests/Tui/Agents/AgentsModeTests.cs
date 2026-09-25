@@ -583,11 +583,11 @@ public sealed class AgentsModeTests
             │                                                                                                  │
             │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-            │                                                                                                  │
             │ > ● ackbar          -               Claude Code     just now      just now                       │
             │   ● ahsoka          -               Claude Code     just now      just now                       │
             │   ● aladdin         -               Claude Code     just now      just now                       │
-            │   3 more below                                                                                   │
+            │   ● albus           -               Claude Code     just now      just now                       │
+            │   2 more below                                                                                   │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);
@@ -616,10 +616,10 @@ public sealed class AgentsModeTests
             │                                                                                                  │
             │     NAME            ROLE            HARNESS         STARTED       LAST SEEN                      │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
-            │                                                                                                  │
             │ > ● ackbar          -               Claude Code     just now      just now                       │
             │   ● ahsoka          -               Claude Code     just now      just now                       │
             │   ● aladdin         -               Claude Code     just now      just now                       │
+            │                                                                                                  │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);
