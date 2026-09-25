@@ -452,15 +452,16 @@ public sealed class BoardModeTests
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
         bigConsole.Write(mode.Render(80, 20));
 
-        // act: shrink the frame drastically after scrolling to the bottom; the interior still
-        // has room for the header block and a few rows once it shrinks
-        mode.OnResize(80, 10);
-        var smallConsole = new TestConsole().Width(80).Height(10);
-        var exception = Record.Exception(() => smallConsole.Write(mode.Render(80, 10)));
+        // act
+        // shrink the frame drastically after scrolling to the bottom
+        mode.OnResize(80, 4);
+        var smallConsole = new TestConsole().Width(80).Height(4);
+        var exception = Record.Exception(() => smallConsole.Write(mode.Render(80, 4)));
 
         // assert
         Assert.Null(exception);
-        Assert.Contains("t-30", smallConsole.Output);
+        var lines = TrimTrailingNewline(smallConsole.Output.Split('\n'));
+        Assert.Equal(4, lines.Length);
     }
 
     [Fact]
@@ -594,12 +595,13 @@ public sealed class BoardModeTests
     }
 
     [Fact]
-    public void Render_Should_HideTask_When_InteriorHeightExactlyFitsHeaderBlock()
+    public void Render_Should_ShowTrimmedHeaderAndMoreBelow_When_InteriorHeightExactlyFitsHeaderBlock()
     {
-        // arrange: a four-row interior (a six-row maximized panel minus its two chrome rows)
-        // is spent entirely on the header block, leaving no room for the column's one task.
+        // arrange
+        // a four-row interior trims the header block to make room for one row
         var store = new FakeTaskStore();
-        store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open, createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", status: TaskStates.Open, createdAt: s_now.AddMinutes(1)));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         mode.Handle(new TuiMessage.ToggleMaximize());
@@ -609,7 +611,16 @@ public sealed class BoardModeTests
         console.Write(mode.Render(80, 6));
 
         // assert
-        Assert.False(console.Output.Contains("t-1", StringComparison.Ordinal));
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open - 1/2 (2)───────────────────────────────────────────────────────────────╮
+            │                                                                              │
+            │     TYPE    PRIO    ID            TITLE                                      │
+            │ ──────────────────────────────────────────────────────────────────────────── │
+            │   2 more below                                                               │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            """);
     }
 
     [Fact]
@@ -629,6 +640,31 @@ public sealed class BoardModeTests
 
         // assert
         Assert.Contains("t-1", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFocusedTaskRow_When_StackedFiveColumnsAt33Rows()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("blocked-1", status: TaskStates.Open, createdAt: s_now));
+        store.Blocked["blocked-1"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "blocked-2", status: TaskStates.Open, createdAt: s_now.AddMinutes(1)));
+        store.Blocked["blocked-2"] = ["blocker-1"];
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(95).Height(33);
+
+        // act
+        console.Write(mode.Render(95, 33));
+
+        // assert
+        var selectedLine = Array.Find(
+            console.Output.Split('\n'), line => line.Contains("blocked-1", StringComparison.Ordinal));
+        Assert.NotNull(selectedLine);
+        selectedLine.MatchInlineSnapshot(
+            "│ > ○ T         P2    blocked-1     blocked-1                                                 │");
     }
 
     [Fact]

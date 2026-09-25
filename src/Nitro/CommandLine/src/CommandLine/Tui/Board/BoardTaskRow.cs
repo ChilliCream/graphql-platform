@@ -27,6 +27,12 @@ internal static class BoardTaskRow
     private const int MinIdWidth = 10;
 
     /// <summary>
+    /// The lines a column panel's task table top block spends on the blank line, header row,
+    /// rule, and trailing blank line, before any task row is drawn.
+    /// </summary>
+    internal const int HeaderLineCount = 4;
+
+    /// <summary>
     /// The terminal-cell width every status glyph occupies, used to size the leading cell.
     /// </summary>
     private const int GlyphCellWidth = 1;

@@ -29,12 +29,6 @@ internal sealed class BoardMode : ITuiMode
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
-    /// <summary>
-    /// The lines a column panel's task table top block spends on the blank line, header row,
-    /// rule, and trailing blank line, before any task row is drawn.
-    /// </summary>
-    private const int HeaderLineCount = 4;
-
     private readonly BoardDataLoader _loader;
     private readonly IReadOnlyList<BoardView> _views;
 
@@ -320,7 +314,9 @@ internal sealed class BoardMode : ITuiMode
             return [];
         }
 
-        var headerLineCount = Math.Min(HeaderLineCount, interiorHeight);
+        var headerLineCount = Math.Min(
+            BoardTaskRow.HeaderLineCount,
+            column.Tasks.Count > 0 ? Math.Max(0, interiorHeight - 1) : interiorHeight);
         var rowsHeight = Math.Max(0, interiorHeight - headerLineCount);
         var reservedRows = 0;
 
