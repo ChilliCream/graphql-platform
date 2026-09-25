@@ -577,6 +577,141 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public void Handle_Should_OpenTheMailThreadPopover_When_EnterIsPressedWithAThreadSelected()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", sender: "alice", subject: "Status update", threadId: "t-1",
+            recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("Status update", rendered);
+        Assert.Contains("Participants:", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheThreadIdToast_When_YIsPressedInTheMailThreadPopover()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create("m1", threadId: "t-1"));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('y', ConsoleKey.Y)));
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        var statusLine = rendered.TrimEnd().Split('\n')[^1].Trim();
+        Assert.Equal("i t-1", statusLine);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseTheMailThreadPopover_When_EscapeIsPressed()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", subject: "Status update", threadId: "t-1"));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\u001b', ConsoleKey.Escape)));
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("enter open", rendered);
+        Assert.Contains("SUBJECT", rendered);
+        Assert.Contains("Status update", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReloadTheMailThreadPopover_When_ADataChangedEventArrives()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", body: "Original body", threadId: "t-1", createdAt: s_now));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m2", body: "Distinctnewbody", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
+        var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("Distinctnewbody", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ShowNoThreadSelectedToast_When_EnterIsPressedOnAnEmptyMailTab()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("No thread selected.", RenderToText(shell, width: 100));
+    }
+
+    [Fact]
     public void Handle_Should_ShowTheMemoryTabsHeaderRowAndCount_When_ShiftEIsPressed()
     {
         // arrange
