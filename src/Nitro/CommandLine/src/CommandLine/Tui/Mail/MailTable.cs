@@ -19,14 +19,14 @@ internal static class MailTable
     private const string SubjectHeader = "SUBJECT";
     private const string FromHeader = "FROM";
     private const string ToHeader = "TO";
-    private const string MessagesHeader = "MSGS";
-    private const string LastActivityHeader = "ACTIVITY";
+    private const string MessagesHeader = "MESSAGES";
+    private const string LastActivityHeader = "LAST ACTIVITY";
 
     private const int MinSubjectWidth = 24;
     private const int MinFromWidth = 10;
     private const int MinToWidth = 10;
-    private const int MinMessagesWidth = 4;
-    private const int MinLastActivityWidth = 10;
+    private const int MinMessagesWidth = 8;
+    private const int MinLastActivityWidth = 13;
 
     private const string NowLabel = "now";
     private const string JustNowLabel = "just now";

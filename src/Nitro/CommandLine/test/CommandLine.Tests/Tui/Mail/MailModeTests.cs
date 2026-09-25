@@ -133,12 +133,12 @@ public sealed class MailModeTests
             """
             ╭─Mail (3)─────────────────────────────────────────────────────────────────────────────────────────╮
             │                                                                                                  │
-            │    SUBJECT                     FROM          TO            MSGS    ACTIVITY                      │
+            │    SUBJECT                     FROM          TO            MESSAGES    LAST ACTIVITY             │
             │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
             │                                                                                                  │
-            │ >  Subject                     bob           alice            1    just now                      │
-            │    Subject                     dave          alice            1    1m ago                        │
-            │    Subject                     carol         alice            1    2m ago                        │
+            │ >  Subject                     bob           alice                1    just now                  │
+            │    Subject                     dave          alice                1    1m ago                    │
+            │    Subject                     carol         alice                1    2m ago                    │
             ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
             """);
