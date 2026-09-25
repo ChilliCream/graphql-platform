@@ -70,6 +70,25 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
+    public void Render_Should_ShowTheLoadError_When_TheStoreRejectsTheRead()
+    {
+        // arrange
+        // A sibling directory that never went through InitializeWorkspace, so the store
+        // has no agent workspace to connect to.
+        var noWorkspaceDirectory = Path.Combine(Path.GetDirectoryName(WorkingDirectory)!, "no-workspace");
+        Directory.CreateDirectory(noWorkspaceDirectory);
+        var storeWithNoWorkspace = new MemoryStore(new TestFileSystem(noWorkspaceDirectory), TimeProvider, new AgentDatabase());
+        var mode = new MemoryMode(storeWithNoWorkspace, TimeProvider);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        Assert.Contains("No agent workspace found", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Render_Should_ShowTheRowCount_When_HeaderIsRendered()
     {
         // arrange
@@ -331,7 +350,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task SearchForm_Apply_Should_NarrowRowsByFreeText_AcrossBothKinds()
+    public async Task SearchForm_Apply_Should_NarrowCuratedAndJournalRows_When_FreeTextIsUsed()
     {
         // arrange
         await SaveAsync("Deploy checklist for staging.");

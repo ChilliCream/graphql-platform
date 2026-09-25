@@ -1,9 +1,13 @@
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
@@ -48,8 +52,37 @@ public sealed class TuiShellTabsTests
     private static TuiTab CreateAgentsTab(string title, ITuiMode mode, char mnemonic = 'A') =>
         new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
+    private static TuiTab CreateMemoryTab(string title, ITuiMode mode, char mnemonic = 'e') =>
+        new(title, mnemonic, mode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
     private static void LoginAgent(Agents.FakeAgentStore store)
         => store.LoginAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    /// <summary>
+    /// A real <see cref="MemoryStore"/> over a freshly initialized workspace in its own
+    /// temporary directory, returned in <paramref name="root"/> for the caller to delete.
+    /// </summary>
+    private static MemoryStore CreateMemoryStore(TimeProvider time, out DirectoryInfo root)
+    {
+        root = Directory.CreateTempSubdirectory("nitro-shell-memory-tests");
+        var workspaceDirectory = AgentWorkspace.GetDirectory(root.FullName);
+        Directory.CreateDirectory(workspaceDirectory);
+
+        using var connection = new AgentDatabase()
+            .InitializeAsync(workspaceDirectory, CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+
+        return new MemoryStore(new TestFileSystem(root.FullName), time, new AgentDatabase());
+    }
+
+    private static void SaveMemory(MemoryStore store, string text) => store.SaveAsync(
+        new MemoryRecordCreation { Text = text, Type = "fact", Actor = "test-agent" },
+        TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    private static void LogMemory(MemoryStore store, string text) => store.LogAsync(
+        new MemoryJournalEntryCreation { Text = text, Actor = "test-agent" },
+        TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     [Fact]
     public void Constructor_Should_CallOnEnter_When_EveryHostedTabIsConstructed()
@@ -598,6 +631,122 @@ public sealed class TuiShellTabsTests
         // assert
         Assert.Collection(mailMode.State.Threads, t => Assert.Equal("Status update", t.Subject));
         Assert.Contains("Status update", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheMemoryTabsHeaderRowAndCount_When_ShiftEIsPressed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Ops note.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                80,
+                24,
+                agentStore: new Agents.FakeAgentStore(time),
+                mailStore: new Agents.FakeMailStore(),
+                memoryStore: new Agents.FakeMemoryStore(),
+                timeProvider: time);
+
+            // act
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // assert
+            var rendered = RenderToText(shell);
+            Assert.Contains("Memory (1)", rendered);
+            Assert.Contains("KIND", rendered);
+            Assert.Contains("BODY", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMemoryTabToCurated_When_FIsPressedAfterSwitchingWithShiftE()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Ops note.");
+            LogMemory(store, "Follow up needed.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                80,
+                24,
+                agentStore: new Agents.FakeAgentStore(time),
+                mailStore: new Agents.FakeMailStore(),
+                memoryStore: new Agents.FakeMemoryStore(),
+                timeProvider: time);
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // act
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('f', ConsoleKey.F)));
+
+            // assert
+            Assert.Contains("Curated (1)", RenderToText(shell));
+            Assert.Equal(MemoryCollectionFilter.Curated, memoryMode.State.Filter);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMemoryTabRows_When_SearchSubmittedThroughTheShell()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Deploy note.");
+            SaveMemory(store, "Lunch plan.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                80,
+                24,
+                agentStore: new Agents.FakeAgentStore(time),
+                mailStore: new Agents.FakeMailStore(),
+                memoryStore: new Agents.FakeMemoryStore(),
+                timeProvider: time);
+
+            // act
+            // Switch to the Memory tab, open search, type a body fragment, and submit with the save chord.
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+            foreach (var c in "deploy")
+            {
+                shell.Handle(new TuiEvent.KeyEvent(KeyInfo(c, ConsoleKey.NoName)));
+            }
+
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S, ConsoleModifiers.Control)));
+
+            // assert
+            Assert.Collection(memoryMode.State.Rows, r => Assert.Equal("Deploy note.", r.Body));
+            Assert.Contains("Deploy note.", RenderToText(shell));
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
     }
 
     [Fact]

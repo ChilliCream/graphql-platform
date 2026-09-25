@@ -232,7 +232,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
             if (rowsHeight > 0)
             {
-                lines.Add(DisplayWidth.Truncate(EmptyStateMessage, contentWidth));
+                lines.Add(DisplayWidth.Truncate(_state.LoadError ?? EmptyStateMessage, contentWidth));
             }
 
             PadTo(lines, interiorHeight);
