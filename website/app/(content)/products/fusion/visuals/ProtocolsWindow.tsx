@@ -41,10 +41,10 @@ const ROW_DELAYS = ["", "delay-75", "delay-150", "delay-200", "delay-300"];
  * can't see classes built by interpolating a JS constant into a string).
  */
 const GRID_CLASS =
-  "grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 @min-[500px]:grid-cols-[minmax(0,1fr)_auto_auto] @min-[500px]:gap-y-0";
+  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 @min-[500px]:grid-cols-[minmax(0,1fr)_auto_auto] @min-[500px]:gap-y-0";
 const NAME_CELL_CLASS = "col-start-1 row-start-1 min-w-0";
 const BADGE_CELL_CLASS =
-  "col-start-1 row-start-2 justify-self-start @min-[500px]:col-start-2 @min-[500px]:row-start-1";
+  "col-start-1 col-span-2 row-start-2 justify-self-start @min-[500px]:col-start-2 @min-[500px]:col-span-1 @min-[500px]:row-start-1";
 const STATUS_CELL_CLASS =
   "col-start-2 row-start-1 justify-self-end @min-[500px]:col-start-3";
 const PROTOCOL_HEADER_CLASS =
