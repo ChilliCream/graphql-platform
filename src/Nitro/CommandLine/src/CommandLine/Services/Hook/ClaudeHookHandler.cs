@@ -27,6 +27,11 @@ internal sealed class ClaudeHookHandler(
     public async Task<ClaudeHookOutcome> HandleSessionStartAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
+        if (IsSubagentSession(payload))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
         var resolved = Resolve(payload, skipSessionFileLookup);
 
         if (resolved is null)
@@ -49,6 +54,11 @@ internal sealed class ClaudeHookHandler(
     public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
+        if (IsSubagentSession(payload))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
         var resolved = await ResolveOrStartRowAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
@@ -69,7 +79,7 @@ internal sealed class ClaudeHookHandler(
     public async Task<ClaudeHookOutcome> HandleStopAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        if (payload.StopHookActive)
+        if (IsSubagentSession(payload) || payload.StopHookActive)
         {
             return ClaudeHookOutcome.Neutral;
         }
@@ -117,7 +127,7 @@ internal sealed class ClaudeHookHandler(
     public async Task<ClaudeHookOutcome> HandleNotificationAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        if (payload.NotificationType != "idle_prompt")
+        if (IsSubagentSession(payload) || payload.NotificationType != "idle_prompt")
         {
             return ClaudeHookOutcome.Neutral;
         }
@@ -132,6 +142,11 @@ internal sealed class ClaudeHookHandler(
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
+        if (IsSubagentSession(payload))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
         var resolved = Resolve(payload, skipSessionFileLookup);
 
         if (resolved is not null)
@@ -180,6 +195,13 @@ internal sealed class ClaudeHookHandler(
             ? null
             : new ResolvedRow(result.Row!, result.Kind == AgentSessionStartKind.Minted);
     }
+
+    /// <summary>
+    /// A payload carries a subagent marker when <c>agent_id</c> is set, meaning the hook
+    /// fired inside a subagent session rather than the top-level one.
+    /// </summary>
+    private static bool IsSubagentSession(ClaudeHookPayload payload)
+        => !string.IsNullOrEmpty(payload.AgentId);
 
     private static string Announce(AgentRow row) => AgentActorContext.Format(row.Name, row.Role);
 
