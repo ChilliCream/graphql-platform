@@ -22,10 +22,6 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     private const int MaxIndicatorSettlePasses = 3;
     private const int HeaderLineCount = 4;
 
-    // A single space, not an empty string: the panel's row renderer collapses an empty line
-    // out of the layout instead of reserving its row.
-    private const string BlankLine = " ";
-
     private const string EmptyStateMessage =
         "No agents yet. Start a harness with Nitro hooks installed, or run nitro agent login.";
 
@@ -311,32 +307,11 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     /// Appends the header block to <paramref name="lines"/>: a blank line, the header title
     /// row, its rule, and a trailing blank line, up to <paramref name="headerLineCount"/> of
     /// the four (later lines are dropped first when the interior is too short to hold all of
-    /// them). The blank lines are a single space, not an empty string, so the panel's row
-    /// renderer keeps them as lines instead of collapsing them.
+    /// them).
     /// </summary>
     private static void AddHeaderLines(
-        List<string> lines, int headerLineCount, int contentWidth, AgentRowBadge.Widths widths)
-    {
-        if (headerLineCount >= 1)
-        {
-            lines.Add(BlankLine);
-        }
-
-        if (headerLineCount >= 2)
-        {
-            lines.Add(AgentRowBadge.RenderHeader(contentWidth, widths));
-        }
-
-        if (headerLineCount >= 3)
-        {
-            lines.Add(AgentRowBadge.RenderRule(contentWidth));
-        }
-
-        if (headerLineCount >= 4)
-        {
-            lines.Add(BlankLine);
-        }
-    }
+        List<string> lines, int headerLineCount, int contentWidth, AgentRowBadge.Widths widths) =>
+        AgentRowBadge.AddHeaderLines(lines, headerLineCount, contentWidth, widths);
 
     private static void PadTo(List<string> lines, int height)
     {

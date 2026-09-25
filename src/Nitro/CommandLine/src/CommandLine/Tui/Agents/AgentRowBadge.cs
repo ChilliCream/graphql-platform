@@ -132,21 +132,11 @@ internal static class AgentRowBadge
 
         var headerStyle = ThemeTokens.GetStyle("agents.list.header").ToMarkup();
         var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
-
-        var cells = new TableCellSpec[]
-        {
-            new(NameHeader, headerStyle),
-            new(RoleHeader, headerStyle),
-            new(HarnessHeader, headerStyle),
-            new(StartedHeader, headerStyle),
-            new(LastSeenHeader, headerStyle)
-        };
-
         var budget = maxWidth - PrefixWidth(UnselectedPrefix);
         var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
 
         return TableRenderer.RenderRow(
-            UnselectedPrefix, new TableCellSpec(blankBubble), cells, s_columns, layout);
+            UnselectedPrefix, new TableCellSpec(blankBubble), BuildHeaderCells(headerStyle), s_columns, layout);
     }
 
     /// <summary>
@@ -158,6 +148,46 @@ internal static class AgentRowBadge
         var ruleStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
         return TableRenderer.RenderRule(maxWidth, ruleStyle);
     }
+
+    /// <summary>
+    /// Appends the Agents table's fixed top block to <paramref name="lines"/>: a blank line, the
+    /// header row, the rule and a trailing blank line, keeping only the first
+    /// <paramref name="headerLineCount"/> of the four. A <paramref name="maxWidth"/> of 0 or
+    /// less appends nothing.
+    /// </summary>
+    public static void AddHeaderLines(List<string> lines, int headerLineCount, int maxWidth, Widths widths)
+    {
+        if (maxWidth <= 0)
+        {
+            return;
+        }
+
+        var headerStyle = ThemeTokens.GetStyle("agents.list.header").ToMarkup();
+        var ruleStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
+        var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+
+        TableRenderer.RenderTopBlock(
+            lines,
+            headerLineCount,
+            maxWidth,
+            UnselectedPrefix,
+            new TableCellSpec(blankBubble),
+            s_columns,
+            layout,
+            headerStyle,
+            ruleStyle);
+    }
+
+    private static TableCellSpec[] BuildHeaderCells(string headerStyle) =>
+    [
+        new(NameHeader, headerStyle),
+        new(RoleHeader, headerStyle),
+        new(HarnessHeader, headerStyle),
+        new(StartedHeader, headerStyle),
+        new(LastSeenHeader, headerStyle)
+    ];
 
     private static int PrefixWidth(string prefix) =>
         DisplayWidth.Measure(prefix) + DisplayWidth.Measure(BubbleGlyph) + 1;

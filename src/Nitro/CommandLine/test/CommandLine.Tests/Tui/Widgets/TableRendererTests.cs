@@ -183,4 +183,44 @@ public sealed class TableRendererTests
         // assert
         rule.MatchInlineSnapshot("[grey]─────[/]");
     }
+
+    [Fact]
+    public void RenderTopBlock_Should_EmitBlankHeaderRuleBlank_When_FourLinesFit()
+    {
+        // arrange
+        var lines = new List<string>();
+        var layout = TableLayout.Plan(budget: 19, s_columns, [4, 4, 3]);
+
+        // act
+        TableRenderer.RenderTopBlock(
+            lines, lineCount: 4, width: 19, "  ", new TableCellSpec(" "), s_columns, layout, "bold", "grey");
+
+        // assert
+        lines.MatchInlineSnapshots(
+            [
+                " ",
+                "    [bold]NAME[/]    [bold]ROLE[/]    [bold]AGE[/]",
+                "[grey]───────────────────[/]",
+                " "
+            ]);
+    }
+
+    [Fact]
+    public void RenderTopBlock_Should_DropTrailingLines_When_FewerLinesFit()
+    {
+        // arrange
+        var lines = new List<string>();
+        var layout = TableLayout.Plan(budget: 19, s_columns, [4, 4, 3]);
+
+        // act
+        TableRenderer.RenderTopBlock(
+            lines, lineCount: 2, width: 19, "  ", new TableCellSpec(" "), s_columns, layout, "bold", "grey");
+
+        // assert
+        lines.MatchInlineSnapshots(
+            [
+                " ",
+                "    [bold]NAME[/]    [bold]ROLE[/]    [bold]AGE[/]"
+            ]);
+    }
 }
