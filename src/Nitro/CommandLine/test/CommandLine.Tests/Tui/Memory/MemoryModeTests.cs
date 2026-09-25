@@ -73,8 +73,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     public void Render_Should_ShowTheLoadError_When_TheStoreRejectsTheRead()
     {
         // arrange
-        // A sibling directory that never went through InitializeWorkspace, so the store
-        // has no agent workspace to connect to.
+        // a store over a directory that has no agent workspace
         var noWorkspaceDirectory = Path.Combine(Path.GetDirectoryName(WorkingDirectory)!, "no-workspace");
         Directory.CreateDirectory(noWorkspaceDirectory);
         var storeWithNoWorkspace = new MemoryStore(new TestFileSystem(noWorkspaceDirectory), TimeProvider, new AgentDatabase());

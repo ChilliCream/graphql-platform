@@ -120,7 +120,7 @@ public sealed class TabSwitchKeysTests
     }
 
     [Fact]
-    public void Resolve_Should_NotCollide_WithTheMemoryKeyMap()
+    public void Resolve_Should_ReturnFalse_When_BracketChordsAreResolvedAgainstTheMemoryKeyMap()
     {
         // arrange
         var keyMap = MemoryKeyMap.CreateDefault();
@@ -233,7 +233,7 @@ public sealed class TabSwitchKeysTests
     [InlineData('T')]
     [InlineData('M')]
     [InlineData('A')]
-    public void ResolveMnemonic_Should_NotCollide_WithTheMemoryKeyMap(char mnemonic)
+    public void ResolveMnemonic_Should_ReturnFalse_When_ShiftMnemonicIsResolvedAgainstTheMemoryKeyMap(char mnemonic)
     {
         // arrange
         var keyMap = MemoryKeyMap.CreateDefault();
