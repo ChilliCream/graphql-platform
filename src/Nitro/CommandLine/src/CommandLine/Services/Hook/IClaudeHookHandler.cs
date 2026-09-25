@@ -3,8 +3,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// Handles Claude session registration, unread-mail context, Stop decisions, and session
 /// end, returning a neutral outcome without writing anything when the payload carries
-/// <see cref="ClaudeHookPayload.AgentId"/> or <see cref="ClaudeHookPayload.AgentType"/>,
-/// which marks a subagent session. Exceptions propagate to the hook executor.
+/// <see cref="ClaudeHookPayload.AgentId"/>, which marks a subagent session. Exceptions
+/// propagate to the hook executor.
 /// </summary>
 internal interface IClaudeHookHandler
 {

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -890,7 +891,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     // ---------- Subagent sessions ----------
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutMintingOrAnnouncing_When_AgentTypeIsSet()
+    public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutMintingOrAnnouncing_When_AgentIdIsSet()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -898,11 +899,33 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // act
         var outcome = await _handler.HandleSessionStartAsync(
-            Payload(SessionId, agentType: "general-purpose"), skipSessionFileLookup: true, cancellationToken);
+            Payload(SessionId, agentId: "agent-1"), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
         Assert.Null(await FindRowAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_MintAndAnnounce_When_OnlyAgentTypeIsSet()
+    {
+        // arrange
+        // agent_type alone (a top-level `claude --agent <name>` session) is not a subagent marker.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var json = $$"""{"session_id":"{{SessionId}}","cwd":{{JsonSerializer.Serialize(_workspaceRoot)}},"agent_type":"general-purpose"}""";
+        var payload = JsonSerializer.Deserialize(json, ClaudeHookJsonContext.Default.ClaudeHookPayload)!;
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
+
+        // assert
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        outcome.AdditionalContext!.Replace(row.Name, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
     }
 
     [Fact]
@@ -912,7 +935,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleUserPromptSubmitAsync(
@@ -920,7 +945,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
-        Assert.True(await _mail.CountUnreadAsync(actor, cancellationToken) > 0);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     [Fact]
@@ -930,19 +957,24 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var before = await FindRowAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
         var outcome = await _handler.HandleStopAsync(
             Payload(SessionId, agentId: "agent-1"), skipSessionFileLookup: true, cancellationToken);
 
         // assert
-        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
-        Assert.True(await _mail.CountUnreadAsync(actor, cancellationToken) > 0);
+        Assert.False(outcome.Block);
+        var after = await FindRowAsync(cancellationToken);
+        Assert.Equal(before!.LastSeenAt, after!.LastSeenAt);
+        Assert.Equal(before.BlockBudgetUsed, after!.BlockBudgetUsed);
+        Assert.Empty(await _ledger.FindDeliveredAsync(actor, [message.Id], cancellationToken));
     }
 
     [Fact]
-    public async Task HandleNotificationAsync_Should_ReturnNeutralWithoutMinting_When_AgentTypeIsSetAndNotificationTypeIsIdlePrompt()
+    public async Task HandleNotificationAsync_Should_ReturnNeutralWithoutMinting_When_AgentIdIsSetAndNotificationTypeIsIdlePrompt()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -950,7 +982,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // act
         var outcome = await _handler.HandleNotificationAsync(
-            Payload(SessionId, notificationType: "idle_prompt", agentType: "general-purpose"),
+            Payload(SessionId, notificationType: "idle_prompt", agentId: "agent-1"),
             skipSessionFileLookup: true,
             cancellationToken);
 
@@ -982,15 +1014,13 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         string sessionId,
         bool stopHookActive = false,
         string? notificationType = null,
-        string? agentId = null,
-        string? agentType = null) => new()
+        string? agentId = null) => new()
         {
             SessionId = sessionId,
             Cwd = _workspaceRoot,
             StopHookActive = stopHookActive,
             NotificationType = notificationType,
-            AgentId = agentId,
-            AgentType = agentType
+            AgentId = agentId
         };
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)

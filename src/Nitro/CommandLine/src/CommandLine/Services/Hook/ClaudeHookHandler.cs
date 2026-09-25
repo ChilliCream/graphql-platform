@@ -197,11 +197,11 @@ internal sealed class ClaudeHookHandler(
     }
 
     /// <summary>
-    /// A payload carries a subagent marker when either <c>agent_id</c> or <c>agent_type</c>
-    /// is set, meaning the hook fired inside a subagent session rather than the top-level one.
+    /// A payload carries a subagent marker when <c>agent_id</c> is set, meaning the hook
+    /// fired inside a subagent session rather than the top-level one.
     /// </summary>
     private static bool IsSubagentSession(ClaudeHookPayload payload)
-        => !string.IsNullOrEmpty(payload.AgentId) || !string.IsNullOrEmpty(payload.AgentType);
+        => !string.IsNullOrEmpty(payload.AgentId);
 
     private static string Announce(AgentRow row) => AgentActorContext.Format(row.Name, row.Role);
 
