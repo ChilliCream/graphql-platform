@@ -543,7 +543,7 @@ builder.Services
 
 **3. Create an EF Core migration.**
 
-```bash
+```shell
 dotnet ef migrations add Sagas
 dotnet ef database update
 ```

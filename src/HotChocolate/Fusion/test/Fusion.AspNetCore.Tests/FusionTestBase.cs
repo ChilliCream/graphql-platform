@@ -42,6 +42,7 @@ public abstract partial class FusionTestBase : IDisposable
         string? environmentName = "Development",
         bool disableDefaultSecurity = false,
         bool enableGlobalObjectIdentification = true,
+        int? defaultListSize = 1,
         bool includeOperationPlan = true)
     {
         var sourceSchemas = new List<SourceSchemaText>();
@@ -140,7 +141,8 @@ public abstract partial class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                DefaultListSize = defaultListSize
             }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);

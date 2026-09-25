@@ -22,7 +22,7 @@ export function PackageInstallation({
       <InputChoiceTabs>
         <InputChoiceTabs.CLI>
           <CodeBlock>
-            <code className="language-bash">{`dotnet add package ${name}`}</code>
+            <code className="language-shell">{`dotnet add package ${name}`}</code>
           </CodeBlock>
         </InputChoiceTabs.CLI>
         <InputChoiceTabs.VisualStudio>

@@ -14,7 +14,7 @@
 
 ---------------------------------------------------------
 
-{
+query @hc__hasIncrementalParts {
   ... on Query {
     foo @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
       ... on Foo {

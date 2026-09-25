@@ -685,7 +685,7 @@ See [Transactional Outbox](https://microservices.io/patterns/data/transactional-
 
 **1. Add the NuGet packages.**
 
-```bash
+```shell
 dotnet add package Mocha.EntityFrameworkCore
 dotnet add package Mocha.EntityFrameworkCore.Postgres
 ```
@@ -835,7 +835,7 @@ See [Idempotent Consumer](https://microservices.io/patterns/communication-style/
 
 **1. Add the NuGet packages.**
 
-```bash
+```shell
 dotnet add package Mocha.EntityFrameworkCore
 dotnet add package Mocha.EntityFrameworkCore.Postgres
 ```
@@ -962,7 +962,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-`UseConsume(..., before: "Inbox")` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
+`#!csharp UseConsume(..., before: "Inbox")` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
 
 ## How the inbox cleanup worker works
 

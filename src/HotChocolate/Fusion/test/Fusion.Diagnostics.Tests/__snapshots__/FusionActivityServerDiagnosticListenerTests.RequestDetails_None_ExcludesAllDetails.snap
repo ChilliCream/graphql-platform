@@ -235,7 +235,7 @@
                         },
                         {
                           "Key": "graphql.operation.step.plan.id",
-                          "Value": "466a33f19f251992b1c039991522ac203713e6455df2875d5f47474800631435"
+                          "Value": "a7814b9c8806e9484f109fe3d461aee3c49e12c8dc6f319988ccecc85b7835aa"
                         },
                         {
                           "Key": "graphql.source_schema.name",
@@ -327,6 +327,27 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:111e40f921c6c6a35bc7eb0e3873630e"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 0.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 1.0
+                    }
+                  ],
+                  "event": []
                 }
               ]
             },

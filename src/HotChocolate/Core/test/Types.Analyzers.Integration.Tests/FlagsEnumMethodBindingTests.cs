@@ -76,6 +76,7 @@ public class FlagsEnumMethodBindingTests
             .AddGraphQLServer()
             .AddIntegrationTestTypes()
             .AddPagingArguments()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableFlagEnums = true)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 

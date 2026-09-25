@@ -51,7 +51,7 @@ That's where `dnx skillz` comes in. It's a CLI for installing, updating, and aut
 
 There's now [an official standard for skills](https://agentskills.io) and more agents are adopting it. But `dnx skillz` goes beyond just copying files into the right directory - it also supports installing skills from GitHub, GitLab, local directories, and more. Private repositories work too, as long as your git credentials can reach them.
 
-```bash
+```shell
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 ```
 
@@ -59,13 +59,13 @@ That command pulls the `graphql-schema-design` skill from the `ChilliCream/agent
 
 If you are working with Aspire you can try out their skills too:
 
-```bash
+```shell
 dnx skillz add microsoft/aspire-skills
 ```
 
 or add the .NET-specific ones:
 
-```bash
+```shell
 dnx skillz add dotnet/skills
 ```
 
@@ -73,7 +73,7 @@ dnx skillz add dotnet/skills
 
 There are two ways to run `skillz`:
 
-```bash
+```shell
 # one-shot, no install (needs the .NET 10 SDK)
 dnx skillz add <source>
 
@@ -88,7 +88,7 @@ skillz add <source>
 
 `skillz add` installs skills from a source for the agents on your machine. A source can be a GitHub `owner/repo`, a full git URL, a GitLab project, or a local directory.
 
-```bash
+```shell
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design
 dnx skillz list
 dnx skillz update
@@ -99,7 +99,7 @@ By default, installs are project-scoped, recorded in `skills-lock.json` in your 
 
 For personal skills you want everywhere, add `--global`:
 
-```bash
+```shell
 dnx skillz add ChilliCream/agent-skills --skill graphql-schema-design --global
 ```
 
@@ -107,7 +107,7 @@ Skills are symlinked from one canonical location, so a single update reaches eve
 
 Common flags:
 
-```bash
+```shell
 dnx skillz add <source> --agent claude-code    # target one agent (repeatable)
 dnx skillz add <source> --skill <name>         # pick a single skill from the source
 dnx skillz add <source> --all                  # install everything, no prompts
@@ -119,7 +119,7 @@ dnx skillz list --json                         # machine-readable output
 
 To package your team's conventions as a skill, start with:
 
-```bash
+```shell
 dnx skillz init my-skill
 ```
 

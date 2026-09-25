@@ -29,7 +29,7 @@ public sealed class OperationCompilerSingleFlightTests
             .UseRequest(
                 (_, next) => CreateSingleFlightLeaderDelayMiddleware(next, TimeSpan.FromMilliseconds(100)),
                 key: "LeaderDelay",
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+                before: WellKnownRequestMiddleware.OperationCompilerMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
@@ -121,12 +121,12 @@ public sealed class OperationCompilerSingleFlightTests
             .UseRequest(
                 (_, next) => CreateSingleFlightLeaderDelayMiddleware(next, TimeSpan.FromMilliseconds(100)),
                 key: "LeaderDelay",
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+                before: WellKnownRequestMiddleware.OperationCompilerMiddleware,
                 allowMultiple: true)
             .UseRequest(
                 (_, next) => CreateThrowingMiddleware(next),
                 key: "Throwing",
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+                before: WellKnownRequestMiddleware.OperationCompilerMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
@@ -176,7 +176,7 @@ public sealed class OperationCompilerSingleFlightTests
                     await next(context);
                 },
                 key: "Blocking",
-                before: WellKnownRequestMiddleware.OperationResolverMiddleware,
+                before: WellKnownRequestMiddleware.OperationCompilerMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()

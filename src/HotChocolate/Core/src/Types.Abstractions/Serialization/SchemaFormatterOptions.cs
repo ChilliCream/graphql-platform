@@ -3,6 +3,12 @@ namespace HotChocolate.Serialization;
 public sealed class SchemaFormatterOptions
 {
     /// <summary>
+    /// Specifies the GraphQL specification edition for the formatted SDL.
+    /// When <c>null</c>, native SDL is emitted and no downgrade pass runs.
+    /// </summary>
+    public GraphQLSpecVersion? SpecVersion { get; set; }
+
+    /// <summary>
     /// Controls whether type definitions and directive definitions are emitted
     /// in alphabetical order.
     /// When <c>null</c>, the value is resolved from the schema-level

@@ -74,7 +74,7 @@ We now have implemented the GraphQL cache-control feature, which allows you to s
 
 To enable Cache-Control, you will need to install the package `HotChocolate.Caching`.
 
-```bash
+```shell
 dotnet add package HotChocolate.Caching
 ```
 
@@ -538,7 +538,7 @@ See [IAuthorizationHandler.cs](https://github.com/ChilliCream/graphql-platform/b
 
 Out of the box, we support Microsoft's authorization policies that come with ASP.NET Core and OPA (Open Policy Agent). OPA is getting increasingly popular and can be applied to things from Kubernetes to your database, and it is now just one package away from your favorite GraphQL server.
 
-```bash
+```shell
 dotnet install HotChocolate.AspNetCore.Authorization.Opa
 ```
 
@@ -561,7 +561,7 @@ Here is an example of how easy it is now to integrate RavenDB with Hot Chocolate
 
 1. Install the RavenDB provider to your project.
 
-```bash
+```shell
 dotnet install HotChocolate.Data.Raven
 ```
 
@@ -606,7 +606,7 @@ public class Query
 
 The Marten integration works very similarly. The main difference here is that you have to install a different package.
 
-```bash
+```shell
 dotnet install HotChocolate.Data.Marten
 ```
 
@@ -616,13 +616,13 @@ With version 12, we introduced the Azure Functions integration but only targeted
 
 1. Install the HotChocolate Templates.
 
-   ```bash
+   ```shell
    dotnet new install HotChocolate.templates
    ```
 
 2. Chose your template to install or take a spin with both.
 
-   ```bash
+   ```shell
    dotnet new graphql-azf --output .\hc-graphql-azf
    dotnet new graphql-azf-ip --output .\hc-graphql-azf-ip
    ```
@@ -657,20 +657,20 @@ Here is a basic flow to initialize a project with a Strawberry Shake client.
 
 1. Create your project.
 
-   ```bash
+   ```shell
    dotnet new blazorwasm
    ```
 
 2. Add client tooling to manage the GraphQL schema.
 
-   ```bash
+   ```shell
    dotnet new tool-manifest
    dotnet tool install StrawberryShake.Tools
    ```
 
 3. Register GraphQL service with your application.
 
-   ```bash
+   ```shell
    dotnet add package StrawberryShake.Blazor
    dotnet graphql init https://api-crypto-workshop.chillicream.com/graphql -n CryptoClient
    ```

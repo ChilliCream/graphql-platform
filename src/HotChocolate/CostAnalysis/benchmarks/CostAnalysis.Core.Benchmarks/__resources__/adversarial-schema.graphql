@@ -1,0 +1,13 @@
+type Query {
+  subject: Subject
+}
+
+union Subject = Left | Right
+
+type Left {
+  value: Int @cost(weight: "7")
+}
+
+type Right {
+  value: Int @cost(weight: "11")
+}

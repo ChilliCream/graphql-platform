@@ -49,6 +49,8 @@ builder
 
 A value of `0` means unlimited.
 
+See [Cost Analysis](../security/cost-analysis.md#rejections-and-http-status) for how cost limits apply to a batch.
+
 # Variable Batching
 
 Variable batching lets you execute a **single operation multiple times** with different sets of variables. Instead of sending `variables` as an object, you send it as an array of objects:

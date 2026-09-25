@@ -97,6 +97,12 @@ public static class ErrorCodes
         /// </summary>
         public const string OneSlicingArgumentRequired = "HC0082";
 
+        /// <summary>
+        /// A request cost option override set <c>MaxResponseSize</c>, but the schema
+        /// does not enable the response-size analysis.
+        /// </summary>
+        public const string ResponseSizeAnalysisNotEnabled = "HC0062";
+
         public const string NonNullViolation = "HC0018";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
@@ -256,6 +262,11 @@ public static class ErrorCodes
         /// null values are enforced.
         /// </summary>
         public const string MultiPartFileVariableValueNotNull = "HC0115";
+
+        /// <summary>
+        /// The requested GraphQL specification edition is not supported.
+        /// </summary>
+        public const string InvalidSpecVersion = "HC0134";
     }
 
     public static class Schema

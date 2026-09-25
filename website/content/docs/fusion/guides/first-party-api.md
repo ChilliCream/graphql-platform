@@ -29,7 +29,7 @@ The Fusion gateway does not need `UsePersistedOperationPipeline()` because the g
 
 First, add the `ChilliCream.Nitro.Fusion` package to your gateway project:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.Fusion
 ```
