@@ -246,6 +246,75 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task NudgeAsync_Should_ReserveADelivery_When_TheAgentIsIdle()
+    {
+        // arrange
+        // An agent quiet past the online window resolves Idle, which the wake dispatcher still targets.
+        await InitWorkspaceAsync();
+        await SeedAliveSessionAsync(
+            "session-alice", "alice", role: "",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
+        await SeedAliveSessionAsync(
+            "session-bob", "bob", role: "",
+            endpointKind: AgentSessionEndpointKind.ClaudePeer, endpointAddr: "peer-bob");
+        await ExecuteAsync($"UPDATE agents SET last_seen_at = '{FakeTime.GetUtcNow():O}' WHERE name = 'bob'");
+        FakeTime.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        var message = await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
+        var peerClient = new FakeClaudePeerClient();
+        var nudge = new MailNudge(
+            CreateAgentStore(),
+            CreateStore(),
+            new AgentDeliveryLedger(
+                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            peerClient,
+            new FakeCodexQueueClient(),
+            FakeTime);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        var call = Assert.Single(peerClient.Calls);
+        Assert.Equal(
+            ("session-bob", message.Id, "All good."),
+            ReadDigestCall((call.SessionId, call.Message)));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = 'bob'"));
+    }
+
+    [Fact]
+    public async Task NudgeAsync_Should_ReserveNoDelivery_When_TheAgentHasEnded()
+    {
+        // arrange
+        // An ended session resolves Offline, which the nudge guard must still skip.
+        await InitWorkspaceAsync();
+        await SeedAliveSessionAsync(
+            "session-alice", "alice", role: "",
+            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: "thread-alice");
+        await SeedAliveSessionAsync(
+            "session-bob", "bob", role: "",
+            endpointKind: AgentSessionEndpointKind.ClaudePeer, endpointAddr: "peer-bob");
+        await CreateAgentStore().EndSessionAsync(
+            AgentSessionHarness.Codex, "session-bob", TestContext.Current.CancellationToken);
+        await SeedMessageAsync("alice", "Status", ["bob"], body: "All good.");
+        var peerClient = new FakeClaudePeerClient();
+        var nudge = new MailNudge(
+            CreateAgentStore(),
+            CreateStore(),
+            new AgentDeliveryLedger(
+                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            peerClient,
+            new FakeCodexQueueClient(),
+            FakeTime);
+
+        // act
+        await nudge.NudgeAsync(["bob"], TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(peerClient.Calls);
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_deliveries WHERE agent = 'bob'"));
+    }
+
+    [Fact]
     public async Task SingleRecipient_Should_SendBodyToItsCurrentSession_When_AnEarlierSessionWasSuperseded()
     {
         // arrange
