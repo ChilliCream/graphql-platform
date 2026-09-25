@@ -62,9 +62,6 @@ internal static class AgentTuiLauncher
             console.Profile.Width,
             console.Profile.Height,
             agentStore: agentStore,
-            mailStore: mailStore,
-            memoryStore: memoryStore,
-            timeProvider: timeProvider,
             tasksTabIndex: 0,
             searchMode: searchMode,
             treeView: treeView,
@@ -111,7 +108,7 @@ internal static class AgentTuiLauncher
 
         var mailTab = BuildMailTab(mailStore, agentStore, timeProvider);
 
-        var agentsMode = new AgentsMode(agentStore, timeProvider);
+        var agentsMode = new AgentsMode(agentStore, mailStore, taskStore, memoryStore, timeProvider);
         var agentsTab = new TuiTab("Agents", mnemonic: 'A', agentsMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var memoryMode = new MemoryMode(memoryStore, timeProvider);

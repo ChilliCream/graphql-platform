@@ -81,9 +81,6 @@ public sealed class AgentTuiLauncherTests
                 80,
                 24,
                 agentStore: agentStore,
-                mailStore: mailStore,
-                memoryStore: memoryStore,
-                timeProvider: timeProvider,
                 tasksTabIndex: 0,
                 searchMode: new SearchMode(taskStore),
                 treeView: new DependencyTreeView(taskStore, rootId: ""),
@@ -128,9 +125,6 @@ public sealed class AgentTuiLauncherTests
             width,
             24,
             agentStore: new Tui.Agents.FakeAgentStore(time),
-            mailStore: new FakeMailStore(),
-            memoryStore: new Tui.Agents.FakeMemoryStore(),
-            timeProvider: time,
             actor: "tasks-actor",
             mailWakeDaemonState: () => state);
 

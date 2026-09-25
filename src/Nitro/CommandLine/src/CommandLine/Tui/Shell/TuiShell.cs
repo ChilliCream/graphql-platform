@@ -1,6 +1,4 @@
 using System.Globalization;
-using ChilliCream.Nitro.CommandLine.Services.Mail;
-using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -40,8 +38,6 @@ internal sealed class TuiShell
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
     private readonly IAgentStore _agentStore;
-    private readonly IMailStore _mailStore;
-    private readonly IMemoryStore _memoryStore;
     private readonly string? _actor;
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
@@ -75,9 +71,6 @@ internal sealed class TuiShell
         int initialWidth,
         int initialHeight,
         IAgentStore agentStore,
-        IMailStore mailStore,
-        IMemoryStore memoryStore,
-        TimeProvider timeProvider,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
@@ -94,9 +87,6 @@ internal sealed class TuiShell
             initialWidth,
             initialHeight,
             agentStore,
-            mailStore,
-            memoryStore,
-            timeProvider,
             tasksTabIndex: 0,
             searchMode,
             treeView,
@@ -116,9 +106,6 @@ internal sealed class TuiShell
     /// <param name="initialWidth">The initial frame width.</param>
     /// <param name="initialHeight">The initial frame height.</param>
     /// <param name="agentStore">The agent store backing the Agents tab's delete actions.</param>
-    /// <param name="mailStore">The mail store backing the agent detail popover's Mail section.</param>
-    /// <param name="memoryStore">The memory store backing the agent detail popover's Memory section.</param>
-    /// <param name="timeProvider">The time source for the agent detail popover's ages and presence.</param>
     /// <param name="searchMode">The task search mode, or null to disable shell search entry.</param>
     /// <param name="treeView">The dependency tree mode, or null to disable shell tree entry.</param>
     /// <param name="store">The task store, or null to disable shell task writes and detail entry.</param>
@@ -140,9 +127,6 @@ internal sealed class TuiShell
         int initialWidth,
         int initialHeight,
         IAgentStore agentStore,
-        IMailStore mailStore,
-        IMemoryStore memoryStore,
-        TimeProvider timeProvider,
         int tasksTabIndex = 0,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
@@ -154,9 +138,6 @@ internal sealed class TuiShell
     {
         ArgumentNullException.ThrowIfNull(tabs);
         ArgumentNullException.ThrowIfNull(agentStore);
-        ArgumentNullException.ThrowIfNull(mailStore);
-        ArgumentNullException.ThrowIfNull(memoryStore);
-        ArgumentNullException.ThrowIfNull(timeProvider);
 
         if (tabs.Count == 0)
         {
@@ -176,8 +157,6 @@ internal sealed class TuiShell
         _treeView = treeView;
         _store = store;
         _agentStore = agentStore;
-        _mailStore = mailStore;
-        _memoryStore = memoryStore;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
@@ -189,20 +168,6 @@ internal sealed class TuiShell
         foreach (var tab in _tabs)
         {
             tab.ActiveMode.OnEnter();
-        }
-
-        // The Agents tab needs the mail, task, and memory stores to build its own popover;
-        // wiring it here keeps TryCreatePopover a zero-argument, mode-agnostic call for the
-        // shell instead of giving every ITuiMode constructor these popover-only dependencies.
-        if (_store is not null)
-        {
-            foreach (var tab in _tabs)
-            {
-                if (tab.ActiveMode is AgentsMode agentsMode)
-                {
-                    agentsMode.ConfigurePopover(_mailStore, _store, _memoryStore);
-                }
-            }
         }
     }
 

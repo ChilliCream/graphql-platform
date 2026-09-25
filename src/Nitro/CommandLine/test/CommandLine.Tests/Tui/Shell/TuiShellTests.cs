@@ -36,9 +36,6 @@ public sealed class TuiShellTests
             width,
             height,
             agentStore: new FakeAgentStore(TimeProvider.System),
-            mailStore: new FakeMailStore(),
-            memoryStore: new FakeMemoryStore(),
-            timeProvider: TimeProvider.System,
             actor: actor);
 
     private static TuiShell CreateShellWithModes(
@@ -56,9 +53,6 @@ public sealed class TuiShellTests
             80,
             24,
             agentStore: new FakeAgentStore(TimeProvider.System),
-            mailStore: new FakeMailStore(),
-            memoryStore: new FakeMemoryStore(),
-            timeProvider: TimeProvider.System,
             searchMode: searchMode,
             treeView: treeView,
             store: store,
@@ -87,27 +81,35 @@ public sealed class TuiShellTests
     }
 
     /// <summary>
-    /// Builds an Agents-tab shell, defaulting the mail, task, and memory stores the agent
-    /// detail popover needs when a test does not care about them.
+    /// Builds an Agents-tab shell around a freshly built <see cref="AgentsMode"/>, defaulting
+    /// the mail, task, and memory stores the agent detail popover needs when a test does not
+    /// care about them.
     /// </summary>
     private static TuiShell CreateAgentsShell(
-        AgentsMode mode,
+        out AgentsMode mode,
         FakeAgentStore agentStore,
+        TimeProvider? timeProvider = null,
         FakeMailStore? mailStore = null,
         FakeTaskStore? taskStore = null,
         FakeMemoryStore? memoryStore = null,
-        TimeProvider? timeProvider = null,
-        int width = 80) =>
-        new(
+        int width = 80)
+    {
+        var resolvedTaskStore = taskStore ?? new FakeTaskStore();
+        mode = new AgentsMode(
+            agentStore,
+            mailStore ?? new FakeMailStore(),
+            resolvedTaskStore,
+            memoryStore ?? new FakeMemoryStore(),
+            timeProvider ?? TimeProvider.System);
+
+        return new TuiShell(
             new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
             mode,
             width,
             24,
             agentStore: agentStore,
-            mailStore: mailStore ?? new FakeMailStore(),
-            memoryStore: memoryStore ?? new FakeMemoryStore(),
-            timeProvider: timeProvider ?? TimeProvider.System,
-            store: taskStore ?? new FakeTaskStore());
+            store: resolvedTaskStore);
+    }
 
     private static AgentRow AddOnlineAgent(FakeAgentStore store, string sessionId)
         => store.StartSessionAsync(
@@ -1405,8 +1407,7 @@ public sealed class TuiShellTests
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore, width: 120);
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now), width: 120);
 
         // act
         var text = RenderToText(shell, 120);
@@ -1424,8 +1425,7 @@ public sealed class TuiShellTests
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
@@ -1440,8 +1440,7 @@ public sealed class TuiShellTests
     {
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
@@ -1457,8 +1456,7 @@ public sealed class TuiShellTests
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         var agent = AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out var mode, agentStore, new FakeTimeProvider(s_now));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
 
         // act
@@ -1479,8 +1477,7 @@ public sealed class TuiShellTests
         AddOfflineAgent(agentStore, "s-a");
         AddOfflineAgent(agentStore, "s-b");
         AddOnlineAgent(agentStore, "s-c");
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
@@ -1496,8 +1493,7 @@ public sealed class TuiShellTests
         // arrange
         var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
         AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
@@ -1515,8 +1511,7 @@ public sealed class TuiShellTests
         AddOfflineAgent(agentStore, "s-a");
         AddOfflineAgent(agentStore, "s-b");
         var online = AddOnlineAgent(agentStore, "s-c");
-        var mode = new AgentsMode(agentStore, new FakeTimeProvider(s_now));
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out var mode, agentStore, new FakeTimeProvider(s_now));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
 
         // act
@@ -1538,8 +1533,7 @@ public sealed class TuiShellTests
         var agentStore = new FakeAgentStore(time);
         AddOnlineAgent(agentStore, "s-a");
         AddOnlineAgent(agentStore, "s-b");
-        var mode = new AgentsMode(agentStore, time);
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out _, agentStore, time);
         // Move off row 0 so its bubble is never selection-highlighted, before or after the tick.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
         AssertAnsiStylePrefixesText(RenderToAnsiText(shell), "agents.list.presence.online", "●");
@@ -1562,8 +1556,7 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, time);
-        var shell = CreateAgentsShell(mode, agentStore);
+        var shell = CreateAgentsShell(out _, agentStore, time);
 
         // act
         var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
@@ -1579,9 +1572,8 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         var agent = AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, time);
         var shell = CreateAgentsShell(
-            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
@@ -1598,9 +1590,8 @@ public sealed class TuiShellTests
         // arrange
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
-        var mode = new AgentsMode(agentStore, time);
         var shell = CreateAgentsShell(
-            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
@@ -1619,9 +1610,8 @@ public sealed class TuiShellTests
         var agentStore = new FakeAgentStore(time);
         var first = AddOnlineAgent(agentStore, "s-a");
         var second = AddOnlineAgent(agentStore, "s-b");
-        var mode = new AgentsMode(agentStore, time);
         var shell = CreateAgentsShell(
-            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+            out var mode, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
         var popoverAgent = mode.State.SelectedAgent!;
         var otherAgent = popoverAgent.Name == first.Name ? second : first;
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
@@ -1645,9 +1635,8 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         var agent = AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, time);
         var shell = CreateAgentsShell(
-            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+            out var mode, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
 
@@ -1669,9 +1658,8 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, time);
         var shell = CreateAgentsShell(
-            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // act
@@ -1690,9 +1678,8 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, time);
         var shell = CreateAgentsShell(
-            mode, agentStore, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore(), time);
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // act
@@ -1712,9 +1699,8 @@ public sealed class TuiShellTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new FakeAgentStore(time);
         AddOnlineAgent(agentStore, "s-a");
-        var mode = new AgentsMode(agentStore, time);
         var mailStore = new FakeMailStore();
-        var shell = CreateAgentsShell(mode, agentStore, mailStore, new FakeTaskStore(), new FakeMemoryStore(), time);
+        var shell = CreateAgentsShell(out _, agentStore, time, mailStore, new FakeTaskStore(), new FakeMemoryStore());
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // act

@@ -97,10 +97,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // assert
         Assert.True(tab1Mode.EnterCalled);
@@ -116,10 +113,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode())],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var text = RenderToText(shell);
@@ -142,10 +136,7 @@ public sealed class TuiShellTabsTests
             ],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var text = RenderToText(shell);
@@ -172,10 +163,7 @@ public sealed class TuiShellTabsTests
             ],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         // Shift+A jumps straight from the (active) tasks tab to agents.
@@ -211,10 +199,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", new FakeTuiMode())],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
@@ -238,10 +223,7 @@ public sealed class TuiShellTabsTests
             ],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
@@ -260,10 +242,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", mode), CreateMailTab("Mail", new FakeTuiMode())],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.ResizeEvent(100, 30));
@@ -283,10 +262,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
@@ -317,10 +293,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         // '[' from the first tab wraps to the last.
@@ -348,10 +321,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.None)));
@@ -374,9 +344,6 @@ public sealed class TuiShellTabsTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 2));
     }
 
@@ -396,10 +363,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
         tasksMode.HandledMessages.Clear();
         mailMode.HandledMessages.Clear();
 
@@ -430,9 +394,6 @@ public sealed class TuiShellTabsTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
@@ -468,9 +429,6 @@ public sealed class TuiShellTabsTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
@@ -496,10 +454,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
@@ -523,10 +478,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
@@ -548,10 +500,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
         // act
@@ -579,10 +528,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
             80,
             24,
-            agentStore: agentStore,
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: agentStore);
 
         // act
         // Switch to the Mail tab, open the agent picker, move to the seeded agent, and apply it.
@@ -611,10 +557,7 @@ public sealed class TuiShellTabsTests
             [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
             80,
             24,
-            agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time);
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         // Switch to the Mail tab, open search, type a subject fragment, and submit with the save chord.
@@ -649,10 +592,7 @@ public sealed class TuiShellTabsTests
                 [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
                 80,
                 24,
-                agentStore: new Agents.FakeAgentStore(time),
-                mailStore: new Agents.FakeMailStore(),
-                memoryStore: new Agents.FakeMemoryStore(),
-                timeProvider: time);
+                agentStore: new Agents.FakeAgentStore(time));
 
             // act
             shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
@@ -686,10 +626,7 @@ public sealed class TuiShellTabsTests
                 [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
                 80,
                 24,
-                agentStore: new Agents.FakeAgentStore(time),
-                mailStore: new Agents.FakeMailStore(),
-                memoryStore: new Agents.FakeMemoryStore(),
-                timeProvider: time);
+                agentStore: new Agents.FakeAgentStore(time));
             shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
 
             // act
@@ -722,10 +659,7 @@ public sealed class TuiShellTabsTests
                 [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
                 80,
                 24,
-                agentStore: new Agents.FakeAgentStore(time),
-                mailStore: new Agents.FakeMailStore(),
-                memoryStore: new Agents.FakeMemoryStore(),
-                timeProvider: time);
+                agentStore: new Agents.FakeAgentStore(time));
 
             // act
             // Switch to the Memory tab, open search, type a body fragment, and submit with the save chord.
@@ -767,9 +701,6 @@ public sealed class TuiShellTabsTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
@@ -790,15 +721,13 @@ public sealed class TuiShellTabsTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new Agents.FakeAgentStore(time);
         LoginAgent(agentStore);
-        var agentsMode = new AgentsMode(agentStore, time);
+        var agentsMode = new AgentsMode(
+            agentStore, new Agents.FakeMailStore(), new FakeTaskStore(), new Agents.FakeMemoryStore(), time);
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             100,
             24,
             agentStore: agentStore,
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0,
             store: new FakeTaskStore());
         var agentName = agentsMode.State.Rows[0].Name;
@@ -821,15 +750,13 @@ public sealed class TuiShellTabsTests
         var time = new FakeTimeProvider(s_now);
         var agentStore = new Agents.FakeAgentStore(time);
         LoginAgent(agentStore);
-        var agentsMode = new AgentsMode(agentStore, time);
+        var agentsMode = new AgentsMode(
+            agentStore, new Agents.FakeMailStore(), new FakeTaskStore(), new Agents.FakeMemoryStore(), time);
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             80,
             24,
             agentStore: agentStore,
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0);
         var agentName = Assert.Single(agentsMode.State.Rows).Name;
 
@@ -855,9 +782,6 @@ public sealed class TuiShellTabsTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
@@ -885,9 +809,6 @@ public sealed class TuiShellTabsTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(time),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: time,
             tasksTabIndex: 0,
             searchMode: searchMode,
             store: store,

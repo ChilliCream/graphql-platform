@@ -34,34 +34,29 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     private readonly Viewport _listViewport = new(0, 0);
 
     private AgentSearchForm? _searchForm;
-    private IMailStore? _mailStore;
-    private ITaskStore? _taskStore;
-    private IMemoryStore? _memoryStore;
+    private readonly IMailStore _mailStore;
+    private readonly ITaskStore _taskStore;
+    private readonly IMemoryStore _memoryStore;
 
-    public AgentsMode(IAgentStore agentStore, TimeProvider? timeProvider = null)
+    public AgentsMode(
+        IAgentStore agentStore,
+        IMailStore mailStore,
+        ITaskStore taskStore,
+        IMemoryStore memoryStore,
+        TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(agentStore);
-
-        _agentStore = agentStore;
-        _timeProvider = timeProvider ?? TimeProvider.System;
-        _state = new AgentsState(agentStore, _timeProvider);
-        KeyMap = AgentsKeyMap.CreateDefault(() => _state.SelectedAgent?.Name);
-    }
-
-    /// <summary>
-    /// Supplies the stores the agent detail popover needs to load mail, ticket, and memory
-    /// participation. <see cref="TryCreatePopover"/> returns null for every selection until
-    /// this has been called.
-    /// </summary>
-    public void ConfigurePopover(IMailStore mailStore, ITaskStore taskStore, IMemoryStore memoryStore)
-    {
         ArgumentNullException.ThrowIfNull(mailStore);
         ArgumentNullException.ThrowIfNull(taskStore);
         ArgumentNullException.ThrowIfNull(memoryStore);
 
+        _agentStore = agentStore;
         _mailStore = mailStore;
         _taskStore = taskStore;
         _memoryStore = memoryStore;
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _state = new AgentsState(agentStore, _timeProvider);
+        KeyMap = AgentsKeyMap.CreateDefault(() => _state.SelectedAgent?.Name);
     }
 
     /// <summary>
@@ -130,11 +125,6 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     /// <inheritdoc />
     public IPopover? TryCreatePopover()
     {
-        if (_mailStore is null || _taskStore is null || _memoryStore is null)
-        {
-            return null;
-        }
-
         if (_state.SelectedAgent is not { } agent)
         {
             return null;

@@ -30,9 +30,6 @@ public sealed class TuiShellQuitGateTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(TimeProvider.System),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: TimeProvider.System,
             quitGates: quitGates);
 
     private static TuiShell CreateShell(FakeTuiMode mode, TimeSpan quitGateDrainBound, params TuiQuitGate[] quitGates) =>
@@ -42,9 +39,6 @@ public sealed class TuiShellQuitGateTests
             80,
             24,
             agentStore: new Agents.FakeAgentStore(TimeProvider.System),
-            mailStore: new Agents.FakeMailStore(),
-            memoryStore: new Agents.FakeMemoryStore(),
-            timeProvider: TimeProvider.System,
             quitGates: quitGates,
             quitGateDrainBound: quitGateDrainBound);
 
