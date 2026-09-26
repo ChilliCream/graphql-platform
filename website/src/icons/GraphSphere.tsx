@@ -213,7 +213,6 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       const pulses = pulseCandidates(elapsedMs);
       const pulseAgeByVertex = new Map(pulses.map((p) => [p.vertex, p.age]));
 
-      // Applied once per vertex so nodes, halos, edges and dots move together.
       const displayed = rawProjected.map((p, i) => {
         const motion = nodeMotion(
           i,

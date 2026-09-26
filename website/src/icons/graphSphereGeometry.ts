@@ -138,7 +138,6 @@ const CAM_K = 450;
 export const VIEWBOX = 400;
 const CENTER = VIEWBOX / 2;
 
-// Nominal on-screen sphere radius, the reference for elastic amplitudes elsewhere.
 export const SPHERE_RADIUS_PX = CAM_K / CAM_DIST;
 
 function scaleAtZ(z: number): number {

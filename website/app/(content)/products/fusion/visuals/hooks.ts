@@ -5,7 +5,6 @@ import type { RefObject } from "react";
 
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
-/** `true` once the element is in the viewport, the tab is visible and motion is allowed. */
 export function useElementMotion(ref: RefObject<Element | null>): boolean {
   const reduced = useReducedMotionPreference();
   const [inView, setInView] = useState(false);

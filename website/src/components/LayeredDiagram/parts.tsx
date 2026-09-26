@@ -18,7 +18,6 @@ export function wash(color: string, percent: number): string {
 interface CardProps {
   readonly title: string;
   readonly detail: string;
-  /** Spec badge or wire protocol; the clients carry none. */
   readonly badge?: string;
   readonly badgeColor?: string;
   readonly lit: boolean;
@@ -143,9 +142,7 @@ export function Elbow({ lane, flow, tone }: ElbowProps) {
 interface PulseProps {
   readonly lane: Lane;
   readonly tone: string;
-  /** Already gated `animation` shorthand, or `none` at rest. */
   readonly animation: string;
-  /** This band's bus height, in percent; the rest position the pulse parks on. */
   readonly busY: number;
 }
 

@@ -1,6 +1,5 @@
 import type { Client, Trace } from "@/src/nitro/lib/data/types";
 
-/** One Fusion request: the router parses the plan, fans out catalog and orders in parallel, then billing — the slow span. */
 export const REQUEST_TRACE: Trace = {
   totalMs: 150,
   spans: [

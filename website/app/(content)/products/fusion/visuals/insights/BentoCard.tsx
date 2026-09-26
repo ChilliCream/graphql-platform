@@ -44,7 +44,6 @@ interface ChartFrameProps {
   readonly style?: CSSProperties;
 }
 
-/** Forces the Nitro dark chart palette for a primitive, regardless of the page's own theme. */
 export function ChartFrame({ children, className, style }: ChartFrameProps) {
   return (
     <NitroTheme

@@ -10,17 +10,13 @@ import {
   VIOLET,
 } from "@/src/components/mocha/palette";
 
-/** Tokens for the places Tailwind utilities cannot reach (`fill`, `stroke`, inline `style`); `products/fusion/tokens.ts` re-exports these unchanged. */
-
 export const CC = {
   heading: "var(--color-cc-heading)",
   ink: "var(--color-cc-ink)",
-  /** Long-form body prose: lighter than `inkDim`. */
   prose: "var(--color-cc-prose)",
   inkDim: "var(--color-cc-ink-dim)",
   inkFaint: "var(--color-cc-ink-faint)",
   hover: "var(--color-cc-hover)",
-  /** The page background. Scenes sit on top of it, never replace it. */
   bg: "var(--color-cc-bg)",
   cardBg: "var(--color-cc-card-bg)",
   cardBorder: "var(--color-cc-card-border)",
@@ -35,7 +31,6 @@ export const CC = {
   warning: "var(--color-cc-warning)",
   danger: "var(--color-cc-danger)",
   info: "var(--color-cc-info)",
-  /** Solid brand navy surface; `cardBg` is this colour at 55%. */
   surface: "var(--color-cc-surface)",
   white: "var(--color-cc-white)",
   black: "var(--color-cc-black)",
@@ -74,6 +69,5 @@ export const TYPE = {
   lead: 32,
   body: 16,
   caption: 14,
-  /** Mono eyebrow / SVG label; the smallest safe size at 375px. */
   label: 11,
 } as const;

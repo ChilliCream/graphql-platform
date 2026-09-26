@@ -18,8 +18,6 @@ import {
 import type { BandFlow, ClientNode, Request, TierNode } from "./diagram";
 import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
 
-/** The tiers collapse via a CSS container query on the diagram's own width, not the viewport's, so layout is right on first paint with no measured state. */
-
 interface LayeredDiagramProps {
   readonly gatewayLabel: string;
   readonly caption?: string;
@@ -29,13 +27,11 @@ interface LayeredDiagramProps {
   readonly requests: readonly Request[];
   /** Fusion's opt-in dense mode: a lower one-row threshold and tighter cards. */
   readonly dense?: boolean;
-  /** Fusion's opt-in: both buses centred in their band (BUS_Y_CENTERED) instead of BUS_Y's 70/30. */
   readonly busCentered?: boolean;
   /** Fusion's opt-in: legend badges read the short spec tag, with no "FED". */
   readonly shortSpecTags?: boolean;
 }
 
-/** Column counts per tier, stacked (below the container query) and wide. */
 const CLIENT_COLUMNS = [2, 4] as const;
 const NODE_COLUMNS = [3, 7] as const;
 
@@ -84,12 +80,9 @@ interface BandProps {
   readonly flow: BandFlow;
   readonly count: number;
   readonly columns: readonly [number, number];
-  /** Indexes of the lit cards; their columns carry the traffic. */
   readonly lit: readonly number[];
   readonly tone: string;
-  /** Remounts the pulses so each step restarts its animation. */
   readonly step: number;
-  /** Animation for the `index`-th lit lane, or `null` when nothing travels. */
   readonly pulse: ((index: number) => string) | null;
   readonly dense?: boolean;
   readonly busY: Readonly<Record<BandFlow, number>>;

@@ -31,13 +31,10 @@ const SOURCE_LANGUAGE: Readonly<Record<string, string>> = {
 export interface TierNode {
   readonly name: string;
   readonly language: string;
-  /** Spec badge for a subgraph, wire protocol for a non-GraphQL source. */
   readonly badge: string;
-  /** `null` for the two sources, which implement no federation spec. */
   readonly spec: StationSpec | null;
 }
 
-/** Bottom tier, left to right: the five subgraphs, then the two sources. */
 export const TIER_NODES: readonly TierNode[] = [
   ...STATIONS.map((station) => ({
     name: station.name,
@@ -61,10 +58,8 @@ export const SPEC_LEGEND: readonly StationSpec[] = [
 export const COMPOSITE_LINE = `Coherent graph · ${STATIONS.length} subgraphs · OpenAPI and gRPC sources`;
 
 export interface Request {
-  /** Index into `CLIENT_NODES`. */
   readonly client: number;
   readonly operation: string;
-  /** Names of the `TIER_NODES` this operation needs. */
   readonly targets: readonly string[];
 }
 
@@ -91,7 +86,6 @@ export const REQUESTS: readonly Request[] = [
   },
 ];
 
-/** Every request runs the same three phases, one cycle step each. */
 export const PHASE_LABEL = ["Receive", "Fan out", "Merge"] as const;
 
 export const PHASE_MS = 1200;
@@ -113,7 +107,6 @@ export const BUS_Y: Readonly<Record<BandFlow, number>> = {
   "from-gateway": 30,
 };
 
-/** Fusion's opt-in: both buses centred in their band, instead of BUS_Y's 70/30. */
 export const BUS_Y_CENTERED: Readonly<Record<BandFlow, number>> = {
   "to-gateway": 50,
   "from-gateway": 50,
@@ -123,13 +116,11 @@ export type LaneSide = "left" | "right" | "center";
 
 export interface Lane {
   readonly key: string;
-  /** Centre of the grid column this lane serves, as a CSS length. */
   readonly x: string;
   readonly side: LaneSide;
   readonly lit: boolean;
 }
 
-/** Centre of grid column `index` of `columns`, accounting for the gaps. */
 function laneX(index: number, columns: number, gap: number = CARD_GAP): string {
   const gaps = (columns - 1) * gap;
   return `calc((100% - ${gaps}px) / ${columns} * ${index + 0.5} + ${index * gap}px)`;

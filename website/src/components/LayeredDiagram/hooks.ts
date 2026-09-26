@@ -5,7 +5,6 @@ import type { RefObject } from "react";
 
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
-/** Copied from the Fusion page's `visuals/hooks.ts` rather than imported across pages. */
 export function useElementMotion(ref: RefObject<Element | null>): boolean {
   const reduced = useReducedMotionPreference();
   const [inView, setInView] = useState(false);
@@ -37,7 +36,6 @@ export function useElementMotion(ref: RefObject<Element | null>): boolean {
   return inView && visible && !reduced;
 }
 
-/** Counts `0 .. steps - 1` on an interval while `running`, parks on `rest` otherwise. */
 export function useCycle(
   running: boolean,
   steps: number,
@@ -60,7 +58,6 @@ export function useCycle(
   return running ? step : rest;
 }
 
-/** `animation` shorthand that collapses to `none` while the gate is closed. */
 export function anim(running: boolean, value: string): string {
   return running ? value : "none";
 }

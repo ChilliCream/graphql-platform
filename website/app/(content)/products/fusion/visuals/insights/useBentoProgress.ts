@@ -6,7 +6,6 @@ import {
   useReducedMotion,
 } from "motion/react";
 
-/** One shared reveal clock for the bento's cards: paused until in view, settled instantly for reduced motion. */
 export function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion() ?? false;
