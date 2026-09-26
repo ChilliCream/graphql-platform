@@ -19,13 +19,13 @@ import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { Link } from "@/src/design-system/Link";
+import { GraphSphere } from "@/src/icons/GraphSphere";
 
 import type { CopyLink } from "./content";
 import { CLOSING_BAND, FEATURES, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
 import { InsightsWindow } from "./visuals/InsightsWindow";
 import { PerformanceWindow } from "./visuals/PerformanceWindow";
-import { ProtocolsWindow } from "./visuals/ProtocolsWindow";
 import { SecurityWindow } from "./visuals/SecurityWindow";
 
 /**
@@ -214,9 +214,7 @@ export function FusionPage() {
             </div>
           }
           aside={
-            <div className={`${PANEL_CLASS} overflow-hidden`}>
-              <ProtocolsWindow />
-            </div>
+            <GraphSphere className="mx-auto aspect-square w-full max-w-[380px]" />
           }
         />
       </div>
