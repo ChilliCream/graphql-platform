@@ -133,6 +133,8 @@ const VISUALS: Readonly<Record<string, Panel>> = {
         tiers={TIER_NODES}
         requests={REQUESTS}
         dense
+        busCentered
+        shortSpecTags
       />
     ),
   },

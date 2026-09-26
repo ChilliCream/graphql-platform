@@ -90,7 +90,8 @@ export const SOURCES: readonly Source[] = [
 
 export const CLIENTS = ["Web", "Mobile", "Partner API"] as const;
 
-/** Short spec tag for the cramped station plates. */
-export function specTag(spec: StationSpec): string {
+/** Spec tag for the station plates; `short` drops "FED", Fusion's diagram only. */
+export function specTag(spec: StationSpec, short = false): string {
+  if (short) return spec === "Apollo Federation" ? "APOLLO" : "GRAPHQL";
   return spec === "Apollo Federation" ? "APOLLO FED" : "GRAPHQL FED";
 }
