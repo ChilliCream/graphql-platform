@@ -31,6 +31,8 @@ interface CardProps {
   readonly lit: boolean;
   /** Colour of the traffic that lights the card. */
   readonly tone: string;
+  /** Fusion's opt-in dense mode: tighter padding and a smaller wide-mode title. */
+  readonly dense?: boolean;
 }
 
 /** One panel in a tier: a name, what it is, and the badge it carries. */
@@ -41,10 +43,31 @@ export function Card({
   badgeColor,
   lit,
   tone,
+  dense = false,
 }: CardProps) {
-  const tight = badge
-    ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[760px]:@max-[869px]:px-1"
-    : "";
+  // Each dense=false branch matches the pre-dense markup byte for byte.
+  const tight = dense
+    ? badge
+      ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[760px]:@max-[869px]:px-1 @min-[640px]:px-1 @min-[640px]:py-1"
+      : "@min-[640px]:px-1 @min-[640px]:py-1"
+    : badge
+      ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[760px]:@max-[869px]:px-1"
+      : "";
+
+  const titleClass = dense
+    ? "truncate font-mono @max-[312px]:whitespace-normal text-[14px] @min-[640px]:text-[11px]"
+    : "truncate font-mono @max-[312px]:whitespace-normal";
+  const titleStyle: CSSProperties = dense
+    ? { color: lit ? tone : MC.ink, lineHeight: LINE_HEIGHT }
+    : {
+        color: lit ? tone : MC.ink,
+        fontSize: TYPE.caption,
+        lineHeight: LINE_HEIGHT,
+      };
+
+  const badgeClass = dense
+    ? "mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[760px]:@max-[869px]:px-0.5 @min-[760px]:@max-[869px]:tracking-[0.01em] @min-[640px]:px-0.5 @min-[640px]:whitespace-normal @min-[640px]:tracking-[0.01em]"
+    : "mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[760px]:@max-[869px]:px-0.5 @min-[760px]:@max-[869px]:tracking-[0.01em]";
 
   return (
     <div
@@ -55,14 +78,7 @@ export function Card({
         boxShadow: lit ? `0 0 22px ${wash(tone, 20)}` : "none",
       }}
     >
-      <p
-        className="truncate font-mono @max-[312px]:whitespace-normal"
-        style={{
-          color: lit ? tone : MC.ink,
-          fontSize: TYPE.caption,
-          lineHeight: LINE_HEIGHT,
-        }}
-      >
+      <p className={titleClass} style={titleStyle}>
         {title}
       </p>
       <p
@@ -77,7 +93,7 @@ export function Card({
       </p>
       {badge ? (
         <p
-          className="mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[760px]:@max-[869px]:px-0.5 @min-[760px]:@max-[869px]:tracking-[0.01em]"
+          className={badgeClass}
           style={{
             background: wash(badgeColor ?? MC.dim, 14),
             color: badgeColor ?? MC.dim,

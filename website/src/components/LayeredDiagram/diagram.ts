@@ -147,11 +147,13 @@ export interface Lane {
 
 /**
  * Centre of grid column `index` of `columns`, accounting for the gaps, so a
- * connector lands on the middle of its card instead of near it.
+ * connector lands on the middle of its card instead of near it. `gap`
+ * defaults to `CARD_GAP` and only needs overriding when the caller's grid
+ * renders a different gap (a dense layout's tighter row, say).
  */
-function laneX(index: number, columns: number): string {
-  const gaps = (columns - 1) * CARD_GAP;
-  return `calc((100% - ${gaps}px) / ${columns} * ${index + 0.5} + ${index * CARD_GAP}px)`;
+function laneX(index: number, columns: number, gap: number = CARD_GAP): string {
+  const gaps = (columns - 1) * gap;
+  return `calc((100% - ${gaps}px) / ${columns} * ${index + 0.5} + ${index * gap}px)`;
 }
 
 function laneSide(index: number, columns: number): LaneSide {
@@ -163,16 +165,18 @@ function laneSide(index: number, columns: number): LaneSide {
 
 /**
  * One lane per grid column: the tiers reflow from two columns to four or
- * seven, and a lane is lit when any card in its column is.
+ * seven, and a lane is lit when any card in its column is. `gap` must match
+ * that column's actual rendered gap so a connector still centres on its card.
  */
 export function columnLanes(
   count: number,
   columns: number,
   lit: readonly number[],
+  gap: number = CARD_GAP,
 ): readonly Lane[] {
   return Array.from({ length: Math.min(columns, count) }, (_, column) => ({
     key: `lane-${column}`,
-    x: laneX(column, columns),
+    x: laneX(column, columns, gap),
     side: laneSide(column, columns),
     lit: lit.some((index) => index % columns === column),
   }));

@@ -40,15 +40,26 @@ interface LayeredDiagramProps {
   readonly tiers: readonly TierNode[];
   /** Request script the diagram replays; every caller passes its own. */
   readonly requests: readonly Request[];
+  /** Fusion's opt-in dense mode: a lower one-row threshold and tighter cards. */
+  readonly dense?: boolean;
 }
 
 /** Column counts per tier, stacked (below the container query) and wide. */
 const CLIENT_COLUMNS = [2, 4] as const;
 const NODE_COLUMNS = [3, 7] as const;
 
+/** Grid gap in dense mode's wide layout, in px; `gap-1`. Must match `DENSE_LAYOUTS`'s markup. */
+const DENSE_WIDE_GAP = 4;
+
 const LAYOUTS = [
   { key: "stacked", className: "@min-[760px]:hidden" },
   { key: "wide", className: "hidden @min-[760px]:block" },
+] as const;
+
+/** Fusion's dense mode switches to the wide layout at a narrower container width. */
+const DENSE_LAYOUTS = [
+  { key: "stacked", className: "@min-[640px]:hidden" },
+  { key: "wide", className: "hidden @min-[640px]:block" },
 ] as const;
 
 const KEYFRAMES = `
@@ -89,6 +100,8 @@ interface BandProps {
   readonly step: number;
   /** Animation for the `index`-th lit lane, or `null` when nothing travels. */
   readonly pulse: ((index: number) => string) | null;
+  /** Fusion's dense mode: a lower layout threshold and a tighter wide-mode gap. */
+  readonly dense?: boolean;
 }
 
 /**
@@ -96,14 +109,26 @@ interface BandProps {
  * column down to a shared horizontal run, and one stem from there into the
  * gateway. Both layouts render; the container query picks one.
  */
-function Band({ flow, count, columns, lit, tone, step, pulse }: BandProps) {
+function Band({
+  flow,
+  count,
+  columns,
+  lit,
+  tone,
+  step,
+  pulse,
+  dense = false,
+}: BandProps) {
   const bus = BUS_Y[flow];
   const down = flow === "to-gateway";
+  const layouts = dense ? DENSE_LAYOUTS : LAYOUTS;
 
   return (
     <div className="relative h-8 md:h-16 lg:h-20">
-      {LAYOUTS.map((layout, i) => {
-        const lanes = columnLanes(count, columns[i], lit);
+      {layouts.map((layout, i) => {
+        // Only the wide layout (i === 1) ever renders a non-default gap.
+        const gap = dense && i === 1 ? DENSE_WIDE_GAP : undefined;
+        const lanes = columnLanes(count, columns[i], lit, gap);
         const active = lanes.filter((lane) => lane.lit);
 
         return (
@@ -160,6 +185,7 @@ export default function LayeredDiagram({
   clients,
   tiers,
   requests,
+  dense = false,
 }: LayeredDiagramProps) {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
@@ -202,9 +228,21 @@ export default function LayeredDiagram({
       <style>{KEYFRAMES}</style>
       <div className="absolute inset-0" style={{ background: HUB_GLOW }} />
 
-      <div className="px-4 py-4 sm:px-8 sm:py-8 md:px-12">
+      <div
+        className={
+          dense
+            ? "px-4 py-4 sm:px-8 sm:py-8 md:px-12 @min-[640px]:px-6"
+            : "px-4 py-4 sm:px-8 sm:py-8 md:px-12"
+        }
+      >
         <div className="mx-auto w-full max-w-7xl">
-          <div className="grid grid-cols-2 gap-2 @min-[760px]:grid-cols-4">
+          <div
+            className={
+              dense
+                ? "grid grid-cols-2 gap-2 @min-[640px]:grid-cols-4 @min-[640px]:gap-1"
+                : "grid grid-cols-2 gap-2 @min-[760px]:grid-cols-4"
+            }
+          >
             {clients.map((client, i) => (
               <Card
                 key={client.key}
@@ -212,6 +250,7 @@ export default function LayeredDiagram({
                 detail={client.detail}
                 lit={i === request.client}
                 tone={tone}
+                dense={dense}
               />
             ))}
           </div>
@@ -224,6 +263,7 @@ export default function LayeredDiagram({
             tone={tone}
             step={step}
             pulse={upstream}
+            dense={dense}
           />
 
           <div
@@ -316,9 +356,16 @@ export default function LayeredDiagram({
             tone={tone}
             step={step}
             pulse={downstream}
+            dense={dense}
           />
 
-          <div className="grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[760px]:grid-cols-7">
+          <div
+            className={
+              dense
+                ? "grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[640px]:grid-cols-7 @min-[640px]:gap-1"
+                : "grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[760px]:grid-cols-7"
+            }
+          >
             {tiers.map((node, i) => (
               <Card
                 key={node.name}
@@ -328,6 +375,7 @@ export default function LayeredDiagram({
                 badgeColor={specColor(node.spec)}
                 lit={litNodes.includes(i)}
                 tone={tone}
+                dense={dense}
               />
             ))}
           </div>
