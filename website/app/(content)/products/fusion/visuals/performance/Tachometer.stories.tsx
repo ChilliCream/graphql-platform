@@ -10,9 +10,9 @@ const meta = {
   parameters: { layout: "centered" },
   args: {
     max: 20000,
-    redZoneStart: 19000,
-    settleValue: 18400,
-    idleBand: [18100, 18700],
+    redZoneStart: 17000,
+    settleValue: 16300,
+    idleBand: [15800, 16400],
     unit: "ops / min",
   },
   decorators: [

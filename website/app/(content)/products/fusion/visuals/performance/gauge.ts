@@ -1,5 +1,3 @@
-/** Pure geometry for the Tachometer: a 180° gauge from angle 180° (value 0, pointing left) to 0° (max, pointing right). */
-
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
 export function polarPoint(
@@ -12,7 +10,6 @@ export function polarPoint(
   return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
 }
 
-/** SVG arc path for the ring segment between two gauge angles (degrees, 180 → 0). */
 export function gaugeArcPath(
   cx: number,
   cy: number,
@@ -26,7 +23,6 @@ export function gaugeArcPath(
   return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
 }
 
-/** Maps a gauge value to the needle's rotation in degrees (0 at value 0, 180 at max). */
 export function needleRotation(value: number, max: number): number {
   return (value / max) * 180;
 }

@@ -6,7 +6,6 @@ import {
   animate,
   useInView,
   useMotionValue,
-  useReducedMotion,
   type MotionValue,
 } from "motion/react";
 
@@ -19,26 +18,27 @@ import {
   NitroTheme,
   token,
 } from "@/src/nitro";
+import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import { Tachometer } from "./Tachometer";
 
 const GAUGE_MAX = 20000;
-const RED_ZONE_START = 19000;
-const SETTLE_VALUE = 18400;
-const IDLE_BAND: readonly [number, number] = [18100, 18500];
+const RED_ZONE_START = 17000;
+const SETTLE_VALUE = 16300;
+const IDLE_BAND: readonly [number, number] = [15800, 16400];
 
 const LATENCY_P50 = [11, 10, 12, 11, 10, 11, 12, 10, 11, 12, 11, 10];
 const LATENCY_P95 = [41, 43, 40, 42, 44, 41, 43, 42, 40, 43, 42, 41];
 const THROUGHPUT_BARS = [
-  18200, 18400, 18100, 18600, 18300, 18500, 18200, 18700, 18400, 18300, 18600,
-  18200,
+  16100, 16300, 16000, 16500, 16200, 16400, 16100, 16600, 16300, 16200, 16500,
+  16100,
 ];
 
 function useBentoReveal() {
   const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
   const inView = useInView(ref, { amount: 0.25 });
-  const progress = useMotionValue(reduced ? 1 : 0);
+  const progress = useMotionValue(0);
 
   useEffect(() => {
     if (reduced) {
@@ -83,7 +83,6 @@ interface NitroCanvasProps {
   readonly style?: CSSProperties;
 }
 
-/** Wraps a chart primitive in the Nitro dark palette without painting a background of its own. */
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
@@ -123,11 +122,11 @@ interface RevealCardProps {
 
 function LatencyCard({ progress }: RevealCardProps) {
   return (
-    <Card className="h-full">
-      <div className="relative z-10 flex h-full flex-col">
+    <Card className="flex-1">
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
         <CardHeader title="Latency" hint="p50 · p95" />
-        <div className="px-4 pt-2 pb-4">
-          <NitroCanvas>
+        <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
+          <NitroCanvas className="min-h-0 flex-1">
             <LineAreaChart
               series={[
                 {
@@ -162,11 +161,11 @@ function LatencyCard({ progress }: RevealCardProps) {
 
 function ThroughputCard({ progress }: RevealCardProps) {
   return (
-    <Card className="h-full">
-      <div className="relative z-10 flex h-full flex-col">
+    <Card className="flex-1">
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
         <CardHeader title="Sustained" hint="ops / min" />
-        <div className="flex flex-1 flex-col justify-between px-4 pt-2 pb-4">
-          <NitroCanvas className="h-9">
+        <div className="flex min-h-0 flex-1 flex-col justify-between px-4 pt-2 pb-4">
+          <NitroCanvas className="h-9 shrink-0">
             <CountUp
               value={SETTLE_VALUE}
               format={(n) => Math.round(n).toLocaleString("en-US")}
@@ -175,7 +174,7 @@ function ThroughputCard({ progress }: RevealCardProps) {
               playWindow={[0, 1]}
             />
           </NitroCanvas>
-          <NitroCanvas className="mt-2 h-12">
+          <NitroCanvas className="mt-2 min-h-0 flex-1">
             <BarSeries
               values={THROUGHPUT_BARS}
               domain={[0, GAUGE_MAX]}

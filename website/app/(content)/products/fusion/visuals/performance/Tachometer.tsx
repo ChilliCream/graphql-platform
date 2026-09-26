@@ -1,23 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { animate, motion, useMotionValue } from "motion/react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
 
-import { CountUp, token } from "@/src/nitro";
-import { ease } from "@/src/nitro/lib/motion";
-import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
+import { token } from "@/src/nitro";
+import { ease, useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import { useElementMotion } from "../hooks";
-import { gaugeArcPath, needleRotation } from "./gauge";
+import { gaugeArcPath, needleRotation, polarPoint } from "./gauge";
 
 export interface TachometerProps {
-  /** Scale ceiling, in the gauge's unit. */
   readonly max: number;
-  /** Where the red zone begins; the needle settles and idles below this. */
   readonly redZoneStart: number;
-  /** Settled reading once the reveal sweep completes. */
   readonly settleValue: number;
-  /** Idle fluctuation band around `settleValue`, both ends kept below `redZoneStart`. */
   readonly idleBand: readonly [number, number];
   readonly unit: string;
 }
@@ -33,8 +28,15 @@ const HUB_R = 6;
 const SWEEP_MS = 1300;
 const IDLE_MS = 4200;
 
+const TICK_STEP = 0.1;
+const MAJOR_TICKS = new Set([0, 0.2, 0.4, 0.6, 0.8, 1]);
+
 function formatOps(n: number): string {
   return `${(n / 1000).toFixed(1)}K`;
+}
+
+function tickAngle(fraction: number): number {
+  return 180 - fraction * 180;
 }
 
 export function Tachometer({
@@ -48,20 +50,20 @@ export function Tachometer({
   const reduced = useReducedMotionPreference();
   const active = useElementMotion(ref);
 
-  const settleRotate = needleRotation(settleValue, max);
-  const idleLowRotate = needleRotation(idleBand[0], max);
-  const idleHighRotate = needleRotation(idleBand[1], max);
-  const rotate = useMotionValue(reduced ? settleRotate : 0);
+  const value = useMotionValue(reduced ? settleValue : 0);
+  const rotate = useTransform(value, (v) => needleRotation(v, max));
+  const dashOffset = useTransform(value, (v) => 1 - v / max);
+  const readout = useTransform(value, formatOps);
 
   useEffect(() => {
     if (reduced) {
-      rotate.set(settleRotate);
+      value.set(settleValue);
       return;
     }
     if (!active) return;
 
     let cancelled = false;
-    const sweep = animate(rotate, settleRotate, {
+    const sweep = animate(value, settleValue, {
       duration: SWEEP_MS / 1000,
       ease: ease.out,
     });
@@ -69,8 +71,8 @@ export function Tachometer({
     sweep.then(() => {
       if (cancelled) return;
       idle = animate(
-        rotate,
-        [settleRotate, idleLowRotate, idleHighRotate, settleRotate],
+        value,
+        [settleValue, idleBand[0], idleBand[1], settleValue],
         {
           duration: IDLE_MS / 1000,
           ease: ease.inOut,
@@ -84,11 +86,27 @@ export function Tachometer({
       sweep.stop();
       idle.stop();
     };
-  }, [active, reduced, settleRotate, idleLowRotate, idleHighRotate, rotate]);
+  }, [active, reduced, settleValue, idleBand, value]);
 
   const redZoneAngleStart = 180 - (redZoneStart / max) * 180;
   const trackPath = gaugeArcPath(CX, CY, TRACK_R, 180, 0);
   const redZonePath = gaugeArcPath(CX, CY, TRACK_R, redZoneAngleStart, 0);
+
+  const ticks: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    major: boolean;
+  }[] = [];
+  for (let f = 0; f <= 1 + 1e-6; f += TICK_STEP) {
+    const fraction = Math.round(f * 100) / 100;
+    const major = MAJOR_TICKS.has(fraction);
+    const angle = tickAngle(fraction);
+    const [x1, y1] = polarPoint(CX, CY, TRACK_R + 9, angle);
+    const [x2, y2] = polarPoint(CX, CY, TRACK_R - (major ? 15 : 7), angle);
+    ticks.push({ x1, y1, x2, y2, major });
+  }
 
   return (
     <div ref={ref} className="flex flex-col items-center gap-1">
@@ -114,6 +132,15 @@ export function Tachometer({
           strokeLinecap="butt"
           opacity={0.85}
         />
+        <motion.path
+          d={trackPath}
+          pathLength={1}
+          fill="none"
+          stroke={token.cThroughput}
+          strokeWidth={10}
+          strokeLinecap="butt"
+          style={{ strokeDasharray: "1 1", strokeDashoffset: dashOffset }}
+        />
         <g transform={`translate(${CX}, ${CY})`}>
           <motion.g
             style={{
@@ -135,16 +162,42 @@ export function Tachometer({
           </motion.g>
         </g>
         <circle cx={CX} cy={CY} r={HUB_R} fill={token.textStrong} />
+        {ticks.map((t, i) => (
+          <line
+            key={i}
+            x1={t.x1}
+            y1={t.y1}
+            x2={t.x2}
+            y2={t.y2}
+            stroke={t.major ? token.textSecondary : token.borderStrong}
+            strokeWidth={t.major ? 1.5 : 1}
+          />
+        ))}
       </svg>
-      <div className="flex flex-col items-center">
-        <CountUp
-          value={settleValue}
-          format={formatOps}
-          once
-          durationMs={SWEEP_MS}
-          style={{ width: "auto", height: "auto" }}
-        />
+      <div
+        className="flex flex-col items-center"
+        role="img"
+        aria-label={`${formatOps(settleValue)} ${unit}`}
+      >
+        <motion.span
+          aria-hidden="true"
+          className="text-center"
+          style={{
+            display: "inline-block",
+            minWidth: "5ch",
+            fontFamily: token.mono,
+            fontSize: 32,
+            fontWeight: 600,
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+            color: token.textStrong,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {readout}
+        </motion.span>
         <span
+          aria-hidden="true"
           className="text-[11px] whitespace-nowrap"
           style={{ color: token.textSecondary, fontFamily: token.mono }}
         >
