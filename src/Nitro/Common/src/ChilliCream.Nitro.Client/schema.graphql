@@ -6,19 +6,42 @@ schema {
 
 type Query {
   apiById(id: ID!): Api
+  """
+  Resolves a single authorization audit-log entry by its global id, encoded from the
+  owning organization id and the event id. Returns null when the id
+  cannot be resolved or the caller is not authorized to read it.
+  """
+  authorizationEventLogById(id: ID!): AuthorizationEventLog
+  clientById(id: ID!): Client
+  clientVersionById(id: ID!): ClientVersion
+  deploymentById(id: ID!): Deployment
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
   mcpFeatureCollectionById(id: ID!): McpFeatureCollection
+  mcpFeatureCollectionVersionById(id: ID!): McpFeatureCollectionVersion
   me: Viewer @deprecated(reason: "Use `viewer` instead.")
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   openApiCollectionById(id: ID!): OpenApiCollection
+  openApiCollectionVersionById(id: ID!): OpenApiCollectionVersion
+  operationById(id: ID!): Operation
   organizationById(id: ID!): Organization
+  schemaChangeLogById(id: ID!): SchemaChangeLog
   stageById(id: ID!): Stage
   version: String
   viewer: Viewer
   workspaceById(workspaceId: ID!): Workspace
+  """
+  A workspace by organization name and workspace name. Null when either name is unknown or the
+  caller is unauthorized.
+  """
+  workspaceByName(
+    "The organization's name."
+    organizationName: String!
+    "The workspace's name."
+    workspaceName: String!
+  ): Workspace
 }
 
 type Mutation {
@@ -76,6 +99,7 @@ type Mutation {
   updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
+  updateSchemaLintRuleSetting(input: UpdateSchemaLintRuleSettingInput!): UpdateSchemaLintRuleSettingPayload!
   updateStageCompositionSettings(input: UpdateStageCompositionSettingsInput!): UpdateStageCompositionSettingsPayload!
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
   updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload!
@@ -192,6 +216,7 @@ type Api implements Node {
   ): OperationsConnection
   path: [String!]!
   referenceName: String!
+  schemaLinting: ApiSchemaLinting!
   schemaVersions(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -205,6 +230,7 @@ type Api implements Node {
   settings: ApiSettings!
   stage(name: String!): Stage
   stages: [Stage!]!
+  subgraph(name: String!): Subgraph
   version: Version!
   workspace: Workspace
 }
@@ -216,6 +242,7 @@ type ApiActions {
   canCreateOpenApiCollection: Boolean!
   canDelete: Boolean!
   canDuplicate: Boolean!
+  canEditSchemaLintRules: Boolean!
   canEditSchemaRegistrySettings: Boolean!
   canManageStages: Boolean!
   canRename: Boolean!
@@ -412,6 +439,7 @@ type ApiHttpConnection {
 "API Key Details"
 type ApiKey implements Node {
   actions: ApiKeyActions!
+  createdAt: DateTime!
   createdBy: UserInfo!
   id: ID!
   name: String!
@@ -572,6 +600,10 @@ type ApiPermissionScope implements PermissionScope {
   type: String!
 }
 
+type ApiSchemaLinting {
+  categories: [SchemaLintRuleCategory!]!
+}
+
 "A connection to a list of items."
 type ApisConnection {
   "A list of edges."
@@ -635,6 +667,12 @@ type AuthorizationEventLog {
   eventId: UUID!
   eventType: AuthorizationEventType!
   """
+  The global id of this audit-log entry, encoded from the owning organization id and
+  the event id so the id alone is enough to locate the row via
+  Query.authorizationEventLogById.
+  """
+  id: ID!
+  """
   Whether the permission evaluation was conditional.
   Used by: PermissionMatchEvent when PermissionResult.Condition is not null
   """
@@ -660,6 +698,8 @@ type AuthorizationEventLog {
 
 type AzureDevOpsSourceMetadata implements SourceMetadata {
   commitUrl: URL
+  pullRequest: SourceMetadataPullRequest
+  ref: SourceMetadataRef
   shortCommitHash: String
   workflowRunName: String!
   workflowRunUrl: URL!
@@ -741,8 +781,10 @@ type Client implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    kind: OperationKind
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
   ): OperationsConnection
   publishedVersions(
     "Returns the elements in the list that come after the specified cursor."
@@ -765,6 +807,7 @@ type Client implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
   ): ClientVersionConnection
 }
 
@@ -792,7 +835,9 @@ type ClientDeployment implements Node & Deployment {
   errors: [ClientDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState!
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   tag: String!
 }
@@ -899,13 +944,6 @@ type ClientPublishedVersionsEdge {
   node: PublishedClientVersion!
 }
 
-"""
-The version's recent-traffic protection cannot be evaluated: the client had no traffic
-of any version within the required window, no traffic data is available, or the
-lifecycle's traffic rules look further back than the traffic history that can be relied
-on, so the rule can neither keep nor release the version. A forced unpublish goes
-through regardless.
-"""
 type ClientRecentTrafficProtectionNotEvaluableError implements Error {
   clientId: ID!
   """
@@ -968,6 +1006,18 @@ type ClientVersion implements Node {
   client: Client
   createdAt: DateTime!
   id: ID!
+  metrics(from: DateTime!, operationId: ID, stageIds: [ID!]!, to: DateTime!): ClientVersionMetrics
+  operations(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+    search: String
+  ): OperationsConnection
   persistedQueries(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -1009,11 +1059,21 @@ type ClientVersionLifecycle {
 }
 
 type ClientVersionLifecycleActions {
-  """
-  The rules are edited with the permission to unpublish, which may be granted for
-  some stages only; the stage of the lifecycle is what it is checked against.
-  """
   canEdit: Boolean!
+}
+
+type ClientVersionMetrics {
+  dataset: [ClientVersionMetricsPoint!]!
+}
+
+type ClientVersionMetricsPoint {
+  epoch: Long!
+  errorRate: Float!
+  mean: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
 }
 
 type ClientVersionNotFoundError implements Error {
@@ -1088,11 +1148,11 @@ type CoordinateClientUsageMetrics implements Node {
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
-    before: String
+    before: String @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
     "Returns the first _n_ elements from the list."
     first: Int
     "Returns the last _n_ elements from the list."
-    last: Int
+    last: Int @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
   ): CoordinateClientUsageOperationInsightsConnection
 }
 
@@ -1252,6 +1312,16 @@ type DeleteMockSchemaByIdPayload {
 type DeleteOpenApiCollectionByIdPayload {
   errors: [DeleteOpenApiCollectionByIdError!]
   openApiCollection: OpenApiCollection
+}
+
+"""
+Projects an existing Deployment (schema, client, OpenAPI collection, MCP
+feature collection, or fusion configuration deployment).
+"""
+type DeploymentActivity implements WorkspaceActivity {
+  deployment: Deployment!
+  id: ID!
+  occurredAt: DateTime!
 }
 
 type DeploymentApproval {
@@ -1686,8 +1756,10 @@ type FusionConfigurationDeployment implements Node & Deployment {
   errors: [FusionConfigurationDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState!
   schemaChanges: FusionConfigurationDeploymentSchemaChanges
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   subgraph: Subgraph @deprecated(reason: "Use `subgraphs` instead.")
   subgraphs(
@@ -1756,17 +1828,49 @@ type FusionSubgraph implements Subgraph {
   api: Api
   id: ID!
   name: String!
+  versions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+  ): FusionSubgraphVersionConnection
 }
 
 type FusionSubgraphVersion {
   createdAt: DateTime!
   fusionSubgraph: FusionSubgraph!
   id: ID!
+  routingUrl: String
+  sourceSchema: String
   tag: String!
+}
+
+"A connection to a list of items."
+type FusionSubgraphVersionConnection {
+  "A list of edges."
+  edges: [FusionSubgraphVersionEdge!]
+  "A flattened list of the nodes."
+  nodes: [FusionSubgraphVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type FusionSubgraphVersionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FusionSubgraphVersion!
 }
 
 type GitHubSourceMetadata implements SourceMetadata {
   commitUrl: URL!
+  pullRequest: SourceMetadataPullRequest
+  ref: SourceMetadataRef
   shortCommitHash: String!
   workflowRunName: String!
   workflowRunUrl: URL!
@@ -2176,7 +2280,9 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   mcpFeatureCollection: McpFeatureCollection
+  publicationState: DeploymentPublicationState!
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   tag: String!
 }
@@ -2545,7 +2651,9 @@ type OpenApiCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   openApiCollection: OpenApiCollection
+  publicationState: DeploymentPublicationState!
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   tag: String!
 }
@@ -2922,6 +3030,7 @@ type OpenTelemetryGraphQLOperationSpanDocumentAttributes {
 }
 
 type OpenTelemetryGraphQLOperationSpanOperationAttributes {
+  hash: String
   kind: String
   name: String
 }
@@ -3026,16 +3135,26 @@ type OpenTelemetryHttpServerSpanAttributes {
 type OpenTelemetryLog {
   api: Api
   body: String!
+  bodyDetail: OpenTelemetryLogBody!
   epoch: Float!
   id: String!
   logAttributes: [OpenTelemetryAttribute!]!
+  observedEpoch: Float
   resourceAttributes: [Attribute!]!
+  scope: OpenTelemetryScope
   seeker: String!
   severityNumber: Int!
   severityText: String!
   spanId: String!
   stage: Stage
+  traceFlags: Int
   traceId: String!
+}
+
+type OpenTelemetryLogBody {
+  json: String
+  kind: OpenTelemetryLogBodyKind!
+  message: String
 }
 
 type OpenTelemetryLogsSeverityGraphCountData {
@@ -3051,6 +3170,13 @@ type OpenTelemetryLogsSeverityGraphData {
 type OpenTelemetryLongAttribute implements OpenTelemetryAttribute {
   key: String!
   value: Long!
+}
+
+type OpenTelemetryScope {
+  attributes: [OpenTelemetryAttribute!]!
+  name: String
+  schemaUrl: String
+  version: String
 }
 
 type OpenTelemetryStringAttribute implements OpenTelemetryAttribute {
@@ -3071,7 +3197,9 @@ type OpenTelemetryTrace {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OpenTelemetryTraceLogsConnection!
+  spanCount: Int
   spans: [OpenTelemetrySpan!]!
+  spansTruncated: Boolean!
   totalDuration: Float!
 }
 
@@ -3207,7 +3335,9 @@ type OpenTelemetryTransactionTraceSample {
 
 type Operation {
   document: RequestDocument
+  id: ID!
   kind: OperationKind!
+  metrics(stageId: ID!): StageOperationMetrics
   name: String
 }
 
@@ -3307,6 +3437,16 @@ type OperationLatencyGraphData {
   p99: Float!
 }
 
+type OperationMetricsSummary {
+  averageLatency: Float!
+  errorRate: Float!
+  impact: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithErrors: Long!
+}
+
 type OperationsAreNotAllowedError implements SchemaVersionValidationError & SchemaVersionPublishError & ProcessingError {
   column: Int! @deprecated(reason: "Locations are no longer used")
   end: Int! @deprecated(reason: "Locations are no longer used")
@@ -3389,18 +3529,21 @@ type Organization implements Node {
   addOns: OrganizationAddOns
   """
   Returns a paginated connection of authorization audit-log entries for the given
-  organization, optionally filtered to a time window.
+  organization, optionally filtered to a time window, a set of event
+  types (match-any), and/or a case-insensitive search over the permission name.
   """
   authorizationEventLogs(
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
     before: String
+    eventTypes: [AuthorizationEventType!]
     "Returns the first _n_ elements from the list."
     first: Int
     from: DateTime
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
     to: DateTime
   ): OrganizationAuthorizationEventLogsConnection
   """
@@ -3422,6 +3565,8 @@ type Organization implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    orderBy: [GroupOrderByInput!]
+    search: String
   ): OrganizationGroupsConnection
   id: ID!
   """
@@ -3437,6 +3582,8 @@ type Organization implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    orderBy: [OrganizationMemberOrderByInput!]
+    search: String
   ): OrganizationMembersConnection
   name: String!
   "Returns the active subscription plan for the given organization."
@@ -3575,6 +3722,8 @@ type OrganizationMemberGroupsConnection {
   nodes: [Group!]!
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "The total count of groups the member belongs to."
+  totalCount: Int!
 }
 
 type OrganizationMemberGroupsEdge {
@@ -4136,6 +4285,7 @@ type PublishedMcpTool implements Node {
     after: String
     "Returns the first _n_ elements from the list."
     first: Int
+    search: String
   ): PublishedMcpToolRevisionsConnection
   settings(mcpFeatureCollectionVersionId: ID): McpToolSettings
   stage: Stage
@@ -4281,6 +4431,7 @@ type PublishedOpenApiEndpoint implements Node {
     after: String
     "Returns the first _n_ elements from the list."
     first: Int
+    search: String
   ): PublishedOpenApiEndpointRevisionsConnection
   stage: Stage
 }
@@ -4703,8 +4854,10 @@ type SchemaDeployment implements Node & Deployment {
   errors: [SchemaDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState!
   schemaChanges: SchemaDeploymentSchemaChanges
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   tag: String!
 }
@@ -4729,6 +4882,21 @@ type SchemaDeploymentSchemaChanges {
   previousSchema: SchemaVersion
   schema: SchemaVersion
   statistic: SchemaChangeLogStatistic!
+}
+
+type SchemaLintRuleCategory {
+  id: ID!
+  name: String!
+  rules: [SchemaLintRule!]!
+}
+
+type SchemaLintRuleExample {
+  invalid: SDL!
+  valid: SDL!
+}
+
+type SchemaLintRuleNotFoundError implements Error {
+  message: String!
 }
 
 type SchemaNotFoundError implements Error {
@@ -4806,6 +4974,297 @@ type SchemaVersionValidationSuccess implements SchemaVersionValidationResult {
   state: ProcessingState!
 }
 
+type SearchApisConnection {
+  edges: [SearchApisEdge!]
+  nodes: [Api!]!
+  pageInfo: PageInfo!
+}
+
+type SearchApisEdge {
+  clientCount: Int!
+  cursor: String!
+  lastPublishedAt: DateTime
+  metrics: StageMetrics
+  node: Api!
+  subgraphCount: Int!
+  version: String
+}
+
+type Service {
+  """
+  Gets values seen for one attribute key within one telemetry signal, narrowed to this
+  service, for filter autocompletion.
+  """
+  attributeValues(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Only include values seen in one of these environments; omit for all."
+    environments: [String!]
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "The attribute key whose values are suggested."
+    key: String!
+    "Only scan this attribute population; omit to scan all populations within the selected signal."
+    kind: OpenTelemetryAttributeKind
+    "Only suggest values matching this text; omit for all values."
+    search: String
+    "The telemetry signal whose attribute values are queried."
+    signal: OpenTelemetrySignalKind!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): ServiceAttributeValuesConnection
+  environmentNames: [String!]!
+  """
+  Gets log counts per time bucket for one service, optionally split into series by
+  groupBy. Uses the same filter arguments as logs so the chart agrees with the list.
+  """
+  logDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): ServiceLogDistributionGraph
+  "A single service's logs, narrowed to its resources and (optionally) its environments."
+  logs(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Only include logs seen in one of these environments; omit for all."
+    environments: [String!]
+    "A filter tree narrowing the returned logs."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): ServiceLogsConnection
+  name: String!
+  """
+  Gets span counts per time bucket for one service, optionally split into series by
+  groupBy. Uses the same filter arguments as spans so the chart agrees with the list.
+  """
+  spanDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): ServiceSpanDistributionGraph
+  "A single service's spans, narrowed to its resources and (optionally) its environments."
+  spans(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Only include spans seen in one of these environments; omit for all."
+    environments: [String!]
+    "A filter tree narrowing the returned spans."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include spans of these kinds; omit for all kinds."
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): ServiceSpansConnection
+  """
+  Looks up a trace by id. Unscoped by service, like the workspace-level traceById: a
+  trace id is already unique within the workspace, so no additional resource narrowing is
+  needed or exposed here (no environments argument).
+  """
+  traceById(seeker: String, spanId: String, traceId: String!): OpenTelemetryTrace
+  transaction(kind: OpenTelemetrySpanKind, name: String!): ServiceTransactionMetrics!
+  transactions: ServiceTransactionsMetrics!
+  """
+  Service versions first seen in the range; firstSeenAt is bucket-granular
+  (30 minutes).
+  """
+  versionMarkers(
+    "Only include versions seen in one of these environments; omit for all."
+    environments: [String!]
+    "Only include data at or after this point in time."
+    from: DateTime!
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): [ServiceVersionMarker!]
+}
+
+type ServiceAttributeValuesConnection {
+  edges: [ServiceAttributeValuesEdge!]!
+  nodes: [OpenTelemetryAttributeValue!]!
+  pageInfo: PageInfo!
+}
+
+type ServiceAttributeValuesEdge {
+  cursor: String!
+  matches: [TextMatch!]!
+  node: OpenTelemetryAttributeValue!
+}
+
+type ServiceLatencySummary {
+  max: Float
+  mean: Float
+  min: Float
+  p50: Float
+  p95: Float
+  p99: Float
+}
+
+"""
+Log counts per time bucket for one service, optionally split into series by
+groupBy.
+"""
+type ServiceLogDistributionGraph {
+  dataset: [WorkspaceLogDistributionGraphBucket!]!
+  groupBy: String
+  "Bucket width in unix milliseconds."
+  interval: Long!
+  series: [WorkspaceLogDistributionGraphSeries!]!
+}
+
+type ServiceLogsConnection {
+  edges: [ServiceLogsEdge!]
+  nodes: [OpenTelemetryLog!]
+  pageInfo: PageInfo!
+}
+
+type ServiceLogsEdge {
+  cursor: String!
+  node: OpenTelemetryLog!
+}
+
+"""
+Span counts per time bucket for one service, optionally split into series by
+groupBy.
+"""
+type ServiceSpanDistributionGraph {
+  dataset: [WorkspaceSpanDistributionGraphBucket!]!
+  groupBy: String
+  "Bucket width in unix milliseconds."
+  interval: Long!
+  series: [WorkspaceSpanDistributionGraphSeries!]!
+}
+
+type ServiceSpansConnection {
+  edges: [ServiceSpansEdge!]
+  nodes: [OpenTelemetrySpan!]
+  pageInfo: PageInfo!
+}
+
+type ServiceSpansEdge {
+  cursor: String!
+  node: OpenTelemetrySpan!
+}
+
+type ServiceThroughputSummary {
+  errorRate: Float
+  opm: Float
+  successRate: Float
+  totalCount: Long
+  totalCountWithError: Long
+}
+
+"""
+Telemetry views for a single transaction of a service. Unknown transaction names yield empty
+results. When kind is set, latency, throughput, and samples narrow to that
+span kind so drilling in from an insights node (whose identity is name + kind) agrees with this
+view; when omitted, every kind sharing the name is aggregated (legacy behavior). Note:
+latencyDistribution stays unfiltered regardless -- the aggregated metrics tier it reads has no
+span.kind dimension.
+"""
+type ServiceTransactionMetrics {
+  latency(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): OpenTelemetryTransactionLatencyGraph
+  """
+  Gets an approximate latency distribution from error-split quantile sketches.
+  The result uses log-scale bins and is not an exact histogram.
+  """
+  latencyDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): OpenTelemetryTransactionLatencyDistributionGraph
+  samples(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    maxLatency: Float
+    minLatency: Float
+    to: DateTime!
+  ): [OpenTelemetryTransactionTraceSample!]!
+  throughput(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): OpenTelemetryTransactionThroughputGraph
+}
+
+"Aggregate latency and throughput totals across the service's transactions."
+type ServiceTransactionMetricsSummary {
+  latency: ServiceLatencySummary
+  throughput: ServiceThroughputSummary
+}
+
+"Service-wide transaction telemetry: latency, throughput, insights, and summary."
+type ServiceTransactionsMetrics {
+  insights(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    from: DateTime!
+    orderBy: [OpenTelemetryTransactionInsightsOrderByInput!]
+    search: String
+    spanKinds: [OpenTelemetrySpanKind!]
+    to: DateTime!
+  ): OpenTelemetryTransactionInsightsConnection
+  latency(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    spanKinds: [OpenTelemetrySpanKind!]
+    to: DateTime!
+  ): OpenTelemetryTransactionsLatencyGraph
+  summary(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): ServiceTransactionMetricsSummary!
+  throughput(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    spanKinds: [OpenTelemetrySpanKind!]
+    to: DateTime!
+  ): OpenTelemetryTransactionsThroughputGraph
+}
+
 type ServiceVersionMarker {
   firstSeenAt: DateTime!
   version: String!
@@ -4814,6 +5273,21 @@ type ServiceVersionMarker {
 type SetActiveWorkspacePayload {
   errors: [SetActiveWorkspaceError!]
   workspace: Workspace
+}
+
+type SourceMetadataBranch {
+  name: String!
+  url: URL
+}
+
+type SourceMetadataPullRequest {
+  number: Int!
+  url: URL
+}
+
+type SourceMetadataTag {
+  name: String!
+  url: URL
 }
 
 type Stage implements Node {
@@ -4845,9 +5319,11 @@ type Stage implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    hasChanges: Boolean
     kind: [StageChangeLogKind!]
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
   ): StageChangeLogConnection
   clientDeployments(
     "Returns the elements in the list that come after the specified cursor."
@@ -4861,6 +5337,7 @@ type Stage implements Node {
   coordinates(
     "Returns the elements in the list that come after the specified cursor."
     after: String
+    coordinates: [String!]
     "Returns the first _n_ elements from the list."
     first: Int
     from: DateTime
@@ -4877,8 +5354,14 @@ type Stage implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    kinds: [DeploymentKind!]
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
+    sources: [DeploymentSourceKind!]
+    statuses: [DeploymentStatus!]
+    subgraphName: String
+    tag: String
   ): DeploymentsConnection
   displayName: String!
   essentials: StageEssentials
@@ -4975,6 +5458,7 @@ type Stage implements Node {
     search: String
   ): StagePublishedOpenApiModelsConnection
   publishedSchema: PublishedSchemaVersion
+  publishedSubgraphVersion(name: String!): FusionSubgraphVersion
   "Gets stage span counts per time bucket, optionally split into series by groupBy."
   spanDistribution(
     filter: OpenTelemetryFilterInput
@@ -5206,11 +5690,15 @@ type StageOpenApiCollectionsMetrics {
 }
 
 type StageOperationMetrics {
-  latency(from: DateTime!, to: DateTime!): OperationLatencyGraph
+  hash: String!
+  latency(clientId: ID, clientVersion: String, from: DateTime!, to: DateTime!): OperationLatencyGraph
   latencyDistribution(from: DateTime!, to: DateTime!): OperationLatencyDistributionGraph
   requestDocument: RequestDocument
   samples(from: DateTime!, maxLatency: Float, minLatency: Float, to: DateTime!): [OperationTraceSample!]!
+  summary(clientId: ID!, from: DateTime!, to: DateTime!): OperationMetricsSummary
   throughput(
+    clientId: ID
+    clientVersion: String
     from: DateTime!
     operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use")
     to: DateTime!
@@ -5247,6 +5735,8 @@ type StagePublishedMcpFeatureCollectionsConnection {
   nodes: [McpFeatureCollection!]
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
 }
 
 "An edge in a connection."
@@ -5283,6 +5773,8 @@ type StagePublishedOpenApiCollectionsConnection {
   nodes: [OpenApiCollection!]
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
 }
 
 "An edge in a connection."
@@ -5364,6 +5856,7 @@ type StageSpansEdge {
 }
 
 type StageSubgraphsMetrics {
+  insight(from: DateTime!, name: String!, to: DateTime!): SubgraphInsight
   insights(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5371,6 +5864,7 @@ type StageSubgraphsMetrics {
     first: Int
     from: DateTime!
     orderBy: [SubgraphInsightsOrderByInput!]
+    search: String
     to: DateTime!
   ): SubgraphInsightsConnection
 }
@@ -5418,6 +5912,14 @@ type StageTransactionsMetrics {
 
 type StageValidationError implements Error {
   message: String!
+}
+
+type StandardSchemaLintRule implements SchemaLintRule {
+  description: String!
+  examples: [SchemaLintRuleExample!]!
+  id: ID!
+  name: String!
+  severity: SchemaLintRuleSeverity
 }
 
 type StartFusionConfigurationCompositionPayload {
@@ -5603,6 +6105,11 @@ type UpdatePreferencesPayload {
   preferences: Any
 }
 
+type UpdateSchemaLintRuleSettingPayload {
+  errors: [UpdateSchemaLintRuleSettingError!]
+  rule: SchemaLintRule
+}
+
 type UpdateStageCompositionSettingsPayload {
   errors: [UpdateStageCompositionSettingsError!]
   stage: Stage
@@ -5720,11 +6227,13 @@ type Viewer {
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
-    before: String
+    before: String @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
     "Returns the first _n_ elements from the list."
     first: Int
     "Returns the last _n_ elements from the list."
-    last: Int
+    last: Int @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
+    "Filters workspaces by name."
+    search: String
   ): WorkspacesConnection
 }
 
@@ -5735,6 +6244,16 @@ type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublis
 
 type Workspace implements Node {
   actions: WorkspaceActions!
+  """
+  A cross-section activity feed for the workspace: document/API/environment changes and
+  deployments projected onto a single, orderable timeline (most recent first).
+  """
+  activity(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): WorkspaceActivityConnection
   apiDocuments(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -5750,6 +6269,8 @@ type Workspace implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    orderBy: [ApiKeyOrderByInput!]
+    search: String
   ): ApiKeysConnection
   apis(
     "Returns the elements in the list that come after the specified cursor."
@@ -5827,6 +6348,7 @@ type Workspace implements Node {
   Uses the same filter arguments as logs so the chart agrees with the list.
   """
   logDistribution(
+    environments: [String!]
     filter: OpenTelemetryFilterInput
     "Only include data at or after this point in time."
     from: DateTime!
@@ -5839,6 +6361,8 @@ type Workspace implements Node {
     after: String
     "Returns the elements in the list that come before the specified cursor."
     before: String
+    "Only include logs seen in one of these environments; omit for all."
+    environments: [String!]
     "A filter tree narrowing the returned logs."
     filter: OpenTelemetryFilterInput
     "Returns the first _n_ elements from the list."
@@ -5853,11 +6377,70 @@ type Workspace implements Node {
   members: [WorkspaceMember!]!
   name: String!
   personal: Boolean!
+  searchApis(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    kind: ApiKind
+    orderBy: [ApiOrderByInput!]
+    search: String
+  ): SearchApisConnection
+  "A single service by its service.name; null when unknown or unauthorized."
+  service(
+    "Only include data at or after this point in time."
+    from: DateTime
+    "The service.name resource label to look up."
+    name: String!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): Service
+  """
+  Distinct environment names seen across all services' telemetry resources within the
+  queried time range, reusing the exact deprecated-key coalescing behind
+  EnvironmentNames. Source for the Services list environment selector.
+  """
+  serviceEnvironmentNames(
+    "Only include data at or after this point in time."
+    from: DateTime!
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): [String!]
+  "All services this workspace has telemetry for, within the queried time range."
+  services(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Only services seen in one of these environments; omit for all."
+    environments: [String!]
+    """
+    A span filter. When supplied, only services with at least one of their own spans matching
+    the complete filter within the requested workspace, time range, and environments are
+    returned. The same filter also decides the returned services' metric selections, so rows
+    and metric columns describe the same request population. A bare attribute key matches any
+    applicable span attribute population; explicit prefixes narrow it. This does not expand by
+    trace correlation: a service is only included when its own span matches, not merely because
+    another service's span in the same trace matches. Signal is always span; logs and metrics
+    are not searched by this field. Omitting/clearing the filter preserves the existing
+    resource-only catalog query, including its cursor ordering and cost profile.
+    """
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Sort order for the returned services; defaults to name ascending."
+    orderBy: [ServiceOrderByInput!]
+    "Only services whose name contains this value (case-insensitive)."
+    search: String
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): WorkspaceServicesConnection
   """
   Gets span counts per time bucket, optionally split into series by groupBy.
   Uses the same filter arguments as spans so the chart agrees with the list.
   """
   spanDistribution(
+    environments: [String!]
     filter: OpenTelemetryFilterInput
     "Only include data at or after this point in time."
     from: DateTime!
@@ -5871,6 +6454,8 @@ type Workspace implements Node {
     after: String
     "Returns the elements in the list that come before the specified cursor."
     before: String
+    "Only include spans seen in one of these environments; omit for all."
+    environments: [String!]
     "A filter tree narrowing the returned spans."
     filter: OpenTelemetryFilterInput
     "Returns the first _n_ elements from the list."
@@ -5895,6 +6480,24 @@ type WorkspaceActions {
   canViewApiKeys: Boolean!
 }
 
+"A connection to a list of items."
+type WorkspaceActivityConnection {
+  "A list of edges."
+  edges: [WorkspaceActivityEdge!]
+  "A flattened list of the nodes."
+  nodes: [WorkspaceActivity]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type WorkspaceActivityEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: WorkspaceActivity
+}
+
 type WorkspaceAttributeKeysConnection {
   edges: [WorkspaceAttributeKeysEdge!]!
   nodes: [OpenTelemetryAttributeKey!]!
@@ -5917,6 +6520,16 @@ type WorkspaceAttributeValuesEdge {
   cursor: String!
   matches: [TextMatch!]!
   node: OpenTelemetryAttributeValue!
+}
+
+"""
+Projects an existing WorkspaceChangeLog entry (document, API, or
+environment change).
+"""
+type WorkspaceChangeActivity implements WorkspaceActivity {
+  change: WorkspaceChangeLog!
+  id: ID!
+  occurredAt: DateTime!
 }
 
 type WorkspaceChangePayload {
@@ -6065,6 +6678,17 @@ type WorkspacesEdge {
   node: Workspace!
 }
 
+type WorkspaceServicesConnection {
+  edges: [WorkspaceServicesEdge!]!
+  nodes: [Service!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceServicesEdge {
+  cursor: String!
+  node: Service!
+}
+
 type WorkspaceSpanDistributionGraph {
   dataset: [WorkspaceSpanDistributionGraphBucket!]!
   groupBy: String
@@ -6153,7 +6777,9 @@ interface Deployment {
   createdAt: DateTime!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState!
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   tag: String!
 }
@@ -6342,6 +6968,14 @@ interface SchemaChange {
   severity: SchemaChangeSeverity!
 }
 
+interface SchemaLintRule {
+  description: String!
+  examples: [SchemaLintRuleExample!]!
+  id: ID!
+  name: String!
+  severity: SchemaLintRuleSeverity
+}
+
 interface SchemaVersionPublishError {
   message: String!
 }
@@ -6360,6 +6994,8 @@ interface SchemaVersionValidationResult {
 
 interface SourceMetadata {
   commitUrl: URL
+  pullRequest: SourceMetadataPullRequest
+  ref: SourceMetadataRef
   shortCommitHash: String
   workflowRunName: String!
   workflowRunUrl: URL!
@@ -6380,6 +7016,16 @@ interface Subgraph {
   api: Api
   id: ID!
   name: String!
+}
+
+"""
+A single entry in the workspace's cross-section activity feed (Workspace.activity),
+projecting an existing event from one of the workspace's data sources onto a common,
+orderable point in time.
+"""
+interface WorkspaceActivity {
+  id: ID!
+  occurredAt: DateTime!
 }
 
 interface WorkspaceChangeLog {
@@ -6630,6 +7276,8 @@ union SchemaMemberChange =
 
 union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
 
+union SourceMetadataRef = SourceMetadataBranch | SourceMetadataTag
+
 union StageCondition = AfterStageCondition
 
 union StartFusionConfigurationCompositionError =
@@ -6666,6 +7314,8 @@ union UpdateMockSchemaError =
   | ValidationError
 
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
+
+union UpdateSchemaLintRuleSettingError = SchemaLintRuleNotFoundError | ConcurrentOperationError | UnauthorizedOperation
 
 union UpdateStageCompositionSettingsError = StageNotFoundError | UnauthorizedOperation
 
@@ -6826,7 +7476,7 @@ input ApiHttpAuthenticationInput {
 
 input ApiHttpConnectionInput {
   authentication: ApiHttpAuthenticationInput
-  endpoint: String!
+  endpoint: String
   headers: [ApiHeaderInput!]
   includeCookies: Boolean!
   sdlEndpoint: String
@@ -6837,9 +7487,21 @@ input ApiHttpConnectionInput {
   useTunnel: Boolean!
 }
 
+input ApiKeyOrderByInput {
+  name: SortEnumType
+}
+
 input ApiKeyPermissionScopeInput @oneOf {
   apiId: ID
   workspaceId: ID
+}
+
+input ApiOrderByInput {
+  clientCount: SortEnumType
+  lastPublishedAt: SortEnumType
+  name: SortEnumType
+  subgraphCount: SortEnumType
+  version: SortEnumType
 }
 
 input ApiUpdateChangeInput {
@@ -6869,6 +7531,8 @@ input AzureDevOpsSourceMetadataInput {
   jobId: String
   pipelineName: String!
   projectUrl: URL!
+  pullRequestNumber: Int
+  ref: String
   repositoryUrl: URL
   runId: String!
   runNumber: String!
@@ -7085,6 +7749,8 @@ input GitHubSourceMetadataInput {
   actor: String!
   commitHash: String!
   jobId: String
+  pullRequestNumber: Int
+  ref: String
   repositoryUrl: URL!
   runId: String!
   runNumber: String!
@@ -7101,6 +7767,10 @@ input GraphQLCoordinateOrderByInput {
   totalReferences: SortEnumType
   totalRequests: SortEnumType
   totalUsages: SortEnumType
+}
+
+input GroupOrderByInput {
+  name: SortEnumType
 }
 
 input McpFeatureCollectionInsightsOrderByInput {
@@ -7235,6 +7905,10 @@ input OperationInsightsOrderByInput {
   opm: SortEnumType
   totalCount: SortEnumType
   totalCountWithError: SortEnumType
+}
+
+input OrganizationMemberOrderByInput {
+  userName: SortEnumType
 }
 
 input PartialApiSettingsInput {
@@ -7381,6 +8055,15 @@ input RoleAssignmentStageAuthorizationConditionInput {
   name: String!
 }
 
+input SchemaLintRuleStateInput @oneOf {
+  disable: Boolean
+  severity: SchemaLintRuleSeverity
+}
+
+input ServiceOrderByInput {
+  name: SortEnumType
+}
+
 input SetActiveWorkspaceInput {
   workspaceId: ID!
 }
@@ -7408,6 +8091,7 @@ input SubgraphInsightsOrderByInput {
   averageLatency: SortEnumType
   errorRate: SortEnumType
   impact: SortEnumType
+  name: SortEnumType
   opm: SortEnumType
   totalCount: SortEnumType
   totalCountWithError: SortEnumType
@@ -7445,6 +8129,11 @@ input UpdateMockSchemaInput {
 
 input UpdatePreferencesInput {
   preferences: Any!
+}
+
+input UpdateSchemaLintRuleSettingInput {
+  ruleId: ID!
+  state: SchemaLintRuleStateInput!
 }
 
 input UpdateStageCompositionSettingsInput {
@@ -7684,6 +8373,26 @@ enum CoordinateKind {
   UNION_TYPE
 }
 
+enum DeploymentKind {
+  CLIENT
+  FUSION_CONFIGURATION
+  MCP_FEATURE_COLLECTION
+  OPEN_API_COLLECTION
+  SCHEMA
+}
+
+enum DeploymentPublicationState {
+  NOT_APPLICABLE
+  PUBLISHED
+  SUPERSEDED
+}
+
+"Whether a deployment was made manually or produced by an automated system."
+enum DeploymentSourceKind {
+  AUTOMATED
+  MANUAL
+}
+
 enum DeploymentStatus {
   APPROVED
   CANCELLED
@@ -7764,6 +8473,12 @@ enum OpenTelemetryAttributeKind {
   SPAN
 }
 
+enum OpenTelemetryLogBodyKind {
+  EMPTY
+  STRUCTURED
+  TEXT
+}
+
 "The OpenTelemetry signal whose attributes are queried."
 enum OpenTelemetrySignalKind {
   LOGS
@@ -7822,6 +8537,11 @@ enum SchemaChangeSeverity {
   SAFE
 }
 
+enum SchemaLintRuleSeverity {
+  ERROR
+  WARNING
+}
+
 enum SortEnumType {
   ASC
   DESC
@@ -7872,6 +8592,8 @@ scalar Duration @specifiedBy(url: "https://scalars.graphql.org/chillicream/durat
 
 "The `Long` scalar type represents a signed 64-bit integer."
 scalar Long @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
+
+scalar SDL
 
 "The `Upload` scalar type represents a file upload."
 scalar Upload

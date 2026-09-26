@@ -35,7 +35,9 @@ public sealed class SourceMetadataParserTests
               "runId": "22179586464",
               "runNumber": "30",
               "workflowName": "Release",
-              "jobId": "64137235633"
+              "jobId": "64137235633",
+              "ref": "refs/heads/feat/source-metadata",
+              "pullRequestNumber": 42
             }
             """;
 
@@ -53,7 +55,9 @@ public sealed class SourceMetadataParserTests
                 "RunNumber": "30",
                 "RunId": "22179586464",
                 "JobId": "64137235633",
-                "RepositoryUrl": "https://github.com/ChilliCream/fusion-demo"
+                "RepositoryUrl": "https://github.com/ChilliCream/fusion-demo",
+                "Ref": "refs/heads/feat/source-metadata",
+                "PullRequestNumber": 42
               },
               "AzureDevOps": null
             }
@@ -91,7 +95,9 @@ public sealed class SourceMetadataParserTests
                 "RunNumber": "30",
                 "RunId": "22179586464",
                 "JobId": "64137235633",
-                "RepositoryUrl": "https://github.com/ChilliCream/fusion-demo"
+                "RepositoryUrl": "https://github.com/ChilliCream/fusion-demo",
+                "Ref": null,
+                "PullRequestNumber": null
               },
               "AzureDevOps": null
             }
@@ -129,7 +135,9 @@ public sealed class SourceMetadataParserTests
                 "RunNumber": "30",
                 "RunId": "22179586464",
                 "JobId": null,
-                "RepositoryUrl": "https://github.com/ChilliCream/fusion-demo"
+                "RepositoryUrl": "https://github.com/ChilliCream/fusion-demo",
+                "Ref": null,
+                "PullRequestNumber": null
               },
               "AzureDevOps": null
             }
@@ -152,7 +160,9 @@ public sealed class SourceMetadataParserTests
               "taskId": "97a08166-1084-5e0c-e6c0-57facfef6992",
               "projectUrl": "https://dev.azure.com/contoso/testing",
               "commitHash": "367ef3ac3e63f0421b3e507e557bbcc320c8d1d0",
-              "repositoryUrl": "https://dev.azure.com/contoso/testing/_git/testing"
+              "repositoryUrl": "https://dev.azure.com/contoso/testing/_git/testing",
+              "ref": "refs/heads/feat/source-metadata",
+              "pullRequestNumber": 17
             }
             """;
 
@@ -176,7 +186,9 @@ public sealed class SourceMetadataParserTests
                 "CommitHash": "367ef3ac3e63f0421b3e507e557bbcc320c8d1d0",
                 "JobId": "12f1170f-54f2-53f3-20dd-22fc7dff55f9",
                 "TaskId": "97a08166-1084-5e0c-e6c0-57facfef6992",
-                "RepositoryUrl": "https://dev.azure.com/contoso/testing/_git/testing"
+                "RepositoryUrl": "https://dev.azure.com/contoso/testing/_git/testing",
+                "Ref": "refs/heads/feat/source-metadata",
+                "PullRequestNumber": 17
               }
             }
             """);
@@ -218,7 +230,9 @@ public sealed class SourceMetadataParserTests
                 "CommitHash": null,
                 "JobId": null,
                 "TaskId": null,
-                "RepositoryUrl": null
+                "RepositoryUrl": null,
+                "Ref": null,
+                "PullRequestNumber": null
               }
             }
             """);
@@ -314,6 +328,34 @@ public sealed class SourceMetadataParserTests
 
         // assert
         Assert.Throws<ExitException>(Act);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_PullRequestNumberIsNotANumber()
+    {
+        // arrange
+        const string json =
+            """
+            {
+              "type": "github",
+              "repositoryUrl": "https://github.com/ChilliCream/fusion-demo",
+              "commitHash": "a91ee680fb675cbd37cf9832de8d0c6bb7327618",
+              "actor": "michaelstaib",
+              "runId": "22179586464",
+              "runNumber": "30",
+              "workflowName": "Release",
+              "pullRequestNumber": "42"
+            }
+            """;
+
+        // act
+        static void Act() => SourceMetadataParser.Parse(json);
+
+        // assert
+        Assert.Throws<ExitException>(Act).Message.MatchInlineSnapshot(
+            "Failed to parse --source-metadata: The JSON value could not be converted to "
+            + "ChilliCream.Nitro.CommandLine.Helpers.GitHubSourceMetadataDto. "
+            + "Path: $.pullRequestNumber | LineNumber: 8 | BytePositionInLine: 27.");
     }
 
     [Fact]
