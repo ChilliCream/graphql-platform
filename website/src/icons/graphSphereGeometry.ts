@@ -1,11 +1,10 @@
-// Shared geodesic build, tilt and camera projection, used for both the SSR frame (theta=0) and the per-frame reprojection.
-export interface Vec3 {
+interface Vec3 {
   readonly x: number;
   readonly y: number;
   readonly z: number;
 }
 
-export function normalize(v: Vec3): Vec3 {
+function normalize(v: Vec3): Vec3 {
   const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
   return { x: v.x / len, y: v.y / len, z: v.z / len };
 }
@@ -18,7 +17,6 @@ function midpoint(a: Vec3, b: Vec3): Vec3 {
   });
 }
 
-// Canonical icosahedron: 12 vertices, 20 triangular faces.
 const PHI = (1 + Math.sqrt(5)) / 2;
 const BASE_VERTICES: readonly Vec3[] = (
   [
@@ -110,7 +108,6 @@ const TILT_X = (-16 * Math.PI) / 180;
 const TILT_Y = (24 * Math.PI) / 180;
 const TILT_Z = (7 * Math.PI) / 180;
 
-/** The sphere's fixed viewing tilt -- unaffected by the slow spin, which is applied before this. */
 function tilt(v: Vec3): Vec3 {
   let { x, y, z } = v;
   let y1 = y * Math.cos(TILT_X) - z * Math.sin(TILT_X);
@@ -126,8 +123,7 @@ function tilt(v: Vec3): Vec3 {
   return { x: x1, y: y1, z: z1 };
 }
 
-/** Spin about the sphere's own vertical axis, applied before the fixed tilt (theta = 0 is the identity). */
-export function rotateY(v: Vec3, theta: number): Vec3 {
+function rotateY(v: Vec3, theta: number): Vec3 {
   const cos = Math.cos(theta);
   const sin = Math.sin(theta);
   return {
@@ -137,21 +133,20 @@ export function rotateY(v: Vec3, theta: number): Vec3 {
   };
 }
 
-// z: -1 nearest the viewer, 1 farthest
-export const CAM_DIST = 3;
-export const CAM_K = 450;
+const CAM_DIST = 3;
+const CAM_K = 450;
 export const VIEWBOX = 400;
-export const CENTER = VIEWBOX / 2;
+const CENTER = VIEWBOX / 2;
 
-export function scaleAtZ(z: number): number {
+function scaleAtZ(z: number): number {
   return CAM_K / (CAM_DIST + z);
 }
 
-export function depthT(z: number): number {
+function depthT(z: number): number {
   return (1 - z) / 2;
 }
 
-export interface Projected {
+interface Projected {
   readonly x: number;
   readonly y: number;
   readonly t: number;

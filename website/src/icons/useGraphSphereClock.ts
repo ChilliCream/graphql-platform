@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 
-/** Runs `onFrame` on a single rAF loop only while `target` is on screen, the tab is visible, and `enabled` is true. */
 export function useGraphSphereClock(
   target: RefObject<Element | null>,
   onFrame: (elapsedMs: number) => void,
@@ -20,13 +19,19 @@ export function useGraphSphereClock(
       return;
     }
 
-    const start = performance.now();
+    let accumulatedMs = 0;
+    let lastElapsedMs = 0;
+    let rafBaseline: number | null = null;
     let rafId = 0;
     let inView = false;
     let running = false;
 
     const tick = (now: number) => {
-      onFrameRef.current(now - start);
+      if (rafBaseline === null) {
+        rafBaseline = now;
+      }
+      lastElapsedMs = accumulatedMs + (now - rafBaseline);
+      onFrameRef.current(lastElapsedMs);
       rafId = requestAnimationFrame(tick);
     };
 
@@ -36,8 +41,10 @@ export function useGraphSphereClock(
       }
       running = next;
       if (running) {
+        rafBaseline = null;
         rafId = requestAnimationFrame(tick);
       } else {
+        accumulatedMs = lastElapsedMs;
         cancelAnimationFrame(rafId);
       }
     };
