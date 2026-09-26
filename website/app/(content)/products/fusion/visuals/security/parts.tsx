@@ -1,15 +1,8 @@
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { CrossGlyph } from "@/src/icons/CrossGlyph";
 
+import { EVENTS } from "./data";
 import type { CheckStatus } from "./data";
-
-/**
- * The small pieces the Security Checkpoint graphic draws with: a client or
- * service card, one row of the router's check stack, and the connector a
- * request pulse travels along between columns. Two DOM nodes per connector
- * (one per axis) rather than one repositioned node, the same dual-layout
- * idiom `LayeredDiagram`'s `Band` uses for its row/stacked connectors.
- */
 
 export type NodeTone = "active" | "success" | "danger";
 
@@ -28,7 +21,6 @@ const CARD_TONE: Record<NodeTone, string> = {
   danger: "border-cc-danger/50 bg-cc-danger/[0.08] text-cc-danger",
 };
 
-/** One client or service pill, lit while a request is in flight through it. */
 export function NodeCard({ label, lit, tone }: NodeCardProps) {
   return (
     <div className={`${CARD_BASE} ${lit ? CARD_TONE[tone] : CARD_IDLE}`}>
@@ -40,7 +32,6 @@ export function NodeCard({ label, lit, tone }: NodeCardProps) {
 interface CheckRowProps {
   readonly label: string;
   readonly status: CheckStatus;
-  /** Shown next to a failing check that denies rather than rejects the request. */
   readonly code?: string;
 }
 
@@ -52,7 +43,6 @@ const CHECK_ROW_TONE: Record<CheckStatus, string> = {
   fail: "border-cc-danger/50 bg-cc-danger/[0.08] text-cc-danger",
 };
 
-/** One row of the router's check stack: a label and its pass/fail glyph. */
 export function CheckRow({ label, status, code }: CheckRowProps) {
   return (
     <div className={`${CHECK_ROW_BASE} ${CHECK_ROW_TONE[status]}`}>
@@ -73,7 +63,6 @@ export function CheckRow({ label, status, code }: CheckRowProps) {
 interface TrackProps {
   readonly active: boolean;
   readonly tone: NodeTone;
-  /** Remounts the pulse so its animation restarts for this phase. */
   readonly stepKey: string;
 }
 
@@ -84,24 +73,25 @@ const DOT_TONE: Record<NodeTone, string> = {
   danger: "bg-cc-danger shadow-[0_0_8px_var(--color-cc-danger)]",
 };
 
-/** The line a request pulse travels between two columns, stacked or side by side. */
 export function Track({ active, tone, stepKey }: TrackProps) {
   return (
-    <div className="relative h-6 w-full @min-[480px]:h-full @min-[480px]:w-6">
-      <span className="bg-cc-card-border absolute top-1/2 left-0 h-px w-full @min-[480px]:top-0 @min-[480px]:left-1/2 @min-[480px]:h-full @min-[480px]:w-px" />
+    <div className="relative h-10 w-full @min-[480px]:h-auto @min-[480px]:w-12 @min-[480px]:self-stretch">
+      <span className="bg-cc-card-border absolute top-0 left-1/2 h-full w-px @min-[480px]:top-1/2 @min-[480px]:left-0 @min-[480px]:h-px @min-[480px]:w-full" />
       {active && (
         <span
           key={`col-${stepKey}`}
-          className={`${DOT_BASE} ${DOT_TONE[tone]} left-0 motion-safe:animate-[sec-pulse-col_900ms_ease-in-out_both] motion-reduce:hidden @min-[480px]:hidden`}
-          style={{ top: "-4px" }}
-        />
+          className="absolute top-0 left-1/2 -ml-1 h-full w-2 motion-safe:animate-[sec-pulse-col_900ms_ease-in-out_both] motion-reduce:hidden @min-[480px]:hidden"
+        >
+          <span className={`${DOT_BASE} ${DOT_TONE[tone]} top-0 left-0`} />
+        </span>
       )}
       {active && (
         <span
           key={`row-${stepKey}`}
-          className={`${DOT_BASE} ${DOT_TONE[tone]} top-1/2 hidden motion-safe:animate-[sec-pulse-row_900ms_ease-in-out_both] motion-reduce:hidden @min-[480px]:block`}
-          style={{ marginTop: -4 }}
-        />
+          className="absolute top-1/2 left-0 -mt-1 hidden h-2 w-full motion-safe:animate-[sec-pulse-row_900ms_ease-in-out_both] motion-reduce:hidden @min-[480px]:block"
+        >
+          <span className={`${DOT_BASE} ${DOT_TONE[tone]} top-0 left-0`} />
+        </span>
       )}
     </div>
   );
@@ -113,7 +103,6 @@ interface AuditLineProps {
   readonly dim?: boolean;
 }
 
-/** One line of the audit trail strip; dimmed for the line scrolling out. */
 export function AuditLine({ text, tone, dim = false }: AuditLineProps) {
   const toneClass = tone === "success" ? "text-cc-success" : "text-cc-danger";
   return (
@@ -121,6 +110,26 @@ export function AuditLine({ text, tone, dim = false }: AuditLineProps) {
       className={`font-mono text-[0.7rem] break-words ${toneClass} ${dim ? "opacity-45" : "opacity-100"}`}
     >
       {text}
+    </div>
+  );
+}
+
+/** Reserves the tallest of every possible audit line's height so swapping text never shifts layout. */
+export function AuditSlot(props: AuditLineProps) {
+  return (
+    <div className="grid">
+      {EVENTS.map((event) => (
+        <span
+          key={event.auditLine}
+          aria-hidden="true"
+          className="invisible col-start-1 row-start-1 font-mono text-[0.7rem] break-words"
+        >
+          {event.auditLine}
+        </span>
+      ))}
+      <div className="col-start-1 row-start-1">
+        <AuditLine {...props} />
+      </div>
     </div>
   );
 }

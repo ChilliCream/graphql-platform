@@ -20,33 +20,24 @@ import {
   frameAt,
   wrap,
 } from "./data";
-import { AuditLine, CheckRow, NodeCard, Track } from "./parts";
+import { AuditSlot, CheckRow, NodeCard, Track } from "./parts";
 import type { NodeTone } from "./parts";
-
-/**
- * The Security row's graphic: an animated policy checkpoint at the router.
- * Requests travel in from clients, the router evaluates them against three
- * stacked checks, an allowed one continues to a service and a denied one
- * stops at the router with a red cross and "403" — never reaching a service
- * either way. Every decision appends a line to the audit trail strip below.
- */
 
 const KEYFRAMES = `
 @keyframes sec-pulse-row {
-  0% { left: 2%; opacity: 0; }
+  0% { transform: translateX(0); opacity: 0; }
   12% { opacity: 1; }
   88% { opacity: 1; }
-  100% { left: 96%; opacity: 0; }
+  100% { transform: translateX(calc(100% - 8px)); opacity: 0; }
 }
 @keyframes sec-pulse-col {
-  0% { top: 2%; opacity: 0; }
+  0% { transform: translateY(0); opacity: 0; }
   12% { opacity: 1; }
   88% { opacity: 1; }
-  100% { top: 96%; opacity: 0; }
+  100% { transform: translateY(calc(100% - 8px)); opacity: 0; }
 }
 `;
 
-/** A rejected (not-safelisted) request carries no status code; a policy denial shows 403. */
 const CHECK_CODE: readonly (string | undefined)[] = [undefined, "403", "403"];
 
 interface CheckStackProps {
@@ -54,7 +45,6 @@ interface CheckStackProps {
   readonly show: boolean;
 }
 
-/** The router's three stacked checks, evaluated in order up to `failAt`. */
 function CheckStack({ failAt, show }: CheckStackProps) {
   return (
     <div className="border-cc-card-border flex-1 rounded-lg border px-2.5 py-2">
@@ -81,7 +71,6 @@ function CheckStack({ failAt, show }: CheckStackProps) {
   );
 }
 
-/** A complete, motionless frame: one request already through, one stopped at the router. */
 function StaticCheckpoint() {
   const allowed = EVENTS[0];
   const denied = EVENTS[2];
@@ -121,7 +110,6 @@ interface AnimatedCheckpointProps {
   readonly step: number;
 }
 
-/** One event's four phases: arrive, check, resolve, settle. */
 function AnimatedCheckpoint({ step }: AnimatedCheckpointProps) {
   const { event, phase } = frameAt(step);
   const arriving = phase === 0;
@@ -179,12 +167,12 @@ function AuditStrip({ step }: { readonly step: number }) {
 
   return (
     <div className="flex flex-col gap-1">
-      <AuditLine
+      <AuditSlot
         text={previous.auditLine}
         tone={previous.service !== null ? "success" : "danger"}
         dim
       />
-      <AuditLine
+      <AuditSlot
         text={current.auditLine}
         tone={current.service !== null ? "success" : "danger"}
       />
@@ -195,8 +183,8 @@ function AuditStrip({ step }: { readonly step: number }) {
 function StaticAuditStrip() {
   return (
     <div className="flex flex-col gap-1">
-      <AuditLine text={EVENTS[0].auditLine} tone="success" />
-      <AuditLine text={EVENTS[2].auditLine} tone="danger" />
+      <AuditSlot text={EVENTS[0].auditLine} tone="success" />
+      <AuditSlot text={EVENTS[2].auditLine} tone="danger" />
     </div>
   );
 }

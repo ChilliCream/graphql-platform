@@ -1,10 +1,3 @@
-/**
- * The script the Security Checkpoint graphic replays: the clients that send
- * requests, the router's stacked policy checks, and the services behind it.
- * Every event names which check (if any) stops the request, so the router
- * never has to be told twice which state to draw.
- */
-
 export interface ClientSpec {
   readonly key: string;
   readonly label: string;
@@ -22,7 +15,6 @@ export interface CheckSpec {
   readonly label: string;
 }
 
-/** The router's three stacked checks, in evaluation order. */
 export const CHECKS: readonly CheckSpec[] = [
   { key: "safelist", label: "Safelist" },
   { key: "opa", label: "OPA" },
@@ -41,17 +33,13 @@ export const SERVICES: readonly ServiceSpec[] = [
 ];
 
 export interface CheckpointEvent {
-  /** Index into `CLIENTS`. */
   readonly client: number;
   readonly operation: string;
-  /** Index into `CHECKS` this request fails at, or `null` when it passes all three. */
   readonly failAt: number | null;
-  /** Index into `SERVICES` the request reaches, `null` when it never does. */
   readonly service: number | null;
   readonly auditLine: string;
 }
 
-/** One cycle of the checkpoint: two allowed, one denied, one rejected before the safelist check. */
 export const EVENTS: readonly CheckpointEvent[] = [
   {
     client: 0,
@@ -90,14 +78,12 @@ export const EVENTS: readonly CheckpointEvent[] = [
   },
 ];
 
-/** Ms per phase; four phases (arrive, check, resolve, settle) per event. */
 export const PHASE_MS = 900;
 
 export const PHASES_PER_EVENT = 4;
 
 export type CheckStatus = "idle" | "pass" | "fail";
 
-/** A check row's status for a request that fails at `failAt` (or never fails). */
 export function checkStatus(
   failAt: number | null,
   rowIndex: number,
@@ -114,7 +100,6 @@ export interface CheckpointFrame {
   readonly phase: number;
 }
 
-/** Decodes a cycle step into the event it belongs to and its phase within it. */
 export function frameAt(step: number): CheckpointFrame {
   const eventIndex = Math.floor(step / PHASES_PER_EVENT) % EVENTS.length;
   return {
@@ -124,7 +109,6 @@ export function frameAt(step: number): CheckpointFrame {
   };
 }
 
-/** Wraps `index` into `[0, length)`, for reading the audit history backwards. */
 export function wrap(index: number, length: number): number {
   return ((index % length) + length) % length;
 }
