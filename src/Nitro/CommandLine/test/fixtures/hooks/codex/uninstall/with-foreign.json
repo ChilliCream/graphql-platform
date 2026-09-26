@@ -41,28 +41,6 @@
         }
       ]
     }
-  ],
-  "PreToolUse": [
-    {
-      "matcher": "^Write$",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "/usr/local/bin/herdr hook pre-tool-use",
-          "timeout": 5
-        }
-      ]
-    },
-    {
-      "matcher": "^Bash$",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "/home/agent/.dotnet/tools/nitro agent hook codex pre-tool-use",
-          "timeout": 10
-        }
-      ]
-    }
   ]
   }
 }

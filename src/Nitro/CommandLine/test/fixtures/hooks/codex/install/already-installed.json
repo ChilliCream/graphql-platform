@@ -32,18 +32,6 @@
         }
       ]
     }
-  ],
-  "PreToolUse": [
-    {
-      "matcher": "^Bash$",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "/home/agent/.dotnet/tools/nitro agent hook codex pre-tool-use",
-          "timeout": 10
-        }
-      ]
-    }
   ]
   }
 }

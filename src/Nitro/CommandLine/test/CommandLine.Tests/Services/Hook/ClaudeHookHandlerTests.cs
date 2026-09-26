@@ -23,8 +23,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 public sealed class ClaudeHookHandlerTests : IDisposable
 {
     private const string SessionId = "session-1";
-    private const string TelemetryNudge =
-        "nitro telemetry: the nitro-telemetry skill teaches the investigation order (services list, traces list --has-error, traces show, logs list --trace-id); load it if available.";
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceRoot;
@@ -312,135 +310,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // assert
         var row = await FindRowAsync(cancellationToken);
         Assert.Equal("", row!.HarnessVersion);
-    }
-
-    // ---------- PreToolUse ----------
-
-    [Theory]
-    [InlineData("nitro telemetry")]
-    [InlineData("nitro telemetry services list")]
-    [InlineData("nitro telemetry\tservices list")]
-    public async Task HandlePreToolUseAsync_Should_EmitTelemetryNudgeOnce_When_CommandMatches(string command)
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // act
-        var first = await _handler.HandlePreToolUseAsync(
-            PreToolUsePayload(SessionId, "Bash", command), dryRun: true, cancellationToken);
-        var second = await _handler.HandlePreToolUseAsync(
-            PreToolUsePayload(SessionId, "Bash", command), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(TelemetryNudge, first.AdditionalContext);
-        Assert.Equal(ClaudeHookOutcome.Neutral, second);
-    }
-
-    [Theory]
-    [InlineData("bash", "nitro telemetry")]
-    [InlineData("Bash", "nitro telemetryOther")]
-    [InlineData("Bash", "nitro telemetry-backup")]
-    [InlineData("Bash", " nitro telemetry")]
-    [InlineData("Bash", "env TRACE=1 nitro telemetry")]
-    [InlineData("Bash", "Nitro telemetry")]
-    public async Task HandlePreToolUseAsync_Should_NotClaimTelemetryNudge_When_CommandDoesNotMatch(
-        string toolName,
-        string command)
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-
-        // act
-        var nonMatching = await _handler.HandlePreToolUseAsync(
-            PreToolUsePayload(SessionId, toolName, command), dryRun: true, cancellationToken);
-        var matching = await _handler.HandlePreToolUseAsync(
-            PreToolUsePayload(SessionId, "Bash", "nitro telemetry"), dryRun: true, cancellationToken);
-
-        // assert
-        Assert.Equal(ClaudeHookOutcome.Neutral, nonMatching);
-        Assert.Equal(TelemetryNudge, matching.AdditionalContext);
-    }
-
-    [Fact]
-    public async Task HandlePreToolUseAsync_Should_FailOpenWithoutClaiming_When_SessionDoesNotResolve()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        var noWorkspaceRoot = Directory.CreateTempSubdirectory("nitro-claude-pre-tool-use-no-workspace-tests");
-
-        try
-        {
-            // act
-            var missingSession = await _handler.HandlePreToolUseAsync(
-                PreToolUsePayload(null, "Bash", "nitro telemetry"), dryRun: true, cancellationToken);
-            var unresolvedSession = await _handler.HandlePreToolUseAsync(
-                PreToolUsePayload(SessionId, "Bash", "nitro telemetry", noWorkspaceRoot.FullName), dryRun: true, cancellationToken);
-            var matching = await _handler.HandlePreToolUseAsync(
-                PreToolUsePayload(SessionId, "Bash", "nitro telemetry"), dryRun: true, cancellationToken);
-
-            // assert
-            Assert.Equal(ClaudeHookOutcome.Neutral, missingSession);
-            Assert.Equal(ClaudeHookOutcome.Neutral, unresolvedSession);
-            Assert.Equal(TelemetryNudge, matching.AdditionalContext);
-        }
-        finally
-        {
-            noWorkspaceRoot.Delete(recursive: true);
-        }
-    }
-
-    [Fact]
-    public async Task HandlePreToolUseAsync_Should_IsolateClaimsBySessionAndHarness()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await InitializeWorkspaceAsync(cancellationToken);
-        var codexHandler = new CodexHookHandler(
-            _fileSystem,
-            _timeProvider,
-            _sessions,
-            _agentRegistry,
-            _ledger,
-            _mail,
-            new FixedCodexHarnessVersionResolver(),
-            new FixedInstanceIdProvider("host-1"),
-            new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
-            new FakeCodexQueueClient());
-        const string secondClaudeSessionId = "session-2";
-
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(secondClaudeSessionId), dryRun: true, cancellationToken);
-        await codexHandler.HandleSessionStartAsync(
-            new CodexHookPayload { SessionId = SessionId, Cwd = _workspaceRoot },
-            dryRun: true,
-            cancellationToken);
-
-        // act
-        var firstClaude = await _handler.HandlePreToolUseAsync(
-            PreToolUsePayload(SessionId, "Bash", "nitro telemetry"), dryRun: true, cancellationToken);
-        var secondClaude = await _handler.HandlePreToolUseAsync(
-            PreToolUsePayload(secondClaudeSessionId, "Bash", "nitro telemetry"), dryRun: true, cancellationToken);
-        var codex = await codexHandler.HandlePreToolUseAsync(
-            new CodexHookPayload
-            {
-                SessionId = SessionId,
-                Cwd = _workspaceRoot,
-                ToolName = "Bash",
-                ToolInput = new CodexHookToolInput { Command = "nitro telemetry" }
-            },
-            dryRun: true,
-            cancellationToken);
-
-        // assert
-        Assert.Equal(TelemetryNudge, firstClaude.AdditionalContext);
-        Assert.Equal(TelemetryNudge, secondClaude.AdditionalContext);
-        Assert.Equal(TelemetryNudge, codex.AdditionalContext);
     }
 
     // ---------- UserPromptSubmit ----------
@@ -929,19 +798,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         StopHookActive = stopHookActive
     };
 
-    private ClaudeHookPayload PreToolUsePayload(
-        string? sessionId,
-        string? toolName,
-        string? command,
-        string? cwd = null)
-        => new()
-        {
-            SessionId = sessionId,
-            Cwd = cwd ?? _workspaceRoot,
-            ToolName = toolName,
-            ToolInput = command is null ? null : new ClaudeHookToolInput { Command = command }
-        };
-
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
         await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
@@ -1038,10 +894,6 @@ internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionReg
 
     public Task<bool> TouchAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => inner.TouchAsync(generation, cancellationToken);
-
-    public Task<bool> TryClaimTelemetryNudgeAsync(
-        AgentSessionGeneration generation, CancellationToken cancellationToken)
-        => inner.TryClaimTelemetryNudgeAsync(generation, cancellationToken);
 
     public Task<bool> RecordHarnessVersionAsync(
         AgentSessionGeneration generation, string harnessVersion, CancellationToken cancellationToken)

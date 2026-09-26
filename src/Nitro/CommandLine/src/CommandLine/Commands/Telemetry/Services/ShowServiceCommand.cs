@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -101,15 +102,6 @@ internal sealed class ShowServiceCommand : Command
     }
 
     internal sealed record ServiceVersionMarkerDetail(string Version, DateTimeOffset FirstSeenAt);
-}
-
-internal sealed class ServiceNameArgument : Argument<string>
-{
-    public ServiceNameArgument() : base("name")
-    {
-        Description = "The service name";
-        Arity = ArgumentArity.ExactlyOne;
-    }
 }
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]

@@ -85,29 +85,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task PreToolUseCodex_Should_WriteTheTelemetryNudgeOnce_When_TheCommandMatches()
-    {
-        // arrange
-        await InitializeWorkspaceDatabaseAsync();
-        await SeedCodexIdentityAsync();
-        SetupHookPayload();
-        await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
-        SetupPreToolUsePayload("nitro telemetry services list");
-
-        // act
-        var first = await ExecuteCommandAsync("agent", "hook", "codex", "pre-tool-use");
-        SetupPreToolUsePayload("nitro telemetry services list");
-        var second = await ExecuteCommandAsync("agent", "hook", "codex", "pre-tool-use");
-
-        // assert
-        Assert.Equal(0, first.ExitCode);
-        first.StdOut.Trim().MatchInlineSnapshot(
-            """{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"nitro telemetry: the nitro-telemetry skill teaches the investigation order (services list, traces list --has-error, traces show, logs list --trace-id); load it if available."}}""");
-        Assert.Equal(0, second.ExitCode);
-        second.StdOut.Trim().MatchInlineSnapshot("{}");
-    }
-
-    [Fact]
     public async Task SessionEnd_Should_DeleteThePresenceRow_And_WriteNeutralResponse()
     {
         // arrange: a presence row this same generation created on SessionStart.
@@ -250,7 +227,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
             Commands:
               session-start       Adapt Codex CLI's SessionStart hook: upsert this session's presence row.
               user-prompt-submit  Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.
-              pre-tool-use        Adapt Codex CLI's PreToolUse hook: inject the telemetry skill pointer once per session.
               session-end         Adapt Codex CLI's SessionEnd hook: delete this session's presence row.
               notify <payload>    Adapt Codex CLI's notify program: queue the unread-mail digest into the thread's next turn, then exec any wrapped foreign notify program.
             """);
@@ -259,7 +235,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Theory]
     [InlineData("session-start", "Adapt Codex CLI's SessionStart hook: upsert this session's presence row.")]
     [InlineData("user-prompt-submit", "Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.")]
-    [InlineData("pre-tool-use", "Adapt Codex CLI's PreToolUse hook: inject the telemetry skill pointer once per session.")]
     [InlineData("session-end", "Adapt Codex CLI's SessionEnd hook: delete this session's presence row.")]
     public async Task EventHelp_ReturnsSuccess(string eventName, string description)
     {
@@ -291,17 +266,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         Assert.Contains("payload", result.StdOut);
     }
 
-    private async Task InitializeWorkspaceDatabaseAsync()
-    {
-        Directory.CreateDirectory(WorkspaceDirectory);
-
-        await using (await new AgentDatabase().InitializeAsync(
-            WorkspaceDirectory,
-            TestContext.Current.CancellationToken))
-        {
-        }
-    }
-
     private Task SeedCodexIdentityAsync()
         => InsertSessionIdentityAsync("maya", SessionId, AgentSessionHarness.Codex);
 
@@ -325,16 +289,6 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     private void SetupSessionlessHookPayload()
         => SetupStandardInput(
             $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
-
-    private void SetupPreToolUsePayload(string command)
-        => SetupStandardInput(
-            """{"session_id":"""
-            + System.Text.Json.JsonSerializer.Serialize(SessionId)
-            + ""","cwd":"""
-            + System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)
-            + ""","tool_name":"Bash","tool_input":{"command":"""
-            + System.Text.Json.JsonSerializer.Serialize(command)
-            + "}}");
 
     private string SessionlessNotifyPayload()
         => $$"""{"type":"agent-turn-complete","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""";

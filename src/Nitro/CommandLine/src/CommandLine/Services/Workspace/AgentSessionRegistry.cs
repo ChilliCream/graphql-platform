@@ -189,8 +189,7 @@ internal sealed class AgentSessionRegistry(
                     last_ping_result = NULL,
                     last_ping_detail = NULL,
                     role = @role,
-                    harness_version = '',
-                    telemetry_nudge_sent = 0
+                    harness_version = ''
                 WHERE harness = @harness AND session_id = @sessionId
                     AND host = @oldHost;
                 """,
@@ -846,27 +845,6 @@ internal sealed class AgentSessionRegistry(
         return AgentSessionRow.ReadFrom(reader).ToRecord();
     }
 
-    public async Task<bool> TryClaimTelemetryNudgeAsync(
-        AgentSessionGeneration generation, CancellationToken cancellationToken)
-    {
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        var rowsAffected = await connection.ExecuteAsync(
-            new CommandDefinition(
-                "UPDATE agent_sessions SET telemetry_nudge_sent = 1 "
-                + "WHERE harness = @harness AND session_id = @sessionId "
-                + "AND host = @host AND telemetry_nudge_sent = 0",
-                new
-                {
-                    harness = generation.Harness,
-                    sessionId = generation.SessionId,
-                    host = generation.Host
-                },
-                cancellationToken: cancellationToken));
-
-        return rowsAffected > 0;
-    }
-
     public async Task ResetBlockBudgetAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
@@ -1283,7 +1261,6 @@ internal sealed class AgentSessionRegistry(
         public string? LastPingDetail { get; init; }
         public required string Role { get; init; }
         public required string HarnessVersion { get; init; }
-        public required bool TelemetryNudgeSent { get; init; }
 
         /// <summary>
         /// Maps a row from a <see cref="AgentSessionRecord.Columns"/> query
@@ -1319,8 +1296,7 @@ internal sealed class AgentSessionRegistry(
                 ? null
                 : reader.GetString(reader.GetOrdinal("LastPingDetail")),
             Role = reader.GetString(reader.GetOrdinal("Role")),
-            HarnessVersion = reader.GetString(reader.GetOrdinal("HarnessVersion")),
-            TelemetryNudgeSent = reader.GetBoolean(reader.GetOrdinal("TelemetryNudgeSent"))
+            HarnessVersion = reader.GetString(reader.GetOrdinal("HarnessVersion"))
         };
 
         public AgentSessionRecord ToRecord() => new()
@@ -1342,8 +1318,7 @@ internal sealed class AgentSessionRegistry(
             LastPingResult = LastPingResult,
             LastPingDetail = LastPingDetail,
             Role = Role,
-            HarnessVersion = HarnessVersion,
-            TelemetryNudgeSent = TelemetryNudgeSent
+            HarnessVersion = HarnessVersion
         };
     }
 }

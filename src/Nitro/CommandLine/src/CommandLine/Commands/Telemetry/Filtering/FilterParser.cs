@@ -1,9 +1,11 @@
+using System.Collections.Immutable;
+
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class FilterParser
 {
-    private static readonly IReadOnlyList<string> s_traceScopes = ["@span", "@event", "@resource"];
-    private static readonly IReadOnlyList<string> s_logScopes = ["@log", "@body", "@resource"];
+    private static readonly ImmutableArray<string> s_traceScopes = ["@span", "@event", "@resource"];
+    private static readonly ImmutableArray<string> s_logScopes = ["@log", "@body", "@resource"];
 
     public static FilterNode? Parse(string input, TelemetryFilterSignal signal)
     {
@@ -11,7 +13,7 @@ internal static class FilterParser
         return new Parser(FilterLexer.Tokenize(input), scopes).ParseRoot();
     }
 
-    private sealed class Parser(IReadOnlyList<FilterToken> tokens, IReadOnlyList<string> scopes)
+    private sealed class Parser(IReadOnlyList<FilterToken> tokens, ImmutableArray<string> scopes)
     {
         private int _index;
 

@@ -9,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// no-side-effects contract. The one structural difference from
 /// <c>settings.json</c>: both files use a top-level <c>"hooks"</c> map.
 /// Foreign structure (other
-/// events, other hook groups under our four managed events, e.g. the
+/// events, other hook groups under our three managed events, e.g. the
 /// pre-existing <c>herdr</c> <c>SessionStart</c> entry S1 observed
 /// live) round-trips through <see cref="JsonNode"/> untouched; only the
 /// group(s) this installer owns are added, replaced, or removed.
@@ -20,7 +20,6 @@ internal static class CodexHooksEditor
     private const string TypeKey = "type";
     private const string CommandKey = "command";
     private const string TimeoutKey = "timeout";
-    private const string MatcherKey = "matcher";
     private const string CommandType = "command";
 
     public sealed record InstallResult(
@@ -48,26 +47,25 @@ internal static class CodexHooksEditor
             var eventArray = GetOrCreateEventArray(hooks, codexEvent);
             var desiredCommand = CodexHooksTemplate.BuildCommand(descriptor, codexEvent);
             const int desiredTimeout = CodexHooksTemplate.TimeoutSeconds;
-            var desiredMatcher = CodexHooksTemplate.EventMatcher(codexEvent);
 
             var ownedIndex = FindOwnedGroupIndex(eventArray);
 
             if (ownedIndex < 0)
             {
-                AppendGroup(eventArray, BuildGroup(desiredCommand, desiredTimeout, desiredMatcher));
+                AppendGroup(eventArray, BuildGroup(desiredCommand, desiredTimeout));
                 outcomes.Add(new HookInstallEventResult(codexEvent, HookInstallOutcome.Installed));
             }
             else
             {
-                var (existingCommand, existingTimeout, existingMatcher) = ReadFirstHook((JsonObject)eventArray[ownedIndex]!);
+                var (existingCommand, existingTimeout) = ReadFirstHook((JsonObject)eventArray[ownedIndex]!);
 
-                if (existingCommand == desiredCommand && existingTimeout == desiredTimeout && existingMatcher == desiredMatcher)
+                if (existingCommand == desiredCommand && existingTimeout == desiredTimeout)
                 {
                     outcomes.Add(new HookInstallEventResult(codexEvent, HookInstallOutcome.Unchanged));
                 }
                 else
                 {
-                    eventArray[ownedIndex] = BuildGroup(desiredCommand, desiredTimeout, desiredMatcher);
+                    eventArray[ownedIndex] = BuildGroup(desiredCommand, desiredTimeout);
                     outcomes.Add(new HookInstallEventResult(codexEvent, HookInstallOutcome.Updated));
                 }
             }
@@ -101,11 +99,10 @@ internal static class CodexHooksEditor
                 continue;
             }
 
-            var (command, timeout, matcher) = ReadFirstHook((JsonObject)eventArray![ownedIndex]!);
+            var (command, timeout) = ReadFirstHook((JsonObject)eventArray![ownedIndex]!);
             var desiredCommand = CodexHooksTemplate.BuildCommand(descriptor, codexEvent);
-            var desiredMatcher = CodexHooksTemplate.EventMatcher(codexEvent);
 
-            var outcome = command == desiredCommand && timeout == CodexHooksTemplate.TimeoutSeconds && matcher == desiredMatcher
+            var outcome = command == desiredCommand && timeout == CodexHooksTemplate.TimeoutSeconds
                 ? HookStatusOutcome.Installed
                 : HookStatusOutcome.Outdated;
 
@@ -246,26 +243,16 @@ internal static class CodexHooksEditor
     private static void AppendGroup(JsonArray array, JsonObject group)
         => ((IList<JsonNode?>)array).Add(group);
 
-    private static JsonObject BuildGroup(string command, int timeoutSeconds, string? matcher)
+    private static JsonObject BuildGroup(string command, int timeoutSeconds) => new()
     {
-        var group = new JsonObject
-        {
-            [GroupHooksKey] = new JsonArray(
-                new JsonObject
-                {
-                    [TypeKey] = CommandType,
-                    [CommandKey] = command,
-                    [TimeoutKey] = timeoutSeconds
-                })
-        };
-
-        if (matcher is not null)
-        {
-            group[MatcherKey] = matcher;
-        }
-
-        return group;
-    }
+        [GroupHooksKey] = new JsonArray(
+            new JsonObject
+            {
+                [TypeKey] = CommandType,
+                [CommandKey] = command,
+                [TimeoutKey] = timeoutSeconds
+            })
+    };
 
     private static int FindOwnedGroupIndex(JsonArray array)
     {
@@ -294,17 +281,14 @@ internal static class CodexHooksEditor
                 CodexHooksTemplate.CommandMarker, StringComparison.Ordinal) == true);
     }
 
-    private static (string? Command, int? Timeout, string? Matcher) ReadFirstHook(JsonObject group)
+    private static (string? Command, int? Timeout) ReadFirstHook(JsonObject group)
     {
         if (group[GroupHooksKey] is not JsonArray hooks || hooks.Count == 0 || hooks[0] is not JsonObject hook)
         {
-            return (null, null, null);
+            return (null, null);
         }
 
-        return (
-            hook[CommandKey]?.GetValue<string>(),
-            hook[TimeoutKey]?.GetValue<int>(),
-            group[MatcherKey]?.GetValue<string>());
+        return (hook[CommandKey]?.GetValue<string>(), hook[TimeoutKey]?.GetValue<int>());
     }
 
     private static string Serialize(JsonObject root)

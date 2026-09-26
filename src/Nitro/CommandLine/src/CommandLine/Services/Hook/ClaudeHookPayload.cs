@@ -5,10 +5,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// The fields this adapter reads from a Claude Code hook's stdin JSON,
 /// across every event: <c>SessionStart</c>, <c>UserPromptSubmit</c>,
-/// <c>Stop</c>, <c>PreToolUse</c>, and <c>SessionEnd</c> all carry
-/// <c>session_id</c> and <c>cwd</c>; <c>tool_name</c> and
-/// <c>tool_input.command</c> are meaningful on <c>PreToolUse</c>; and
-/// <c>stop_hook_active</c> is only meaningful on <c>Stop</c>.
+/// <c>Stop</c>, and <c>SessionEnd</c> all carry <c>session_id</c> and
+/// <c>cwd</c>; <c>stop_hook_active</c> is only meaningful on <c>Stop</c>.
 /// Fields this adapter does not read (transcript path, the event name
 /// itself, prompt text) are left unparsed by design: only charset-validated
 /// identifiers ever influence adapter behavior or reach the digest.
@@ -21,18 +19,6 @@ internal sealed record ClaudeHookPayload
     [JsonPropertyName("cwd")]
     public string? Cwd { get; init; }
 
-    [JsonPropertyName("tool_name")]
-    public string? ToolName { get; init; }
-
-    [JsonPropertyName("tool_input")]
-    public ClaudeHookToolInput? ToolInput { get; init; }
-
     [JsonPropertyName("stop_hook_active")]
     public bool StopHookActive { get; init; }
-}
-
-internal sealed record ClaudeHookToolInput
-{
-    [JsonPropertyName("command")]
-    public string? Command { get; init; }
 }

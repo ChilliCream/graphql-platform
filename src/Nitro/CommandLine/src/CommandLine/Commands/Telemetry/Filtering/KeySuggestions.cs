@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 
@@ -5,19 +7,20 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class KeySuggestions
 {
-    private static readonly HashSet<string> s_virtualFields = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "status",
-        "severity",
-        "duration",
-        "span.name",
-        "log.message",
-        "trace.id",
-        "span.id",
-        "span.kind"
-    };
+    private static readonly FrozenSet<string> s_virtualFields =
+        new[]
+        {
+            "status",
+            "severity",
+            "duration",
+            "span.name",
+            "log.message",
+            "trace.id",
+            "span.id",
+            "span.kind"
+        }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly string[] s_scopePrefixes =
+    private static readonly ImmutableArray<string> s_scopePrefixes =
     [
         "@span.",
         "@event.",

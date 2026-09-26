@@ -219,12 +219,102 @@ public sealed class FilterCompilerTests
     [InlineData("-status:(a* OR b)", "not(or(attribute(status,in(string:b)),attribute(status,matches(a*))))")]
     [InlineData("@span.http.method:*", "attribute(http.method@Span,exists(True))")]
     [InlineData("-@resource.host.name:*", "attribute(host.name@Resource,exists(False))")]
+    [InlineData("() ()", "null")]
+    [InlineData("() OR ()", "null")]
+    [InlineData("-()", "null")]
+    [InlineData("-(())", "null")]
+    [InlineData("a:1 AND ()", "attribute(a,eq(int:1))")]
+    [InlineData("() OR a:1", "attribute(a,eq(int:1))")]
+    [InlineData("a", "attribute(span.name,matches(*a*))")]
+    [InlineData("x:IN()", "attribute(x,in())")]
+    [InlineData("x:()", "attribute(x,in())")]
+    [InlineData("a:1.0", "attribute(a,eq(float:1))")]
+    [InlineData("a:-0.5", "attribute(a,eq(float:-0.5))")]
+    [InlineData("a:IN(-1, -2.5, \"-3\")", "attribute(a,in(int:-1,float:-2.5,string:-3))")]
     public void Compile_Should_PreservePortalScalarAndEscapeSemantics_When_ValuesUseSpecialForms(
         string filter,
         string expected)
     {
         // act
         var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+
+        // assert
+        Assert.Equal(expected, Describe(result));
+    }
+
+    [Fact]
+    public void Compile_Should_Throw_When_TheNodeTypeIsUnknown()
+    {
+        // act
+        var error = Assert.Throws<ArgumentOutOfRangeException>(
+            () => FilterCompiler.Compile(new UnknownNode(0, 0), "span.name"));
+
+        // assert
+        Assert.Equal(
+            "Specified argument was out of the range of valid values. (Parameter 'node')",
+            error.Message);
+    }
+
+    [Fact]
+    public void Compile_Should_Throw_When_TheComparisonOperatorIsUnknown()
+    {
+        // arrange
+        var node = new FilterPredicateNode("a", (FilterComparisonOperator)42, [], 0, 0);
+
+        // act
+        var error = Assert.Throws<ArgumentOutOfRangeException>(
+            () => FilterCompiler.Compile(node, "span.name"));
+
+        // assert
+        Assert.Equal(
+            "Specified argument was out of the range of valid values. (Parameter 'comparison')",
+            error.Message);
+    }
+
+    [Fact]
+    public void Compile_Should_Throw_When_TheFreeTextKeyIsBlank()
+    {
+        // arrange
+        FilterNode? node = null;
+
+        // act
+        var textError = Assert.Throws<ArgumentException>(
+            () => FilterCompiler.Compile("timeout", " ", TelemetryFilterSignal.Traces));
+        var nodeError = Assert.Throws<ArgumentException>(
+            () => FilterCompiler.Compile(node, ""));
+
+        // assert
+        Assert.Equal(
+            "The value cannot be an empty string or composed entirely of whitespace. (Parameter 'freeTextKey')",
+            textError.Message);
+        Assert.Equal(
+            "The value cannot be an empty string or composed entirely of whitespace. (Parameter 'freeTextKey')",
+            nodeError.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Compile_Should_ReturnNull_When_TheFilterIsNullOrWhitespace(string? filter)
+    {
+        // act
+        var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+
+        // assert
+        Assert.Equal("null", Describe(result));
+    }
+
+    [Theory]
+    [InlineData("timeout", "attribute(log.message,matches(*timeout*))")]
+    [InlineData("*timeout", "attribute(log.message,matches(*timeout*))")]
+    [InlineData("timeout*", "attribute(log.message,matches(*timeout*))")]
+    [InlineData("*", "attribute(log.message,matches(**))")]
+    [InlineData("a", "attribute(log.message,matches(*a*))")]
+    public void FreeText_Should_WrapTheSearchInWildcards_When_Called(string text, string expected)
+    {
+        // act
+        var result = FilterCompiler.FreeText(text, "log.message");
 
         // assert
         Assert.Equal(expected, Describe(result));
@@ -659,6 +749,8 @@ public sealed class FilterCompilerTests
             "attribute(span.name,matches(*timeout*))"
         ];
     }
+
+    private sealed record UnknownNode(int Start, int End) : FilterNode(Start, End);
 
     private static string Serialize<T>(T value)
         => JsonSerializer.Serialize(value, s_serializerOptions);

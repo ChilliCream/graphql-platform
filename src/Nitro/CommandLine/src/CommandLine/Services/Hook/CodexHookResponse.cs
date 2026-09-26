@@ -5,10 +5,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// stdout: <see cref="HookSpecificOutput"/> for context injection, or
 /// nothing at all. Codex uses the same
 /// <c>hookSpecificOutput.additionalContext</c> shape Claude Code uses for
-/// <c>SessionStart</c>, <c>UserPromptSubmit</c>, and <c>PreToolUse</c>;
-/// <c>SessionEnd</c> has no response contract, so this adapter never
-/// returns one for it. Every property serializes as camelCase and every null
-/// property is omitted, so
+/// <c>SessionStart</c> and <c>UserPromptSubmit</c>; <c>SessionEnd</c> has no
+/// response contract, so this adapter never returns one for it). Every
+/// property serializes as camelCase and every null property is omitted, so
 /// the neutral, fail-open response is exactly <c>{}</c>.
 /// </summary>
 internal sealed record CodexHookResponse

@@ -5,6 +5,64 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 public sealed class FilterLexerTests
 {
     [Theory]
+    [InlineData("word", "Word(word)")]
+    [InlineData("#", "Word(#)")]
+    [InlineData("\"q\"", "String(q)")]
+    [InlineData("1.5", "Number(1.5)")]
+    [InlineData("true", "Boolean(true)")]
+    [InlineData(":", "Colon(:)")]
+    [InlineData("(", "LeftParenthesis(()")]
+    [InlineData(")", "RightParenthesis())")]
+    [InlineData(",", "Comma(,)")]
+    [InlineData("-", "Minus(-)")]
+    [InlineData("*", "Star(*)")]
+    [InlineData("x:>", "Word(x)|Colon(:)|GreaterThan(>)")]
+    [InlineData("x:>=5", "Word(x)|Colon(:)|GreaterThanOrEqual(>=)|Number(5)")]
+    [InlineData("x:<", "Word(x)|Colon(:)|LessThan(<)")]
+    [InlineData("x:<5", "Word(x)|Colon(:)|LessThan(<)|Number(5)")]
+    [InlineData("x:<=5", "Word(x)|Colon(:)|LessThanOrEqual(<=)|Number(5)")]
+    [InlineData("a AND b", "Word(a)|And(AND)|Word(b)")]
+    [InlineData("a OR b", "Word(a)|Or(OR)|Word(b)")]
+    [InlineData("a:\"q\"", "Word(a)|Colon(:)|String(q)")]
+    [InlineData("a:true", "Word(a)|Colon(:)|Boolean(true)")]
+    [InlineData("a:1.5", "Word(a)|Colon(:)|Number(1.5)")]
+    [InlineData("a:1.", "Word(a)|Colon(:)|Word(1.)")]
+    [InlineData("a:.5", "Word(a)|Colon(:)|Word(.5)")]
+    [InlineData("a:1.2.3", "Word(a)|Colon(:)|Word(1.2.3)")]
+    [InlineData("a\tAND\nb\rc", "Word(a)|And(AND)|Word(b)|Word(c)")]
+    [InlineData("IN(", "In(IN)|LeftParenthesis(()")]
+    [InlineData("RANGE(", "Range(RANGE)|LeftParenthesis(()")]
+    public void Tokenize_Should_ProduceEveryTokenKind_When_EachGrammarSymbolAppears(
+        string input,
+        string expected)
+    {
+        // act
+        var tokens = FilterLexer.Tokenize(input);
+
+        // assert
+        Assert.Equal(expected, Describe(tokens));
+    }
+
+    [Theory]
+    [InlineData("a:1", "Word@0-1|Colon@1-2|Number@2-3")]
+    [InlineData(" a : 1 ", "Word@1-2|Colon@3-4|Number@5-6")]
+    [InlineData("x:>=400", "Word@0-1|Colon@1-2|GreaterThanOrEqual@2-4|Number@4-7")]
+    [InlineData("msg:\"a b\"", "Word@0-3|Colon@3-4|String@4-9")]
+    [InlineData("s:IN(1, 2)", "Word@0-1|Colon@1-2|In@2-4|LeftParenthesis@4-5|Number@5-6|Comma@6-7|Number@8-9|RightParenthesis@9-10")]
+    [InlineData("-a", "Minus@0-1|Word@1-2")]
+    [InlineData("a\\ b:1", "Word@0-4|Colon@4-5|Number@5-6")]
+    public void Tokenize_Should_TrackStartAndEnd_When_TokensAreSeparatedByWhitespace(
+        string input,
+        string expected)
+    {
+        // act
+        var tokens = FilterLexer.Tokenize(input);
+
+        // assert
+        Assert.Equal(expected, DescribePositions(tokens));
+    }
+
+    [Theory]
     [InlineData("http.status_code: 200", "Word(http.status_code)|Colon(:)|Number(200)")]
     [InlineData("-service:web-store", "Minus(-)|Word(service)|Colon(:)|Word(web-store)")]
     [InlineData("x:>=400", "Word(x)|Colon(:)|GreaterThanOrEqual(>=)|Number(400)")]
@@ -31,6 +89,10 @@ public sealed class FilterLexerTests
     }
 
     [Theory]
+    [InlineData("\"", "Missing closing quote", 1)]
+    [InlineData("a:\"", "Missing closing quote", 3)]
+    [InlineData("a:\"\\", "Missing closing quote", 3)]
+    [InlineData("a:1 !", "Unexpected character '!'", 5)]
     [InlineData("msg:\"oops", "Missing closing quote", 5)]
     [InlineData("test:**", "A single * after the colon already checks the attribute exists", 7)]
     [InlineData("test:a***", "A single * already matches any text", 8)]
@@ -471,4 +533,11 @@ public sealed class FilterLexerTests
                 .Where(static token => token.Kind != FilterTokenKind.End)
                 .Select(static token =>
                     $"{token.Kind}({token.Value}{(token.HasWildcard ? "*" : string.Empty)})"));
+
+    private static string DescribePositions(IReadOnlyList<FilterToken> tokens)
+        => string.Join(
+            '|',
+            tokens
+                .Where(static token => token.Kind != FilterTokenKind.End)
+                .Select(static token => $"{token.Kind}@{token.Start}-{token.End}"));
 }

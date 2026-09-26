@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces.Tree;
@@ -221,36 +222,6 @@ internal sealed class ShowTraceCommand : Command
         int Count,
         double AverageDurationMs,
         double P95DurationMs);
-}
-
-internal sealed class TraceIdArgument : Argument<string>
-{
-    public TraceIdArgument() : base("trace-id")
-    {
-        Description = "The trace ID";
-        Arity = ArgumentArity.ExactlyOne;
-    }
-}
-
-internal sealed class TraceSpanOption : Option<string>
-{
-    public TraceSpanOption() : base("--span")
-    {
-        Description = "Focus on the subtree rooted at a span ID";
-        Required = false;
-        this.NonEmptyStringsOnly();
-    }
-}
-
-internal sealed class TraceSeekerOption : Option<string>
-{
-    public TraceSeekerOption() : base("--seeker")
-    {
-        Description = "The trace time-window cursor";
-        Required = false;
-        Hidden = true;
-        this.NonEmptyStringsOnly();
-    }
 }
 
 internal sealed record TraceJson(

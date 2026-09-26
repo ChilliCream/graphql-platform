@@ -5,6 +5,139 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 public sealed class FilterParserTests
 {
     [Theory]
+    [InlineData("a:1 )", "Expected whitespace but \")\" found", 5)]
+    [InlineData("a:1 ,", "Expected whitespace but \",\" found", 5)]
+    [InlineData("a:1 >", "Expected whitespace but \">\" found", 5)]
+    [InlineData("a:1 OR", "Missing right side of OR expression", 5)]
+    [InlineData("a:1 OR )", "Missing right side of OR expression", 5)]
+    [InlineData("a:1 AND", "Missing right side of AND expression", 5)]
+    [InlineData("a:1 AND )", "Missing right side of AND expression", 5)]
+    [InlineData(":", "Unexpected ':'", 1)]
+    [InlineData("status :error", "Unexpected ':'", 8)]
+    [InlineData("AND a:1", "Missing left side of AND expression", 1)]
+    [InlineData("OR a:1", "Missing left side of OR expression", 1)]
+    [InlineData(")", "Unexpected ')'", 1)]
+    [InlineData("(", "Unexpected 'end of input'", 2)]
+    [InlineData("IN(1)", "Unexpected 'IN'", 1)]
+    [InlineData("RANGE(1,2)", "Unexpected 'RANGE'", 1)]
+    [InlineData(">5", "Unexpected '>'", 1)]
+    [InlineData(",", "Unexpected ','", 1)]
+    [InlineData("a:1 AND AND b:2", "Unexpected operator 'AND'", 9)]
+    [InlineData("a:1 AND OR b:2", "Unexpected operator 'OR'", 9)]
+    [InlineData("a:1 OR OR b:2", "Unexpected operator 'OR'", 8)]
+    [InlineData("a:1 OR AND b:2", "Unexpected operator 'AND'", 8)]
+    [InlineData("-", "Missing expression after negation", 1)]
+    [InlineData("- AND", "Missing expression after negation", 1)]
+    public void Parse_Should_ReportMessageAndColumn_When_TheExpressionStructureIsInvalid(
+        string filter,
+        string message,
+        int column)
+    {
+        // act
+        var error = Assert.Throws<FilterParseException>(
+            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+
+        // assert
+        Assert.Equal(message, error.Message);
+        Assert.Equal(column, error.Column);
+    }
+
+    [Theory]
+    [InlineData("a: 1", "Missing value in key:value pair", 2)]
+    [InlineData("a:)", "Missing value in key:value pair", 2)]
+    [InlineData("a: :b", "Missing value in key:value pair", 2)]
+    [InlineData("a::b", "Expected a value but found ':'", 3)]
+    [InlineData("a:> 5", "Missing value in range expression", 2)]
+    [InlineData("a:>", "Missing value in range expression", 2)]
+    [InlineData("a:>)", "Missing value in range expression", 2)]
+    [InlineData("a:<=", "Missing value in range expression", 2)]
+    [InlineData("a:>\"5\"", "Ordering comparisons need a number", 4)]
+    [InlineData("status:-abc :x", "Unexpected ':'", 13)]
+    [InlineData("x:IN(1,)", "Expected a value but found ')'", 8)]
+    [InlineData("x:IN(1, *)", "Expected a value but found '*'", 9)]
+    [InlineData("x:IN((", "Expected a value but found '('", 6)]
+    [InlineData("x:(a OR )", "Expected a value but found ')'", 9)]
+    [InlineData("x:RANGE(1,)", "Expected a value but found ')'", 11)]
+    public void Parse_Should_ReportMessageAndColumn_When_TheMatcherIsInvalid(
+        string filter,
+        string message,
+        int column)
+    {
+        // act
+        var error = Assert.Throws<FilterParseException>(
+            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+
+        // assert
+        Assert.Equal(message, error.Message);
+        Assert.Equal(column, error.Column);
+    }
+
+    [Theory]
+    [InlineData("(a:1)", "predicate(a,Equal,number:1)")]
+    [InlineData("((a:1 OR b:2))", "or(predicate(a,Equal,number:1),predicate(b,Equal,number:2))")]
+    [InlineData("a:1 OR b:2 OR c:3", "or(predicate(a,Equal,number:1),predicate(b,Equal,number:2),predicate(c,Equal,number:3))")]
+    [InlineData("a:1 AND b:2 AND c:3", "and(predicate(a,Equal,number:1),predicate(b,Equal,number:2),predicate(c,Equal,number:3))")]
+    [InlineData("a:1 b:2 OR c:3 d:4", "or(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)),and(predicate(c,Equal,number:3),predicate(d,Equal,number:4)))")]
+    [InlineData("a:1 -b:2", "and(predicate(a,Equal,number:1),not(predicate(b,Equal,number:2)))")]
+    [InlineData("--a:1", "not(not(predicate(a,Equal,number:1)))")]
+    [InlineData("-(a:1 b:2)", "not(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)))")]
+    [InlineData("-a", "not(term(a))")]
+    [InlineData("()", "term()")]
+    [InlineData("() ()", "and(term(),term())")]
+    [InlineData("() OR ()", "or(term(),term())")]
+    [InlineData("-()", "not(term())")]
+    [InlineData("\"a b\" c", "and(term(a b),term(c))")]
+    [InlineData("a:\"x\\\"y\"", "predicate(a,Equal,string:x\"y)")]
+    [InlineData("x:IN()", "predicate(x,In,)")]
+    [InlineData("x:()", "predicate(x,In,)")]
+    [InlineData("a:1\tAND\nb:2\r", "and(predicate(a,Equal,number:1),predicate(b,Equal,number:2))")]
+    public void Parse_Should_BuildTheExpectedTree_When_OperatorsAndGroupsCombine(
+        string filter,
+        string expected)
+    {
+        // act
+        var result = FilterParser.Parse(filter, TelemetryFilterSignal.Traces);
+
+        // assert
+        Assert.Equal(expected, Describe(result));
+    }
+
+    [Theory]
+    [InlineData("@span.a:1", TelemetryFilterSignal.Traces, "predicate(@span.a,Equal,number:1)")]
+    [InlineData("@event.a:1", TelemetryFilterSignal.Traces, "predicate(@event.a,Equal,number:1)")]
+    [InlineData("@resource.a:1", TelemetryFilterSignal.Traces, "predicate(@resource.a,Equal,number:1)")]
+    [InlineData("@log.a:1", TelemetryFilterSignal.Logs, "predicate(@log.a,Equal,number:1)")]
+    [InlineData("@body.a:1", TelemetryFilterSignal.Logs, "predicate(@body.a,Equal,number:1)")]
+    [InlineData("@resource.a:1", TelemetryFilterSignal.Logs, "predicate(@resource.a,Equal,number:1)")]
+    [InlineData("@log.a:1", TelemetryFilterSignal.Traces, "error:Unknown scope prefix|1")]
+    [InlineData("@body.a:1", TelemetryFilterSignal.Traces, "error:Unknown scope prefix|1")]
+    [InlineData("@span.a:1", TelemetryFilterSignal.Logs, "error:Unknown scope prefix|1")]
+    [InlineData("@event.a:1", TelemetryFilterSignal.Logs, "error:Unknown scope prefix|1")]
+    [InlineData("@span:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @span prefix|1")]
+    [InlineData("@span.:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @span prefix|1")]
+    [InlineData("@event:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @event prefix|1")]
+    [InlineData("@resource.:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @resource prefix|1")]
+    [InlineData("@log:1", TelemetryFilterSignal.Logs, "error:Expected an attribute name after the @log prefix|1")]
+    [InlineData("@body.:1", TelemetryFilterSignal.Logs, "error:Expected an attribute name after the @body prefix|1")]
+    [InlineData("@ev", TelemetryFilterSignal.Traces, "error:Scope prefixes can only be used in filter expressions|1")]
+    [InlineData("@body", TelemetryFilterSignal.Traces, "error:Unknown scope prefix|1")]
+    [InlineData("@body", TelemetryFilterSignal.Logs, "error:Scope prefixes can only be used in filter expressions|1")]
+    [InlineData("@ev", TelemetryFilterSignal.Logs, "error:Unknown scope prefix|1")]
+    [InlineData("@span.x y", TelemetryFilterSignal.Traces, "error:Scope prefixes can only be used in filter expressions|1")]
+    [InlineData("@span_x", TelemetryFilterSignal.Traces, "error:Unknown scope prefix|1")]
+    public void Parse_Should_ValidateScopePrefixesPerSignal_When_AKeyIsScoped(
+        string filter,
+        TelemetryFilterSignal signal,
+        string expected)
+    {
+        // act
+        var result = DescribeOrError(filter, signal);
+
+        // assert
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
     [InlineData("service.name:", "Missing value in key:value pair", 13)]
     [InlineData("status:errorhttp.status_code:500", "Expected whitespace but \":\" found", 29)]
     [InlineData("duration:>true", "Boolean values do not support ordering comparisons", 11)]
@@ -67,18 +200,21 @@ public sealed class FilterParserTests
     }
 
     [Theory]
-    [InlineData("field:\"missing")]
-    [InlineData("field:foo**")]
-    [InlineData("field:!")]
-    public void Parse_Should_ThrowAColumnAwareException_When_LexingFails(string filter)
+    [InlineData("field:\"missing", "Missing closing quote", 7)]
+    [InlineData("field:foo**", "A single * already matches any text", 11)]
+    [InlineData("field:!", "Unexpected character '!'", 7)]
+    public void Parse_Should_SurfaceLexerErrors_When_TheInputCannotBeTokenized(
+        string filter,
+        string message,
+        int column)
     {
         // act
         var error = Assert.Throws<FilterParseException>(
             () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
-        Assert.True(error.Column > 0);
-        Assert.NotEmpty(error.Message);
+        Assert.Equal(message, error.Message);
+        Assert.Equal(column, error.Column);
     }
 
     [Theory]
@@ -888,6 +1024,18 @@ public sealed class FilterParserTests
     {
         var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, signal));
         return error.Message;
+    }
+
+    private static string DescribeOrError(string filter, TelemetryFilterSignal signal)
+    {
+        try
+        {
+            return Describe(FilterParser.Parse(filter, signal));
+        }
+        catch (FilterParseException error)
+        {
+            return $"error:{error.Message}|{error.Column}";
+        }
     }
 
     private static string Describe(FilterNode? node)

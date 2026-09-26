@@ -1,18 +1,21 @@
+using System.Collections.Frozen;
+
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class AgentModeDetector
 {
-    private static readonly string[] s_environmentVariables =
-    [
-        "CLAUDECODE",
-        "CLAUDE_CODE",
-        "CODEX",
-        "CURSOR_AGENT",
-        "GITHUB_COPILOT",
-        "CLINE",
-        "WINDSURF_AGENT",
-        "AIDER"
-    ];
+    private static readonly FrozenSet<string> s_environmentVariables =
+        new[]
+        {
+            "CLAUDECODE",
+            "CLAUDE_CODE",
+            "CODEX",
+            "CURSOR_AGENT",
+            "GITHUB_COPILOT",
+            "CLINE",
+            "WINDSURF_AGENT",
+            "AIDER"
+        }.ToFrozenSet(StringComparer.Ordinal);
 
     public static bool IsEnabled(
         bool isOutputRedirected,

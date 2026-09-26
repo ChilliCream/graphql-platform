@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -58,62 +59,16 @@ internal sealed class ShowLogCommand : Command
             return ExitCodes.Success;
         }
 
-        Render(console, detail);
+        var renderedDetail = new LogDetailRenderer().Render(detail);
+        if (renderedDetail.Length > 0)
+        {
+            foreach (var line in renderedDetail.Split(Environment.NewLine, StringSplitOptions.None))
+            {
+                console.WriteRawLine(line);
+            }
+        }
+
         return ExitCodes.Success;
-    }
-
-    private static void Render(INitroConsole console, LogDetail detail)
-    {
-        var source = detail.CodeFilePath is null
-            ? null
-            : detail.CodeLineNumber is null
-                ? detail.CodeFilePath
-                : $"{detail.CodeFilePath}:{detail.CodeLineNumber}";
-        var code = string.Join(
-            " ",
-            new[] { detail.CodeFunction, source }.Where(static value => value is not null));
-        var header = $"{LogPresentation.FormatTimestamp(detail.Epoch)} {detail.SeverityText} "
-            + $"{detail.ServiceName} {detail.Body}";
-        WriteLine(console, code.Length == 0 ? header : $"{header} [{code}]");
-
-        foreach (var attribute in detail.Attributes)
-        {
-            WriteLine(console, $"{attribute.Key}: {attribute.Value}");
-        }
-
-        foreach (var attribute in detail.ResourceAttributes)
-        {
-            WriteLine(console, $"{attribute.Key}: {attribute.Value}");
-        }
-
-        if (detail.Scope is { } scope)
-        {
-            WriteLine(console, $"scope: {scope.Name ?? string.Empty}");
-
-            if (scope.Version is not null)
-            {
-                WriteLine(console, $"scope.version: {scope.Version}");
-            }
-
-            if (scope.SchemaUrl is not null)
-            {
-                WriteLine(console, $"scope.schema_url: {scope.SchemaUrl}");
-            }
-
-            foreach (var attribute in scope.Attributes)
-            {
-                WriteLine(console, $"scope.{attribute.Key}: {attribute.Value}");
-            }
-        }
-
-        WriteLine(console, $"trace id: {detail.TraceId}");
-        WriteLine(console, $"span id: {detail.SpanId}");
-    }
-
-    private static void WriteLine(INitroConsole console, string value)
-    {
-        console.Write(new Text(value));
-        console.WriteLine();
     }
 
     internal sealed record LogDetail(
@@ -175,15 +130,6 @@ internal sealed class ShowLogCommand : Command
                 scope.SchemaUrl,
                 scope.Version,
                 scope.Attributes.Select(LogAttributeDetail.From).ToArray());
-    }
-}
-
-internal sealed class LogIdArgument : Argument<string>
-{
-    public LogIdArgument() : base("log-id")
-    {
-        Description = "The log ID";
-        Arity = ArgumentArity.ExactlyOne;
     }
 }
 

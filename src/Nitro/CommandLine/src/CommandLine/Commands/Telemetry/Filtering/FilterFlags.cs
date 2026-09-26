@@ -1,10 +1,16 @@
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class FilterFlags
 {
-    private static readonly string[] s_severityLevels = ["trace", "debug", "info", "warn", "error", "fatal"];
+    private static readonly ImmutableArray<string> s_severityLevels = ["trace", "debug", "info", "warn", "error", "fatal"];
+
+    private static readonly FrozenDictionary<string, int> s_severityRanks = s_severityLevels
+        .Select(static (level, index) => new KeyValuePair<string, int>(level, index))
+        .ToFrozenDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.OrdinalIgnoreCase);
 
     public static OpenTelemetryFilterInput? Compile(
         string? filter,
@@ -98,17 +104,14 @@ internal static class FilterFlags
 
     private static OpenTelemetryFilterInput Severity(string severity)
     {
-        var start = Array.FindIndex(
-            s_severityLevels,
-            level => string.Equals(level, severity, StringComparison.OrdinalIgnoreCase));
-        if (start < 0)
+        if (!s_severityRanks.TryGetValue(severity, out var start))
         {
             throw new ArgumentOutOfRangeException(nameof(severity), severity, "Unsupported severity level.");
         }
 
         return Attribute("severity", new OpenTelemetryAttributeConditionInput
         {
-            In = s_severityLevels[start..]
+            In = s_severityLevels.Skip(start)
                 .Select(level => new OpenTelemetryAttributeValueInput { String = level })
                 .ToArray()
         });

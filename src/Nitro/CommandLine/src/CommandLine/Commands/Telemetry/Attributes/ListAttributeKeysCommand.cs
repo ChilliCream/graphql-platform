@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
@@ -80,26 +79,6 @@ internal sealed class ListAttributeKeysCommand : Command
     {
         public static AttributeKeyListItem From(AttributeKeyRow key)
             => new(key.Path, key.Kind);
-    }
-}
-
-internal sealed class AttributeSignalOption : Option<OpenTelemetrySignalKind>
-{
-    public AttributeSignalOption() : base("--signal")
-    {
-        Description = "The telemetry signal to inspect";
-        Required = true;
-        AcceptOnlyFromAmong("traces", "logs");
-    }
-}
-
-internal sealed class AttributeKindsOption : Option<OpenTelemetryAttributeKind[]>
-{
-    public AttributeKindsOption() : base("--kind")
-    {
-        Description = "Limit results to an attribute kind; can be used multiple times";
-        Required = false;
-        this.OneArgumentPerOccurrence();
     }
 }
 

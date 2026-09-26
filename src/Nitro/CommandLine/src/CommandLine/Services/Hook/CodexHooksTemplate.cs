@@ -4,8 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// The desired Codex CLI <c>hooks.json</c> hook entry for each turn-boundary
 /// event this CLI adapts, built from a <see cref="LaunchDescriptor"/>. The
 /// Codex analog of <see cref="ClaudeHooksTemplate"/>: the same command-line
-/// group, command, and timeout structure, with four events instead of
-/// five (Codex has no <c>Stop</c>-equivalent hooks.json event - its idle-turn
+/// group, command, and timeout structure, with three events instead of
+/// four (Codex has no <c>Stop</c>-equivalent hooks.json event - its idle-turn
 /// gate is the separate <c>notify</c> mechanism, see
 /// <see cref="CodexNotifyTemplate"/>).
 /// </summary>
@@ -24,23 +24,16 @@ internal static class CodexHooksTemplate
     /// Codex hooks.json event names this installer manages, in the order
     /// <c>hooks codex install</c> and <c>hooks codex status</c> report them.
     /// </summary>
-    public static readonly IReadOnlyList<string> Events = ["SessionStart", "UserPromptSubmit", "PreToolUse", "SessionEnd"];
+    public static readonly IReadOnlyList<string> Events = ["SessionStart", "UserPromptSubmit", "SessionEnd"];
 
     public static string EventCommand(string codexEvent) => codexEvent switch
     {
         "SessionStart" => "session-start",
         "UserPromptSubmit" => "user-prompt-submit",
-        "PreToolUse" => "pre-tool-use",
         "SessionEnd" => "session-end",
         _ => throw new ArgumentOutOfRangeException(
             nameof(codexEvent), codexEvent, "Not a hooks.json event this installer manages.")
     };
-
-    /// <summary>
-    /// The matcher for a managed hook event, or null when the event has no matcher.
-    /// </summary>
-    public static string? EventMatcher(string hookEvent)
-        => hookEvent == "PreToolUse" ? "^Bash$" : null;
 
     /// <summary>
     /// The exact command text <c>hooks codex install</c> writes (and

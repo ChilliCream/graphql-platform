@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -103,15 +104,6 @@ internal sealed class ListAttributeValuesCommand : Command
                     _ => string.Empty
                 });
         }
-    }
-}
-
-internal sealed class AttributeKeyArgument : Argument<string>
-{
-    public AttributeKeyArgument() : base("key")
-    {
-        Description = "The attribute key";
-        Arity = ArgumentArity.ExactlyOne;
     }
 }
 

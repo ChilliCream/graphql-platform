@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <c>hooks</c> section: no file I/O, no sidecar persistence, so golden
 /// fixture tests can feed a "before" text and a prior sidecar snapshot in
 /// and assert the exact "after" text and outcomes out. Foreign structure
-/// (other top-level keys, other events, other hook groups under our five
+/// (other top-level keys, other events, other hook groups under our four
 /// events) round-trips through <see cref="JsonNode"/> untouched; only the
 /// group(s) this installer owns are added, replaced, or removed.
 /// </summary>
@@ -19,7 +19,6 @@ internal static class ClaudeHooksEditor
     private const string TypeKey = "type";
     private const string CommandKey = "command";
     private const string TimeoutKey = "timeout";
-    private const string MatcherKey = "matcher";
     private const string CommandType = "command";
 
     public sealed record InstallResult(
@@ -56,26 +55,25 @@ internal static class ClaudeHooksEditor
             var eventArray = GetOrCreateEventArray(hooksNode, claudeEvent);
             var desiredCommand = ClaudeHooksTemplate.BuildCommand(descriptor, claudeEvent);
             const int desiredTimeout = ClaudeHooksTemplate.TimeoutSeconds;
-            var desiredMatcher = ClaudeHooksTemplate.EventMatcher(claudeEvent);
 
             var ownedIndex = FindOwnedGroupIndex(eventArray);
 
             if (ownedIndex < 0)
             {
-                AppendGroup(eventArray, BuildGroup(desiredCommand, desiredTimeout, desiredMatcher));
+                AppendGroup(eventArray, BuildGroup(desiredCommand, desiredTimeout));
                 outcomes.Add(new HookInstallEventResult(claudeEvent, HookInstallOutcome.Installed));
             }
             else
             {
-                var (existingCommand, existingTimeout, existingMatcher) = ReadFirstHook((JsonObject)eventArray[ownedIndex]!);
+                var (existingCommand, existingTimeout) = ReadFirstHook((JsonObject)eventArray[ownedIndex]!);
 
-                if (existingCommand == desiredCommand && existingTimeout == desiredTimeout && existingMatcher == desiredMatcher)
+                if (existingCommand == desiredCommand && existingTimeout == desiredTimeout)
                 {
                     outcomes.Add(new HookInstallEventResult(claudeEvent, HookInstallOutcome.Unchanged));
                 }
                 else
                 {
-                    eventArray[ownedIndex] = BuildGroup(desiredCommand, desiredTimeout, desiredMatcher);
+                    eventArray[ownedIndex] = BuildGroup(desiredCommand, desiredTimeout);
                     outcomes.Add(new HookInstallEventResult(claudeEvent, HookInstallOutcome.Updated));
                 }
             }
@@ -116,11 +114,10 @@ internal static class ClaudeHooksEditor
                 continue;
             }
 
-            var (command, timeout, matcher) = ReadFirstHook((JsonObject)eventArray![ownedIndex]!);
+            var (command, timeout) = ReadFirstHook((JsonObject)eventArray![ownedIndex]!);
             var desiredCommand = ClaudeHooksTemplate.BuildCommand(descriptor, claudeEvent);
-            var desiredMatcher = ClaudeHooksTemplate.EventMatcher(claudeEvent);
 
-            var outcome = command == desiredCommand && timeout == ClaudeHooksTemplate.TimeoutSeconds && matcher == desiredMatcher
+            var outcome = command == desiredCommand && timeout == ClaudeHooksTemplate.TimeoutSeconds
                 ? HookStatusOutcome.Installed
                 : HookStatusOutcome.Outdated;
 
@@ -260,26 +257,16 @@ internal static class ClaudeHooksEditor
     private static void AppendGroup(JsonArray array, JsonObject group)
         => ((IList<JsonNode?>)array).Add(group);
 
-    private static JsonObject BuildGroup(string command, int timeoutSeconds, string? matcher)
+    private static JsonObject BuildGroup(string command, int timeoutSeconds) => new()
     {
-        var group = new JsonObject
-        {
-            [GroupHooksKey] = new JsonArray(
-                new JsonObject
-                {
-                    [TypeKey] = CommandType,
-                    [CommandKey] = command,
-                    [TimeoutKey] = timeoutSeconds
-                })
-        };
-
-        if (matcher is not null)
-        {
-            group[MatcherKey] = matcher;
-        }
-
-        return group;
-    }
+        [GroupHooksKey] = new JsonArray(
+            new JsonObject
+            {
+                [TypeKey] = CommandType,
+                [CommandKey] = command,
+                [TimeoutKey] = timeoutSeconds
+            })
+    };
 
     private static int FindOwnedGroupIndex(JsonArray array)
     {
@@ -330,17 +317,14 @@ internal static class ClaudeHooksEditor
         return -1;
     }
 
-    private static (string? Command, int? Timeout, string? Matcher) ReadFirstHook(JsonObject group)
+    private static (string? Command, int? Timeout) ReadFirstHook(JsonObject group)
     {
         if (group[GroupHooksKey] is not JsonArray hooks || hooks.Count == 0 || hooks[0] is not JsonObject hook)
         {
-            return (null, null, null);
+            return (null, null);
         }
 
-        return (
-            hook[CommandKey]?.GetValue<string>(),
-            hook[TimeoutKey]?.GetValue<int>(),
-            group[MatcherKey]?.GetValue<string>());
+        return (hook[CommandKey]?.GetValue<string>(), hook[TimeoutKey]?.GetValue<int>());
     }
 
     private static string Serialize(JsonObject root)
