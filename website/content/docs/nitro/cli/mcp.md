@@ -44,6 +44,8 @@ nitro mcp create --name "<name>" --api-id "<api-id>"
 
 # `nitro mcp upload`
 
+Nitro: 10.6.0
+
 Upload a new version of an MCP feature collection. Prompt and tool definition files are picked up via glob patterns.
 
 ```shell
@@ -76,6 +78,8 @@ nitro mcp upload \
 ```
 
 # `nitro mcp publish`
+
+Nitro: 10.6.0
 
 Publish a previously uploaded MCP feature collection version to a stage. The version is identified by its tag.
 
@@ -118,6 +122,8 @@ nitro mcp publish \
 ```
 
 # `nitro mcp validate`
+
+Nitro: 10.6.0
 
 Validate a new MCP feature collection version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking changes before they are merged.
 
