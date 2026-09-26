@@ -58,6 +58,9 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     /// <inheritdoc />
     public int? RequestedSize => _definition.RequestedSize;
 
+    /// <inheritdoc />
+    public int BufferedCount => _items.Count;
+
     /// <summary>
     /// Gets the buffered row at the given index, throwing when it has not streamed yet.
     /// </summary>
@@ -114,6 +117,12 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
 
         return _hasPreviousPage ?? false;
     }
+
+    /// <inheritdoc />
+    public ValueTask PrimeAsync(CancellationToken cancellationToken = default) => AdvanceAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public PageEntry<TElement> GetBufferedEntry(int index) => new(this[index], index);
 
     /// <inheritdoc />
     public ValueTask DisposeAsync() => CompleteAsync();

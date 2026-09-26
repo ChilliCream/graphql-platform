@@ -25,6 +25,11 @@ internal interface IStreamPageSource<TValue> : IAsyncEnumerable<TValue>, IAsyncD
     int? RequestedSize { get; }
 
     /// <summary>
+    /// Gets the number of entries buffered so far.
+    /// </summary>
+    int BufferedCount { get; }
+
+    /// <summary>
     /// Enumerates the buffered entries, reading ahead from the source as needed.
     /// </summary>
     IAsyncEnumerable<PageEntry<TValue>> EnumerateEntriesAsync(CancellationToken cancellationToken = default);
@@ -43,4 +48,15 @@ internal interface IStreamPageSource<TValue> : IAsyncEnumerable<TValue>, IAsyncD
     /// Resolves whether there is a previous page, reading ahead only as far as needed.
     /// </summary>
     ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads from the source until one entry is buffered or the source completes. This is the
+    /// mandatory step between construction and handing a page to a consumer.
+    /// </summary>
+    ValueTask PrimeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the already buffered entry at the given index, without reading ahead.
+    /// </summary>
+    PageEntry<TValue> GetBufferedEntry(int index);
 }

@@ -16,6 +16,8 @@ internal sealed class ElementProjectingSource<TElement, TValue>(
     StreamPageBuffer<TElement> buffer,
     Func<TElement, TValue> valueSelector) : IStreamPageSource<TValue>
 {
+    private readonly List<TValue> _values = [];
+
     /// <inheritdoc />
     public bool IsCompleted => buffer.IsCompleted;
 
@@ -24,6 +26,9 @@ internal sealed class ElementProjectingSource<TElement, TValue>(
 
     /// <inheritdoc />
     public int? RequestedSize => buffer.RequestedSize;
+
+    /// <inheritdoc />
+    public int BufferedCount => buffer.BufferedCount;
 
     /// <inheritdoc />
     public IAsyncEnumerator<TValue> GetAsyncEnumerator(CancellationToken cancellationToken = default)
@@ -46,14 +51,35 @@ internal sealed class ElementProjectingSource<TElement, TValue>(
         => buffer.HasPreviousPageAsync(cancellationToken);
 
     /// <inheritdoc />
+    public ValueTask PrimeAsync(CancellationToken cancellationToken = default)
+        => buffer.PrimeAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public PageEntry<TValue> GetBufferedEntry(int index) => new(Get(index), index);
+
+    /// <inheritdoc />
     public ValueTask DisposeAsync() => buffer.DisposeAsync();
+
+    // Projects and caches source rows into page items on demand, so a row is only ever run
+    // through the value selector once no matter how many times the page is enumerated.
+    private TValue Get(int index)
+    {
+        while (_values.Count <= index)
+        {
+            _values.Add(valueSelector(buffer[_values.Count]));
+        }
+
+        return _values[index];
+    }
 
     private async IAsyncEnumerable<TValue> EnumerateAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        await foreach (var element in buffer.WithCancellation(cancellationToken).ConfigureAwait(false))
+        var entries = buffer.EnumerateEntriesAsync(cancellationToken);
+
+        await foreach (var entry in entries.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            yield return valueSelector(element);
+            yield return Get(entry.Index);
         }
     }
 
@@ -64,7 +90,7 @@ internal sealed class ElementProjectingSource<TElement, TValue>(
 
         await foreach (var entry in entries.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            yield return new PageEntry<TValue>(valueSelector(entry.Item), entry.Index);
+            yield return new PageEntry<TValue>(Get(entry.Index), entry.Index);
         }
     }
 }

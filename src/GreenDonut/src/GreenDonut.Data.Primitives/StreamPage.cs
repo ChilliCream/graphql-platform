@@ -46,6 +46,30 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     internal bool IsCompleted => _source.IsCompleted;
 
     /// <summary>
+    /// Gets the number of entries buffered so far.
+    /// </summary>
+    internal int BufferedCount => _source.BufferedCount;
+
+    /// <summary>
+    /// Reads from the source until one entry is buffered or the source completes. The creating
+    /// layer must await this once before handing the page to a consumer.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A token to cancel the operation.
+    /// </param>
+    internal ValueTask PrimeAsync(CancellationToken cancellationToken = default)
+        => _source.PrimeAsync(cancellationToken);
+
+    /// <summary>
+    /// Gets the already buffered entry at the given index, without reading ahead. Used to create
+    /// cursors synchronously once the page has been primed.
+    /// </summary>
+    /// <param name="index">
+    /// The zero-based index of the buffered entry.
+    /// </param>
+    internal PageEntry<T> GetBufferedEntry(int index) => _source.GetBufferedEntry(index);
+
+    /// <summary>
     /// Gets the enumerator for the items of this page.
     /// </summary>
     /// <param name="cancellationToken">

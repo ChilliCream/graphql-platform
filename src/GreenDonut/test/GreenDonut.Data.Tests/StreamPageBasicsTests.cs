@@ -147,7 +147,7 @@ public class StreamPageBasicsTests
         var replay = await CollectAsync(page);
 
         // assert
-        Assert.True(source.Disposed);
+        Assert.Equal(1, source.DisposedCount);
         Assert.Equal(1, lifetime.DisposeCount);
         Assert.True(page.IsCompleted);
         Assert.Equal(["a"], replay);
@@ -166,9 +166,85 @@ public class StreamPageBasicsTests
         await page.DisposeAsync();
 
         // assert
-        Assert.True(source.Disposed);
+        Assert.Equal(1, source.DisposedCount);
         Assert.Equal(1, lifetime.DisposeCount);
         Assert.True(page.IsCompleted);
+    }
+
+    [Fact]
+    public async Task PrimeAsync_Should_BufferFirstRowAndResolveCount_When_AwaitedBeforeHandOff()
+    {
+        // arrange
+        var source = new ScriptedRowSource<string>([Row("a", totalCount: 5), Row("b"), Row("c")]);
+        var pump = new StreamPagePump<string>(
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+            pageCount: 1);
+        var definition = Definition<string>(requestedCount: 3, forward: true) with { Index = 1 };
+        var page = new ValueCursorStreamPage<string>(pump, definition, static entry => entry.Node!);
+
+        // act
+        await page.PrimeAsync(TestContext.Current.CancellationToken);
+        var entry = page.GetBufferedEntry(0);
+        var cursor = page.CreateCursor(entry);
+        var relativeCursor = page.CreateCursor(entry, 0);
+        var rowsReadAfterPrime = source.RowsRead;
+        var replay = await CollectAsync(page);
+
+        // assert
+        Assert.Equal((5, "a", "a", "a", 1), (page.TotalCount, entry.Item, cursor, relativeCursor, rowsReadAfterPrime));
+        Assert.Equal(["a", "b", "c"], replay);
+    }
+
+    [Fact]
+    public async Task PrimeAsync_Should_CompleteAndDisposeOnce_When_SourceIsEmpty()
+    {
+        // arrange
+        var source = new ScriptedRowSource<string>();
+        var lifetime = new RecordingLifetime();
+        var pump = new StreamPagePump<string>(
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+            pageCount: 1,
+            lifetime: lifetime);
+        var definition = Definition<string>(requestedCount: 3, forward: true);
+        var page = new ValueCursorStreamPage<string>(pump, definition, static entry => entry.Node!);
+
+        // act
+        await page.PrimeAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            (true, 1, 1, 0),
+            (page.IsCompleted, lifetime.DisposeCount, source.DisposedCount, source.RowsRead));
+    }
+
+    [Fact]
+    public async Task ElementCursorStreamPage_Should_ProjectEachRowOnce_When_EnumeratedTwice()
+    {
+        // arrange
+        var source = new ScriptedRowSource<int>(1, 2, 3);
+        var pump = new StreamPagePump<int>(
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+            pageCount: 1);
+        var selectorCalls = 0;
+        var page = new ElementCursorStreamPage<int, string>(
+            pump,
+            Definition<int>(requestedCount: 3, forward: true),
+            valueSelector: element =>
+            {
+                selectorCalls++;
+                return $"v{element}";
+            },
+            createCursor: static entry => $"elem:{entry.Node}");
+
+        // act
+        var first = await CollectAsync(page);
+        var second = await CollectAsync(page);
+        var cursor = page.CreateCursor(new PageEntry<string>(first[0], 0));
+
+        // assert
+        Assert.Equal(3, selectorCalls);
+        Assert.All(Enumerable.Range(0, first.Count), i => Assert.Same(first[i], second[i]));
+        Assert.Equal("elem:1", cursor);
     }
 
     [Fact]
@@ -259,7 +335,7 @@ public class StreamPageBasicsTests
 
         public int RowsRead { get; private set; }
 
-        public bool Disposed { get; private set; }
+        public int DisposedCount { get; private set; }
 
         public IAsyncEnumerator<StreamRow<T>> GetAsyncEnumerator(CancellationToken cancellationToken = default)
             => new Enumerator(this);
@@ -285,7 +361,7 @@ public class StreamPageBasicsTests
 
             public ValueTask DisposeAsync()
             {
-                owner.Disposed = true;
+                owner.DisposedCount++;
                 return ValueTask.CompletedTask;
             }
         }
