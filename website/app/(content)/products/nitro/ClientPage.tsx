@@ -24,6 +24,7 @@ import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
+import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 const ControlPlaneConsole = dynamic(() =>
   import("@/src/components/nitro/ControlPlaneConsole").then(
@@ -912,7 +913,7 @@ const TRACE: Trace = {
 
 function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
   const inView = useInView(ref, { amount: 0.25 });
   const progress = useMotionValue(reduced ? 1 : 0);
 
