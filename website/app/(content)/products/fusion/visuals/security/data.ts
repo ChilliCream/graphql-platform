@@ -34,7 +34,6 @@ export const SERVICES: readonly ServiceSpec[] = [
 
 export interface CheckpointEvent {
   readonly client: number;
-  readonly operation: string;
   readonly failAt: number | null;
   readonly service: number | null;
   readonly auditLine: string;
@@ -43,35 +42,30 @@ export interface CheckpointEvent {
 export const EVENTS: readonly CheckpointEvent[] = [
   {
     client: 0,
-    operation: "query GetOrder",
     failAt: null,
     service: 0,
     auditLine: "allowed · query GetOrder · trusted",
   },
   {
     client: 1,
-    operation: "mutation UpdatePrice",
     failAt: null,
     service: 1,
     auditLine: "allowed · mutation UpdatePrice · OPA",
   },
   {
     client: 2,
-    operation: "mutation DeleteCustomer",
     failAt: 1,
     service: null,
     auditLine: "denied · mutation DeleteCustomer · OPA · 403",
   },
   {
     client: 3,
-    operation: "query 7f3a…c21",
     failAt: 0,
     service: null,
     auditLine: "rejected · unknown operation · not in safelist",
   },
   {
     client: 0,
-    operation: "query GetInvoice",
     failAt: null,
     service: 2,
     auditLine: "allowed · query GetInvoice · custom policy",

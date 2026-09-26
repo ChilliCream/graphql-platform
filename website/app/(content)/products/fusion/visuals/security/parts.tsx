@@ -4,6 +4,8 @@ import { CrossGlyph } from "@/src/icons/CrossGlyph";
 import { EVENTS } from "./data";
 import type { CheckStatus } from "./data";
 
+const VERDICT_TEXTS = ["denied · 403", "rejected · not in safelist"] as const;
+
 export type NodeTone = "active" | "success" | "danger";
 
 interface NodeCardProps {
@@ -110,6 +112,32 @@ export function AuditLine({ text, tone, dim = false }: AuditLineProps) {
       className={`font-mono text-[0.7rem] break-words ${toneClass} ${dim ? "opacity-45" : "opacity-100"}`}
     >
       {text}
+    </div>
+  );
+}
+
+interface VerdictSlotProps {
+  readonly text: string | null;
+}
+
+/** Reserves the tallest of both verdict strings' height so swapping between them never shifts layout. */
+export function VerdictSlot({ text }: VerdictSlotProps) {
+  return (
+    <div className="mt-1 grid text-center font-mono text-[0.7rem]">
+      {VERDICT_TEXTS.map((verdict) => (
+        <span
+          key={verdict}
+          aria-hidden="true"
+          className="invisible col-start-1 row-start-1"
+        >
+          {verdict}
+        </span>
+      ))}
+      <div
+        className={`text-cc-danger col-start-1 row-start-1 ${text === null ? "invisible" : ""}`}
+      >
+        {text ?? VERDICT_TEXTS[0]}
+      </div>
     </div>
   );
 }

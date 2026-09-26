@@ -20,7 +20,7 @@ import {
   frameAt,
   wrap,
 } from "./data";
-import { AuditSlot, CheckRow, NodeCard, Track } from "./parts";
+import { AuditSlot, CheckRow, NodeCard, Track, VerdictSlot } from "./parts";
 import type { NodeTone } from "./parts";
 
 const KEYFRAMES = `
@@ -46,6 +46,13 @@ interface CheckStackProps {
 }
 
 function CheckStack({ failAt, show }: CheckStackProps) {
+  const verdictText =
+    show && failAt !== null
+      ? failAt === 0
+        ? "rejected · not in safelist"
+        : "denied · 403"
+      : null;
+
   return (
     <div className="border-cc-card-border flex-1 rounded-lg border px-2.5 py-2">
       <div className="text-cc-ink-dim mb-1.5 flex items-center gap-1.5 font-mono text-[0.7rem] uppercase">
@@ -62,11 +69,7 @@ function CheckStack({ failAt, show }: CheckStackProps) {
           />
         ))}
       </div>
-      <div
-        className={`text-cc-danger mt-1 text-center font-mono text-[0.7rem] ${show && failAt !== null ? "" : "invisible"}`}
-      >
-        {failAt === 0 ? "rejected · not in safelist" : "denied · 403"}
-      </div>
+      <VerdictSlot text={verdictText} />
     </div>
   );
 }
@@ -92,7 +95,7 @@ function StaticCheckpoint() {
       <CheckStack failAt={denied.failAt} show />
       <Track active={false} tone="success" stepKey="static-out" />
 
-      <div className="grid grid-cols-3 gap-1.5 @min-[480px]:w-28 @min-[480px]:grid-cols-1">
+      <div className="grid grid-cols-3 gap-1.5 @min-[480px]:w-28 @min-[480px]:grid-cols-1 @min-[480px]:content-center">
         {SERVICES.map((service, i) => (
           <NodeCard
             key={service.key}
@@ -141,7 +144,7 @@ function AnimatedCheckpoint({ step }: AnimatedCheckpointProps) {
         stepKey={`out-${step}`}
       />
 
-      <div className="grid grid-cols-3 gap-1.5 @min-[480px]:w-28 @min-[480px]:grid-cols-1">
+      <div className="grid grid-cols-3 gap-1.5 @min-[480px]:w-28 @min-[480px]:grid-cols-1 @min-[480px]:content-center">
         {SERVICES.map((service, i) => (
           <NodeCard
             key={service.key}
@@ -198,9 +201,7 @@ export function SecurityCheckpoint() {
   return (
     <AppWindow
       title={
-        <span className="text-cc-prose">
-          fusion gateway · policy checkpoint
-        </span>
+        <span className="text-cc-prose">fusion router · policy checkpoint</span>
       }
       footer={
         <div className="flex flex-col gap-1">
