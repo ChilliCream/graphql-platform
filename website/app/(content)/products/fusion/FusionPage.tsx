@@ -6,7 +6,6 @@ import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CardGrid } from "@/src/components/CardGrid";
 import { CheckList } from "@/src/components/CheckList";
-import { ClientImpactMatrix } from "@/src/components/ClientImpactMatrix";
 import { FeatureRow } from "@/src/components/FeatureRow";
 import LayeredDiagram from "@/src/components/LayeredDiagram/index";
 import {
@@ -27,6 +26,7 @@ import { CLOSING_BAND, FEATURED_CONTENT, FEATURES, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
 import { InsightsWindow } from "./visuals/InsightsWindow";
 import { PerformanceWindow } from "./visuals/PerformanceWindow";
+import { ProtectWindow } from "./visuals/ProtectWindow";
 import { SecurityWindow } from "./visuals/SecurityWindow";
 
 /**
@@ -46,32 +46,6 @@ function Divider() {
     />
   );
 }
-
-/** client-safety row: impact of removing `Product.rating` on real clients. */
-const CLIENT_IMPACT_ROWS = [
-  { client: "web", environment: "production", ok: 5, total: 5, status: "ok" },
-  {
-    client: "mobile",
-    environment: "production",
-    ok: 3,
-    total: 5,
-    status: "risk",
-  },
-  {
-    client: "partner-api",
-    environment: "sandbox",
-    ok: 0,
-    total: 0,
-    status: "outside",
-  },
-  {
-    client: "internal-admin",
-    environment: "staging",
-    ok: 6,
-    total: 6,
-    status: "ok",
-  },
-] as const;
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
 function withLinks(text: string, links: readonly CopyLink[]): ReactNode {
@@ -141,15 +115,7 @@ const VISUALS: Readonly<Record<string, Panel>> = {
   performance: { visual: <PerformanceWindow /> },
   security: { visual: <SecurityWindow /> },
   insights: { visual: <InsightsWindow /> },
-  "client-safety": {
-    visual: (
-      <ClientImpactMatrix
-        density="comfortable"
-        title="client registry · impact of removing Product.rating"
-        rows={CLIENT_IMPACT_ROWS}
-      />
-    ),
-  },
+  "client-safety": { visual: <ProtectWindow /> },
 };
 
 export function FusionPage() {
