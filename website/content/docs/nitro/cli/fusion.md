@@ -190,6 +190,8 @@ nitro fusion publish cancel --request-id "<request-id>"
 
 # `nitro fusion validate`
 
+Nitro: 10.6.0
+
 Validate a Fusion configuration against a stage. Composes the supplied source schemas (or uses a pre-composed archive) and runs the same checks as `publish` without requesting a deployment slot.
 
 ```shell
