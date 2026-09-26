@@ -3,13 +3,10 @@
 import { useRef } from "react";
 
 import { AppWindow } from "@/src/components/AppWindow";
-import { BlockMark } from "@/src/icons/BlockMark";
-import { CheckGlyph } from "@/src/icons/CheckGlyph";
 
 import { useElementMotion } from "./hooks";
 import {
   CLIENT_OPS,
-  MOBILE_IMPACT,
   MOBILE_IMPACT_COMPACT,
   SCHEMA_FILE,
   V14,
@@ -20,52 +17,26 @@ import {
   DockLabel,
   RegistryNode,
   ScanBar,
+  StaticClientRow,
+  StaticVerdictCard,
   TravelCard,
 } from "./protect/parts";
 
-/**
- * Matches the sitewide 11s "beat" loop length (`src/nitro/lib/motion.tsx`'s
- * `beat.loop`); the second document's travel is this shared cycle's own
- * timeline shifted by exactly half a period, so one set of keyframes plays
- * twice per loop without duplicating them.
- */
 const CYCLE_SECONDS = 11;
 const HALF = CYCLE_SECONDS / 2;
 const CYCLE_MS = CYCLE_SECONDS * 1000;
 
-/** Fixed row height (matches `ClientRow`'s `h-9`) so the scan's travel distance is exact, not measured. */
 const ROW_HEIGHT_REM = 2.25;
 const TABLE_HEIGHT_REM = CLIENT_OPS.length * ROW_HEIGHT_REM;
 
-/**
- * The wide (horizontal) lane's travel distance, in cqi (the `.pw-root`
- * container's inline size) minus the fixed-width chrome around it: the
- * row's own `px-4` (16px) padding on each side, the registry node's
- * rendered width (135px), the card's own width at this breakpoint (11.5rem
- * = 184px, the only one that applies once the lane is wide enough to show),
- * and an 8px clearance so the card docks beside the registry, not under it.
- */
-const TRAVEL_X = "calc(100cqi - 359px)";
-
-/**
- * The stacked (narrow) lane's fixed height and the card's travel distance
- * within it: the card's own rendered height (with a wrapped verdict) runs up
- * to about 9rem, so the lane and travel distance below leave it fully
- * contained, never reaching the registry node or the table beneath it.
- */
 const VLANE_HEIGHT_REM = 12;
 const VLANE_TRAVEL_REM = 2;
 
-/**
- * Row-check reveal delays, keyed to when the (linear) scan bar actually
- * crosses that row's bottom edge, plus a small safety margin so the check
- * never renders before its row has been scanned.
- */
 const SCAN_START_PCT = 20;
 const SCAN_END_PCT = 38;
-/** `pw-check`'s own local reveal point below, kept in sync with it. */
-const CHECK_LOCAL_REVEAL_PCT = 0.5;
+const CHECK_REVEAL_PCT = 0.5;
 const CHECK_MARGIN_MS = 80;
+const STAMP_GONE_PCT = 50;
 
 function checkDelay(rowIndex: number): number {
   const crossingMs =
@@ -73,9 +44,19 @@ function checkDelay(rowIndex: number): number {
       ((SCAN_END_PCT - SCAN_START_PCT) * (rowIndex + 1)) / CLIENT_OPS.length) /
       100) *
     CYCLE_MS;
-  const localRevealMs = (CHECK_LOCAL_REVEAL_PCT / 100) * CYCLE_MS;
-  return (crossingMs + CHECK_MARGIN_MS - localRevealMs) / 1000;
+  const revealMs = (CHECK_REVEAL_PCT / 100) * CYCLE_MS;
+  return (crossingMs + CHECK_MARGIN_MS - revealMs) / 1000;
 }
+
+// Row 0's smallest delay is the binding case: its hold must still reach past the stamp's fade-out.
+const CHECK_HOLD_PCT = Math.ceil(
+  (((STAMP_GONE_PCT / 100) * CYCLE_SECONDS +
+    CHECK_MARGIN_MS / 1000 -
+    checkDelay(0)) /
+    CYCLE_SECONDS) *
+    100,
+);
+const CHECK_FADE_PCT = CHECK_HOLD_PCT + 1;
 
 const KEYFRAMES = `
 .pw-anim {
@@ -83,25 +64,22 @@ const KEYFRAMES = `
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   animation-play-state: running;
-  /* Without this, an instance with a positive delay (the second document)
-     renders at its default (visible) style during the wait before its
-     first iteration instead of the keyframe's 0% state. */
+  /* both: keeps a delayed instance at its keyframe start, not its default style, before it first plays. */
   animation-fill-mode: both;
 }
 .pw-root[data-motion="paused"] .pw-anim {
   animation-play-state: paused;
 }
 .pw-scan-el {
-  /* Linear so the row-check delays above can key to an exact crossing time. */
   animation-timing-function: linear;
 }
 @keyframes pw-doc-travel-x {
-  0% { opacity: 0; transform: translateX(0); }
-  4% { opacity: 1; transform: translateX(0); }
-  18% { opacity: 1; transform: translateX(${TRAVEL_X}); }
-  46% { opacity: 1; transform: translateX(${TRAVEL_X}); }
-  50% { opacity: 0; transform: translateX(${TRAVEL_X}); }
-  100% { opacity: 0; transform: translateX(0); }
+  0% { opacity: 0; transform: translateX(-100%); }
+  4% { opacity: 1; transform: translateX(-100%); }
+  18% { opacity: 1; transform: translateX(0%); }
+  46% { opacity: 1; transform: translateX(0%); }
+  50% { opacity: 0; transform: translateX(0%); }
+  100% { opacity: 0; transform: translateX(-100%); }
 }
 @keyframes pw-doc-travel-y {
   0% { opacity: 0; transform: translateY(0); }
@@ -122,18 +100,17 @@ const KEYFRAMES = `
 }
 @keyframes pw-check {
   0% { opacity: 0; }
-  0.5% { opacity: 1; }
-  13% { opacity: 1; }
-  14%, 100% { opacity: 0; }
+  ${CHECK_REVEAL_PCT}% { opacity: 1; }
+  ${CHECK_HOLD_PCT}% { opacity: 1; }
+  ${CHECK_FADE_PCT}%, 100% { opacity: 0; }
 }
 @keyframes pw-stamp {
   0%, 41% { opacity: 0; }
   44%, 47% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+  ${STAMP_GONE_PCT}%, 100% { opacity: 0; }
 }
 `;
 
-/** Outcome copy for one client operation on the breaking (v14) pass. */
 function firstOutcome(id: string, delay: number) {
   if (id === "mobile") {
     return { tone: "danger" as const, text: MOBILE_IMPACT_COMPACT, delay };
@@ -141,19 +118,10 @@ function firstOutcome(id: string, delay: number) {
   return { tone: "success" as const, text: "ok", delay };
 }
 
-/** Outcome copy for one client operation on the safe (v15) pass. */
 function secondOutcome(delay: number) {
   return { tone: "success" as const, text: "ok", delay };
 }
 
-/**
- * The "Protect your clients" row's graphic: a schema document travels into
- * the Nitro registry, is analyzed against the operations registered clients
- * use, fails because mobile still queries a removed field, then a second
- * document that deprecates the field instead passes and is published. Loops
- * calmly while in view; `prefers-reduced-motion` renders one complete static
- * frame with both outcomes.
- */
 export function ProtectWindow() {
   const rootRef = useRef<HTMLDivElement>(null);
   const running = useElementMotion(rootRef);
@@ -179,31 +147,33 @@ export function ProtectWindow() {
         <div className="motion-reduce:hidden">
           <div className="relative hidden min-h-52 items-center gap-3 px-4 pt-4 @[480px]:flex">
             <DockLabel />
-            <span
-              aria-hidden="true"
-              className="border-cc-card-border/70 h-px flex-1 border-t border-dashed"
-            />
+            <div className="relative flex-1 self-stretch">
+              <span
+                aria-hidden="true"
+                className="border-cc-card-border/70 absolute top-1/2 right-0 left-0 -translate-y-1/2 border-t border-dashed"
+              />
+              <TravelCard
+                axis="x"
+                version={V14.version}
+                diff={V14.diff}
+                diffTone="danger"
+                verdict={V14.verdict}
+                verdictTone="danger"
+                schemaFile={SCHEMA_FILE}
+                delay={0}
+              />
+              <TravelCard
+                axis="x"
+                version={V15.version}
+                diff={V15.diff}
+                diffTone="warning"
+                verdict={V15.verdict}
+                verdictTone="success"
+                schemaFile={SCHEMA_FILE}
+                delay={HALF}
+              />
+            </div>
             <RegistryNode />
-            <TravelCard
-              axis="x"
-              version={V14.version}
-              diff={V14.diff}
-              diffTone="danger"
-              verdict={V14.verdict}
-              verdictTone="danger"
-              schemaFile={SCHEMA_FILE}
-              delay={0}
-            />
-            <TravelCard
-              axis="x"
-              version={V15.version}
-              diff={V15.diff}
-              diffTone="warning"
-              verdict={V15.verdict}
-              verdictTone="success"
-              schemaFile={SCHEMA_FILE}
-              delay={HALF}
-            />
           </div>
 
           <div className="flex flex-col items-center gap-2 px-4 pt-4 @[480px]:hidden">
@@ -255,42 +225,40 @@ export function ProtectWindow() {
           </div>
         </div>
 
-        <div className="hidden space-y-2 px-4 py-4 motion-reduce:block">
-          <div className="border-cc-danger/40 bg-cc-danger/[0.06] flex items-start gap-2 rounded-lg border px-3 py-2.5">
-            <BlockMark
-              width={13}
-              height={13}
-              className="text-cc-danger mt-0.5 shrink-0"
-            />
-            <div className="min-w-0">
-              <div className="text-cc-heading font-mono text-[0.7rem]">
-                {SCHEMA_FILE} · {V14.version}
-              </div>
-              <div className="text-cc-danger mt-0.5 font-mono text-[0.7rem]">
-                {V14.diff} · mobile still used · {MOBILE_IMPACT}
-              </div>
-              <div className="text-cc-danger mt-0.5 font-mono text-[0.7rem] font-semibold">
-                {V14.verdict}
-              </div>
-            </div>
+        <div className="hidden flex-col gap-3 px-4 py-4 motion-reduce:flex">
+          <div className="flex items-center gap-3">
+            <RegistryNode />
           </div>
-          <div className="border-cc-success/40 bg-cc-success/[0.06] flex items-start gap-2 rounded-lg border px-3 py-2.5">
-            <CheckGlyph
-              width={13}
-              height={13}
-              className="text-cc-success mt-0.5 shrink-0"
+          <div className="border-cc-card-border overflow-hidden rounded-lg border">
+            {CLIENT_OPS.map((op) => {
+              const outcome = firstOutcome(op.id, 0);
+              return (
+                <StaticClientRow
+                  key={op.id}
+                  label={op.label}
+                  tone={outcome.tone}
+                  text={outcome.text}
+                />
+              );
+            })}
+          </div>
+          <div className="flex flex-col gap-3 @[480px]:flex-row">
+            <StaticVerdictCard
+              version={V14.version}
+              diff={V14.diff}
+              diffTone="danger"
+              verdict={V14.verdict}
+              verdictTone="danger"
+              schemaFile={SCHEMA_FILE}
             />
-            <div className="min-w-0">
-              <div className="text-cc-heading font-mono text-[0.7rem]">
-                {SCHEMA_FILE} · {V15.version}
-              </div>
-              <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.7rem]">
-                {V15.diff} · every client compatible
-              </div>
-              <div className="text-cc-success mt-0.5 font-mono text-[0.7rem] font-semibold">
-                {V15.verdict}
-              </div>
-            </div>
+            <StaticVerdictCard
+              version={V15.version}
+              diff={V15.diff}
+              diffTone="warning"
+              verdict={V15.verdict}
+              verdictTone="success"
+              schemaFile={SCHEMA_FILE}
+            />
           </div>
         </div>
       </div>

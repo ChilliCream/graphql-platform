@@ -5,15 +5,12 @@ import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { RegistryNodeIcon } from "@/src/icons/RegistryNodeIcon";
 
 interface RevealProps {
-  /** Name of one of the `<style>` block's `@keyframes`. */
   readonly keyframeName: string;
-  /** Seconds into the shared cycle this instance's local timeline starts. */
   readonly delay: number;
   readonly className?: string;
   readonly children?: ReactNode;
 }
 
-/** One CSS-keyframe-driven element: duration, easing and the play/pause gate live on the shared `.pw-anim` class; only the shape and its phase differ per instance. */
 export function Reveal({
   keyframeName,
   delay,
@@ -31,7 +28,6 @@ export function Reveal({
   );
 }
 
-/** The registry destination node: a hexagon mark and its label. */
 export function RegistryNode() {
   return (
     <div className="border-cc-accent/40 bg-cc-accent/[0.06] text-cc-accent flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-2">
@@ -43,7 +39,6 @@ export function RegistryNode() {
   );
 }
 
-/** The dock a document departs from before it travels to the registry. */
 export function DockLabel() {
   return (
     <div className="border-cc-card-border text-cc-ink-dim rounded-lg border border-dashed px-2.5 py-2">
@@ -52,19 +47,6 @@ export function DockLabel() {
       </span>
     </div>
   );
-}
-
-interface TravelCardProps {
-  readonly version: string;
-  readonly diff: string;
-  readonly diffTone: "danger" | "warning";
-  readonly verdict: string;
-  readonly verdictTone: "danger" | "success";
-  readonly schemaFile: string;
-  /** Seconds into the shared 11s cycle this card's own travel starts. */
-  readonly delay: number;
-  /** Horizontal travel (wide, side-by-side lane) or vertical (stacked, narrow container). */
-  readonly axis: "x" | "y";
 }
 
 const DIFF_TONE_CLASS = {
@@ -77,22 +59,90 @@ const VERDICT_TONE_CLASS = {
   success: "border-cc-success/40 bg-cc-success/[0.08] text-cc-success",
 } as const;
 
-/** Static anchor per axis; the animated element only ever carries one (travel) transform. */
-const WRAPPER_CLASS = {
-  x: "absolute top-1/2 left-4 -translate-y-1/2",
-  y: "absolute top-0 left-1/2 -translate-x-1/2",
-} as const;
+const CARD_CLASS =
+  "border-cc-card-border bg-cc-card-bg z-10 block w-[9.5rem] rounded-lg border px-2.5 py-2 shadow-lg @min-[420px]:w-[11.5rem]";
 
-const KEYFRAME_NAME = {
-  x: "pw-doc-travel-x",
-  y: "pw-doc-travel-y",
-} as const;
+interface VerdictContentProps {
+  readonly tone: "danger" | "success";
+  readonly text: string;
+  readonly size?: number;
+  readonly iconClassName?: string;
+  /** The stamp's longer verdict text must wrap; short row outcomes stay on one line. */
+  readonly wrap?: boolean;
+}
 
-/**
- * A schema document travelling from the dock to the registry: it fades in,
- * moves across the lane, holds while it is analyzed, is stamped with a
- * verdict, then fades out before the next document arrives.
- */
+function VerdictContent({
+  tone,
+  text,
+  size = 11,
+  iconClassName = "shrink-0",
+  wrap = false,
+}: VerdictContentProps) {
+  const Icon = tone === "danger" ? BlockMark : CheckGlyph;
+  return (
+    <>
+      <Icon width={size} height={size} className={iconClassName} />
+      <span
+        className={`font-mono text-[0.7rem] ${wrap ? "" : "whitespace-nowrap"}`}
+      >
+        {text}
+      </span>
+    </>
+  );
+}
+
+interface CardFaceProps {
+  readonly version: string;
+  readonly diff: string;
+  readonly diffTone: "danger" | "warning";
+  readonly schemaFile: string;
+  readonly verdict: ReactNode;
+}
+
+function CardFace({
+  version,
+  diff,
+  diffTone,
+  schemaFile,
+  verdict,
+}: CardFaceProps) {
+  return (
+    <div className={CARD_CLASS}>
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
+          {version}
+        </span>
+        <span className="text-cc-ink-dim hidden font-mono text-[0.7rem] @min-[420px]:inline">
+          schema
+        </span>
+      </div>
+      <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.7rem]">
+        {schemaFile}
+      </div>
+      <code
+        className={`mt-1 block font-mono text-[0.7rem] ${DIFF_TONE_CLASS[diffTone]}`}
+      >
+        {diff}
+      </code>
+      {verdict}
+    </div>
+  );
+}
+
+interface TravelCardProps {
+  readonly version: string;
+  readonly diff: string;
+  readonly diffTone: "danger" | "warning";
+  readonly verdict: string;
+  readonly verdictTone: "danger" | "success";
+  readonly schemaFile: string;
+  readonly delay: number;
+  readonly axis: "x" | "y";
+}
+
+/** Static counterpart to the animated x-axis wrapper below (kept off the animated element itself, per the CLS fix). */
+const Y_WRAPPER_CLASS = "absolute top-0 left-1/2 -translate-x-1/2";
+
 export function TravelCard({
   version,
   diff,
@@ -103,44 +153,87 @@ export function TravelCard({
   delay,
   axis,
 }: TravelCardProps) {
-  const VerdictIcon = verdictTone === "danger" ? BlockMark : CheckGlyph;
-  return (
-    <span className={WRAPPER_CLASS[axis]}>
-      <Reveal
-        keyframeName={KEYFRAME_NAME[axis]}
-        delay={delay}
-        className="border-cc-card-border bg-cc-card-bg z-10 block w-[9.5rem] rounded-lg border px-2.5 py-2 opacity-0 shadow-[0_8px_20px_-12px_rgba(0,0,0,0.6)] @min-[420px]:w-[11.5rem]"
-      >
-        <div className="flex items-center justify-between gap-1">
-          <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
-            {version}
-          </span>
-          <span className="text-cc-ink-faint hidden font-mono text-[0.7rem] @min-[420px]:inline">
-            schema
-          </span>
-        </div>
-        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.7rem]">
-          {schemaFile}
-        </div>
-        <code
-          className={`mt-1 block font-mono text-[0.7rem] ${DIFF_TONE_CLASS[diffTone]}`}
-        >
-          {diff}
-        </code>
+  const stamp = (
+    <Reveal
+      keyframeName="pw-stamp"
+      delay={delay}
+      className={`mt-1.5 flex items-center gap-1 rounded border px-1.5 py-0.5 ${VERDICT_TONE_CLASS[verdictTone]}`}
+    >
+      <VerdictContent
+        tone={verdictTone}
+        text={verdict}
+        iconClassName="mt-0.5 shrink-0 self-start"
+        wrap
+      />
+    </Reveal>
+  );
+  const face = (
+    <CardFace
+      version={version}
+      diff={diff}
+      diffTone={diffTone}
+      schemaFile={schemaFile}
+      verdict={stamp}
+    />
+  );
+
+  if (axis === "y") {
+    return (
+      <span className={Y_WRAPPER_CLASS}>
         <Reveal
-          keyframeName="pw-stamp"
+          keyframeName="pw-doc-travel-y"
           delay={delay}
+          className="z-10 block opacity-0"
+        >
+          {face}
+        </Reveal>
+      </span>
+    );
+  }
+
+  // Fills its parent lane exactly, so `translateX` travels the lane's own rendered width.
+  return (
+    <Reveal
+      keyframeName="pw-doc-travel-x"
+      delay={delay}
+      className="absolute inset-0 flex items-center justify-end opacity-0"
+    >
+      {face}
+    </Reveal>
+  );
+}
+
+interface StaticVerdictCardProps {
+  readonly version: string;
+  readonly diff: string;
+  readonly diffTone: "danger" | "warning";
+  readonly verdict: string;
+  readonly verdictTone: "danger" | "success";
+  readonly schemaFile: string;
+}
+
+export function StaticVerdictCard({
+  version,
+  diff,
+  diffTone,
+  verdict,
+  verdictTone,
+  schemaFile,
+}: StaticVerdictCardProps) {
+  return (
+    <CardFace
+      version={version}
+      diff={diff}
+      diffTone={diffTone}
+      schemaFile={schemaFile}
+      verdict={
+        <span
           className={`mt-1.5 flex items-center gap-1 rounded border px-1.5 py-0.5 ${VERDICT_TONE_CLASS[verdictTone]}`}
         >
-          <VerdictIcon
-            width={11}
-            height={11}
-            className="mt-0.5 shrink-0 self-start"
-          />
-          <span className="font-mono text-[0.7rem]">{verdict}</span>
-        </Reveal>
-      </Reveal>
-    </span>
+          <VerdictContent tone={verdictTone} text={verdict} wrap />
+        </span>
+      }
+    />
   );
 }
 
@@ -150,9 +243,7 @@ interface RowOutcomeProps {
   readonly delay: number;
 }
 
-/** One row's outcome for a single pass: a tick or a flag, staggered in as the scan reaches it. */
 export function RowOutcome({ tone, text, delay }: RowOutcomeProps) {
-  const Icon = tone === "danger" ? BlockMark : CheckGlyph;
   const toneClass = tone === "danger" ? "text-cc-danger" : "text-cc-success";
   return (
     <Reveal
@@ -160,21 +251,17 @@ export function RowOutcome({ tone, text, delay }: RowOutcomeProps) {
       delay={delay}
       className={`absolute inset-0 flex items-center justify-end gap-1.5 ${toneClass}`}
     >
-      <Icon width={12} height={12} className="shrink-0" />
-      <span className="font-mono text-[0.7rem] whitespace-nowrap">{text}</span>
+      <VerdictContent tone={tone} text={text} size={12} />
     </Reveal>
   );
 }
 
 interface ClientRowProps {
   readonly label: string;
-  /** Outcome shown while the first (breaking) document is analyzed. */
   readonly first: RowOutcomeProps;
-  /** Outcome shown while the second (safe) document is analyzed. */
   readonly second: RowOutcomeProps;
 }
 
-/** One registered client operation, with its outcome for each pass of the loop. */
 export function ClientRow({ label, first, second }: ClientRowProps) {
   return (
     <div className="border-cc-card-border flex h-9 items-center justify-between gap-3 border-b px-3 last:border-b-0">
@@ -187,7 +274,26 @@ export function ClientRow({ label, first, second }: ClientRowProps) {
   );
 }
 
-/** The highlight bar that sweeps the client list once per document analyzed; linear so its travel keys precisely to each row's crossing. */
+interface StaticClientRowProps {
+  readonly label: string;
+  readonly tone: "danger" | "success";
+  readonly text: string;
+}
+
+export function StaticClientRow({ label, tone, text }: StaticClientRowProps) {
+  return (
+    <div className="border-cc-card-border flex h-9 items-center justify-between gap-3 border-b px-3 last:border-b-0">
+      <span className="text-cc-heading font-mono text-[0.7rem]">{label}</span>
+      <span
+        className={`flex items-center gap-1.5 ${tone === "danger" ? "text-cc-danger" : "text-cc-success"}`}
+      >
+        <VerdictContent tone={tone} text={text} size={12} />
+      </span>
+    </div>
+  );
+}
+
+/** Linear so `checkDelay` in ProtectWindow.tsx can key to an exact crossing time. */
 export function ScanBar() {
   return (
     <Reveal
