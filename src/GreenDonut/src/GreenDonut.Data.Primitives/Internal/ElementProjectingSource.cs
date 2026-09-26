@@ -58,6 +58,10 @@ internal sealed class ElementProjectingSource<TElement, TValue>(
     public PageEntry<TValue> GetBufferedEntry(int index) => new(Get(index), index);
 
     /// <inheritdoc />
+    public ValueTask DrainAsync(CancellationToken cancellationToken = default)
+        => buffer.DrainAsync(cancellationToken);
+
+    /// <inheritdoc />
     public ValueTask DisposeAsync() => buffer.DisposeAsync();
 
     // Projects and caches source rows into page items on demand, so a row is only ever run

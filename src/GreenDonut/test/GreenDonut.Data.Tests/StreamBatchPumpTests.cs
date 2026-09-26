@@ -222,6 +222,31 @@ public class StreamBatchPumpTests
         Assert.Equal(1, source.DisposedCount);
     }
 
+    [Fact]
+    public async Task SourceEof_Should_CompleteEveryPage_And_ReleaseOnce_When_OnlyOnePageIsDrained()
+    {
+        // arrange
+        var lifetime = new RecordingLifetime();
+        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
+        var pump = CreatePump(source, ["A", "B"], lifetime);
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+
+        // act: prime both pages, then drain only B; reaching source EOF must still complete A
+        await pageA.PrimeAsync(TestContext.Current.CancellationToken);
+        await pageB.PrimeAsync(TestContext.Current.CancellationToken);
+        var itemsB = await CollectAsync(pageB);
+
+        // assert: A completed and everything released as soon as the source ran out, with no
+        // consumer ever pulling on A directly
+        Assert.Equal(["b1"], itemsB);
+        Assert.Equal((true, 1, 1), (pageA.IsCompleted, source.DisposedCount, lifetime.DisposeCount));
+
+        // A's buffered rows still replay with no further physical reads
+        Assert.Equal(["a1", "a2"], await CollectAsync(pageA));
+        Assert.Equal(3, source.RowsRead);
+    }
+
     private static StreamBatchRow<TKey, TElement> Row<TKey, TElement>(TKey key, TElement item)
         where TKey : notnull
         => new() { Key = key, Item = item };
@@ -250,12 +275,14 @@ public class StreamBatchPumpTests
             HasPreviousPage: null,
             FlagsFromFirstRow: null);
 
-    private static ValueCursorStreamPage<T> CreatePage<TKey, T>(
+    private static StreamPage<T> CreatePage<TKey, T>(
         StreamBatchPump<TKey, T> pump,
         TKey key,
         StreamPageDefinition<T> definition)
         where TKey : notnull
-        => new(pump.CreateKeyPump(key), definition, static entry => entry.Node!.ToString()!);
+        => pump.CreatePage(
+            key,
+            keyPump => new ValueCursorStreamPage<T>(keyPump, definition, static entry => entry.Node!.ToString()!));
 
     private static async Task<List<T>> CollectAsync<T>(StreamPage<T> page)
     {

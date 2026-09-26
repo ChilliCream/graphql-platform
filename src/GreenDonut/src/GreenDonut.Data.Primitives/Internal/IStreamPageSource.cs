@@ -59,4 +59,12 @@ internal interface IStreamPageSource<TValue> : IAsyncEnumerable<TValue>, IAsyncD
     /// Gets the already buffered entry at the given index, without reading ahead.
     /// </summary>
     PageEntry<TValue> GetBufferedEntry(int index);
+
+    /// <summary>
+    /// Reads from the source until it completes, buffering every remaining row along the way.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A token to cancel the operation.
+    /// </param>
+    ValueTask DrainAsync(CancellationToken cancellationToken = default);
 }

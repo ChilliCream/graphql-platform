@@ -70,6 +70,15 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     internal PageEntry<T> GetBufferedEntry(int index) => _source.GetBufferedEntry(index);
 
     /// <summary>
+    /// Reads from the source until it completes, buffering every remaining row along the way.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A token to cancel the operation.
+    /// </param>
+    internal ValueTask DrainAsync(CancellationToken cancellationToken = default)
+        => _source.DrainAsync(cancellationToken);
+
+    /// <summary>
     /// Gets the enumerator for the items of this page.
     /// </summary>
     /// <param name="cancellationToken">

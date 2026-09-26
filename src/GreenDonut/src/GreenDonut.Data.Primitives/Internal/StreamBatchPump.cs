@@ -57,22 +57,39 @@ internal sealed class StreamBatchPump<TKey, TElement>
     }
 
     /// <summary>
-    /// Creates the pump that feeds the page for the given requested key. Must be called exactly
-    /// once for every key this batch pump was created with, before any page is primed.
+    /// Builds the page for the given requested key, wiring it to complete when the shared source
+    /// moves past that key. Must be called exactly once for every key this batch pump was created
+    /// with, before any page is primed.
     /// </summary>
+    /// <typeparam name="TValue">
+    /// The type of the page's items.
+    /// </typeparam>
     /// <param name="key">
     /// One of the keys this batch pump was created with.
     /// </param>
-    public StreamPagePump<TElement> CreateKeyPump(TKey key)
+    /// <param name="createPage">
+    /// Builds the page from the per-key pump this batch pump creates for <paramref name="key"/>.
+    /// </param>
+    public StreamPage<TValue> CreatePage<TValue>(
+        TKey key,
+        Func<StreamPagePump<TElement>, StreamPage<TValue>> createPage)
     {
-        if (!_keys.ContainsKey(key))
+        ArgumentNullException.ThrowIfNull(createPage);
+
+        if (!_keys.TryGetValue(key, out var channel))
         {
-            throw new ArgumentException(
-                $"'{key}' is not one of the keys this batch pump was created with.",
-                nameof(key));
+            throw ThrowHelper.StreamBatchPump_KeyNotRequested(key);
         }
 
-        return new StreamPagePump<TElement>(new KeyReader(this, key), pageCount: 1);
+        if (channel.Drain is not null)
+        {
+            throw ThrowHelper.StreamBatchPump_KeyAlreadyHasPage(key);
+        }
+
+        var pump = new StreamPagePump<TElement>(new KeyReader(this, key), pageCount: 1);
+        var page = createPage(pump);
+        channel.Drain = page.DrainAsync;
+        return page;
     }
 
     // Returns the next row for the given key, reading from the shared source until one arrives,
@@ -90,14 +107,27 @@ internal sealed class StreamBatchPump<TKey, TElement>
     }
 
     // Advances the shared source by exactly one row, routing it to its key's channel. A key
-    // change completes the previously active key; source exhaustion completes every remaining key.
+    // change completes the previously active key's page; source exhaustion completes every page
+    // not yet complete. Completing a channel here also drains its page, so the page's own
+    // completion (and, once every key has completed or been disposed, the source and the
+    // lifetime) happens without waiting for a consumer to pull the remaining buffered rows.
     private async ValueTask PumpOnceAsync()
     {
         if (!await _source.MoveNextAsync().ConfigureAwait(false))
         {
             foreach (var each in _keys.Values)
             {
+                if (each.Completed)
+                {
+                    continue;
+                }
+
                 each.Completed = true;
+
+                if (each.Drain is not null)
+                {
+                    await each.Drain(CancellationToken.None).ConfigureAwait(false);
+                }
             }
 
             return;
@@ -107,14 +137,18 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
         if (!_keys.TryGetValue(row.Key, out var channel))
         {
-            throw new InvalidOperationException(
-                $"The batch source produced a row for key '{row.Key}', which is not one of the "
-                + "requested keys.");
+            throw ThrowHelper.StreamBatchPump_RowForUnrequestedKey(row.Key);
         }
 
         if (_hasCurrentKey && !EqualityComparer<TKey>.Default.Equals(_currentKey, row.Key))
         {
-            _keys[_currentKey].Completed = true;
+            var previous = _keys[_currentKey];
+            previous.Completed = true;
+
+            if (previous.Drain is not null)
+            {
+                await previous.Drain(CancellationToken.None).ConfigureAwait(false);
+            }
         }
 
         _hasCurrentKey = true;
@@ -152,6 +186,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
         public Queue<StreamRow<TElement>> Rows { get; } = new();
 
         public bool Completed { get; set; }
+
+        public Func<CancellationToken, ValueTask>? Drain { get; set; }
     }
 
     // Adapts one key's slice of the demultiplexed stream to the single-source shape a

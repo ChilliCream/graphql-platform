@@ -125,6 +125,15 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     public PageEntry<TElement> GetBufferedEntry(int index) => new(this[index], index);
 
     /// <inheritdoc />
+    public async ValueTask DrainAsync(CancellationToken cancellationToken = default)
+    {
+        while (!_isCompleted)
+        {
+            await AdvanceAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <inheritdoc />
     public ValueTask DisposeAsync() => CompleteAsync();
 
     private async IAsyncEnumerable<TElement> EnumerateAsync(
