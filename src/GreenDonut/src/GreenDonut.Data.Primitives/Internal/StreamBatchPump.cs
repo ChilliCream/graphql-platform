@@ -1,0 +1,174 @@
+namespace GreenDonut.Data.Internal;
+
+/// <summary>
+/// Demultiplexes one flat, key-ordered row stream into a <see cref="StreamPagePump{TElement}"/>
+/// per requested key, and releases the source and the lifetime once every requested key's page
+/// has completed or been disposed.
+/// </summary>
+/// <typeparam name="TKey">
+/// The type of the key that routes a row to its page.
+/// </typeparam>
+/// <typeparam name="TElement">
+/// The type of the source rows.
+/// </typeparam>
+/// <remarks>
+/// Rows arrive grouped by key. A row whose key differs from the previous row's key completes the
+/// previous key's page; source exhaustion completes every page not yet complete, so a requested
+/// key that never appears in the stream completes as an empty page. Pulling on any key's page
+/// drives this pump; rows for other keys are buffered into their own pages. This type has no
+/// cross-thread safety, the same stance as <see cref="StreamPageBuffer{TElement}"/>.
+/// </remarks>
+internal sealed class StreamBatchPump<TKey, TElement>
+    where TKey : notnull
+{
+    private readonly IAsyncEnumerator<StreamBatchRow<TKey, TElement>> _source;
+    private readonly Dictionary<TKey, KeyChannel> _keys;
+    private IAsyncDisposable? _lifetime;
+    private int _liveKeys;
+    private bool _hasCurrentKey;
+    private TKey _currentKey = default!;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamBatchPump{TKey,TElement}"/> class.
+    /// </summary>
+    /// <param name="source">
+    /// The shared, key-ordered source enumerator that produces rows for every requested key.
+    /// </param>
+    /// <param name="keys">
+    /// The requested keys. This pump releases the source and the lifetime once every one of these
+    /// keys' pages has completed or been disposed.
+    /// </param>
+    /// <param name="lifetime">
+    /// A resource owned by this pump, disposed once every key's page has completed or been
+    /// disposed, or null if this pump owns nothing beyond the source.
+    /// </param>
+    public StreamBatchPump(
+        IAsyncEnumerator<StreamBatchRow<TKey, TElement>> source,
+        IReadOnlyCollection<TKey> keys,
+        IAsyncDisposable? lifetime = null)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(keys);
+
+        _source = source;
+        _lifetime = lifetime;
+        _keys = keys.ToDictionary(key => key, static _ => new KeyChannel());
+        _liveKeys = _keys.Count;
+    }
+
+    /// <summary>
+    /// Creates the pump that feeds the page for the given requested key. Must be called exactly
+    /// once for every key this batch pump was created with, before any page is primed.
+    /// </summary>
+    /// <param name="key">
+    /// One of the keys this batch pump was created with.
+    /// </param>
+    public StreamPagePump<TElement> CreateKeyPump(TKey key)
+    {
+        if (!_keys.ContainsKey(key))
+        {
+            throw new ArgumentException(
+                $"'{key}' is not one of the keys this batch pump was created with.",
+                nameof(key));
+        }
+
+        return new StreamPagePump<TElement>(new KeyReader(this, key), pageCount: 1);
+    }
+
+    // Returns the next row for the given key, reading from the shared source until one arrives,
+    // the key's run completes, or the source is exhausted.
+    private async ValueTask<StreamRow<TElement>?> ReadNextAsync(TKey key)
+    {
+        var channel = _keys[key];
+
+        while (channel.Rows.Count == 0 && !channel.Completed)
+        {
+            await PumpOnceAsync().ConfigureAwait(false);
+        }
+
+        return channel.Rows.Count > 0 ? channel.Rows.Dequeue() : null;
+    }
+
+    // Advances the shared source by exactly one row, routing it to its key's channel. A key
+    // change completes the previously active key; source exhaustion completes every remaining key.
+    private async ValueTask PumpOnceAsync()
+    {
+        if (!await _source.MoveNextAsync().ConfigureAwait(false))
+        {
+            foreach (var each in _keys.Values)
+            {
+                each.Completed = true;
+            }
+
+            return;
+        }
+
+        var row = _source.Current;
+
+        if (!_keys.TryGetValue(row.Key, out var channel))
+        {
+            throw new InvalidOperationException(
+                $"The batch source produced a row for key '{row.Key}', which is not one of the "
+                + "requested keys.");
+        }
+
+        if (_hasCurrentKey && !EqualityComparer<TKey>.Default.Equals(_currentKey, row.Key))
+        {
+            _keys[_currentKey].Completed = true;
+        }
+
+        _hasCurrentKey = true;
+        _currentKey = row.Key;
+        channel.Rows.Enqueue(new StreamRow<TElement>
+        {
+            Item = row.Item,
+            TotalCount = row.TotalCount,
+            HasMore = row.HasMore
+        });
+    }
+
+    // Signals that one requested key's page has completed or been disposed. Once every key has
+    // done so, disposes the source and then the lifetime, exactly once.
+    private async ValueTask ReleaseAsync()
+    {
+        if (--_liveKeys > 0)
+        {
+            return;
+        }
+
+        await _source.DisposeAsync().ConfigureAwait(false);
+
+        var lifetime = _lifetime;
+        _lifetime = null;
+
+        if (lifetime is not null)
+        {
+            await lifetime.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    private sealed class KeyChannel
+    {
+        public Queue<StreamRow<TElement>> Rows { get; } = new();
+
+        public bool Completed { get; set; }
+    }
+
+    // Adapts one key's slice of the demultiplexed stream to the single-source shape a
+    // StreamPagePump expects, and turns its disposal into this key's release signal.
+    private sealed class KeyReader(StreamBatchPump<TKey, TElement> pump, TKey key)
+        : IAsyncEnumerator<StreamRow<TElement>>
+    {
+        private StreamRow<TElement>? _current;
+
+        public StreamRow<TElement> Current => _current!;
+
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            _current = await pump.ReadNextAsync(key).ConfigureAwait(false);
+            return _current is not null;
+        }
+
+        public ValueTask DisposeAsync() => pump.ReleaseAsync();
+    }
+}
