@@ -32,6 +32,8 @@ import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
 interface LayeredDiagramProps {
   /** Name on the gateway panel, e.g. "Fusion". */
   readonly gatewayLabel: string;
+  /** Caption under the gateway label; defaults to the federation wording. */
+  readonly caption?: string;
   /** Readout line under the gateway's phase indicator. */
   readonly compositionLine: string;
   readonly clients: readonly ClientNode[];
@@ -153,6 +155,7 @@ function Band({ flow, count, columns, lit, tone, step, pulse }: BandProps) {
 
 export default function LayeredDiagram({
   gatewayLabel,
+  caption = "Gateway · distributed executor",
   compositionLine,
   clients,
   tiers,
@@ -252,7 +255,7 @@ export default function LayeredDiagram({
                   lineHeight: LINE_HEIGHT,
                 }}
               >
-                Gateway · distributed executor
+                {caption}
               </p>
             </div>
 

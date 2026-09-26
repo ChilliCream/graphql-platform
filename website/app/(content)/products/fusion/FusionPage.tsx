@@ -127,6 +127,7 @@ const VISUALS: Readonly<Record<string, Panel>> = {
     visual: (
       <LayeredDiagram
         gatewayLabel="Fusion"
+        caption="Router"
         compositionLine={COMPOSITE_LINE}
         clients={CLIENT_NODES}
         tiers={TIER_NODES}
@@ -173,6 +174,7 @@ export function FusionPage() {
                   </div>
                 }
                 reverse={i % 2 === 1}
+                wide={section.id === "what-is-fusion"}
               >
                 {bullets && (
                   <CheckList items={bullets} size="base" className="mt-4" />
