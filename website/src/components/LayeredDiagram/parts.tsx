@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 
 import { TYPE } from "./tokens";
 import { MC } from "./palette";
-import { BUS_Y } from "./diagram";
 import type { BandFlow, Lane } from "./diagram";
 
 /**
@@ -161,17 +160,18 @@ export function Elbow({ lane, flow, tone }: ElbowProps) {
 
 interface PulseProps {
   readonly lane: Lane;
-  readonly flow: BandFlow;
   readonly tone: string;
   /** Already gated `animation` shorthand, or `none` at rest. */
   readonly animation: string;
+  /** This band's bus height, in percent; the rest position the pulse parks on. */
+  readonly busY: number;
 }
 
 /**
  * A request travelling the elbow. At rest it parks on the corner, which is
  * the frame the server and reduced-motion renders show.
  */
-export function Pulse({ lane, flow, tone, animation }: PulseProps) {
+export function Pulse({ lane, tone, animation, busY }: PulseProps) {
   return (
     <span
       className="absolute block h-[9px] w-[9px] rounded-full"
@@ -180,7 +180,7 @@ export function Pulse({ lane, flow, tone, animation }: PulseProps) {
           "--mc-layer-x": lane.x,
           zIndex: 3,
           left: lane.x,
-          top: `${BUS_Y[flow]}%`,
+          top: `${busY}%`,
           marginLeft: -4.5,
           marginTop: -4.5,
           background: tone,

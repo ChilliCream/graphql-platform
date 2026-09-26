@@ -51,7 +51,7 @@ export const TIER_NODES: readonly TierNode[] = [
   ...STATIONS.map((station) => ({
     name: station.name,
     language: SUBGRAPH_LANGUAGE[station.name] ?? station.language,
-    badge: specTag(station.spec),
+    badge: specTag(station.spec, true),
     spec: station.spec as StationSpec | null,
   })),
   ...SOURCES.map((source) => ({
@@ -133,6 +133,12 @@ export type BandFlow = "to-gateway" | "from-gateway";
 export const BUS_Y: Readonly<Record<BandFlow, number>> = {
   "to-gateway": 70,
   "from-gateway": 30,
+};
+
+/** Fusion's opt-in: both buses centred in their band, instead of BUS_Y's 70/30. */
+export const BUS_Y_CENTERED: Readonly<Record<BandFlow, number>> = {
+  "to-gateway": 50,
+  "from-gateway": 50,
 };
 
 export type LaneSide = "left" | "right" | "center";

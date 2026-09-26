@@ -8,6 +8,7 @@ import type { StationSpec } from "./palette";
 import { BRAND, TYPE } from "./tokens";
 import {
   BUS_Y,
+  BUS_Y_CENTERED,
   PHASE_LABEL,
   PHASE_MS,
   SPEC_LEGEND,
@@ -42,6 +43,10 @@ interface LayeredDiagramProps {
   readonly requests: readonly Request[];
   /** Fusion's opt-in dense mode: a lower one-row threshold and tighter cards. */
   readonly dense?: boolean;
+  /** Fusion's opt-in: both buses centred in their band (BUS_Y_CENTERED) instead of BUS_Y's 70/30. */
+  readonly busCentered?: boolean;
+  /** Fusion's opt-in: legend badges read the short spec tag, with no "FED". */
+  readonly shortSpecTags?: boolean;
 }
 
 /** Column counts per tier, stacked (below the container query) and wide. */
@@ -50,7 +55,6 @@ const NODE_COLUMNS = [3, 7] as const;
 
 /** Wide-layout grid gap in dense mode, in px; tied to `DENSE_WIDE_GAP_CLASS`. */
 const DENSE_WIDE_GAP = 4;
-/** Tailwind class carrying `DENSE_WIDE_GAP`, shared by both dense grids below. */
 const DENSE_WIDE_GAP_CLASS = "@min-[640px]:gap-1";
 
 const LAYOUTS = [
@@ -64,22 +68,25 @@ const DENSE_LAYOUTS = [
   { key: "wide", className: "hidden @min-[640px]:block" },
 ] as const;
 
-const KEYFRAMES = `
+/** Keyframes for a travelling pulse; `busY` is BUS_Y or Fusion's BUS_Y_CENTERED. */
+function layerKeyframes(busY: Readonly<Record<BandFlow, number>>): string {
+  return `
 @keyframes mc-layer-in {
   0% { top: 0%; left: var(--mc-layer-x); opacity: 0; }
   10% { opacity: 1; }
-  50% { top: ${BUS_Y["to-gateway"]}%; left: var(--mc-layer-x); }
-  78% { top: ${BUS_Y["to-gateway"]}%; left: 50%; }
+  50% { top: ${busY["to-gateway"]}%; left: var(--mc-layer-x); }
+  78% { top: ${busY["to-gateway"]}%; left: 50%; }
   100% { top: 100%; left: 50%; opacity: 1; }
 }
 @keyframes mc-layer-out {
   0% { top: 0%; left: 50%; opacity: 1; }
-  22% { top: ${BUS_Y["from-gateway"]}%; left: 50%; }
-  50% { top: ${BUS_Y["from-gateway"]}%; left: var(--mc-layer-x); }
+  22% { top: ${busY["from-gateway"]}%; left: 50%; }
+  50% { top: ${busY["from-gateway"]}%; left: var(--mc-layer-x); }
   92% { opacity: 1; }
   100% { top: 100%; left: var(--mc-layer-x); opacity: 0; }
 }
 `;
+}
 
 const HUB_GLOW = `radial-gradient(48% 36% at 50% 50%, ${wash(MC.phosphor, 16)} 0%, transparent 72%)`;
 
@@ -103,6 +110,8 @@ interface BandProps {
   /** Animation for the `index`-th lit lane, or `null` when nothing travels. */
   readonly pulse: ((index: number) => string) | null;
   readonly dense?: boolean;
+  /** BUS_Y or Fusion's BUS_Y_CENTERED; picks this band's `flow` height. */
+  readonly busY: Readonly<Record<BandFlow, number>>;
 }
 
 /**
@@ -119,8 +128,9 @@ function Band({
   step,
   pulse,
   dense = false,
+  busY,
 }: BandProps) {
-  const bus = BUS_Y[flow];
+  const bus = busY[flow];
   const down = flow === "to-gateway";
   const layouts = dense ? DENSE_LAYOUTS : LAYOUTS;
 
@@ -165,9 +175,9 @@ function Band({
                   <Pulse
                     key={`${step}-${lane.key}`}
                     lane={lane}
-                    flow={flow}
                     tone={tone}
                     animation={pulse(index)}
+                    busY={bus}
                   />
                 ))
               : null}
@@ -186,11 +196,14 @@ export default function LayeredDiagram({
   tiers,
   requests,
   dense = false,
+  busCentered = false,
+  shortSpecTags = false,
 }: LayeredDiagramProps) {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
   const steps = requests.length * PHASE_LABEL.length;
   const step = useCycle(running, steps, PHASE_MS, restStep(requests.length));
+  const busY = busCentered ? BUS_Y_CENTERED : BUS_Y;
 
   const phase = step % PHASE_LABEL.length;
   const request = requests[Math.floor(step / PHASE_LABEL.length)];
@@ -225,7 +238,7 @@ export default function LayeredDiagram({
       aria-hidden="true"
       style={{ background: MC.bg }}
     >
-      <style>{KEYFRAMES}</style>
+      <style>{layerKeyframes(busY)}</style>
       <div className="absolute inset-0" style={{ background: HUB_GLOW }} />
 
       <div
@@ -264,6 +277,7 @@ export default function LayeredDiagram({
             step={step}
             pulse={upstream}
             dense={dense}
+            busY={busY}
           />
 
           <div
@@ -357,6 +371,7 @@ export default function LayeredDiagram({
             step={step}
             pulse={downstream}
             dense={dense}
+            busY={busY}
           />
 
           <div
@@ -395,7 +410,7 @@ export default function LayeredDiagram({
                   className="block h-2 w-2"
                   style={{ background: specColor(spec), borderRadius: 2 }}
                 />
-                {`${specTag(spec)} = ${spec}`}
+                {`${specTag(spec, shortSpecTags)} = ${spec}`}
               </p>
             ))}
           </div>
