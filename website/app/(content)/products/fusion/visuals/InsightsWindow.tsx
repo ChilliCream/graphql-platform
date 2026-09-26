@@ -1,58 +1,120 @@
 import { AppWindow } from "@/src/components/AppWindow";
-import { NitroFrame } from "@/src/components/NitroFrame";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
-import { TraceWaterfall } from "@/src/nitro";
-import type { Trace } from "@/src/nitro/lib/data/types";
 
-const OPERATION_TRACE: Trace = {
-  totalMs: 150,
-  spans: [
-    {
-      id: "s1",
-      name: "POST /graphql",
-      kind: "server",
-      startMs: 0,
-      durationMs: 150,
-      depth: 0,
-    },
-    {
-      id: "s2",
-      name: "query GetOrderSummary",
-      kind: "graphql",
-      startMs: 3,
-      durationMs: 145,
-      depth: 1,
-    },
-    {
-      id: "s3",
-      name: "catalog · GetProducts",
-      kind: "http",
-      startMs: 9,
-      durationMs: 26,
-      depth: 2,
-    },
-    {
-      id: "s4",
-      name: "orders · GetOrderHistory",
-      kind: "http",
-      startMs: 9,
-      durationMs: 33,
-      depth: 2,
-    },
-    {
-      id: "s5",
-      name: "billing · GetInvoice",
-      kind: "http",
-      startMs: 44,
-      durationMs: 92,
-      depth: 2,
-    },
-  ],
+type Tone = "muted" | "warning";
+
+interface WaterfallSpan {
+  readonly name: string;
+  readonly startMs: number;
+  readonly durationMs: number;
+  readonly tone: Tone;
+}
+
+const TOTAL_MS = 150;
+
+const SPANS: readonly WaterfallSpan[] = [
+  { name: "POST /graphql", startMs: 0, durationMs: 150, tone: "muted" },
+  {
+    name: "query GetOrderSummary",
+    startMs: 3,
+    durationMs: 145,
+    tone: "muted",
+  },
+  { name: "catalog · GetProducts", startMs: 9, durationMs: 26, tone: "muted" },
+  {
+    name: "orders · GetOrderHistory",
+    startMs: 9,
+    durationMs: 33,
+    tone: "muted",
+  },
+  {
+    name: "billing · GetInvoice",
+    startMs: 44,
+    durationMs: 92,
+    tone: "warning",
+  },
+];
+
+const AXIS_TICKS_MS = [0, 50, 100, 150] as const;
+
+const ROW_DELAYS = ["", "delay-75", "delay-150", "delay-200", "delay-300"];
+
+const TONE_TEXT_CLASS: Record<Tone, string> = {
+  muted: "text-cc-ink-dim",
+  warning: "text-cc-warning",
+};
+const TONE_BAR_CLASS: Record<Tone, string> = {
+  muted: "bg-cc-nav-text/60",
+  warning: "bg-cc-warning",
 };
 
+const ROW_CLASS = "border-cc-card-border border-b px-4 py-3 last:border-b-0";
+const ROW_HEAD_CLASS =
+  "flex min-w-0 flex-col gap-0.5 @min-[500px]:flex-row @min-[500px]:items-baseline @min-[500px]:justify-between @min-[500px]:gap-3";
 const FOOTER_ROW_CLASS =
   "flex min-w-0 flex-col gap-0.5 @min-[500px]:flex-row @min-[500px]:items-baseline @min-[500px]:justify-between @min-[500px]:gap-3";
+
+/** Axis ticks sit in their own zero-padding box so left% lines up with the bar tracks below. */
+function TimeAxis() {
+  return (
+    <div className="px-4 pt-3 pb-1">
+      <div className="relative h-4">
+        {AXIS_TICKS_MS.map((tick) => {
+          const pct = (tick / TOTAL_MS) * 100;
+          const transform =
+            tick === 0
+              ? "none"
+              : tick === TOTAL_MS
+                ? "translateX(-100%)"
+                : "translateX(-50%)";
+          return (
+            <span
+              key={tick}
+              className="text-cc-ink-dim absolute font-mono text-[0.7rem] whitespace-nowrap"
+              style={{ left: `${pct}%`, transform }}
+            >
+              {tick} ms
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface WaterfallRowProps extends WaterfallSpan {
+  readonly delayClassName: string;
+}
+
+function WaterfallRow({
+  name,
+  startMs,
+  durationMs,
+  tone,
+  delayClassName,
+}: WaterfallRowProps) {
+  const left = (startMs / TOTAL_MS) * 100;
+  const width = (durationMs / TOTAL_MS) * 100;
+  return (
+    <RevealOnScroll className={`${ROW_CLASS} ${delayClassName}`}>
+      <div className={ROW_HEAD_CLASS}>
+        <span className="text-cc-heading font-mono text-[0.7rem]">{name}</span>
+        <span
+          className={`font-mono text-[0.7rem] ${TONE_TEXT_CLASS[tone]} @min-[500px]:text-right`}
+        >
+          {durationMs} ms
+        </span>
+      </div>
+      <div className="bg-cc-accent/15 relative mt-2 h-1.5 rounded-full">
+        <div
+          className={`absolute inset-y-0 rounded-full ${TONE_BAR_CLASS[tone]}`}
+          style={{ left: `${left}%`, width: `${width}%` }}
+        />
+      </div>
+    </RevealOnScroll>
+  );
+}
 
 export function InsightsWindow() {
   return (
@@ -79,16 +141,19 @@ export function InsightsWindow() {
         </div>
       }
     >
-      <div className="px-4 py-4" style={{ zoom: 1.25 }}>
-        <NitroFrame reducedMotion="user">
-          <TraceWaterfall
-            trace={OPERATION_TRACE}
-            rowHeight={30}
-            durationMs={4200}
-            once
-            ariaLabel="Trace of query GetOrderSummary: gateway request, then the operation plan's fetches to catalog and orders in parallel, then billing, the slowest of the three."
+      <div
+        className="@container"
+        role="img"
+        aria-label="Trace of query GetOrderSummary: gateway request, then the operation plan's fetches to catalog and orders in parallel, then billing, the slowest of the three."
+      >
+        <TimeAxis />
+        {SPANS.map((span, i) => (
+          <WaterfallRow
+            key={span.name}
+            {...span}
+            delayClassName={ROW_DELAYS[i]}
           />
-        </NitroFrame>
+        ))}
       </div>
     </AppWindow>
   );
