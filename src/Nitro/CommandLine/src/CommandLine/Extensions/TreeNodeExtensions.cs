@@ -190,6 +190,38 @@ internal static class TreeNodeExtensions
         }
     }
 
+    public static IHasTreeNodes AddFusionConfigurationValidationErrors(
+        this IHasTreeNodes node,
+        IFusionConfigurationValidationFailed validationFailed)
+    {
+        foreach (var error in validationFailed.Errors)
+        {
+            switch (error)
+            {
+                case ISchemaVersionChangeViolationError e:
+                    node.AddSchemaVersionChangeViolations(e);
+                    break;
+                case IInvalidGraphQLSchemaError e:
+                    node.AddGraphQLSchemaErrors(e);
+                    break;
+                case IPersistedQueryValidationError e:
+                    node.AddPersistedQueryValidationErrorsWithClients(e);
+                    break;
+                case IOpenApiCollectionValidationError e:
+                    node.AddOpenApiCollectionValidationErrors(e);
+                    break;
+                case IMcpFeatureCollectionValidationError e:
+                    node.AddMcpFeatureCollectionValidationErrors(e);
+                    break;
+                case IUnexpectedProcessingError e:
+                    node.AddErrorMessage(e.Message);
+                    break;
+            }
+        }
+
+        return node;
+    }
+
     public static IHasTreeNodes AddStagePublishedDependencies(
         this IHasTreeNodes node,
         IStagesHavePublishedDependenciesError error)

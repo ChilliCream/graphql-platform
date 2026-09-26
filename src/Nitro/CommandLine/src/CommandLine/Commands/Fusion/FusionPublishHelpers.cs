@@ -354,33 +354,9 @@ internal static class FusionPublishHelpers
                     throw Exit(
                         "Your request is ready for the composition. Run `fusion-configuration publish start`.");
 
-                case IFusionConfigurationValidationFailed { Errors: var errors }:
+                case IFusionConfigurationValidationFailed validationFailed:
                     var errorTree = new Tree("");
-
-                    foreach (var error in errors)
-                    {
-                        switch (error)
-                        {
-                            case ISchemaVersionChangeViolationError e:
-                                errorTree.AddSchemaVersionChangeViolations(e);
-                                break;
-                            case IInvalidGraphQLSchemaError e:
-                                errorTree.AddGraphQLSchemaErrors(e);
-                                break;
-                            case IPersistedQueryValidationError e:
-                                errorTree.AddPersistedQueryValidationErrorsWithClients(e);
-                                break;
-                            case IOpenApiCollectionValidationError e:
-                                errorTree.AddOpenApiCollectionValidationErrors(e);
-                                break;
-                            case IMcpFeatureCollectionValidationError e:
-                                errorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                break;
-                            case IUnexpectedProcessingError e:
-                                errorTree.AddErrorMessage(e.Message);
-                                break;
-                        }
-                    }
+                    errorTree.AddFusionConfigurationValidationErrors(validationFailed);
 
                     activity.Fail(errorTree, "Fusion configuration failed validation.");
 
