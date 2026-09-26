@@ -297,11 +297,11 @@ public class RabbitMQUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_MaterializeNonDurableAutoDeleteQueue_When_TemporaryCalled()
+    public void Queue_Should_MaterializeDurableAutoDeleteQueueWithExpiry_When_TemporaryCalled()
     {
         // arrange
-        // Temporary() on the Queue() descriptor must produce a non-durable, auto-delete queue,
-        // matching the lifecycle contract of a directly-declared temporary receive endpoint.
+        // Temporary() on the Queue() descriptor must produce the same durable, auto-delete queue
+        // with a queue expiry as a temporary receive endpoint.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -313,12 +313,51 @@ public class RabbitMQUnifiedQueueTests
         var topology = (RabbitMQMessagingTopology)transport.Topology;
 
         // act
-        var queue = topology.Queues.SingleOrDefault(q => q.Name == "temp-audit");
+        var queue = topology.Queues.Single(q => q.Name == "temp-audit");
 
         // assert
-        Assert.NotNull(queue);
-        Assert.False(queue.Durable);
-        Assert.True(queue.AutoDelete);
+        new { queue.Durable, queue.Exclusive, queue.AutoDelete, queue.Arguments }.MatchInlineSnapshot(
+            """
+            {
+              "Durable": true,
+              "Exclusive": false,
+              "AutoDelete": true,
+              "Arguments": {
+                "x-expires": 1800000
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Queue_Should_UseConfiguredExpiry_When_TemporaryCalledWithExpiry()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("temp-audit").Temporary(TimeSpan.FromMinutes(5));
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == "temp-audit");
+
+        // assert
+        new { queue.Durable, queue.Exclusive, queue.AutoDelete, queue.Arguments }.MatchInlineSnapshot(
+            """
+            {
+              "Durable": true,
+              "Exclusive": false,
+              "AutoDelete": true,
+              "Arguments": {
+                "x-expires": 300000
+              }
+            }
+            """);
     }
 
     private static MessagingRuntime CreateRuntime(
