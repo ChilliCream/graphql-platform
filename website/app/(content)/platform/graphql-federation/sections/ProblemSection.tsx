@@ -51,7 +51,7 @@ export function ProblemSection() {
               against each other and merges them into one composite schema,
               which is what your gateway serves. If the change conflicts with
               another subgraph, composition fails at build time and the change
-              never reaches production. Your consumers also known as clients
+              never reaches production. Your consumers, also known as clients,
               never notice any of this.
             </p>
           </div>
