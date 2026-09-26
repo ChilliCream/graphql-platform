@@ -11,4 +11,6 @@ internal sealed record AzureDevOpsSourceMetadataDto(
     string? CommitHash,
     string? JobId,
     string? TaskId,
-    string? RepositoryUrl);
+    string? RepositoryUrl,
+    string? Ref,
+    int? PullRequestNumber);

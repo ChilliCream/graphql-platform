@@ -11402,13 +11402,6 @@ namespace ChilliCream.Nitro.Client
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    /// <summary>
-    /// The version's recent-traffic protection cannot be evaluated: the client had no traffic
-    /// of any version within the required window, no traffic data is available, or the
-    /// lifecycle's traffic rules look further back than the traffic history that can be relied
-    /// on, so the rule can neither keep nor release the version. A forced unpublish goes
-    /// through regardless.
-    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError : global::System.IEquatable<UnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError>, IUnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError
     {
@@ -11674,13 +11667,6 @@ namespace ChilliCream.Nitro.Client
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The version's recent-traffic protection cannot be evaluated: the client had no traffic
-    /// of any version within the required window, no traffic data is available, or the
-    /// lifecycle's traffic rules look further back than the traffic history that can be relied
-    /// on, so the rule can neither keep nor release the version. A forced unpublish goes
-    /// through regardless.
-    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IClientRecentTrafficProtectionNotEvaluableError : IError
     {
@@ -11697,13 +11683,6 @@ namespace ChilliCream.Nitro.Client
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    /// <summary>
-    /// The version's recent-traffic protection cannot be evaluated: the client had no traffic
-    /// of any version within the required window, no traffic data is available, or the
-    /// lifecycle's traffic rules look further back than the traffic history that can be relied
-    /// on, so the rule can neither keep nor release the version. A forced unpublish goes
-    /// through regardless.
-    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IUnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError : IUnpublishClient_UnpublishClient_Errors, IClientRecentTrafficProtectionNotEvaluableError
     {
@@ -152471,6 +152450,7 @@ namespace ChilliCream.Nitro.Client
         private global::StrawberryShake.Serialization.IInputValueFormatter _azureDevOpsActorInputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uRLFormatter = default !;
+        private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default !;
         public global::System.String TypeName => "AzureDevOpsSourceMetadataInput";
 
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
@@ -152478,6 +152458,7 @@ namespace ChilliCream.Nitro.Client
             _azureDevOpsActorInputFormatter = serializerResolver.GetInputValueFormatter("AzureDevOpsActorInput");
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
             _uRLFormatter = serializerResolver.GetInputValueFormatter("URL");
+            _intFormatter = serializerResolver.GetInputValueFormatter("Int");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -152518,6 +152499,16 @@ namespace ChilliCream.Nitro.Client
             if (inputInfo.IsProjectUrlSet)
             {
                 fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("projectUrl", FormatProjectUrl(input.ProjectUrl)));
+            }
+
+            if (inputInfo.IsPullRequestNumberSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("pullRequestNumber", FormatPullRequestNumber(input.PullRequestNumber)));
+            }
+
+            if (inputInfo.IsRefSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("ref", FormatRef(input.Ref)));
             }
 
             if (inputInfo.IsRepositoryUrlSet)
@@ -152597,6 +152588,30 @@ namespace ChilliCream.Nitro.Client
             return _uRLFormatter.Format(input);
         }
 
+        private global::System.Object? FormatPullRequestNumber(global::System.Int32? input)
+        {
+            if (input is null)
+            {
+                return input;
+            }
+            else
+            {
+                return _intFormatter.Format(input);
+            }
+        }
+
+        private global::System.Object? FormatRef(global::System.String? input)
+        {
+            if (input is null)
+            {
+                return input;
+            }
+            else
+            {
+                return _stringFormatter.Format(input);
+            }
+        }
+
         private global::System.Object? FormatRepositoryUrl(global::System.Uri? input)
         {
             if (input is null)
@@ -152663,7 +152678,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (Actor.Equals(other.Actor)) && ((CommitHash is null && other.CommitHash is null) || CommitHash != null && CommitHash.Equals(other.CommitHash)) && ((JobId is null && other.JobId is null) || JobId != null && JobId.Equals(other.JobId)) && PipelineName.Equals(other.PipelineName) && ProjectUrl.Equals(other.ProjectUrl) && ((RepositoryUrl is null && other.RepositoryUrl is null) || RepositoryUrl != null && RepositoryUrl.Equals(other.RepositoryUrl)) && RunId.Equals(other.RunId) && RunNumber.Equals(other.RunNumber) && ((TaskId is null && other.TaskId is null) || TaskId != null && TaskId.Equals(other.TaskId));
+            return (Actor.Equals(other.Actor)) && ((CommitHash is null && other.CommitHash is null) || CommitHash != null && CommitHash.Equals(other.CommitHash)) && ((JobId is null && other.JobId is null) || JobId != null && JobId.Equals(other.JobId)) && PipelineName.Equals(other.PipelineName) && ProjectUrl.Equals(other.ProjectUrl) && global::System.Object.Equals(PullRequestNumber, other.PullRequestNumber) && ((Ref is null && other.Ref is null) || Ref != null && Ref.Equals(other.Ref)) && ((RepositoryUrl is null && other.RepositoryUrl is null) || RepositoryUrl != null && RepositoryUrl.Equals(other.RepositoryUrl)) && RunId.Equals(other.RunId) && RunNumber.Equals(other.RunNumber) && ((TaskId is null && other.TaskId is null) || TaskId != null && TaskId.Equals(other.TaskId));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -152684,6 +152699,16 @@ namespace ChilliCream.Nitro.Client
 
                 hash ^= 397 * PipelineName.GetHashCode();
                 hash ^= 397 * ProjectUrl.GetHashCode();
+                if (PullRequestNumber != null)
+                {
+                    hash ^= 397 * PullRequestNumber.GetHashCode();
+                }
+
+                if (Ref != null)
+                {
+                    hash ^= 397 * Ref.GetHashCode();
+                }
+
                 if (RepositoryUrl != null)
                 {
                     hash ^= 397 * RepositoryUrl.GetHashCode();
@@ -152710,6 +152735,10 @@ namespace ChilliCream.Nitro.Client
         private global::System.Boolean _set_pipelineName;
         private global::System.Uri _value_projectUrl = default !;
         private global::System.Boolean _set_projectUrl;
+        private global::System.Int32? _value_pullRequestNumber;
+        private global::System.Boolean _set_pullRequestNumber;
+        private global::System.String? _value_ref;
+        private global::System.Boolean _set_ref;
         private global::System.Uri? _value_repositoryUrl;
         private global::System.Boolean _set_repositoryUrl;
         private global::System.String _value_runId = default !;
@@ -152777,6 +152806,30 @@ namespace ChilliCream.Nitro.Client
         }
 
         global::System.Boolean global::ChilliCream.Nitro.Client.State.IAzureDevOpsSourceMetadataInputInfo.IsProjectUrlSet => _set_projectUrl;
+
+        public global::System.Int32? PullRequestNumber
+        {
+            get => _value_pullRequestNumber;
+            init
+            {
+                _set_pullRequestNumber = true;
+                _value_pullRequestNumber = value;
+            }
+        }
+
+        global::System.Boolean global::ChilliCream.Nitro.Client.State.IAzureDevOpsSourceMetadataInputInfo.IsPullRequestNumberSet => _set_pullRequestNumber;
+
+        public global::System.String? Ref
+        {
+            get => _value_ref;
+            init
+            {
+                _set_ref = true;
+                _value_ref = value;
+            }
+        }
+
+        global::System.Boolean global::ChilliCream.Nitro.Client.State.IAzureDevOpsSourceMetadataInputInfo.IsRefSet => _set_ref;
 
         public global::System.Uri? RepositoryUrl
         {
@@ -152963,12 +153016,14 @@ namespace ChilliCream.Nitro.Client
     public partial class GitHubSourceMetadataInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
+        private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uRLFormatter = default !;
         public global::System.String TypeName => "GitHubSourceMetadataInput";
 
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+            _intFormatter = serializerResolver.GetInputValueFormatter("Int");
             _uRLFormatter = serializerResolver.GetInputValueFormatter("URL");
         }
 
@@ -153000,6 +153055,16 @@ namespace ChilliCream.Nitro.Client
             if (inputInfo.IsJobIdSet)
             {
                 fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("jobId", FormatJobId(input.JobId)));
+            }
+
+            if (inputInfo.IsPullRequestNumberSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("pullRequestNumber", FormatPullRequestNumber(input.PullRequestNumber)));
+            }
+
+            if (inputInfo.IsRefSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("ref", FormatRef(input.Ref)));
             }
 
             if (inputInfo.IsRepositoryUrlSet)
@@ -153046,6 +153111,30 @@ namespace ChilliCream.Nitro.Client
         }
 
         private global::System.Object? FormatJobId(global::System.String? input)
+        {
+            if (input is null)
+            {
+                return input;
+            }
+            else
+            {
+                return _stringFormatter.Format(input);
+            }
+        }
+
+        private global::System.Object? FormatPullRequestNumber(global::System.Int32? input)
+        {
+            if (input is null)
+            {
+                return input;
+            }
+            else
+            {
+                return _intFormatter.Format(input);
+            }
+        }
+
+        private global::System.Object? FormatRef(global::System.String? input)
         {
             if (input is null)
             {
@@ -153119,7 +153208,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return (Actor.Equals(other.Actor)) && CommitHash.Equals(other.CommitHash) && ((JobId is null && other.JobId is null) || JobId != null && JobId.Equals(other.JobId)) && RepositoryUrl.Equals(other.RepositoryUrl) && RunId.Equals(other.RunId) && RunNumber.Equals(other.RunNumber) && WorkflowName.Equals(other.WorkflowName);
+            return (Actor.Equals(other.Actor)) && CommitHash.Equals(other.CommitHash) && ((JobId is null && other.JobId is null) || JobId != null && JobId.Equals(other.JobId)) && global::System.Object.Equals(PullRequestNumber, other.PullRequestNumber) && ((Ref is null && other.Ref is null) || Ref != null && Ref.Equals(other.Ref)) && RepositoryUrl.Equals(other.RepositoryUrl) && RunId.Equals(other.RunId) && RunNumber.Equals(other.RunNumber) && WorkflowName.Equals(other.WorkflowName);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -153132,6 +153221,16 @@ namespace ChilliCream.Nitro.Client
                 if (JobId != null)
                 {
                     hash ^= 397 * JobId.GetHashCode();
+                }
+
+                if (PullRequestNumber != null)
+                {
+                    hash ^= 397 * PullRequestNumber.GetHashCode();
+                }
+
+                if (Ref != null)
+                {
+                    hash ^= 397 * Ref.GetHashCode();
                 }
 
                 hash ^= 397 * RepositoryUrl.GetHashCode();
@@ -153148,6 +153247,10 @@ namespace ChilliCream.Nitro.Client
         private global::System.Boolean _set_commitHash;
         private global::System.String? _value_jobId;
         private global::System.Boolean _set_jobId;
+        private global::System.Int32? _value_pullRequestNumber;
+        private global::System.Boolean _set_pullRequestNumber;
+        private global::System.String? _value_ref;
+        private global::System.Boolean _set_ref;
         private global::System.Uri _value_repositoryUrl = default !;
         private global::System.Boolean _set_repositoryUrl;
         private global::System.String _value_runId = default !;
@@ -153191,6 +153294,30 @@ namespace ChilliCream.Nitro.Client
         }
 
         global::System.Boolean global::ChilliCream.Nitro.Client.State.IGitHubSourceMetadataInputInfo.IsJobIdSet => _set_jobId;
+
+        public global::System.Int32? PullRequestNumber
+        {
+            get => _value_pullRequestNumber;
+            init
+            {
+                _set_pullRequestNumber = true;
+                _value_pullRequestNumber = value;
+            }
+        }
+
+        global::System.Boolean global::ChilliCream.Nitro.Client.State.IGitHubSourceMetadataInputInfo.IsPullRequestNumberSet => _set_pullRequestNumber;
+
+        public global::System.String? Ref
+        {
+            get => _value_ref;
+            init
+            {
+                _set_ref = true;
+                _value_ref = value;
+            }
+        }
+
+        global::System.Boolean global::ChilliCream.Nitro.Client.State.IGitHubSourceMetadataInputInfo.IsRefSet => _set_ref;
 
         public global::System.Uri RepositoryUrl
         {
@@ -213821,6 +213948,10 @@ namespace ChilliCream.Nitro.Client.State
 
         global::System.Boolean IsProjectUrlSet { get; }
 
+        global::System.Boolean IsPullRequestNumberSet { get; }
+
+        global::System.Boolean IsRefSet { get; }
+
         global::System.Boolean IsRepositoryUrlSet { get; }
 
         global::System.Boolean IsRunIdSet { get; }
@@ -213848,6 +213979,10 @@ namespace ChilliCream.Nitro.Client.State
         global::System.Boolean IsCommitHashSet { get; }
 
         global::System.Boolean IsJobIdSet { get; }
+
+        global::System.Boolean IsPullRequestNumberSet { get; }
+
+        global::System.Boolean IsRefSet { get; }
 
         global::System.Boolean IsRepositoryUrlSet { get; }
 
@@ -217524,6 +217659,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public UploadClientBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadClientResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -217531,6 +217667,7 @@ namespace ChilliCream.Nitro.Client.State
             _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadClientResult> ResultDataFactory { get; }
@@ -217673,6 +217810,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public ValidateClientVersionBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateClientVersionResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -217680,6 +217818,7 @@ namespace ChilliCream.Nitro.Client.State
             _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateClientVersionResult> ResultDataFactory { get; }
@@ -218536,6 +218675,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public PublishClientVersionBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishClientVersionResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -218543,6 +218683,7 @@ namespace ChilliCream.Nitro.Client.State
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishClientVersionResult> ResultDataFactory { get; }
@@ -224000,6 +224141,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public BeginFusionConfigurationPublishBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -224007,6 +224149,7 @@ namespace ChilliCream.Nitro.Client.State
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IBeginFusionConfigurationPublishResult> ResultDataFactory { get; }
@@ -226100,6 +226243,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public UploadFusionSubgraphBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadFusionSubgraphResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -226107,6 +226251,7 @@ namespace ChilliCream.Nitro.Client.State
             _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadFusionSubgraphResult> ResultDataFactory { get; }
@@ -229432,6 +229577,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public UploadMcpFeatureCollectionCommandMutationBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadMcpFeatureCollectionCommandMutationResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -229439,6 +229585,7 @@ namespace ChilliCream.Nitro.Client.State
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadMcpFeatureCollectionCommandMutationResult> ResultDataFactory { get; }
@@ -229581,6 +229728,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public ValidateMcpFeatureCollectionCommandMutationBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateMcpFeatureCollectionCommandMutationResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -229588,6 +229736,7 @@ namespace ChilliCream.Nitro.Client.State
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateMcpFeatureCollectionCommandMutationResult> ResultDataFactory { get; }
@@ -230787,6 +230936,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public PublishMcpFeatureCollectionCommandMutationBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishMcpFeatureCollectionCommandMutationResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -230794,6 +230944,7 @@ namespace ChilliCream.Nitro.Client.State
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishMcpFeatureCollectionCommandMutationResult> ResultDataFactory { get; }
@@ -233514,6 +233665,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public UploadOpenApiCollectionCommandMutationBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadOpenApiCollectionCommandMutationResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -233521,6 +233673,7 @@ namespace ChilliCream.Nitro.Client.State
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadOpenApiCollectionCommandMutationResult> ResultDataFactory { get; }
@@ -234099,6 +234252,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public PublishOpenApiCollectionCommandMutationBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishOpenApiCollectionCommandMutationResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -234106,6 +234260,7 @@ namespace ChilliCream.Nitro.Client.State
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishOpenApiCollectionCommandMutationResult> ResultDataFactory { get; }
@@ -236112,6 +236267,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public ValidateOpenApiCollectionCommandMutationBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateOpenApiCollectionCommandMutationResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -236119,6 +236275,7 @@ namespace ChilliCream.Nitro.Client.State
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateOpenApiCollectionCommandMutationResult> ResultDataFactory { get; }
@@ -237772,6 +237929,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public PublishSchemaVersionBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishSchemaVersionResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -237779,6 +237937,7 @@ namespace ChilliCream.Nitro.Client.State
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IPublishSchemaVersionResult> ResultDataFactory { get; }
@@ -239815,6 +239974,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public UploadSchemaBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadSchemaResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -239822,6 +239982,7 @@ namespace ChilliCream.Nitro.Client.State
             _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IUploadSchemaResult> ResultDataFactory { get; }
@@ -239959,6 +240120,7 @@ namespace ChilliCream.Nitro.Client.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public ValidateSchemaVersionBuilder(global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateSchemaVersionResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
@@ -239966,6 +240128,7 @@ namespace ChilliCream.Nitro.Client.State
             _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::ChilliCream.Nitro.Client.IValidateSchemaVersionResult> ResultDataFactory { get; }
@@ -242087,6 +242250,13 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface IUpdateSchemaLintRuleSettingErrorData
+    {
+        global::System.String __typename { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateStageCompositionSettingsErrorData
     {
         global::System.String __typename { get; }
@@ -242150,7 +242320,7 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record UnauthorizedOperationData : IApproveDeploymentErrorData, IBeginFusionConfigurationPublishErrorData, ICancelDeploymentErrorData, ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, ICreateAccountErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IDeleteApiByIdErrorData, IDeleteApiKeyErrorData, IDeleteClientByIdErrorData, IDeleteMcpFeatureCollectionByIdErrorData, IDeleteMockSchemaByIdErrorData, IDeleteOpenApiCollectionByIdErrorData, IEnsureTunnelSessionErrorData, IForceDeleteStageByApiIdErrorData, IPollClientVersionPublishRequestErrorData, IPollClientVersionValidationRequestErrorData, IPollSchemaVersionPublishRequestErrorData, IPollSchemaVersionValidationRequestErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IPushDocumentChangesErrorData, IPushWorkspaceChangesErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IRevokePersonalAccessTokenErrorData, ISetActiveWorkspaceErrorData, IStartFusionConfigurationCompositionErrorData, IUnpublishClientErrorData, IUpdateApiSettingsErrorData, IUpdateClientVersionLifecycleErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateThemeSettingsErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateFusionConfigurationCompositionErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
+    public partial record UnauthorizedOperationData : IApproveDeploymentErrorData, IBeginFusionConfigurationPublishErrorData, ICancelDeploymentErrorData, ICancelFusionConfigurationCompositionErrorData, ICommitFusionConfigurationPublishErrorData, ICreateAccountErrorData, ICreateApiKeyErrorData, ICreateApiKeyForApiErrorData, ICreateClientErrorData, ICreateMcpFeatureCollectionErrorData, ICreateMockSchemaErrorData, ICreateOpenApiCollectionErrorData, ICreatePersonalAccessTokenErrorData, ICreateWorkspaceErrorData, IDeleteApiByIdErrorData, IDeleteApiKeyErrorData, IDeleteClientByIdErrorData, IDeleteMcpFeatureCollectionByIdErrorData, IDeleteMockSchemaByIdErrorData, IDeleteOpenApiCollectionByIdErrorData, IEnsureTunnelSessionErrorData, IForceDeleteStageByApiIdErrorData, IPollClientVersionPublishRequestErrorData, IPollClientVersionValidationRequestErrorData, IPollSchemaVersionPublishRequestErrorData, IPollSchemaVersionValidationRequestErrorData, IPublishClientErrorData, IPublishMcpFeatureCollectionErrorData, IPublishOpenApiCollectionErrorData, IPublishSchemaErrorData, IPushDocumentChangesErrorData, IPushWorkspaceChangesErrorData, IRemoveWorkspaceErrorData, IRenameWorkspaceErrorData, IRevokePersonalAccessTokenErrorData, ISetActiveWorkspaceErrorData, IStartFusionConfigurationCompositionErrorData, IUnpublishClientErrorData, IUpdateApiSettingsErrorData, IUpdateClientVersionLifecycleErrorData, IUpdateFeatureFlagsErrorData, IUpdateMockSchemaErrorData, IUpdatePreferencesErrorData, IUpdateSchemaLintRuleSettingErrorData, IUpdateStageCompositionSettingsErrorData, IUpdateThemeSettingsErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IValidateClientErrorData, IValidateFusionConfigurationCompositionErrorData, IValidateMcpFeatureCollectionErrorData, IValidateOpenApiCollectionErrorData, IValidateSchemaErrorData, IErrorData
     {
         public UnauthorizedOperationData(global::System.String __typename, global::System.String? message = default !)
         {
@@ -243288,7 +243458,7 @@ namespace ChilliCream.Nitro.Client.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record ConcurrentOperationErrorData : IUnpublishClientErrorData, IUpdateClientVersionLifecycleErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData, ISchemaVersionPublishErrorData, IClientVersionPublishErrorData, IFusionConfigurationPublishingErrorData, IOpenApiCollectionVersionPublishErrorData, IMcpFeatureCollectionVersionPublishErrorData, IProcessingErrorData
+    public partial record ConcurrentOperationErrorData : IUnpublishClientErrorData, IUpdateClientVersionLifecycleErrorData, IUpdateSchemaLintRuleSettingErrorData, IUploadClientErrorData, IUploadFusionSubgraphErrorData, IUploadMcpFeatureCollectionErrorData, IUploadOpenApiCollectionErrorData, IUploadSchemaErrorData, IErrorData, ISchemaVersionPublishErrorData, IClientVersionPublishErrorData, IFusionConfigurationPublishingErrorData, IOpenApiCollectionVersionPublishErrorData, IMcpFeatureCollectionVersionPublishErrorData, IProcessingErrorData
     {
         public ConcurrentOperationErrorData(global::System.String __typename, global::System.String? message = default !)
         {
@@ -243319,7 +243489,6 @@ namespace ChilliCream.Nitro.Client.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    ///<summary>The version's recent-traffic protection cannot be evaluated: the client had no trafficof any version within the required window, no traffic data is available, or thelifecycle's traffic rules look further back than the traffic history that can be reliedon, so the rule can neither keep nor release the version. A forced unpublish goesthrough regardless.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record ClientRecentTrafficProtectionNotEvaluableErrorData : IUnpublishClientErrorData, IErrorData
     {
