@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The <c>agent_sessions.last_ping_result</c> values, matching the table's
+/// The <c>agents.last_ping_result</c> values, matching the table's
 /// CHECK constraint.
 /// </summary>
 internal static class AgentPingResult

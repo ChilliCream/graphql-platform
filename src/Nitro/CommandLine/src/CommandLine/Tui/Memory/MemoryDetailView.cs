@@ -7,8 +7,10 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Renders the selected memory's metadata and wrapped body as plain text in a
-/// scrollable detail panel.
+/// Renders a curated memory's or a journal entry's metadata and wrapped body as plain text in
+/// a scrollable detail panel and maintains its scroll position. Used by a host outside the
+/// Memory tab that has already loaded the item, such as the agent detail popover's memory
+/// drill-in.
 /// </summary>
 internal sealed class MemoryDetailView
 {
@@ -22,71 +24,60 @@ internal sealed class MemoryDetailView
 
     public void ScrollUp() => _bodyViewport.ScrollBy(-1);
 
-    public void ScrollToTop() => _bodyViewport.ScrollBy(int.MinValue / 2);
-
-    public void ScrollToBottom() => _bodyViewport.ScrollBy(int.MaxValue / 2);
-
     /// <summary>
-    /// Resets the body scroll position to the top.
+    /// Renders a curated memory's type, tags, and creation and modification metadata, with
+    /// the body wrapped below.
     /// </summary>
-    public void ResetScroll() => _bodyViewport.Update(0, 0);
-
-    public IRenderable Render(MemoryState state, int width, int height, bool focused)
+    public IRenderable RenderCurated(MemoryRecord record, int width, int height, bool focused)
     {
         if (width <= 0 || height <= 0)
         {
             return new Markup(string.Empty);
         }
 
+        var interiorWidth = Math.Max(1, Math.Max(1, width) - PanelChromeWidth);
+        var header = $"[dim]{Markup.Escape(record.Id)}[/]";
+
+        return RenderPanel(BuildCuratedLines(record, interiorWidth), header, "No item selected.", width, height, focused);
+    }
+
+    /// <summary>
+    /// Renders a journal entry's creation metadata, with the body wrapped below.
+    /// </summary>
+    public IRenderable RenderJournal(MemoryJournalEntry entry, int width, int height, bool focused)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return new Markup(string.Empty);
+        }
+
+        var interiorWidth = Math.Max(1, Math.Max(1, width) - PanelChromeWidth);
+        var header = $"[dim]{Markup.Escape(entry.Id)}[/]";
+
+        return RenderPanel(BuildJournalLines(entry, interiorWidth), header, "No item selected.", width, height, focused);
+    }
+
+    private IRenderable RenderPanel(
+        IReadOnlyList<string> lines, string header, string emptyMessage, int width, int height, bool focused)
+    {
         var safeWidth = Math.Max(1, width);
-        var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
         var interiorHeight = Math.Max(1, height - PanelChromeHeight);
 
-        var lines = BuildLines(state, interiorWidth);
-
         IRenderable content = lines.Count == 0
-            ? Align.Center(new Markup(Markup.Escape(NoSelectionMessage(state))), VerticalAlignment.Middle)
+            ? Align.Center(new Markup(Markup.Escape(emptyMessage)), VerticalAlignment.Middle)
             : new Rows(RenderVisibleLines(lines, interiorHeight).Select(Row));
 
         var borderToken = focused ? "board.column.border.focused" : "board.column.border";
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildHeader(state)),
+            Header = new PanelHeader(header),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
             Height = Math.Max(1, height)
         };
     }
-
-    private static string BuildHeader(MemoryState state) => state.Collection switch
-    {
-        MemoryCollectionFilter.Curated when state.SelectedCuratedRecord is { } record
-            => $"[dim]{Markup.Escape(record.Id)}[/]",
-        MemoryCollectionFilter.Journal when state.SelectedJournalEntry is { } entry
-            => $"[dim]{Markup.Escape(entry.Id)}[/]",
-        _ => "Detail"
-    };
-
-    private static string NoSelectionMessage(MemoryState state)
-    {
-        if (state.LoadError is { } error)
-        {
-            return error;
-        }
-
-        return state.ItemCount == 0
-            ? state.Collection == MemoryCollectionFilter.Curated ? "No curated memories." : "No journal entries."
-            : "No item selected.";
-    }
-
-    private static IReadOnlyList<string> BuildLines(MemoryState state, int width) => state.Collection switch
-    {
-        MemoryCollectionFilter.Curated when state.SelectedCuratedRecord is { } record => BuildCuratedLines(record, width),
-        MemoryCollectionFilter.Journal when state.SelectedJournalEntry is { } entry => BuildJournalLines(entry, width),
-        _ => []
-    };
 
     private static IReadOnlyList<string> BuildCuratedLines(MemoryRecord record, int width)
     {
@@ -111,11 +102,7 @@ internal sealed class MemoryDetailView
 
     private static IReadOnlyList<string> BuildJournalLines(MemoryJournalEntry entry, int width)
     {
-        var lines = new List<string>
-        {
-            $"Created: {MemoryDates.Format(entry.CreatedAt)} by {entry.CreatedBy}",
-            "Not yet promoted, or already promoted (press p to promote either way; a repeat is idempotent)."
-        };
+        var lines = new List<string> { $"Created: {MemoryDates.Format(entry.CreatedAt)} by {entry.CreatedBy}" };
 
         lines.Add(string.Empty);
         lines.AddRange(TaskDetailSections.WrapText(entry.Body, width));

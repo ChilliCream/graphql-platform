@@ -10,12 +10,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal sealed class OpencodeHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
-    IAgentSessionRegistry sessionRegistry,
-    ISessionDeliveryLedger ledger,
+    IAgentStore agentStore,
+    IAgentDeliveryLedger ledger,
     IMailStore mailStore,
-    IEnvironmentVariableProvider environmentVariableProvider,
-    INitroInstanceIdProvider instanceIdProvider,
-    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IOpencodeHookHandler
+    IEnvironmentVariableProvider environmentVariableProvider) : IOpencodeHookHandler
 {
     /// <summary>
     /// The maximum number of unread messages considered for delivery reservations in one call.
@@ -28,40 +26,27 @@ internal sealed class OpencodeHookHandler(
         // dryRun does not change opencode handler behavior.
         _ = dryRun;
 
-        var resolved = await ResolveAsync(payload, cancellationToken);
+        var resolved = Resolve(payload);
 
         if (resolved is null)
         {
             return OpencodeHookOutcome.Neutral;
         }
 
-        // Only a valid endpoint reported as bound is registered for push delivery.
-        var trusted = EndpointAddress.IsTrustedOpencodeServerUrl(payload.ServerUrl!, payload.ServerBound);
-        var (endpointKind, endpointAddr, endpointSecret) = trusted
-            ? (AgentSessionEndpointKind.OpencodeServer, payload.ServerUrl!, payload.ServerPassword)
-            : (AgentSessionEndpointKind.None, string.Empty, null);
+        var result = await agentStore.StartSessionAsync(BuildStartRequest(payload, resolved), cancellationToken);
 
-        await sessionRegistry.StartAsync(
-            resolved.Generation,
-            resolved.Cwd,
-            resolved.WorkspaceDirectory,
-            endpointKind,
-            endpointAddr,
-            endpointSecret,
-            envActor: null,
-            cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(payload.HarnessVersion))
+        if (result.Kind == AgentSessionStartKind.Ignored)
         {
-            await sessionRegistry.RecordHarnessVersionAsync(
-                resolved.Generation, payload.HarnessVersion, cancellationToken);
+            return OpencodeHookOutcome.Neutral;
         }
 
-        await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
+        var row = result.Row!;
 
-        if (trusted)
+        await agentStore.ArmAnnouncementAsync(row.Name, cancellationToken);
+
+        if (row.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
-            await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+            await agentStore.RearmIdlePushAsync(row.Name, cancellationToken);
         }
 
         return OpencodeHookOutcome.Neutral;
@@ -72,40 +57,39 @@ internal sealed class OpencodeHookHandler(
     {
         _ = dryRun; // see HandleSessionCreatedAsync
 
-        var resolved = await ResolveAsync(payload, cancellationToken);
+        var resolved = Resolve(payload);
 
         if (resolved is null)
         {
             return OpencodeHookOutcome.Neutral;
         }
 
-        if (!await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken))
+        var row = await agentStore.FindBySessionAsync(AgentSessionHarness.Opencode, payload.SessionId!, cancellationToken);
+
+        if (row is null || row.IsDeleted)
         {
             return OpencodeHookOutcome.Neutral;
         }
 
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
+        await agentStore.TouchSessionAsync(AgentSessionHarness.Opencode, payload.SessionId!, cancellationToken);
 
         // An unconfirmed previous delivery rearms the announcement and releases digest
         // reservations for the current unread batch.
         if (payload.Delivered == false)
         {
-            await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
+            await agentStore.ArmAnnouncementAsync(row.Name, cancellationToken);
 
-            if (row?.AgentName is { } releaseActor)
+            var stillUnread = await mailStore.QueryInboxAsync(
+                new MailInboxFilter { Actor = row.Name, UnreadOnly = true, Limit = MaxDigestMessages },
+                cancellationToken);
+
+            if (stillUnread.Count > 0)
             {
-                var stillUnread = await mailStore.QueryInboxAsync(
-                    new MailInboxFilter { Actor = releaseActor, UnreadOnly = true, Limit = MaxDigestMessages },
+                await ledger.ReleaseAsync(
+                    row.Name,
+                    stillUnread.Select(static message => message.Id).ToList(),
+                    AgentSessionChannel.Digest,
                     cancellationToken);
-
-                if (stillUnread.Count > 0)
-                {
-                    await ledger.ReleaseAsync(
-                        resolved.Generation,
-                        stillUnread.Select(static message => message.Id).ToList(),
-                        AgentSessionChannel.Digest,
-                        cancellationToken);
-                }
             }
         }
 
@@ -115,31 +99,24 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        if (row?.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
+        if (row.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
-            await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+            await agentStore.RearmIdlePushAsync(row.Name, cancellationToken);
         }
 
-        await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
+        await agentStore.ResetBlockBudgetAsync(row.Name, cancellationToken);
 
-        if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
-        {
-            return OpencodeHookOutcome.Neutral;
-        }
-
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
+        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Digest, cancellationToken);
         bool announce;
 
         try
         {
-            announce = await sessionRegistry.ClaimAnnouncementAsync(resolved.Generation, cancellationToken);
+            announce = await agentStore.ClaimAnnouncementAsync(row.Name, cancellationToken);
         }
         catch
         {
             // Compensation releases only the message ids reserved by this call.
-            await ReleaseCompensatingReservationAsync(
-                resolved.Generation, digest.ReservedIds, AgentSessionChannel.Digest);
+            await ReleaseCompensatingReservationAsync(row.Name, digest.ReservedIds, AgentSessionChannel.Digest);
 
             throw;
         }
@@ -148,7 +125,7 @@ internal sealed class OpencodeHookHandler(
 
         if (announce)
         {
-            parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
+            parts.Add(AgentActorContext.Format(row.Name, row.Role));
         }
 
         if (digest.Text is not null)
@@ -169,7 +146,7 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        var resolved = await ResolveAsync(payload, cancellationToken);
+        var resolved = Resolve(payload);
 
         if (resolved is null)
         {
@@ -177,7 +154,7 @@ internal sealed class OpencodeHookHandler(
         }
 
         // Idle events refresh presence without claiming the push gate or reserving messages.
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
+        await agentStore.TouchSessionAsync(AgentSessionHarness.Opencode, payload.SessionId!, cancellationToken);
 
         return OpencodeHookOutcome.Neutral;
     }
@@ -187,18 +164,21 @@ internal sealed class OpencodeHookHandler(
     {
         _ = dryRun; // see HandleSessionCreatedAsync
 
-        var resolved = await ResolveAsync(payload, cancellationToken);
+        var resolved = Resolve(payload);
 
         if (resolved is not null)
         {
-            await sessionRegistry.EndAsync(resolved.Generation, cancellationToken);
+            await agentStore.EndSessionAsync(AgentSessionHarness.Opencode, payload.SessionId!, cancellationToken);
         }
 
         return OpencodeHookOutcome.Neutral;
     }
 
+    /// <summary>
+    /// Returns a digest or unread-count reminder for newly reserved messages in the
+    /// current inbox batch, or null when that batch yields no reservations.
+    /// </summary>
     private async Task<DigestBuildResult> BuildDigestAsync(
-        AgentSessionGeneration generation,
         string actor,
         string channel,
         CancellationToken cancellationToken)
@@ -212,9 +192,9 @@ internal sealed class OpencodeHookHandler(
             return DigestBuildResult.Empty;
         }
 
-        // A missing session or a session owned by another host yields no reservations.
+        // A deleted agent yields no reservations.
         var reserved = await ledger.ReserveAsync(
-            generation,
+            actor,
             unread.Select(static message => message.Id).ToList(),
             channel,
             timeProvider.GetUtcNow(),
@@ -233,7 +213,7 @@ internal sealed class OpencodeHookHandler(
         }
         catch
         {
-            await ReleaseCompensatingReservationAsync(generation, reserved, channel);
+            await ReleaseCompensatingReservationAsync(actor, reserved, channel);
             throw;
         }
     }
@@ -243,11 +223,11 @@ internal sealed class OpencodeHookHandler(
     /// Release failures are ignored.
     /// </summary>
     private async Task ReleaseCompensatingReservationAsync(
-        AgentSessionGeneration generation, IReadOnlyList<string> messageIds, string channel)
+        string actor, IReadOnlyList<string> messageIds, string channel)
     {
         try
         {
-            await ledger.ReleaseAsync(generation, messageIds, channel, CancellationToken.None);
+            await ledger.ReleaseAsync(actor, messageIds, channel, CancellationToken.None);
         }
         catch
         {
@@ -259,9 +239,11 @@ internal sealed class OpencodeHookHandler(
         public static readonly DigestBuildResult Empty = new(null, []);
     }
 
-    private async Task<ResolvedGeneration?> ResolveAsync(
-        OpencodeHookPayload payload,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Resolves the session's workspace and cwd, or null when the session id or server URL
+    /// is missing or invalid, no workspace is found, or the payload and process workspaces differ.
+    /// </summary>
+    private ResolvedSession? Resolve(OpencodeHookPayload payload)
     {
         if (string.IsNullOrWhiteSpace(payload.SessionId)
             || string.IsNullOrWhiteSpace(payload.ServerUrl)
@@ -281,15 +263,29 @@ internal sealed class OpencodeHookHandler(
             return null;
         }
 
-        var host = await instanceIdProvider.GetIdAsync(
-            globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-        var generation = new AgentSessionGeneration(AgentSessionHarness.Opencode, payload.SessionId, host);
-
-        return new ResolvedGeneration(generation, cwd, workspaceDirectory);
+        return new ResolvedSession(cwd, workspaceDirectory);
     }
 
-    private sealed record ResolvedGeneration(
-        AgentSessionGeneration Generation,
-        string Cwd,
-        string WorkspaceDirectory);
+    private static AgentSessionStartRequest BuildStartRequest(OpencodeHookPayload payload, ResolvedSession resolved)
+    {
+        // Only a valid endpoint reported as bound is registered for push delivery.
+        var trusted = EndpointAddress.IsTrustedOpencodeServerUrl(payload.ServerUrl!, payload.ServerBound);
+        var (endpointKind, endpointAddr, endpointSecret) = trusted
+            ? (AgentSessionEndpointKind.OpencodeServer, payload.ServerUrl!, payload.ServerPassword)
+            : (AgentSessionEndpointKind.None, string.Empty, null);
+
+        return new AgentSessionStartRequest
+        {
+            Harness = AgentSessionHarness.Opencode,
+            SessionId = payload.SessionId!,
+            HarnessVersion = payload.HarnessVersion ?? string.Empty,
+            Cwd = resolved.Cwd,
+            WorkspacePath = resolved.WorkspaceDirectory,
+            EndpointKind = endpointKind,
+            EndpointAddr = endpointAddr,
+            EndpointSecret = endpointSecret
+        };
+    }
+
+    private sealed record ResolvedSession(string Cwd, string WorkspaceDirectory);
 }

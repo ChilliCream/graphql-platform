@@ -19,13 +19,15 @@ internal static class ClaudeHooksTemplate
     /// Claude Code hook event names this installer manages, in the order
     /// <c>hooks install</c> and <c>hooks status</c> report them.
     /// </summary>
-    public static readonly IReadOnlyList<string> Events = ["SessionStart", "UserPromptSubmit", "Stop", "SessionEnd"];
+    public static readonly IReadOnlyList<string> Events =
+        ["SessionStart", "UserPromptSubmit", "Stop", "Notification", "SessionEnd"];
 
     public static string EventCommand(string claudeEvent) => claudeEvent switch
     {
         "SessionStart" => "session-start",
         "UserPromptSubmit" => "user-prompt-submit",
         "Stop" => "stop",
+        "Notification" => "notification",
         "SessionEnd" => "session-end",
         _ => throw new ArgumentOutOfRangeException(
             nameof(claudeEvent), claudeEvent, "Not a hook event this installer manages.")

@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
@@ -170,26 +169,16 @@ public sealed class ClaudeHookExecutorTests
             var fileSystem = new TestFileSystem(workspaceRoot);
             var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
             var database = new AgentDatabase();
-            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
-            var sessions = new AgentSessionRegistry(
-                fileSystem,
-                timeProvider,
-                database,
-                agentRegistry,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
-            var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var agentStore = new AgentStore(fileSystem, timeProvider, database);
+            var ledger = new AgentDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentStore);
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
-                sessions,
-                agentRegistry,
+                agentStore,
                 ledger,
                 mail,
-                new FixedClaudeSessionFileReader(),
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+                new FixedClaudeSessionFileReader());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
@@ -197,6 +186,8 @@ public sealed class ClaudeHookExecutorTests
 
             var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
             await handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
+            await SeedAgentAsync(database, workspaceDirectory, timeProvider, "alice", cancellationToken);
+            await SeedAgentAsync(database, workspaceDirectory, timeProvider, "bob", cancellationToken);
             await mail.SendMessageAsync(
                 new MailMessageCreation { Sender = "bob", Subject = "status", Body = "check", To = ["alice"] },
                 cancellationToken);
@@ -208,7 +199,7 @@ public sealed class ClaudeHookExecutorTests
             await using (var lockCommand = lockConnection.CreateCommand())
             {
                 lockCommand.Transaction = lockTransaction;
-                lockCommand.CommandText = "UPDATE agent_sessions SET last_beat_at = last_beat_at;";
+                lockCommand.CommandText = "UPDATE agents SET last_seen_at = last_seen_at;";
                 await lockCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
@@ -254,26 +245,16 @@ public sealed class ClaudeHookExecutorTests
             var fileSystem = new TestFileSystem(workspaceRoot);
             var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
             var database = new AgentDatabase();
-            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
-            var sessions = new AgentSessionRegistry(
-                fileSystem,
-                timeProvider,
-                database,
-                agentRegistry,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
-            var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var agentStore = new AgentStore(fileSystem, timeProvider, database);
+            var ledger = new AgentDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentStore);
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
-                sessions,
-                agentRegistry,
+                agentStore,
                 ledger,
                 mail,
-                new FixedClaudeSessionFileReader(),
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+                new FixedClaudeSessionFileReader());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
@@ -424,5 +405,29 @@ public sealed class ClaudeHookExecutorTests
         Assert.Equal(expectedSessionId, captured.SessionId);
         Assert.Equal(expectedCwd, captured.Cwd);
         Assert.Equal(expectedStopHookActive, captured.StopHookActive);
+    }
+
+    /// <summary>
+    /// Registers the named agent directly against the unified <c>agents</c> table.
+    /// </summary>
+    private static async Task SeedAgentAsync(
+        AgentDatabase database,
+        string workspaceDirectory,
+        TimeProvider timeProvider,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES (@name, @now, @now, @now)
+            ON CONFLICT (name) DO UPDATE SET last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@now", timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }

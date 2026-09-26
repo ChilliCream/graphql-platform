@@ -24,7 +24,13 @@ public sealed class TuiShellQuitGateTests
     private static readonly TimeSpan s_shortDrainBound = TimeSpan.FromMilliseconds(200);
 
     private static TuiShell CreateShell(FakeTuiMode mode, params TuiQuitGate[] quitGates) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, 80, 24, quitGates: quitGates);
+        new(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(TimeProvider.System),
+            quitGates: quitGates);
 
     private static TuiShell CreateShell(FakeTuiMode mode, TimeSpan quitGateDrainBound, params TuiQuitGate[] quitGates) =>
         new(
@@ -32,6 +38,7 @@ public sealed class TuiShellQuitGateTests
             mode,
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(TimeProvider.System),
             quitGates: quitGates,
             quitGateDrainBound: quitGateDrainBound);
 

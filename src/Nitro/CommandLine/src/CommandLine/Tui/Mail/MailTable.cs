@@ -1,271 +1,203 @@
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
+using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Renders aligned mail headings, thread summaries, and message rows as markup.
+/// Renders the Mail table's header row and each thread row: subject, from, to, message
+/// count, and last-activity columns. Narrow widths drop To first, then From, then
+/// Messages, identically for the header and the rows so the two always agree. Built on
+/// the shared <see cref="TableLayout"/> and <see cref="TableRenderer"/> table widget.
 /// </summary>
 internal static class MailTable
 {
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
-    private const string ExpandedFoldGlyph = "▾";
-    private const string CollapsedFoldGlyph = "▸";
-    private const string NoFoldGlyph = " ";
-    private const string UnreadToMeMarker = "●";
-    private const string ReadMarker = " ";
+
+    private const string SubjectHeader = "SUBJECT";
+    private const string FromHeader = "FROM";
+    private const string ToHeader = "TO";
+    private const string MessagesHeader = "MESSAGES";
+    private const string LastActivityHeader = "LAST ACTIVITY";
+
+    private const int MinSubjectWidth = 24;
+    private const int MinFromWidth = 10;
+    private const int MinToWidth = 10;
+    private const int MinMessagesWidth = 8;
+    private const int MinLastActivityWidth = 13;
+
+    private const string NowLabel = "now";
+    private const string JustNowLabel = "just now";
+    private const string AgoSuffix = " ago";
+    private const string IsoDateFormat = "yyyy-MM-dd";
+
+    // To drops first, then From, then Messages; Subject and Last Activity have no drop
+    // priority so they are never dropped.
+    private static readonly IReadOnlyList<TableColumnSpec> s_columns =
+    [
+        new TableColumnSpec(SubjectHeader, MinSubjectWidth),
+        new TableColumnSpec(FromHeader, MinFromWidth, DropPriority: 1),
+        new TableColumnSpec(ToHeader, MinToWidth, DropPriority: 0),
+        new TableColumnSpec(MessagesHeader, MinMessagesWidth, DropPriority: 2, Alignment: ColumnAlignment.Right),
+        new TableColumnSpec(LastActivityHeader, MinLastActivityWidth)
+    ];
 
     /// <summary>
-    /// Thread-membership indicator for an indented, expanded-thread child
-    /// row, distinct from the from-me/direct/broadcast relationship glyph.
+    /// The column widths a set of rows agree on: each column padded to at least its minimum
+    /// width, and wider still when its header title or a row's value needs more room.
     /// </summary>
-    private const string ThreadChildGlyph = "└";
-
-    private const int SelectionWidth = 2;
-    private const int FoldWidth = 2;
-    private const int MarkerWidth = 2;
-    private const int GlyphWidth = 2;
-    private const int FromWidth = 14;
-    private const int ToWidth = 14;
-    private const int AgeWidth = 10;
-    private const int CountWidth = 5;
-    private const int ColumnGap = 1;
-    private const int MinElasticWidth = 3;
+    public readonly record struct Widths(int Subject, int From, int To, int Messages, int LastActivity);
 
     /// <summary>
-    /// The subject/preview elastic split: subject gets two fifths of
-    /// whatever remains after the fixed-width columns, preview gets the
-    /// rest.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, with each column no
+    /// narrower than its minimum width or its header title.
     /// </summary>
-    private const int SubjectShareNumerator = 2;
-    private const int SubjectShareDenominator = 5;
-
-    /// <summary>
-    /// The column widths and count-column visibility shared by a heading and its rows.
-    /// </summary>
-    public readonly record struct Columns(
-        int PrefixWidth, int FromWidth, int ToWidth, int SubjectWidth, int PreviewWidth, int AgeWidth,
-        int CountWidth, bool ShowCount);
-
-    /// <summary>
-    /// Computes column widths with an optional count column, allocating remaining
-    /// space to Subject and Preview. Fixed columns can exceed the available width;
-    /// elastic columns shrink to zero.
-    /// </summary>
-    public static Columns ComputeColumns(int contentWidth, bool showCount)
+    public static Widths ComputeWidths(IReadOnlyList<MailThreadSummary> rows, DateTimeOffset now)
     {
-        const int prefixWidth = SelectionWidth + FoldWidth + MarkerWidth + GlyphWidth;
-        var countBudget = showCount ? CountWidth + ColumnGap : 0;
+        var rowValues = new List<IReadOnlyList<string>>(rows.Count);
 
-        var fixedWidth = prefixWidth
-            + FromWidth + ColumnGap
-            + ToWidth + ColumnGap
-            + AgeWidth + ColumnGap
-            + countBudget;
+        foreach (var row in rows)
+        {
+            rowValues.Add(
+            [
+                row.Subject,
+                row.LastSender,
+                FormatRecipients(row.LastRecipients),
+                FormatMessageCount(row.MessageCount),
+                FormatActivityAge(row.LastMessageAt, now)
+            ]);
+        }
 
-        // Reserve the remaining gap between the elastic columns.
-        var elastic = Math.Max(0, contentWidth - fixedWidth - ColumnGap);
-        var subjectWidth = elastic <= 0 ? 0 : Math.Min(elastic, Math.Max(MinElasticWidth, elastic * SubjectShareNumerator / SubjectShareDenominator));
-        var previewWidth = Math.Max(0, elastic - subjectWidth);
-
-        return new Columns(prefixWidth, FromWidth, ToWidth, subjectWidth, previewWidth, AgeWidth, CountWidth, showCount);
+        var widths = TableLayout.ComputeWidths(s_columns, rowValues);
+        return new Widths(widths[0], widths[1], widths[2], widths[3], widths[4]);
     }
 
     /// <summary>
-    /// Renders the heading row: column labels aligned to <paramref name="columns"/>,
-    /// styled via <c>mail.row.heading</c>. The prefix area (selection, fold,
-    /// unread, and relationship columns) carries no label.
+    /// Builds the markup line for one thread row. Columns are padded to <paramref name="widths"/>.
+    /// When the full set of columns does not fit within <paramref name="maxWidth"/> display
+    /// columns, To is dropped first, then From, then Messages; Subject and Last Activity
+    /// always remain, with Subject truncated as a last resort. A <paramref name="maxWidth"/>
+    /// of 0 or less produces an empty line.
     /// </summary>
-    public static string RenderHeading(Columns columns)
+    public static string Render(MailThreadSummary row, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
     {
-        var cells = new List<string>
+        if (maxWidth <= 0)
         {
-            new string(' ', columns.PrefixWidth - 1),
-            Pad("From", columns.FromWidth),
-            Pad("To", columns.ToWidth),
-            Pad("Subject", columns.SubjectWidth),
-            Pad("Preview", columns.PreviewWidth),
-            Pad("Age", columns.AgeWidth)
+            return string.Empty;
+        }
+
+        var prefix = selected ? SelectedPrefix : UnselectedPrefix;
+        var subjectStyle = ThemeTokens.GetStyle("mail.list.subject").ToMarkup();
+        var fromStyle = ThemeTokens.GetStyle("mail.list.from").ToMarkup();
+        var toStyle = ThemeTokens.GetStyle("mail.list.to").ToMarkup();
+        var messagesStyle = ThemeTokens.GetStyle("mail.list.messages").ToMarkup();
+        var ageStyle = ThemeTokens.GetStyle("mail.list.age").ToMarkup();
+
+        var cells = new TableCellSpec[]
+        {
+            new(row.Subject, subjectStyle),
+            new(row.LastSender, fromStyle),
+            new(FormatRecipients(row.LastRecipients), toStyle),
+            new(FormatMessageCount(row.MessageCount), messagesStyle),
+            new(FormatActivityAge(row.LastMessageAt, now), ageStyle)
         };
 
-        if (columns.ShowCount)
+        var budget = maxWidth - PrefixWidth(prefix);
+        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+        var line = TableRenderer.RenderRow(prefix, new TableCellSpec(string.Empty), cells, s_columns, layout);
+
+        if (selected)
         {
-            cells.Add(PadLeft("#", columns.CountWidth));
+            var highlightStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
+            line = TableRenderer.Stylize(highlightStyle, line);
         }
 
-        var plain = string.Join(' ', cells).TrimEnd();
-        return Stylize(ThemeTokens.GetStyle("mail.row.heading").ToMarkup(), Markup.Escape(plain));
+        return line;
     }
 
     /// <summary>
-    /// Renders a thread summary using the supplied expansion, selection, and
-    /// actor-specific unread state.
+    /// Builds the header title line shown above the rows: SUBJECT, FROM, TO, MESSAGES,
+    /// LAST ACTIVITY, aligned to <paramref name="widths"/>. Columns are dropped using the
+    /// same thresholds as <see cref="Render"/>, so the header always agrees with the rows
+    /// below it. A <paramref name="maxWidth"/> of 0 or less produces an empty line.
     /// </summary>
-    public static string RenderThreadRow(
-        MailThreadSummary summary,
-        bool expanded,
-        bool unreadToMe,
-        bool selected,
-        string actor,
-        DateTimeOffset now,
-        Columns columns)
+    public static string RenderHeader(int maxWidth, Widths widths)
     {
-        var prefix = BuildPrefix(
-            selected,
-            foldGlyph: expanded ? ExpandedFoldGlyph : CollapsedFoldGlyph,
-            unreadToMe,
-            glyph: ThreadRelationshipGlyph(summary, actor));
-
-        var from = Pad(summary.LastSender, columns.FromWidth);
-        var to = Pad(FormatOverflowList(summary.LastRecipients), columns.ToWidth);
-        var subject = Truncate(summary.Subject, columns.SubjectWidth);
-        var preview = Truncate(summary.BodyPreview, columns.PreviewWidth);
-        var age = MailAges.Format(summary.LastMessageAt, now);
-
-        var fromMarkup = StylizeFrom(from, IsSelf(summary.LastSender, actor));
-        var toMarkup = Stylize(ThemeTokens.GetStyle("mail.row.to").ToMarkup(), Markup.Escape(to));
-        var subjectMarkup = StylizeSubject(Pad(subject, columns.SubjectWidth), unreadToMe);
-        var previewMarkup = Stylize(
-            ThemeTokens.GetStyle("mail.row.preview").ToMarkup(), Markup.Escape(Pad(preview, columns.PreviewWidth)));
-        var ageMarkup = Stylize(ThemeTokens.GetStyle("mail.row.age").ToMarkup(), Markup.Escape(Pad(age, columns.AgeWidth)));
-
-        var line = $"{prefix}{fromMarkup} {toMarkup} {subjectMarkup} {previewMarkup} {ageMarkup}";
-
-        if (columns.ShowCount)
+        if (maxWidth <= 0)
         {
-            var countMarkup = Stylize(
-                ThemeTokens.GetStyle("mail.row.thread.count").ToMarkup(),
-                Markup.Escape(PadLeft($"({summary.MessageCount})", columns.CountWidth)));
-            line += $" {countMarkup}";
+            return string.Empty;
         }
 
-        return selected ? Stylize(ThemeTokens.GetStyle("selection.highlight").ToMarkup(), line) : line;
+        var headerStyle = ThemeTokens.GetStyle("mail.list.header").ToMarkup();
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+
+        return TableRenderer.RenderRow(
+            UnselectedPrefix, new TableCellSpec(string.Empty), BuildHeaderCells(headerStyle), s_columns, layout);
     }
 
     /// <summary>
-    /// Renders a message using the supplied selection and actor-specific unread state.
-    /// An expanded thread child uses the thread-membership glyph; the count column
-    /// is blank for all message rows.
+    /// Builds the dashed rule line under the header, filling <paramref name="maxWidth"/>
+    /// display columns. A <paramref name="maxWidth"/> of 0 or less produces an empty line.
     /// </summary>
-    public static string RenderMessageRow(
-        MailMessage message,
-        bool threadChild,
-        bool unreadToMe,
-        bool selected,
-        string actor,
-        DateTimeOffset now,
-        Columns columns)
+    public static string RenderRule(int maxWidth)
     {
-        var glyph = threadChild ? ThreadChildGlyph : MailRecipientView.GetRelationshipGlyph(message, actor).ToString();
-        var glyphToken = threadChild ? "mail.row.thread.membership" : GlyphToken(MailRecipientView.GetRelationshipGlyph(message, actor));
-
-        var prefix = BuildPrefix(
-            selected,
-            foldGlyph: NoFoldGlyph,
-            unreadToMe,
-            glyphText: glyph,
-            glyphToken: glyphToken);
-
-        var to = FormatOverflowList(RecipientNames(message));
-        var preview = CreatePreview(message.Body);
-
-        var from = Pad(message.Sender, columns.FromWidth);
-        var toPadded = Pad(to, columns.ToWidth);
-        var subject = Truncate(message.Subject, columns.SubjectWidth);
-        var age = MailAges.Format(message.CreatedAt, now);
-
-        var fromMarkup = StylizeFrom(from, IsSelf(message.Sender, actor));
-        var toMarkup = Stylize(ThemeTokens.GetStyle("mail.row.to").ToMarkup(), Markup.Escape(toPadded));
-        var subjectMarkup = StylizeSubject(Pad(subject, columns.SubjectWidth), unreadToMe);
-        var previewMarkup = Stylize(
-            ThemeTokens.GetStyle("mail.row.preview").ToMarkup(),
-            Markup.Escape(Pad(Truncate(preview, columns.PreviewWidth), columns.PreviewWidth)));
-        var ageMarkup = Stylize(ThemeTokens.GetStyle("mail.row.age").ToMarkup(), Markup.Escape(Pad(age, columns.AgeWidth)));
-
-        var line = $"{prefix}{fromMarkup} {toMarkup} {subjectMarkup} {previewMarkup} {ageMarkup}";
-
-        if (columns.ShowCount)
-        {
-            line += $" {new string(' ', columns.CountWidth)}";
-        }
-
-        return selected ? Stylize(ThemeTokens.GetStyle("selection.highlight").ToMarkup(), line) : line;
+        var ruleStyle = ThemeTokens.GetStyle("mail.list.age").ToMarkup();
+        return TableRenderer.RenderRule(maxWidth, ruleStyle);
     }
-
-    private static string BuildPrefix(
-        bool selected,
-        string foldGlyph,
-        bool unreadToMe,
-        char? glyph = null,
-        string? glyphText = null,
-        string? glyphToken = null)
-    {
-        var selectionText = selected ? SelectedPrefix : UnselectedPrefix;
-        var foldMarkup = Stylize(ThemeTokens.GetStyle("mail.row.thread.fold").ToMarkup(), Markup.Escape(Pad(foldGlyph, FoldWidth - 1)));
-        var markerText = unreadToMe ? UnreadToMeMarker : ReadMarker;
-        var markerMarkup = unreadToMe
-            ? Stylize(ThemeTokens.GetStyle("mail.row.unread-to-me").ToMarkup(), Markup.Escape(Pad(markerText, MarkerWidth - 1)))
-            : Markup.Escape(Pad(markerText, MarkerWidth - 1));
-
-        var resolvedGlyphText = glyphText ?? glyph?.ToString() ?? " ";
-        var resolvedGlyphToken = glyphToken ?? (glyph is { } g ? GlyphToken(g) : string.Empty);
-        var glyphMarkup = resolvedGlyphToken.Length == 0
-            ? Markup.Escape(Pad(resolvedGlyphText, GlyphWidth - 1))
-            : Stylize(ThemeTokens.GetStyle(resolvedGlyphToken).ToMarkup(), Markup.Escape(Pad(resolvedGlyphText, GlyphWidth - 1)));
-
-        return $"{Markup.Escape(selectionText)}{foldMarkup} {markerMarkup} {glyphMarkup} ";
-    }
-
-    private static char ThreadRelationshipGlyph(MailThreadSummary summary, string actor)
-    {
-        if (IsSelf(summary.LastSender, actor))
-        {
-            return MailRecipientView.FromActorGlyph;
-        }
-
-        var isRecipient = summary.LastRecipients.Any(r => IsSelf(r, actor));
-
-        if (!isRecipient)
-        {
-            return MailRecipientView.BlankGlyph;
-        }
-
-        return summary.LastRecipients.Count == 1 ? MailRecipientView.DirectGlyph : MailRecipientView.BroadcastGlyph;
-    }
-
-    private static bool IsSelf(string name, string actor) => string.Equals(name, actor, StringComparison.OrdinalIgnoreCase);
-
-    private static string GlyphToken(char glyph) => glyph switch
-    {
-        MailRecipientView.FromActorGlyph => "mail.row.glyph.from-me",
-        MailRecipientView.DirectGlyph => "mail.row.glyph.direct",
-        MailRecipientView.BroadcastGlyph => "mail.row.glyph.broadcast",
-        _ => string.Empty
-    };
-
-    private static string StylizeFrom(string paddedText, bool isSelf)
-    {
-        var token = isSelf ? "mail.row.from.me" : "mail.row.from";
-        return Stylize(ThemeTokens.GetStyle(token).ToMarkup(), Markup.Escape(paddedText));
-    }
-
-    private static string StylizeSubject(string paddedText, bool unreadToMe)
-    {
-        var token = unreadToMe ? "mail.row.unread-to-me" : string.Empty;
-        return token.Length == 0
-            ? Markup.Escape(paddedText)
-            : Stylize(ThemeTokens.GetStyle(token).ToMarkup(), Markup.Escape(paddedText));
-    }
-
-    private static IReadOnlyList<string> RecipientNames(MailMessage message)
-        => message.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name).ToArray();
 
     /// <summary>
-    /// Returns the first name with a count of additional names, or an empty string
-    /// for an empty list.
+    /// Appends the Mail table's fixed top block to <paramref name="lines"/>: a blank line, the
+    /// header row and the rule, keeping only the first <paramref name="headerLineCount"/> of the
+    /// three. A <paramref name="maxWidth"/> of 0 or less appends nothing.
     /// </summary>
-    private static string FormatOverflowList(IReadOnlyList<string> names)
+    public static void AddHeaderLines(List<string> lines, int headerLineCount, int maxWidth, Widths widths)
+    {
+        if (maxWidth <= 0)
+        {
+            return;
+        }
+
+        var headerStyle = ThemeTokens.GetStyle("mail.list.header").ToMarkup();
+        var ruleStyle = ThemeTokens.GetStyle("mail.list.age").ToMarkup();
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var layout = TableLayout.Plan(budget, s_columns, ToWidthList(widths));
+
+        TableRenderer.RenderTopBlock(
+            lines,
+            headerLineCount,
+            maxWidth,
+            UnselectedPrefix,
+            new TableCellSpec(string.Empty),
+            s_columns,
+            layout,
+            headerStyle,
+            ruleStyle);
+    }
+
+    private static TableCellSpec[] BuildHeaderCells(string headerStyle) =>
+    [
+        new(SubjectHeader, headerStyle),
+        new(FromHeader, headerStyle),
+        new(ToHeader, headerStyle),
+        new(MessagesHeader, headerStyle),
+        new(LastActivityHeader, headerStyle)
+    ];
+
+    private static int PrefixWidth(string prefix) => DisplayWidth.Measure(prefix) + 1;
+
+    private static IReadOnlyList<int> ToWidthList(Widths widths) =>
+        [widths.Subject, widths.From, widths.To, widths.Messages, widths.LastActivity];
+
+    private static string FormatMessageCount(int count) => count.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Returns the first recipient name with a count of additional names, or an empty
+    /// string for an empty list.
+    /// </summary>
+    private static string FormatRecipients(IReadOnlyList<string> names)
     {
         if (names.Count == 0)
         {
@@ -277,18 +209,23 @@ internal static class MailTable
     }
 
     /// <summary>
-    /// Returns the body with each run of whitespace replaced by a single space and
-    /// leading and trailing whitespace removed.
+    /// Formats the elapsed time between <paramref name="value"/> and <paramref name="now"/>:
+    /// "just now" under a minute, a relative duration ("26m", "3h", "2d") with an " ago"
+    /// suffix, or an absolute date once the thread's last activity is a week or older.
     /// </summary>
-    private static string CreatePreview(string body)
-        => string.Join(' ', body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    private static string FormatActivityAge(DateTimeOffset value, DateTimeOffset now)
+    {
+        var formatted = MailAges.Format(value, now);
 
-    private static string Stylize(string styleMarkup, string content) =>
-        styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
+        if (formatted == NowLabel)
+        {
+            return JustNowLabel;
+        }
 
-    private static string Pad(string value, int width) => DisplayWidth.PadRight(value, width);
+        return IsAbsoluteDate(formatted) ? formatted : formatted + AgoSuffix;
+    }
 
-    private static string PadLeft(string value, int width) => DisplayWidth.PadLeft(value, width);
-
-    private static string Truncate(string value, int width) => DisplayWidth.Truncate(value, width);
+    private static bool IsAbsoluteDate(string formatted) =>
+        DateTime.TryParseExact(
+            formatted, IsoDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
 }

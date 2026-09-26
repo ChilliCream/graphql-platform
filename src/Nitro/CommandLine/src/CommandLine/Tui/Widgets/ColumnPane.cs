@@ -14,6 +14,13 @@ internal static class ColumnPane
     /// strings, one per visible row, in top-to-bottom order.
     /// </summary>
     public static Panel Render(string name, int count, IReadOnlyList<string> lines, bool focused)
+        => RenderWithHeader($"{name} ({count})", lines, focused);
+
+    /// <summary>
+    /// Builds the panel for one column with a caller-supplied header, for a title
+    /// that does not fit the default "name (count)" format.
+    /// </summary>
+    public static Panel RenderWithHeader(string header, IReadOnlyList<string> lines, bool focused)
     {
         IRenderable content = lines.Count == 0
             ? new Markup(string.Empty)
@@ -23,7 +30,7 @@ internal static class ColumnPane
 
         return new Panel(content)
         {
-            Header = new PanelHeader($"{name} ({count})"),
+            Header = new PanelHeader(header),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle(borderToken)
         };

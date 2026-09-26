@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
@@ -6,7 +7,7 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Coordinates background mail wakes for one workspace and Nitro instance.
+/// Coordinates background mail wakes for this workspace.
 /// Lease loss returns it to standby; a Claude access denial temporarily degrades it.
 /// </summary>
 internal sealed class MailWakeDaemonCoordinator(
@@ -14,16 +15,46 @@ internal sealed class MailWakeDaemonCoordinator(
     IActorWakeDispatcher dispatcher,
     IFileSystem fileSystem,
     AgentDatabase database,
-    INitroInstanceIdProvider instanceIdProvider,
-    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     TimeProvider timeProvider,
     MailWakeDaemonPolicy policy) : IMailWakeDaemonCoordinator
 {
     private const int MaxTransientAttempts = 5;
 
-    private readonly string _ownerId = $"daemon-{Guid.NewGuid():N}";
+    /// <summary>
+    /// Invoked after its poll delay is armed, at the end of every admission loop iteration.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterAdmissionTickAsync { get; init; }
+
+    /// <summary>
+    /// Invoked after its poll delay is armed, at the end of every standby loop iteration.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterStandbyTickAsync { get; init; }
+
+    /// <summary>
+    /// Invoked once leadership is ending, either because <see cref="StopAsync"/> was called
+    /// or the coordinator degraded itself, before it bounds its wait for the heartbeat and
+    /// admission loops to drain.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterLeadershipEndedAsync { get; init; }
+
+    /// <summary>
+    /// Invoked after a transient busy-retry delay is armed, before it is awaited.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterRetryDelayArmedAsync { get; init; }
+
+    /// <summary>
+    /// Invoked after a bounded wait for shutdown is armed, before it is awaited.
+    /// </summary>
+    internal Func<CancellationToken, Task>? AfterShutdownWaitArmedAsync { get; init; }
+
     private readonly object _statusLock = new();
     private readonly ConcurrentDictionaryBackoff _backoff = new();
+    private readonly ConcurrentDictionary<string, bool> _inFlightActors = new(StringComparer.Ordinal);
+
+    // Regenerated per leadership term (every successful TryAcquireWithRetryAsync), so a
+    // dispatch orphaned by an earlier term carries a stale token that the store's fencing
+    // rejects once a new term begins.
+    private string _ownerToken = NewOwnerToken();
 
     private MailWakeDaemonStatus _status = MailWakeDaemonStatus.Initial;
     private CancellationTokenSource? _lifetime;
@@ -57,6 +88,12 @@ internal sealed class MailWakeDaemonCoordinator(
         {
             lock (_statusLock)
             {
+                if (_status.State == MailWakeDaemonState.Ready
+                    && timeProvider.GetUtcNow() >= _status.LeaseExpiresAt)
+                {
+                    return _status with { State = MailWakeDaemonState.Standby, OwnerToken = null, LeaseExpiresAt = null };
+                }
+
                 return _status;
             }
         }
@@ -90,7 +127,14 @@ internal sealed class MailWakeDaemonCoordinator(
         try
         {
             await lifetime.CancelAsync();
-            await runTask.WaitAsync(policy.ShutdownWait, cancellationToken);
+            var stopped = runTask.WaitAsync(policy.ShutdownWait, timeProvider, cancellationToken);
+
+            if (AfterShutdownWaitArmedAsync is { } afterShutdownWaitArmedAsync)
+            {
+                await afterShutdownWaitArmedAsync(cancellationToken);
+            }
+
+            await stopped;
         }
         catch (TimeoutException)
         {
@@ -119,23 +163,18 @@ internal sealed class MailWakeDaemonCoordinator(
 
     private async Task RunAsync(CancellationToken stopToken)
     {
-        string? nitroInstanceId = null;
-
         while (!stopToken.IsCancellationRequested)
         {
             try
             {
-                nitroInstanceId ??= await instanceIdProvider.GetIdAsync(
-                    globalConfigDirectoryProvider.GetDirectory(), stopToken);
+                var acquired = await StandbyUntilLeaderAsync(stopToken);
 
-                var epoch = await StandbyUntilLeaderAsync(nitroInstanceId, stopToken);
-
-                if (epoch is null)
+                if (!acquired)
                 {
                     return;
                 }
 
-                await RunAsLeaderAsync(nitroInstanceId, epoch.Value, stopToken);
+                await RunAsLeaderAsync(stopToken);
             }
             catch (OperationCanceledException)
             {
@@ -145,9 +184,16 @@ internal sealed class MailWakeDaemonCoordinator(
             {
                 UpdateStatus(s => s with { State = MailWakeDaemonState.Standby, LastError = Bound(ex.Message) });
 
+                var delay = Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+
+                if (AfterRetryDelayArmedAsync is { } afterRetryDelayArmedAsync)
+                {
+                    await afterRetryDelayArmedAsync(stopToken);
+                }
+
                 try
                 {
-                    await Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+                    await delay;
                 }
                 catch (OperationCanceledException)
                 {
@@ -157,7 +203,7 @@ internal sealed class MailWakeDaemonCoordinator(
         }
     }
 
-    private async Task<long?> StandbyUntilLeaderAsync(string nitroInstanceId, CancellationToken stopToken)
+    private async Task<bool> StandbyUntilLeaderAsync(CancellationToken stopToken)
     {
         while (!stopToken.IsCancellationRequested)
         {
@@ -169,37 +215,44 @@ internal sealed class MailWakeDaemonCoordinator(
                 ? s
                 : new MailWakeDaemonStatus(
                     selfDenied ? MailWakeDaemonState.Degraded : MailWakeDaemonState.Standby,
-                    null, null, null, s.LastError));
+                    null, null, s.LastError));
 
             if (!selfDenied)
             {
-                var lease = await ReadLeaseWithRetryAsync(nitroInstanceId, stopToken);
+                var lease = await ReadLeaseWithRetryAsync(stopToken);
 
                 if (lease is null || lease.ExpiresAt <= now)
                 {
-                    var epoch = await TryAcquireWithRetryAsync(nitroInstanceId, now, stopToken);
+                    var acquired = await TryAcquireWithRetryAsync(now, stopToken);
 
-                    if (epoch is not null)
+                    if (acquired)
                     {
-                        return epoch;
+                        return true;
                     }
                 }
             }
 
+            var delay = Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+
+            if (AfterStandbyTickAsync is { } afterStandbyTickAsync)
+            {
+                await afterStandbyTickAsync(stopToken);
+            }
+
             try
             {
-                await Task.Delay(policy.StandbyPollInterval, timeProvider, stopToken);
+                await delay;
             }
             catch (OperationCanceledException)
             {
-                return null;
+                return false;
             }
         }
 
-        return null;
+        return false;
     }
 
-    private async Task RunAsLeaderAsync(string nitroInstanceId, long epoch, CancellationToken stopToken)
+    private async Task RunAsLeaderAsync(CancellationToken stopToken)
     {
         var now = timeProvider.GetUtcNow();
 
@@ -207,21 +260,61 @@ internal sealed class MailWakeDaemonCoordinator(
         UpdateStatus(s => s.State == MailWakeDaemonState.Stopping
             ? s
             : new MailWakeDaemonStatus(
-                MailWakeDaemonState.Ready, _ownerId, epoch, now + policy.LeaderLeaseDuration, null));
+                MailWakeDaemonState.Ready, _ownerToken, now + policy.LeaderLeaseDuration, null));
         _backoff.Clear();
 
         using var degradedSource = new CancellationTokenSource();
         using var leaderSource = CancellationTokenSource.CreateLinkedTokenSource(stopToken, degradedSource.Token);
 
-        var heartbeatTask = HeartbeatLoopAsync(nitroInstanceId, epoch, degradedSource, leaderSource.Token);
-        var admissionTask = AdmissionLoopAsync(nitroInstanceId, epoch, degradedSource, leaderSource.Token);
+        var heartbeatTask = HeartbeatLoopAsync(degradedSource, leaderSource.Token);
+        var admissionTask = AdmissionLoopAsync(degradedSource, leaderSource.Token);
+        var loopsCompleted = Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
 
-        await Task.WhenAll(AwaitLoopAsync(heartbeatTask), AwaitLoopAsync(admissionTask));
-
-        if (stopToken.IsCancellationRequested && Status.State != MailWakeDaemonState.Degraded)
+        // Cheap and never blocked by an in-flight dispatch: leaderSource cancels the moment
+        // either StopAsync is called or the coordinator degrades itself.
+        try
         {
-            await leaderStore.TryReleaseAsync(
-                nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), CancellationToken.None);
+            await Task.Delay(Timeout.InfiniteTimeSpan, leaderSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        if (stopToken.IsCancellationRequested || degradedSource.IsCancellationRequested)
+        {
+            if (AfterLeadershipEndedAsync is { } afterLeadershipEndedAsync)
+            {
+                await afterLeadershipEndedAsync(CancellationToken.None);
+            }
+
+            // Bounded, and strictly shorter than the outer StopAsync/ShutdownWait budget, so a
+            // dispatch that ignores its cancellation token cannot hold the lease forever and the
+            // release below still has time to land within that outer budget; the loops keep
+            // draining in the background either way.
+            var drained = loopsCompleted.WaitAsync(policy.DispatchStopWait, timeProvider, CancellationToken.None);
+
+            if (AfterShutdownWaitArmedAsync is { } afterShutdownWaitArmedAsync)
+            {
+                await afterShutdownWaitArmedAsync(CancellationToken.None);
+            }
+
+            try
+            {
+                await drained;
+            }
+            catch (TimeoutException)
+            {
+                var stuckActors = _inFlightActors.Keys.ToArray();
+                var actorsText = stuckActors.Length > 0 ? string.Join(", ", stuckActors) : "unknown actor";
+                UpdateStatus(s => s with
+                {
+                    LastError = Bound(
+                        $"Dispatch for actor(s) [{actorsText}] under owner token {_ownerToken} "
+                        + "ignored cancellation past the shutdown wait; leadership was released anyway.")
+                });
+            }
+
+            await ReleaseWithRetryAsync(CancellationToken.None);
         }
     }
 
@@ -236,8 +329,7 @@ internal sealed class MailWakeDaemonCoordinator(
         }
     }
 
-    private async Task HeartbeatLoopAsync(
-        string nitroInstanceId, long epoch, CancellationTokenSource degradedSource, CancellationToken loopToken)
+    private async Task HeartbeatLoopAsync(CancellationTokenSource degradedSource, CancellationToken loopToken)
     {
         while (true)
         {
@@ -249,7 +341,7 @@ internal sealed class MailWakeDaemonCoordinator(
             try
             {
                 renewed = await leaderStore.TryRenewAsync(
-                    nitroInstanceId, _ownerId, epoch, now, policy.LeaderLeaseDuration, Status.LastError, loopToken);
+                    _ownerToken, now, policy.LeaderLeaseDuration, loopToken);
             }
             catch (OperationCanceledException)
             {
@@ -258,7 +350,7 @@ internal sealed class MailWakeDaemonCoordinator(
             catch (Exception ex)
             {
                 UpdateStatus(_ => new MailWakeDaemonStatus(
-                    MailWakeDaemonState.Standby, null, null, null, Bound(ex.Message)));
+                    MailWakeDaemonState.Standby, null, null, Bound(ex.Message)));
                 await degradedSource.CancelAsync();
                 return;
             }
@@ -266,7 +358,7 @@ internal sealed class MailWakeDaemonCoordinator(
             if (!renewed)
             {
                 UpdateStatus(s => new MailWakeDaemonStatus(
-                    MailWakeDaemonState.Standby, null, null, null, s.LastError));
+                    MailWakeDaemonState.Standby, null, null, s.LastError));
                 await degradedSource.CancelAsync();
                 return;
             }
@@ -277,12 +369,9 @@ internal sealed class MailWakeDaemonCoordinator(
         }
     }
 
-    private async Task AdmissionLoopAsync(
-        string nitroInstanceId, long epoch, CancellationTokenSource degradedSource, CancellationToken loopToken)
+    private async Task AdmissionLoopAsync(CancellationTokenSource degradedSource, CancellationToken loopToken)
     {
         using var executionGate = new SemaphoreSlim(policy.MaxConcurrentActorExecutions);
-        var inFlight = new HashSet<string>(StringComparer.Ordinal);
-        var inFlightLock = new object();
         var executionTasks = new List<Task>();
 
         try
@@ -292,23 +381,20 @@ internal sealed class MailWakeDaemonCoordinator(
                 try
                 {
                     var now = timeProvider.GetUtcNow();
-                    var due = await FindDueActorsWithRetryAsync(nitroInstanceId, now, loopToken) ?? [];
 
-                    foreach (var actor in due)
+                    if (Status.State == MailWakeDaemonState.Ready)
                     {
-                        lock (inFlightLock)
+                        var due = await FindDueActorsWithRetryAsync(now, loopToken) ?? [];
+
+                        foreach (var actor in due)
                         {
-                            if (inFlight.Contains(actor) || !_backoff.IsEligible(actor, now))
+                            if (!_backoff.IsEligible(actor, now) || !_inFlightActors.TryAdd(actor, true))
                             {
                                 continue;
                             }
 
-                            inFlight.Add(actor);
+                            executionTasks.Add(ExecuteActorAsync(actor, executionGate, degradedSource, loopToken));
                         }
-
-                        executionTasks.Add(ExecuteActorAsync(
-                            nitroInstanceId, actor, epoch, executionGate, inFlight, inFlightLock, degradedSource,
-                            loopToken));
                     }
 
                     executionTasks.RemoveAll(t => t.IsCompleted);
@@ -322,7 +408,14 @@ internal sealed class MailWakeDaemonCoordinator(
                     UpdateStatus(s => s with { LastError = Bound(ex.Message) });
                 }
 
-                await Task.Delay(policy.AdmissionPollInterval, timeProvider, loopToken);
+                var delay = Task.Delay(policy.AdmissionPollInterval, timeProvider, loopToken);
+
+                if (AfterAdmissionTickAsync is { } afterAdmissionTickAsync)
+                {
+                    await afterAdmissionTickAsync(loopToken);
+                }
+
+                await delay;
             }
         }
         finally
@@ -338,12 +431,8 @@ internal sealed class MailWakeDaemonCoordinator(
     }
 
     private async Task ExecuteActorAsync(
-        string nitroInstanceId,
         string actor,
-        long epoch,
         SemaphoreSlim gate,
-        HashSet<string> inFlight,
-        object inFlightLock,
         CancellationTokenSource degradedSource,
         CancellationToken loopToken)
     {
@@ -354,7 +443,7 @@ internal sealed class MailWakeDaemonCoordinator(
             try
             {
                 var deadline = timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;
-                var receipt = await dispatcher.DispatchAsync(actor, deadline, loopToken);
+                var receipt = await dispatcher.DispatchAsync(actor, _ownerToken, deadline, loopToken);
 
                 if (receipt is null)
                 {
@@ -369,16 +458,8 @@ internal sealed class MailWakeDaemonCoordinator(
                     SelfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
                     UpdateStatus(s => s with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
 
-                    // Signals sibling dispatches to cancel before releasing leadership.
-                    try
-                    {
-                        await degradedSource.CancelAsync();
-                    }
-                    finally
-                    {
-                        await ReleaseWithRetryAsync(nitroInstanceId, epoch, CancellationToken.None);
-                    }
-
+                    // Leadership is released once both the heartbeat and admission loops have stopped.
+                    await degradedSource.CancelAsync();
                     return;
                 }
 
@@ -408,10 +489,7 @@ internal sealed class MailWakeDaemonCoordinator(
         }
         finally
         {
-            lock (inFlightLock)
-            {
-                inFlight.Remove(actor);
-            }
+            _inFlightActors.TryRemove(actor, out _);
         }
     }
 
@@ -435,25 +513,70 @@ internal sealed class MailWakeDaemonCoordinator(
 
     private static bool IsBusy(SqliteException ex) => ex.SqliteErrorCode is 5 or 6; // SQLITE_BUSY / SQLITE_LOCKED
 
-    private async Task<long?> TryAcquireWithRetryAsync(
-        string nitroInstanceId, DateTimeOffset now, CancellationToken cancellationToken)
-        => await RunWithBusyRetryAsync(
-            ct => leaderStore.TryAcquireAsync(nitroInstanceId, _ownerId, now, policy.LeaderLeaseDuration, ct),
+    private async Task<bool> TryAcquireWithRetryAsync(DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        // A fresh candidate token per acquisition attempt, so every leadership term gets
+        // its own token; it only becomes _ownerToken once the acquire actually succeeds.
+        var candidateToken = NewOwnerToken();
+        var acquired = await RunBoolWithBusyRetryAsync(
+            ct => leaderStore.TryAcquireAsync(candidateToken, now, policy.LeaderLeaseDuration, ct),
             cancellationToken);
 
-    private async Task<LeaseSnapshot?> ReadLeaseWithRetryAsync(string nitroInstanceId, CancellationToken cancellationToken)
-        => await RunWithBusyRetryAsync(ct => ReadLeaseAsync(nitroInstanceId, ct), cancellationToken);
+        if (acquired)
+        {
+            _ownerToken = candidateToken;
+        }
+
+        return acquired;
+    }
+
+    private static string NewOwnerToken() => $"daemon-{Guid.NewGuid():N}";
+
+    private async Task<LeaseSnapshot?> ReadLeaseWithRetryAsync(CancellationToken cancellationToken)
+        => await RunWithBusyRetryAsync(ReadLeaseAsync, cancellationToken);
 
     private async Task<IReadOnlyList<string>?> FindDueActorsWithRetryAsync(
-        string nitroInstanceId, DateTimeOffset now, CancellationToken cancellationToken)
-        => await RunWithBusyRetryAsync(
-            async ct => await FindDueActorsAsync(nitroInstanceId, now, ct), cancellationToken);
+        DateTimeOffset now, CancellationToken cancellationToken)
+        => await RunWithBusyRetryAsync(async ct => await FindDueActorsAsync(now, ct), cancellationToken);
 
-    private async Task ReleaseWithRetryAsync(string nitroInstanceId, long epoch, CancellationToken cancellationToken)
-        => await RunWithBusyRetryAsync(
-            async ct => await leaderStore.TryReleaseAsync(
-                nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), ct),
+    private async Task ReleaseWithRetryAsync(CancellationToken cancellationToken)
+        => await RunBoolWithBusyRetryAsync(
+            ct => leaderStore.TryReleaseAsync(_ownerToken, timeProvider.GetUtcNow(), ct),
             cancellationToken);
+
+    /// <summary>
+    /// Retries <paramref name="operation"/> under the same busy-retry policy as
+    /// <see cref="RunWithBusyRetryAsync{TResult}"/>, returning false once retries are exhausted.
+    /// </summary>
+    private async Task<bool> RunBoolWithBusyRetryAsync(
+        Func<CancellationToken, Task<bool>> operation, CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; attempt <= MaxTransientAttempts; attempt++)
+        {
+            try
+            {
+                return await operation(cancellationToken);
+            }
+            catch (SqliteException ex) when (IsBusy(ex))
+            {
+                if (attempt == MaxTransientAttempts)
+                {
+                    return false;
+                }
+
+                var delay = Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+
+                if (AfterRetryDelayArmedAsync is { } afterRetryDelayArmedAsync)
+                {
+                    await afterRetryDelayArmedAsync(cancellationToken);
+                }
+
+                await delay;
+            }
+        }
+
+        return false;
+    }
 
     private async Task<TResult?> RunWithBusyRetryAsync<TResult>(
         Func<CancellationToken, Task<TResult?>> operation, CancellationToken cancellationToken)
@@ -471,43 +594,46 @@ internal sealed class MailWakeDaemonCoordinator(
                     return default;
                 }
 
-                await Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+                var delay = Task.Delay(MailWakeDaemonRetryPolicy.ComputeDelay(attempt), timeProvider, cancellationToken);
+
+                if (AfterRetryDelayArmedAsync is { } afterRetryDelayArmedAsync)
+                {
+                    await afterRetryDelayArmedAsync(cancellationToken);
+                }
+
+                await delay;
             }
         }
 
         return default;
     }
 
-    private async Task<LeaseSnapshot?> ReadLeaseAsync(string nitroInstanceId, CancellationToken cancellationToken)
+    private async Task<LeaseSnapshot?> ReadLeaseAsync(CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
         var row = await connection.QueryFirstOrDefaultAsync<LeaseRow>(
             """
-            SELECT owner_id AS OwnerId, epoch AS Epoch, expires_at AS ExpiresAt
-            FROM mail_wake_daemons
-            WHERE nitro_instance_id = @nitroInstanceId
-            """,
-            new { nitroInstanceId, cancellationToken });
+                SELECT owner_token AS OwnerToken, expires_at AS ExpiresAt
+                FROM mail_wake_daemons
+                WHERE id = 1
+                """);
 
         return row is null
             ? null
-            : new LeaseSnapshot(row.OwnerId, row.Epoch, DateTimeOffset.Parse(row.ExpiresAt, CultureInfo.InvariantCulture));
+            : new LeaseSnapshot(row.OwnerToken, DateTimeOffset.Parse(row.ExpiresAt, CultureInfo.InvariantCulture));
     }
 
-    private async Task<IReadOnlyList<string>> FindDueActorsAsync(
-        string nitroInstanceId, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<string>> FindDueActorsAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
         var actors = await connection.QueryAsync<string>(
             """
-            SELECT actor FROM mail_wake_outbox
-            WHERE nitro_instance_id = @nitroInstanceId
-              AND settled_generation < requested_generation
-              AND due_at <= @now
-            """,
-            new { nitroInstanceId, now, cancellationToken });
+                SELECT actor FROM mail_wake_outbox
+                WHERE settled_generation < requested_generation AND due_at <= @now
+                """,
+                new { now });
 
         return actors.AsList();
     }
@@ -520,12 +646,11 @@ internal sealed class MailWakeDaemonCoordinator(
         return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
-    private sealed record LeaseSnapshot(string OwnerId, long Epoch, DateTimeOffset ExpiresAt);
+    private sealed record LeaseSnapshot(string OwnerToken, DateTimeOffset ExpiresAt);
 
     internal sealed class LeaseRow
     {
-        public required string OwnerId { get; init; }
-        public required long Epoch { get; init; }
+        public required string OwnerToken { get; init; }
         public required string ExpiresAt { get; init; }
     }
 

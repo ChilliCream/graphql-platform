@@ -3,9 +3,10 @@
 # the board observes the Workspace mailbox and refuses identity-dependent
 # writes or Inbox/Sent jumps.
 #
-# The flow covers the Workspace thread list, the read-only footer, row
-# selection, fold expansion, flat list mode, the detail thread toggle, and
-# the per-agent Workspace filter. Fixed fixture timestamps keep every rendered
+# The flow covers the Mail tab's full-width thread table (one row per thread:
+# subject, from, to, message count, and last-activity columns), the per-agent
+# Workspace filter, and the Enter thread popover (mirroring board-flow.tape's/
+# agents-flow.tape's structure). Fixed fixture timestamps keep every rendered
 # age deterministic, so this flow needs no SCRUBS entry.
 # Produces mail-board-flow.gif + mail-board-flow.txt.
 
@@ -34,33 +35,13 @@ Show
 Type `nitro agent` Enter
 
 # Initial frame: the Tasks tab's board.
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
-# Move to Mail. Actor-less boards always open the read-only Workspace mailbox.
+# Move to Mail. Actor-less boards always open the read-only Workspace mailbox,
+# rendered as one full-width table of every thread (MailTable/MailMode).
 Type "]"
-Wait+Screen@30s /Workspace \(5\)/
-Wait+Screen@30s /From\s+To\s+Age/
-Wait+Screen@30s /f filter/
-
-# Select the "Retro notes" thread.
-Down
-Down
-Wait+Screen@30s /Thread: Retro notes/
-
-# Expand the selected thread in the list pane.
-Type "z"
-Type "o"
-Wait+Screen@30s />\s+▾/
-Wait+Screen@30s /└\s+alice/
-Wait+Screen@30s /└\s+e2e-agent\s+alice/
-
-# Switch from five thread rollups to the six-message flat stream.
-Type "V"
-Wait+Screen@30s /Workspace \(6\)/
-
-# Toggle the selected message's detail pane to its full thread.
-Type "t"
-Wait+Screen@30s /Notes are attached, take a look\./
+Wait+Screen@30s /Mail \(5\)/
+Wait+Screen@30s /SUBJECT\s+FROM\s+TO\s+MESSAGES\s+LAST ACTIVITY/
 
 # Filter the Workspace mailbox to bob. The picker is ordered as All agents,
 # alice, bob, e2e-agent, so bob is two rows below the default selection.
@@ -69,7 +50,19 @@ Wait+Screen@30s /Filter by agent/
 Down
 Down
 Enter
-Wait+Screen@30s /Workspace: bob \(3\)/
+Wait+Screen@30s /Mail: bob \(3\)/
+
+# Enter opens the first (and, sorted by last activity, most recent) row's
+# thread in a read-only popover: the subject as its title, a Participants
+# header field, and the thread's messages oldest first.
+Enter
+Wait+Screen@30s /Billing review/
+Wait+Screen@30s /Participants:/
+Wait+Screen@30s /Needs review before merge\./
+
+# Esc closes the popover, back on the filtered table.
+Escape
+Wait+Screen@30s /Mail: bob \(3\)/
 
 Sleep 1500ms
 Screenshot mail-board-flow-final.png

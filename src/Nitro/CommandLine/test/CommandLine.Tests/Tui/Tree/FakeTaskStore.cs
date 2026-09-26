@@ -39,6 +39,10 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<TaskItem> GetRequiredTaskAsync(string id, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
@@ -106,6 +110,9 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<TaskItem> DeleteTaskAsync(string id, string reason, string actor, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(string actor, CancellationToken cancellationToken)

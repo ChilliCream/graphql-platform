@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Details;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
@@ -8,8 +7,9 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Renders the selected message or chronological thread in a scrollable detail
-/// panel and maintains its scroll position.
+/// Renders a mail thread's messages, oldest first, in a scrollable detail panel and
+/// maintains its scroll position. Used by a host outside the Mail tab that has already
+/// loaded a thread, such as the agent detail popover's mail drill-in.
 /// </summary>
 internal sealed class MailDetailView
 {
@@ -31,10 +31,10 @@ internal sealed class MailDetailView
     private const int MaxIndicatorSettlePasses = 3;
 
     /// <summary>
-    /// The <see cref="Render"/> default when no client lookup is given,
-    /// resolving every name to no attribution.
+    /// The <see cref="RenderThread"/> default when no harness lookup is given, resolving
+    /// every name to no attribution.
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, string> s_emptyClients =
+    private static readonly IReadOnlyDictionary<string, string> s_emptyHarnesses =
         new Dictionary<string, string>();
 
     private readonly Viewport _bodyViewport = new(0, 0);
@@ -50,30 +50,16 @@ internal sealed class MailDetailView
     public void ScrollUp() => _bodyViewport.ScrollBy(-1);
 
     /// <summary>
-    /// Scrolls the body to its first line.
+    /// Renders a thread's messages, oldest first, with the thread's subject as the header
+    /// and optional <see cref="ChilliCream.Nitro.CommandLine.Services.Workspace.AgentRow.Harness"/>
+    /// attribution. A null lookup or an absent or empty harness entry adds no attribution.
     /// </summary>
-    public void ScrollToTop() => _bodyViewport.ScrollBy(int.MinValue / 2);
-
-    /// <summary>
-    /// Scrolls the body to its last line.
-    /// </summary>
-    public void ScrollToBottom() => _bodyViewport.ScrollBy(int.MaxValue / 2);
-
-    /// <summary>
-    /// Resets the body scroll position to the top.
-    /// </summary>
-    public void ResetScroll() => _bodyViewport.Update(0, 0);
-
-    /// <summary>
-    /// Renders the selected message or thread with optional <see cref="AgentRecord.Client"/>
-    /// attribution. A null lookup or an absent or empty client entry adds no attribution.
-    /// </summary>
-    public IRenderable Render(
-        MailState state,
+    public IRenderable RenderThread(
+        IReadOnlyList<MailMessage> messages,
         int width,
         int height,
         bool focused,
-        IReadOnlyDictionary<string, string>? clientsByName = null)
+        IReadOnlyDictionary<string, string>? harnessesByName = null)
     {
         if (width <= 0 || height <= 0)
         {
@@ -83,21 +69,19 @@ internal sealed class MailDetailView
         var safeWidth = Math.Max(1, width);
         var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
         var interiorHeight = Math.Max(1, height - PanelChromeHeight);
-        var clients = clientsByName ?? s_emptyClients;
+        var harnesses = harnessesByName ?? s_emptyHarnesses;
 
-        var lines = state.ViewMode == MailViewMode.Thread
-            ? BuildThreadLines(state, interiorWidth, clients)
-            : BuildMessageLines(state, interiorWidth, clients);
+        var lines = BuildThreadLines(messages, interiorWidth, harnesses);
 
         IRenderable content = lines.Count == 0
-            ? Align.Center(new Markup(Markup.Escape(NoMessageMessage(state))), VerticalAlignment.Middle)
+            ? Align.Center(new Markup(Markup.Escape("No messages.")), VerticalAlignment.Middle)
             : new Rows(RenderVisibleLines(lines, interiorHeight).Select(Row));
 
         var borderToken = focused ? "board.column.border.focused" : "board.column.border";
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildHeader(state)),
+            Header = new PanelHeader(BuildThreadHeader(messages)),
             Border = BoxBorder.Rounded,
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
@@ -118,115 +102,29 @@ internal sealed class MailDetailView
         return new TaskDetailBodyLine(content, IsMarkup: true);
     }
 
-    /// <summary>
-    /// Returns a label-and-value line with the label styled as a detail section header.
-    /// </summary>
-    private static TaskDetailBodyLine FieldLine(string label, string value)
-    {
-        var style = ThemeTokens.GetStyle("detail.section.header").ToMarkup();
-        var labelText = $"{label}:";
-        var labelMarkup = style.Length == 0 ? labelText : $"[{style}]{labelText}[/]";
-        return new TaskDetailBodyLine($"{labelMarkup} {Markup.Escape(value)}", IsMarkup: true);
-    }
-
-    private static string BuildHeader(MailState state)
-    {
-        if (state.ViewMode == MailViewMode.Thread)
-        {
-            return state.ThreadMessages.Count > 0
-                ? $"Thread: {Markup.Escape(state.ThreadMessages[0].Subject)}"
-                : "Thread";
-        }
-
-        return state.SelectedMessage is { } selected
-            ? $"[dim]{Markup.Escape(selected.Id)}[/] {Markup.Escape(selected.Subject)}"
-            : "Detail";
-    }
-
-    private static string NoMessageMessage(MailState state)
-        => state.Messages.Count == 0 ? "No messages." : "No message selected.";
-
-    private static IReadOnlyList<TaskDetailBodyLine> BuildMessageLines(
-        MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
-    {
-        if (state.SelectedMessage is not { } message)
-        {
-            return [];
-        }
-
-        var lines = new List<TaskDetailBodyLine>
-        {
-            FieldLine("From", AttributeClient(message.Sender, clientsByName)),
-            FieldLine("To", string.Join(", ", RecipientNames(message, MailRecipientKinds.To)))
-        };
-
-        var cc = RecipientNames(message, MailRecipientKinds.Cc);
-
-        if (cc.Count > 0)
-        {
-            lines.Add(FieldLine("Cc", string.Join(", ", cc)));
-        }
-
-        lines.Add(FieldLine("Date", FormatTimestamp(message.CreatedAt)));
-        lines.AddRange(BuildRecipientStateLines(message, clientsByName));
-        lines.Add(PlainLine(string.Empty));
-        lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));
-
-        return lines;
-    }
+    private static string BuildThreadHeader(IReadOnlyList<MailMessage> messages)
+        => messages.Count > 0 ? $"Thread: {Markup.Escape(messages[0].Subject)}" : "Thread";
 
     /// <summary>
-    /// Returns the name with a non-empty client attribution in parentheses, or the
+    /// Returns the name with a non-empty harness attribution in parentheses, or the
     /// name alone when no attribution is available. The returned text is unescaped.
     /// </summary>
-    private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
-        => clientsByName.TryGetValue(name, out var client) && client.Length > 0
-            ? $"{name} ({client})"
+    private static string AttributeHarness(string name, IReadOnlyDictionary<string, string> harnessesByName)
+        => harnessesByName.TryGetValue(name, out var harness) && harness.Length > 0
+            ? $"{name} ({harness})"
             : name;
 
-    /// <summary>
-    /// Returns each recipient's read and archived state in recipient ordinal order,
-    /// with optional client attribution.
-    /// </summary>
-    private static IReadOnlyList<TaskDetailBodyLine> BuildRecipientStateLines(
-        MailMessage message, IReadOnlyDictionary<string, string> clientsByName)
-        => message.Recipients
-            .OrderBy(r => r.Ordinal)
-            .Select(r => FormatRecipientState(r, clientsByName))
-            .ToList();
-
-    private static TaskDetailBodyLine FormatRecipientState(
-        MailRecipient recipient, IReadOnlyDictionary<string, string> clientsByName)
-    {
-        var unread = recipient.ReadAt is null;
-        var state = recipient.ReadAt is { } readAt
-            ? $"read {FormatTimestamp(readAt)}"
-            : "unread";
-
-        var label = AttributeClient(recipient.Name, clientsByName);
-        var text = recipient.ArchivedAt is not null
-            ? $"{label}: {state}, archived"
-            : $"{label}: {state}";
-
-        var token = unread ? "mail.detail.recipient.unread" : "mail.detail.recipient.read";
-        var style = ThemeTokens.GetStyle(token).ToMarkup();
-        var escaped = Markup.Escape(text);
-        var content = style.Length == 0 ? escaped : $"[{style}]{escaped}[/]";
-
-        return new TaskDetailBodyLine(content, IsMarkup: true);
-    }
-
     private static IReadOnlyList<TaskDetailBodyLine> BuildThreadLines(
-        MailState state, int width, IReadOnlyDictionary<string, string> clientsByName)
+        IReadOnlyList<MailMessage> messages, int width, IReadOnlyDictionary<string, string> harnessesByName)
     {
-        if (state.ThreadMessages.Count == 0)
+        if (messages.Count == 0)
         {
             return [];
         }
 
         var lines = new List<TaskDetailBodyLine>();
 
-        for (var i = 0; i < state.ThreadMessages.Count; i++)
+        for (var i = 0; i < messages.Count; i++)
         {
             if (i > 0)
             {
@@ -234,21 +132,14 @@ internal sealed class MailDetailView
                 lines.Add(PlainLine(new string('-', Math.Clamp(width, 1, 40))));
             }
 
-            var message = state.ThreadMessages[i];
+            var message = messages[i];
             lines.Add(SectionHeaderLine(
-                $"{AttributeClient(message.Sender, clientsByName)} - {FormatTimestamp(message.CreatedAt)}"));
+                $"{AttributeHarness(message.Sender, harnessesByName)} - {FormatTimestamp(message.CreatedAt)}"));
             lines.AddRange(TaskDetailSections.WrapText(message.Body, width).Select(PlainLine));
         }
 
         return lines;
     }
-
-    private static IReadOnlyList<string> RecipientNames(MailMessage message, string kind)
-        => message.Recipients
-            .Where(r => r.Kind == kind)
-            .OrderBy(r => r.Ordinal)
-            .Select(r => r.Name)
-            .ToList();
 
     private static string FormatTimestamp(DateTimeOffset value)
         => value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm");

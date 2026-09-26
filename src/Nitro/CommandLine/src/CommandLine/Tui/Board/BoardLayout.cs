@@ -24,9 +24,11 @@ internal static class BoardLayout
     private const int StackedPanelChromeHeight = 2;
 
     /// <summary>
-    /// The minimum interior row count required to give every stacked column equal height.
+    /// The minimum interior row count required to give every stacked column equal height:
+    /// the header block plus the three rows the indicator settle needs to keep the
+    /// selection visible.
     /// </summary>
-    private const int MinStackedInteriorHeight = 3;
+    private const int MinStackedInteriorHeight = BoardTaskRow.HeaderLineCount + 3;
 
     /// <summary>
     /// The smallest per-column height <see cref="BuildStacked"/> requires

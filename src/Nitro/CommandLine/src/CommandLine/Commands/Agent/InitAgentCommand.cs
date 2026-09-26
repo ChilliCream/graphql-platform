@@ -408,7 +408,7 @@ internal sealed class InitAgentCommand : Command
         await connection.OpenAsync(cancellationToken);
 
         await connection.ExecuteAsync(
-            "UPDATE agent_sessions SET workspace_path = @workspacePath "
+            "UPDATE agents SET workspace_path = @workspacePath "
             + "WHERE workspace_path = @previousWorkspacePath;",
             new
             {

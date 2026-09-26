@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Handles Codex session registration, unread-mail context, session removal, and
+/// Handles Codex session registration, unread-mail context, session end, and
 /// notify delivery. Exceptions propagate to the hook executor.
 /// </summary>
 internal interface ICodexHookHandler
@@ -21,7 +21,7 @@ internal interface ICodexHookHandler
         CodexHookPayload payload, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Conditionally deletes the session's presence row.
+    /// Stamps the session's agent row as ended, keeping it in place.
     /// </summary>
     Task<CodexHookOutcome> HandleSessionEndAsync(
         CodexHookPayload payload, CancellationToken cancellationToken);

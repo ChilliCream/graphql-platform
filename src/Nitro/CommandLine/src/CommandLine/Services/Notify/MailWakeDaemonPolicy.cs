@@ -25,4 +25,10 @@ internal sealed record MailWakeDaemonPolicy(
         StandbyPollInterval: TimeSpan.FromSeconds(1),
         MaxConcurrentActorExecutions: 4,
         ShutdownWait: TimeSpan.FromSeconds(5));
+
+    /// <summary>
+    /// The bound for draining in-flight dispatches when leadership ends. Always strictly
+    /// shorter than <see cref="ShutdownWait"/>.
+    /// </summary>
+    public TimeSpan DispatchStopWait => ShutdownWait / 2;
 }

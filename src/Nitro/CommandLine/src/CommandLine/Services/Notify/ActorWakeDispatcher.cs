@@ -6,45 +6,33 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Dispatches one actor's outstanding wake work to at most one coding session.
+/// Dispatches one actor's outstanding wake work to the actor's own agent row.
 /// Returns null when no batch can be claimed and leaves unresolved work pending for retry.
 /// </summary>
 internal sealed class ActorWakeDispatcher(
     IMailWakeBatchStore batchStore,
-    IAgentSessionRegistry sessionRegistry,
+    IAgentStore agentStore,
     ISessionGateCoordinator gateCoordinator,
     IPingSessionExecutor executor,
     IMailStore mailStore,
-    INitroInstanceIdProvider instanceIdProvider,
-    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider,
     TimeProvider timeProvider) : IActorWakeDispatcher
 {
     public async Task<ActorWakeReceipt?> DispatchAsync(
-        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
+        string actor, string leaderToken, DateTimeOffset deadline, CancellationToken cancellationToken)
     {
         var normalizedActor = MailAgentName.Normalize(actor);
-        var nitroInstanceId = await instanceIdProvider.GetIdAsync(
-            globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-
-        var candidates = await ResolveCandidatesAsync(normalizedActor, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
-        var ownerId = $"dispatcher-{Guid.NewGuid():N}";
+        var ownerId = leaderToken;
         var batchAttemptId = $"batch-{Guid.NewGuid():N}";
 
         var claim = await batchStore.TryClaimAsync(
-            nitroInstanceId, normalizedActor, ownerId, batchAttemptId, candidates, now,
+            normalizedActor, ownerId, batchAttemptId, [normalizedActor], now,
             WakeDispatchPolicy.BatchLeaseDuration, cancellationToken);
 
         if (claim is null)
         {
             return null;
-        }
-
-        if (claim.Targets.Count == 0)
-        {
-            await batchStore.TryCompleteAsync(claim.BatchId, ownerId, batchAttemptId, now, cancellationToken);
-            return new ActorWakeReceipt(normalizedActor, MailWakeTargetStatus.Skipped, []);
         }
 
         var unread = await mailStore.CountUnreadAsync(normalizedActor, cancellationToken);
@@ -57,19 +45,6 @@ internal sealed class ActorWakeDispatcher(
 
         return await DispatchTargetsAsync(
             normalizedActor, claim, ownerId, batchAttemptId, deadline, cancellationToken);
-    }
-
-    private async Task<IReadOnlyList<AgentSessionGeneration>> ResolveCandidatesAsync(
-        string actor, CancellationToken cancellationToken)
-    {
-        var sessions = await sessionRegistry.FindLiveClaimedByAgentNameAsync(actor, cancellationToken);
-
-        return sessions
-            .Where(s => s.Harness != AgentSessionHarness.NitroBoard)
-            .OrderByDescending(s => s.LastBeatAt)
-            .Take(1)
-            .Select(s => new AgentSessionGeneration(s.Harness, s.SessionId, s.Host))
-            .ToList();
     }
 
     private async Task<ActorWakeReceipt> CompleteAlreadyReadAsync(
@@ -120,7 +95,6 @@ internal sealed class ActorWakeDispatcher(
                 claim.BatchId,
                 ownerId,
                 batchAttemptId,
-                actor,
                 claim.Targets.Single(),
                 claim.ClaimedGeneration,
                 batchDeadline,
@@ -210,8 +184,7 @@ internal sealed class ActorWakeDispatcher(
         string batchId,
         string ownerId,
         string batchAttemptId,
-        string actor,
-        AgentSessionGeneration target,
+        string target,
         long claimedGeneration,
         DateTimeOffset batchDeadline,
         CancellationToken dispatchToken,
@@ -219,30 +192,47 @@ internal sealed class ActorWakeDispatcher(
     {
         try
         {
-            var session = await sessionRegistry.FindByGenerationAsync(target, dispatchToken);
+            var row = await agentStore.FindAsync(target, dispatchToken);
 
-            if (session is null)
+            if (row is null)
             {
-                return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "session-gone");
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "offline");
             }
 
-            if (session.EndpointKind == AgentSessionEndpointKind.None)
+            if (row.EndedAt is not null)
             {
-                return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "no-endpoint");
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "ended");
             }
 
-            if (session.EndpointKind is AgentSessionEndpointKind.DbWatch
-                or AgentSessionEndpointKind.CopilotExtension)
+            var state = AgentStateResolver.Resolve(row, timeProvider.GetUtcNow());
+
+            if (state == AgentState.Offline)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "offline");
+            }
+
+            if (state == AgentState.Unreachable)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
+            }
+
+            if (row.EndpointKind is AgentSessionEndpointKind.DbWatch or AgentSessionEndpointKind.CopilotExtension)
             {
                 // Database-watching endpoints require no direct transport.
                 return await RecordDeliveredAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration);
             }
 
-            if (session.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
+            if (row.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
                 and not AgentSessionEndpointKind.CodexThread
                 and not AgentSessionEndpointKind.OpencodeServer)
             {
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "unsupported");
+            }
+
+            if (row.EndpointKind is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.OpencodeServer
+                && row.SessionId is null)
+            {
+                return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
             }
 
             var now = timeProvider.GetUtcNow();
@@ -262,23 +252,23 @@ internal sealed class ActorWakeDispatcher(
 
             try
             {
-                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
-                    && !await sessionRegistry.ClaimIdlePushAsync(target, dispatchToken))
+                if (row.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                    && !await agentStore.ClaimIdlePushAsync(target, dispatchToken))
                 {
-                    // An unarmed session remains pending for a later attempt.
+                    // An unarmed agent remains pending for a later attempt.
                     return await RecordOfferedAsync(
                         batchId, target, ownerId, batchAttemptId, claimedGeneration, "idle-not-armed");
                 }
 
-                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
+                if (row.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
                 {
-                    // This attempt holds the session's idle-push claim.
+                    // This attempt holds the agent's idle-push claim.
                     idlePushClaimed = true;
                 }
 
                 // Claims the ping attempt; no transport runs if the claim fails.
-                var stamped = await sessionRegistry.TryClaimPingCooldownAsync(
-                    session, pingAttemptId, now, TimeSpan.Zero, dispatchToken);
+                var stamped = await agentStore.TryClaimPingCooldownAsync(
+                    target, TimeSpan.Zero, pingAttemptId, dispatchToken);
 
                 if (!stamped)
                 {
@@ -287,27 +277,25 @@ internal sealed class ActorWakeDispatcher(
 
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
-                var outcome = session.EndpointKind switch
+                var outcome = (row.EndpointKind, row.SessionId) switch
                 {
-                    AgentSessionEndpointKind.ClaudePeer => await executor.ExecuteClaudePeerAsync(
-                        session.Harness, session.SessionId, actor, pingAttemptId, held.Slot,
+                    (AgentSessionEndpointKind.ClaudePeer, { } sessionId) => await executor.ExecuteClaudePeerAsync(
+                        target, sessionId, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
+                    (AgentSessionEndpointKind.CodexThread, _) => await executor.ExecuteCodexThreadAsync(
+                        target, row.EndpointAddr, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
+                    (AgentSessionEndpointKind.OpencodeServer, { } sessionId) => await executor.ExecuteOpencodeServerAsync(
+                        target, sessionId, row.EndpointAddr, row.EndpointSecret, pingAttemptId, held.Slot,
                         attemptDeadline, dispatchToken),
-                    AgentSessionEndpointKind.CodexThread => await executor.ExecuteCodexThreadAsync(
-                        session.Harness, session.SessionId, actor, session.EndpointAddr, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken),
-                    AgentSessionEndpointKind.OpencodeServer => await executor.ExecuteOpencodeServerAsync(
-                        session.Harness, session.SessionId, actor, session.EndpointAddr, session.EndpointSecret,
-                        pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
                     _ => throw new UnreachableException(
-                        $"Endpoint kind '{session.EndpointKind}' passed the earlier supported-kind guard.")
+                        $"Endpoint kind '{row.EndpointKind}' passed the earlier supported-kind guard.")
                 };
 
-                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                if (row.EndpointKind == AgentSessionEndpointKind.OpencodeServer
                     && (outcome.Reason != PingAttemptReason.Ok
                         || outcome.Detail == PingSessionExecutor.HealthOnlyDetail))
                 {
                     // An unsuccessful push or health-only check restores the idle-push claim.
-                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                    await agentStore.RearmIdlePushAsync(target, CancellationToken.None);
                 }
 
                 idlePushSettled = true;
@@ -336,7 +324,7 @@ internal sealed class ActorWakeDispatcher(
                 if (idlePushClaimed && !idlePushSettled)
                 {
                     // An interrupted attempt restores the idle-push claim.
-                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                    await agentStore.RearmIdlePushAsync(target, CancellationToken.None);
                 }
 
                 // Reservation cleanup continues after dispatch cancellation.
@@ -351,7 +339,7 @@ internal sealed class ActorWakeDispatcher(
     }
 
     private async Task<ActorWakeTargetReceipt> RecordDeliveredAsync(
-        string batchId, AgentSessionGeneration target, string ownerId, string attemptId, long claimedGeneration)
+        string batchId, string target, string ownerId, string attemptId, long claimedGeneration)
     {
         var recorded = await batchStore.TryRecordTargetOutcomeAsync(
             batchId, target, ownerId, attemptId, MailWakeTargetStatus.Delivered,
@@ -364,7 +352,7 @@ internal sealed class ActorWakeDispatcher(
     }
 
     private async Task<ActorWakeTargetReceipt> RecordFailureAsync(
-        string batchId, AgentSessionGeneration target, string ownerId, string attemptId, string reason)
+        string batchId, string target, string ownerId, string attemptId, string reason)
     {
         var recorded = await batchStore.TryRecordTargetOutcomeAsync(
             batchId, target, ownerId, attemptId, MailWakeTargetStatus.Failed,
@@ -376,8 +364,21 @@ internal sealed class ActorWakeDispatcher(
             : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
     }
 
+    private async Task<ActorWakeTargetReceipt> RecordSkippedAsync(
+        string batchId, string target, string ownerId, string attemptId, string reason)
+    {
+        var recorded = await batchStore.TryRecordTargetOutcomeAsync(
+            batchId, target, ownerId, attemptId, MailWakeTargetStatus.Skipped,
+            offeredGeneration: null, acceptedGeneration: null, lastError: reason,
+            timeProvider.GetUtcNow(), CancellationToken.None);
+
+        return recorded
+            ? new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Skipped, null, null, reason)
+            : new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
+    }
+
     private async Task<ActorWakeTargetReceipt> RecordOfferedAsync(
-        string batchId, AgentSessionGeneration target, string ownerId, string attemptId,
+        string batchId, string target, string ownerId, string attemptId,
         long claimedGeneration, string reason)
     {
         var recorded = await batchStore.TryRecordTargetOutcomeAsync(

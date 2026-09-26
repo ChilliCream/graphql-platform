@@ -26,4 +26,23 @@ internal static class ThrowHelper
 
     public static ArgumentOutOfRangeException NegativeLimit(int limit)
         => new(nameof(limit), limit, "Limit must be zero or greater.");
+
+    public static ArgumentException UnknownAgentHarness(string harness)
+        => new($"'{harness}' is not an agent harness.", nameof(harness));
+
+    public static ExitException UnknownMailRecipient(string name)
+        => Exit($"Unknown agent '{name}'. Look the name up with 'nitro agent list'.");
+
+    public static ExitException DeletedMailRecipient(string name)
+        => Exit($"Agent '{name}' was deleted. Look the name up with 'nitro agent list'.");
+
+    public static ExitException NoReplyRecipientsRemaining(IEnumerable<(string Name, bool WasDeleted)> skipped)
+    {
+        var reasons = skipped.Select(
+            recipient => recipient.WasDeleted
+                ? $"'{recipient.Name}' was deleted"
+                : $"'{recipient.Name}' is unknown");
+
+        return Exit($"No recipients left: {string.Join(", ", reasons)}.");
+    }
 }

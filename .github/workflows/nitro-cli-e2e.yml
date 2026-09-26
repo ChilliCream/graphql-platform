@@ -87,6 +87,67 @@ jobs:
 
           "$nitro_bin" agent tasks show "$task_id"
 
+          # Widen the smoke past task CRUD: mail, memory and the agent
+          # registry each fall back to reflection Dapper when a call isn't
+          # AOT-interceptable, so exercise every store here too.
+          if ! "$nitro_bin" agent register --actor "$actor" --role planner; then
+            echo "::error::agent register --actor \"$actor\" --role planner failed." >&2
+            exit 1
+          fi
+
+          if ! list_output="$("$nitro_bin" agent list --output json)"; then
+            echo "::error::agent list --output json failed." >&2
+            exit 1
+          fi
+          echo "$list_output"
+          if ! printf '%s' "$list_output" | tr -d '\n' | grep -Eq \
+              "\"name\"[[:space:]]*:[[:space:]]*\"$actor\"[^}]*\"online\"[[:space:]]*:[[:space:]]*(true|false)"; then
+            echo "::error::agent list --output json did not report actor \"$actor\" with an online flag." >&2
+            exit 1
+          fi
+
+          if ! "$nitro_bin" agent mail send --to "$actor" --actor "$actor" \
+              --subject "AOT smoke" --body "hello"; then
+            echo "::error::agent mail send --to \"$actor\" --actor \"$actor\" --subject \"AOT smoke\" --body \"hello\" failed." >&2
+            exit 1
+          fi
+
+          if ! inbox_output="$("$nitro_bin" agent mail inbox --actor "$actor" --output json)"; then
+            echo "::error::agent mail inbox --actor \"$actor\" --output json failed." >&2
+            exit 1
+          fi
+          echo "$inbox_output"
+          message_count="$(printf '%s' "$inbox_output" | grep -c '"id"' || true)"
+          if [ "$message_count" -ne 1 ]; then
+            echo "::error::agent mail inbox --actor \"$actor\" --output json did not report exactly one message." >&2
+            exit 1
+          fi
+
+          if ! "$nitro_bin" agent memory save "AOT smoke memory" --type fact --actor "$actor"; then
+            echo "::error::agent memory save \"AOT smoke memory\" --type fact --actor \"$actor\" failed." >&2
+            exit 1
+          fi
+
+          if ! "$nitro_bin" agent memory context; then
+            echo "::error::agent memory context failed." >&2
+            exit 1
+          fi
+
+          if ! search_output="$("$nitro_bin" agent memory search "smoke" --output json)"; then
+            echo "::error::agent memory search \"smoke\" --output json failed." >&2
+            exit 1
+          fi
+          echo "$search_output"
+          if ! printf '%s' "$search_output" | grep -q '"id"'; then
+            echo "::error::agent memory search \"smoke\" --output json did not report any memories." >&2
+            exit 1
+          fi
+
+          if ! "$nitro_bin" agent tasks close "$task_id" --actor "$actor" --reason "smoke"; then
+            echo "::error::agent tasks close \"$task_id\" --actor \"$actor\" --reason \"smoke\" failed." >&2
+            exit 1
+          fi
+
   record-and-verify:
     runs-on: ubuntu-latest
     steps:

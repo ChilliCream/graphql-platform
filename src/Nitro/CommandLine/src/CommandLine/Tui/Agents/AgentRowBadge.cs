@@ -1,167 +1,255 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
+using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders a participant's actor, presence, harness, role, and session ages with
-/// selection and implicit-identity markers. Rows bound to implicit identities
-/// use the implicit-identity style.
+/// Renders the Agents table's header row and each agent row: a presence bubble and name,
+/// role, harness, and age columns. Name and Role are never dropped; narrow widths drop the
+/// Started column first, then Harness, then Last Seen, identically for the header and the
+/// rows so the two always agree. When even Name and Role no longer fit, Role is truncated
+/// first, then Name, with an ellipsis. Built on the shared <see cref="TableLayout"/> and
+/// <see cref="TableRenderer"/> table widget.
 /// </summary>
 internal static class AgentRowBadge
 {
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
-    private const string ImplicitMarker = "i";
-    private const string ExplicitMarker = " ";
     private const string EmptyRole = "-";
+    private const string BubbleGlyph = "●";
+
+    private const string NameHeader = "NAME";
+    private const string RoleHeader = "ROLE";
+    private const string HarnessHeader = "HARNESS";
+    private const string StartedHeader = "STARTED";
+    private const string LastSeenHeader = "LAST SEEN";
+
+    private const int MinNameWidth = 12;
+    private const int MinRoleWidth = 12;
+    private const int MinHarnessWidth = 12;
+    private const int MinStartedWidth = 10;
+    private const int MinLastSeenWidth = 10;
+
+    // Started drops first, then Harness, then Last Seen; Name and Role have no drop priority
+    // so they are never dropped. This is the display order the columns render in.
+    private static readonly IReadOnlyList<TableColumnSpec> s_columns =
+    [
+        new TableColumnSpec(NameHeader, MinNameWidth),
+        new TableColumnSpec(RoleHeader, MinRoleWidth),
+        new TableColumnSpec(HarnessHeader, MinHarnessWidth, DropPriority: 1),
+        new TableColumnSpec(StartedHeader, MinStartedWidth, DropPriority: 0),
+        new TableColumnSpec(LastSeenHeader, MinLastSeenWidth, DropPriority: 2)
+    ];
+
+    // Same columns, with Role ordered before Name, used only to plan widths: TableLayout.Plan
+    // truncates the first never-dropped column that is still visible once every droppable
+    // column is gone, so putting Role first here makes Role truncate before Name while the
+    // rendered column order above stays Name, then Role.
+    private static readonly IReadOnlyList<TableColumnSpec> s_widthPlanColumns =
+    [
+        new TableColumnSpec(RoleHeader, MinRoleWidth),
+        new TableColumnSpec(NameHeader, MinNameWidth),
+        new TableColumnSpec(HarnessHeader, MinHarnessWidth, DropPriority: 1),
+        new TableColumnSpec(StartedHeader, MinStartedWidth, DropPriority: 0),
+        new TableColumnSpec(LastSeenHeader, MinLastSeenWidth, DropPriority: 2)
+    ];
 
     /// <summary>
-    /// The column widths a set of rows agree on: each column padded to the
-    /// widest value among those rows.
+    /// The column widths a set of rows agree on: each column padded to at least its minimum
+    /// width, and wider still when its header title or a row's value needs more room.
     /// </summary>
-    public readonly record struct Widths(
-        int Actor, int Presence, int Harness, int Role, int StartedAge, int LastHeardAge);
+    public readonly record struct Widths(int Name, int Role, int Harness, int Started, int LastSeen);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/>.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, with each column no
+    /// narrower than its minimum width or its header title.
     /// </summary>
-    public static Widths ComputeWidths(IReadOnlyList<AgentParticipantRow> rows, DateTimeOffset now)
+    public static Widths ComputeWidths(IReadOnlyList<AgentRow> rows, DateTimeOffset now)
     {
-        var actorWidth = 0;
-        var presenceWidth = 0;
-        var harnessWidth = 0;
-        var roleWidth = 0;
-        var startedWidth = 0;
-        var lastHeardWidth = 0;
+        var rowValues = new List<IReadOnlyList<string>>(rows.Count);
 
         foreach (var row in rows)
         {
-            var session = row.Participant.Session;
-            actorWidth = Math.Max(actorWidth, DisplayWidth.Measure(ActorText(session)));
-            presenceWidth = Math.Max(presenceWidth, DisplayWidth.Measure(PresenceText(row)));
-            harnessWidth = Math.Max(harnessWidth, DisplayWidth.Measure(session.Harness));
-            roleWidth = Math.Max(roleWidth, DisplayWidth.Measure(RoleText(session)));
-            startedWidth = Math.Max(startedWidth, DisplayWidth.Measure(MailAges.Format(session.StartedAt, now)));
-            lastHeardWidth = Math.Max(lastHeardWidth, DisplayWidth.Measure(MailAges.Format(session.LastBeatAt, now)));
+            rowValues.Add(
+            [
+                row.Name,
+                RoleText(row),
+                AgentHarnessDisplay.Name(row.Harness),
+                FormatAge(row.StartedAt, now),
+                FormatAge(row.LastSeenAt, now)
+            ]);
         }
 
-        return new Widths(actorWidth, presenceWidth, harnessWidth, roleWidth, startedWidth, lastHeardWidth);
+        var widths = TableLayout.ComputeWidths(s_columns, rowValues);
+        return new Widths(widths[0], widths[1], widths[2], widths[3], widths[4]);
     }
 
     /// <summary>
-    /// Builds the markup line for one participant row, padding actor/presence/role/ages to
-    /// <paramref name="widths"/> and truncating the role with an ellipsis so the line fits within
-    /// <paramref name="maxWidth"/> display columns. A <paramref name="maxWidth"/> of 0 or less produces
-    /// an empty line.
+    /// Builds the markup line for one agent row. Columns are padded to <paramref name="widths"/>.
+    /// When the full set of columns does not fit within <paramref name="maxWidth"/> display
+    /// columns, Started is dropped first, then Harness, then Last Seen; Name and Role always
+    /// remain, with Role truncated first and then Name as a last resort. A
+    /// <paramref name="maxWidth"/> of 0 or less produces an empty line.
     /// </summary>
     public static string Render(
-        AgentParticipantRow row, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
+        AgentRow row, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
     {
         if (maxWidth <= 0)
         {
             return string.Empty;
         }
 
-        var session = row.Participant.Session;
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var isImplicit = row.Participant.Agent?.Implicit ?? false;
-        var marker = isImplicit ? ImplicitMarker : ExplicitMarker;
-        var actor = DisplayWidth.PadRight(ActorText(session), widths.Actor);
-        var presenceBadge = DisplayWidth.PadRight(PresenceText(row), widths.Presence);
-        var harness = DisplayWidth.PadRight(session.Harness, widths.Harness);
-        var startedAge = DisplayWidth.PadRight(MailAges.Format(session.StartedAt, now), widths.StartedAge);
-        var lastHeardAge = DisplayWidth.PadRight(MailAges.Format(session.LastBeatAt, now), widths.LastHeardAge);
-
-        // Terminal-cell width of everything but the role, including its following separator.
-        var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(marker) + 1
-            + DisplayWidth.Measure(actor) + 1
-            + DisplayWidth.Measure(presenceBadge) + 1
-            + DisplayWidth.Measure(harness) + 1
-            + DisplayWidth.Measure("started ") + DisplayWidth.Measure(startedAge) + 1
-            + DisplayWidth.Measure("heard ") + DisplayWidth.Measure(lastHeardAge) + 1;
-
-        var roleText = DisplayWidth.PadRight(RoleText(session), widths.Role);
-        var roleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
-        var truncatedRole = DisplayWidth.Truncate(roleText, roleBudget);
-        var actorStyle = ThemeTokens.GetStyle("agents.list.name").ToMarkup();
-        var presenceStyle = PresenceStyle(row.Participant.State).ToMarkup();
+        var state = AgentStateResolver.Resolve(row, now);
+        var bubbleStyle = PresenceStyle(state).ToMarkup();
+        var nameStyle = ThemeTokens.GetStyle("agents.list.name").ToMarkup();
+        var roleStyle = RoleStyle(row.Role).ToMarkup();
         var harnessStyle = ThemeTokens.GetStyle("agents.list.harness").ToMarkup();
-        var roleStyle = RoleStyle(session.Role).ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
 
-        var line = fixedPlainWidth > maxWidth
-            ? RenderNarrow(
-                prefix,
-                marker,
-                maxWidth,
-                actor,
-                actorStyle,
-                presenceBadge,
-                presenceStyle,
-                harness,
-                harnessStyle,
-                $"started {startedAge}",
-                ageStyle,
-                $"heard {lastHeardAge}",
-                ageStyle)
-            : $"{Markup.Escape(prefix)}{Markup.Escape(marker)} "
-                + $"{Stylize(actorStyle, Markup.Escape(actor))} "
-                + $"{Stylize(presenceStyle, Markup.Escape(presenceBadge))} "
-                + $"{Stylize(harnessStyle, Markup.Escape(harness))} "
-                + $"{Stylize(roleStyle, Markup.Escape(truncatedRole))} "
-                + $"{Stylize(ageStyle, $"started {Markup.Escape(startedAge)}")} "
-                + $"{Stylize(ageStyle, $"heard {Markup.Escape(lastHeardAge)}")}";
-
-        if (isImplicit)
+        var cells = new TableCellSpec[]
         {
-            var implicitStyle = ThemeTokens.GetStyle("agents.list.implicit").ToMarkup();
-            line = Stylize(implicitStyle, line);
-        }
+            new(row.Name, nameStyle),
+            new(RoleText(row), roleStyle),
+            new(AgentHarnessDisplay.Name(row.Harness), harnessStyle),
+            new(FormatAge(row.StartedAt, now), ageStyle),
+            new(FormatAge(row.LastSeenAt, now), ageStyle)
+        };
+
+        var budget = maxWidth - PrefixWidth(prefix);
+        var layout = PlanLayout(budget, widths);
+        var line = TableRenderer.RenderRow(
+            prefix, new TableCellSpec(BubbleGlyph, bubbleStyle), cells, s_columns, layout);
 
         if (selected)
         {
             var highlightStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
-            line = Stylize(highlightStyle, line);
+            line = TableRenderer.Stylize(highlightStyle, line);
         }
 
         return line;
     }
 
-    private static string ActorText(AgentSessionRecord session)
-        => session.AgentName is { Length: > 0 } actor ? actor : AgentParticipantRow.UnboundLabel;
-
     /// <summary>
-    /// The presence badge text: a single glyph for the state, plus the Claude activity read-through's
-    /// first letter in parentheses when known.
+    /// Builds the header title line shown above the rows: NAME, ROLE, HARNESS, STARTED, LAST
+    /// SEEN, aligned to <paramref name="widths"/> with the cursor and bubble cells left blank.
+    /// Columns are dropped using the same thresholds as <see cref="Render"/>, so the header
+    /// always agrees with the rows below it. A <paramref name="maxWidth"/> of 0 or less
+    /// produces an empty line.
     /// </summary>
-    private static string PresenceText(AgentParticipantRow row)
+    public static string RenderHeader(int maxWidth, Widths widths)
     {
-        var glyph = PresenceGlyph(row.Participant.State);
+        if (maxWidth <= 0)
+        {
+            return string.Empty;
+        }
 
-        return row.Activity is { Length: > 0 } activity
-            ? $"{glyph}({char.ToLowerInvariant(activity[0])})"
-            : glyph;
+        var headerStyle = ThemeTokens.GetStyle("agents.list.header").ToMarkup();
+        var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var layout = PlanLayout(budget, widths);
+
+        return TableRenderer.RenderRow(
+            UnselectedPrefix, new TableCellSpec(blankBubble), BuildHeaderCells(headerStyle), s_columns, layout);
     }
 
-    private static string PresenceGlyph(string state) => state switch
+    /// <summary>
+    /// Builds the dashed rule line under the header, filling <paramref name="maxWidth"/>
+    /// display columns. A <paramref name="maxWidth"/> of 0 or less produces an empty line.
+    /// </summary>
+    public static string RenderRule(int maxWidth)
     {
-        AgentSessionState.Online => "●",
-        AgentSessionState.Unreachable => "◐",
-        AgentSessionState.Unobservable => "◌",
-        AgentSessionState.Remote => "◇",
-        _ => "○" // Any unrecognized state.
-    };
+        var ruleStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
+        return TableRenderer.RenderRule(maxWidth, ruleStyle);
+    }
 
     /// <summary>
-    /// Resolves the theme style for a presence state: a dedicated
+    /// Appends the Agents table's fixed top block to <paramref name="lines"/>: a blank line, the
+    /// header row and the rule, keeping only the first <paramref name="headerLineCount"/> of the
+    /// three. A <paramref name="maxWidth"/> of 0 or less appends nothing.
+    /// </summary>
+    public static void AddHeaderLines(List<string> lines, int headerLineCount, int maxWidth, Widths widths)
+    {
+        if (maxWidth <= 0)
+        {
+            return;
+        }
+
+        var headerStyle = ThemeTokens.GetStyle("agents.list.header").ToMarkup();
+        var ruleStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
+        var blankBubble = new string(' ', DisplayWidth.Measure(BubbleGlyph));
+        var budget = maxWidth - PrefixWidth(UnselectedPrefix);
+        var layout = PlanLayout(budget, widths);
+
+        TableRenderer.RenderTopBlock(
+            lines,
+            headerLineCount,
+            maxWidth,
+            UnselectedPrefix,
+            new TableCellSpec(blankBubble),
+            s_columns,
+            layout,
+            headerStyle,
+            ruleStyle);
+    }
+
+    private static TableCellSpec[] BuildHeaderCells(string headerStyle) =>
+    [
+        new(NameHeader, headerStyle),
+        new(RoleHeader, headerStyle),
+        new(HarnessHeader, headerStyle),
+        new(StartedHeader, headerStyle),
+        new(LastSeenHeader, headerStyle)
+    ];
+
+    private static int PrefixWidth(string prefix) =>
+        DisplayWidth.Measure(prefix) + DisplayWidth.Measure(BubbleGlyph) + 1;
+
+    /// <summary>
+    /// Plans column visibility and widths for <paramref name="budget"/> display columns, in the
+    /// display order Name, Role, Harness, Started, Last Seen.
+    /// </summary>
+    private static IReadOnlyList<ColumnLayout> PlanLayout(int budget, Widths widths)
+    {
+        IReadOnlyList<int> planWidths = [widths.Role, widths.Name, widths.Harness, widths.Started, widths.LastSeen];
+        var planLayout = TableLayout.Plan(budget, s_widthPlanColumns, planWidths).ToArray();
+        var role = planLayout[0];
+        var name = planLayout[1];
+
+        // TableLayout.Plan only truncates the first still-visible column once every droppable
+        // column is gone, which is Role here. When Role alone does not free enough room, also
+        // shrink Name to what is left so the row still fits within budget.
+        if (role.Visible && name.Visible)
+        {
+            var used = role.Width + name.Width + DisplayWidth.Measure(TableLayout.Gutter);
+
+            if (used > budget)
+            {
+                var nameWidth = Math.Max(0, budget - role.Width - DisplayWidth.Measure(TableLayout.Gutter));
+                planLayout[1] = new ColumnLayout(true, nameWidth);
+            }
+        }
+
+        return [planLayout[1], planLayout[0], planLayout[2], planLayout[3], planLayout[4]];
+    }
+
+    /// <summary>
+    /// Resolves the theme style for an agent's presence state: a dedicated
     /// <c>agents.list.presence.&lt;state&gt;</c> token, falling back to the
     /// base <c>agents.list.presence</c> token.
     /// </summary>
-    public static Style PresenceStyle(string state)
+    public static Style PresenceStyle(AgentState state)
     {
-        var perState = ThemeTokens.GetStyle($"agents.list.presence.{state}");
+        var token = state switch
+        {
+            AgentState.Online => "agents.list.presence.online",
+            AgentState.Idle => "agents.list.presence.idle",
+            AgentState.Unreachable => "agents.list.presence.unreachable",
+            _ => "agents.list.presence.offline"
+        };
+
+        var perState = ThemeTokens.GetStyle(token);
 
         return perState != Style.Plain ? perState : ThemeTokens.GetStyle("agents.list.presence");
     }
@@ -185,64 +273,7 @@ internal static class AgentRowBadge
         return ThemeTokens.GetStyle("agents.list.role");
     }
 
-    private static string RoleText(AgentSessionRecord session) => session.Role.Length == 0 ? EmptyRole : session.Role;
+    private static string RoleText(AgentRow row) => row.Role.Length == 0 ? EmptyRole : row.Role;
 
-    private static string RenderNarrow(
-        string prefix,
-        string marker,
-        int maxWidth,
-        string actor,
-        string actorStyle,
-        string presence,
-        string presenceStyle,
-        string harness,
-        string harnessStyle,
-        string startedAge,
-        string ageStyle,
-        string lastHeardAge,
-        string lastHeardAgeStyle)
-    {
-        var prefixText = DisplayWidth.Slice($"{prefix}{marker} ", maxWidth);
-        var line = Markup.Escape(prefixText);
-        var remaining = maxWidth - DisplayWidth.Measure(prefixText);
-        var hasColumn = false;
-
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, actor, actorStyle);
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, presence, presenceStyle);
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, harness, harnessStyle);
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, startedAge, ageStyle);
-        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, lastHeardAge, lastHeardAgeStyle);
-
-        return line;
-    }
-
-    private static void AppendNarrowColumn(
-        ref string line,
-        ref int remaining,
-        ref bool hasColumn,
-        string value,
-        string styleMarkup)
-    {
-        var separatorWidth = hasColumn ? 1 : 0;
-        var valueBudget = remaining - separatorWidth;
-
-        if (valueBudget <= 0)
-        {
-            return;
-        }
-
-        var truncatedValue = DisplayWidth.Truncate(value, valueBudget);
-
-        if (truncatedValue.Length == 0)
-        {
-            return;
-        }
-
-        line += (hasColumn ? " " : string.Empty) + Stylize(styleMarkup, Markup.Escape(truncatedValue));
-        remaining -= separatorWidth + DisplayWidth.Measure(truncatedValue);
-        hasColumn = true;
-    }
-
-    private static string Stylize(string styleMarkup, string content) =>
-        styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
+    private static string FormatAge(DateTimeOffset value, DateTimeOffset now) => AgentAges.Format(value, now);
 }

@@ -28,34 +28,60 @@ internal sealed class RegisterAgentCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
-        var agents = services.GetRequiredService<IAgentRegistry>();
+        var agents = services.GetRequiredService<IAgentStore>();
 
         var actor = MailAgentName.Normalize(
             parseResult.GetValue(Opt<RequiredActorOption>.Instance) ?? string.Empty);
+        var roleGiven = parseResult.GetResult(Opt<RoleAgentOption>.Instance) is { Implicit: false };
         var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance) ?? string.Empty;
 
         // Actor names are allocated, never invented: only `agent login` and
         // the session-start hooks mint one.
-        if (await agents.GetAsync(actor, cancellationToken) is null)
+        var existing = await agents.FindAsync(actor, cancellationToken);
+
+        if (existing is null)
         {
             throw new ExitException(
                 $"Unknown actor '{actor}'. Run `nitro agent login` to allocate one, "
                 + "or `nitro agent list` to see the actors this workspace knows.");
         }
 
-        var registered = await agents.RegisterAsync(actor, role, client: string.Empty, cancellationToken);
+        if (existing.IsDeleted)
+        {
+            throw new ExitException($"Agent '{existing.Name}' was deleted.");
+        }
+
+        string registeredName;
+        string registeredRole;
+
+        if (roleGiven)
+        {
+            var registered = await agents.SetRoleAsync(actor, role, cancellationToken)
+                ?? throw new ExitException($"Agent '{actor}' was deleted.");
+
+            registeredName = registered.Name;
+            registeredRole = registered.Role;
+        }
+        else
+        {
+            // Nothing else on the row changes: touch the beat and report the role as is.
+            await agents.TouchAsync(actor, cancellationToken);
+
+            registeredName = existing.Name;
+            registeredRole = existing.Role;
+        }
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(new AgentRegisterResult(registered.Name, registered.Role)));
+            resultHolder.SetResult(new ObjectResult(new AgentRegisterResult(registeredName, registeredRole)));
 
             return ExitCodes.Success;
         }
 
         console.OkLine(
-            registered.Role.Length > 0
-                ? $"Actor '{registered.Name.EscapeMarkup()}', role '{registered.Role.EscapeMarkup()}'."
-                : $"Actor '{registered.Name.EscapeMarkup()}'.");
+            registeredRole.Length > 0
+                ? $"Actor '{registeredName.EscapeMarkup()}', role '{registeredRole.EscapeMarkup()}'."
+                : $"Actor '{registeredName.EscapeMarkup()}'.");
 
         return ExitCodes.Success;
     }

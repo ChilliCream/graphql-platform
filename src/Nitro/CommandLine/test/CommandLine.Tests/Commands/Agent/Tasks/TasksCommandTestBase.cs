@@ -31,8 +31,23 @@ public abstract class TasksCommandTestBase : CommandTestBase
         => AgentWorkspace.GetDatabasePath(WorkspaceDirectory);
 
     protected async Task SeedAgentAsync(string actor, string role = "")
-        => await new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase())
-            .RegisterAsync(actor, role, client: "", TestContext.Current.CancellationToken);
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, role, registered_at, started_at, last_seen_at)
+            VALUES ($name, $role, $now, $now, $now)
+            ON CONFLICT (name) DO UPDATE SET role = excluded.role, last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("$name", actor);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
 
     protected async Task InitWorkspaceAsync()
     {

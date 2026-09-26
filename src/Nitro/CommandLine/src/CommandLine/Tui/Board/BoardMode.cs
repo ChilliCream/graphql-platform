@@ -112,71 +112,106 @@ internal sealed class BoardMode : ITuiMode
     /// <inheritdoc />
     public IRenderable Render(int width, int height)
     {
-        var columns = _state.Columns;
-
-        if (columns.Count == 0 || width <= 0 || height <= 0)
+        if (_state.Columns.Count == 0 || width <= 0 || height <= 0)
         {
             return new Markup(string.Empty);
         }
 
-        var decision = BoardLayout.Decide(width, height, columns.Count, _state.FocusedColumnIndex, _maximized);
+        var visibleIndices = _state.VisibleColumnIndices;
+
+        if (visibleIndices.Count == 0)
+        {
+            return RenderEmptyBoard(width, height);
+        }
+
+        var focusedPosition = Math.Max(0, IndexOf(visibleIndices, _state.FocusedColumnIndex));
+        var decision = BoardLayout.Decide(width, height, visibleIndices.Count, focusedPosition, _maximized);
 
         return decision.Kind switch
         {
-            BoardLayoutKind.Maximized => RenderMaximized(decision),
-            BoardLayoutKind.Stacked => RenderStacked(decision),
-            _ => RenderGrid(decision)
+            BoardLayoutKind.Maximized => RenderMaximized(decision, visibleIndices, focusedPosition),
+            BoardLayoutKind.Stacked => RenderStacked(decision, visibleIndices),
+            _ => RenderGrid(decision, visibleIndices)
         };
     }
 
-    private IRenderable RenderGrid(BoardLayoutDecision decision)
+    private IRenderable RenderGrid(BoardLayoutDecision decision, IReadOnlyList<int> visibleIndices)
     {
-        var columns = _state.Columns;
-        var columnLayouts = new Layout[columns.Count];
+        var columnLayouts = new Layout[visibleIndices.Count];
 
-        for (var i = 0; i < columns.Count; i++)
+        for (var position = 0; position < visibleIndices.Count; position++)
         {
-            var slot = decision.Columns[i];
-            var focused = i == _state.FocusedColumnIndex;
-            var panel = RenderColumnPanel(i, slot.Width, slot.Height, focused, headerSuffix: null);
+            var rawIndex = visibleIndices[position];
+            var slot = decision.Columns[position];
+            var focused = rawIndex == _state.FocusedColumnIndex;
+            var panel = RenderColumnPanel(rawIndex, slot.Width, slot.Height, focused, headerSuffix: null);
 
-            columnLayouts[i] = new Layout($"board-column-{i}", panel).Size(Math.Max(1, slot.Width));
+            columnLayouts[position] = new Layout($"board-column-{rawIndex}", panel).Size(Math.Max(1, slot.Width));
         }
 
         return new Layout("board").SplitColumns(columnLayouts);
     }
 
-    private IRenderable RenderMaximized(BoardLayoutDecision decision)
+    private IRenderable RenderMaximized(
+        BoardLayoutDecision decision, IReadOnlyList<int> visibleIndices, int focusedPosition)
     {
-        var columns = _state.Columns;
-        var focused = _state.FocusedColumnIndex;
-        var slot = decision.Columns[focused];
-        var suffix = $"{focused + 1}/{columns.Count}";
+        var rawIndex = visibleIndices[focusedPosition];
+        var slot = decision.Columns[focusedPosition];
+        var suffix = $"{focusedPosition + 1}/{visibleIndices.Count}";
 
-        return RenderColumnPanel(focused, slot.Width, slot.Height, focused: true, headerSuffix: suffix);
+        return RenderColumnPanel(rawIndex, slot.Width, slot.Height, focused: true, headerSuffix: suffix);
     }
 
-    private IRenderable RenderStacked(BoardLayoutDecision decision)
+    private IRenderable RenderStacked(BoardLayoutDecision decision, IReadOnlyList<int> visibleIndices)
     {
         var columns = _state.Columns;
-        var rows = new List<IRenderable>(Math.Max(0, columns.Count * 2 - 1));
+        var rows = new List<IRenderable>(Math.Max(0, visibleIndices.Count * 2 - 1));
 
-        for (var i = 0; i < columns.Count; i++)
+        for (var position = 0; position < visibleIndices.Count; position++)
         {
-            if (i > 0)
+            if (position > 0)
             {
                 // Insert one blank row between stacked column panels.
                 rows.Add(new Text(string.Empty));
             }
 
-            var slot = decision.Columns[i];
+            var rawIndex = visibleIndices[position];
+            var slot = decision.Columns[position];
+
+            var focused = rawIndex == _state.FocusedColumnIndex;
 
             rows.Add(slot.Expanded
-                ? RenderColumnPanel(i, slot.Width, slot.Height, focused: i == _state.FocusedColumnIndex, headerSuffix: null)
-                : new Markup(Markup.Escape($"{columns[i].Definition.Name} ({columns[i].Tasks.Count})")));
+                ? RenderColumnPanel(rawIndex, slot.Width, slot.Height, focused, headerSuffix: null)
+                : new Markup(Markup.Escape($"{columns[rawIndex].Definition.Name} ({columns[rawIndex].Tasks.Count})")));
         }
 
         return new Rows(rows);
+    }
+
+    /// <summary>
+    /// Renders the single full-width panel shown when every column is empty.
+    /// </summary>
+    private IRenderable RenderEmptyBoard(int width, int height)
+    {
+        var safeWidth = Math.Max(1, width);
+        var interiorHeight = Math.Max(0, height - PanelChromeHeight);
+        var lines = new List<string>(interiorHeight);
+
+        if (interiorHeight > 0)
+        {
+            lines.Add("No tasks yet.");
+        }
+
+        while (lines.Count < interiorHeight)
+        {
+            lines.Add(string.Empty);
+        }
+
+        var panel = ColumnPane.RenderWithHeader($"{_state.View.Name} (0)", lines, focused: false);
+        panel.Width = safeWidth;
+        panel.Height = Math.Max(1, height);
+
+        return panel;
     }
 
     /// <summary>
@@ -215,7 +250,7 @@ internal sealed class BoardMode : ITuiMode
 
     private IReadOnlyList<TuiMessage> FocusColumn(int delta)
     {
-        _state.FocusColumn(_state.FocusedColumnIndex + delta);
+        _state.FocusAdjacentVisibleColumn(delta);
         return [];
     }
 
@@ -295,8 +330,12 @@ internal sealed class BoardMode : ITuiMode
     }
 
     /// <summary>
-    /// Renders one column's visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
-    /// with "N more above/below" indicators once the column's tasks no longer fit.
+    /// Renders one column's task table: the fixed header block (a blank line, the header row,
+    /// and its rule), then the visible rows, padded with blank lines to
+    /// <paramref name="interiorHeight"/>, with "N more above/below" indicators once the
+    /// column's tasks no longer fit. Column widths are computed from this call's visible
+    /// slice and the header titles, so the header and rows always agree on where each column
+    /// starts.
     /// </summary>
     private static IReadOnlyList<string> RenderColumnLines(
         BoardColumnState column,
@@ -310,11 +349,15 @@ internal sealed class BoardMode : ITuiMode
             return [];
         }
 
+        var headerLineCount = Math.Min(
+            BoardTaskRow.HeaderLineCount,
+            column.Tasks.Count > 0 ? Math.Max(0, interiorHeight - 1) : interiorHeight);
+        var rowsHeight = Math.Max(0, interiorHeight - headerLineCount);
         var reservedRows = 0;
 
         for (var pass = 0; pass < MaxIndicatorSettlePasses; pass++)
         {
-            var windowHeight = Math.Max(0, interiorHeight - reservedRows);
+            var windowHeight = Math.Max(0, rowsHeight - reservedRows);
             viewport.Update(column.Tasks.Count, windowHeight);
             viewport.EnsureVisible(column.SelectedRow);
 
@@ -329,7 +372,16 @@ internal sealed class BoardMode : ITuiMode
         }
 
         var (start, visibleCount) = viewport.Slice();
+        var visibleTasks = new List<TaskItem>(visibleCount);
+
+        for (var i = 0; i < visibleCount; i++)
+        {
+            visibleTasks.Add(column.Tasks[start + i]);
+        }
+
+        var widths = BoardTaskRow.ComputeWidths(visibleTasks);
         var lines = new List<string>(interiorHeight);
+        BoardTaskRow.AddHeaderLines(lines, headerLineCount, contentWidth, widths);
 
         if (viewport.HiddenAbove > 0)
         {
@@ -338,10 +390,8 @@ internal sealed class BoardMode : ITuiMode
 
         for (var i = 0; i < visibleCount; i++)
         {
-            var task = column.Tasks[start + i];
             var selected = focused && start + i == column.SelectedRow;
-            lines.Add(TaskBadge.Render(
-                task.Id, task.Title, task.Status, task.Priority, task.Type, selected, contentWidth));
+            lines.Add(BoardTaskRow.Render(visibleTasks[i], selected, contentWidth, widths));
         }
 
         if (viewport.HiddenBelow > 0)
@@ -364,6 +414,19 @@ internal sealed class BoardMode : ITuiMode
         for (var i = 0; i < tasks.Count; i++)
         {
             if (tasks[i].Id == id)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static int IndexOf(IReadOnlyList<int> values, int value)
+    {
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (values[i] == value)
             {
                 return i;
             }

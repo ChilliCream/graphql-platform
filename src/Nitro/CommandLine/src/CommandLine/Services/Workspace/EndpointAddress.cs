@@ -20,6 +20,32 @@ internal static partial class EndpointAddress
     public static bool IsTrustedOpencodeServerUrl(string value, bool serverBound)
         => serverBound && IsValidOpencodeServerUrl(value);
 
+    /// <summary>
+    /// Normalizes invalid or absent endpoints to kind <c>none</c>, an empty address,
+    /// and no credential. Credentials are retained only for valid opencode-server
+    /// endpoints belonging to the opencode harness.
+    /// </summary>
+    public static (string Kind, string Addr, string? Secret) Normalize(
+        string harness,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret)
+    {
+        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
+        {
+            return IsValidOpencodeServerUrl(endpointAddr)
+                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
+                : (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        if (endpointKind == AgentSessionEndpointKind.None || !IsValid(endpointAddr))
+        {
+            return (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        return (endpointKind, endpointAddr, null);
+    }
+
     [GeneratedRegex(@"^[A-Za-z0-9._-]{1,128}$")]
     private static partial Regex Pattern();
 }

@@ -64,7 +64,7 @@ Show
 Type `nitro agent` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape).
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # '/' into search mode; the pending empty query resolves to all six fixture
 # tasks on the next tick, ordered by priority then created_at, selection on
