@@ -48,8 +48,10 @@ interface LayeredDiagramProps {
 const CLIENT_COLUMNS = [2, 4] as const;
 const NODE_COLUMNS = [3, 7] as const;
 
-/** Grid gap in dense mode's wide layout, in px; `gap-1`. Must match `DENSE_LAYOUTS`'s markup. */
+/** Wide-layout grid gap in dense mode, in px; tied to `DENSE_WIDE_GAP_CLASS`. */
 const DENSE_WIDE_GAP = 4;
+/** Tailwind class carrying `DENSE_WIDE_GAP`, shared by both dense grids below. */
+const DENSE_WIDE_GAP_CLASS = "@min-[640px]:gap-1";
 
 const LAYOUTS = [
   { key: "stacked", className: "@min-[760px]:hidden" },
@@ -100,7 +102,6 @@ interface BandProps {
   readonly step: number;
   /** Animation for the `index`-th lit lane, or `null` when nothing travels. */
   readonly pulse: ((index: number) => string) | null;
-  /** Fusion's dense mode: a lower layout threshold and a tighter wide-mode gap. */
   readonly dense?: boolean;
 }
 
@@ -126,7 +127,6 @@ function Band({
   return (
     <div className="relative h-8 md:h-16 lg:h-20">
       {layouts.map((layout, i) => {
-        // Only the wide layout (i === 1) ever renders a non-default gap.
         const gap = dense && i === 1 ? DENSE_WIDE_GAP : undefined;
         const lanes = columnLanes(count, columns[i], lit, gap);
         const active = lanes.filter((lane) => lane.lit);
@@ -239,7 +239,7 @@ export default function LayeredDiagram({
           <div
             className={
               dense
-                ? "grid grid-cols-2 gap-2 @min-[640px]:grid-cols-4 @min-[640px]:gap-1"
+                ? `grid grid-cols-2 gap-2 @min-[640px]:grid-cols-4 ${DENSE_WIDE_GAP_CLASS}`
                 : "grid grid-cols-2 gap-2 @min-[760px]:grid-cols-4"
             }
           >
@@ -362,7 +362,7 @@ export default function LayeredDiagram({
           <div
             className={
               dense
-                ? "grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[640px]:grid-cols-7 @min-[640px]:gap-1"
+                ? `grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[640px]:grid-cols-7 ${DENSE_WIDE_GAP_CLASS}`
                 : "grid grid-cols-3 gap-2 @max-[312px]:gap-x-1 @min-[760px]:grid-cols-7"
             }
           >

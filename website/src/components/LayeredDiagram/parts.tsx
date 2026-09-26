@@ -17,6 +17,9 @@ export const LINE_HEIGHT = 1.3;
 /** Corner radius of a connector elbow, in px. */
 const ELBOW_RADIUS = 12;
 
+/** `text-[14px]`/`text-[11px]` below track `TYPE.caption`/`TYPE.label`; kept literal for Tailwind's scan. */
+const _DENSE_TITLE_PX: readonly [14, 11] = [TYPE.caption, TYPE.label];
+
 /** A palette role at `percent` opacity. */
 export function wash(color: string, percent: number): string {
   return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
@@ -45,10 +48,9 @@ export function Card({
   tone,
   dense = false,
 }: CardProps) {
-  // Each dense=false branch matches the pre-dense markup byte for byte.
   const tight = dense
     ? badge
-      ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[760px]:@max-[869px]:px-1 @min-[640px]:px-1 @min-[640px]:py-1"
+      ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[640px]:px-1 @min-[640px]:py-1"
       : "@min-[640px]:px-1 @min-[640px]:py-1"
     : badge
       ? "@max-[359px]:px-1 @max-[312px]:px-0 @min-[760px]:@max-[869px]:px-1"
@@ -66,7 +68,7 @@ export function Card({
       };
 
   const badgeClass = dense
-    ? "mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[760px]:@max-[869px]:px-0.5 @min-[760px]:@max-[869px]:tracking-[0.01em] @min-[640px]:px-0.5 @min-[640px]:whitespace-normal @min-[640px]:tracking-[0.01em]"
+    ? "mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[640px]:px-0.5 @min-[640px]:whitespace-normal @min-[640px]:tracking-[0.01em]"
     : "mt-1 truncate rounded-sm px-1 font-mono tracking-[0.04em] @max-[359px]:px-0.5 @max-[359px]:tracking-[0.01em] @max-[312px]:whitespace-normal @min-[760px]:@max-[869px]:px-0.5 @min-[760px]:@max-[869px]:tracking-[0.01em]";
 
   return (
