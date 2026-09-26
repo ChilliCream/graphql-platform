@@ -5,7 +5,6 @@ import {
   motion,
   useInView,
   useMotionValue,
-  useReducedMotion,
   useTransform,
   type MotionValue,
 } from "motion/react";
@@ -948,7 +947,7 @@ function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
   const PAD = 6;
   const stroke = "#f0786a";
   const gid = useId().replace(/:/g, "");
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
 
   const n = ERROR_CURVE.length;
   const dMin = Math.min(...ERROR_CURVE);
@@ -1527,7 +1526,7 @@ function PageAtmosphere() {
 }
 
 export function ClientPage() {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
 
   return (
     <div className="relative isolate">
