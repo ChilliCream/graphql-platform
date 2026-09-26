@@ -1,15 +1,5 @@
 import type { ComponentPropsWithoutRef } from "react";
 
-/**
- * Static geodesic network sphere: a subdivided icosahedron (12 base
- * vertices + one edge-midpoint subdivision = 42 vertices, 120 edges),
- * rotated to a slight tilt and projected through a small perspective
- * camera, all computed once below as plain module-scope math (no client
- * JS, no animation, no canvas). Depth reads as 3D the same way the
- * federation hero's backdrop does: alpha and size fall off from front to
- * back, never the other way round.
- */
-
 interface Vec3 {
   readonly x: number;
   readonly y: number;
@@ -71,11 +61,6 @@ const BASE_FACES: readonly (readonly [number, number, number])[] = [
   [9, 8, 1],
 ];
 
-/**
- * One level of edge-midpoint subdivision: each of the 20 faces splits into
- * 4, adding one new vertex per original edge (30 of them) for 42 vertices
- * total, and 120 unique edges -- the reference's density.
- */
 function buildGeodesic(): {
   vertices: readonly Vec3[];
   edges: readonly (readonly [number, number])[];
@@ -120,25 +105,20 @@ function buildGeodesic(): {
 
 const { vertices: SPHERE_VERTICES, edges: SPHERE_EDGES } = buildGeodesic();
 
-// Slight tilt: a small rotation on each axis, so the sphere reads as a
-// specific 3D view rather than a flat, symmetric rosette.
 const TILT_X = (-16 * Math.PI) / 180;
 const TILT_Y = (24 * Math.PI) / 180;
 const TILT_Z = (7 * Math.PI) / 180;
 
 function rotate(v: Vec3): Vec3 {
-  // Rx
   let { x, y, z } = v;
   let y1 = y * Math.cos(TILT_X) - z * Math.sin(TILT_X);
   let z1 = y * Math.sin(TILT_X) + z * Math.cos(TILT_X);
   y = y1;
   z = z1;
-  // Ry
   let x1 = x * Math.cos(TILT_Y) + z * Math.sin(TILT_Y);
   z1 = -x * Math.sin(TILT_Y) + z * Math.cos(TILT_Y);
   x = x1;
   z = z1;
-  // Rz
   x1 = x * Math.cos(TILT_Z) - y * Math.sin(TILT_Z);
   y1 = x * Math.sin(TILT_Z) + y * Math.cos(TILT_Z);
   return { x: x1, y: y1, z: z1 };
@@ -146,11 +126,7 @@ function rotate(v: Vec3): Vec3 {
 
 const ROTATED = SPHERE_VERTICES.map(rotate);
 
-// Perspective camera: a unit sphere sits at distance CAM_DIST from the
-// lens; CAM_K sets how many screen px one world unit covers at z = 0. z
-// runs -1 (nearest the viewer) .. 1 (farthest), so scale(z) = CAM_K / (CAM_DIST
-// + z) gives the nearest vertices roughly 2x the screen scale of the
-// farthest ones.
+// z: -1 nearest the viewer, 1 farthest
 const CAM_DIST = 3;
 const CAM_K = 450;
 const VIEWBOX = 400;
@@ -160,7 +136,6 @@ function scaleAtZ(z: number): number {
   return CAM_K / (CAM_DIST + z);
 }
 
-/** 0 at the farthest vertex, 1 at the nearest -- the single depth cue everything else reads from. */
 function depthT(z: number): number {
   return (1 - z) / 2;
 }
@@ -188,7 +163,6 @@ function lerp(from: number, to: number, t: number): number {
   return from + (to - from) * t;
 }
 
-/** Every 4th vertex reads teal instead of cyan, so the sphere carries both site accent hues rather than one flat colour. */
 function isTeal(index: number): boolean {
   return index % 4 === 0;
 }
@@ -208,13 +182,9 @@ const NODES = PROJECTED.map((p, i) => ({
   r: lerp(NODE_FAR_R, NODE_NEAR_R, p.t),
   alpha: lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, p.t),
   teal: isTeal(i),
-  // Index into the halo gradient defs, or -1 for a node with no halo.
   haloId: HALO_ORDER.indexOf(i),
 })).sort((a, b) => a.r - b.r);
 
-// Edges are quantised into a handful of depth bands and each band drawn as
-// one path, so the 120 edges share a few `stroke`/`stroke-width` groups
-// instead of repeating those attributes 120 times.
 const EDGE_BANDS = 6;
 
 interface EdgeBand {
@@ -245,7 +215,6 @@ const EDGE_GROUPS: readonly EdgeBand[] = edgeBuckets
   })
   .filter((group) => group.d.length > 0);
 
-/** Abstract geodesic network sphere for the Fusion closing band. */
 export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
   return (
     <svg viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`} aria-hidden="true" {...props}>
