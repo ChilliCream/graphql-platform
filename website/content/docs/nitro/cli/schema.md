@@ -13,6 +13,8 @@ All `schema` commands require authentication. Run `nitro login` first or pass `-
 
 # `nitro schema upload`
 
+Nitro: 10.6.0
+
 Upload a new schema version to an API. The version is identified by a tag and is not yet published to any stage.
 
 ```shell
@@ -42,6 +44,8 @@ nitro schema upload \
 ```
 
 # `nitro schema publish`
+
+Nitro: 10.6.0
 
 Publish a previously uploaded schema version to a stage. The version is identified by its tag.
 
@@ -84,6 +88,8 @@ nitro schema publish \
 ```
 
 # `nitro schema validate`
+
+Nitro: 10.6.0
 
 Validate a new schema version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking changes before they are merged.
 

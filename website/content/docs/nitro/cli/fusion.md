@@ -10,6 +10,8 @@ The `nitro fusion` commands manage [Fusion](../../fusion/index.md) configuration
 
 # `nitro fusion upload`
 
+Nitro: 10.6.0
+
 Upload a source schema for a later composition. The schema is stored on the Nitro backend under the given API and tag and can be referenced by name from a subsequent `nitro fusion publish` call (via `--source-schema`).
 
 ```shell
@@ -43,7 +45,7 @@ nitro fusion upload \
 
 # `nitro fusion publish`
 
-Since: 16.6.0, Nitro: 10.3.0
+Since: 16.6.0, Nitro: 10.6.0
 
 Publish a Fusion configuration to a stage.
 
@@ -113,6 +115,8 @@ nitro fusion publish \
 A multi-step publish is driven by a single request ID. `begin` allocates a deployment slot and prints a request ID, every following step references that ID (either explicitly via `--request-id` or implicitly via local state that the CLI caches between commands in the same job). The standard order is `begin` → `start` → `validate` → `commit`. `cancel` releases the slot at any time before `commit`.
 
 ## `nitro fusion publish begin`
+
+Nitro: 10.6.0
 
 Begin a Fusion configuration publish by requesting a deployment slot for a stage. The returned request ID identifies the publish for every subsequent step.
 

@@ -42,6 +42,8 @@ nitro client create --name "<name>" --api-id "<api-id>"
 
 # `nitro client upload`
 
+Nitro: 10.6.0
+
 Upload a new client version with the operations the client sends. The version is identified by a tag and is not yet published to any stage.
 
 ```shell
@@ -71,6 +73,8 @@ nitro client upload \
 ```
 
 # `nitro client publish`
+
+Nitro: 10.6.0
 
 Publish a previously uploaded client version to a stage. The version is identified by its tag.
 
@@ -113,6 +117,8 @@ nitro client publish \
 ```
 
 # `nitro client validate`
+
+Nitro: 10.6.0
 
 Validate a new client version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking operations before they are merged.
 
