@@ -1,5 +1,4 @@
 import type { BlogTeaserData } from "@/src/components/BlogTeaser";
-import { blogUrlForStem } from "@/src/helpers/blogPaths";
 
 /**
  * The copy for the Fusion product page: the hero, the body sections, the
@@ -134,12 +133,7 @@ export const FEATURED_CONTENT: readonly BlogTeaserData[] = [
     featuredImage: null,
   },
   {
-    href: blogUrlForStem({
-      year: "2026",
-      month: "07",
-      day: "12",
-      slug: "fusion-16-5",
-    }),
+    href: "/blog/2026-07-12-fusion-16-5",
     title: "The Gateway for Everyone",
     description:
       "Learn why Fusion supports both GraphQL Federation and Apollo Federation, and how it brings GraphQL, REST, and gRPC into one gateway.",
