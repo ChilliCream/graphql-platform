@@ -11,7 +11,7 @@ import Tokamak from "./Tokamak";
  */
 export function FusionHero() {
   return (
-    <div className="relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden">
+    <div className="border-cc-card-border relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden border-b">
       <section className="relative flex min-h-[88svh] items-center overflow-hidden">
         <Tokamak />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-12">

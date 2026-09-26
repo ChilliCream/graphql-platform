@@ -37,6 +37,16 @@ import { SecurityWindow } from "./visuals/SecurityWindow";
 
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
 
+/** Full-bleed 1px section separator, breaking out of the content column like FusionHero. */
+function Divider() {
+  return (
+    <div
+      aria-hidden="true"
+      className="border-cc-card-border relative left-1/2 w-screen -translate-x-1/2 border-t"
+    />
+  );
+}
+
 /** client-safety row: impact of removing `Product.rating` on real clients. */
 const CLIENT_IMPACT_ROWS = [
   { client: "web", environment: "production", ok: 5, total: 5, status: "ok" },
@@ -149,35 +159,41 @@ export function FusionPage() {
         const [firstParagraph, ...restParagraphs] = section.paragraphs;
 
         return (
-          <section key={section.id} id={section.id} className="py-16">
-            <FeatureRow
-              title={section.title}
-              body={
-                bullets ? undefined : withLinks(firstParagraph, section.links)
-              }
-              visual={
-                <div className={`${PANEL_CLASS} overflow-hidden`}>
-                  {panel.visual}
-                </div>
-              }
-              reverse={i % 2 === 1}
-            >
-              {bullets && (
-                <CheckList items={bullets} size="base" className="mt-4" />
-              )}
-              {!bullets && restParagraphs.length > 0 && (
-                <div className="text-cc-ink mt-4 space-y-4 text-base">
-                  {restParagraphs.map((paragraph) => (
-                    <p key={paragraph}>{withLinks(paragraph, section.links)}</p>
-                  ))}
-                </div>
-              )}
-              <InPractice links={section.inPractice} />
-            </FeatureRow>
-          </section>
+          <Fragment key={section.id}>
+            {i > 0 && <Divider />}
+            <section id={section.id} className="py-16">
+              <FeatureRow
+                title={section.title}
+                body={
+                  bullets ? undefined : withLinks(firstParagraph, section.links)
+                }
+                visual={
+                  <div className={`${PANEL_CLASS} overflow-hidden`}>
+                    {panel.visual}
+                  </div>
+                }
+                reverse={i % 2 === 1}
+              >
+                {bullets && (
+                  <CheckList items={bullets} size="base" className="mt-4" />
+                )}
+                {!bullets && restParagraphs.length > 0 && (
+                  <div className="text-cc-ink mt-4 space-y-4 text-base">
+                    {restParagraphs.map((paragraph) => (
+                      <p key={paragraph}>
+                        {withLinks(paragraph, section.links)}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <InPractice links={section.inPractice} />
+              </FeatureRow>
+            </section>
+          </Fragment>
         );
       })}
 
+      <Divider />
       <Section title="Built for Distributed Graphs">
         <CardGrid cols={3} step="progressive" gap={6}>
           {FEATURES.map((feature) => (
@@ -193,6 +209,7 @@ export function FusionPage() {
         </CardGrid>
       </Section>
 
+      <Divider />
       <Section title="Featured Content">
         <BlogTeaserGrid
           posts={FEATURED_CONTENT}
@@ -201,6 +218,7 @@ export function FusionPage() {
         />
       </Section>
 
+      <Divider />
       <div id={CLOSING_BAND.id} className="scroll-mt-24">
         <Band
           className="py-16"
