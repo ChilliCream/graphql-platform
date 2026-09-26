@@ -31,8 +31,51 @@ import {
  */
 const CYCLE_SECONDS = 11;
 const HALF = CYCLE_SECONDS / 2;
-/** Extra stagger between rows so their outcome lands as the scan reaches them. */
-const STAGGER = 0.2;
+const CYCLE_MS = CYCLE_SECONDS * 1000;
+
+/** Fixed row height (matches `ClientRow`'s `h-9`) so the scan's travel distance is exact, not measured. */
+const ROW_HEIGHT_REM = 2.25;
+const TABLE_HEIGHT_REM = CLIENT_OPS.length * ROW_HEIGHT_REM;
+
+/**
+ * The wide (horizontal) lane's travel distance, in cqi (the `.pw-root`
+ * container's inline size) minus the fixed-width chrome around it: the
+ * row's own `px-4` (16px) padding on each side, the registry node's
+ * rendered width (135px), the card's own width at this breakpoint (11.5rem
+ * = 184px, the only one that applies once the lane is wide enough to show),
+ * and an 8px clearance so the card docks beside the registry, not under it.
+ */
+const TRAVEL_X = "calc(100cqi - 359px)";
+
+/**
+ * The stacked (narrow) lane's fixed height and the card's travel distance
+ * within it: the card's own rendered height (with a wrapped verdict) runs up
+ * to about 9rem, so the lane and travel distance below leave it fully
+ * contained, never reaching the registry node or the table beneath it.
+ */
+const VLANE_HEIGHT_REM = 12;
+const VLANE_TRAVEL_REM = 2;
+
+/**
+ * Row-check reveal delays, keyed to when the (linear) scan bar actually
+ * crosses that row's bottom edge, plus a small safety margin so the check
+ * never renders before its row has been scanned.
+ */
+const SCAN_START_PCT = 20;
+const SCAN_END_PCT = 38;
+/** `pw-check`'s own local reveal point below, kept in sync with it. */
+const CHECK_LOCAL_REVEAL_PCT = 0.5;
+const CHECK_MARGIN_MS = 80;
+
+function checkDelay(rowIndex: number): number {
+  const crossingMs =
+    ((SCAN_START_PCT +
+      ((SCAN_END_PCT - SCAN_START_PCT) * (rowIndex + 1)) / CLIENT_OPS.length) /
+      100) *
+    CYCLE_MS;
+  const localRevealMs = (CHECK_LOCAL_REVEAL_PCT / 100) * CYCLE_MS;
+  return (crossingMs + CHECK_MARGIN_MS - localRevealMs) / 1000;
+}
 
 const KEYFRAMES = `
 .pw-anim {
@@ -48,31 +91,44 @@ const KEYFRAMES = `
 .pw-root[data-motion="paused"] .pw-anim {
   animation-play-state: paused;
 }
-@keyframes pw-doc-travel {
-  0% { opacity: 0; left: 4%; }
-  4% { opacity: 1; left: 4%; }
-  20% { opacity: 1; left: 46%; }
-  46% { opacity: 1; left: 46%; }
-  50% { opacity: 0; left: 46%; }
-  100% { opacity: 0; left: 4%; }
+.pw-scan-el {
+  /* Linear so the row-check delays above can key to an exact crossing time. */
+  animation-timing-function: linear;
+}
+@keyframes pw-doc-travel-x {
+  0% { opacity: 0; transform: translateX(0); }
+  4% { opacity: 1; transform: translateX(0); }
+  18% { opacity: 1; transform: translateX(${TRAVEL_X}); }
+  46% { opacity: 1; transform: translateX(${TRAVEL_X}); }
+  50% { opacity: 0; transform: translateX(${TRAVEL_X}); }
+  100% { opacity: 0; transform: translateX(0); }
+}
+@keyframes pw-doc-travel-y {
+  0% { opacity: 0; transform: translateY(0); }
+  4% { opacity: 1; transform: translateY(0); }
+  18% { opacity: 1; transform: translateY(${VLANE_TRAVEL_REM}rem); }
+  46% { opacity: 1; transform: translateY(${VLANE_TRAVEL_REM}rem); }
+  50% { opacity: 0; transform: translateY(${VLANE_TRAVEL_REM}rem); }
+  100% { opacity: 0; transform: translateY(0); }
 }
 @keyframes pw-scan {
-  0%, 18% { opacity: 0; top: 0%; }
-  20% { opacity: 1; top: 0%; }
-  38% { opacity: 1; top: 100%; }
+  0%, 18% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 1; transform: translateY(0); }
+  38% { opacity: 1; transform: translateY(${TABLE_HEIGHT_REM}rem); }
   40%, 68% { opacity: 0; }
-  70% { opacity: 1; top: 0%; }
-  88% { opacity: 1; top: 100%; }
-  90%, 100% { opacity: 0; top: 0%; }
+  70% { opacity: 1; transform: translateY(0); }
+  88% { opacity: 1; transform: translateY(${TABLE_HEIGHT_REM}rem); }
+  90%, 100% { opacity: 0; transform: translateY(0); }
 }
 @keyframes pw-check {
-  0%, 15% { opacity: 0; }
-  18%, 42% { opacity: 1; }
-  46%, 100% { opacity: 0; }
+  0% { opacity: 0; }
+  0.5% { opacity: 1; }
+  13% { opacity: 1; }
+  14%, 100% { opacity: 0; }
 }
 @keyframes pw-stamp {
-  0%, 30% { opacity: 0; }
-  34%, 46% { opacity: 1; }
+  0%, 41% { opacity: 0; }
+  44%, 47% { opacity: 1; }
   50%, 100% { opacity: 0; }
 }
 `;
@@ -121,7 +177,7 @@ export function ProtectWindow() {
         <style>{KEYFRAMES}</style>
 
         <div className="motion-reduce:hidden">
-          <div className="relative flex h-28 items-center gap-3 px-4 pt-4">
+          <div className="relative hidden min-h-52 items-center gap-3 px-4 pt-4 @[480px]:flex">
             <DockLabel />
             <span
               aria-hidden="true"
@@ -129,6 +185,7 @@ export function ProtectWindow() {
             />
             <RegistryNode />
             <TravelCard
+              axis="x"
               version={V14.version}
               diff={V14.diff}
               diffTone="danger"
@@ -138,6 +195,7 @@ export function ProtectWindow() {
               delay={0}
             />
             <TravelCard
+              axis="x"
               version={V15.version}
               diff={V15.diff}
               diffTone="warning"
@@ -148,6 +206,40 @@ export function ProtectWindow() {
             />
           </div>
 
+          <div className="flex flex-col items-center gap-2 px-4 pt-4 @[480px]:hidden">
+            <DockLabel />
+            <div
+              className="relative w-full"
+              style={{ height: `${VLANE_HEIGHT_REM}rem` }}
+            >
+              <span
+                aria-hidden="true"
+                className="border-cc-card-border/70 absolute inset-y-0 left-1/2 w-px -translate-x-1/2 border-l border-dashed"
+              />
+              <TravelCard
+                axis="y"
+                version={V14.version}
+                diff={V14.diff}
+                diffTone="danger"
+                verdict={V14.verdict}
+                verdictTone="danger"
+                schemaFile={SCHEMA_FILE}
+                delay={0}
+              />
+              <TravelCard
+                axis="y"
+                version={V15.version}
+                diff={V15.diff}
+                diffTone="warning"
+                verdict={V15.verdict}
+                verdictTone="success"
+                schemaFile={SCHEMA_FILE}
+                delay={HALF}
+              />
+            </div>
+            <RegistryNode />
+          </div>
+
           <div className="px-4 pb-4">
             <div className="border-cc-card-border relative overflow-hidden rounded-lg border">
               <ScanBar />
@@ -155,8 +247,8 @@ export function ProtectWindow() {
                 <ClientRow
                   key={op.id}
                   label={op.label}
-                  first={firstOutcome(op.id, i * STAGGER)}
-                  second={secondOutcome(HALF + i * STAGGER)}
+                  first={firstOutcome(op.id, checkDelay(i))}
+                  second={secondOutcome(checkDelay(i) + HALF)}
                 />
               ))}
             </div>

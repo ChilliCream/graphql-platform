@@ -63,6 +63,8 @@ interface TravelCardProps {
   readonly schemaFile: string;
   /** Seconds into the shared 11s cycle this card's own travel starts. */
   readonly delay: number;
+  /** Horizontal travel (wide, side-by-side lane) or vertical (stacked, narrow container). */
+  readonly axis: "x" | "y";
 }
 
 const DIFF_TONE_CLASS = {
@@ -73,6 +75,17 @@ const DIFF_TONE_CLASS = {
 const VERDICT_TONE_CLASS = {
   danger: "border-cc-danger/40 bg-cc-danger/[0.08] text-cc-danger",
   success: "border-cc-success/40 bg-cc-success/[0.08] text-cc-success",
+} as const;
+
+/** Static anchor per axis; the animated element only ever carries one (travel) transform. */
+const WRAPPER_CLASS = {
+  x: "absolute top-1/2 left-4 -translate-y-1/2",
+  y: "absolute top-0 left-1/2 -translate-x-1/2",
+} as const;
+
+const KEYFRAME_NAME = {
+  x: "pw-doc-travel-x",
+  y: "pw-doc-travel-y",
 } as const;
 
 /**
@@ -88,41 +101,46 @@ export function TravelCard({
   verdictTone,
   schemaFile,
   delay,
+  axis,
 }: TravelCardProps) {
   const VerdictIcon = verdictTone === "danger" ? BlockMark : CheckGlyph;
   return (
-    <Reveal
-      keyframeName="pw-doc-travel"
-      delay={delay}
-      className="border-cc-card-border bg-cc-card-bg absolute top-1/2 left-[4%] z-10 w-[9.5rem] -translate-y-1/2 rounded-lg border px-2.5 py-2 opacity-0 shadow-[0_8px_20px_-12px_rgba(0,0,0,0.6)] @min-[420px]:w-[11.5rem]"
-    >
-      <div className="flex items-center justify-between gap-1">
-        <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
-          {version}
-        </span>
-        <span className="text-cc-ink-faint hidden font-mono text-[0.7rem] @min-[420px]:inline">
-          schema
-        </span>
-      </div>
-      <div className="text-cc-ink-dim mt-0.5 truncate font-mono text-[0.7rem]">
-        {schemaFile}
-      </div>
-      <code
-        className={`mt-1 block font-mono text-[0.7rem] ${DIFF_TONE_CLASS[diffTone]}`}
-      >
-        {diff}
-      </code>
+    <span className={WRAPPER_CLASS[axis]}>
       <Reveal
-        keyframeName="pw-stamp"
+        keyframeName={KEYFRAME_NAME[axis]}
         delay={delay}
-        className={`mt-1.5 flex items-center gap-1 rounded border px-1.5 py-0.5 ${VERDICT_TONE_CLASS[verdictTone]}`}
+        className="border-cc-card-border bg-cc-card-bg z-10 block w-[9.5rem] rounded-lg border px-2.5 py-2 opacity-0 shadow-[0_8px_20px_-12px_rgba(0,0,0,0.6)] @min-[420px]:w-[11.5rem]"
       >
-        <VerdictIcon width={11} height={11} className="shrink-0" />
-        <span className="font-mono text-[0.7rem] whitespace-nowrap">
-          {verdict}
-        </span>
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-cc-heading font-mono text-[0.7rem] font-semibold">
+            {version}
+          </span>
+          <span className="text-cc-ink-faint hidden font-mono text-[0.7rem] @min-[420px]:inline">
+            schema
+          </span>
+        </div>
+        <div className="text-cc-ink-dim mt-0.5 font-mono text-[0.7rem]">
+          {schemaFile}
+        </div>
+        <code
+          className={`mt-1 block font-mono text-[0.7rem] ${DIFF_TONE_CLASS[diffTone]}`}
+        >
+          {diff}
+        </code>
+        <Reveal
+          keyframeName="pw-stamp"
+          delay={delay}
+          className={`mt-1.5 flex items-center gap-1 rounded border px-1.5 py-0.5 ${VERDICT_TONE_CLASS[verdictTone]}`}
+        >
+          <VerdictIcon
+            width={11}
+            height={11}
+            className="mt-0.5 shrink-0 self-start"
+          />
+          <span className="font-mono text-[0.7rem]">{verdict}</span>
+        </Reveal>
       </Reveal>
-    </Reveal>
+    </span>
   );
 }
 
@@ -159,7 +177,7 @@ interface ClientRowProps {
 /** One registered client operation, with its outcome for each pass of the loop. */
 export function ClientRow({ label, first, second }: ClientRowProps) {
   return (
-    <div className="border-cc-card-border flex items-center justify-between gap-3 border-b px-3 py-2 last:border-b-0">
+    <div className="border-cc-card-border flex h-9 items-center justify-between gap-3 border-b px-3 last:border-b-0">
       <span className="text-cc-heading font-mono text-[0.7rem]">{label}</span>
       <span className="relative h-4 min-w-0 flex-1">
         <RowOutcome {...first} />
@@ -169,13 +187,13 @@ export function ClientRow({ label, first, second }: ClientRowProps) {
   );
 }
 
-/** The highlight bar that sweeps the client list once per document analyzed. */
+/** The highlight bar that sweeps the client list once per document analyzed; linear so its travel keys precisely to each row's crossing. */
 export function ScanBar() {
   return (
     <Reveal
       keyframeName="pw-scan"
       delay={0}
-      className="bg-cc-accent/50 pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full"
+      className="pw-scan-el bg-cc-accent/50 pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full"
     />
   );
 }
