@@ -161,7 +161,7 @@ export function FusionPage() {
         return (
           <Fragment key={section.id}>
             {i > 0 && <Divider />}
-            <section id={section.id} className="py-16">
+            <section id={section.id} className="py-16 sm:py-24">
               <FeatureRow
                 title={section.title}
                 body={
@@ -194,7 +194,7 @@ export function FusionPage() {
       })}
 
       <Divider />
-      <Section title="Built for Distributed Graphs">
+      <Section title="Built for Distributed Graphs" className="sm:py-24">
         <CardGrid cols={3} step="progressive" gap={6}>
           {FEATURES.map((feature) => (
             <Card key={feature.title} variant="tile">
@@ -210,7 +210,7 @@ export function FusionPage() {
       </Section>
 
       <Divider />
-      <Section title="Featured Content">
+      <Section title="Featured Content" className="sm:py-24">
         <BlogTeaserGrid
           posts={FEATURED_CONTENT}
           showMedia={false}
@@ -221,7 +221,7 @@ export function FusionPage() {
       <Divider />
       <div id={CLOSING_BAND.id} className="scroll-mt-24">
         <Band
-          className="py-16"
+          className="py-16 sm:py-24"
           skin="accent"
           layout="split"
           main={
