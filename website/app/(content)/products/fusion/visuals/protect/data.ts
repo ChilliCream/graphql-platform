@@ -23,5 +23,4 @@ export const V15 = {
   verdict: "safe · published",
 } as const;
 
-export const MOBILE_IMPACT = "4,213 requests / 7 days";
 export const MOBILE_IMPACT_COMPACT = "4,213 req / 7d";

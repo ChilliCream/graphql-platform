@@ -34,6 +34,7 @@ const VLANE_TRAVEL_REM = 2;
 
 const SCAN_START_PCT = 20;
 const SCAN_END_PCT = 38;
+const ARRIVE_PCT = 4;
 const CHECK_REVEAL_PCT = 0.5;
 const CHECK_MARGIN_MS = 80;
 const STAMP_GONE_PCT = 50;
@@ -48,15 +49,37 @@ function checkDelay(rowIndex: number): number {
   return (crossingMs + CHECK_MARGIN_MS - revealMs) / 1000;
 }
 
-// Row 0's smallest delay is the binding case: its hold must still reach past the stamp's fade-out.
-const CHECK_HOLD_PCT = Math.ceil(
-  (((STAMP_GONE_PCT / 100) * CYCLE_SECONDS +
-    CHECK_MARGIN_MS / 1000 -
-    checkDelay(0)) /
-    CYCLE_SECONDS) *
-    100,
-);
-const CHECK_FADE_PCT = CHECK_HOLD_PCT + 1;
+const CHECK_CLEAR_MARGIN_MS = 400;
+
+const CHECK_GONE_TARGET_S =
+  (HALF +
+    (HALF +
+      (ARRIVE_PCT / 100) * CYCLE_SECONDS -
+      CHECK_CLEAR_MARGIN_MS / 1000)) /
+  2;
+
+function checkGonePct(rowIndex: number): number {
+  return (
+    Math.round(
+      ((CHECK_GONE_TARGET_S - checkDelay(rowIndex)) / CYCLE_SECONDS) * 10000,
+    ) / 100
+  );
+}
+
+function checkKeyframeName(rowIndex: number): string {
+  return `pw-check-${rowIndex}`;
+}
+
+function checkKeyframe(rowIndex: number): string {
+  const gone = checkGonePct(rowIndex);
+  const hold = gone - 1;
+  return `@keyframes ${checkKeyframeName(rowIndex)} {
+  0% { opacity: 0; }
+  ${CHECK_REVEAL_PCT}% { opacity: 1; }
+  ${hold}% { opacity: 1; }
+  ${gone}%, 100% { opacity: 0; }
+}`;
+}
 
 const KEYFRAMES = `
 .pw-anim {
@@ -74,16 +97,24 @@ const KEYFRAMES = `
   animation-timing-function: linear;
 }
 @keyframes pw-doc-travel-x {
-  0% { opacity: 0; transform: translateX(-100%); }
-  4% { opacity: 1; transform: translateX(-100%); }
-  18% { opacity: 1; transform: translateX(0%); }
-  46% { opacity: 1; transform: translateX(0%); }
-  50% { opacity: 0; transform: translateX(0%); }
-  100% { opacity: 0; transform: translateX(-100%); }
+  0% { opacity: 0; transform: translateX(0%); }
+  ${ARRIVE_PCT}% { opacity: 1; transform: translateX(0%); }
+  18% { opacity: 1; transform: translateX(100%); }
+  46% { opacity: 1; transform: translateX(100%); }
+  50% { opacity: 0; transform: translateX(100%); }
+  100% { opacity: 0; transform: translateX(0%); }
+}
+@keyframes pw-doc-travel-x-counter {
+  0% { transform: translateX(0%); }
+  ${ARRIVE_PCT}% { transform: translateX(0%); }
+  18% { transform: translateX(-100%); }
+  46% { transform: translateX(-100%); }
+  50% { transform: translateX(-100%); }
+  100% { transform: translateX(0%); }
 }
 @keyframes pw-doc-travel-y {
   0% { opacity: 0; transform: translateY(0); }
-  4% { opacity: 1; transform: translateY(0); }
+  ${ARRIVE_PCT}% { opacity: 1; transform: translateY(0); }
   18% { opacity: 1; transform: translateY(${VLANE_TRAVEL_REM}rem); }
   46% { opacity: 1; transform: translateY(${VLANE_TRAVEL_REM}rem); }
   50% { opacity: 0; transform: translateY(${VLANE_TRAVEL_REM}rem); }
@@ -98,28 +129,28 @@ const KEYFRAMES = `
   88% { opacity: 1; transform: translateY(${TABLE_HEIGHT_REM}rem); }
   90%, 100% { opacity: 0; transform: translateY(0); }
 }
-@keyframes pw-check {
-  0% { opacity: 0; }
-  ${CHECK_REVEAL_PCT}% { opacity: 1; }
-  ${CHECK_HOLD_PCT}% { opacity: 1; }
-  ${CHECK_FADE_PCT}%, 100% { opacity: 0; }
-}
 @keyframes pw-stamp {
   0%, 41% { opacity: 0; }
   44%, 47% { opacity: 1; }
   ${STAMP_GONE_PCT}%, 100% { opacity: 0; }
 }
+${CLIENT_OPS.map((_, rowIndex) => checkKeyframe(rowIndex)).join("\n")}
 `;
 
-function firstOutcome(id: string, delay: number) {
+function firstOutcome(id: string, delay: number, keyframeName: string) {
   if (id === "mobile") {
-    return { tone: "danger" as const, text: MOBILE_IMPACT_COMPACT, delay };
+    return {
+      tone: "danger" as const,
+      text: MOBILE_IMPACT_COMPACT,
+      delay,
+      keyframeName,
+    };
   }
-  return { tone: "success" as const, text: "ok", delay };
+  return { tone: "success" as const, text: "ok", delay, keyframeName };
 }
 
-function secondOutcome(delay: number) {
-  return { tone: "success" as const, text: "ok", delay };
+function secondOutcome(delay: number, keyframeName: string) {
+  return { tone: "success" as const, text: "ok", delay, keyframeName };
 }
 
 export function ProtectWindow() {
@@ -217,8 +248,15 @@ export function ProtectWindow() {
                 <ClientRow
                   key={op.id}
                   label={op.label}
-                  first={firstOutcome(op.id, checkDelay(i))}
-                  second={secondOutcome(checkDelay(i) + HALF)}
+                  first={firstOutcome(
+                    op.id,
+                    checkDelay(i),
+                    checkKeyframeName(i),
+                  )}
+                  second={secondOutcome(
+                    checkDelay(i) + HALF,
+                    checkKeyframeName(i),
+                  )}
                 />
               ))}
             </div>
@@ -231,7 +269,7 @@ export function ProtectWindow() {
           </div>
           <div className="border-cc-card-border overflow-hidden rounded-lg border">
             {CLIENT_OPS.map((op) => {
-              const outcome = firstOutcome(op.id, 0);
+              const outcome = firstOutcome(op.id, 0, "");
               return (
                 <StaticClientRow
                   key={op.id}

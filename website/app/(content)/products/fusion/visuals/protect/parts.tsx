@@ -191,14 +191,15 @@ export function TravelCard({
     );
   }
 
-  // Fills its parent lane exactly, so `translateX` travels the lane's own rendered width.
   return (
     <Reveal
       keyframeName="pw-doc-travel-x"
       delay={delay}
-      className="absolute inset-0 flex items-center justify-end opacity-0"
+      className="absolute inset-0 flex items-center opacity-0"
     >
-      {face}
+      <Reveal keyframeName="pw-doc-travel-x-counter" delay={delay}>
+        {face}
+      </Reveal>
     </Reveal>
   );
 }
@@ -241,13 +242,19 @@ interface RowOutcomeProps {
   readonly tone: "danger" | "success";
   readonly text: string;
   readonly delay: number;
+  readonly keyframeName: string;
 }
 
-export function RowOutcome({ tone, text, delay }: RowOutcomeProps) {
+export function RowOutcome({
+  tone,
+  text,
+  delay,
+  keyframeName,
+}: RowOutcomeProps) {
   const toneClass = tone === "danger" ? "text-cc-danger" : "text-cc-success";
   return (
     <Reveal
-      keyframeName="pw-check"
+      keyframeName={keyframeName}
       delay={delay}
       className={`absolute inset-0 flex items-center justify-end gap-1.5 ${toneClass}`}
     >
