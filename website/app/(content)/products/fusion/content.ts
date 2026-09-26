@@ -1,6 +1,9 @@
+import type { BlogTeaserData } from "@/src/components/BlogTeaser";
+import { blogUrlForStem } from "@/src/helpers/blogPaths";
+
 /**
  * The copy for the Fusion product page: the hero, the body sections, the
- * feature grid and the closing Nitro band.
+ * feature grid, the featured content teasers, and the closing Nitro band.
  */
 
 export interface CopyLink {
@@ -111,6 +114,37 @@ export const SECTIONS: readonly CopySection[] = [
     inPractice: [
       { label: "schema governance in Nitro", href: "/products/nitro#schema" },
     ],
+  },
+];
+
+export const FEATURED_CONTENT: readonly BlogTeaserData[] = [
+  {
+    href: "/docs/fusion/getting-started",
+    title: "Get started with Fusion",
+    description: "Build your first federated graph and run it locally.",
+    category: "Tutorial",
+    featuredImage: null,
+  },
+  {
+    href: "/docs/fusion/connectors/apollofederation",
+    title: "Switch your gateway, keep your graph",
+    description:
+      "Move from Apollo Router, Hive Gateway, or Cosmo to Fusion while keeping the subgraphs and schemas you already have.",
+    category: "Guide",
+    featuredImage: null,
+  },
+  {
+    href: blogUrlForStem({
+      year: "2026",
+      month: "07",
+      day: "12",
+      slug: "fusion-16-5",
+    }),
+    title: "The Gateway for Everyone",
+    description:
+      "Learn why Fusion supports both GraphQL Federation and Apollo Federation, and how it brings GraphQL, REST, and gRPC into one gateway.",
+    category: "Blog",
+    featuredImage: null,
   },
 ];
 

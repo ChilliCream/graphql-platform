@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import type { ReactElement, ReactNode } from "react";
 
 import { Band } from "@/src/components/Band";
+import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CardGrid } from "@/src/components/CardGrid";
 import { CheckList } from "@/src/components/CheckList";
@@ -22,7 +23,7 @@ import { Link } from "@/src/design-system/Link";
 import { GraphSphere } from "@/src/icons/GraphSphere";
 
 import type { CopyLink } from "./content";
-import { CLOSING_BAND, FEATURES, SECTIONS } from "./content";
+import { CLOSING_BAND, FEATURED_CONTENT, FEATURES, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
 import { InsightsWindow } from "./visuals/InsightsWindow";
 import { PerformanceWindow } from "./visuals/PerformanceWindow";
@@ -30,8 +31,8 @@ import { SecurityWindow } from "./visuals/SecurityWindow";
 
 /**
  * The Fusion product page: hero copy and buttons, then the diagram panel,
- * one feature row per claim, the feature grid, and the closing band.
- * All words come from `./content`.
+ * one feature row per claim, the feature grid, the featured content
+ * teasers, and the closing band. All words come from `./content`.
  */
 
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
@@ -190,6 +191,10 @@ export function FusionPage() {
             </Card>
           ))}
         </CardGrid>
+      </Section>
+
+      <Section title="Featured Content">
+        <BlogTeaserGrid posts={FEATURED_CONTENT} showMedia={false} />
       </Section>
 
       <div id={CLOSING_BAND.id} className="scroll-mt-24">
