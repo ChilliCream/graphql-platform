@@ -194,7 +194,11 @@ export function FusionPage() {
       </Section>
 
       <Section title="Featured Content">
-        <BlogTeaserGrid posts={FEATURED_CONTENT} showMedia={false} />
+        <BlogTeaserGrid
+          posts={FEATURED_CONTENT}
+          showMedia={false}
+          clampDescription={false}
+        />
       </Section>
 
       <div id={CLOSING_BAND.id} className="scroll-mt-24">

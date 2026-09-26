@@ -18,9 +18,15 @@ type BlogTeaserProps = {
   post: BlogTeaserData;
   /** Renders the image band above the title. Defaults to shown. */
   showMedia?: boolean;
+  /** Clamps the description to 3 lines. Defaults to clamped. */
+  clampDescription?: boolean;
 };
 
-export function BlogTeaser({ post, showMedia = true }: BlogTeaserProps) {
+export function BlogTeaser({
+  post,
+  showMedia = true,
+  clampDescription = true,
+}: BlogTeaserProps) {
   return (
     <article className="group/teaser h-full w-full">
       <Link
@@ -56,7 +62,13 @@ export function BlogTeaser({ post, showMedia = true }: BlogTeaserProps) {
             {post.title}
           </h3>
           {post.description ? (
-            <p className="text-cc-ink-dim m-0 mb-6 line-clamp-3 text-sm leading-[1.55]">
+            <p
+              className={
+                clampDescription
+                  ? "text-cc-ink-dim m-0 mb-6 line-clamp-3 text-sm leading-[1.55]"
+                  : "text-cc-ink-dim m-0 mb-6 text-sm leading-[1.55]"
+              }
+            >
               {post.description}
             </p>
           ) : null}
