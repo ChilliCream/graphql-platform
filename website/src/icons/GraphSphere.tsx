@@ -20,7 +20,6 @@ import {
 } from "./graphSphereMotion";
 import { useGraphSphereClock } from "./useGraphSphereClock";
 
-// t: 0 farthest, 1 nearest -- the server-rendered frame is theta = 0.
 const PROJECTED = SPHERE_VERTICES.map((_, i) => projectVertex(i, 0));
 
 const NODE_FAR_R = 2.2;
@@ -32,6 +31,10 @@ const EDGE_NEAR_ALPHA = 0.55;
 const EDGE_FAR_WIDTH = 0.5;
 const EDGE_NEAR_WIDTH = 1.5;
 const HALO_COUNT = 3;
+
+const DOT_FAR_R = DOT_RADIUS * (NODE_FAR_R / NODE_NEAR_R);
+const DOT_MAX_ALPHA = 0.85;
+const DOT_FAR_ALPHA_FACTOR = NODE_FAR_ALPHA / NODE_NEAR_ALPHA;
 
 function isTeal(index: number): boolean {
   return index % 4 === 0;
@@ -103,7 +106,6 @@ function bucketEdgesByDepth(
   return buckets;
 }
 
-// Fixed per band (its centre depth), never averaged over the edges currently in it.
 const EDGE_BAND_ALPHA: readonly number[] = Array.from(
   { length: EDGE_BANDS },
   (_, band) => lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, (band + 0.5) / EDGE_BANDS),
@@ -124,17 +126,26 @@ const EDGE_GROUPS: readonly EdgeGroup[] = bucketEdgesByDepth(PROJECTED).map(
 const SVG_NS = "http://www.w3.org/2000/svg";
 const HALO_BREATHE_PHASE_STEP = (2 * Math.PI) / HALO_COUNT;
 
+type PaintRef =
+  | { readonly kind: "node"; readonly idx: number }
+  | { readonly kind: "dot"; readonly idx: number };
+
+const STATIC_PAINT_REFS: readonly PaintRef[] = NODES.map(
+  (_, i) => ({ kind: "node", idx: i }) as const,
+);
+
 export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const groupRefs = useRef<(SVGGElement | null)[]>([]);
   const nodeRefs = useRef<(SVGCircleElement | null)[]>([]);
   const haloRefs = useRef<(SVGCircleElement | null)[]>([]);
   const edgeRefs = useRef<(SVGPathElement | null)[]>([]);
   const dotRefs = useRef<SVGCircleElement[]>([]);
+  const paintRefsRef = useRef<readonly PaintRef[]>(STATIC_PAINT_REFS);
+  const paintOrderRef = useRef<readonly number[]>([]);
 
-  // Read once: reduced-motion only needs the static frame, not a live toggle.
   const reducedMotion = useMemo(() => prefersReducedMotion(), []);
 
-  // Dots have no server-rendered markup -- they exist only once JS runs and motion is allowed.
   useEffect(() => {
     if (reducedMotion) {
       return;
@@ -152,11 +163,18 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       return circle;
     });
     dotRefs.current = circles;
+    paintRefsRef.current = [
+      ...STATIC_PAINT_REFS,
+      ...DOT_PATHS.map((_, idx) => ({ kind: "dot", idx }) as const),
+    ];
+    paintOrderRef.current = [];
     return () => {
       for (const circle of circles) {
         circle.remove();
       }
       dotRefs.current = [];
+      paintRefsRef.current = STATIC_PAINT_REFS;
+      paintOrderRef.current = [];
     };
   }, [reducedMotion]);
 
@@ -165,9 +183,11 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
     (elapsedMs) => {
       const theta = ((elapsedMs / ROTATION_PERIOD_MS) % 1) * Math.PI * 2;
       const projected = SPHERE_VERTICES.map((_, i) => projectVertex(i, theta));
+      const nodeDepth: number[] = new Array(NODES.length);
 
       NODES.forEach((n, idx) => {
         const p = projected[n.vertexIndex];
+        nodeDepth[idx] = p.t;
         const node = nodeRefs.current[idx];
         if (node) {
           node.setAttribute("cx", p.x.toFixed(1));
@@ -203,18 +223,59 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
         path.setAttribute("stroke-width", EDGE_BAND_WIDTH[band].toFixed(2));
       });
 
+      const dotDepth: number[] = new Array(DOT_PATHS.length);
       DOT_PATHS.forEach((dot, idx) => {
+        const frame = dotFrame(dot, elapsedMs);
+        const a = projected[frame.fromVertex];
+        const b = projected[frame.toVertex];
+        const depth = lerp(a.t, b.t, frame.frac);
+        dotDepth[idx] = depth;
         const circle = dotRefs.current[idx];
         if (!circle) {
           return;
         }
-        const frame = dotFrame(dot, elapsedMs);
-        const a = projected[frame.fromVertex];
-        const b = projected[frame.toVertex];
         circle.setAttribute("cx", lerp(a.x, b.x, frame.frac).toFixed(1));
         circle.setAttribute("cy", lerp(a.y, b.y, frame.frac).toFixed(1));
-        circle.setAttribute("fill-opacity", frame.alpha.toFixed(2));
+        circle.setAttribute("r", lerp(DOT_FAR_R, DOT_RADIUS, depth).toFixed(2));
+        circle.setAttribute(
+          "fill-opacity",
+          (
+            frame.envelope *
+            DOT_MAX_ALPHA *
+            lerp(DOT_FAR_ALPHA_FACTOR, 1, depth)
+          ).toFixed(2),
+        );
       });
+
+      const svg = svgRef.current;
+      const refs = paintRefsRef.current;
+      if (svg && refs.length > 0) {
+        const depthOf = (ref: PaintRef) =>
+          ref.kind === "dot" ? dotDepth[ref.idx] : nodeDepth[ref.idx];
+        const order = refs
+          .map((_, i) => i)
+          .sort((a, b) => depthOf(refs[a]) - depthOf(refs[b]));
+        const prev = paintOrderRef.current;
+        let changed = prev.length !== order.length;
+        for (let i = 0; !changed && i < order.length; i++) {
+          if (prev[i] !== order[i]) {
+            changed = true;
+          }
+        }
+        if (changed) {
+          for (const i of order) {
+            const ref = refs[i];
+            const el =
+              ref.kind === "node"
+                ? groupRefs.current[ref.idx]
+                : dotRefs.current[ref.idx];
+            if (el) {
+              svg.appendChild(el);
+            }
+          }
+          paintOrderRef.current = order;
+        }
+      }
     },
     !reducedMotion,
   );
@@ -267,7 +328,12 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
           ? "var(--color-cc-success)"
           : "var(--color-cc-accent)";
         return (
-          <g key={i}>
+          <g
+            key={i}
+            ref={(el) => {
+              groupRefs.current[i] = el;
+            }}
+          >
             {n.haloId >= 0 && (
               <circle
                 ref={(el) => {

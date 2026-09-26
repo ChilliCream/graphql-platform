@@ -1,20 +1,17 @@
-// Timing and per-frame math for GraphSphere's motion: spin speed, dot paths, and fade/breathe envelopes.
 import { SPHERE_EDGES, SPHERE_VERTICES } from "./graphSphereGeometry";
 
-/** One full revolution about the vertical axis every ROTATION_PERIOD_MS (60-90s). */
 export const ROTATION_PERIOD_MS = 75_000;
 
-export const DOT_COUNT = 4;
+const DOT_COUNT = 4;
 const DOT_HOPS = 3;
 const DOT_HOP_MS = 4200;
 const DOT_HOP_STAGGER_MS = 650;
 const DOT_SEED_STRIDE = Math.floor(SPHERE_VERTICES.length / DOT_COUNT);
 
 export const DOT_RADIUS = 2.4;
-export const DOT_MAX_ALPHA = 0.85;
 
-export const BREATHE_PERIOD_MS = 5200;
-export const BREATHE_AMPLITUDE = 0.06;
+const BREATHE_PERIOD_MS = 5200;
+const BREATHE_AMPLITUDE = 0.06;
 
 function buildAdjacency(): readonly (readonly number[])[] {
   const adjacency: number[][] = Array.from(
@@ -31,7 +28,6 @@ function buildAdjacency(): readonly (readonly number[])[] {
 
 const ADJACENCY = buildAdjacency();
 
-/** A deterministic walk of `hops` edges, never doubling back on the step just taken. */
 function walkPath(start: number, hops: number): readonly number[] {
   const path = [start];
   let prev = -1;
@@ -46,7 +42,7 @@ function walkPath(start: number, hops: number): readonly number[] {
   return path;
 }
 
-export interface DotPath {
+interface DotPath {
   readonly path: readonly number[];
   readonly hopMs: number;
 }
@@ -59,14 +55,13 @@ export const DOT_PATHS: readonly DotPath[] = Array.from(
   }),
 );
 
-export interface DotFrame {
+interface DotFrame {
   readonly fromVertex: number;
   readonly toVertex: number;
   readonly frac: number;
-  readonly alpha: number;
+  readonly envelope: number;
 }
 
-/** Ping-pongs a dot along its fixed path, fading in and out on every edge crossing. */
 export function dotFrame(dot: DotPath, elapsedMs: number): DotFrame {
   const hops = dot.path.length - 1;
   const cycleMs = dot.hopMs * hops * 2;
@@ -81,11 +76,10 @@ export function dotFrame(dot: DotPath, elapsedMs: number): DotFrame {
     fromVertex: dot.path[fromIndex],
     toVertex: dot.path[toIndex],
     frac,
-    alpha: DOT_MAX_ALPHA * Math.sin(Math.PI * frac),
+    envelope: Math.sin(Math.PI * frac),
   };
 }
 
-/** A very slight radius multiplier for a haloed node's own gentle breathing. */
 export function breatheScale(phaseOffset: number, elapsedMs: number): number {
   return (
     1 +
