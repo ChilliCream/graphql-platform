@@ -69,7 +69,6 @@ const NODES: readonly SphereNode[] = PROJECTED.map((p, i) => ({
 const EDGE_BANDS = 6;
 
 interface EdgeGroup {
-  readonly pairs: readonly (readonly [number, number])[];
   readonly alpha: number;
   readonly width: number;
   readonly d: string;
@@ -88,29 +87,39 @@ function segmentPath(
     .join(" ");
 }
 
-const edgeBuckets: (readonly [number, number])[][] = Array.from(
-  { length: EDGE_BANDS },
-  () => [],
-);
-for (const [i, j] of SPHERE_EDGES) {
-  const a = PROJECTED[i];
-  const b = PROJECTED[j];
-  const t = (a.t + b.t) / 2;
-  const band = Math.min(EDGE_BANDS - 1, Math.floor(t * EDGE_BANDS));
-  edgeBuckets[band].push([i, j]);
+// Re-run every frame: band membership follows each edge's current depth, not its depth at theta=0.
+function bucketEdgesByDepth(
+  projected: readonly { readonly t: number }[],
+): (readonly [number, number])[][] {
+  const buckets: (readonly [number, number])[][] = Array.from(
+    { length: EDGE_BANDS },
+    () => [],
+  );
+  for (const [i, j] of SPHERE_EDGES) {
+    const t = (projected[i].t + projected[j].t) / 2;
+    const band = Math.min(EDGE_BANDS - 1, Math.floor(t * EDGE_BANDS));
+    buckets[band].push([i, j]);
+  }
+  return buckets;
 }
 
-const EDGE_GROUPS: readonly EdgeGroup[] = edgeBuckets
-  .map((pairs, band) => {
-    const t = (band + 0.5) / EDGE_BANDS;
-    return {
-      pairs,
-      alpha: lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, t),
-      width: lerp(EDGE_FAR_WIDTH, EDGE_NEAR_WIDTH, t),
-      d: segmentPath(pairs, PROJECTED),
-    };
-  })
-  .filter((group) => group.d.length > 0);
+// Fixed per band (its centre depth), never averaged over the edges currently in it.
+const EDGE_BAND_ALPHA: readonly number[] = Array.from(
+  { length: EDGE_BANDS },
+  (_, band) => lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, (band + 0.5) / EDGE_BANDS),
+);
+const EDGE_BAND_WIDTH: readonly number[] = Array.from(
+  { length: EDGE_BANDS },
+  (_, band) => lerp(EDGE_FAR_WIDTH, EDGE_NEAR_WIDTH, (band + 0.5) / EDGE_BANDS),
+);
+
+const EDGE_GROUPS: readonly EdgeGroup[] = bucketEdgesByDepth(PROJECTED).map(
+  (pairs, band) => ({
+    alpha: EDGE_BAND_ALPHA[band],
+    width: EDGE_BAND_WIDTH[band],
+    d: segmentPath(pairs, PROJECTED),
+  }),
+);
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const HALO_BREATHE_PHASE_STEP = (2 * Math.PI) / HALO_COUNT;
@@ -184,25 +193,14 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
         }
       });
 
-      EDGE_GROUPS.forEach((group, idx) => {
-        const path = edgeRefs.current[idx];
+      bucketEdgesByDepth(projected).forEach((pairs, band) => {
+        const path = edgeRefs.current[band];
         if (!path) {
           return;
         }
-        let sumT = 0;
-        for (const [i, j] of group.pairs) {
-          sumT += (projected[i].t + projected[j].t) / 2;
-        }
-        const avgT = sumT / group.pairs.length;
-        path.setAttribute("d", segmentPath(group.pairs, projected));
-        path.setAttribute(
-          "stroke-opacity",
-          lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, avgT).toFixed(2),
-        );
-        path.setAttribute(
-          "stroke-width",
-          lerp(EDGE_FAR_WIDTH, EDGE_NEAR_WIDTH, avgT).toFixed(2),
-        );
+        path.setAttribute("d", segmentPath(pairs, projected));
+        path.setAttribute("stroke-opacity", EDGE_BAND_ALPHA[band].toFixed(2));
+        path.setAttribute("stroke-width", EDGE_BAND_WIDTH[band].toFixed(2));
       });
 
       DOT_PATHS.forEach((dot, idx) => {
