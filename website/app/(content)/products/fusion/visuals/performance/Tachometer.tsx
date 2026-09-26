@@ -89,7 +89,6 @@ export function Tachometer({
   const redZoneAngleStart = 180 - (redZoneStart / max) * 180;
   const trackPath = gaugeArcPath(CX, CY, TRACK_R, 180, 0);
   const redZonePath = gaugeArcPath(CX, CY, TRACK_R, redZoneAngleStart, 0);
-  const [needleTipX, needleTipY] = [CX - NEEDLE_LEN, CY];
 
   return (
     <div ref={ref} className="flex flex-col items-center gap-1">
@@ -112,20 +111,29 @@ export function Tachometer({
           fill="none"
           stroke={token.error}
           strokeWidth={10}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           opacity={0.85}
         />
-        <motion.g style={{ rotate, transformOrigin: `${CX}px ${CY}px` }}>
-          <line
-            x1={CX}
-            y1={CY}
-            x2={needleTipX}
-            y2={needleTipY}
-            stroke={token.cThroughput}
-            strokeWidth={3}
-            strokeLinecap="round"
-          />
-        </motion.g>
+        <g transform={`translate(${CX}, ${CY})`}>
+          <motion.g
+            style={{
+              rotate,
+              transformBox: "view-box",
+              originX: "0px",
+              originY: "0px",
+            }}
+          >
+            <line
+              x1={0}
+              y1={0}
+              x2={-NEEDLE_LEN}
+              y2={0}
+              stroke={token.cThroughput}
+              strokeWidth={3}
+              strokeLinecap="round"
+            />
+          </motion.g>
+        </g>
         <circle cx={CX} cy={CY} r={HUB_R} fill={token.textStrong} />
       </svg>
       <div className="flex flex-col items-center">

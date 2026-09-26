@@ -25,7 +25,7 @@ import { Tachometer } from "./Tachometer";
 const GAUGE_MAX = 20000;
 const RED_ZONE_START = 19000;
 const SETTLE_VALUE = 18400;
-const IDLE_BAND: readonly [number, number] = [18100, 18700];
+const IDLE_BAND: readonly [number, number] = [18100, 18500];
 
 const LATENCY_P50 = [11, 10, 12, 11, 10, 11, 12, 10, 11, 12, 11, 10];
 const LATENCY_P95 = [41, 43, 40, 42, 44, 41, 43, 42, 40, 43, 42, 41];
