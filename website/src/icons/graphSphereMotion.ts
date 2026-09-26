@@ -151,7 +151,6 @@ export interface NodeMotion {
   readonly ringAlpha: number;
 }
 
-// Gentle per-vertex drift, plus an arrival bump and ring envelope when pulseAge is given.
 export function nodeMotion(
   vertexIndex: number,
   elapsedMs: number,

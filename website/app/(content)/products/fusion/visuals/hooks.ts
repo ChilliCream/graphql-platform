@@ -5,16 +5,7 @@ import type { RefObject } from "react";
 
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
-/**
- * Motion gate for the Tokamak hero. It renders its rest frame first and
- * only starts moving once the gate is open.
- */
-
-/**
- * Gate for a visual that sizes itself to its container, such as a full-bleed
- * hero or a feature-row panel, rather than a fixed-ratio stage: `true` once
- * the element is in the viewport, the tab is visible and motion is allowed.
- */
+/** `true` once the element is in the viewport, the tab is visible and motion is allowed. */
 export function useElementMotion(ref: RefObject<Element | null>): boolean {
   const reduced = useReducedMotionPreference();
   const [inView, setInView] = useState(false);

@@ -1,17 +1,10 @@
 import { CLIENTS, SOURCES, STATIONS, specTag } from "./palette";
 import type { StationSpec } from "./palette";
 
-/**
- * The three tiers the Layered Diagram hero draws, the request script it
- * replays, and the lane geometry both of its layouts share.
- */
-
 export interface ClientNode {
   /** Roster name; the first three come from the palette's `CLIENTS`. */
   readonly key: string;
-  /** Card title. */
   readonly label: string;
-  /** How that client talks to the gateway. */
   readonly detail: string;
 }
 
@@ -22,7 +15,6 @@ export const CLIENT_NODES: readonly ClientNode[] = [
   { key: "AI agent", label: "AI agent", detail: "tool call" },
 ];
 
-/** The language each subgraph is written in, spelled out for the card. */
 const SUBGRAPH_LANGUAGE: Readonly<Record<string, string>> = {
   Catalog: "TypeScript",
   Billing: "Java",
@@ -31,7 +23,6 @@ const SUBGRAPH_LANGUAGE: Readonly<Record<string, string>> = {
   Accounts: "C#",
 };
 
-/** The language behind each non-GraphQL source. */
 const SOURCE_LANGUAGE: Readonly<Record<string, string>> = {
   Payments: "Python",
   Inventory: "Go",
@@ -62,13 +53,11 @@ export const TIER_NODES: readonly TierNode[] = [
   })),
 ];
 
-/** Both specifications, spelled out under the badges the cards carry. */
 export const SPEC_LEGEND: readonly StationSpec[] = [
   "GraphQL Federation",
   "Apollo Federation",
 ];
 
-/** What the gateway readout says about the schema it serves. */
 export const COMPOSITE_LINE = `Coherent graph · ${STATIONS.length} subgraphs · OpenAPI and gRPC sources`;
 
 export interface Request {
@@ -79,7 +68,6 @@ export interface Request {
   readonly targets: readonly string[];
 }
 
-/** One operation per client, each needing a different two or three nodes of the bottom tier. */
 export const REQUESTS: readonly Request[] = [
   {
     client: 0,
@@ -108,13 +96,7 @@ export const PHASE_LABEL = ["Receive", "Fan out", "Merge"] as const;
 
 export const PHASE_MS = 1200;
 
-/**
- * Rest frame: the second request's fan-out phase (index 1, phase 1), the one
- * the diagram has always parked on for its server render, its reduced-motion
- * render and its off-screen render. A caller's request script is never
- * assumed to have a second entry, so this clamps to the last request it
- * actually has instead of indexing past the end.
- */
+/** Clamps to the last request when a caller's script has fewer than two entries. */
 export function restStep(requestCount: number): number {
   const index = Math.min(1, Math.max(0, requestCount - 1));
   return index * PHASE_LABEL.length + 1;
@@ -123,13 +105,9 @@ export function restStep(requestCount: number): number {
 /** Grid gap between cards, in px; `gap-2` on both tiers. */
 export const CARD_GAP = 8;
 
-/** Which tier a connector band joins to the gateway. */
 export type BandFlow = "to-gateway" | "from-gateway";
 
-/**
- * Height of the horizontal run inside a band, in percent: the lanes meet
- * above the gateway and one stem enters it, and the other way round below.
- */
+/** Height of the horizontal run inside a band, in percent. */
 export const BUS_Y: Readonly<Record<BandFlow, number>> = {
   "to-gateway": 70,
   "from-gateway": 30,
@@ -151,12 +129,7 @@ export interface Lane {
   readonly lit: boolean;
 }
 
-/**
- * Centre of grid column `index` of `columns`, accounting for the gaps, so a
- * connector lands on the middle of its card instead of near it. `gap`
- * defaults to `CARD_GAP` and only needs overriding when the caller's grid
- * renders a different gap (a dense layout's tighter row, say).
- */
+/** Centre of grid column `index` of `columns`, accounting for the gaps. */
 function laneX(index: number, columns: number, gap: number = CARD_GAP): string {
   const gaps = (columns - 1) * gap;
   return `calc((100% - ${gaps}px) / ${columns} * ${index + 0.5} + ${index * gap}px)`;
@@ -169,11 +142,7 @@ function laneSide(index: number, columns: number): LaneSide {
   return "center";
 }
 
-/**
- * One lane per grid column: the tiers reflow from two columns to four or
- * seven, and a lane is lit when any card in its column is. `gap` must match
- * that column's actual rendered gap so a connector still centres on its card.
- */
+/** `gap` must match that column's actual rendered gap so a connector still centres on its card. */
 export function columnLanes(
   count: number,
   columns: number,

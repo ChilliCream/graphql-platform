@@ -18,28 +18,14 @@ import {
 import type { BandFlow, ClientNode, Request, TierNode } from "./diagram";
 import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
 
-/**
- * Diagram visual: the architecture drawn as a three-tier diagram, with a
- * client card per `clients` entry, one gateway panel, and one card per
- * `tiers` entry along the bottom. Each request fans out from a client
- * through the gateway to the sources it needs and merges back into one
- * response. Renders directly inside a panel box of whatever width its
- * caller gives it (a half-width feature-row column, say); the tiers collapse
- * from 4 and 7 columns to 2 and 3 with a CSS container query on the
- * diagram's own width, not the viewport's, so the layout is right from the
- * first paint with no measured state.
- */
+/** The tiers collapse via a CSS container query on the diagram's own width, not the viewport's, so layout is right on first paint with no measured state. */
 
 interface LayeredDiagramProps {
-  /** Name on the gateway panel, e.g. "Fusion". */
   readonly gatewayLabel: string;
-  /** Caption under the gateway label; defaults to the federation wording. */
   readonly caption?: string;
-  /** Readout line under the gateway's phase indicator. */
   readonly compositionLine: string;
   readonly clients: readonly ClientNode[];
   readonly tiers: readonly TierNode[];
-  /** Request script the diagram replays; every caller passes its own. */
   readonly requests: readonly Request[];
   /** Fusion's opt-in dense mode: a lower one-row threshold and tighter cards. */
   readonly dense?: boolean;
@@ -68,7 +54,6 @@ const DENSE_LAYOUTS = [
   { key: "wide", className: "hidden @min-[640px]:block" },
 ] as const;
 
-/** Keyframes for a travelling pulse; `busY` is BUS_Y or Fusion's BUS_Y_CENTERED. */
 function layerKeyframes(busY: Readonly<Record<BandFlow, number>>): string {
   return `
 @keyframes mc-layer-in {
@@ -90,7 +75,6 @@ function layerKeyframes(busY: Readonly<Record<BandFlow, number>>): string {
 
 const HUB_GLOW = `radial-gradient(48% 36% at 50% 50%, ${wash(MC.phosphor, 16)} 0%, transparent 72%)`;
 
-/** Teal for the GraphQL specification, violet for Apollo's, dim for a source. */
 function specColor(spec: StationSpec | null): string {
   if (spec === null) return MC.dim;
   return spec === "Apollo Federation" ? BRAND.violet : MC.phosphor;
@@ -98,9 +82,7 @@ function specColor(spec: StationSpec | null): string {
 
 interface BandProps {
   readonly flow: BandFlow;
-  /** Cards in the tier this band joins to the gateway. */
   readonly count: number;
-  /** Columns that tier uses, stacked and wide. */
   readonly columns: readonly [number, number];
   /** Indexes of the lit cards; their columns carry the traffic. */
   readonly lit: readonly number[];
@@ -110,15 +92,10 @@ interface BandProps {
   /** Animation for the `index`-th lit lane, or `null` when nothing travels. */
   readonly pulse: ((index: number) => string) | null;
   readonly dense?: boolean;
-  /** BUS_Y or Fusion's BUS_Y_CENTERED; picks this band's `flow` height. */
   readonly busY: Readonly<Record<BandFlow, number>>;
 }
 
-/**
- * The connectors between one tier and the gateway: a rounded elbow per
- * column down to a shared horizontal run, and one stem from there into the
- * gateway. Both layouts render; the container query picks one.
- */
+/** Both layouts always render; the container query picks which one shows. */
 function Band({
   flow,
   count,

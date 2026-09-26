@@ -5,17 +5,7 @@ import type { RefObject } from "react";
 
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
-/**
- * Motion gates for the Layered Diagram: it renders its rest frame first and
- * only starts moving once the gate is open. Copied from the Fusion page's
- * `visuals/hooks.ts` (which keeps its own `useElementMotion` for the
- * Tokamak hero) rather than imported across pages.
- */
-
-/**
- * `true` once the element is in the viewport, the tab is visible and motion
- * is allowed.
- */
+/** Copied from the Fusion page's `visuals/hooks.ts` rather than imported across pages. */
 export function useElementMotion(ref: RefObject<Element | null>): boolean {
   const reduced = useReducedMotionPreference();
   const [inView, setInView] = useState(false);
@@ -47,10 +37,7 @@ export function useElementMotion(ref: RefObject<Element | null>): boolean {
   return inView && visible && !reduced;
 }
 
-/**
- * Discrete step driver: counts `0 .. steps - 1` on an interval while
- * `running`, and parks on `rest` whenever the gate is closed.
- */
+/** Counts `0 .. steps - 1` on an interval while `running`, parks on `rest` otherwise. */
 export function useCycle(
   running: boolean,
   steps: number,
@@ -69,8 +56,7 @@ export function useCycle(
     return () => window.clearInterval(id);
   }, [running, steps, intervalMs]);
 
-  // Parked value is derived, not stored, so a closed gate renders the rest
-  // frame without a state write and the sequence resumes where it stopped.
+  // Derived, not stored, so a closed gate renders the rest frame with no state write.
   return running ? step : rest;
 }
 

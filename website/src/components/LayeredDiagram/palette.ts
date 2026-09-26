@@ -1,12 +1,4 @@
-/**
- * The console visuals' colour roles and the subgraph station roster they
- * share, so every visual on the page names the same subgraphs, languages and
- * specifications.
- *
- * Every colour role is a `CC.*` token or a `BRAND.*` accent (mixed with
- * opacity where a role needs a wash), so this module carries no colour of
- * its own.
- */
+/** Every colour role here is a `CC.*` token or a `BRAND.*` accent; this module owns no colour of its own. */
 
 import { BRAND, CC } from "./tokens";
 

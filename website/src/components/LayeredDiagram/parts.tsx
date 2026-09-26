@@ -4,22 +4,13 @@ import { TYPE } from "./tokens";
 import { MC } from "./palette";
 import type { BandFlow, Lane } from "./diagram";
 
-/**
- * The pieces the Layered Diagram hero is drawn from: a panel card, the
- * orthogonal connector between a tier and the gateway, and the request pulse
- * that runs along it.
- */
-
-/** Line height for the diagram's card and gateway text. */
 export const LINE_HEIGHT = 1.3;
 
-/** Corner radius of a connector elbow, in px. */
 const ELBOW_RADIUS = 12;
 
 /** `text-[14px]`/`text-[11px]` below track `TYPE.caption`/`TYPE.label`; kept literal for Tailwind's scan. */
 const _DENSE_TITLE_PX: readonly [14, 11] = [TYPE.caption, TYPE.label];
 
-/** A palette role at `percent` opacity. */
 export function wash(color: string, percent: number): string {
   return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 }
@@ -31,13 +22,11 @@ interface CardProps {
   readonly badge?: string;
   readonly badgeColor?: string;
   readonly lit: boolean;
-  /** Colour of the traffic that lights the card. */
   readonly tone: string;
   /** Fusion's opt-in dense mode: tighter padding and a smaller wide-mode title. */
   readonly dense?: boolean;
 }
 
-/** One panel in a tier: a name, what it is, and the badge it carries. */
 export function Card({
   title,
   detail,
@@ -115,18 +104,11 @@ interface ElbowProps {
   readonly tone: string;
 }
 
-/**
- * One orthogonal connector with a rounded corner: a vertical run at the
- * lane's column and a horizontal run to the gateway's centre line, drawn as
- * two borders of one box so the corner rounds itself.
- */
+/** A rounded corner drawn as two borders of one box spanning the lane's column to the gateway centre line. */
 export function Elbow({ lane, flow, tone }: ElbowProps) {
   const color = lane.lit ? wash(tone, 85) : MC.line;
   const down = flow === "to-gateway";
 
-  // The box spans from the lane's column to the gateway centre line; the two
-  // borders it draws are the vertical run and the horizontal run, and the
-  // radius between them is the corner.
   const shape: CSSProperties =
     lane.side === "center"
       ? { left: lane.x, width: 0, borderLeftWidth: 1 }
@@ -167,10 +149,6 @@ interface PulseProps {
   readonly busY: number;
 }
 
-/**
- * A request travelling the elbow. At rest it parks on the corner, which is
- * the frame the server and reduced-motion renders show.
- */
 export function Pulse({ lane, tone, animation, busY }: PulseProps) {
   return (
     <span
