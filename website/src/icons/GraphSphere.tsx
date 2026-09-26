@@ -1,153 +1,27 @@
+"use client";
+
+import { useEffect, useMemo, useRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 
-interface Vec3 {
-  readonly x: number;
-  readonly y: number;
-  readonly z: number;
-}
+import {
+  SPHERE_EDGES,
+  SPHERE_VERTICES,
+  VIEWBOX,
+  lerp,
+  projectVertex,
+} from "./graphSphereGeometry";
+import {
+  DOT_PATHS,
+  DOT_RADIUS,
+  ROTATION_PERIOD_MS,
+  breatheScale,
+  dotFrame,
+  prefersReducedMotion,
+} from "./graphSphereMotion";
+import { useGraphSphereClock } from "./useGraphSphereClock";
 
-function normalize(v: Vec3): Vec3 {
-  const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-  return { x: v.x / len, y: v.y / len, z: v.z / len };
-}
-
-function midpoint(a: Vec3, b: Vec3): Vec3 {
-  return normalize({
-    x: (a.x + b.x) / 2,
-    y: (a.y + b.y) / 2,
-    z: (a.z + b.z) / 2,
-  });
-}
-
-// Canonical icosahedron: 12 vertices, 20 triangular faces.
-const PHI = (1 + Math.sqrt(5)) / 2;
-const BASE_VERTICES: readonly Vec3[] = (
-  [
-    [-1, PHI, 0],
-    [1, PHI, 0],
-    [-1, -PHI, 0],
-    [1, -PHI, 0],
-    [0, -1, PHI],
-    [0, 1, PHI],
-    [0, -1, -PHI],
-    [0, 1, -PHI],
-    [PHI, 0, -1],
-    [PHI, 0, 1],
-    [-PHI, 0, -1],
-    [-PHI, 0, 1],
-  ] as const
-).map(([x, y, z]) => normalize({ x, y, z }));
-
-const BASE_FACES: readonly (readonly [number, number, number])[] = [
-  [0, 11, 5],
-  [0, 5, 1],
-  [0, 1, 7],
-  [0, 7, 10],
-  [0, 10, 11],
-  [1, 5, 9],
-  [5, 11, 4],
-  [11, 10, 2],
-  [10, 7, 6],
-  [7, 1, 8],
-  [3, 9, 4],
-  [3, 4, 2],
-  [3, 2, 6],
-  [3, 6, 8],
-  [3, 8, 9],
-  [4, 9, 5],
-  [2, 4, 11],
-  [6, 2, 10],
-  [8, 6, 7],
-  [9, 8, 1],
-];
-
-function buildGeodesic(): {
-  vertices: readonly Vec3[];
-  edges: readonly (readonly [number, number])[];
-} {
-  const vertices = BASE_VERTICES.slice();
-  const midpoints = new Map<string, number>();
-  const edgeSet = new Map<string, readonly [number, number]>();
-
-  function midIndex(i: number, j: number): number {
-    const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-    const existing = midpoints.get(key);
-    if (existing !== undefined) return existing;
-    const idx = vertices.length;
-    vertices.push(midpoint(vertices[i], vertices[j]));
-    midpoints.set(key, idx);
-    return idx;
-  }
-
-  function addEdge(i: number, j: number): void {
-    const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-    if (!edgeSet.has(key)) edgeSet.set(key, i < j ? [i, j] : [j, i]);
-  }
-
-  for (const [a, b, c] of BASE_FACES) {
-    const ab = midIndex(a, b);
-    const bc = midIndex(b, c);
-    const ca = midIndex(c, a);
-    for (const [p, q, r] of [
-      [a, ab, ca],
-      [b, bc, ab],
-      [c, ca, bc],
-      [ab, bc, ca],
-    ] as const) {
-      addEdge(p, q);
-      addEdge(q, r);
-      addEdge(r, p);
-    }
-  }
-
-  return { vertices, edges: [...edgeSet.values()] };
-}
-
-const { vertices: SPHERE_VERTICES, edges: SPHERE_EDGES } = buildGeodesic();
-
-const TILT_X = (-16 * Math.PI) / 180;
-const TILT_Y = (24 * Math.PI) / 180;
-const TILT_Z = (7 * Math.PI) / 180;
-
-function rotate(v: Vec3): Vec3 {
-  let { x, y, z } = v;
-  let y1 = y * Math.cos(TILT_X) - z * Math.sin(TILT_X);
-  let z1 = y * Math.sin(TILT_X) + z * Math.cos(TILT_X);
-  y = y1;
-  z = z1;
-  let x1 = x * Math.cos(TILT_Y) + z * Math.sin(TILT_Y);
-  z1 = -x * Math.sin(TILT_Y) + z * Math.cos(TILT_Y);
-  x = x1;
-  z = z1;
-  x1 = x * Math.cos(TILT_Z) - y * Math.sin(TILT_Z);
-  y1 = x * Math.sin(TILT_Z) + y * Math.cos(TILT_Z);
-  return { x: x1, y: y1, z: z1 };
-}
-
-const ROTATED = SPHERE_VERTICES.map(rotate);
-
-// z: -1 nearest the viewer, 1 farthest
-const CAM_DIST = 3;
-const CAM_K = 450;
-const VIEWBOX = 400;
-const CENTER = VIEWBOX / 2;
-
-function scaleAtZ(z: number): number {
-  return CAM_K / (CAM_DIST + z);
-}
-
-function depthT(z: number): number {
-  return (1 - z) / 2;
-}
-
-const PROJECTED = ROTATED.map((v) => {
-  const scale = scaleAtZ(v.z);
-  return {
-    x: CENTER + v.x * scale,
-    y: CENTER - v.y * scale,
-    t: depthT(v.z),
-  };
-});
+// t: 0 farthest, 1 nearest -- the server-rendered frame is theta = 0.
+const PROJECTED = SPHERE_VERTICES.map((_, i) => projectVertex(i, 0));
 
 const NODE_FAR_R = 2.2;
 const NODE_NEAR_R = 5.6;
@@ -158,10 +32,6 @@ const EDGE_NEAR_ALPHA = 0.55;
 const EDGE_FAR_WIDTH = 0.5;
 const EDGE_NEAR_WIDTH = 1.5;
 const HALO_COUNT = 3;
-
-function lerp(from: number, to: number, t: number): number {
-  return from + (to - from) * t;
-}
 
 function isTeal(index: number): boolean {
   return index % 4 === 0;
@@ -176,7 +46,18 @@ const HALO_INDICES = new Set(
 
 const HALO_ORDER = [...HALO_INDICES];
 
-const NODES = PROJECTED.map((p, i) => ({
+interface SphereNode {
+  readonly vertexIndex: number;
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+  readonly alpha: number;
+  readonly teal: boolean;
+  readonly haloId: number;
+}
+
+const NODES: readonly SphereNode[] = PROJECTED.map((p, i) => ({
+  vertexIndex: i,
   x: p.x,
   y: p.y,
   r: lerp(NODE_FAR_R, NODE_NEAR_R, p.t),
@@ -187,37 +68,166 @@ const NODES = PROJECTED.map((p, i) => ({
 
 const EDGE_BANDS = 6;
 
-interface EdgeBand {
+interface EdgeGroup {
+  readonly pairs: readonly (readonly [number, number])[];
   readonly alpha: number;
   readonly width: number;
   readonly d: string;
 }
 
-const edgeBuckets: string[][] = Array.from({ length: EDGE_BANDS }, () => []);
+function segmentPath(
+  pairs: readonly (readonly [number, number])[],
+  projected: readonly { readonly x: number; readonly y: number }[],
+): string {
+  return pairs
+    .map(([i, j]) => {
+      const a = projected[i];
+      const b = projected[j];
+      return `M${a.x.toFixed(1)},${a.y.toFixed(1)} L${b.x.toFixed(1)},${b.y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+const edgeBuckets: (readonly [number, number])[][] = Array.from(
+  { length: EDGE_BANDS },
+  () => [],
+);
 for (const [i, j] of SPHERE_EDGES) {
   const a = PROJECTED[i];
   const b = PROJECTED[j];
   const t = (a.t + b.t) / 2;
   const band = Math.min(EDGE_BANDS - 1, Math.floor(t * EDGE_BANDS));
-  edgeBuckets[band].push(
-    `M${a.x.toFixed(1)},${a.y.toFixed(1)} L${b.x.toFixed(1)},${b.y.toFixed(1)}`,
-  );
+  edgeBuckets[band].push([i, j]);
 }
 
-const EDGE_GROUPS: readonly EdgeBand[] = edgeBuckets
-  .map((segments, band) => {
+const EDGE_GROUPS: readonly EdgeGroup[] = edgeBuckets
+  .map((pairs, band) => {
     const t = (band + 0.5) / EDGE_BANDS;
     return {
+      pairs,
       alpha: lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, t),
       width: lerp(EDGE_FAR_WIDTH, EDGE_NEAR_WIDTH, t),
-      d: segments.join(" "),
+      d: segmentPath(pairs, PROJECTED),
     };
   })
   .filter((group) => group.d.length > 0);
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+const HALO_BREATHE_PHASE_STEP = (2 * Math.PI) / HALO_COUNT;
+
 export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const nodeRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const haloRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const edgeRefs = useRef<(SVGPathElement | null)[]>([]);
+  const dotRefs = useRef<SVGCircleElement[]>([]);
+
+  // Read once: reduced-motion only needs the static frame, not a live toggle.
+  const reducedMotion = useMemo(() => prefersReducedMotion(), []);
+
+  // Dots have no server-rendered markup -- they exist only once JS runs and motion is allowed.
+  useEffect(() => {
+    if (reducedMotion) {
+      return;
+    }
+    const svg = svgRef.current;
+    if (!svg) {
+      return;
+    }
+    const circles = DOT_PATHS.map(() => {
+      const circle = document.createElementNS(SVG_NS, "circle");
+      circle.setAttribute("r", DOT_RADIUS.toFixed(2));
+      circle.setAttribute("fill", "var(--color-cc-accent)");
+      circle.setAttribute("fill-opacity", "0");
+      svg.appendChild(circle);
+      return circle;
+    });
+    dotRefs.current = circles;
+    return () => {
+      for (const circle of circles) {
+        circle.remove();
+      }
+      dotRefs.current = [];
+    };
+  }, [reducedMotion]);
+
+  useGraphSphereClock(
+    svgRef,
+    (elapsedMs) => {
+      const theta = ((elapsedMs / ROTATION_PERIOD_MS) % 1) * Math.PI * 2;
+      const projected = SPHERE_VERTICES.map((_, i) => projectVertex(i, theta));
+
+      NODES.forEach((n, idx) => {
+        const p = projected[n.vertexIndex];
+        const node = nodeRefs.current[idx];
+        if (node) {
+          node.setAttribute("cx", p.x.toFixed(1));
+          node.setAttribute("cy", p.y.toFixed(1));
+          node.setAttribute("r", lerp(NODE_FAR_R, NODE_NEAR_R, p.t).toFixed(2));
+          node.setAttribute(
+            "fill-opacity",
+            lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, p.t).toFixed(2),
+          );
+        }
+        if (n.haloId >= 0) {
+          const halo = haloRefs.current[idx];
+          if (halo) {
+            const r = lerp(NODE_FAR_R, NODE_NEAR_R, p.t);
+            const breathe = breatheScale(
+              n.haloId * HALO_BREATHE_PHASE_STEP,
+              elapsedMs,
+            );
+            halo.setAttribute("cx", p.x.toFixed(1));
+            halo.setAttribute("cy", p.y.toFixed(1));
+            halo.setAttribute("r", (r * 3.5 * breathe).toFixed(1));
+          }
+        }
+      });
+
+      EDGE_GROUPS.forEach((group, idx) => {
+        const path = edgeRefs.current[idx];
+        if (!path) {
+          return;
+        }
+        let sumT = 0;
+        for (const [i, j] of group.pairs) {
+          sumT += (projected[i].t + projected[j].t) / 2;
+        }
+        const avgT = sumT / group.pairs.length;
+        path.setAttribute("d", segmentPath(group.pairs, projected));
+        path.setAttribute(
+          "stroke-opacity",
+          lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, avgT).toFixed(2),
+        );
+        path.setAttribute(
+          "stroke-width",
+          lerp(EDGE_FAR_WIDTH, EDGE_NEAR_WIDTH, avgT).toFixed(2),
+        );
+      });
+
+      DOT_PATHS.forEach((dot, idx) => {
+        const circle = dotRefs.current[idx];
+        if (!circle) {
+          return;
+        }
+        const frame = dotFrame(dot, elapsedMs);
+        const a = projected[frame.fromVertex];
+        const b = projected[frame.toVertex];
+        circle.setAttribute("cx", lerp(a.x, b.x, frame.frac).toFixed(1));
+        circle.setAttribute("cy", lerp(a.y, b.y, frame.frac).toFixed(1));
+        circle.setAttribute("fill-opacity", frame.alpha.toFixed(2));
+      });
+    },
+    !reducedMotion,
+  );
+
   return (
-    <svg viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`} aria-hidden="true" {...props}>
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}
+      aria-hidden="true"
+      {...props}
+    >
       <defs>
         {NODES.filter((n) => n.haloId >= 0).map((n) => (
           <radialGradient key={n.haloId} id={`graph-sphere-halo-${n.haloId}`}>
@@ -242,6 +252,9 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       {EDGE_GROUPS.map((group, i) => (
         <path
           key={i}
+          ref={(el) => {
+            edgeRefs.current[i] = el;
+          }}
           d={group.d}
           fill="none"
           stroke="var(--color-cc-accent)"
@@ -259,6 +272,9 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
           <g key={i}>
             {n.haloId >= 0 && (
               <circle
+                ref={(el) => {
+                  haloRefs.current[i] = el;
+                }}
                 cx={n.x.toFixed(1)}
                 cy={n.y.toFixed(1)}
                 r={(n.r * 3.5).toFixed(1)}
@@ -266,6 +282,9 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
               />
             )}
             <circle
+              ref={(el) => {
+                nodeRefs.current[i] = el;
+              }}
               cx={n.x.toFixed(1)}
               cy={n.y.toFixed(1)}
               r={n.r.toFixed(2)}
