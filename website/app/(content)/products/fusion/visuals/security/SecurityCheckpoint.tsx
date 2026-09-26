@@ -72,11 +72,11 @@ function CheckStack({ failAt, show }: CheckStackProps) {
           />
         ))}
       </div>
-      {show && failAt !== null && (
-        <div className="text-cc-danger mt-1 text-center font-mono text-[0.7rem]">
-          {failAt === 0 ? "rejected · not in safelist" : "denied · 403"}
-        </div>
-      )}
+      <div
+        className={`text-cc-danger mt-1 text-center font-mono text-[0.7rem] ${show && failAt !== null ? "" : "invisible"}`}
+      >
+        {failAt === 0 ? "rejected · not in safelist" : "denied · 403"}
+      </div>
     </div>
   );
 }
