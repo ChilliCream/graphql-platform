@@ -1,6 +1,6 @@
 import type { Client, Trace } from "@/src/nitro/lib/data/types";
 
-/** One Fusion request: the gateway parses the plan, fans out catalog and orders in parallel, then billing — the slow span. */
+/** One Fusion request: the router parses the plan, fans out catalog and orders in parallel, then billing — the slow span. */
 export const REQUEST_TRACE: Trace = {
   totalMs: 150,
   spans: [
@@ -53,7 +53,6 @@ export const REQUEST_COST = 184;
 export const COST_BUDGET = 1000;
 export const RATE_LIMIT_STATUS = "rate limit ok";
 
-/** Top clients by cost units, for the usage-based billing card. */
 export const USAGE_CLIENTS: readonly Client[] = [
   { name: "web", total: 420, impact: 92 },
   { name: "mobile", total: 260, impact: 68 },

@@ -8,29 +8,32 @@ interface BentoCardProps {
   readonly title: string;
   readonly hint?: ReactNode;
   readonly className?: string;
+  readonly bodyClassName?: string;
   readonly children: ReactNode;
 }
 
-/** One card of the Insights bento, in the same chrome as the Nitro page's SignalsBento. */
 export function BentoCard({
   title,
   hint,
   className,
+  bodyClassName = "px-5 pt-3 pb-5",
   children,
 }: BentoCardProps) {
   return (
     <Card className={className}>
-      <div className="flex items-baseline justify-between gap-3 px-4 pt-4">
-        <Eyebrow as="h4" color="ink-dim">
-          {title}
-        </Eyebrow>
-        {hint && (
-          <Eyebrow as="span" color="ink-dim">
-            {hint}
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="flex items-baseline justify-between gap-3 px-5 pt-5">
+          <Eyebrow as="h4" color="ink-dim">
+            {title}
           </Eyebrow>
-        )}
+          {hint && (
+            <Eyebrow as="span" color="ink-dim">
+              {hint}
+            </Eyebrow>
+          )}
+        </div>
+        <div className={bodyClassName}>{children}</div>
       </div>
-      <div className="px-4 pt-3 pb-4">{children}</div>
     </Card>
   );
 }

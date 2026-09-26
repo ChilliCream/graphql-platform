@@ -19,11 +19,8 @@ const GRID_CLASS =
   "grid grid-cols-1 gap-3 @min-[560px]:grid-cols-6 @min-[560px]:gap-4";
 
 function formatCost(n: number) {
-  return `${Math.round(n)} of ${COST_BUDGET.toLocaleString("en-US")}`;
+  return `${Math.round(n)}`;
 }
-
-/** Hides the trace's built-in axis row, whose tick labels render under 11px; mirrors SignalsBento's slow-span card. */
-const HIDE_TRACE_AXIS = `.nitro-insights-trace [role="img"] > div:first-child { display: none; }`;
 
 export function InsightsBento() {
   const { ref, progress } = useBentoProgress();
@@ -37,8 +34,7 @@ export function InsightsBento() {
             hint="POST /graphql"
             className="@min-[560px]:col-span-6"
           >
-            <ChartFrame className="nitro-insights-trace">
-              <style>{HIDE_TRACE_AXIS}</style>
+            <ChartFrame>
               <TraceWaterfall
                 trace={REQUEST_TRACE}
                 rowHeight={30}
@@ -55,16 +51,23 @@ export function InsightsBento() {
             title="Cost"
             hint="Cost Spec"
             className="@min-[560px]:col-span-2"
+            bodyClassName="flex flex-1 flex-col justify-between px-5 pt-4 pb-5"
           >
-            <ChartFrame className="h-11">
-              <CountUp
-                value={REQUEST_COST}
-                format={formatCost}
-                style={{ justifyContent: "flex-start", fontSize: 26 }}
-                progress={progress}
-                playWindow={[0, 1]}
-              />
-            </ChartFrame>
+            <div className="flex h-11 items-center gap-2">
+              <ChartFrame className="shrink-0">
+                <CountUp
+                  value={REQUEST_COST}
+                  format={formatCost}
+                  ariaLabel={`${REQUEST_COST} of ${COST_BUDGET.toLocaleString("en-US")}`}
+                  style={{ width: "auto", justifyContent: "flex-start" }}
+                  progress={progress}
+                  playWindow={[0, 1]}
+                />
+              </ChartFrame>
+              <span className="text-cc-ink-dim shrink-0 font-mono text-[0.7rem] whitespace-nowrap">
+                / {COST_BUDGET.toLocaleString("en-US")}
+              </span>
+            </div>
             <div className="text-cc-success mt-3 flex items-center gap-2">
               <CheckGlyph className="h-3.5 w-3.5 shrink-0" />
               <span className="font-mono text-[0.7rem]">
