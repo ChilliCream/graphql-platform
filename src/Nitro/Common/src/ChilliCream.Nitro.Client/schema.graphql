@@ -109,6 +109,7 @@ type Mutation {
   uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload!
   uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
   validateClient(input: ValidateClientInput!): ValidateClientPayload!
+  validateFusionConfiguration(input: ValidateFusionConfigurationInput!): ValidateFusionConfigurationPayload!
   validateFusionConfigurationComposition(
     input: ValidateFusionConfigurationCompositionInput!
   ): ValidateFusionConfigurationCompositionPayload!
@@ -121,6 +122,7 @@ type Subscription {
   onClientVersionPublishingUpdate(requestId: ID!): ClientVersionPublishResult!
   onClientVersionValidationUpdate(requestId: ID!): ClientVersionValidationResult!
   onFusionConfigurationPublishingTaskChanged(requestId: ID!): FusionConfigurationPublishingResult!
+  onFusionConfigurationValidationUpdate(requestId: ID!): FusionConfigurationValidationResult!
   onMcpFeatureCollectionVersionPublishingUpdate(requestId: ID!): McpFeatureCollectionVersionPublishResult!
   onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
   onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
@@ -1814,12 +1816,12 @@ type FusionConfigurationRequestNotFoundError implements Error {
   requestId: ID!
 }
 
-type FusionConfigurationValidationFailed implements FusionConfigurationPublishingResult {
+type FusionConfigurationValidationFailed implements FusionConfigurationPublishingResult & FusionConfigurationValidationResult {
   errors: [FusionConfigurationValidationError!]!
   state: ProcessingState!
 }
 
-type FusionConfigurationValidationSuccess implements FusionConfigurationPublishingResult {
+type FusionConfigurationValidationSuccess implements FusionConfigurationPublishingResult & FusionConfigurationValidationResult {
   changes: [SchemaChangeLogEntry!]!
   state: ProcessingState!
 }
@@ -3341,7 +3343,7 @@ type Operation {
   name: String
 }
 
-type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
+type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & FusionConfigurationValidationResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -4227,7 +4229,7 @@ type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & Clie
   state: ProcessingState!
 }
 
-type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -4676,7 +4678,7 @@ type PushWorkspaceChangesPayload {
   errors: [PushWorkspaceChangesError!]
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -6175,6 +6177,11 @@ type ValidateFusionConfigurationCompositionPayload {
   requestId: ID
 }
 
+type ValidateFusionConfigurationPayload {
+  errors: [ValidateFusionConfigurationError!]
+  id: ID
+}
+
 type ValidateMcpFeatureCollectionPayload {
   errors: [ValidateMcpFeatureCollectionError!]
   id: ID
@@ -6199,7 +6206,7 @@ type ValidationErrorProperty {
   message: String!
 }
 
-type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionValidationResult {
+type ValidationInProgress implements FusionConfigurationPublishingResult & FusionConfigurationValidationResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -6831,6 +6838,10 @@ interface FusionConfigurationValidationError {
   message: String!
 }
 
+interface FusionConfigurationValidationResult {
+  state: ProcessingState!
+}
+
 interface GraphQLInputValueDefinition implements GraphQLTypeSystemMember {
   coordinate: String!
   id: ID!
@@ -7376,6 +7387,8 @@ union ValidateFusionConfigurationCompositionError =
   | UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
+
+union ValidateFusionConfigurationError = ApiNotFoundError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
 union ValidateMcpFeatureCollectionError =
   | StageNotFoundError
@@ -8199,6 +8212,13 @@ input ValidateClientInput {
 input ValidateFusionConfigurationCompositionInput {
   configuration: Upload!
   requestId: ID!
+}
+
+input ValidateFusionConfigurationInput {
+  apiId: ID!
+  configuration: Upload!
+  source: SourceMetadataInput
+  stage: String!
 }
 
 input ValidateMcpFeatureCollectionInput {
