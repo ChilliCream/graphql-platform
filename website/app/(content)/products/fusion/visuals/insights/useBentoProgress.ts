@@ -11,7 +11,7 @@ export function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion() ?? false;
   const inView = useInView(ref, { amount: 0.25 });
-  const progress = useMotionValue(reduced ? 1 : 0);
+  const progress = useMotionValue(0);
 
   useEffect(() => {
     if (reduced) {

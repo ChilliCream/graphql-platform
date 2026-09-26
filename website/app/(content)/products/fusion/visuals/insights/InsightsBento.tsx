@@ -18,6 +18,8 @@ import { useBentoProgress } from "./useBentoProgress";
 const GRID_CLASS =
   "grid grid-cols-1 gap-3 @min-[560px]:grid-cols-6 @min-[560px]:gap-4";
 
+const TRACE_CHART_SCALE = 1.25;
+
 function formatCost(n: number) {
   return `${Math.round(n)}`;
 }
@@ -34,14 +36,16 @@ export function InsightsBento() {
             hint="POST /graphql"
             className="@min-[560px]:col-span-6"
           >
-            <ChartFrame>
-              <TraceWaterfall
-                trace={REQUEST_TRACE}
-                rowHeight={30}
-                progress={progress}
-                playWindow={[0, 1]}
-              />
-            </ChartFrame>
+            <div style={{ zoom: TRACE_CHART_SCALE }}>
+              <ChartFrame>
+                <TraceWaterfall
+                  trace={REQUEST_TRACE}
+                  rowHeight={30}
+                  progress={progress}
+                  playWindow={[0, 1]}
+                />
+              </ChartFrame>
+            </div>
             <p className="text-cc-warning mt-3 font-mono text-[0.7rem]">
               {LATENCY_DRIVER}
             </p>
