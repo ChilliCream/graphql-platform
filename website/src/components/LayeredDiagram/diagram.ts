@@ -1,11 +1,12 @@
 import { CLIENTS, SOURCES, STATIONS, specTag } from "./palette";
-import type { StationSpec } from "./palette";
+import type { Protocol, StationSpec } from "./palette";
 
 export interface ClientNode {
   /** Roster name; the first three come from the palette's `CLIENTS`. */
   readonly key: string;
   readonly label: string;
   readonly detail: string;
+  readonly protocol?: Protocol;
 }
 
 export const CLIENT_NODES: readonly ClientNode[] = [
@@ -13,6 +14,33 @@ export const CLIENT_NODES: readonly ClientNode[] = [
   { key: CLIENTS[1], label: "Mobile app", detail: "iOS · Android" },
   { key: CLIENTS[2], label: "Partner API", detail: "server to server" },
   { key: "AI agent", label: "AI agent", detail: "tool call" },
+];
+
+export const FUSION_CLIENT_NODES: readonly ClientNode[] = [
+  {
+    key: CLIENTS[0],
+    label: "Web app",
+    detail: "query Storefront",
+    protocol: "GraphQL",
+  },
+  {
+    key: CLIENTS[1],
+    label: "Mobile app",
+    detail: "query Checkout",
+    protocol: "GraphQL",
+  },
+  {
+    key: CLIENTS[2],
+    label: "Partner API",
+    detail: "GET /orders/{id}",
+    protocol: "OpenAPI",
+  },
+  {
+    key: "AI agent",
+    label: "AI agent",
+    detail: "tools/call order_status",
+    protocol: "MCP",
+  },
 ];
 
 const SUBGRAPH_LANGUAGE: Readonly<Record<string, string>> = {
@@ -59,6 +87,8 @@ export const COMPOSITE_LINE = `Coherent graph · ${STATIONS.length} subgraphs ·
 
 export interface Request {
   readonly client: number;
+  readonly protocol?: Protocol;
+  readonly entry?: string;
   readonly operation: string;
   readonly targets: readonly string[];
 }
@@ -83,6 +113,35 @@ export const REQUESTS: readonly Request[] = [
     client: 3,
     operation: "query AccountSummary",
     targets: ["Accounts", "Billing", "Payments"],
+  },
+];
+
+export const FUSION_REQUESTS: readonly Request[] = [
+  {
+    client: 0,
+    protocol: "GraphQL",
+    operation: "query Storefront",
+    targets: ["Catalog", "Inventory"],
+  },
+  {
+    client: 1,
+    protocol: "GraphQL",
+    operation: "query Checkout",
+    targets: ["Catalog", "Ordering", "Billing"],
+  },
+  {
+    client: 2,
+    protocol: "OpenAPI",
+    entry: "GET /orders/{id}",
+    operation: "query GetOrder",
+    targets: ["Ordering", "Shipping", "Payments"],
+  },
+  {
+    client: 3,
+    protocol: "MCP",
+    entry: "tools/call order_status",
+    operation: "query GetOrderStatus",
+    targets: ["Ordering", "Accounts"],
   },
 ];
 

@@ -76,3 +76,15 @@ export function specTag(spec: StationSpec, short = false): string {
   if (short) return spec === "Apollo Federation" ? "APOLLO" : "GRAPHQL";
   return spec === "Apollo Federation" ? "APOLLO FED" : "GRAPHQL FED";
 }
+
+export type Protocol = "GraphQL" | "OpenAPI" | "MCP";
+
+export function protocolTag(protocol: Protocol): string {
+  return protocol.toUpperCase();
+}
+
+export function protocolColor(protocol: Protocol): string {
+  if (protocol === "OpenAPI") return BRAND.amber;
+  if (protocol === "MCP") return BRAND.coral;
+  return MC.phosphor;
+}

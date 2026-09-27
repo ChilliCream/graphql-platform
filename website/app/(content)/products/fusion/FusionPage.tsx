@@ -9,9 +9,8 @@ import { CheckList } from "@/src/components/CheckList";
 import { FeatureRow } from "@/src/components/FeatureRow";
 import LayeredDiagram from "@/src/components/LayeredDiagram/index";
 import {
-  CLIENT_NODES,
-  COMPOSITE_LINE,
-  REQUESTS,
+  FUSION_CLIENT_NODES,
+  FUSION_REQUESTS,
   TIER_NODES,
 } from "@/src/components/LayeredDiagram/diagram";
 import { Section } from "@/src/components/Section";
@@ -119,13 +118,13 @@ const VISUALS: Readonly<Record<string, Panel>> = {
       <LayeredDiagram
         gatewayLabel="Fusion"
         caption="Router"
-        compositionLine={COMPOSITE_LINE}
-        clients={CLIENT_NODES}
+        clients={FUSION_CLIENT_NODES}
         tiers={TIER_NODES}
-        requests={REQUESTS}
+        requests={FUSION_REQUESTS}
         dense
         busCentered
         shortSpecTags
+        captionInline
       />
     ),
   },

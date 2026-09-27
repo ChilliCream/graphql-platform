@@ -71,7 +71,11 @@ export function Card({
         {title}
       </p>
       <p
-        className="truncate font-mono @max-[312px]:whitespace-normal"
+        className={
+          dense
+            ? "font-mono whitespace-normal"
+            : "truncate font-mono @max-[312px]:whitespace-normal"
+        }
         style={{
           color: MC.dim,
           fontSize: TYPE.label,
