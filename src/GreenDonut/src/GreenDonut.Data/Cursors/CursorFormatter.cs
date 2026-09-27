@@ -140,6 +140,38 @@ public static class CursorFormatter
         }
     }
 
+    /// <summary>
+    /// Formats an end cursor for relative paging.
+    /// </summary>
+    /// <param name="offset">
+    /// The number of pages behind the last page. Zero represents the last page itself, negative
+    /// values represent earlier pages.
+    /// </param>
+    /// <param name="totalCount">
+    /// The total number of items in the dataset.
+    /// </param>
+    /// <returns>
+    /// Returns an end cursor encoding the offset and the total count, with no key values.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// If <paramref name="offset"/> is greater than zero, or <paramref name="totalCount"/> is negative.
+    /// </exception>
+    public static string FormatEndCursor(int offset, int totalCount)
+    {
+        if (offset > 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(offset),
+                offset,
+                "The offset of an end cursor must not be greater than zero.");
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(totalCount);
+
+        var value = $"{{end|{offset}|{totalCount}}}";
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+    }
+
     private static void ExpandBuffer(
         ref byte[]? poolArray,
         ref Span<byte> span,

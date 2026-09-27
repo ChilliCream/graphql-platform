@@ -254,6 +254,42 @@ public class CursorFormatterTests
         Assert.Equal("{}\\null", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
     }
 
+    [Theory]
+    [InlineData(0, 25, "e2VuZHwwfDI1fQ==")]
+    [InlineData(-1, 1, "e2VuZHwtMXwxfQ==")]
+    [InlineData(-5, 0, "e2VuZHwtNXwwfQ==")]
+    public void FormatEndCursor_Encodes_Offset_And_TotalCount(int offset, int totalCount, string expected)
+    {
+        // act
+        var result = CursorFormatter.FormatEndCursor(offset, totalCount);
+
+        // assert
+        Assert.Equal(expected, result);
+        Assert.Equal(
+            $"{{end|{offset}|{totalCount}}}",
+            Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+    }
+
+    [Fact]
+    public void FormatEndCursor_Throws_When_Offset_Is_Positive()
+    {
+        // act
+        void Act() => CursorFormatter.FormatEndCursor(1, 0);
+
+        // assert
+        Assert.Throws<ArgumentOutOfRangeException>(Act);
+    }
+
+    [Fact]
+    public void FormatEndCursor_Throws_When_TotalCount_Is_Negative()
+    {
+        // act
+        void Act() => CursorFormatter.FormatEndCursor(0, -1);
+
+        // assert
+        Assert.Throws<ArgumentOutOfRangeException>(Act);
+    }
+
     public class MyClass
     {
         public string Name { get; set; } = null!;

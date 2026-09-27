@@ -50,11 +50,24 @@ public static class CursorParser
             bufferSpan = bufferSpan[..written];
         }
 
+        var (offset, page, totalCount, isEndCursor) = ParsePageInfo(ref bufferSpan);
+
+        if (isEndCursor)
+        {
+            if (bufferSpan.Length != 0)
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+                throw new InvalidOperationException("The cursor page info could not be parsed.");
+            }
+
+            ArrayPool<byte>.Shared.Return(buffer);
+            return new Cursor([], offset, null, totalCount, IsEndCursor: true);
+        }
+
         var key = 0;
         var start = 0;
         var end = 0;
         var parsedCursor = new object?[keys.Length];
-        var (offset, page, totalCount) = ParsePageInfo(ref bufferSpan);
 
         for (var current = 0; current < bufferSpan.Length; current++)
         {
@@ -109,27 +122,55 @@ public static class CursorParser
         }
     }
 
-    private static CursorPageInfo ParsePageInfo(ref Span<byte> span)
+    private static (int? Offset, int? PageIndex, int? TotalCount, bool IsEndCursor) ParsePageInfo(
+        ref Span<byte> span)
     {
         const byte open = (byte)'{';
         const byte close = (byte)'}';
         const byte separator = (byte)'|';
+        var endPrefix = "end|"u8;
 
         // Validate input: must start with `{` and end with `}`
         if (span.Length < 2 || span[0] != open)
         {
-            return default;
+            return (null, null, null, false);
         }
 
         // the page info is empty
         if (span[0] == open && span[1] == close)
         {
             span = span[2..];
-            return default;
+            return (null, null, null, false);
         }
 
         // Advance span beyond opening `{`
         span = span[1..];
+
+        if (span.StartsWith(endPrefix))
+        {
+            span = span[endPrefix.Length..];
+
+            var endSeparatorIndex = ExpectSeparator(span, separator);
+            var offsetPart = span[..endSeparatorIndex];
+            ParseNumber(offsetPart, out var endOffset, out _);
+            var endStart = endSeparatorIndex + 1;
+
+            endSeparatorIndex = ExpectSeparator(span[endStart..], close);
+            var totalCountPart = span.Slice(endStart, endSeparatorIndex);
+            ParseNumber(totalCountPart, out var endTotalCount, out _);
+            endStart += endSeparatorIndex + 1;
+
+            if (endOffset > 0 || endTotalCount < 0)
+            {
+                throw new InvalidOperationException(
+                    "The cursor page info could not be parsed.");
+            }
+
+            // Advance span beyond closing `}`
+            span = span[endStart..];
+
+            return (endOffset, null, endTotalCount, true);
+        }
 
         var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
@@ -149,7 +190,8 @@ public static class CursorParser
         // Advance span beyond closing `}`
         span = span[start..];
 
-        return new CursorPageInfo(offset, page, totalCount);
+        var (resultOffset, resultPage, resultTotalCount) = new CursorPageInfo(offset, page, totalCount);
+        return (resultOffset, resultPage, resultTotalCount, false);
 
         static void ParseNumber(ReadOnlySpan<byte> span, out int value, out int consumed)
         {
