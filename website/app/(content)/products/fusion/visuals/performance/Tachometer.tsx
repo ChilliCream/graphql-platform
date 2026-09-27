@@ -21,7 +21,7 @@ import {
   formatOps,
 } from "./data";
 
-export interface TachometerProps {
+interface TachometerProps {
   readonly active: boolean;
   readonly reduced: boolean;
 }
@@ -327,7 +327,7 @@ export function Tachometer({ active, reduced }: TachometerProps) {
               minWidth: "3ch",
               textAlign: "center",
               fontFamily: token.mono,
-              fontSize: "clamp(22px, 10cqw, 46px)",
+              fontSize: "clamp(24px, 12cqw, 48px)",
               lineHeight: 1,
               fontWeight: 700,
               fontStyle: "italic",

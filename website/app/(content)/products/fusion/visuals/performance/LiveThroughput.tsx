@@ -9,7 +9,7 @@ import { ease } from "@/src/nitro/lib/motion";
 
 import { SETTLE_VALUE } from "./data";
 
-export interface LiveThroughputProps {
+interface LiveThroughputProps {
   readonly active: boolean;
 }
 

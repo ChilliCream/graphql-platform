@@ -9,7 +9,7 @@ import { ease } from "@/src/nitro/lib/motion";
 import { fractionAngle, gaugeArcPath, polarPoint } from "./gauge";
 import { LATENCY_MAX, P50_MARK, P95_SETTLE } from "./data";
 
-export interface LatencyGaugeProps {
+interface LatencyGaugeProps {
   readonly active: boolean;
   readonly reduced: boolean;
 }
