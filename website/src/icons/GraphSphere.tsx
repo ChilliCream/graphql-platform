@@ -34,8 +34,7 @@ const EDGE_NEAR_ALPHA = 0.55;
 const EDGE_FAR_WIDTH = 0.5;
 const EDGE_NEAR_WIDTH = 1.5;
 
-// Depth range for every node's soft glow: far nodes get a smaller, fainter
-// glow, near nodes the full glow the three original haloed nodes had.
+// Every node's glow scales with depth; at NEAR it matches the three former haloed nodes.
 const GLOW_FAR_SCALE = 2.4;
 const GLOW_NEAR_SCALE = 3.5;
 const GLOW_FAR_ALPHA = 0.1;
