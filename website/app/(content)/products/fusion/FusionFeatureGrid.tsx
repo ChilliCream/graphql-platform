@@ -22,11 +22,9 @@ const FEATURE_ICONS: Record<string, ReactElement> = {
 };
 
 interface FusionFeatureGridProps {
-  /** Default "stacked"; the page renders "icon-left". */
   readonly layout?: "stacked" | "icon-left";
 }
 
-/** The "Built for Distributed Graphs" feature grid, stacked or icon-left. */
 export function FusionFeatureGrid({
   layout = "stacked",
 }: FusionFeatureGridProps) {
