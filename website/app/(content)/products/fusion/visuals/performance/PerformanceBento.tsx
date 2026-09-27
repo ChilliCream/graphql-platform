@@ -193,7 +193,7 @@ export function PerformanceBento() {
   const { ref, progress } = useBentoReveal();
 
   return (
-    <div ref={ref} className="@container p-3 sm:p-4">
+    <div ref={ref} className="@container">
       <div className="grid grid-cols-1 gap-3 @min-[480px]:grid-cols-5">
         <div className="@min-[480px]:col-span-2">
           <GaugeCard />

@@ -93,6 +93,7 @@ function InPractice({ links }: InPracticeProps) {
 
 interface Panel {
   readonly visual: ReactNode;
+  readonly bare?: boolean;
 }
 
 /** One panel per text section, in the order the copy declares them. */
@@ -112,9 +113,9 @@ const VISUALS: Readonly<Record<string, Panel>> = {
       />
     ),
   },
-  performance: { visual: <PerformanceWindow /> },
+  performance: { visual: <PerformanceWindow />, bare: true },
   security: { visual: <SecurityWindow /> },
-  insights: { visual: <InsightsWindow /> },
+  insights: { visual: <InsightsWindow />, bare: true },
   "client-safety": { visual: <ProtectWindow /> },
 };
 
@@ -138,9 +139,13 @@ export function FusionPage() {
                   bullets ? undefined : withLinks(firstParagraph, section.links)
                 }
                 visual={
-                  <div className={`${PANEL_CLASS} overflow-hidden`}>
-                    {panel.visual}
-                  </div>
+                  panel.bare ? (
+                    panel.visual
+                  ) : (
+                    <div className={`${PANEL_CLASS} overflow-hidden`}>
+                      {panel.visual}
+                    </div>
+                  )
                 }
                 reverse={i % 2 === 1}
               >
