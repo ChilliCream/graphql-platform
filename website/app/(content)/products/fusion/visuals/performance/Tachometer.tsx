@@ -10,17 +10,10 @@ import {
 } from "motion/react";
 
 import { token } from "@/src/nitro";
-import { Badge } from "@/src/nitro/primitives/Badge";
 import { ease } from "@/src/nitro/lib/motion";
 
+import { fractionAngle, gaugeArcPath, polarPoint } from "./gauge";
 import {
-  fractionAngle,
-  gaugeArcPath,
-  needleRotation,
-  polarPoint,
-} from "./gauge";
-import {
-  CORES,
   GAUGE_MAX,
   IDLE_BAND,
   RED_ZONE_START,
@@ -36,15 +29,15 @@ export interface TachometerProps {
 const MARGIN = 14;
 const BEZEL_R = 200;
 const CX = BEZEL_R + MARGIN;
-const MAX_W = 440;
+const MAX_W = 420;
 const TRACK_R = 150;
 const TRACK_WIDTH = 14;
+const FILL_GLOW_WIDTH = TRACK_WIDTH + 8;
 const TICK_OUT = 9;
 const TICK_IN_MAJOR = 20;
 const TICK_IN_MINOR = 9;
 const NUMERAL_R = TRACK_R + 40;
-const NEEDLE_LEN = 128;
-const HUB_R = 11;
+const HUB_R = 8;
 
 const LIGHT_COUNT = 10;
 const LIGHT_R = 4;
@@ -56,28 +49,18 @@ const LIGHT_AMBER = 3;
 const DIAL_TOP_Y = LIGHT_ROW_Y + LIGHT_R + 18;
 const CY = DIAL_TOP_Y + BEZEL_R;
 const W = CX * 2;
-const LEGEND_X = CX - 58;
-const LEGEND_Y = CY + 22;
-const H = LEGEND_Y + 18;
+const H = CY + 16;
+
+const READOUT_CX = CX;
+const READOUT_CY = CY - 70;
+const LEGEND_CX = CX - 115;
+const LEGEND_CY = CY - 20;
 
 const SWEEP_MS = 1300;
 const IDLE_MS = 4200;
 
 const TICK_STEPS = 28;
 const SCALE_MAX_LABEL = 7;
-
-const CORE_BAR_W = 5;
-const CORE_BAR_GAP = 2;
-const CORE_BAR_MAX_H = 16;
-const CORE_BAR_MIN_H = 3;
-
-function coreLoadFactor(index: number, cores: number): number {
-  const phase = (index / Math.max(1, cores)) * Math.PI * 2;
-  // Rounded to keep server/client sin() drift out of the SSR/CSR markup.
-  return (
-    Math.round((0.78 + 0.18 * Math.sin(phase * 1.7 + index)) * 1000) / 1000
-  );
-}
 
 function shiftLightColor(index: number): string {
   if (index < LIGHT_GREEN) return token.cSuccess;
@@ -104,39 +87,6 @@ function ShiftLight({
   );
 }
 
-function CoreBar({
-  index,
-  cores,
-  x,
-  baseY,
-  value,
-  max,
-}: {
-  index: number;
-  cores: number;
-  x: number;
-  baseY: number;
-  value: MotionValue<number>;
-  max: number;
-}) {
-  const factor = coreLoadFactor(index, cores);
-  const height = useTransform(value, (v) => {
-    const load = Math.min(1, Math.max(0, (v / max) * factor));
-    return CORE_BAR_MIN_H + load * (CORE_BAR_MAX_H - CORE_BAR_MIN_H);
-  });
-  const y = useTransform(height, (h) => baseY - h);
-  return (
-    <motion.rect
-      x={x}
-      width={CORE_BAR_W}
-      height={height}
-      y={y}
-      rx={1}
-      style={{ fill: token.cThroughput, opacity: 0.75 }}
-    />
-  );
-}
-
 export function Tachometer({ active, reduced }: TachometerProps) {
   const filterId = useId().replace(/:/g, "");
   const max = GAUGE_MAX;
@@ -144,15 +94,11 @@ export function Tachometer({ active, reduced }: TachometerProps) {
   const settleValue = SETTLE_VALUE;
   const idleBand = IDLE_BAND;
   const unit = "ops/s";
-  const cores = CORES;
 
   const value = useMotionValue(reduced ? settleValue : 0);
   const fraction = useTransform(value, (v) => v / max);
-  const rotate = useTransform(value, (v) => needleRotation(v, max));
+  const fillOffset = useTransform(fraction, (f) => 1 - f);
   const readout = useTransform(value, formatOps);
-  const tipColor = useTransform(value, (v) =>
-    v >= redZoneStart ? token.error : token.textStrong,
-  );
 
   useEffect(() => {
     if (reduced) {
@@ -227,154 +173,161 @@ export function Tachometer({ active, reduced }: TachometerProps) {
     lights.push({ x: lightsLeft + i * LIGHT_GAP, y: LIGHT_ROW_Y });
   }
 
-  const cores8 = Array.from({ length: cores });
-  const coreBarsWidth = cores * CORE_BAR_W + (cores - 1) * CORE_BAR_GAP;
-
   return (
-    <div
-      className="flex w-full flex-col items-center"
-      style={{ maxWidth: MAX_W }}
-    >
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        width="100%"
-        style={{ display: "block", overflow: "visible" }}
-        role="img"
-        aria-label={`Throughput gauge, needle near ${formatOps(settleValue)} ${unit} of ${formatOps(max)} scale, ${cores} logical cores`}
+    <div className="@container w-full" style={{ maxWidth: MAX_W }}>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: `${W} / ${H}`,
+        }}
       >
-        <defs>
-          <filter
-            id={`glow-${filterId}`}
-            x="-150%"
-            y="-150%"
-            width="400%"
-            height="400%"
-          >
-            <feGaussianBlur stdDeviation="3.4" />
-          </filter>
-          <linearGradient
-            id={`sweep-${filterId}`}
-            gradientUnits="userSpaceOnUse"
-            x1={CX - TRACK_R}
-            y1={CY}
-            x2={CX + TRACK_R}
-            y2={CY}
-          >
-            <stop offset="0%" stopColor={token.accent} />
-            <stop offset="42%" stopColor={token.info} />
-            <stop offset="74%" stopColor={token.pink} />
-            <stop offset="88%" stopColor={token.error} />
-            <stop offset="100%" stopColor={token.error} />
-          </linearGradient>
-        </defs>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          height="100%"
+          style={{ display: "block", overflow: "visible" }}
+          role="img"
+          aria-label={`Throughput gauge, near ${formatOps(settleValue)} ${unit} of ${formatOps(max)} scale`}
+        >
+          <defs>
+            <filter
+              id={`glow-${filterId}`}
+              x="-60%"
+              y="-60%"
+              width="220%"
+              height="220%"
+            >
+              <feGaussianBlur stdDeviation="5" />
+            </filter>
+            <linearGradient
+              id={`sweep-${filterId}`}
+              gradientUnits="userSpaceOnUse"
+              x1={CX - TRACK_R}
+              y1={CY}
+              x2={CX + TRACK_R}
+              y2={CY}
+            >
+              <stop offset="0%" stopColor={token.accent} />
+              <stop offset="42%" stopColor={token.info} />
+              <stop offset="74%" stopColor={token.pink} />
+              <stop offset="88%" stopColor={token.error} />
+              <stop offset="100%" stopColor={token.error} />
+            </linearGradient>
+          </defs>
 
-        {lights.map((l, i) => (
-          <ShiftLight key={i} index={i} x={l.x} y={l.y} fraction={fraction} />
-        ))}
+          {lights.map((l, i) => (
+            <ShiftLight key={i} index={i} x={l.x} y={l.y} fraction={fraction} />
+          ))}
 
-        <path
-          d={facePath}
-          fill={token.card}
-          stroke={token.borderStrong}
-          strokeWidth={1.5}
-        />
-
-        <path
-          d={trackPath}
-          fill="none"
-          stroke={`url(#sweep-${filterId})`}
-          strokeWidth={TRACK_WIDTH}
-          strokeLinecap="butt"
-        />
-        {ticks.map((t, i) => (
-          <line
-            key={i}
-            x1={t.x1}
-            y1={t.y1}
-            x2={t.x2}
-            y2={t.y2}
-            stroke={
-              t.red
-                ? token.error
-                : t.major
-                  ? token.textSecondary
-                  : token.borderStrong
-            }
-            strokeWidth={t.major ? 2 : 1}
+          <path
+            d={facePath}
+            fill={token.card}
+            stroke={token.borderStrong}
+            strokeWidth={1.5}
           />
-        ))}
-        {numerals.map((n, i) => (
-          <text
-            key={i}
-            x={n.x}
-            y={n.y}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontFamily={token.mono}
-            fontSize={24}
-            fontWeight={800}
-            fontStyle="italic"
-            style={{ fontVariantNumeric: "tabular-nums" }}
-            fill={n.red ? token.error : token.textSecondary}
-          >
-            {n.label}
-          </text>
-        ))}
-        <text
-          x={LEGEND_X}
-          y={LEGEND_Y}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontFamily={token.mono}
-          fontSize={11}
-          letterSpacing="0.02em"
-          fill={token.textSecondary}
+
+          <path
+            d={trackPath}
+            fill="none"
+            stroke={token.border}
+            strokeWidth={TRACK_WIDTH}
+            strokeLinecap="round"
+            opacity={0.35}
+          />
+          <motion.path
+            d={trackPath}
+            pathLength={1}
+            fill="none"
+            stroke={`url(#sweep-${filterId})`}
+            strokeWidth={FILL_GLOW_WIDTH}
+            strokeLinecap="round"
+            opacity={0.5}
+            filter={`url(#glow-${filterId})`}
+            style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
+          />
+          <motion.path
+            d={trackPath}
+            pathLength={1}
+            fill="none"
+            stroke={`url(#sweep-${filterId})`}
+            strokeWidth={TRACK_WIDTH}
+            strokeLinecap="round"
+            style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
+          />
+          {ticks.map((t, i) => (
+            <line
+              key={i}
+              x1={t.x1}
+              y1={t.y1}
+              x2={t.x2}
+              y2={t.y2}
+              stroke={
+                t.red
+                  ? token.error
+                  : t.major
+                    ? token.textSecondary
+                    : token.borderStrong
+              }
+              strokeWidth={t.major ? 2 : 1}
+            />
+          ))}
+          {numerals.map((n, i) => (
+            <text
+              key={i}
+              x={n.x}
+              y={n.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontFamily={token.mono}
+              fontSize={24}
+              fontWeight={800}
+              fontStyle="italic"
+              style={{ fontVariantNumeric: "tabular-nums" }}
+              fill={n.red ? token.error : token.textSecondary}
+            >
+              {n.label}
+            </text>
+          ))}
+
+          <circle
+            cx={CX}
+            cy={CY}
+            r={HUB_R}
+            fill={token.textStrong}
+            opacity={0.6}
+          />
+        </svg>
+
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: `${(LEGEND_CX / W) * 100}%`,
+            top: `${(LEGEND_CY / H) * 100}%`,
+            transform: "translate(-50%, -50%)",
+            fontSize: 11,
+            letterSpacing: "0.02em",
+            whiteSpace: "nowrap",
+            color: token.textSecondary,
+            fontFamily: token.mono,
+          }}
         >
           x1000 ops/s
-        </text>
+        </div>
 
-        <g transform={`translate(${CX}, ${CY})`}>
-          <motion.g
-            style={{
-              rotate,
-              transformBox: "view-box",
-              originX: "0px",
-              originY: "0px",
-            }}
-          >
-            <line
-              x1={0}
-              y1={0}
-              x2={-NEEDLE_LEN}
-              y2={0}
-              stroke={token.textStrong}
-              strokeWidth={4}
-              strokeLinecap="round"
-              opacity={0.85}
-            />
-            <motion.circle
-              cx={-NEEDLE_LEN}
-              cy={0}
-              r={8}
-              style={{ fill: tipColor, opacity: 0.55 }}
-              filter={`url(#glow-${filterId})`}
-            />
-            <motion.circle
-              cx={-NEEDLE_LEN}
-              cy={0}
-              r={3.5}
-              style={{ fill: tipColor }}
-            />
-          </motion.g>
-        </g>
-        <circle cx={CX} cy={CY} r={HUB_R} fill={token.textStrong} />
-      </svg>
-
-      <div className="mt-2 flex flex-col items-center gap-1.5">
         <div
-          className="flex flex-col items-center"
           role="img"
           aria-label={`${formatOps(settleValue)} ${unit}`}
+          style={{
+            position: "absolute",
+            left: `${(READOUT_CX / W) * 100}%`,
+            top: `${(READOUT_CY / H) * 100}%`,
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
         >
           <motion.span
             aria-hidden="true"
@@ -383,46 +336,31 @@ export function Tachometer({ active, reduced }: TachometerProps) {
               minWidth: "3ch",
               textAlign: "center",
               fontFamily: token.mono,
-              fontSize: 44,
+              fontSize: "clamp(22px, 10cqw, 46px)",
               lineHeight: 1,
               fontWeight: 700,
+              fontStyle: "italic",
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
+              filter: `drop-shadow(0 0 6px ${token.cThroughput})`,
             }}
           >
             {readout}
           </motion.span>
           <span
             aria-hidden="true"
-            className="mt-0.5 text-[11px] whitespace-nowrap"
-            style={{ color: token.textSecondary, fontFamily: token.mono }}
+            className="whitespace-nowrap"
+            style={{
+              marginTop: 2,
+              fontSize: 11,
+              color: token.textSecondary,
+              fontFamily: token.mono,
+            }}
           >
             {unit}
           </span>
         </div>
-        <Badge size="sm" mono border={token.border} background={token.surface}>
-          {cores} logical cores
-        </Badge>
-        <svg
-          width={coreBarsWidth}
-          height={CORE_BAR_MAX_H}
-          viewBox={`0 0 ${coreBarsWidth} ${CORE_BAR_MAX_H}`}
-          style={{ display: "block" }}
-          aria-hidden="true"
-        >
-          {cores8.map((_, i) => (
-            <CoreBar
-              key={i}
-              index={i}
-              cores={cores}
-              x={i * (CORE_BAR_W + CORE_BAR_GAP)}
-              baseY={CORE_BAR_MAX_H}
-              value={value}
-              max={max}
-            />
-          ))}
-        </svg>
       </div>
     </div>
   );

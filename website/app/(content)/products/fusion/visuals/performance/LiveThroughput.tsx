@@ -1,77 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { useEffect } from "react";
+import { animate, motion, useMotionValue } from "motion/react";
 
 import { token } from "@/src/nitro";
 import { ChartCanvas } from "@/src/nitro/primitives/ChartCanvas";
 import { ease } from "@/src/nitro/lib/motion";
 
-import { GAUGE_MAX, SETTLE_VALUE } from "./data";
+import { SETTLE_VALUE } from "./data";
 
 export interface LiveThroughputProps {
   readonly active: boolean;
 }
 
-const STEP_MS = 900;
-const SEED_LEN = 24;
-
-function nextThroughput(t: number): number {
-  return Math.round(
-    SETTLE_VALUE + 220 * Math.sin(t * 0.6 + 0.5) + 80 * Math.sin(t * 1.9),
-  );
-}
-
-const BARS: readonly number[] = Array.from({ length: SEED_LEN }, (_, i) =>
-  nextThroughput(i),
-);
+const BAR_COUNT = 28;
+const DOMAIN_MIN = SETTLE_VALUE - 480;
+const DOMAIN_MAX = SETTLE_VALUE + 480;
+const SCROLL_MS = 14000;
 
 const CHART_W = 600;
 const CHART_H = 40;
 const BAR_GAP = 2;
 const BAR_RADIUS = 1;
 
-function useLiveBars(active: boolean) {
-  const [bars, setBars] = useState<number[]>(() => [...BARS]);
-  const [preview, setPreview] = useState(() => nextThroughput(SEED_LEN));
-  const counter = useRef(SEED_LEN - 1);
-  const scrollT = useMotionValue(0);
-
-  useEffect(() => {
-    if (!active) return;
-    let cancelled = false;
-
-    const step = () => {
-      animate(scrollT, 1, { duration: STEP_MS / 1000, ease: ease.linear }).then(
-        () => {
-          if (cancelled) return;
-          const t = counter.current + 1;
-          counter.current = t;
-          setBars((prev) => [...prev.slice(1), nextThroughput(t)]);
-          setPreview(nextThroughput(t + 1));
-          scrollT.set(0);
-          step();
-        },
-      );
-    };
-    step();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [active, scrollT]);
-
-  return { bars, preview, scrollT };
+function barValue(i: number): number {
+  return Math.round(
+    SETTLE_VALUE + 340 * Math.sin(i * 0.6 + 0.5) + 140 * Math.sin(i * 1.9),
+  );
 }
 
+const BARS: readonly number[] = Array.from({ length: BAR_COUNT }, (_, i) =>
+  barValue(i),
+);
+const LOOP: readonly number[] = [...BARS, ...BARS];
+
 export function LiveThroughput({ active }: LiveThroughputProps) {
-  const { bars, preview, scrollT } = useLiveBars(active);
-  const n = bars.length;
-  const slot = CHART_W / n;
+  const slot = CHART_W / BAR_COUNT;
   const barW = Math.max(0.5, slot - BAR_GAP);
-  const domainMax = GAUGE_MAX;
-  const translateX = useTransform(scrollT, (t) => -t * slot);
-  const all = [...bars, preview];
+  const x = useMotionValue(0);
+
+  useEffect(() => {
+    if (!active) {
+      x.set(0);
+      return;
+    }
+    const controls = animate(x, -CHART_W, {
+      duration: SCROLL_MS / 1000,
+      ease: ease.linear,
+      repeat: Infinity,
+      repeatType: "loop",
+    });
+    return () => controls.stop();
+  }, [active, x]);
 
   return (
     <ChartCanvas
@@ -85,15 +65,19 @@ export function LiveThroughput({ active }: LiveThroughputProps) {
         height="100%"
         style={{ display: "block", overflow: "hidden" }}
       >
-        <motion.g style={{ x: translateX }}>
-          {all.map((v, i) => {
-            const x = i * slot + (slot - barW) / 2;
-            const h = Math.max(2, (v / domainMax) * CHART_H);
+        <motion.g style={{ x }}>
+          {LOOP.map((v, i) => {
+            const xPos = i * slot + (slot - barW) / 2;
+            const clamped = Math.min(DOMAIN_MAX, Math.max(DOMAIN_MIN, v));
+            const h = Math.max(
+              2,
+              ((clamped - DOMAIN_MIN) / (DOMAIN_MAX - DOMAIN_MIN)) * CHART_H,
+            );
             const y = CHART_H - h;
             return (
               <rect
                 key={i}
-                x={x}
+                x={xPos}
                 y={y}
                 width={barW}
                 height={h}
@@ -101,7 +85,7 @@ export function LiveThroughput({ active }: LiveThroughputProps) {
                 ry={BAR_RADIUS}
                 vectorEffect="non-scaling-stroke"
                 fill={token.cThroughput}
-                opacity={0.8}
+                opacity={0.85}
               />
             );
           })}

@@ -1,12 +1,6 @@
 import { token } from "@/src/nitro";
 
-import {
-  CORES,
-  FETCHES_AFTER,
-  FETCHES_BEFORE,
-  P95_SETTLE,
-  PLAN_CACHE_HIT,
-} from "./data";
+import { CORES, FETCHES_AFTER, FETCHES_BEFORE, PLAN_CACHE_HIT } from "./data";
 
 interface Readout {
   readonly label: string;
@@ -15,7 +9,6 @@ interface Readout {
 
 const READOUTS: readonly Readout[] = [
   { label: "cores", value: `${CORES}` },
-  { label: "p95", value: `${P95_SETTLE} ms` },
   { label: "plan cache", value: `${PLAN_CACHE_HIT}%` },
   { label: "fetches", value: `${FETCHES_BEFORE} → ${FETCHES_AFTER}` },
 ];
@@ -23,12 +16,12 @@ const READOUTS: readonly Readout[] = [
 export function SideReadouts() {
   return (
     <div
-      className="grid grid-cols-1 gap-y-2"
+      className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2"
       role="group"
       aria-label="Performance readouts"
     >
       {READOUTS.map((r) => (
-        <div key={r.label} className="flex flex-col">
+        <div key={r.label} className="flex flex-col items-center">
           <span
             className="text-[11px] tracking-[0.08em] whitespace-nowrap uppercase"
             style={{ color: token.textSecondary, fontFamily: token.mono }}

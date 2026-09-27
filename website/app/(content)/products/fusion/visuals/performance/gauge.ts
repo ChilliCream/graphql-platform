@@ -26,10 +26,6 @@ export function gaugeArcPath(
   return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
 }
 
-export function needleRotation(value: number, max: number): number {
-  return (value / max) * 180;
-}
-
-export function fractionAngle(fraction: number): number {
-  return 180 - fraction * 180;
+export function fractionAngle(fraction: number, mirror = false): number {
+  return mirror ? fraction * 180 : 180 - fraction * 180;
 }

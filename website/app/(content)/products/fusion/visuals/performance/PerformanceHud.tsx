@@ -24,18 +24,17 @@ export function PerformanceHud() {
         <NitroTheme
           theme="dark"
           className="@container relative z-10"
-          style={{ background: token.bg }}
+          style={{
+            background: `color-mix(in srgb, ${token.bg} 88%, black)`,
+            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, 0 0 36px -14px ${token.accent}`,
+          }}
         >
           <div className="flex flex-col gap-4 p-4 sm:p-5">
-            <div className="flex flex-col items-center gap-5 @min-[560px]:flex-row @min-[560px]:items-center">
-              <div className="flex flex-1 items-center justify-center">
-                <Tachometer active={active} reduced={reduced} />
-              </div>
-              <div className="flex flex-col items-center gap-4 @min-[380px]:flex-row @min-[380px]:justify-center @min-[380px]:gap-6 @min-[560px]:w-[176px] @min-[560px]:shrink-0 @min-[560px]:flex-col @min-[560px]:gap-4">
-                <LatencyGauge active={active} reduced={reduced} />
-                <SideReadouts />
-              </div>
+            <div className="flex flex-col items-center justify-center gap-5 @min-[560px]:flex-row">
+              <Tachometer active={active} reduced={reduced} />
+              <LatencyGauge active={active} reduced={reduced} />
             </div>
+            <SideReadouts />
             <LiveThroughput active={active} />
             <StatusStrip />
           </div>
