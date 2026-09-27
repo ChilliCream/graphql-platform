@@ -4,7 +4,6 @@ import type { ReactElement, ReactNode } from "react";
 import { Band } from "@/src/components/Band";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { ButtonRow } from "@/src/components/ButtonRow";
-import { CardGrid } from "@/src/components/CardGrid";
 import { CheckList } from "@/src/components/CheckList";
 import { FeatureRow } from "@/src/components/FeatureRow";
 import LayeredDiagram from "@/src/components/LayeredDiagram/index";
@@ -17,18 +16,12 @@ import {
 import { Section } from "@/src/components/Section";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
-import { Card } from "@/src/design-system/Card";
 import { Link } from "@/src/design-system/Link";
-import { ApiConnectIcon } from "@/src/icons/ApiConnectIcon";
 import { GraphSphere } from "@/src/icons/GraphSphere";
-import { MergingPathsIcon } from "@/src/icons/MergingPathsIcon";
-import { PerformanceGaugeIcon } from "@/src/icons/PerformanceGaugeIcon";
-import { ProductionPulseIcon } from "@/src/icons/ProductionPulseIcon";
-import { SecurityShieldIcon } from "@/src/icons/SecurityShieldIcon";
-import { StackedLayersIcon } from "@/src/icons/StackedLayersIcon";
 
 import type { CopyLink } from "./content";
-import { CLOSING_BAND, FEATURED_CONTENT, FEATURES, SECTIONS } from "./content";
+import { CLOSING_BAND, FEATURED_CONTENT, SECTIONS } from "./content";
+import { FusionFeatureGrid } from "./FusionFeatureGrid";
 import { FusionHero } from "./hero/FusionHero";
 import { InsightsWindow } from "./visuals/InsightsWindow";
 import { PerformanceWindow } from "./visuals/PerformanceWindow";
@@ -42,16 +35,6 @@ import { SecurityWindow } from "./visuals/SecurityWindow";
  */
 
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
-
-/** One 80x80 icon per "Built for Distributed Graphs" card, keyed by the card's title. */
-const FEATURE_ICONS: Record<string, ReactElement> = {
-  "Connect every API": <ApiConnectIcon className="size-20" />,
-  "Keep your existing stack": <StackedLayersIcon className="size-20" />,
-  "Adopt without disruption": <MergingPathsIcon className="size-20" />,
-  "Performance by design": <PerformanceGaugeIcon className="size-20" />,
-  "Centralize API security": <SecurityShieldIcon className="size-20" />,
-  "See what happens in production": <ProductionPulseIcon className="size-20" />,
-};
 
 /** Full-bleed 1px section separator, breaking out of the content column like FusionHero. */
 function Divider() {
@@ -186,19 +169,7 @@ export function FusionPage() {
 
       <Divider />
       <Section title="Built for Distributed Graphs" className="sm:py-24">
-        <CardGrid cols={3} step="progressive" gap={6}>
-          {FEATURES.map((feature) => (
-            <Card key={feature.title} variant="tile">
-              {FEATURE_ICONS[feature.title]}
-              <h3 className="text-cc-ink mt-5 text-lg font-semibold">
-                {feature.title}
-              </h3>
-              <p className="text-cc-ink-dim mt-2 text-sm">
-                {feature.description}
-              </p>
-            </Card>
-          ))}
-        </CardGrid>
+        <FusionFeatureGrid />
       </Section>
 
       <Divider />
