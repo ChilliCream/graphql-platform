@@ -18,7 +18,7 @@ const MARGIN = 10;
 const BEZEL_R = 130;
 const CX = BEZEL_R + MARGIN;
 const CY = BEZEL_R + MARGIN;
-const MAX_W = 240;
+const MAX_W = 400;
 const TRACK_R = 96;
 const TRACK_WIDTH = 10;
 const FILL_GLOW_WIDTH = TRACK_WIDTH + 6;
@@ -26,7 +26,8 @@ const TICK_STEPS = 8;
 const MAJOR_EVERY = 2;
 const NUMERAL_R = TRACK_R + 17;
 const W = CX * 2;
-const H = CY + 14;
+const BOTTOM_MARGIN = 9.41;
+const H = CY + BOTTOM_MARGIN;
 
 const READOUT_CX = CX;
 const READOUT_CY = CY - 45;
@@ -109,7 +110,7 @@ export function LatencyGauge({ active, reduced }: LatencyGaugeProps) {
 
           <path
             d={facePath}
-            fill={token.card}
+            fill={`color-mix(in srgb, ${token.bg} 60%, black)`}
             stroke={token.borderStrong}
             strokeWidth={1.25}
           />
@@ -160,21 +161,25 @@ export function LatencyGauge({ active, reduced }: LatencyGaugeProps) {
               strokeWidth={1}
             />
           ))}
-          {numerals.map((n, i) => (
-            <text
-              key={i}
-              x={n.x}
-              y={n.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontFamily={token.mono}
-              fontSize={11}
-              fill={token.textDim}
-            >
-              {n.label}
-            </text>
-          ))}
         </svg>
+
+        {numerals.map((n, i) => (
+          <div
+            key={i}
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: `${(n.x / W) * 100}%`,
+              top: `${(n.y / H) * 100}%`,
+              transform: "translate(-50%, -50%)",
+              fontSize: 11,
+              fontFamily: token.mono,
+              color: token.textDim,
+            }}
+          >
+            {n.label}
+          </div>
+        ))}
 
         <div
           role="img"
@@ -192,6 +197,9 @@ export function LatencyGauge({ active, reduced }: LatencyGaugeProps) {
           <motion.span
             aria-hidden="true"
             style={{
+              display: "inline-block",
+              minWidth: "2ch",
+              textAlign: "center",
               fontFamily: token.mono,
               fontSize: "clamp(16px, 13cqw, 32px)",
               fontWeight: 800,

@@ -37,7 +37,6 @@ const TICK_OUT = 9;
 const TICK_IN_MAJOR = 20;
 const TICK_IN_MINOR = 9;
 const NUMERAL_R = TRACK_R + 40;
-const HUB_R = 8;
 
 const LIGHT_COUNT = 10;
 const LIGHT_R = 4;
@@ -53,8 +52,8 @@ const H = CY + 16;
 
 const READOUT_CX = CX;
 const READOUT_CY = CY - 70;
-const LEGEND_CX = CX - 115;
-const LEGEND_CY = CY - 20;
+const LEGEND_CX = CX;
+const LEGEND_CY = CY - 16;
 
 const SWEEP_MS = 1300;
 const IDLE_MS = 4200;
@@ -222,7 +221,7 @@ export function Tachometer({ active, reduced }: TachometerProps) {
 
           <path
             d={facePath}
-            fill={token.card}
+            fill={`color-mix(in srgb, ${token.bg} 60%, black)`}
             stroke={token.borderStrong}
             strokeWidth={1.5}
           />
@@ -289,14 +288,6 @@ export function Tachometer({ active, reduced }: TachometerProps) {
               {n.label}
             </text>
           ))}
-
-          <circle
-            cx={CX}
-            cy={CY}
-            r={HUB_R}
-            fill={token.textStrong}
-            opacity={0.6}
-          />
         </svg>
 
         <div

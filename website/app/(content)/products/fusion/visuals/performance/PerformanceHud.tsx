@@ -26,13 +26,17 @@ export function PerformanceHud() {
           className="@container relative z-10"
           style={{
             background: `color-mix(in srgb, ${token.bg} 88%, black)`,
-            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, 0 0 36px -14px ${token.accent}`,
+            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 28px -8px ${token.accent}`,
           }}
         >
           <div className="flex flex-col gap-4 p-4 sm:p-5">
-            <div className="flex flex-col items-center justify-center gap-5 @min-[560px]:flex-row">
-              <Tachometer active={active} reduced={reduced} />
-              <LatencyGauge active={active} reduced={reduced} />
+            <div className="flex flex-col items-center justify-center gap-5 @min-[560px]:flex-row @min-[560px]:items-end">
+              <div className="w-full @min-[560px]:basis-[56%]">
+                <Tachometer active={active} reduced={reduced} />
+              </div>
+              <div className="w-full @min-[560px]:basis-[42%]">
+                <LatencyGauge active={active} reduced={reduced} />
+              </div>
             </div>
             <SideReadouts />
             <LiveThroughput active={active} />
