@@ -1,5 +1,8 @@
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
+// Collapses server/client sin/cos ULP drift before it reaches JSX attributes.
+const round = (n: number) => Math.round(n * 1000) / 1000;
+
 export function polarPoint(
   cx: number,
   cy: number,
@@ -7,7 +10,7 @@ export function polarPoint(
   angleDeg: number,
 ): readonly [number, number] {
   const rad = toRad(angleDeg);
-  return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
+  return [round(cx + r * Math.cos(rad)), round(cy - r * Math.sin(rad))];
 }
 
 export function gaugeArcPath(
@@ -25,4 +28,8 @@ export function gaugeArcPath(
 
 export function needleRotation(value: number, max: number): number {
   return (value / max) * 180;
+}
+
+export function fractionAngle(fraction: number): number {
+  return 180 - fraction * 180;
 }

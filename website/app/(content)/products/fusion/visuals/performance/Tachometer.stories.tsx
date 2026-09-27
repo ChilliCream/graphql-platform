@@ -9,11 +9,12 @@ const meta = {
   component: Tachometer,
   parameters: { layout: "centered" },
   args: {
-    max: 20000,
-    redZoneStart: 17000,
-    settleValue: 16300,
-    idleBand: [15800, 16400],
-    unit: "ops / min",
+    max: 7000,
+    redZoneStart: 6000,
+    settleValue: 5500,
+    idleBand: [5300, 5650],
+    unit: "ops/s",
+    cores: 8,
   },
   decorators: [
     (Story) => (
