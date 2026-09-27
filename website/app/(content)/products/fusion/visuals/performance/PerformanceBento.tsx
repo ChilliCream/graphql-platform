@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   animate,
   useInView,
@@ -18,21 +18,66 @@ import {
   NitroTheme,
   token,
 } from "@/src/nitro";
+import { Legend } from "@/src/nitro/primitives/Legend";
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
+import { useElementMotion } from "../hooks";
 import { Tachometer } from "./Tachometer";
 
-const GAUGE_MAX = 20000;
-const RED_ZONE_START = 17000;
-const SETTLE_VALUE = 16300;
-const IDLE_BAND: readonly [number, number] = [15800, 16400];
+const GAUGE_MAX = 7000;
+const RED_ZONE_START = 6000;
+const SETTLE_VALUE = 5500;
+const IDLE_BAND: readonly [number, number] = [5300, 5650];
+const CORES = 8;
 
-const LATENCY_P50 = [11, 10, 12, 11, 10, 11, 12, 10, 11, 12, 11, 10];
-const LATENCY_P95 = [41, 43, 40, 42, 44, 41, 43, 42, 40, 43, 42, 41];
-const THROUGHPUT_BARS = [
-  16100, 16300, 16000, 16500, 16200, 16400, 16100, 16600, 16300, 16200, 16500,
-  16100,
+const LATENCY_P50: readonly number[] = [7, 8, 7, 8, 7, 8, 7, 8, 7, 8, 7, 8];
+const LATENCY_P95: readonly number[] = [
+  12, 13, 11, 12, 13, 12, 11, 13, 12, 11, 13, 12,
 ];
+const LATENCY_DOMAIN: [number, number] = [0, 20];
+
+const THROUGHPUT_BARS: readonly number[] = [
+  5400, 5500, 5350, 5600, 5450, 5550, 5400, 5650, 5500, 5400, 5600, 5450,
+];
+
+const TICKER_MS = 900;
+
+function nextLatencyP50(t: number): number {
+  return Math.round(7 + 0.8 * Math.sin(t * 0.5 + 1) + 0.3 * Math.sin(t * 2.1));
+}
+
+function nextLatencyP95(t: number): number {
+  return Math.round(
+    12 + 1.2 * Math.sin(t * 0.7) + 0.4 * Math.sin(t * 2.3 + 0.6),
+  );
+}
+
+function nextThroughput(t: number): number {
+  return Math.round(
+    5500 + 220 * Math.sin(t * 0.6 + 0.5) + 80 * Math.sin(t * 1.9),
+  );
+}
+
+function useLiveSeries(
+  initial: readonly number[],
+  next: (t: number) => number,
+  active: boolean,
+): number[] {
+  const [series, setSeries] = useState<number[]>(() => [...initial]);
+  const counter = useRef(initial.length);
+
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => {
+      counter.current += 1;
+      const value = next(counter.current);
+      setSeries((prev) => [...prev.slice(1), value]);
+    }, TICKER_MS);
+    return () => clearInterval(id);
+  }, [active, next]);
+
+  return series;
+}
 
 function useBentoReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -101,13 +146,14 @@ function GaugeCard() {
       <div className="relative z-10 flex h-full flex-col">
         <CardHeader title="Throughput" />
         <div className="flex flex-1 items-center justify-center px-4 pt-2 pb-4">
-          <NitroCanvas>
+          <NitroCanvas className="w-full">
             <Tachometer
               max={GAUGE_MAX}
               redZoneStart={RED_ZONE_START}
               settleValue={SETTLE_VALUE}
               idleBand={IDLE_BAND}
-              unit="ops / min"
+              unit="ops/s"
+              cores={CORES}
             />
           </NitroCanvas>
         </div>
@@ -121,71 +167,93 @@ interface RevealCardProps {
 }
 
 function LatencyCard({ progress }: RevealCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const active = useElementMotion(ref);
+  const p50 = useLiveSeries(LATENCY_P50, nextLatencyP50, active);
+  const p95 = useLiveSeries(LATENCY_P95, nextLatencyP95, active);
+  const p95Latest = p95[p95.length - 1];
+
   return (
-    <Card className="flex-1">
-      <div className="relative z-10 flex h-full min-h-0 flex-col">
-        <CardHeader title="Latency" hint="p50 · p95" />
-        <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
-          <NitroCanvas className="min-h-0 flex-1">
-            <LineAreaChart
-              series={[
-                {
-                  values: LATENCY_P50,
-                  stroke: token.cP95,
-                  fill: true,
-                  fillGradient: true,
-                  fillOpacity: 0.24,
-                  strokeWidth: 1.2,
-                },
-                {
-                  values: LATENCY_P95,
-                  stroke: token.cP99,
-                  fill: true,
-                  fillGradient: true,
-                  fillOpacity: 0.18,
-                  strokeWidth: 1.2,
-                },
+    <div ref={ref} className="flex min-h-0 flex-1 flex-col">
+      <Card className="flex h-full min-h-0 flex-1 flex-col">
+        <div className="relative z-10 flex h-full min-h-0 flex-col">
+          <CardHeader title="Latency" hint={`p95 ${p95Latest} ms`} />
+          <div className="flex items-center gap-2 px-4">
+            <Legend
+              items={[
+                { label: "p50", color: token.cLatency },
+                { label: "p95", color: token.cP95 },
               ]}
-              domain={[0, 60]}
-              height={88}
-              grid
-              progress={progress}
-              playWindow={[0, 1]}
             />
-          </NitroCanvas>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
+            <NitroCanvas className="min-h-0 flex-1">
+              <LineAreaChart
+                series={[
+                  {
+                    values: p50,
+                    stroke: token.cLatency,
+                    fill: true,
+                    fillGradient: true,
+                    fillOpacity: 0.24,
+                    strokeWidth: 1.2,
+                  },
+                  {
+                    values: p95,
+                    stroke: token.cP95,
+                    fill: true,
+                    fillGradient: true,
+                    fillOpacity: 0.18,
+                    strokeWidth: 1.2,
+                  },
+                ]}
+                domain={LATENCY_DOMAIN}
+                height={88}
+                grid
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
 
 function ThroughputCard({ progress }: RevealCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const active = useElementMotion(ref);
+  const bars = useLiveSeries(THROUGHPUT_BARS, nextThroughput, active);
+
   return (
-    <Card className="flex-1">
-      <div className="relative z-10 flex h-full min-h-0 flex-col">
-        <CardHeader title="Sustained" hint="ops / min" />
-        <div className="flex min-h-0 flex-1 flex-col justify-between px-4 pt-2 pb-4">
-          <NitroCanvas className="h-9 shrink-0">
-            <CountUp
-              value={SETTLE_VALUE}
-              format={(n) => Math.round(n).toLocaleString("en-US")}
-              style={{ justifyContent: "flex-start" }}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
-          <NitroCanvas className="mt-2 min-h-0 flex-1">
-            <BarSeries
-              values={THROUGHPUT_BARS}
-              domain={[0, GAUGE_MAX]}
-              color={token.cThroughput}
-              progress={progress}
-              playWindow={[0, 1]}
-            />
-          </NitroCanvas>
+    <div ref={ref} className="flex min-h-0 flex-1 flex-col">
+      <Card className="flex h-full min-h-0 flex-1 flex-col">
+        <div className="relative z-10 flex h-full min-h-0 flex-col">
+          <CardHeader title="Sustained" hint="ops/s" />
+          <div className="flex min-h-0 flex-1 flex-col justify-between px-4 pt-2 pb-4">
+            <NitroCanvas className="h-9 shrink-0">
+              <CountUp
+                value={SETTLE_VALUE}
+                format={(n) => `${Math.round(n).toLocaleString("en-US")} ops/s`}
+                style={{ justifyContent: "flex-start" }}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+            <NitroCanvas className="mt-2 min-h-0 flex-1">
+              <BarSeries
+                values={bars}
+                domain={[0, GAUGE_MAX]}
+                color={token.cThroughput}
+                progress={progress}
+                playWindow={[0, 1]}
+              />
+            </NitroCanvas>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
 
