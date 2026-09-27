@@ -26,15 +26,12 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The layout shipped on the page today: icon stacked above the title. */
+/** The previous layout: icon stacked above the title. */
 export const Stacked: Story = {
   args: { layout: "stacked" },
 };
 
-/**
- * Comparison variant under review: icon to the left of the title and body,
- * top-aligned. Not wired into the page yet.
- */
+/** What the page renders now: icon to the left of the title and body. */
 export const IconLeft: Story = {
   args: { layout: "icon-left" },
 };

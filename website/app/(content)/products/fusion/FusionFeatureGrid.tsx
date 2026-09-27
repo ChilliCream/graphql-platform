@@ -22,15 +22,11 @@ const FEATURE_ICONS: Record<string, ReactElement> = {
 };
 
 interface FusionFeatureGridProps {
-  /** Icon above the title (the page today), or beside it (comparison only, in Storybook). */
+  /** Default "stacked"; the page renders "icon-left". */
   readonly layout?: "stacked" | "icon-left";
 }
 
-/**
- * The "Built for Distributed Graphs" feature grid: one glass-tile icon and a
- * title/body pair per card. `layout="icon-left"` is a comparison variant
- * shown only in Storybook; the page always renders `"stacked"`.
- */
+/** The "Built for Distributed Graphs" feature grid, stacked or icon-left. */
 export function FusionFeatureGrid({
   layout = "stacked",
 }: FusionFeatureGridProps) {

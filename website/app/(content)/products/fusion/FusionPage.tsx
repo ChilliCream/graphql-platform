@@ -169,7 +169,7 @@ export function FusionPage() {
 
       <Divider />
       <Section title="Built for Distributed Graphs" className="sm:py-24">
-        <FusionFeatureGrid />
+        <FusionFeatureGrid layout="icon-left" />
       </Section>
 
       <Divider />
