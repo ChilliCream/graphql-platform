@@ -167,3 +167,37 @@ export function projectVertex(index: number, theta: number): Projected {
 export function lerp(from: number, to: number, t: number): number {
   return from + (to - from) * t;
 }
+
+function buildIcosahedronEdges(): readonly (readonly [number, number])[] {
+  const edgeSet = new Map<string, readonly [number, number]>();
+  for (const [a, b, c] of BASE_FACES) {
+    for (const [i, j] of [
+      [a, b],
+      [b, c],
+      [c, a],
+    ] as const) {
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      if (!edgeSet.has(key)) edgeSet.set(key, i < j ? [i, j] : [j, i]);
+    }
+  }
+  return [...edgeSet.values()];
+}
+
+/** The plain 12-vertex icosahedron, undivided, for icons too small for the geodesic mesh. */
+export const ICOSAHEDRON_VERTEX_COUNT = BASE_VERTICES.length;
+export const ICOSAHEDRON_EDGES = buildIcosahedronEdges();
+
+export function projectIcosahedronVertex(
+  index: number,
+  center: number,
+  camK: number,
+  camDist: number,
+): Projected {
+  const rotated = tilt(BASE_VERTICES[index]);
+  const scale = camK / (camDist + rotated.z);
+  return {
+    x: center + rotated.x * scale,
+    y: center - rotated.y * scale,
+    t: depthT(rotated.z),
+  };
+}
