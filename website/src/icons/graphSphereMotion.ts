@@ -15,9 +15,6 @@ const DOT_SEED_STRIDE = Math.floor(SPHERE_VERTICES.length / DOT_COUNT);
 
 export const DOT_RADIUS = 2.4;
 
-const BREATHE_PERIOD_MS = 5200;
-const BREATHE_AMPLITUDE = 0.06;
-
 function buildAdjacency(): readonly (readonly number[])[] {
   const adjacency: number[][] = Array.from(
     { length: SPHERE_VERTICES.length },
@@ -83,14 +80,6 @@ export function dotFrame(dot: DotPath, elapsedMs: number): DotFrame {
     frac,
     envelope: Math.sin(Math.PI * frac),
   };
-}
-
-export function breatheScale(phaseOffset: number, elapsedMs: number): number {
-  return (
-    1 +
-    BREATHE_AMPLITUDE *
-      Math.sin((2 * Math.PI * elapsedMs) / BREATHE_PERIOD_MS + phaseOffset)
-  );
 }
 
 const CENTER = VIEWBOX / 2;
@@ -215,11 +204,4 @@ export function nodeMotion(
   }
 
   return { dx, dy, brightness, ringScale, ringAlpha };
-}
-
-export function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
 }
