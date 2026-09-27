@@ -30,7 +30,7 @@ export interface CopySection {
 export const HERO = {
   title: "Fusion",
   teaser:
-    "Fusion is a high-performance API gateway for connecting GraphQL, REST, and gRPC APIs at scale. It brings APIs from across your organization together into one coherent graph and executes every request across the services behind it. Fusion natively supports the GraphQL Federation specification and Apollo Federation, so you can federate existing APIs without locking yourself into a single ecosystem.",
+    "Fusion is a high-performance router for connecting GraphQL, REST, and gRPC APIs at scale. It brings APIs from across your organization together into one coherent graph and executes every request across the services behind it. Fusion natively supports the GraphQL Federation specification and Apollo Federation, so you can federate existing APIs without locking yourself into a single ecosystem.",
   buttons: [
     { label: "Get Started", href: "/docs/fusion/getting-started" },
     {
