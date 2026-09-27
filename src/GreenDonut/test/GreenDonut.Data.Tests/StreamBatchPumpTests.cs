@@ -10,7 +10,7 @@ public class StreamBatchPumpTests
         // arrange
         var source = new ScriptedBatchRowSource<string, string>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"));
-        var pump = CreatePump(source, ["A", "B"]);
+        var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 2, forward: true));
 
@@ -28,7 +28,7 @@ public class StreamBatchPumpTests
     {
         // arrange
         var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
-        var pump = CreatePump(source, ["A", "B"]);
+        var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 2, forward: true));
 
@@ -52,7 +52,7 @@ public class StreamBatchPumpTests
     {
         // arrange: A's second row is its sentinel and must never be yielded; B is unaffected.
         var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
-        var pump = CreatePump(source, ["A", "B"]);
+        var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true, trailingSentinel: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
 
@@ -73,7 +73,7 @@ public class StreamBatchPumpTests
         // arrange: backward pages never over-fetch, so each key's flags and total come from the
         // per-key definition, exactly as the EF layer would supply them.
         var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("B", "b1"), Row("B", "b2"));
-        var pump = CreatePump(source, ["A", "B"]);
+        var pump = await CreatePump(source, ["A", "B"]);
         var definitionA = Definition<string>(requestedCount: 1, forward: false) with
         {
             TotalCount = 3,
@@ -110,7 +110,7 @@ public class StreamBatchPumpTests
     {
         // arrange: "B" is requested but never appears in the source.
         var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"));
-        var pump = CreatePump(source, ["A", "B"]);
+        var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
 
@@ -130,7 +130,7 @@ public class StreamBatchPumpTests
         // arrange
         var source = new ScriptedBatchRowSource<string, string>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"), Row("C", "c1"), Row("C", "c2"));
-        var pump = CreatePump(source, ["A", "B", "C"]);
+        var pump = await CreatePump(source, ["A", "B", "C"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 2, forward: true));
         var pageC = CreatePage(pump, "C", Definition<string>(requestedCount: 2, forward: true));
@@ -155,7 +155,7 @@ public class StreamBatchPumpTests
         // arrange
         var source = new ScriptedBatchRowSource<string, string>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"));
-        var pump = CreatePump(source, ["A", "B"]);
+        var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 2, forward: true));
 
@@ -174,12 +174,49 @@ public class StreamBatchPumpTests
     }
 
     [Fact]
+    public async Task EmptyKeySet_Should_DisposeSourceAndLifetime_Immediately()
+    {
+        // arrange
+        var lifetime = new RecordingLifetime();
+        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"));
+
+        // act
+        var pump = await StreamBatchPump<string, string>.CreateAsync(
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken), [], lifetime);
+
+        // assert
+        Assert.Null(pump);
+        Assert.Equal(1, source.DisposedCount);
+        Assert.Equal(1, lifetime.DisposeCount);
+        Assert.Equal(0, source.RowsRead);
+    }
+
+    [Fact]
+    public async Task DuplicateKey_Should_Throw_ArgumentException_NamingTheKey()
+    {
+        // arrange
+        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"));
+
+        // act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => StreamBatchPump<string, string>.CreateAsync(
+                source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+                ["A", "B", "A"]).AsTask());
+
+        // assert
+        Assert.Equal("keys", exception.ParamName);
+        Assert.Equal(
+            "The requested keys contain a duplicate: 'A'. (Parameter 'keys')",
+            exception.Message);
+    }
+
+    [Fact]
     public async Task Counter_Should_ReachZero_Only_When_EveryKeyCompletesOrIsDisposed()
     {
         // arrange
         var lifetime = new RecordingLifetime();
         var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("B", "b1"));
-        var pump = CreatePump(source, ["A", "B"], lifetime);
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
 
@@ -201,7 +238,7 @@ public class StreamBatchPumpTests
         var lifetime = new RecordingLifetime();
         var source = new ScriptedBatchRowSource<string, string>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"));
-        var pump = CreatePump(source, ["A", "B"], lifetime);
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 2, forward: true));
 
@@ -228,7 +265,7 @@ public class StreamBatchPumpTests
         // arrange
         var lifetime = new RecordingLifetime();
         var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
-        var pump = CreatePump(source, ["A", "B"], lifetime);
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
 
@@ -251,12 +288,18 @@ public class StreamBatchPumpTests
         where TKey : notnull
         => new() { Key = key, Item = item };
 
-    private static StreamBatchPump<TKey, TElement> CreatePump<TKey, TElement>(
+    private static async Task<StreamBatchPump<TKey, TElement>> CreatePump<TKey, TElement>(
         ScriptedBatchRowSource<TKey, TElement> source,
         IReadOnlyCollection<TKey> keys,
         IAsyncDisposable? lifetime = null)
         where TKey : notnull
-        => new(source.GetAsyncEnumerator(TestContext.Current.CancellationToken), keys, lifetime);
+    {
+        var pump = await StreamBatchPump<TKey, TElement>.CreateAsync(
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken), keys, lifetime);
+
+        Assert.NotNull(pump);
+        return pump;
+    }
 
     private static StreamPageDefinition<T> Definition<T>(
         int requestedCount,

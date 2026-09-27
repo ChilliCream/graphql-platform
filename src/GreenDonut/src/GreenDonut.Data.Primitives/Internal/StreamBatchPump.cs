@@ -28,21 +28,46 @@ internal sealed class StreamBatchPump<TKey, TElement>
     private bool _hasCurrentKey;
     private TKey _currentKey = default!;
 
+    private StreamBatchPump(
+        IAsyncEnumerator<StreamBatchRow<TKey, TElement>> source,
+        IReadOnlyCollection<TKey> keys,
+        IAsyncDisposable? lifetime)
+    {
+        _source = source;
+        _lifetime = lifetime;
+        _keys = new Dictionary<TKey, KeyChannel>(keys.Count);
+
+        foreach (var key in keys)
+        {
+            if (!_keys.TryAdd(key, new KeyChannel()))
+            {
+                throw ThrowHelper.StreamBatchPump_DuplicateKey(key);
+            }
+        }
+
+        _liveKeys = _keys.Count;
+    }
+
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamBatchPump{TKey,TElement}"/> class.
+    /// Creates a batch pump for the given requested keys, or, for an empty key set, disposes
+    /// <paramref name="source"/> and <paramref name="lifetime"/> immediately and returns null.
     /// </summary>
     /// <param name="source">
     /// The shared, key-ordered source enumerator that produces rows for every requested key.
     /// </param>
     /// <param name="keys">
-    /// The requested keys. This pump releases the source and the lifetime once every one of these
-    /// keys' pages has completed or been disposed.
+    /// The requested keys, which must not contain a duplicate. The returned pump releases the
+    /// source and the lifetime once every one of these keys' pages has completed or been disposed.
     /// </param>
     /// <param name="lifetime">
-    /// A resource owned by this pump, disposed once every key's page has completed or been
-    /// disposed, or null if this pump owns nothing beyond the source.
+    /// A resource owned by the pump, disposed once every key's page has completed or been
+    /// disposed, or null if the pump owns nothing beyond the source.
     /// </param>
-    public StreamBatchPump(
+    /// <returns>
+    /// Returns the batch pump, or null if <paramref name="keys"/> is empty and there is nothing
+    /// to serve.
+    /// </returns>
+    public static async ValueTask<StreamBatchPump<TKey, TElement>?> CreateAsync(
         IAsyncEnumerator<StreamBatchRow<TKey, TElement>> source,
         IReadOnlyCollection<TKey> keys,
         IAsyncDisposable? lifetime = null)
@@ -50,10 +75,19 @@ internal sealed class StreamBatchPump<TKey, TElement>
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(keys);
 
-        _source = source;
-        _lifetime = lifetime;
-        _keys = keys.ToDictionary(key => key, static _ => new KeyChannel());
-        _liveKeys = _keys.Count;
+        if (keys.Count > 0)
+        {
+            return new StreamBatchPump<TKey, TElement>(source, keys, lifetime);
+        }
+
+        await source.DisposeAsync().ConfigureAwait(false);
+
+        if (lifetime is not null)
+        {
+            await lifetime.DisposeAsync().ConfigureAwait(false);
+        }
+
+        return null;
     }
 
     /// <summary>

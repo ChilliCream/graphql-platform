@@ -18,4 +18,7 @@ internal static class ThrowHelper
 
     public static InvalidOperationException StreamBatchPump_KeyAlreadyHasPage(object key)
         => new($"A page for key '{key}' was already created. Call CreatePage exactly once per key.");
+
+    public static ArgumentException StreamBatchPump_DuplicateKey(object key)
+        => new($"The requested keys contain a duplicate: '{key}'.", "keys");
 }
