@@ -77,7 +77,6 @@ export function specTag(spec: StationSpec, short = false): string {
   return spec === "Apollo Federation" ? "APOLLO FED" : "GRAPHQL FED";
 }
 
-/** Fusion-only: the protocol a client enters the router with; every call still runs as a GraphQL query behind it. */
 export type Protocol = "GraphQL" | "OpenAPI" | "MCP";
 
 export function protocolTag(protocol: Protocol): string {

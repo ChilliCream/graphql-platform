@@ -6,7 +6,6 @@ export interface ClientNode {
   readonly key: string;
   readonly label: string;
   readonly detail: string;
-  /** Fusion-only: shows the entry protocol badge on the card. */
   readonly protocol?: Protocol;
 }
 
@@ -17,11 +16,6 @@ export const CLIENT_NODES: readonly ClientNode[] = [
   { key: "AI agent", label: "AI agent", detail: "tool call" },
 ];
 
-/**
- * Fusion-only: each card names the protocol it enters the router with and
- * the call as the client sends it. Behind the router every call becomes a
- * GraphQL query (see `FUSION_REQUESTS`).
- */
 export const FUSION_CLIENT_NODES: readonly ClientNode[] = [
   {
     key: CLIENTS[0],
@@ -44,7 +38,7 @@ export const FUSION_CLIENT_NODES: readonly ClientNode[] = [
   {
     key: "AI agent",
     label: "AI agent",
-    detail: "tools/call get_order_status",
+    detail: "tools/call order_status",
     protocol: "MCP",
   },
 ];
@@ -93,9 +87,7 @@ export const COMPOSITE_LINE = `Coherent graph · ${STATIONS.length} subgraphs ·
 
 export interface Request {
   readonly client: number;
-  /** Fusion-only: the entry protocol, shown in the router readout. */
   readonly protocol?: Protocol;
-  /** Fusion-only: the call as the client sends it, before the router turns it into a GraphQL query. */
   readonly entry?: string;
   readonly operation: string;
   readonly targets: readonly string[];
@@ -124,10 +116,6 @@ export const REQUESTS: readonly Request[] = [
   },
 ];
 
-/**
- * Fusion-only: every entry protocol resolves to a GraphQL query fanning out
- * behind the router; targets cover all five subgraphs and both sources.
- */
 export const FUSION_REQUESTS: readonly Request[] = [
   {
     client: 0,
@@ -151,7 +139,7 @@ export const FUSION_REQUESTS: readonly Request[] = [
   {
     client: 3,
     protocol: "MCP",
-    entry: "tools/call get_order_status",
+    entry: "tools/call order_status",
     operation: "query GetOrderStatus",
     targets: ["Ordering", "Accounts"],
   },

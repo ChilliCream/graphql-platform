@@ -108,6 +108,7 @@ const VISUALS: Readonly<Record<string, Panel>> = {
         dense
         busCentered
         shortSpecTags
+        captionInline
       />
     ),
   },

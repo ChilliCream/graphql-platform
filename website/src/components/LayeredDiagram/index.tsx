@@ -21,7 +21,6 @@ import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
 interface LayeredDiagramProps {
   readonly gatewayLabel: string;
   readonly caption?: string;
-  /** Omit to drop the composition line, closing the router panel up. */
   readonly compositionLine?: string;
   readonly clients: readonly ClientNode[];
   readonly tiers: readonly TierNode[];
@@ -29,6 +28,7 @@ interface LayeredDiagramProps {
   /** Fusion's opt-in dense mode: a lower one-row threshold and tighter cards. */
   readonly dense?: boolean;
   readonly busCentered?: boolean;
+  readonly captionInline?: boolean;
   /** Fusion's opt-in: legend badges read the short spec tag, with no "FED". */
   readonly shortSpecTags?: boolean;
 }
@@ -169,6 +169,7 @@ export default function LayeredDiagram({
   dense = false,
   busCentered = false,
   shortSpecTags = false,
+  captionInline = false,
 }: LayeredDiagramProps) {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
@@ -265,7 +266,13 @@ export default function LayeredDiagram({
               boxShadow: `0 0 34px ${wash(MC.phosphor, 12)}`,
             }}
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <div
+              className={
+                captionInline
+                  ? "flex items-baseline gap-x-2"
+                  : "flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"
+              }
+            >
               <p
                 className="font-heading uppercase"
                 style={{
