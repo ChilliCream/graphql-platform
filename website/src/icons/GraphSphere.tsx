@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
+
+import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import {
   SPHERE_EDGES,
@@ -15,10 +17,8 @@ import {
   DOT_RADIUS,
   MAX_CONCURRENT_PULSES,
   ROTATION_PERIOD_MS,
-  breatheScale,
   dotFrame,
   nodeMotion,
-  prefersReducedMotion,
   pulseCandidates,
 } from "./graphSphereMotion";
 import { useGraphSphereClock } from "./useGraphSphereClock";
@@ -33,7 +33,13 @@ const EDGE_FAR_ALPHA = 0.08;
 const EDGE_NEAR_ALPHA = 0.55;
 const EDGE_FAR_WIDTH = 0.5;
 const EDGE_NEAR_WIDTH = 1.5;
-const HALO_COUNT = 3;
+
+// Depth range for every node's soft glow: far nodes get a smaller, fainter
+// glow, near nodes the full glow the three original haloed nodes had.
+const GLOW_FAR_SCALE = 2.4;
+const GLOW_NEAR_SCALE = 3.5;
+const GLOW_FAR_ALPHA = 0.1;
+const GLOW_NEAR_ALPHA = 0.35;
 
 const DOT_FAR_R = DOT_RADIUS * (NODE_FAR_R / NODE_NEAR_R);
 const DOT_MAX_ALPHA = 0.85;
@@ -43,15 +49,6 @@ function isTeal(index: number): boolean {
   return index % 4 === 0;
 }
 
-const HALO_INDICES = new Set(
-  PROJECTED.map((p, i) => [p.t, i] as const)
-    .sort((a, b) => b[0] - a[0])
-    .slice(0, HALO_COUNT)
-    .map(([, i]) => i),
-);
-
-const HALO_ORDER = [...HALO_INDICES];
-
 interface SphereNode {
   readonly vertexIndex: number;
   readonly x: number;
@@ -59,7 +56,7 @@ interface SphereNode {
   readonly r: number;
   readonly alpha: number;
   readonly teal: boolean;
-  readonly haloId: number;
+  readonly depth: number;
 }
 
 const NODES: readonly SphereNode[] = PROJECTED.map((p, i) => ({
@@ -69,7 +66,7 @@ const NODES: readonly SphereNode[] = PROJECTED.map((p, i) => ({
   r: lerp(NODE_FAR_R, NODE_NEAR_R, p.t),
   alpha: lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, p.t),
   teal: isTeal(i),
-  haloId: HALO_ORDER.indexOf(i),
+  depth: p.t,
 })).sort((a, b) => a.r - b.r);
 
 const VERTEX_TO_NODE_IDX: number[] = new Array(SPHERE_VERTICES.length);
@@ -132,7 +129,6 @@ const EDGE_GROUPS: readonly EdgeGroup[] = bucketEdgesByDepth(PROJECTED).map(
 );
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const HALO_BREATHE_PHASE_STEP = (2 * Math.PI) / HALO_COUNT;
 
 type PaintRef =
   | { readonly kind: "node"; readonly idx: number }
@@ -154,7 +150,7 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
   const paintRefsRef = useRef<readonly PaintRef[]>(STATIC_PAINT_REFS);
   const paintOrderRef = useRef<readonly number[]>([]);
 
-  const reducedMotion = useMemo(() => prefersReducedMotion(), []);
+  const reducedMotion = useReducedMotionPreference();
 
   useEffect(() => {
     if (reducedMotion) {
@@ -242,18 +238,19 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
             ).toFixed(2),
           );
         }
-        if (n.haloId >= 0) {
-          const halo = haloRefs.current[idx];
-          if (halo) {
-            const r = lerp(NODE_FAR_R, NODE_NEAR_R, p.t);
-            const breathe = breatheScale(
-              n.haloId * HALO_BREATHE_PHASE_STEP,
-              elapsedMs,
-            );
-            halo.setAttribute("cx", p.x.toFixed(1));
-            halo.setAttribute("cy", p.y.toFixed(1));
-            halo.setAttribute("r", (r * 3.5 * breathe).toFixed(1));
-          }
+        const halo = haloRefs.current[idx];
+        if (halo) {
+          const glowScale = lerp(GLOW_FAR_SCALE, GLOW_NEAR_SCALE, p.t);
+          halo.setAttribute("cx", p.x.toFixed(1));
+          halo.setAttribute("cy", p.y.toFixed(1));
+          halo.setAttribute(
+            "r",
+            (lerp(NODE_FAR_R, NODE_NEAR_R, p.t) * glowScale).toFixed(1),
+          );
+          halo.setAttribute(
+            "fill-opacity",
+            lerp(GLOW_FAR_ALPHA, GLOW_NEAR_ALPHA, p.t).toFixed(2),
+          );
         }
       });
 
@@ -368,24 +365,30 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       {...props}
     >
       <defs>
-        {NODES.filter((n) => n.haloId >= 0).map((n) => (
-          <radialGradient key={n.haloId} id={`graph-sphere-halo-${n.haloId}`}>
-            <stop
-              offset="0%"
-              stopColor={
-                n.teal ? "var(--color-cc-success)" : "var(--color-cc-accent)"
-              }
-              stopOpacity={0.35}
-            />
-            <stop
-              offset="100%"
-              stopColor={
-                n.teal ? "var(--color-cc-success)" : "var(--color-cc-accent)"
-              }
-              stopOpacity={0}
-            />
-          </radialGradient>
-        ))}
+        <radialGradient id="graph-sphere-glow-accent">
+          <stop
+            offset="0%"
+            stopColor="var(--color-cc-accent)"
+            stopOpacity={1}
+          />
+          <stop
+            offset="100%"
+            stopColor="var(--color-cc-accent)"
+            stopOpacity={0}
+          />
+        </radialGradient>
+        <radialGradient id="graph-sphere-glow-success">
+          <stop
+            offset="0%"
+            stopColor="var(--color-cc-success)"
+            stopOpacity={1}
+          />
+          <stop
+            offset="100%"
+            stopColor="var(--color-cc-success)"
+            stopOpacity={0}
+          />
+        </radialGradient>
       </defs>
 
       {EDGE_GROUPS.map((group, i) => (
@@ -407,6 +410,8 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
         const color = n.teal
           ? "var(--color-cc-success)"
           : "var(--color-cc-accent)";
+        const glowScale = lerp(GLOW_FAR_SCALE, GLOW_NEAR_SCALE, n.depth);
+        const glowAlpha = lerp(GLOW_FAR_ALPHA, GLOW_NEAR_ALPHA, n.depth);
         return (
           <g
             key={i}
@@ -414,17 +419,16 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
               groupRefs.current[i] = el;
             }}
           >
-            {n.haloId >= 0 && (
-              <circle
-                ref={(el) => {
-                  haloRefs.current[i] = el;
-                }}
-                cx={n.x.toFixed(1)}
-                cy={n.y.toFixed(1)}
-                r={(n.r * 3.5).toFixed(1)}
-                fill={`url(#graph-sphere-halo-${n.haloId})`}
-              />
-            )}
+            <circle
+              ref={(el) => {
+                haloRefs.current[i] = el;
+              }}
+              cx={n.x.toFixed(1)}
+              cy={n.y.toFixed(1)}
+              r={(n.r * glowScale).toFixed(1)}
+              fill={`url(#graph-sphere-glow-${n.teal ? "success" : "accent"})`}
+              fillOpacity={glowAlpha.toFixed(2)}
+            />
             <circle
               ref={(el) => {
                 nodeRefs.current[i] = el;
