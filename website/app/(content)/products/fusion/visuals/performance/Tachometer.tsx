@@ -31,13 +31,16 @@ export interface TachometerProps {
 }
 
 const MARGIN = 14;
-const BEZEL_R = 124;
+const BEZEL_R = 184;
 const CX = BEZEL_R + MARGIN;
-const MAX_W = 320;
-const TRACK_R = 98;
-const NUMERAL_R = 110;
-const NEEDLE_LEN = 84;
-const HUB_R = 7;
+const MAX_W = 400;
+const TRACK_R = 138;
+const TICK_OUT = 8;
+const TICK_IN_MAJOR = 18;
+const TICK_IN_MINOR = 8;
+const NUMERAL_R = TRACK_R + 38;
+const NEEDLE_LEN = 118;
+const HUB_R = 10;
 
 const LIGHT_COUNT = 10;
 const LIGHT_R = 3.6;
@@ -49,8 +52,9 @@ const LIGHT_AMBER = 3;
 const DIAL_TOP_Y = LIGHT_ROW_Y + LIGHT_R + 16;
 const CY = DIAL_TOP_Y + BEZEL_R;
 const W = CX * 2;
-const H = CY + HUB_R + 6;
-const LEGEND_Y = CY - 34;
+const LEGEND_X = CX - 50;
+const LEGEND_Y = CY + 20;
+const H = LEGEND_Y + 16;
 
 const SWEEP_MS = 1300;
 const IDLE_MS = 4200;
@@ -204,8 +208,13 @@ export function Tachometer({
     const major = i % 2 === 0;
     const angle = fractionAngle(fractionAt);
     const red = fractionAt * max >= redZoneStart;
-    const [x1, y1] = polarPoint(CX, CY, TRACK_R + 8, angle);
-    const [x2, y2] = polarPoint(CX, CY, TRACK_R - (major ? 13 : 6), angle);
+    const [x1, y1] = polarPoint(CX, CY, TRACK_R + TICK_OUT, angle);
+    const [x2, y2] = polarPoint(
+      CX,
+      CY,
+      TRACK_R - (major ? TICK_IN_MAJOR : TICK_IN_MINOR),
+      angle,
+    );
     ticks.push({ x1, y1, x2, y2, major, red });
     if (major) {
       const label = String(Math.round(fractionAt * SCALE_MAX_LABEL));
@@ -298,7 +307,7 @@ export function Tachometer({
                   ? token.textSecondary
                   : token.borderStrong
             }
-            strokeWidth={t.major ? 1.6 : 1}
+            strokeWidth={t.major ? 2 : 1}
           />
         ))}
         {numerals.map((n, i) => (
@@ -309,7 +318,7 @@ export function Tachometer({
             textAnchor="middle"
             dominantBaseline="middle"
             fontFamily={token.mono}
-            fontSize={15}
+            fontSize={20}
             fontWeight={800}
             fontStyle="italic"
             style={{ fontVariantNumeric: "tabular-nums" }}
@@ -319,7 +328,7 @@ export function Tachometer({
           </text>
         ))}
         <text
-          x={CX}
+          x={LEGEND_X}
           y={LEGEND_Y}
           textAnchor="middle"
           dominantBaseline="middle"
@@ -346,18 +355,18 @@ export function Tachometer({
               x2={-NEEDLE_LEN}
               y2={0}
               stroke={token.cThroughput}
-              strokeWidth={3}
+              strokeWidth={4}
               strokeLinecap="round"
             />
             <circle
               cx={-NEEDLE_LEN}
               cy={0}
-              r={5}
+              r={7}
               fill={token.cThroughput}
               opacity={0.55}
               filter={`url(#glow-${filterId})`}
             />
-            <circle cx={-NEEDLE_LEN} cy={0} r={2.2} fill={token.textStrong} />
+            <circle cx={-NEEDLE_LEN} cy={0} r={3} fill={token.textStrong} />
           </motion.g>
         </g>
         <circle cx={CX} cy={CY} r={HUB_R} fill={token.textStrong} />

@@ -4,22 +4,26 @@ import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   animate,
+  motion,
   useInView,
   useMotionValue,
+  useTransform,
   type MotionValue,
 } from "motion/react";
 
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
-import {
-  BarSeries,
-  CountUp,
-  LineAreaChart,
-  NitroTheme,
-  token,
-} from "@/src/nitro";
+import { CountUp, NitroTheme, token } from "@/src/nitro";
+import { ChartCanvas } from "@/src/nitro/primitives/ChartCanvas";
 import { Legend } from "@/src/nitro/primitives/Legend";
-import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
+import { ease, useReducedMotionPreference } from "@/src/nitro/lib/motion";
+import {
+  areaFromLine,
+  linScale,
+  niceTicks,
+  smoothLinePath,
+  type Pt,
+} from "@/src/nitro/lib/scale";
 
 import { useElementMotion } from "../hooks";
 import { Tachometer } from "./Tachometer";
@@ -30,21 +34,14 @@ const SETTLE_VALUE = 5500;
 const IDLE_BAND: readonly [number, number] = [5300, 5650];
 const CORES = 8;
 
-const LATENCY_P50: readonly number[] = [7, 8, 7, 8, 7, 8, 7, 8, 7, 8, 7, 8];
-const LATENCY_P95: readonly number[] = [
-  12, 13, 11, 12, 13, 12, 11, 13, 12, 11, 13, 12,
-];
-const LATENCY_DOMAIN: [number, number] = [0, 20];
-
-const THROUGHPUT_BARS: readonly number[] = [
-  5400, 5500, 5350, 5600, 5450, 5550, 5400, 5650, 5500, 5400, 5600, 5450,
-];
-
 const STEP_MS = 900;
-const REFRESH_MS = 80;
 
 function nextLatencyP50(t: number): number {
-  return Math.round(7 + 0.8 * Math.sin(t * 0.5 + 1) + 0.3 * Math.sin(t * 2.1));
+  return (
+    Math.round(
+      (7 + 0.8 * Math.sin(t * 0.5 + 1) + 0.3 * Math.sin(t * 2.1)) * 10,
+    ) / 10
+  );
 }
 
 function nextLatencyP95(t: number): number {
@@ -59,53 +56,89 @@ function nextThroughput(t: number): number {
   );
 }
 
-function lerpSeries(
-  from: readonly number[],
-  to: readonly number[],
-  t: number,
-): number[] {
-  return from.map((v, i) => v + (to[i] - v) * t);
+const SEED_LEN = 12;
+const LATENCY_P50: readonly number[] = Array.from(
+  { length: SEED_LEN },
+  (_, i) => nextLatencyP50(i),
+);
+const LATENCY_P95: readonly number[] = Array.from(
+  { length: SEED_LEN },
+  (_, i) => nextLatencyP95(i),
+);
+const LATENCY_DOMAIN: readonly [number, number] = [0, 20];
+
+const THROUGHPUT_BARS: readonly number[] = Array.from(
+  { length: SEED_LEN },
+  (_, i) => nextThroughput(i),
+);
+
+const CHART_W = 600;
+const CHART_H = 88;
+const CHART_PAD = { top: 8, right: 4, bottom: 8, left: 4 };
+const BAR_H = 200;
+
+interface LiveCharts {
+  readonly p50: readonly number[];
+  readonly p95: readonly number[];
+  readonly bars: readonly number[];
+  readonly previewP50: number;
+  readonly previewP95: number;
+  readonly previewBar: number;
+  readonly scrollT: MotionValue<number>;
 }
 
-// Blends toward the next keyframe continuously instead of snapping on an interval.
-function useLiveSeries(
-  initial: readonly number[],
-  next: (t: number) => number,
-  active: boolean,
-): number[] {
-  const [series, setSeries] = useState<number[]>(() => [...initial]);
-  const counter = useRef(initial.length);
-  const from = useRef<number[]>([...initial]);
-  const to = useRef<number[]>([...initial]);
-  const stepStart = useRef(0);
-  const lastPaint = useRef(0);
+function useLiveCharts(active: boolean): LiveCharts {
+  const [p50, setP50] = useState<number[]>(() => [...LATENCY_P50]);
+  const [p95, setP95] = useState<number[]>(() => [...LATENCY_P95]);
+  const [bars, setBars] = useState<number[]>(() => [...THROUGHPUT_BARS]);
+  const [preview, setPreview] = useState(() => ({
+    p50: nextLatencyP50(SEED_LEN),
+    p95: nextLatencyP95(SEED_LEN),
+    bar: nextThroughput(SEED_LEN),
+  }));
+  const counter = useRef(SEED_LEN - 1);
+  const scrollT = useMotionValue(0);
 
   useEffect(() => {
     if (!active) return;
-    let frameId: number;
-    stepStart.current = performance.now();
+    let cancelled = false;
 
-    const step = (now: number) => {
-      const t = Math.min(1, (now - stepStart.current) / STEP_MS);
-      if (now - lastPaint.current >= REFRESH_MS || t >= 1) {
-        lastPaint.current = now;
-        setSeries(lerpSeries(from.current, to.current, t));
-      }
-      if (t >= 1) {
-        counter.current += 1;
-        const value = next(counter.current);
-        from.current = to.current;
-        to.current = [...from.current.slice(1), value];
-        stepStart.current = now;
-      }
-      frameId = requestAnimationFrame(step);
+    const step = () => {
+      animate(scrollT, 1, {
+        duration: STEP_MS / 1000,
+        ease: ease.linear,
+      }).then(() => {
+        if (cancelled) return;
+        const t = counter.current + 1;
+        counter.current = t;
+        setP50((prev) => [...prev.slice(1), nextLatencyP50(t)]);
+        setP95((prev) => [...prev.slice(1), nextLatencyP95(t)]);
+        setBars((prev) => [...prev.slice(1), nextThroughput(t)]);
+        setPreview({
+          p50: nextLatencyP50(t + 1),
+          p95: nextLatencyP95(t + 1),
+          bar: nextThroughput(t + 1),
+        });
+        scrollT.set(0);
+        step();
+      });
     };
+    step();
 
-    frameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frameId);
-  }, [active, next]);
+    return () => {
+      cancelled = true;
+    };
+  }, [active, scrollT]);
 
-  return series;
+  return {
+    p50,
+    p95,
+    bars,
+    previewP50: preview.p50,
+    previewP95: preview.p95,
+    previewBar: preview.bar,
+    scrollT,
+  };
 }
 
 function useBentoReveal() {
@@ -191,19 +224,173 @@ function GaugeCard() {
   );
 }
 
-interface RevealCardProps {
-  readonly progress: MotionValue<number>;
+interface ScrollLineSeries {
+  readonly values: readonly number[];
+  readonly preview: number;
+  readonly stroke: string;
+  readonly fillOpacity: number;
 }
 
-function LatencyCard({ progress }: RevealCardProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const active = useElementMotion(ref);
-  const p50 = useLiveSeries(LATENCY_P50, nextLatencyP50, active);
-  const p95 = useLiveSeries(LATENCY_P95, nextLatencyP95, active);
-  const p95Latest = p95[p95.length - 1];
+interface ScrollingLatencyChartProps {
+  readonly series: readonly ScrollLineSeries[];
+  readonly domain: readonly [number, number];
+  readonly scrollT: MotionValue<number>;
+  readonly reveal: MotionValue<number>;
+}
+
+function ScrollingLatencyChart({
+  series,
+  domain,
+  scrollT,
+  reveal,
+}: ScrollingLatencyChartProps) {
+  const n = series[0].values.length;
+  const plotLeft = CHART_PAD.left;
+  const plotRight = CHART_W - CHART_PAD.right;
+  const plotTop = CHART_PAD.top;
+  const plotBottom = CHART_H - CHART_PAD.bottom;
+  const plotW = plotRight - plotLeft;
+  const slot = plotW / (n - 1);
+  const yScale = linScale(domain[0], domain[1], plotBottom, plotTop);
+  const ticks = niceTicks(domain[0], domain[1], 4);
+  const translateX = useTransform(scrollT, (t) => -t * slot);
+  const opacity = useTransform(reveal, [0, 1], [0, 1], {
+    ease: ease.out,
+    clamp: true,
+  });
 
   return (
-    <div ref={ref} className="flex min-h-0 flex-1 flex-col">
+    <ChartCanvas label={`Latency, ${series.length} series scrolling over time`}>
+      <motion.svg
+        viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+        preserveAspectRatio="none"
+        width="100%"
+        height="100%"
+        style={{ display: "block", overflow: "hidden", opacity }}
+      >
+        {ticks.map((v) => {
+          const y = yScale(v);
+          return (
+            <line
+              key={v}
+              x1={plotLeft}
+              x2={plotRight}
+              y1={y}
+              y2={y}
+              stroke={token.grid}
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+            />
+          );
+        })}
+        <motion.g style={{ x: translateX }}>
+          {series.map((s, i) => {
+            const pts: Pt[] = [...s.values, s.preview].map((v, j) => [
+              plotLeft + j * slot,
+              yScale(v),
+            ]);
+            const lineD = smoothLinePath(pts);
+            const areaD = areaFromLine(lineD, pts, plotBottom);
+            return (
+              <g key={i}>
+                <path d={areaD} fill={s.stroke} opacity={s.fillOpacity} />
+                <path
+                  d={lineD}
+                  fill="none"
+                  stroke={s.stroke}
+                  strokeWidth={1.2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            );
+          })}
+        </motion.g>
+      </motion.svg>
+    </ChartCanvas>
+  );
+}
+
+interface ScrollingBarChartProps {
+  readonly values: readonly number[];
+  readonly preview: number;
+  readonly domain: readonly [number, number];
+  readonly color: string;
+  readonly scrollT: MotionValue<number>;
+  readonly reveal: MotionValue<number>;
+}
+
+function ScrollingBarChart({
+  values,
+  preview,
+  domain,
+  color,
+  scrollT,
+  reveal,
+}: ScrollingBarChartProps) {
+  const n = values.length;
+  const gap = 2;
+  const barRadius = 1;
+  const slot = CHART_W / n;
+  const barW = Math.max(0.5, slot - gap);
+  const yScale = linScale(domain[0], domain[1], BAR_H, 0);
+  const translateX = useTransform(scrollT, (t) => -t * slot);
+  const scaleY = useTransform(reveal, [0, 1], [0, 1], {
+    ease: ease.out,
+    clamp: true,
+  });
+  const all = [...values, preview];
+
+  return (
+    <ChartCanvas label={`Sustained throughput, ${n} bars scrolling over time`}>
+      <svg
+        viewBox={`0 0 ${CHART_W} ${BAR_H}`}
+        preserveAspectRatio="none"
+        width="100%"
+        height="100%"
+        style={{ display: "block", overflow: "hidden" }}
+      >
+        <motion.g style={{ x: translateX }}>
+          {all.map((v, i) => {
+            const x = i * slot + (slot - barW) / 2;
+            const yTop = yScale(v);
+            const barH = Math.max(0, BAR_H - yTop);
+            return (
+              <motion.rect
+                key={i}
+                x={x}
+                y={yTop}
+                width={barW}
+                height={barH}
+                rx={barRadius}
+                ry={barRadius}
+                vectorEffect="non-scaling-stroke"
+                style={{
+                  fill: color,
+                  transformBox: "fill-box",
+                  transformOrigin: "bottom",
+                  scaleY,
+                }}
+              />
+            );
+          })}
+        </motion.g>
+      </svg>
+    </ChartCanvas>
+  );
+}
+
+interface RevealCardProps {
+  readonly progress: MotionValue<number>;
+  readonly live: LiveCharts;
+}
+
+function LatencyCard({ progress, live }: RevealCardProps) {
+  const p95Latest = live.p95[live.p95.length - 1];
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
       <Card className="flex h-full min-h-0 flex-1 flex-col">
         <div className="relative z-10 flex h-full min-h-0 flex-col">
           <CardHeader
@@ -220,30 +407,24 @@ function LatencyCard({ progress }: RevealCardProps) {
           </NitroCanvas>
           <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
             <NitroCanvas className="min-h-0 flex-1">
-              <LineAreaChart
+              <ScrollingLatencyChart
                 series={[
                   {
-                    values: p50,
+                    values: live.p50,
+                    preview: live.previewP50,
                     stroke: token.cLatency,
-                    fill: true,
-                    fillGradient: true,
                     fillOpacity: 0.24,
-                    strokeWidth: 1.2,
                   },
                   {
-                    values: p95,
+                    values: live.p95,
+                    preview: live.previewP95,
                     stroke: token.cP95,
-                    fill: true,
-                    fillGradient: true,
                     fillOpacity: 0.18,
-                    strokeWidth: 1.2,
                   },
                 ]}
                 domain={LATENCY_DOMAIN}
-                height={88}
-                grid
-                progress={progress}
-                playWindow={[0, 1]}
+                scrollT={live.scrollT}
+                reveal={progress}
               />
             </NitroCanvas>
           </div>
@@ -253,13 +434,9 @@ function LatencyCard({ progress }: RevealCardProps) {
   );
 }
 
-function ThroughputCard({ progress }: RevealCardProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const active = useElementMotion(ref);
-  const bars = useLiveSeries(THROUGHPUT_BARS, nextThroughput, active);
-
+function ThroughputCard({ progress, live }: RevealCardProps) {
   return (
-    <div ref={ref} className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <Card className="flex h-full min-h-0 flex-1 flex-col">
         <div className="relative z-10 flex h-full min-h-0 flex-col">
           <CardHeader title="Sustained" hint="ops/s" />
@@ -274,12 +451,13 @@ function ThroughputCard({ progress }: RevealCardProps) {
               />
             </NitroCanvas>
             <NitroCanvas className="mt-2 min-h-0 flex-1">
-              <BarSeries
-                values={bars}
+              <ScrollingBarChart
+                values={live.bars}
+                preview={live.previewBar}
                 domain={[0, GAUGE_MAX]}
                 color={token.cThroughput}
-                progress={progress}
-                playWindow={[0, 1]}
+                scrollT={live.scrollT}
+                reveal={progress}
               />
             </NitroCanvas>
           </div>
@@ -291,6 +469,8 @@ function ThroughputCard({ progress }: RevealCardProps) {
 
 export function PerformanceBento() {
   const { ref, progress } = useBentoReveal();
+  const active = useElementMotion(ref);
+  const live = useLiveCharts(active);
 
   return (
     <div ref={ref} className="@container">
@@ -299,8 +479,8 @@ export function PerformanceBento() {
           <GaugeCard />
         </div>
         <div className="flex flex-col gap-3 @min-[480px]:col-span-3">
-          <LatencyCard progress={progress} />
-          <ThroughputCard progress={progress} />
+          <LatencyCard progress={progress} live={live} />
+          <ThroughputCard progress={progress} live={live} />
         </div>
       </div>
     </div>
