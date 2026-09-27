@@ -40,7 +40,8 @@ const THROUGHPUT_BARS: readonly number[] = [
   5400, 5500, 5350, 5600, 5450, 5550, 5400, 5650, 5500, 5400, 5600, 5450,
 ];
 
-const TICKER_MS = 900;
+const STEP_MS = 900;
+const REFRESH_MS = 80;
 
 function nextLatencyP50(t: number): number {
   return Math.round(7 + 0.8 * Math.sin(t * 0.5 + 1) + 0.3 * Math.sin(t * 2.1));
@@ -58,6 +59,15 @@ function nextThroughput(t: number): number {
   );
 }
 
+function lerpSeries(
+  from: readonly number[],
+  to: readonly number[],
+  t: number,
+): number[] {
+  return from.map((v, i) => v + (to[i] - v) * t);
+}
+
+// Blends toward the next keyframe continuously instead of snapping on an interval.
 function useLiveSeries(
   initial: readonly number[],
   next: (t: number) => number,
@@ -65,15 +75,34 @@ function useLiveSeries(
 ): number[] {
   const [series, setSeries] = useState<number[]>(() => [...initial]);
   const counter = useRef(initial.length);
+  const from = useRef<number[]>([...initial]);
+  const to = useRef<number[]>([...initial]);
+  const stepStart = useRef(0);
+  const lastPaint = useRef(0);
 
   useEffect(() => {
     if (!active) return;
-    const id = setInterval(() => {
-      counter.current += 1;
-      const value = next(counter.current);
-      setSeries((prev) => [...prev.slice(1), value]);
-    }, TICKER_MS);
-    return () => clearInterval(id);
+    let frameId: number;
+    stepStart.current = performance.now();
+
+    const step = (now: number) => {
+      const t = Math.min(1, (now - stepStart.current) / STEP_MS);
+      if (now - lastPaint.current >= REFRESH_MS || t >= 1) {
+        lastPaint.current = now;
+        setSeries(lerpSeries(from.current, to.current, t));
+      }
+      if (t >= 1) {
+        counter.current += 1;
+        const value = next(counter.current);
+        from.current = to.current;
+        to.current = [...from.current.slice(1), value];
+        stepStart.current = now;
+      }
+      frameId = requestAnimationFrame(step);
+    };
+
+    frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
   }, [active, next]);
 
   return series;
@@ -177,15 +206,18 @@ function LatencyCard({ progress }: RevealCardProps) {
     <div ref={ref} className="flex min-h-0 flex-1 flex-col">
       <Card className="flex h-full min-h-0 flex-1 flex-col">
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <CardHeader title="Latency" hint={`p95 ${p95Latest} ms`} />
-          <div className="flex items-center gap-2 px-4">
+          <CardHeader
+            title="Latency"
+            hint={`p95 ${Math.round(p95Latest)} ms`}
+          />
+          <NitroCanvas className="flex items-center gap-2 px-4">
             <Legend
               items={[
                 { label: "p50", color: token.cLatency },
                 { label: "p95", color: token.cP95 },
               ]}
             />
-          </div>
+          </NitroCanvas>
           <div className="flex min-h-0 flex-1 flex-col px-4 pt-2 pb-4">
             <NitroCanvas className="min-h-0 flex-1">
               <LineAreaChart

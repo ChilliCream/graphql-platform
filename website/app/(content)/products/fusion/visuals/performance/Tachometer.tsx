@@ -30,27 +30,33 @@ export interface TachometerProps {
   readonly cores: number;
 }
 
-const LIGHT_R = 126;
-const MARGIN = 6;
-const CX = LIGHT_R + MARGIN;
+const MARGIN = 14;
+const BEZEL_R = 124;
+const CX = BEZEL_R + MARGIN;
+const MAX_W = 320;
+const TRACK_R = 98;
+const NUMERAL_R = 110;
+const NEEDLE_LEN = 84;
+const HUB_R = 7;
+
+const LIGHT_COUNT = 10;
+const LIGHT_R = 3.6;
+const LIGHT_GAP = 15;
+const LIGHT_ROW_Y = 15;
+const LIGHT_GREEN = 5;
+const LIGHT_AMBER = 3;
+
+const DIAL_TOP_Y = LIGHT_ROW_Y + LIGHT_R + 16;
+const CY = DIAL_TOP_Y + BEZEL_R;
 const W = CX * 2;
-const H = 176;
-const CY = 140;
-const TRACK_R = 84;
-const BEZEL_R = 112;
-const NUMERAL_R = 100;
-const NEEDLE_LEN = 70;
-const HUB_R = 6;
+const H = CY + HUB_R + 6;
+const LEGEND_Y = CY - 34;
 
 const SWEEP_MS = 1300;
 const IDLE_MS = 4200;
 
 const TICK_STEPS = 14;
 const SCALE_MAX_LABEL = 7;
-
-const SHIFT_LIGHTS = 12;
-const SHIFT_GREEN = 6;
-const SHIFT_AMBER = 4;
 
 const CORE_BAR_W = 5;
 const CORE_BAR_GAP = 2;
@@ -62,15 +68,14 @@ function formatOps(n: number): string {
 }
 
 function shiftLightColor(index: number): string {
-  if (index < SHIFT_GREEN) return token.cSuccess;
-  if (index < SHIFT_GREEN + SHIFT_AMBER) return token.warning;
+  if (index < LIGHT_GREEN) return token.cSuccess;
+  if (index < LIGHT_GREEN + LIGHT_AMBER) return token.warning;
   return token.error;
 }
 
 function coreLoadFactor(index: number, cores: number): number {
   const phase = (index / Math.max(1, cores)) * Math.PI * 2;
-  // Rounded so Math.sin's last-bit drift between the server and browser JS
-  // engines can't turn into an SSR/CSR attribute mismatch.
+  // Rounded to keep server/client sin() drift out of the SSR/CSR markup.
   return (
     Math.round((0.78 + 0.18 * Math.sin(phase * 1.7 + index)) * 1000) / 1000
   );
@@ -78,20 +83,20 @@ function coreLoadFactor(index: number, cores: number): number {
 
 function ShiftLight({
   index,
-  cx,
-  cy,
+  x,
+  y,
   fraction,
 }: {
   index: number;
-  cx: number;
-  cy: number;
+  x: number;
+  y: number;
   fraction: MotionValue<number>;
 }) {
-  const threshold = (index + 1) / SHIFT_LIGHTS;
+  const threshold = (index + 1) / LIGHT_COUNT;
   const color = shiftLightColor(index);
   const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : 0.16));
   return (
-    <motion.circle cx={cx} cy={cy} r={3.4} style={{ fill: color, opacity }} />
+    <motion.circle cx={x} cy={y} r={LIGHT_R} style={{ fill: color, opacity }} />
   );
 }
 
@@ -209,23 +214,21 @@ export function Tachometer({
     }
   }
 
+  const lightsRowWidth = (LIGHT_COUNT - 1) * LIGHT_GAP;
+  const lightsLeft = CX - lightsRowWidth / 2;
   const lights: { x: number; y: number }[] = [];
-  for (let i = 0; i < SHIFT_LIGHTS; i++) {
-    const threshold = (i + 1) / SHIFT_LIGHTS;
-    const [x, y] = polarPoint(CX, CY, LIGHT_R, fractionAngle(threshold));
-    lights.push({ x, y });
+  for (let i = 0; i < LIGHT_COUNT; i++) {
+    lights.push({ x: lightsLeft + i * LIGHT_GAP, y: LIGHT_ROW_Y });
   }
 
   const cores8 = Array.from({ length: cores });
   const coreBarsWidth = cores * CORE_BAR_W + (cores - 1) * CORE_BAR_GAP;
-  const coreBarsLeft = CX - coreBarsWidth / 2;
-  const coreBarsBaseY = CY - 46;
 
   return (
     <div
       ref={ref}
-      className="relative flex w-full flex-col items-center"
-      style={{ maxWidth: W }}
+      className="flex w-full flex-col items-center"
+      style={{ maxWidth: MAX_W }}
     >
       <svg
         viewBox={`0 0 ${W} ${H}`}
@@ -246,16 +249,16 @@ export function Tachometer({
           </filter>
         </defs>
 
+        {lights.map((l, i) => (
+          <ShiftLight key={i} index={i} x={l.x} y={l.y} fraction={fraction} />
+        ))}
+
         <path
           d={facePath}
           fill={token.card}
           stroke={token.borderStrong}
           strokeWidth={1.5}
         />
-
-        {lights.map((l, i) => (
-          <ShiftLight key={i} index={i} cx={l.x} cy={l.y} fraction={fraction} />
-        ))}
 
         <path
           d={trackPath}
@@ -306,14 +309,27 @@ export function Tachometer({
             textAnchor="middle"
             dominantBaseline="middle"
             fontFamily={token.mono}
-            fontSize={11}
-            fontWeight={700}
+            fontSize={15}
+            fontWeight={800}
+            fontStyle="italic"
             style={{ fontVariantNumeric: "tabular-nums" }}
             fill={n.red ? token.error : token.textSecondary}
           >
             {n.label}
           </text>
         ))}
+        <text
+          x={CX}
+          y={LEGEND_Y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontFamily={token.mono}
+          fontSize={11}
+          letterSpacing="0.02em"
+          fill={token.textSecondary}
+        >
+          x1000 ops/s
+        </text>
 
         <g transform={`translate(${CX}, ${CY})`}>
           <motion.g
@@ -345,24 +361,9 @@ export function Tachometer({
           </motion.g>
         </g>
         <circle cx={CX} cy={CY} r={HUB_R} fill={token.textStrong} />
-
-        {cores8.map((_, i) => (
-          <CoreBar
-            key={i}
-            index={i}
-            cores={cores}
-            x={coreBarsLeft + i * (CORE_BAR_W + CORE_BAR_GAP)}
-            baseY={coreBarsBaseY}
-            value={value}
-            max={max}
-          />
-        ))}
       </svg>
 
-      <div
-        className="pointer-events-none absolute flex flex-col items-center gap-1"
-        style={{ top: "56%", left: "50%", transform: "translate(-50%, 0)" }}
-      >
+      <div className="mt-2 flex flex-col items-center gap-1.5">
         <div
           className="flex items-baseline gap-1"
           role="img"
@@ -396,6 +397,25 @@ export function Tachometer({
         <Badge size="sm" mono border={token.border} background={token.surface}>
           {cores} logical cores
         </Badge>
+        <svg
+          width={coreBarsWidth}
+          height={CORE_BAR_MAX_H}
+          viewBox={`0 0 ${coreBarsWidth} ${CORE_BAR_MAX_H}`}
+          style={{ display: "block" }}
+          aria-hidden="true"
+        >
+          {cores8.map((_, i) => (
+            <CoreBar
+              key={i}
+              index={i}
+              cores={cores}
+              x={i * (CORE_BAR_W + CORE_BAR_GAP)}
+              baseY={CORE_BAR_MAX_H}
+              value={value}
+              max={max}
+            />
+          ))}
+        </svg>
       </div>
     </div>
   );

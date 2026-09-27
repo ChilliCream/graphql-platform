@@ -1,8 +1,6 @@
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
-// Math.cos/Math.sin can differ in their last bit between the server and
-// browser JS engines, which then serializes into a mismatched SSR/CSR
-// attribute string. Rounding collapses that noise before it reaches JSX.
+// Collapses server/client sin/cos ULP drift before it reaches JSX attributes.
 const round = (n: number) => Math.round(n * 1000) / 1000;
 
 export function polarPoint(
