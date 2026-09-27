@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { PerformanceBento } from "./PerformanceBento";
+import { PerformanceHud } from "./PerformanceHud";
 
 const PANEL_WIDTHS = {
   375: 335,
@@ -9,10 +9,10 @@ const PANEL_WIDTHS = {
 } as const;
 
 const meta = {
-  title: "Products/Fusion/Visuals/Performance/PerformanceBento",
-  component: PerformanceBento,
+  title: "Products/Fusion/Visuals/Performance/PerformanceHud",
+  component: PerformanceHud,
   parameters: { layout: "padded" },
-} satisfies Meta<typeof PerformanceBento>;
+} satisfies Meta<typeof PerformanceHud>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId } from "react";
 import {
   animate,
   motion,
@@ -11,71 +11,65 @@ import {
 
 import { token } from "@/src/nitro";
 import { Badge } from "@/src/nitro/primitives/Badge";
-import { ease, useReducedMotionPreference } from "@/src/nitro/lib/motion";
+import { ease } from "@/src/nitro/lib/motion";
 
-import { useElementMotion } from "../hooks";
 import {
   fractionAngle,
   gaugeArcPath,
   needleRotation,
   polarPoint,
 } from "./gauge";
+import {
+  CORES,
+  GAUGE_MAX,
+  IDLE_BAND,
+  RED_ZONE_START,
+  SETTLE_VALUE,
+  formatOps,
+} from "./data";
 
 export interface TachometerProps {
-  readonly max: number;
-  readonly redZoneStart: number;
-  readonly settleValue: number;
-  readonly idleBand: readonly [number, number];
-  readonly unit: string;
-  readonly cores: number;
+  readonly active: boolean;
+  readonly reduced: boolean;
 }
 
 const MARGIN = 14;
-const BEZEL_R = 184;
+const BEZEL_R = 200;
 const CX = BEZEL_R + MARGIN;
-const MAX_W = 400;
-const TRACK_R = 138;
-const TICK_OUT = 8;
-const TICK_IN_MAJOR = 18;
-const TICK_IN_MINOR = 8;
-const NUMERAL_R = TRACK_R + 38;
-const NEEDLE_LEN = 118;
-const HUB_R = 10;
+const MAX_W = 440;
+const TRACK_R = 150;
+const TRACK_WIDTH = 14;
+const TICK_OUT = 9;
+const TICK_IN_MAJOR = 20;
+const TICK_IN_MINOR = 9;
+const NUMERAL_R = TRACK_R + 40;
+const NEEDLE_LEN = 128;
+const HUB_R = 11;
 
 const LIGHT_COUNT = 10;
-const LIGHT_R = 3.6;
-const LIGHT_GAP = 15;
-const LIGHT_ROW_Y = 15;
+const LIGHT_R = 4;
+const LIGHT_GAP = 17;
+const LIGHT_ROW_Y = 16;
 const LIGHT_GREEN = 5;
 const LIGHT_AMBER = 3;
 
-const DIAL_TOP_Y = LIGHT_ROW_Y + LIGHT_R + 16;
+const DIAL_TOP_Y = LIGHT_ROW_Y + LIGHT_R + 18;
 const CY = DIAL_TOP_Y + BEZEL_R;
 const W = CX * 2;
-const LEGEND_X = CX - 50;
-const LEGEND_Y = CY + 20;
-const H = LEGEND_Y + 16;
+const LEGEND_X = CX - 58;
+const LEGEND_Y = CY + 22;
+const H = LEGEND_Y + 18;
 
 const SWEEP_MS = 1300;
 const IDLE_MS = 4200;
 
-const TICK_STEPS = 14;
+const TICK_STEPS = 28;
 const SCALE_MAX_LABEL = 7;
 
 const CORE_BAR_W = 5;
 const CORE_BAR_GAP = 2;
-const CORE_BAR_MAX_H = 14;
+const CORE_BAR_MAX_H = 16;
 const CORE_BAR_MIN_H = 3;
-
-function formatOps(n: number): string {
-  return `${(n / 1000).toFixed(1)}K`;
-}
-
-function shiftLightColor(index: number): string {
-  if (index < LIGHT_GREEN) return token.cSuccess;
-  if (index < LIGHT_GREEN + LIGHT_AMBER) return token.warning;
-  return token.error;
-}
 
 function coreLoadFactor(index: number, cores: number): number {
   const phase = (index / Math.max(1, cores)) * Math.PI * 2;
@@ -83,6 +77,12 @@ function coreLoadFactor(index: number, cores: number): number {
   return (
     Math.round((0.78 + 0.18 * Math.sin(phase * 1.7 + index)) * 1000) / 1000
   );
+}
+
+function shiftLightColor(index: number): string {
+  if (index < LIGHT_GREEN) return token.cSuccess;
+  if (index < LIGHT_GREEN + LIGHT_AMBER) return token.warning;
+  return token.error;
 }
 
 function ShiftLight({
@@ -137,24 +137,22 @@ function CoreBar({
   );
 }
 
-export function Tachometer({
-  max,
-  redZoneStart,
-  settleValue,
-  idleBand,
-  unit,
-  cores,
-}: TachometerProps) {
-  const ref = useRef<HTMLDivElement>(null);
+export function Tachometer({ active, reduced }: TachometerProps) {
   const filterId = useId().replace(/:/g, "");
-  const reduced = useReducedMotionPreference();
-  const active = useElementMotion(ref);
+  const max = GAUGE_MAX;
+  const redZoneStart = RED_ZONE_START;
+  const settleValue = SETTLE_VALUE;
+  const idleBand = IDLE_BAND;
+  const unit = "ops/s";
+  const cores = CORES;
 
   const value = useMotionValue(reduced ? settleValue : 0);
   const fraction = useTransform(value, (v) => v / max);
   const rotate = useTransform(value, (v) => needleRotation(v, max));
-  const dashOffset = useTransform(value, (v) => 1 - v / max);
   const readout = useTransform(value, formatOps);
+  const tipColor = useTransform(value, (v) =>
+    v >= redZoneStart ? token.error : token.textStrong,
+  );
 
   useEffect(() => {
     if (reduced) {
@@ -189,9 +187,7 @@ export function Tachometer({
     };
   }, [active, reduced, settleValue, idleBand, value]);
 
-  const redZoneAngleStart = fractionAngle(redZoneStart / max);
   const trackPath = gaugeArcPath(CX, CY, TRACK_R, 180, 0);
-  const redZonePath = gaugeArcPath(CX, CY, TRACK_R, redZoneAngleStart, 0);
   const facePath = `${gaugeArcPath(CX, CY, BEZEL_R, 180, 0)} Z`;
 
   const ticks: {
@@ -203,9 +199,10 @@ export function Tachometer({
     red: boolean;
   }[] = [];
   const numerals: { x: number; y: number; label: string; red: boolean }[] = [];
+  const majorEvery = TICK_STEPS / SCALE_MAX_LABEL;
   for (let i = 0; i <= TICK_STEPS; i++) {
     const fractionAt = i / TICK_STEPS;
-    const major = i % 2 === 0;
+    const major = i % majorEvery === 0;
     const angle = fractionAngle(fractionAt);
     const red = fractionAt * max >= redZoneStart;
     const [x1, y1] = polarPoint(CX, CY, TRACK_R + TICK_OUT, angle);
@@ -235,7 +232,6 @@ export function Tachometer({
 
   return (
     <div
-      ref={ref}
       className="flex w-full flex-col items-center"
       style={{ maxWidth: MAX_W }}
     >
@@ -254,8 +250,22 @@ export function Tachometer({
             width="400%"
             height="400%"
           >
-            <feGaussianBlur stdDeviation="3.2" />
+            <feGaussianBlur stdDeviation="3.4" />
           </filter>
+          <linearGradient
+            id={`sweep-${filterId}`}
+            gradientUnits="userSpaceOnUse"
+            x1={CX - TRACK_R}
+            y1={CY}
+            x2={CX + TRACK_R}
+            y2={CY}
+          >
+            <stop offset="0%" stopColor={token.accent} />
+            <stop offset="42%" stopColor={token.info} />
+            <stop offset="74%" stopColor={token.pink} />
+            <stop offset="88%" stopColor={token.error} />
+            <stop offset="100%" stopColor={token.error} />
+          </linearGradient>
         </defs>
 
         {lights.map((l, i) => (
@@ -272,26 +282,9 @@ export function Tachometer({
         <path
           d={trackPath}
           fill="none"
-          stroke={token.border}
-          strokeWidth={10}
+          stroke={`url(#sweep-${filterId})`}
+          strokeWidth={TRACK_WIDTH}
           strokeLinecap="butt"
-        />
-        <path
-          d={redZonePath}
-          fill="none"
-          stroke={token.error}
-          strokeWidth={10}
-          strokeLinecap="butt"
-          opacity={0.85}
-        />
-        <motion.path
-          d={trackPath}
-          pathLength={1}
-          fill="none"
-          stroke={token.cThroughput}
-          strokeWidth={10}
-          strokeLinecap="butt"
-          style={{ strokeDasharray: "1 1", strokeDashoffset: dashOffset }}
         />
         {ticks.map((t, i) => (
           <line
@@ -318,7 +311,7 @@ export function Tachometer({
             textAnchor="middle"
             dominantBaseline="middle"
             fontFamily={token.mono}
-            fontSize={20}
+            fontSize={24}
             fontWeight={800}
             fontStyle="italic"
             style={{ fontVariantNumeric: "tabular-nums" }}
@@ -354,19 +347,24 @@ export function Tachometer({
               y1={0}
               x2={-NEEDLE_LEN}
               y2={0}
-              stroke={token.cThroughput}
+              stroke={token.textStrong}
               strokeWidth={4}
               strokeLinecap="round"
+              opacity={0.85}
             />
-            <circle
+            <motion.circle
               cx={-NEEDLE_LEN}
               cy={0}
-              r={7}
-              fill={token.cThroughput}
-              opacity={0.55}
+              r={8}
+              style={{ fill: tipColor, opacity: 0.55 }}
               filter={`url(#glow-${filterId})`}
             />
-            <circle cx={-NEEDLE_LEN} cy={0} r={3} fill={token.textStrong} />
+            <motion.circle
+              cx={-NEEDLE_LEN}
+              cy={0}
+              r={3.5}
+              style={{ fill: tipColor }}
+            />
           </motion.g>
         </g>
         <circle cx={CX} cy={CY} r={HUB_R} fill={token.textStrong} />
@@ -374,7 +372,7 @@ export function Tachometer({
 
       <div className="mt-2 flex flex-col items-center gap-1.5">
         <div
-          className="flex items-baseline gap-1"
+          className="flex flex-col items-center"
           role="img"
           aria-label={`${formatOps(settleValue)} ${unit}`}
         >
@@ -382,12 +380,12 @@ export function Tachometer({
             aria-hidden="true"
             style={{
               display: "inline-block",
-              minWidth: "4ch",
-              textAlign: "right",
+              minWidth: "3ch",
+              textAlign: "center",
               fontFamily: token.mono,
-              fontSize: 26,
-              fontWeight: 700,
+              fontSize: 44,
               lineHeight: 1,
+              fontWeight: 700,
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
@@ -397,7 +395,7 @@ export function Tachometer({
           </motion.span>
           <span
             aria-hidden="true"
-            className="text-[11px] whitespace-nowrap"
+            className="mt-0.5 text-[11px] whitespace-nowrap"
             style={{ color: token.textSecondary, fontFamily: token.mono }}
           >
             {unit}

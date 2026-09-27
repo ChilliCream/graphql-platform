@@ -9,17 +9,13 @@ const meta = {
   component: Tachometer,
   parameters: { layout: "centered" },
   args: {
-    max: 7000,
-    redZoneStart: 6000,
-    settleValue: 5500,
-    idleBand: [5300, 5650],
-    unit: "ops/s",
-    cores: 8,
+    active: false,
+    reduced: true,
   },
   decorators: [
     (Story) => (
-      <ThemeProvider theme="dark" reducedMotion="always" className="p-6">
-        <div className="w-[240px] max-w-full">
+      <ThemeProvider theme="dark" className="p-6">
+        <div className="w-[280px] max-w-full">
           <Story />
         </div>
       </ThemeProvider>

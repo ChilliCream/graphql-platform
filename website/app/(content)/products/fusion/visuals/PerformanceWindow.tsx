@@ -1,5 +1,5 @@
-import { PerformanceBento } from "./performance/PerformanceBento";
+import { PerformanceHud } from "./performance/PerformanceHud";
 
 export function PerformanceWindow() {
-  return <PerformanceBento />;
+  return <PerformanceHud />;
 }
