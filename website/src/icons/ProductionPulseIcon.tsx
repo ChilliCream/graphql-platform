@@ -18,10 +18,7 @@ const STROKE_BRIGHT =
   "color-mix(in srgb, var(--color-cc-cta) 55%, var(--color-cc-white))";
 const FILL_SOFT = "color-mix(in srgb, var(--color-cc-cta) 22%, transparent)";
 
-/**
- * A pulse line over a bar chart, for "See what happens in production". The
- * pulse stays above y=30, clear of the bars' tallest top at y=34.
- */
+/** A pulse line clear of the bars, for "See what happens in production". */
 export function ProductionPulseIcon({
   className,
   style,
