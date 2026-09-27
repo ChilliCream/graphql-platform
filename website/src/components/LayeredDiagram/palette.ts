@@ -76,3 +76,16 @@ export function specTag(spec: StationSpec, short = false): string {
   if (short) return spec === "Apollo Federation" ? "APOLLO" : "GRAPHQL";
   return spec === "Apollo Federation" ? "APOLLO FED" : "GRAPHQL FED";
 }
+
+/** Fusion-only: the protocol a client enters the router with; every call still runs as a GraphQL query behind it. */
+export type Protocol = "GraphQL" | "OpenAPI" | "MCP";
+
+export function protocolTag(protocol: Protocol): string {
+  return protocol.toUpperCase();
+}
+
+export function protocolColor(protocol: Protocol): string {
+  if (protocol === "OpenAPI") return BRAND.amber;
+  if (protocol === "MCP") return BRAND.coral;
+  return MC.phosphor;
+}

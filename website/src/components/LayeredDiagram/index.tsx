@@ -3,7 +3,7 @@
 import { useRef } from "react";
 
 import { anim, useCycle, useElementMotion } from "./hooks";
-import { MC, specTag } from "./palette";
+import { MC, protocolColor, protocolTag, specTag } from "./palette";
 import type { StationSpec } from "./palette";
 import { BRAND, TYPE } from "./tokens";
 import {
@@ -21,7 +21,8 @@ import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
 interface LayeredDiagramProps {
   readonly gatewayLabel: string;
   readonly caption?: string;
-  readonly compositionLine: string;
+  /** Omit to drop the composition line, closing the router panel up. */
+  readonly compositionLine?: string;
   readonly clients: readonly ClientNode[];
   readonly tiers: readonly TierNode[];
   readonly requests: readonly Request[];
@@ -231,6 +232,12 @@ export default function LayeredDiagram({
                 key={client.key}
                 title={client.label}
                 detail={client.detail}
+                badge={
+                  client.protocol ? protocolTag(client.protocol) : undefined
+                }
+                badgeColor={
+                  client.protocol ? protocolColor(client.protocol) : undefined
+                }
                 lit={i === request.client}
                 tone={tone}
                 dense={dense}
@@ -298,6 +305,19 @@ export default function LayeredDiagram({
               >
                 {PHASE_LABEL[phase]}
               </span>
+              {request.protocol ? (
+                <span
+                  className="font-mono uppercase"
+                  style={{
+                    color: protocolColor(request.protocol),
+                    fontSize: TYPE.label,
+                    letterSpacing: "0.1em",
+                    lineHeight: LINE_HEIGHT,
+                  }}
+                >
+                  {protocolTag(request.protocol)}
+                </span>
+              ) : null}
               <span
                 className="font-mono"
                 style={{
@@ -306,7 +326,9 @@ export default function LayeredDiagram({
                   lineHeight: LINE_HEIGHT,
                 }}
               >
-                {request.operation}
+                {request.entry
+                  ? `${request.entry} → ${request.operation}`
+                  : request.operation}
               </span>
               <span
                 className="font-mono"
@@ -320,16 +342,18 @@ export default function LayeredDiagram({
               </span>
             </div>
 
-            <p
-              className="mt-1.5 font-mono"
-              style={{
-                color: MC.dim,
-                fontSize: TYPE.label,
-                lineHeight: LINE_HEIGHT,
-              }}
-            >
-              {compositionLine}
-            </p>
+            {compositionLine ? (
+              <p
+                className="mt-1.5 font-mono"
+                style={{
+                  color: MC.dim,
+                  fontSize: TYPE.label,
+                  lineHeight: LINE_HEIGHT,
+                }}
+              >
+                {compositionLine}
+              </p>
+            ) : null}
           </div>
 
           <Band
