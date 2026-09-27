@@ -26,16 +26,16 @@ const STROKE_BRIGHT =
   "color-mix(in srgb, var(--color-cc-accent) 55%, var(--color-cc-white))";
 
 const SPHERE_CENTER = 40;
-const SPHERE_CAM_K = 51;
+const SPHERE_CAM_K = 65;
 const SPHERE_CAM_DIST = 3;
 
-const NODE_R = 2.4;
+const NODE_R = 2.6;
 const NODE_FAR_ALPHA = 0.35;
 const NODE_NEAR_ALPHA = 1;
-const EDGE_FAR_ALPHA = 0.15;
-const EDGE_NEAR_ALPHA = 0.65;
-const EDGE_WIDTH = 1.5;
-const GLOW_NODE_COUNT = 3;
+const EDGE_FAR_ALPHA = 0.12;
+const EDGE_NEAR_ALPHA = 0.85;
+const EDGE_WIDTH_FAR = 1;
+const EDGE_WIDTH_NEAR = 2.2;
 const GLOW_RADIUS = NODE_R * 2.6;
 
 const SPHERE_NODES = Array.from({ length: ICOSAHEDRON_VERTEX_COUNT }, (_, i) =>
@@ -54,7 +54,7 @@ const NODE_DRAW_ORDER = SPHERE_NODES.map((_, i) => i).sort(
   (a, b) => SPHERE_NODES[a].t - SPHERE_NODES[b].t,
 );
 
-const GLOW_NODE_INDICES = new Set(NODE_DRAW_ORDER.slice(-GLOW_NODE_COUNT));
+const GLOW_NODE_INDICES = new Set([0, 6, 9]);
 
 /** A simplified, static echo of the closing band's GraphSphere, for "Connect every API". */
 export function ApiConnectIcon({ className, style }: ApiConnectIconProps) {
@@ -157,7 +157,7 @@ export function ApiConnectIcon({ className, style }: ApiConnectIconProps) {
           x2={edge.x2.toFixed(1)}
           y2={edge.y2.toFixed(1)}
           stroke={`url(#${stroke})`}
-          strokeWidth={EDGE_WIDTH}
+          strokeWidth={lerp(EDGE_WIDTH_FAR, EDGE_WIDTH_NEAR, edge.t).toFixed(2)}
           strokeLinecap="round"
           strokeOpacity={lerp(EDGE_FAR_ALPHA, EDGE_NEAR_ALPHA, edge.t).toFixed(
             2,
