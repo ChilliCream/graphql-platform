@@ -26,6 +26,10 @@ export function gaugeArcPath(
   return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
 }
 
-export function fractionAngle(fraction: number, mirror = false): number {
-  return mirror ? fraction * 180 : 180 - fraction * 180;
+export function sweepAngle(
+  fraction: number,
+  startAngle: number,
+  endAngle: number,
+): number {
+  return startAngle + fraction * (endAngle - startAngle);
 }
