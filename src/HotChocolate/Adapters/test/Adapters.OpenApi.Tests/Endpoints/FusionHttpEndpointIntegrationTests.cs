@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Adapters.OpenApi.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Fusion;
@@ -78,7 +79,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
     }
 
     [Fact]
-    public async Task MapOpenApiEndpoints_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
+    public async Task MapOpenApiEndpointsAndAddGraphQLTransformer_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
     {
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
@@ -101,20 +102,29 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
                     .AddOpenApi();
                 services.AddOptions<OpenApiSetup>("NamedSchema")
                     .PostConfigure(setup => setup.StorageFactory = _ => storage);
+                services.AddOpenApi(options => options.AddGraphQLTransformer());
             })
             .Configure(app =>
             {
                 app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapOpenApi();
+                    endpoints.MapOpenApiEndpoints();
+                });
             });
         using var server = new TestServer(builder);
         var client = server.CreateClient();
 
         // act
         var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
+        var document = await GetOpenApiDocumentAsync(client);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            ["/users"],
+            JsonDocument.Parse(document).RootElement.GetProperty("paths").EnumerateObject().Select(p => p.Name));
     }
 
     [Fact]
