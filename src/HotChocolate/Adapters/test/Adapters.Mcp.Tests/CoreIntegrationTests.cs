@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution.Configuration;
@@ -47,6 +48,48 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
                     .UseRouting()
                     .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
         var server = new TestServer(builder);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
+    [Fact]
+    public async Task MapGraphQLMcp_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services =>
+                {
+                    services
+                        .AddRouting()
+                        .AddGraphQL("NamedSchema")
+                        .AddAuthorization()
+                        .AddQueryType<TestSchema.Query>()
+                        .AddMutationType<TestSchema.Mutation>()
+                        .AddInterfaceType<TestSchema.IPet>()
+                        .AddUnionType<TestSchema.IPet>()
+                        .AddObjectType<TestSchema.Cat>()
+                        .AddObjectType<TestSchema.Dog>()
+                        .AddMcp();
+                    services
+                        .AddOptions<McpSetup>("NamedSchema")
+                        .PostConfigure(setup => setup.StorageFactory = _ => storage);
+                })
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+        using var server = new TestServer(builder);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act

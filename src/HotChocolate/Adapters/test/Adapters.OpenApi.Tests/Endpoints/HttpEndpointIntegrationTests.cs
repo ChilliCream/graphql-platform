@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using HotChocolate.Adapters.OpenApi.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -61,6 +62,78 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task MapOpenApiEndpoints_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
+                services.AddGraphQLServer("NamedSchema")
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
+                    .AddOpenApi()
+                    .AddBasicServer();
+                services.AddOptions<OpenApiSetup>("NamedSchema")
+                    .PostConfigure(setup => setup.StorageFactory = _ => storage);
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
+            });
+        using var server = new TestServer(builder);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public void MapOpenApiEndpoints_Should_NotResolveSchemaName_When_MultipleNamedSchemasRegistered()
+    {
+        // arrange
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
+
+                foreach (var schemaName in new[] { "alpha", "beta" })
+                {
+                    services.AddGraphQLServer(schemaName)
+                        .AddOpenApi()
+                        .AddBasicServer();
+                    services.AddOptions<OpenApiSetup>(schemaName)
+                        .PostConfigure(setup => setup.StorageFactory = _ => new TestOpenApiDefinitionStorage());
+                }
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
+            });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+
+        // assert
+        Assert.Equal(
+            $"No IOpenApiDefinitionStorage is registered for schema '{ISchemaDefinition.DefaultName}'. "
+            + "Call `AddOpenApiDefinitionStorage(...)` when configuring the GraphQL server.",
+            exception.Message);
     }
 
     [Fact]

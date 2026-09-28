@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Buffers;
@@ -24,6 +25,51 @@ namespace HotChocolate.Adapters.Mcp;
 
 public sealed class FusionIntegrationTests : IntegrationTestBase
 {
+    [Fact]
+    public async Task MapGraphQLMcp_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var subgraph = CreateSubgraph([]);
+        var schemaDocument = await subgraph.Services.GetSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var schemaComposer =
+            new SchemaComposer(
+                [new SourceSchemaText(schemaDocument.Name, schemaDocument.ToString())],
+                new SchemaComposerOptions(),
+                new CompositionLog());
+        var result = schemaComposer.Compose();
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services =>
+                {
+                    services
+                        .AddRouting()
+                        .AddGraphQLGatewayServer("NamedSchema")
+                        .AddInMemoryConfiguration(result.Value.ToSyntaxNode())
+                        .AddMcp();
+                    services
+                        .AddOptions<McpSetup>("NamedSchema")
+                        .PostConfigure(setup => setup.StorageFactory = _ => storage);
+                })
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+        using var server = new TestServer(builder);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
     [Fact]
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
