@@ -26,7 +26,7 @@ const START_ANGLE = 320;
 const END_ANGLE = 40;
 const TICK_STEPS = 10;
 const MAJOR_EVERY = 2;
-const NUMERAL_R = TRACK_R + 27;
+const NUMERAL_R = TRACK_R + 19;
 const SWEEP_MS = 1200;
 
 const GLOW = token.info;
@@ -180,6 +180,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
               top: `${(n.y / VB) * 100}%`,
               transform: "translate(-50%, -50%)",
               fontSize: 11,
+              lineHeight: 1,
               fontFamily: token.mono,
               color: token.textDim,
             }}
