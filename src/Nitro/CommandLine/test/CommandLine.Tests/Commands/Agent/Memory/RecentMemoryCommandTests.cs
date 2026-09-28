@@ -175,8 +175,8 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task AllCollection_WithLimit_SplitsAcrossBands()
     {
-        // arrange: three curated entries would fill an unsplit limit of 2
-        // entirely, starving the journal band.
+        // arrange
+        // Seed three curated entries and one journal entry for a total limit of two.
         await InitWorkspaceAsync();
         await SeedMemoryAsync("Curated one.");
         FakeTime.Advance(TimeSpan.FromMinutes(1));
@@ -204,8 +204,8 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task AllCollection_WithLimit_RemainderFlowsToShortBand()
     {
-        // arrange: curated only has one entry, so its unused half of the
-        // limit must flow to the journal band instead of going unused.
+        // arrange
+        // Seed one curated entry and three journal entries for a total limit of four.
         await InitWorkspaceAsync();
         var curated = await SeedMemoryAsync("Curated.");
         FakeTime.Advance(TimeSpan.FromMinutes(1));
@@ -233,9 +233,8 @@ public sealed class RecentMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task AllCollection_WithLimit_EmptyJournalBand_FillsFromCurated()
     {
-        // arrange: no journal entries at all, so the curated band's own
-        // shortfall-remainder logic is not enough; the journal band coming
-        // up empty must flow its whole share back to curated.
+        // arrange
+        // Seed six curated entries and no journal entries for a total limit of four.
         await InitWorkspaceAsync();
         await SeedMemoryAsync("Curated one.");
         FakeTime.Advance(TimeSpan.FromMinutes(1));

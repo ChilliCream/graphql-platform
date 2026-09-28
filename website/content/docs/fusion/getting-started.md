@@ -106,7 +106,7 @@ To follow this tutorial, you need the following installed on your machine.
 
 Install the [.NET 10 SDK](https://dotnet.microsoft.com/download) or later. Verify your installation:
 
-```bash
+```shell
 dotnet --version
 ```
 
@@ -116,13 +116,13 @@ You should see `10.0.100` or higher.
 
 The Nitro CLI is a .NET tool that handles schema composition. Install it globally:
 
-```bash
+```shell
 dotnet tool install -g ChilliCream.Nitro.CommandLine
 ```
 
 Verify the installation:
 
-```bash
+```shell
 nitro version
 ```
 
@@ -130,7 +130,7 @@ nitro version
 
 Install the Hot Chocolate templates:
 
-```bash
+```shell
 dotnet new install HotChocolate.Templates
 ```
 
@@ -142,7 +142,7 @@ Time to write code. You will create a Products subgraph that exposes a few produ
 
 Create a new GraphQL server project from the template:
 
-```bash
+```shell
 mkdir fusion-getting-started
 cd fusion-getting-started
 
@@ -276,13 +276,13 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-This is a minimal Hot Chocolate server. `AddGraphQL("Products")` sets the subgraph name used during schema export. `AddTypes()` registers all discovered types, including `ProductQueries` and `Product`. `RunWithGraphQLCommands(args)` enables CLI commands, including schema export.
+This is a minimal Hot Chocolate server. `#!csharp AddGraphQL("Products")` sets the subgraph name used during schema export. `AddTypes()` registers all discovered types, including `ProductQueries` and `Product`. `RunWithGraphQLCommands(args)` enables CLI commands, including schema export.
 
 ## Test the Subgraph
 
 Run the Products subgraph:
 
-```bash
+```shell
 cd Products
 dotnet run
 ```
@@ -331,7 +331,7 @@ Stop the server with `Ctrl+C` before continuing.
 
 The gateway needs each subgraph's source schema for composition. Hot Chocolate can export source schema files automatically. From the `fusion-getting-started` directory, run:
 
-```bash
+```shell
 dotnet run --project ./Products -- schema export
 ```
 
@@ -340,7 +340,7 @@ This generates two files in the Products project directory:
 - **`schema.graphqls`**: The Products subgraph's source schema, describing its types and fields.
 - **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL and other subgraph options.
 
-Because `Program.cs` uses `AddGraphQL("Products")`, `Products/schema-settings.json` already contains `"name": "Products"`. The generated transport URL still defaults to `http://localhost:5000/graphql`, so update it to match port 5001:
+Because `Program.cs` uses `#!csharp AddGraphQL("Products")`, `Products/schema-settings.json` already contains `"name": "Products"`. The generated transport URL still defaults to `http://localhost:5000/graphql`, so update it to match port 5001:
 
 ```json
 {
@@ -374,7 +374,7 @@ Now you will create a Reviews subgraph that adds review data to the API. The key
 
 From the `fusion-getting-started` directory:
 
-```bash
+```shell
 dotnet new graphql -n Reviews
 ```
 
@@ -554,7 +554,7 @@ This transformation happens in the GraphQL schema, not your C# classes. Your `Re
 
 Run the Reviews subgraph:
 
-```bash
+```shell
 cd Reviews
 dotnet run
 ```
@@ -611,7 +611,7 @@ Stop the server with `Ctrl+C`.
 
 Export the Reviews subgraph's source schema. From the `fusion-getting-started` directory:
 
-```bash
+```shell
 dotnet run --project ./Reviews -- schema export
 ```
 
@@ -620,7 +620,7 @@ This generates two files in the Reviews project directory:
 - **`schema.graphqls`**: The Reviews subgraph's source schema, describing its types and fields.
 - **`schema-settings.json`**: A companion file that tells Fusion the subgraph's name and runtime URL and other subgraph options.
 
-Because `Program.cs` uses `AddGraphQL("Reviews")`, `Reviews/schema-settings.json` already contains `"name": "Reviews"`. The generated transport URL still defaults to `http://localhost:5000/graphql`, so update it to match port 5002:
+Because `Program.cs` uses `#!csharp AddGraphQL("Reviews")`, `Reviews/schema-settings.json` already contains `"name": "Reviews"`. The generated transport URL still defaults to `http://localhost:5000/graphql`, so update it to match port 5002:
 
 ```json
 {
@@ -686,7 +686,7 @@ Each subgraph directory has a `schema.graphqls` and a `schema-settings.json`. Th
 
 From the `fusion-getting-started` directory, run:
 
-```bash
+```shell
 mkdir Gateway
 nitro fusion compose -f Products/schema.graphqls -f Reviews/schema.graphqls -a Gateway/gateway.far
 ```
@@ -718,7 +718,7 @@ The gateway is the service that clients connect to. It loads the composed config
 
 From the `fusion-getting-started` directory:
 
-```bash
+```shell
 cd Gateway
 dotnet new graphql-gateway
 cd ..
@@ -759,7 +759,7 @@ The gateway runs on port 5000. The subgraphs run on ports 5001 (Products) and 50
 
 The composition step already wrote `gateway.far` into the `Gateway` directory (`-f Gateway/gateway.far`). Verify that the file exists before continuing:
 
-```bash
+```shell
 ls Gateway/gateway.far
 ```
 
@@ -786,10 +786,10 @@ app.Run();
 
 Three things to notice:
 
-- **`AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
+- **`#!csharp AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
 - **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
-- **`AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
-- **`ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
+- **`#!csharp AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
+- **`#!csharp ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
 
 ## Start Everything
 
@@ -800,21 +800,21 @@ You need all three services running at the same time: both subgraphs and the gat
 
 **Terminal 1: Products subgraph**
 
-```bash
+```shell
 cd fusion-getting-started/Products
 dotnet run
 ```
 
 **Terminal 2: Reviews subgraph**
 
-```bash
+```shell
 cd fusion-getting-started/Reviews
 dotnet run
 ```
 
 **Terminal 3: Gateway**
 
-```bash
+```shell
 cd fusion-getting-started/Gateway
 dotnet run
 ```

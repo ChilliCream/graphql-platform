@@ -1,0 +1,58 @@
+title: OverCostRequest_Should_Execute_When_RequestCostOptionsRaiseTypeCostLimit
+request:
+  document: |
+    query OverCost {
+      expensive {
+        value
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "expensive": {
+          "value": "Expensive: RXhwZW5zaXZlOjE="
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        expensive: Expensive
+      }
+
+      type Expensive @cost(weight: "2000") {
+        value: String
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query OverCost_25cbf6b5_1 {
+              expensive {
+                value
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "expensive": {
+                    "value": "Expensive: RXhwZW5zaXZlOjE="
+                  }
+                }
+              }

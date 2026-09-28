@@ -38,7 +38,6 @@ Browsable
 BSON
 buildtransitive
 bytearray
-CONNECTIONSTRING
 cacheable
 cadastre
 callsite
@@ -54,6 +53,7 @@ codestudio
 colocated
 combinators
 commandcode
+CONNECTIONSTRING
 contentfiles
 Contoso
 conv
@@ -64,6 +64,7 @@ creds
 csclient
 CUST
 dataloaders
+datetimeoffset
 debuggable
 decompile
 deepagents
@@ -76,6 +77,7 @@ Diagnoser
 Dispatchable
 DOCKERHUB
 drawio
+emulatorhealth
 enisdenjo
 entityframework
 EPSG
@@ -94,6 +96,7 @@ forgecode
 fricking
 frontends
 frontmatter
+FULLYQUALIFIEDNAMESPACE
 Fzzz
 GEOGCS
 geolocation
@@ -104,6 +107,7 @@ GraphiQL
 graphqlconf
 graphqlconfig
 graphqlrc
+GraphQLResponse
 graphqls
 graphyne
 greendonut
@@ -143,8 +147,10 @@ Marek
 marocchino
 matchesBrics
 maxage
+maxAllowedResponseSize
 MCPEXP
 mcpjam
+mdns
 MediatR
 Memberwise
 mercurius
@@ -186,6 +192,7 @@ opencover
 openhands
 OpenIddict
 opensgid
+operationCost
 OPTOUT
 overfetching
 OWIN
@@ -249,6 +256,7 @@ Silmarillion
 skillz
 skybridge
 Skywalker
+slicingArgumentDefaultValue
 slnx
 snapshooter
 snupkg
@@ -298,6 +306,7 @@ Unsubscriber
 unsupplied
 uppercased
 Upsert
+upserts
 upvote
 URQL
 Usercentrics
@@ -314,6 +323,3 @@ xact
 xcrun
 xunit
 zencoder
-emulatorhealth
-FULLYQUALIFIEDNAMESPACE
-upserts

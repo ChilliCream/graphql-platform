@@ -20,7 +20,7 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
 
             Options:
               --status <status>      Filter by status; can be used multiple times
-              --type <type>          The task type (task, bug, feature, epic, chore, docs, question, or custom)
+              --type <type>          Only show tasks of this type (task, bug, feature, epic, chore, docs, question, or custom)
               --priority <priority>  The task priority, 0-4 or p0-p4 (0 = critical, 4 = backlog); list/ready also accept a range like 0-1 or p0-p1
               --assignee <assignee>  The assignee
               --label <label>        A label; can be used multiple times
@@ -164,6 +164,42 @@ public sealed class ListTaskCommandTests(NitroCommandFixture fixture)
 
             1 task(s)
             """);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnOnlyMatchingTasks_When_TypeFilterIsSet()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var questionId = await CreateTaskAsync("Question", "--type", "question");
+        await CreateTaskAsync("Feature", "--type", "feature");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "tasks", "list", "--type", "question");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            {questionId}  P2  question  open  Question
+
+            1 task(s)
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnNoTasks_When_TypeIsUnknown()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await CreateTaskAsync("Question", "--type", "question");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "tasks", "list", "--type", "unknown");
+
+        // assert
+        result.AssertSuccess("No tasks found.");
     }
 
     [Fact]

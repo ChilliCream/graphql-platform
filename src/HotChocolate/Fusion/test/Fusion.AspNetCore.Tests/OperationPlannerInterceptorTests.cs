@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -105,6 +106,52 @@ public class OperationPlannerInterceptorTests : FusionTestBase
         Assert.True(interceptor2.HasHitOnAfterPlanCompleted);
     }
 
+    [Fact]
+    public async Task OnAfterPlanCompleted_Should_Expose_Planner_Version_Through_The_Plan_Schema()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        var interceptor = new VersionMockInterceptor();
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b
+                .AddOperationPlannerInterceptor(_ => interceptor));
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new HotChocolate.Transport.OperationRequest(
+            """
+            {
+              bookById(id: 1) {
+                id
+                title
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(OperationPlanner.Version, interceptor.PlannerVersion);
+    }
+
     private class MockInterceptor : IOperationPlannerInterceptor
     {
         public bool HasHitOnAfterPlanCompleted;
@@ -114,6 +161,20 @@ public class OperationPlannerInterceptorTests : FusionTestBase
             OperationPlan plan)
         {
             HasHitOnAfterPlanCompleted = true;
+        }
+    }
+
+    private class VersionMockInterceptor : IOperationPlannerInterceptor
+    {
+        public Version? PlannerVersion;
+
+        public void OnAfterPlanCompleted(
+            OperationDocumentInfo operationDocumentInfo,
+            OperationPlan operationPlan)
+        {
+            var schema = (FusionSchemaDefinition)operationPlan.Operation.Schema;
+
+            PlannerVersion = schema.Features.Get<OperationPlannerFeature>()?.Version;
         }
     }
 

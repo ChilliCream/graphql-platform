@@ -6,11 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Covers the command's wiring and the response it writes to stdout, plus the queue call
-/// <c>notify</c> makes (its own stdout carries nothing). The event state machine, digest, gate, and
-/// ledger behavior are exercised directly against <see cref="Services.Hook.CodexHookHandler"/> in
-/// <c>CodexHookHandlerTests</c>, and the fail-open envelopes against
-/// <see cref="Services.Hook.CodexHookExecutor"/> / <c>CodexNotifyExecutor</c> in
-/// <c>CodexHookExecutorTests</c>.
+/// <c>notify</c> makes (its own stdout carries nothing).
 /// </summary>
 public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
@@ -19,8 +15,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task SessionStart_Should_WriteTheActorContext_ToStdout()
     {
-        // arrange: an identity already bound to this thread id, so the
-        // announced actor is the seeded name rather than an allocated one.
+        // arrange
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupHookPayload();
@@ -37,8 +32,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task SessionStart_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession()
     {
-        // arrange: a payload with no session id, so nothing identifies
-        // which session the event speaks for.
+        // arrange
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupSessionlessHookPayload();
@@ -85,9 +79,10 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task SessionEnd_Should_DeleteThePresenceRow_And_WriteNeutralResponse()
+    public async Task SessionEnd_Should_StampEndedAtAndKeepTheRow_When_ThePayloadNamesASession()
     {
-        // arrange: a presence row this same generation created on SessionStart.
+        // arrange
+        // A presence row this same generation created on SessionStart.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupHookPayload();
@@ -99,15 +94,16 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.NotNull(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'maya'"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
     [Fact]
-    public async Task SessionEnd_Should_KeepThePresenceRow_When_ThePayloadNamesNoSession()
+    public async Task SessionEnd_Should_LeaveTheRowUnaffected_When_ThePayloadNamesNoSession()
     {
-        // arrange: the row exists, but this event's payload names no session,
-        // so nothing says which row it speaks for.
+        // arrange
+        // Start the session, then submit an event without a session id.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupHookPayload();
@@ -119,7 +115,8 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agent_sessions"));
+        Assert.Null(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'maya'"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 
@@ -146,16 +143,35 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         Assert.Equal(SessionId, call.ThreadId);
         call.Message.Replace(message.Id, "<id>").MatchInlineSnapshot(
             """
-            You have 1 unread nitro message. Run `nitro agent mail inbox --actor maya`.
+            You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor maya --body "..."` or ack with `nitro agent mail ack --message <id> --actor maya`; anything not shown is in `nitro agent mail inbox --unread --actor maya`.
+            {
+              "items": [
+                {
+                  "id": "<id>",
+                  "threadId": "<id>",
+                  "inReplyTo": null,
+                  "from": "bob",
+                  "to": [
+                    "maya"
+                  ],
+                  "cc": [],
+                  "subject": "status",
+                  "body": "please check",
+                  "createdAt": "2026-01-01T00:00:00+00:00",
+                  "read": false,
+                  "archived": false,
+                  "takeovers": []
+                }
+              ]
+            }
             """);
     }
 
     [Fact]
     public async Task Notify_Should_QueueNothing_When_ThePayloadNamesNoThread()
     {
-        // arrange: the thread has unread mail and a bound presence row, but
-        // this notify payload names no thread, so nothing says which session
-        // it speaks for.
+        // arrange
+        // Seed unread mail and a session before sending a notify payload without a thread id.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         await SeedMailAsync();
@@ -187,9 +203,10 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
-    public async Task CodexHelp_ReturnsSuccess()
+    public async Task CodexHelp_Should_ListTheHookEvents_When_HelpIsRequested()
     {
-        // arrange & act
+        // arrange
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "codex", "--help");
 
         // assert
@@ -207,7 +224,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
             Commands:
               session-start       Adapt Codex CLI's SessionStart hook: upsert this session's presence row.
               user-prompt-submit  Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.
-              session-end         Adapt Codex CLI's SessionEnd hook: delete this session's presence row.
+              session-end         Adapt Codex CLI's SessionEnd hook: mark this session's agent row as ended.
               notify <payload>    Adapt Codex CLI's notify program: queue the unread-mail digest into the thread's next turn, then exec any wrapped foreign notify program.
             """);
     }
@@ -215,10 +232,11 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Theory]
     [InlineData("session-start", "Adapt Codex CLI's SessionStart hook: upsert this session's presence row.")]
     [InlineData("user-prompt-submit", "Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.")]
-    [InlineData("session-end", "Adapt Codex CLI's SessionEnd hook: delete this session's presence row.")]
-    public async Task EventHelp_ReturnsSuccess(string eventName, string description)
+    [InlineData("session-end", "Adapt Codex CLI's SessionEnd hook: mark this session's agent row as ended.")]
+    public async Task EventHelp_Should_PrintTheEventDescription_When_HelpIsRequested(string eventName, string description)
     {
-        // arrange & act
+        // arrange
+        // act
         var result = await ExecuteCommandAsync("agent", "hook", "codex", eventName, "--help");
 
         // assert
@@ -247,12 +265,10 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     private Task SeedCodexIdentityAsync()
-        => InsertSessionIdentityAsync("maya", SessionId, AgentSessionHarness.Codex);
+        => BindAgentSessionAsync("maya", SessionId, AgentSessionHarness.Codex);
 
     /// <summary>
-    /// Points the <c>notify</c> install sidecar at this test's own directory,
-    /// where there is none, so no foreign notify program installed on the
-    /// machine running the test is ever spawned.
+    /// Redirects <c>notify</c> sidecar lookup to the test directory, which has no sidecar.
     /// </summary>
     private void SetupHermeticSidecar()
         => SetupGlobalConfigDirectory(WorkingDirectory);
@@ -288,7 +304,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
             new TestFileSystem(WorkingDirectory),
             FakeTime,
             new AgentDatabase(),
-            new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
+            new AgentStore(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
 
         return await store.SendMessageAsync(
             new MailMessageCreation

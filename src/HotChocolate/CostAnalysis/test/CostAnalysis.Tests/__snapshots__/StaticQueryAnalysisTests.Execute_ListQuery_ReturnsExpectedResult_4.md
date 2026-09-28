@@ -36,7 +36,8 @@
 
 ```text
 type Query {
-    examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])
+    examples(limit: Int): [Example!]!
+    @listSize(slicingArguments: ["limit"], requireOneSlicingArgument: false)
 }
 
 type Example {

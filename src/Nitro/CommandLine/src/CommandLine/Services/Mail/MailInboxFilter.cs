@@ -18,7 +18,8 @@ internal sealed record MailInboxFilter
     public bool UnreadOnly { get; init; }
 
     /// <summary>
-    /// Includes only messages sent by this agent.
+    /// Restricts results to mail sent by this normalized agent.
+    /// Null or empty applies no sender filter.
     /// </summary>
     public string? From { get; init; }
 

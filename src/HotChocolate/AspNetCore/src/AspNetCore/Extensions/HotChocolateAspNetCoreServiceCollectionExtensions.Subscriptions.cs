@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -86,7 +87,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             s => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     private static IRequestExecutorBuilder AddGraphQLOverWebSocketProtocol(
         this IRequestExecutorBuilder builder)
@@ -97,7 +99,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     sp.GetRequiredService<IWebSocketPayloadFormatter>(),
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
-                    sp.GetRequiredService<ParserOptions>())));
+                    sp.GetRequiredService<ParserOptions>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     /// <summary>
     /// Adds a custom WebSocket payload formatter to the DI.

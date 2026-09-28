@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="CodexNotifyExecutor"/>'s fail-open envelope and its
-/// distinguishing feature versus every other adapter in this namespace: the
-/// exit code carries the foreign-wrapping contract instead of always being
-/// success.
+/// Tests <see cref="CodexNotifyExecutor"/> foreign-program invocation and exit
+/// codes when Nitro handling succeeds, fails, times out, or is suppressed.
 /// </summary>
 public sealed class CodexNotifyExecutorTests
 {
@@ -138,9 +136,6 @@ public sealed class CodexNotifyExecutorTests
     [Fact]
     public async Task RunAsync_Should_StillExecForeign_When_Suppressed()
     {
-        // The NITRO_HOOK_SUPPRESS reentrancy guard is about OUR OWN mail
-        // work re-entering through a spawned relay; it must never suppress
-        // the operator's originally-configured foreign notify program.
         var cancellationToken = TestContext.Current.CancellationToken;
         var environmentVariables = new FixedEnvironmentVariableProvider();
         environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");

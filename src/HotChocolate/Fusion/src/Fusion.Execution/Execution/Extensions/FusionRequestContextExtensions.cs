@@ -2,6 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,30 +17,6 @@ namespace HotChocolate.Execution;
 public static class FusionRequestContextExtensions
 {
     /// <summary>
-    /// Gets the operation id.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <returns>
-    /// The <see cref="OperationPlan"/> if it exists, otherwise <c>null</c>.
-    /// </returns>
-    public static string GetOperationId(
-        this RequestContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        var operationId = context.Features.Get<FusionOperationInfo>()?.OperationId;
-
-        if (string.IsNullOrEmpty(operationId))
-        {
-            throw new InvalidOperationException("The operation identifier was not set.");
-        }
-
-        return operationId;
-    }
-
-    /// <summary>
     /// Gets the <see cref="OperationPlan"/> from the request context.
     /// </summary>
     /// <param name="context">
@@ -53,26 +30,7 @@ public static class FusionRequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.Features.Get<FusionOperationInfo>()?.OperationPlan;
-    }
-
-    /// <summary>
-    /// Sets the operation identifier.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <param name="id">
-    /// The operation id.
-    /// </param>
-    public static void SetOperationId(
-        this RequestContext context,
-        string id)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentException.ThrowIfNullOrEmpty(id);
-
-        context.Features.GetOrSet<FusionOperationInfo>().OperationId = id;
+        return context.Features.Get<OperationPlanInfo>()?.OperationPlan;
     }
 
     /// <summary>
@@ -91,8 +49,11 @@ public static class FusionRequestContextExtensions
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(plan);
 
-        context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
+        context.Features.GetOrSet<OperationPlanInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
+
+        // Release waiting requests as soon as the plan is available, before the leader finishes execution.
+        context.Features.Get<OperationPlanInFlightRelease>()?.TryRelease(context, plan);
     }
 
     internal static bool CollectOperationPlanTelemetry(

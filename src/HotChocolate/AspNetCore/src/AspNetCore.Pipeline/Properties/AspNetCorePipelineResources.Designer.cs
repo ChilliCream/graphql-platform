@@ -243,9 +243,9 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ThrowHelper_Formatter_InvalidAcceptMediaType {
+        internal static string ThrowHelper_Formatter_TransportVersionNotSupported {
             get {
-                return ResourceManager.GetString("ThrowHelper_Formatter_InvalidAcceptMediaType", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Formatter_TransportVersionNotSupported", resourceCulture);
             }
         }
         
@@ -264,6 +264,12 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_InvalidTypeName {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidTypeName", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_InvalidSpecVersion {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidSpecVersion", resourceCulture);
             }
         }
         
@@ -294,6 +300,24 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_RequestBatchingDisabled {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequestBatchingDisabled", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBatchingNotSupportedForQuery {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBatchingNotSupportedForQuery", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_VariableBatchingNotSupportedForQuery {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingNotSupportedForQuery", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBodyHasNoRequestForQuery {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBodyHasNoRequestForQuery", resourceCulture);
             }
         }
     }

@@ -14,6 +14,6 @@ internal sealed class UserPromptSubmitHookCommand : Command
 
         this.SetHookAction(
             "UserPromptSubmit",
-            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, false, ct));
+            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, skipSessionFileLookup: false, ct));
     }
 }

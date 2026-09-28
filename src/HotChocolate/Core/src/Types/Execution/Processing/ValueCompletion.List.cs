@@ -148,7 +148,7 @@ internal static partial class ValueCompletion
 
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
-        var error = ListValueIsNotSupported(runtimeValue.GetType(), selection, resultValue.Path);
+        var error = ListValueIsNotSupported(runtimeValue.GetType(), resultValue.Path);
         operationContext.ReportError(error, resolverContext);
     }
 

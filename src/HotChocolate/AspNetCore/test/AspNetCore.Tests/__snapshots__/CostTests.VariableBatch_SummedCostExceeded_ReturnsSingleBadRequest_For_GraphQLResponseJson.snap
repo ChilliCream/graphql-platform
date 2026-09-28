@@ -1,0 +1,12 @@
+{
+  "errors": [
+    {
+      "message": "The maximum allowed type cost was exceeded.",
+      "extensions": {
+        "code": "HC0047",
+        "maxTypeCost": 2,
+        "typeCost": 4
+      }
+    }
+  ]
+}

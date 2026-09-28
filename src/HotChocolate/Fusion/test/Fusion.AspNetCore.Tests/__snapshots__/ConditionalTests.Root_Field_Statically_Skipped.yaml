@@ -33,7 +33,7 @@ operationPlan:
           __typename @fusion__empty
         }
       name: testQuery
-      hash: d2f996cbe8f8f0fa43055e90b91eefe5
+      hash: 8bf3d70802534a3113f13e22114d2695
       searchSpace: 1
       expandedNodes: 1
   nodes:

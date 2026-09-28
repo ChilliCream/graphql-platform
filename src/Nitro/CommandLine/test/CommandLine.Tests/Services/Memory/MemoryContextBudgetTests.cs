@@ -3,12 +3,10 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
 /// <summary>
-/// The context budget determinism contract test: given the same ranked
-/// candidates, limit, and character budget, <see cref="MemoryContextBudget.Select"/>
-/// always admits the same entries in the same order, following the exact
-/// prefix algorithm (whole entries, in rank order, until the limit or the
-/// character cap would be exceeded) rather than anything order-sensitive to
-/// iteration or collection internals.
+/// Given the same ranked candidates, limit, and character budget,
+/// <see cref="MemoryContextBudget.Select"/> always admits the same entries
+/// in the same order: whole entries in rank order until the limit or the
+/// character cap would be exceeded.
 /// </summary>
 public sealed class MemoryContextBudgetTests
 {
@@ -63,13 +61,14 @@ public sealed class MemoryContextBudgetTests
     [Fact]
     public void Select_Should_StopBeforeExceedingMaxChars_RatherThanSkippingToASmallerLaterEntry()
     {
-        // arrange: the second entry's rendering alone would fit, but it is
-        // never considered because the algorithm stops at the first entry
-        // that would exceed the budget rather than skipping ahead.
+        // arrange
         var first = CreateRecord("mem-01", new string('a', 40));
-        var second = CreateRecord("mem-02", "x");
-        var candidates = new[] { first, second };
-        var maxChars = MemoryContextRenderer.RenderEntry(first).Length; // exactly fits the first, no room for a second
+        var oversized = CreateRecord("mem-02", new string('b', 100));
+        var smaller = CreateRecord("mem-03", "x");
+        var candidates = new[] { first, oversized, smaller };
+        var maxChars = MemoryContextRenderer.RenderEntry(first).Length
+            + MemoryContextRenderer.Separator.Length
+            + MemoryContextRenderer.RenderEntry(smaller).Length;
 
         // act
         var selection = MemoryContextBudget.Select(candidates, limit: 50, maxChars: maxChars);
@@ -99,10 +98,12 @@ public sealed class MemoryContextBudgetTests
     {
         // arrange
         var oversized = CreateRecord("mem-01", new string('a', 100));
-        var candidates = new[] { oversized, CreateRecord("mem-02", "short") };
+        var smaller = CreateRecord("mem-02", "short");
+        var candidates = new[] { oversized, smaller };
+        var maxChars = MemoryContextRenderer.RenderEntry(smaller).Length;
 
         // act
-        var selection = MemoryContextBudget.Select(candidates, limit: 50, maxChars: 10);
+        var selection = MemoryContextBudget.Select(candidates, limit: 50, maxChars: maxChars);
 
         // assert
         Assert.Empty(selection.Entries);

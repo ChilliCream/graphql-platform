@@ -74,11 +74,128 @@ Validates the merged schema as a whole. The rules here treat the composed schema
 
 Performs reachability analysis. Starting from the root types, the pipeline walks every reachable field in the merged schema and confirms it can be resolved by at least one subgraph given the available `@lookup` and `@key` paths. If a field is reachable from a query but no subgraph can produce it, satisfiability reports `UNSATISFIABLE_QUERY_PATH`. This is normally an error. When source-schema node resolution has a usable dispatcher but does not cover a composite `Node` type, Fusion reports a warning because the source resolver can return `null` or an error at runtime.
 
+# Cost Metadata Derivation
+
+Fusion composition records each compatible source usage as an internal `@fusion__cost` or `@fusion__listSize` provenance entry, folds the source values, and projects the result as a public directive. A public `@cost` or `@listSize` directive is emitted only when at least one source has a compatible usage. The internal entries identify the source schema and preserve its declared values. An unannotated serving source contributes the coordinate default to the public `@cost` fold without adding an internal provenance entry.
+
+Both folds only consider serving sources: a source schema that resolves the field itself. A source that provides the field only as partial (for example an Apollo Federation `@external` field returned through `@provides`) is not a serving source for either fold, so an unannotated partial member contributes neither the coordinate's default weight nor a gap that widens the `@listSize` bound. Its own `@cost` or `@listSize` usage, when declared, still folds in and is still recorded as its own provenance entry.
+
+A usage without a local directive definition receives the canonical definition during composition. A locally declared definition can use a compatible subset of the canonical arguments.
+
+For `@cost`, the public weight is the maximum effective weight across every serving source. A declared weight is effective as written. An unannotated serving source contributes the default for the coordinate:
+
+| Coordinate                                            | Default weight |
+| ----------------------------------------------------- | -------------- |
+| Object type                                           | `1`            |
+| Scalar or enum type                                   | `0`            |
+| Output field returning an object, interface, or union | `1`            |
+| Output field returning a scalar or enum               | `0`            |
+| Argument or input field with an input-object value    | `1`            |
+| Argument or input field with a scalar, enum, or ID    | `0`            |
+
+For example, a composite-typed coordinate with weight `-7` in one source and no declared weight in another source derives the public weight `1`. Given these two source schemas:
+
+```graphql
+# Schema A
+type Query {
+  book: Book @cost(weight: "-7")
+}
+
+type Book {
+  id: ID
+}
+```
+
+```graphql
+# Schema B
+type Query {
+  book: Book
+}
+
+type Book {
+  id: ID
+}
+```
+
+Composition folds `Query.book` to the public weight `1` and records schema A's declared value as its own provenance entry; schema B contributes the coordinate default without one:
+
+```graphql
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  book: Book
+    @cost(weight: "1")
+    @fusion__cost(schema: A, weight: "-7")
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+}
+```
+
+The public `@listSize` directive applies these folds:
+
+| Argument                             | Fold                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `assumedSize`                        | Maximum over sources that declare it.                                  |
+| `slicingArguments` and `sizedFields` | Deterministic union in first-seen order.                               |
+| `requireOneSlicingArgument`          | Apply each source definition's default when omitted, then true if any. |
+| `slicingArgumentDefaultValue`        | Maximum over sources that declare it.                                  |
+
+The name unions are preserved as declared. A name that does not match an argument or child field in the composite schema contributes no runtime value, and list-size selection continues through its remaining fallbacks.
+
+For `assumedSize`, given these two source schemas:
+
+```graphql
+# Schema A
+type Query {
+  field: [Int] @listSize(assumedSize: 10)
+}
+```
+
+```graphql
+# Schema B
+type Query {
+  field: [Int] @listSize(assumedSize: 5)
+}
+```
+
+Composition folds `assumedSize` to the maximum of the two, `10`, and records both declared values as provenance entries:
+
+```graphql
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  field: [Int]
+    @listSize(assumedSize: 10)
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+    @fusion__listSize(schema: A, assumedSize: 10)
+    @fusion__listSize(schema: B, assumedSize: 5)
+}
+```
+
+The `slicingArgumentDefaultValue` argument is optional. A source can use a spec-only `@listSize` definition that omits this ChilliCream extension, and it composes without a warning. If every source omits the value, the public directive omits it too.
+
+Composition reports a normal `INVALID_GRAPHQL` error for invalid locally declared definitions. Applying an argument-less local `@cost` definition reports `The @cost directive must have a 'weight' argument of type String.`, the source schema name, and the usage coordinate.
+
+## Default List Size
+
+The assumed size for a list field that carries no applicable `@listSize` information is a composition setting, not a gateway runtime option. Set `SourceSchemaMergerOptions.DefaultListSize` on the composer:
+
+```csharp
+var options = new SchemaComposerOptions
+{
+    Merger =
+    {
+        DefaultListSize = 100
+    }
+};
+```
+
+When set, composition writes the value onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and folds it into the effective `assumedSize` of a field for which at least one serving source declares a `@listSize`, so the public `@listSize` reflects the higher, sound bound. For a field no source annotates, composition emits no `@listSize` and the gateway applies the value directly from `@fusion__cost_options`. When absent (the default), no `@fusion__cost_options` usage is emitted and the gateway treats an unannotated list as unbounded.
+
+See [Cost Analysis](./cost-analysis.md) for gateway enforcement, reporting, and options.
+
 # Common Scenarios
 
 A few rules account for most composition failures. Knowing the shape of the error helps you spot the cause quickly.
 
-**Two source schemas return incompatible types for the same field.** If `Product.price` is `Float` in one source schema and `Int` in another, composition fails with `OUTPUT_FIELD_TYPES_NOT_MERGEABLE`. Scalar and enum return types must match exactly, while object, interface, and union types merge when one declared type is a supertype of the others (for example, `Product` and a `union FeaturedItem = Product` merge to `FeaturedItem`). Align the types when no common supertype exists.
+**Two source schemas return incompatible types for the same field.** If `Product.price` is `Float` in one source schema and `Int` in another, composition fails with `OUTPUT_FIELD_TYPES_NOT_MERGEABLE`. Scalar and enum return types must match exactly, while object, interface, and union types merge when one declared type is a supertype of the others (for example, `Product` and a `#!sdl union FeaturedItem = Product` merge to `FeaturedItem`). Align the types when no common supertype exists.
 
 **A field is defined in multiple source schemas without `@shareable`.** Defining `User.name` in both Accounts and Reviews without marking it `@shareable` produces `INVALID_FIELD_SHARING`.
 
@@ -106,7 +223,7 @@ Add `@shareable` to `User.name` in both source schemas that define it. See [Fiel
 
 If you do not want to mark shared fields manually, you can set the per-source-schema `preprocessor.inferShareable` option in that schema's `schema-settings.json` to `true`. When enabled, the composition automatically marks every field on that source schema that is also exposed by other source schemas as `@shareable`. Only enable `inferShareable`, if there are other processes in place that ensure fields are semantically the same across source schemas.
 
-**`@key` references a field that does not exist on the type.** A `@key(fields: "sku")` on a type that has no `sku` field fails with `KEY_INVALID_FIELDS`. The fix is to either add the missing field to the type or correct the selection set in the `@key` directive. See [Entities and Lookups](./entities-and-lookups.md) for the rules around key selection sets.
+**`@key` references a field that does not exist on the type.** A `#!sdl @key(fields: "sku")` on a type that has no `sku` field fails with `KEY_INVALID_FIELDS`. The fix is to either add the missing field to the type or correct the selection set in the `@key` directive. See [Entities and Lookups](./entities-and-lookups.md) for the rules around key selection sets.
 
 # Log Codes Reference
 
@@ -160,14 +277,14 @@ The placeholders `{0}`, `{1}`, etc. in the message column are replaced with the 
 | `INVALID_SHAREABLE_FIELD_RUNTIME_TYPE_ROUTING`                                                                                                   | The shareable field runtime type routing mode '\{0\}' is invalid.                                                                                                                                          | Set `ShareableFieldRuntimeTypeRouting` to `SourceLocal` or `CommonRuntimeTypes`. See [Composition Settings](./local-development.md#composition-settings) for the Aspire setting.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | [INVALID_SHAREABLE_USAGE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Invalid-Shareable-Usage)                                   | The field '\{0\}' in schema '\{1\}' must not be marked as shareable.                                                                                                                                       | `@shareable` was applied where it is not allowed (for example, on a field that is already governed by another ownership directive). Remove `@shareable` from the field. See [Field Ownership](./field-ownership-and-sharing.md).                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | [IS_INVALID_FIELDS](https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Fields)                                               | The @is directive on argument '\{0\}' in schema '\{1\}' specifies an invalid field selection against the composed schema.                                                                                  | The field selection map in `@is(field: ...)` does not resolve against the entity's fields. Update it to reference fields that actually exist on the parent type. See [Entities and Lookups](./entities-and-lookups.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| [IS_INVALID_FIELD_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Field-Type)                                       | The @is directive on argument '\{0\}' in schema '\{1\}' must specify a string value for the 'field' argument.                                                                                              | The `field` argument was given as a non-string literal. Pass it as a quoted string, for example `@is(field: "id")`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| [IS_INVALID_FIELD_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Field-Type)                                       | The @is directive on argument '\{0\}' in schema '\{1\}' must specify a string value for the 'field' argument.                                                                                              | The `field` argument was given as a non-string literal. Pass it as a quoted string, for example `#!sdl @is(field: "id")`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | [IS_INVALID_SYNTAX](https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Syntax)                                               | The @is directive on argument '\{0\}' in schema '\{1\}' contains invalid syntax in the 'field' argument.                                                                                                   | The string value for `field` is not a valid field selection map. Rewrite it as a syntactically valid field selection map.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | [IS_INVALID_USAGE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Is-Invalid-Usage)                                                 | The @is directive on argument '\{0\}' in schema '\{1\}' is invalid because the declaring field is not a lookup field.                                                                                      | `@is` is only valid on arguments of lookup fields. Move `@is` to a lookup, or annotate the declaring field with `@lookup`. See [Entities and Lookups](./entities-and-lookups.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | [KEY_DIRECTIVE_IN_FIELDS_ARGUMENT](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Directive-in-Fields-Argument)                 | A @key directive on type '\{0\}' in schema '\{1\}' references field '\{2\}', which must not include directive applications.                                                                                | The `fields` selection of `@key` cannot apply directives to the selected fields. Remove the directive applications from the selection set. See [Entities and Lookups](./entities-and-lookups.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | [KEY_FIELDS_SELECT_INVALID_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Fields-Select-Invalid-Type)                     | A @key directive on type '\{0\}' in schema '\{1\}' references field '\{2\}', which must not be a list, interface, or union type.                                                                           | Key fields must resolve to scalar, enum, or object types, not lists, interfaces, or unions. Pick a different field for the key, or model the key as a scalar identifier.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | [KEY_INVALID_ARGUMENTS](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Arguments)                                       | A @key directive on type '\{0\}' in schema '\{1\}' specifies invalid arguments. \{2\}                                                                                                                      | Key fields support constant arguments. Remove or correct any argument that is unknown, has an incompatible value type, or leaves a required argument unsupplied.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | [KEY_INVALID_FIELDS](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Fields)                                             | A @key directive on type '\{0\}' in schema '\{1\}' specifies an invalid field selection against the composed schema.                                                                                       | The `fields` selection refers to fields that do not exist on the type. Add the missing fields to the type or correct the selection set. See [Entities and Lookups](./entities-and-lookups.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| [KEY_INVALID_FIELDS_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Fields-Type)                                   | A @key directive on type '\{0\}' in schema '\{1\}' must specify a string value for the 'fields' argument.                                                                                                  | The `fields` argument was given as a non-string literal. Pass it as a quoted string, for example `@key(fields: "id")`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| [KEY_INVALID_FIELDS_TYPE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Fields-Type)                                   | A @key directive on type '\{0\}' in schema '\{1\}' must specify a string value for the 'fields' argument.                                                                                                  | The `fields` argument was given as a non-string literal. Pass it as a quoted string, for example `#!sdl @key(fields: "id")`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | [KEY_INVALID_SYNTAX](https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Invalid-Syntax)                                             | A @key directive on type '\{0\}' in schema '\{1\}' contains invalid syntax in the 'fields' argument.                                                                                                       | The string value for `fields` is not a valid GraphQL selection set. Rewrite it as a syntactically valid selection.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | [LOOKUP_RETURNS_LIST](https://graphql.github.io/composite-schemas-spec/draft/#sec-Lookup-Returns-List)                                           | The lookup field '\{0\}' in schema '\{1\}' must not return a list.                                                                                                                                         | A `@lookup` field returned a list, which prevents the gateway from mapping a key to a single entity. Change the return type to a single nullable entity. See [Entities and Lookups](./entities-and-lookups.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | [NON_NULL_INPUT_FIELD_IS_INACCESSIBLE](https://graphql.github.io/composite-schemas-spec/draft/#sec-Non-Null-Input-Fields-cannot-be-inaccessible) | The non-null input field '\{0\}' in schema '\{1\}' must be accessible in the composed schema.                                                                                                              | A required input field was hidden by `@inaccessible`, which would make the input impossible to construct from the gateway. Either make the field nullable or expose it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -228,7 +345,7 @@ Underneath it, indented with two spaces per level, are the nested errors that th
 | `No lookups found for type '<type>' in schema '<schema>'.`                                                                                   | A specific reason a transition failed: the target source schema has no `@lookup` for the entity at all.                                                                                      |
 | `Unable to satisfy the requirement '<selection>' for lookup '<lookup>' in schema '<schema>'.`                                                | A `@lookup` on the target source schema needs key fields that the parent type does not expose along this path.                                                                               |
 | `Unable to satisfy the requirement '<selection>' on field '<coordinate>'.`                                                                   | A field's `@require` argument depends on fields the parent type does not expose along this path.                                                                                             |
-| `Type '<type>' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.` | A type implements `Node` but no source schema exposes a `node(id: ID!)` lookup that returns it.                                                                                              |
+| `Type '<type>' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type.` | A type implements `Node` but no source schema exposes a `#!sdl node(id: ID!)` lookup that returns it.                                                                                        |
 
 Indentation is meaningful: a nested message is the reason its parent option failed. Start at the leaves and work up.
 
@@ -255,7 +372,7 @@ Paths add noise to short outputs and pay off on any non-trivial graph. Turn them
 - **Missing `@lookup` for an entity in the target source schema.** A field on schema A returns an entity that is also defined in schema B, but B has no lookup that takes the entity's key. Add a lookup on B (typically `<entity>(id: ID!): <Entity>`) annotated with `@lookup`. See [Entities and Lookups](./entities-and-lookups.md).
 - **Mismatched `@key` selections across source schemas.** The shared entity has different `@key` selection sets in different source schemas, so the validator cannot find a key both sides recognize. Align the key selection sets, or add additional `@key` directives so every key the producer uses is also a key the consumer recognizes.
 - **`@require` reaches for a field that is not on the path.** A `@require(field: "...")` references parent fields that the validator cannot resolve given the path it took. Either expose the required field on the parent type along that path, or rewrite the requirement.
-- **`Node` interface without a node lookup.** A type implements `Node` but no source schema exposes a `node(id: ID!): Node` lookup that returns it. Add one in any source schema that owns the entity.
+- **`Node` interface without a node lookup.** A type implements `Node` but no source schema exposes a `#!sdl node(id: ID!): Node` lookup that returns it. Add one in any source schema that owns the entity.
 
 When you fix the root cause, both the top-level `UNSATISFIABLE_QUERY_PATH` diagnostic and its nested children disappear together.
 

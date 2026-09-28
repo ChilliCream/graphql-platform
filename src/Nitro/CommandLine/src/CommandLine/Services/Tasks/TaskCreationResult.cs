@@ -8,8 +8,8 @@ internal sealed record TaskCreationResult
     public required string Id { get; init; }
 
     /// <summary>
-    /// The IDs of tasks that block the new task, per the same rules as
-    /// ComputeBlockedAsync.
+    /// Direct, non-parent blocking dependency ids whose targets are non-terminal.
+    /// Use blocked or ready queries for the complete readiness result.
     /// </summary>
     public IReadOnlyList<string> BlockedBy { get; init; } = [];
 }

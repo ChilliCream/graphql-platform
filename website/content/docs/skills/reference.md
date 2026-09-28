@@ -7,7 +7,7 @@ This page is the complete, precise reference for the `skills` command surface, J
 
 Every command prints the same per-command help at the terminal. Run `dnx skills <command> --help` to see the synopsis, arguments, and options for that command.
 
-```bash
+```shell
 dnx skills add --help
 ```
 
@@ -33,7 +33,7 @@ Options:
   -?, -h, --help  Show help and usage information
 ```
 
-> The binary on your PATH is `skills`. Install it with `dotnet tool install -g skills`, or run it without installing via `dnx skills <command>` (requires the .NET 10 SDK or later). Both forms accept the same commands, arguments, and options documented below.
+> The binary on your PATH is `skills`. Install it with `#!shell dotnet tool install -g skills`, or run it without installing via `dnx skills <command>` (requires the .NET 10 SDK or later). Both forms accept the same commands, arguments, and options documented below.
 
 # Commands
 
@@ -210,13 +210,13 @@ These are provided on the root command and on every subcommand.
 | `--help`    | `-h`, `-?` | bool | Show help. On a subcommand, shows that command's help. |
 | `--version` | (none)     | bool | Print the installed CLI version and exit 0.            |
 
-Running `skills` with no arguments shows the banner and exits 0. Running `dnx skills --help` shows curated top-level help. A bare `--` token is removed before parsing, so `dnx skills add --agent codex -- owner/repo` parses the same as without it.
+Running `skills` with no arguments shows the banner and exits 0. Running `#!shell dnx skills --help` shows curated top-level help. A bare `--` token is removed before parsing, so `#!shell dnx skills add --agent codex -- owner/repo` parses the same as without it.
 
 # JSON output
 
-`dnx skills list --json` (equivalently `dnx skills list --format json`) prints a JSON array to stdout. Each element describes one installed skill.
+`#!shell dnx skills list --json` (equivalently `#!shell dnx skills list --format json`) prints a JSON array to stdout. Each element describes one installed skill.
 
-```bash
+```shell
 dnx skills list --json
 ```
 

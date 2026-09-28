@@ -1,0 +1,977 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chillicream.com/schemas/fusion/operation-plan.json",
+  "title": "Fusion Operation Plan",
+  "type": "object",
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "enum": ["1.0.0"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "version": {
+            "const": "1.0.0"
+          }
+        },
+        "required": ["version"]
+      },
+      "then": {
+        "$ref": "#/$defs/v1_0_0_plan"
+      }
+    }
+  ],
+  "$defs": {
+    "v1_0_0_plan": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "version": {
+          "const": "1.0.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "searchSpace": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expandedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "appId": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "traceId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "nodes": {
+          "$ref": "#/$defs/nodes"
+        },
+        "deliveryGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/deliveryGroup"
+          },
+          "minItems": 1
+        },
+        "incrementalPlans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/incrementalPlan"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "operation",
+        "searchSpace",
+        "expandedNodes",
+        "nodes"
+      ],
+      "additionalProperties": false
+    },
+    "requestOperation": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["Query", "Mutation", "Subscription"]
+        },
+        "document": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "shortHash": {
+          "type": "string"
+        }
+      },
+      "required": ["kind", "document", "id", "hash", "shortHash"],
+      "additionalProperties": false
+    },
+    "sourceOperation": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["Query", "Mutation", "Subscription"]
+        },
+        "document": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "shortHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}$"
+        },
+        "xxHash": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        }
+      },
+      "required": ["name", "kind", "document", "hash", "shortHash", "xxHash"],
+      "additionalProperties": false
+    },
+    "requirement": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "internalAlias": {
+          "type": "string"
+        },
+        "selectionMap": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "type", "path", "selectionMap"],
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "variable": {
+          "type": "string",
+          "pattern": "^\\$.+"
+        },
+        "passingValue": {
+          "type": "boolean"
+        }
+      },
+      "required": ["variable", "passingValue"],
+      "additionalProperties": false
+    },
+    "dependency": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parentNodeId": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["parentNodeId"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dependency"
+      },
+      "minItems": 1
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      },
+      "minItems": 1
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condition"
+      },
+      "minItems": 1
+    },
+    "forwardedVariables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "deliveryGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "path": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "ifVariable": {
+          "type": "string",
+          "pattern": "^\\$.+"
+        },
+        "parentId": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["id", "path"],
+      "additionalProperties": false
+    },
+    "incrementalPlan": {
+      "type": "object",
+      "properties": {
+        "deliveryGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "parentNodeId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirements"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "nodes": {
+          "$ref": "#/$defs/nodes"
+        }
+      },
+      "required": ["deliveryGroupIds", "parentNodeId", "operation"],
+      "additionalProperties": false
+    },
+    "operationNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "Operation"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "lookupTypeName": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "batchingGroupId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["id", "type", "operation", "resultSelectionSet"],
+      "additionalProperties": false
+    },
+    "operationBatchNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "OperationBatch"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "lookupTypeName": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "batchingGroupId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "operation",
+        "resultSelectionSet",
+        "targets",
+        "batchingGroupId"
+      ],
+      "additionalProperties": false
+    },
+    "apolloOperationNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "ApolloOperation"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "entityType": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "operation",
+        "entityType",
+        "resultSelectionSet"
+      ],
+      "additionalProperties": false
+    },
+    "apolloOperationBatchNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "ApolloOperationBatch"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "entityType": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "batchingGroupId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "operation",
+        "entityType",
+        "resultSelectionSet",
+        "batchingGroupId"
+      ],
+      "additionalProperties": false
+    },
+    "eventStreamNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "EventStream"
+        },
+        "fieldName": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "eventStream": {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "type": "string"
+            },
+            "topics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "broker": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "cursorField": {
+              "type": "string"
+            },
+            "cursorArgument": {
+              "type": "string"
+            }
+          },
+          "required": ["schema", "message"],
+          "additionalProperties": false
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "fieldName",
+        "resultSelectionSet",
+        "eventStream"
+      ],
+      "additionalProperties": false
+    },
+    "introspectionNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "Introspection"
+        },
+        "selections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "responseName": {
+                "type": "string"
+              },
+              "fieldName": {
+                "type": "string"
+              }
+            },
+            "required": ["id", "responseName", "fieldName"],
+            "additionalProperties": false
+          }
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["id", "type", "selections"],
+      "additionalProperties": false
+    },
+    "nodeFieldNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "Node"
+        },
+        "idValue": {
+          "type": "string"
+        },
+        "responseName": {
+          "type": "string"
+        },
+        "branches": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "fallback": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "idValue",
+        "responseName",
+        "branches",
+        "fallback"
+      ],
+      "additionalProperties": false
+    },
+    "node": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": [
+            "Operation",
+            "OperationBatch",
+            "ApolloOperation",
+            "ApolloOperationBatch",
+            "EventStream",
+            "Introspection",
+            "Node"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Operation"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/operationNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "OperationBatch"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/operationBatchNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ApolloOperation"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/apolloOperationNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ApolloOperationBatch"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/apolloOperationBatchNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "EventStream"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/eventStreamNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Introspection"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/introspectionNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Node"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/nodeFieldNode"
+          }
+        }
+      ]
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    }
+  }
+}

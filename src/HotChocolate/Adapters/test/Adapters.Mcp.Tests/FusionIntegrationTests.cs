@@ -134,7 +134,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         var schemaComposer =
             new SchemaComposer(
                 [new SourceSchemaText(schemaDocument.Name, schemaDocument.ToString())],
-                new SchemaComposerOptions(),
+                new SchemaComposerOptions { Merger = { DefaultListSize = 1 } },
                 new CompositionLog());
         var result = schemaComposer.Compose();
 
@@ -202,6 +202,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                         services
                             .AddGraphQLServer()
                             .AddSourceSchemaDefaults()
+                            .ModifyCostOptions(o => o.DefaultListSize = 1)
                             .AddAuthorization()
                             .AddQueryType<TestSchema.Query>()
                             .AddMutationType<TestSchema.Mutation>()

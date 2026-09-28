@@ -63,6 +63,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.UseRequest(FusionMiddleware.OperationPlanCache);
     }
 
+    public static IFusionGatewayBuilder UseCostAnalysis(
+        this IFusionGatewayBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(FusionMiddleware.CostAnalysis);
+    }
+
     public static IFusionGatewayBuilder UseOperationPlan(
         this IFusionGatewayBuilder builder)
     {
@@ -182,10 +190,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseOperationVariableCoercion()
+            .UseCostAnalysis()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
-            .UseOperationVariableCoercion()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
@@ -207,10 +216,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseOperationVariableCoercion()
+            .UseCostAnalysis()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
-            .UseOperationVariableCoercion()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }
@@ -232,10 +242,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseOperationVariableCoercion()
+            .UseCostAnalysis()
             .UseOperationPlanCache()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
-            .UseOperationVariableCoercion()
             .UseConcurrencyGate()
             .UseOperationExecution();
     }

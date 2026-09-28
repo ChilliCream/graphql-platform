@@ -117,8 +117,8 @@
   <data name="ThrowHelper_Formatter_ResponseContentTypeNotSupported" xml:space="preserve">
     <value>The specified response content-type `{0}` is not supported.</value>
   </data>
-  <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
-    <value>Invalid accept media types specified.</value>
+  <data name="ThrowHelper_Formatter_TransportVersionNotSupported" xml:space="preserve">
+    <value>The specified HTTP transport version `{0}` is not supported.</value>
   </data>
   <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
     <value>Unable to parse the accept header value `{0}`.</value>
@@ -128,6 +128,9 @@
   </data>
   <data name="ErrorHelper_InvalidTypeName" xml:space="preserve">
     <value>The type name is invalid.</value>
+  </data>
+  <data name="ErrorHelper_InvalidSpecVersion" xml:space="preserve">
+    <value>The spec version '{0}' is not supported. Supported values: {1}.</value>
   </data>
   <data name="ErrorHelper_TypeNameIsEmpty" xml:space="preserve">
     <value>The specified types argument is empty.</value>
@@ -143,5 +146,14 @@
   </data>
   <data name="ErrorHelper_RequestBatchingDisabled" xml:space="preserve">
     <value>Request batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
+  </data>
+  <data name="ErrorHelper_RequestBatchingNotSupportedForQuery" xml:space="preserve">
+    <value>Request batching is not supported for HTTP QUERY requests.</value>
+  </data>
+  <data name="ErrorHelper_VariableBatchingNotSupportedForQuery" xml:space="preserve">
+    <value>Variable batching is not supported for HTTP QUERY requests.</value>
+  </data>
+  <data name="ErrorHelper_RequestBodyHasNoRequestForQuery" xml:space="preserve">
+    <value>The HTTP QUERY request body contains no GraphQL request.</value>
   </data>
 </root>

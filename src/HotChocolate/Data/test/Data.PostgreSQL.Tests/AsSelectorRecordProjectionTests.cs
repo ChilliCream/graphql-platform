@@ -120,6 +120,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
             .AddScoped<RecordStoreService>()
             .AddSingleton<RecordSelectorCapture>()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryContext()
             .AddGlobalObjectIdentification()
             .AddQueryType(

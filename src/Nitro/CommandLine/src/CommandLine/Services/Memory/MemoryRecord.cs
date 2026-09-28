@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// A curated memory: a row of <c>memory_curated</c> with its tags.
+/// A curated memory with its content, type, tags, and creation and modification metadata.
 /// </summary>
 internal sealed record MemoryRecord
 {

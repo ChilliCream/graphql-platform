@@ -324,7 +324,7 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            operationContext.ReportError(ex, resolverContext, selection, fieldValue.Path);
+            operationContext.ReportError(ex, resolverContext, fieldValue.Path);
         }
 
         if (!executedSuccessfully)
@@ -344,7 +344,7 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            operationContext.ReportError(ex, resolverContext, selection, fieldValue.Path);
+            operationContext.ReportError(ex, resolverContext, fieldValue.Path);
         }
 
         if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })

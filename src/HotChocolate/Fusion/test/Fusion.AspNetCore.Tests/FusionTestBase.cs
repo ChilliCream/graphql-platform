@@ -41,7 +41,9 @@ public abstract partial class FusionTestBase : IDisposable
         [StringSyntax("json")] string? gatewaySettings = null,
         string? environmentName = "Development",
         bool disableDefaultSecurity = false,
-        bool enableGlobalObjectIdentification = true)
+        bool enableGlobalObjectIdentification = true,
+        int? defaultListSize = 1,
+        bool includeOperationPlan = true)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -139,7 +141,8 @@ public abstract partial class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                DefaultListSize = defaultListSize
             }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
@@ -167,7 +170,12 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
-        gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+
+        if (includeOperationPlan)
+        {
+            gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        }
+
         gatewayBuilder.ModifyRequestOptions(o =>
         {
             o.CollectOperationPlanTelemetry = false;

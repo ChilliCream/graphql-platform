@@ -18,37 +18,60 @@ internal static class OperationDocumentHelper
     /// <param name="documents">
     /// The GraphQL documents.
     /// </param>
-    /// <param name="schema">
-    /// The schema to validate queries against.
-    /// </param>
     /// <returns>The merged operation documents.</returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static OperationDocuments CreateOperationDocuments(
-        IEnumerable<DocumentNode> documents,
-        Schema? schema = null)
+        IEnumerable<DocumentNode> documents)
     {
         ArgumentNullException.ThrowIfNull(documents);
 
-        var mergedDocument = MergeDocuments(documents);
-        mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(mergedDocument);
+        var mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(MergeDocuments(documents));
 
-        if (schema is not null)
+        return new OperationDocuments(mergedDocument, ExportOperations(mergedDocument));
+    }
+
+    /// <summary>
+    /// Merges the documents, validates them against the schema and creates
+    /// operation documents that can be used for the actual requests.
+    /// </summary>
+    /// <param name="documents">
+    /// The GraphQL documents.
+    /// </param>
+    /// <param name="schema">
+    /// The schema to validate queries against.
+    /// </param>
+    /// <param name="enableCovariantFieldMerging">
+    /// Defines if fields whose return types differ only in nullability can be merged.
+    /// </param>
+    /// <returns>The merged operation documents.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="GraphQLException">
+    /// The merged document is not valid against the schema.
+    /// </exception>
+    public static OperationDocuments CreateOperationDocuments(
+        IEnumerable<DocumentNode> documents,
+        Schema schema,
+        bool enableCovariantFieldMerging)
+    {
+        ArgumentNullException.ThrowIfNull(documents);
+        ArgumentNullException.ThrowIfNull(schema);
+
+        var mergedDocument = RemovedUnusedFragmentRewriter.Rewrite(MergeDocuments(documents));
+
+        var validator =
+            DocumentValidatorBuilder.New()
+                .AddDefaultRules()
+                .ModifyOptions(o => o.EnableCovariantFieldMerging = enableCovariantFieldMerging)
+                .Build();
+
+        var result = validator.Validate(schema, mergedDocument);
+
+        if (result.HasErrors)
         {
-            var validator =
-                DocumentValidatorBuilder.New()
-                    .AddDefaultRules()
-                    .Build();
-
-            var result = validator.Validate(schema, mergedDocument);
-
-            if (result.HasErrors)
-            {
-                throw new GraphQLException(result.Errors);
-            }
+            throw new GraphQLException(result.Errors);
         }
 
-        var operationDocs = ExportOperations(mergedDocument);
-        return new OperationDocuments(mergedDocument, operationDocs);
+        return new OperationDocuments(mergedDocument, ExportOperations(mergedDocument));
     }
 
     private static DocumentNode MergeDocuments(IEnumerable<DocumentNode> documents)

@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The <c>agent_sessions.harness</c> values, matching the table's CHECK
+/// The <c>agents.harness</c> values, matching the table's CHECK
 /// constraint.
 /// </summary>
 internal static class AgentSessionHarness
@@ -9,11 +9,12 @@ internal static class AgentSessionHarness
     public const string ClaudeCode = "claude-code";
     public const string Codex = "codex";
     public const string Copilot = "copilot";
+    public const string Opencode = "opencode";
 
     /// <summary>
-    /// A running unified Nitro agent TUI, bound to the durable human mail
-    /// actor as an operator participant rather than to a coding-harness hook. See
-    /// <see cref="AgentSessionEndpointKind.DbWatch"/>.
+    /// Returns <c>true</c> when <paramref name="harness"/> is one of the coding agent harnesses
+    /// (<see cref="ClaudeCode"/>, <see cref="Codex"/>, <see cref="Copilot"/> or <see cref="Opencode"/>).
     /// </summary>
-    public const string NitroBoard = "nitro-board";
+    public static bool IsAgentHarness(string harness)
+        => harness is ClaudeCode or Codex or Copilot or Opencode;
 }

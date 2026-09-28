@@ -211,6 +211,9 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        DefaultHttpResponseFormatter.EnsureTransportVersionIsSupported(
+            options.HttpTransportVersion,
+            nameof(options));
 
         return builder.ConfigureSchemaServices(
             (_, s) =>

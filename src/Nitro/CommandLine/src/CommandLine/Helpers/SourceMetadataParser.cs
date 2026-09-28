@@ -25,7 +25,7 @@ internal static class SourceMetadataParser
                 throw new InvalidOperationException("Expected a JSON object.");
             }
 
-            // When no 'type' marker is present we assume GitHub for backwards compatibility.
+            // Defaults to GitHub when no 'type' marker is present.
             var type = GitHubType;
             if (document.RootElement.TryGetProperty(TypePropertyName, out var typeElement))
             {

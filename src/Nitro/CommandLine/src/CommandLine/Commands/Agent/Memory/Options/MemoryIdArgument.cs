@@ -8,9 +8,7 @@ internal sealed class MemoryIdArgument : Argument<string>
     {
         Description = "The memory ID";
 
-        // Rejects anything that is not a well-formed id up front, so a
-        // value like "../../x" can never reach a Path.Combine call that
-        // builds a curated file path from it.
+        // Rejects anything that is not a well-formed id.
         Validators.Add(result =>
         {
             var id = result.GetValue(this);

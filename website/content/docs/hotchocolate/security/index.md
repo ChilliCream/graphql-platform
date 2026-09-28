@@ -11,7 +11,7 @@ Hot Chocolate provides two golden paths depending on whether your API is public 
 
 Public APIs face unpredictable clients. You do not control who sends queries or how complex those queries are. An attacker can craft a deeply nested query that consumes significant server resources.
 
-**Cost analysis** is your primary defense for public APIs. It assigns a weight to each field and list in your schema, then calculates the total cost of an incoming query before executing it. Queries that exceed your cost budget are rejected.
+**Cost analysis** is your primary defense for public APIs. It compiles each operation into a cost plan and evaluates that plan with the request's coerced variables. Queries that exceed a configured field-cost, type-cost, or response-size limit are rejected before execution.
 
 Combine cost analysis with:
 
@@ -47,7 +47,7 @@ Authorization controls what an authenticated user can access. Hot Chocolate prov
 
 ## Request Limits
 
-Hot Chocolate enforces limits at every stage of request processing -- parsing, validation, and execution -- to keep resource consumption bounded. This includes limits on fields, directives, nesting depth, execution depth, timeouts, and more.
+Hot Chocolate enforces limits during parsing, validation, and execution. These include limits on fields, directives, nesting depth, execution depth, and execution time.
 
 [Learn more about request limits](./request-limits.md)
 

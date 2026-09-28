@@ -39,6 +39,12 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public TaskCreationResult CreationResult { get; set; } = new() { Id = "a1" };
 
+    /// <summary>
+    /// The rows <see cref="QueryParticipationAsync"/> returns, sliced to the requested
+    /// limit; empty by default.
+    /// </summary>
+    public IReadOnlyList<TaskItem> ParticipationRows { get; set; } = [];
+
     public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(TaskFilter filter, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<TaskItem>>([.. Tasks.Values]);
 
@@ -47,6 +53,11 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => Task.FromResult(Tasks.GetValueOrDefault(id));
+
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskItem>>(
+            limit is { } max ? [.. ParticipationRows.Take(max)] : ParticipationRows);
 
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<string>>(Labels.GetValueOrDefault(taskId) ?? []);
@@ -78,6 +89,9 @@ internal sealed class FakeTaskStore : ITaskStore
         task.Status = TaskStates.Tombstone;
         return Task.FromResult(task);
     }
+
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 
     public Task<TaskUpdateResult> UpdateTaskAsync(string id, TaskUpdate update, CancellationToken cancellationToken)
     {

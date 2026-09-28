@@ -13,6 +13,7 @@ internal static class TaskItemBuilder
         string status = TaskStates.Open,
         int priority = TaskPriorities.Medium,
         string type = TaskTypes.Task,
+        string? title = null,
         string? assignee = null,
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
@@ -24,7 +25,7 @@ internal static class TaskItemBuilder
         return new TaskItem
         {
             Id = id,
-            Title = id,
+            Title = title ?? id,
             Status = status,
             Priority = priority,
             Type = type,

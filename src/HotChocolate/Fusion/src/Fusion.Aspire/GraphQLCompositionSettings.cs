@@ -18,6 +18,12 @@ public struct GraphQLCompositionSettings
     public DirectiveMergeBehavior? CacheControlMergeBehavior { get; set; }
 
     /// <summary>
+    /// Gets or sets the assumed size for list fields without applicable list-size information.
+    /// The default, <see langword="null"/>, means unbounded. Non-null values must be non-negative.
+    /// </summary>
+    public int? DefaultListSize { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether Global Object Identification should be enabled.
     /// </summary>
     public bool? EnableGlobalObjectIdentification { get; set; }

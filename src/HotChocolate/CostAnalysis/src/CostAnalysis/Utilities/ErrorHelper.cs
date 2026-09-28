@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Net;
 using HotChocolate.CostAnalysis.Properties;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -14,8 +15,8 @@ internal static class ErrorHelper
     {
         var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
         extensions.Add("code", ErrorCodes.Execution.CostExceeded);
-        extensions.Add("fieldCost", costMetrics.FieldCost);
-        extensions.Add("maxFieldCost", maxFieldCost);
+        extensions.Add("fieldCost", ResultHelper.FormatValue(costMetrics.FieldCost));
+        extensions.Add("maxFieldCost", ResultHelper.FormatValue(maxFieldCost));
 
         return ResultHelper.CreateError(
             new Error
@@ -33,8 +34,8 @@ internal static class ErrorHelper
     {
         var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
         extensions.Add("code", ErrorCodes.Execution.CostExceeded);
-        extensions.Add("typeCost", costMetrics.TypeCost);
-        extensions.Add("maxTypeCost", maxTypeCost);
+        extensions.Add("typeCost", ResultHelper.FormatValue(costMetrics.TypeCost));
+        extensions.Add("maxTypeCost", ResultHelper.FormatValue(maxTypeCost));
 
         return ResultHelper.CreateError(
             new Error
@@ -44,6 +45,57 @@ internal static class ErrorHelper
             },
             reportMetrics ? costMetrics : null);
     }
+
+    public static IExecutionResult MaxResponseSizeReached(
+        CostMetrics costMetrics,
+        double maxResponseSize,
+        double maxAllowedResponseSize,
+        bool reportMetrics)
+    {
+        var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
+        extensions.Add("code", ErrorCodes.Execution.CostExceeded);
+        extensions.Add("maxResponseSize", ResultHelper.FormatValue(maxResponseSize));
+        extensions.Add("maxAllowedResponseSize", ResultHelper.FormatValue(maxAllowedResponseSize));
+
+        return ResultHelper.CreateError(
+            new Error
+            {
+                Message = CostAnalysisResources.ErrorHelper_MaxResponseSizeReached,
+                Extensions = extensions.ToImmutable()
+            },
+            reportMetrics ? costMetrics : null);
+    }
+
+    public static IExecutionResult StateInvalidForCostAnalysis()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(CostAnalysisResources.ErrorHelper_StateInvalidForCostAnalysis)
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
+
+    public static IExecutionResult StateInvalidForCostAnalysisMissingVariableValues()
+        => ResultHelper.CreateError(
+            ErrorBuilder.New()
+                .SetMessage(CostAnalysisResources.ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues)
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
+                .Build(),
+            null);
+
+    public static IExecutionResult ResponseSizeAnalysisNotEnabled()
+        => ResultHelper.CreateError(
+            ErrorBuilder.New()
+                .SetMessage(CostAnalysisResources.ErrorHelper_ResponseSizeAnalysisNotEnabled)
+                .SetCode(ErrorCodes.Execution.ResponseSizeAnalysisNotEnabled)
+                .Build(),
+            null);
 
     public static IError ExactlyOneSlicingArgMustBeDefined(
         FieldNode fieldNode,

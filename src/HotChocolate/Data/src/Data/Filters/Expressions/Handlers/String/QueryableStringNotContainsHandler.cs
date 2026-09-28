@@ -23,7 +23,7 @@ public class QueryableStringNotContainsHandler : QueryableStringOperationHandler
 
         if (parsedValue is null)
         {
-            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, context));
         }
 
         return FilterExpressionBuilder.NotContains(property, parsedValue);

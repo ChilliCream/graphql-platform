@@ -1012,6 +1012,7 @@ public class AnnotationBasedAuthorizationTests
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .Services
             .BuildServiceProvider();
 

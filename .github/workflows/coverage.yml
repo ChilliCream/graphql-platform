@@ -56,7 +56,7 @@ jobs:
             8.x
             9.x
             10.x
-            11.0.100-preview.6.26359.118
+            11.0.100-rc.1.26425.128
 
       - name: Run Build
         id: run-build

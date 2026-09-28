@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.AspNetCore.Utilities;
@@ -19,7 +20,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
     IWebSocketPayloadFormatter formatter,
     IDocumentCache documentCache,
     IDocumentHashProvider documentHashProvider,
-    ParserOptions parserOptions)
+    ParserOptions parserOptions,
+    IServerDiagnosticEvents diagnosticEvents)
     : IGraphQLOverWebSocketProtocolHandler
 {
     public string Name => GraphQL_Transport_WS;
@@ -128,6 +130,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
             if (connectionStatus.Accepted)
             {
                 ((WebSocketConnection)connection).IsConnected = true;
+                diagnosticEvents.WebSocketConnectionInitialized(session, operationMessageObj);
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,

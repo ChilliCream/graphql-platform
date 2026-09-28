@@ -28,6 +28,7 @@ public class GraphQLConfigTests
                         "name": "Client",
                         "accessModifier": "public",
                         "strictSchemaValidation": true,
+                        "enableCovariantFieldMerging": true,
                         "hashAlgorithm": "md5",
                         "useSingleFile": true,
                         "requestStrategy": "Default",

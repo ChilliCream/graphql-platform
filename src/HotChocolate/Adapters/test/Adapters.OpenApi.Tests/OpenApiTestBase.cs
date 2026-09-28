@@ -254,6 +254,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 services
                     .AddGraphQLServer()
                     .AddSourceSchemaDefaults()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddBasicServer();
             },
             app =>

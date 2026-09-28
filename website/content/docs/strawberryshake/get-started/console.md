@@ -22,13 +22,13 @@ Open your preferred terminal and select a directory where you want to add the co
 
 1. Create a dotnet tool-manifest.
 
-```bash
+```shell
 dotnet new tool-manifest
 ```
 
 2. Install the Strawberry Shake tools.
 
-```bash
+```shell
 dotnet tool install StrawberryShake.Tools --local
 ```
 
@@ -38,19 +38,19 @@ Next, we will create our console project so that we have a little playground.
 
 1. First, a new solution called `Demo.sln`.
 
-```bash
+```shell
 dotnet new sln --name Demo
 ```
 
 2. Create a new console application.
 
-```bash
+```shell
 dotnet new console --name Demo
 ```
 
 3. Add the project to the solution `Demo.sln`.
 
-```bash
+```shell
 dotnet sln add ./Demo
 ```
 
@@ -60,13 +60,13 @@ Strawberry Shake supports multiple GraphQL transport protocols. In this example 
 
 1. Add the `StrawberryShake.Server` package to your project in order to add our code generation.
 
-```bash
+```shell
 dotnet add Demo package StrawberryShake.Server
 ```
 
 # Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
+To add a client to your project, you need to run `#!shell dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
 
 In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our console application.
 
@@ -74,7 +74,7 @@ In this tutorial we will use our GraphQL workshop to create a list of sessions t
 
 1. Add the conference client to your console application.
 
-```bash
+```shell
 dotnet graphql init https://workshop.chillicream.com/graphql/ --clientName ConferenceClient --Path ./Demo
 ```
 
@@ -108,7 +108,7 @@ Now that everything is in place let us write our first query to ask for a list o
 
 3. Choose your favorite IDE and the solution. If your are using VSCode do the following:
 
-```bash
+```shell
 code ./Demo
 ```
 
@@ -126,7 +126,7 @@ query GetSessions {
 
 5. Compile your project.
 
-```bash
+```shell
 dotnet build
 ```
 
@@ -180,6 +180,6 @@ foreach (var session in result.Data.Sessions.Nodes)
 }
 ```
 
-3. Start the console application with `dotnet run --project ./Demo` and see if your code works.
+3. Start the console application with `#!shell dotnet run --project ./Demo` and see if your code works.
 
 ![Started console application that shows a list of sessions](../../../../public/images/strawberryshake-docs/berry_console_session_list.webp)

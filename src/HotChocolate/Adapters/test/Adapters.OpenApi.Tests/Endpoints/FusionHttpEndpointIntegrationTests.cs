@@ -27,7 +27,8 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = true
+                EnableGlobalObjectIdentification = true,
+                DefaultListSize = 1
             }
         };
         var composer = new SchemaComposer([sourceSchemaText], composerOptions, compositionLog);

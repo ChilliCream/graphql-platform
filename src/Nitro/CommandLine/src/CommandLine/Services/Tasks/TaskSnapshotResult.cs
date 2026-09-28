@@ -1,9 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// A task's core fields, as returned by the structured (JSON) output of task
-/// mutation commands. <see cref="Blockers"/> is populated only where the
-/// mutation already computes it; otherwise it is empty.
+/// A task snapshot returned by mutation commands.
+/// <see cref="Blockers"/> is empty when none were supplied with the snapshot.
 /// </summary>
 internal sealed record TaskSnapshotResult
 {

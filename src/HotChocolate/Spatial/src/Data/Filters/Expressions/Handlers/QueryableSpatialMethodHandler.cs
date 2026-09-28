@@ -54,7 +54,7 @@ public abstract class QueryableSpatialMethodHandler
             if (node.Value.IsNull())
             {
                 context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, node.Value, context));
+                    ErrorHelper.CreateNonNullError(field, context));
                 action = SyntaxVisitor.Skip;
                 return true;
             }
@@ -66,7 +66,7 @@ public abstract class QueryableSpatialMethodHandler
                 out var nestedProperty))
             {
                 context.ReportError(
-                    ErrorHelper.CouldNotCreateFilterForOperation(field, node.Value, context));
+                    ErrorHelper.CouldNotCreateFilterForOperation(field, context));
                 action = SyntaxVisitor.Skip;
                 return true;
             }

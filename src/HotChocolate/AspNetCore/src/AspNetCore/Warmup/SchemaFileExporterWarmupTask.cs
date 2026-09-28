@@ -14,6 +14,7 @@ internal sealed class SchemaFileExporterWarmupTask(
             schemaFileName,
             executor,
             rewriteToSemanticNonNull,
+            specVersion: null,
             cancellationToken);
     }
 }

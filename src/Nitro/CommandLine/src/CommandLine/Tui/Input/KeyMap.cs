@@ -3,10 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace ChilliCream.Nitro.CommandLine.Tui.Input;
 
 /// <summary>
-/// A table of key bindings, looked up primarily by key chord. Bindings whose key char
-/// is a printable character also resolve when the console key differs but the
-/// modifiers and produced character match, so a binding is reachable regardless of
-/// which <see cref="ConsoleKey"/> a terminal reports for that character.
+/// Resolves key chords with a fallback for matching printable characters
+/// and modifiers when no exact chord matches.
 /// </summary>
 internal sealed class KeyMap
 {
@@ -68,27 +66,9 @@ internal sealed class KeyMap
     private static bool IsPrintable(char keyChar) => keyChar is not '\0' && !char.IsControl(keyChar);
 
     /// <summary>
-    /// The hardcoded global key bindings: vim-style navigation (j/k/h/l and arrow
-    /// keys, g/G for edges), Enter to open, r to refresh, y to copy the selected id,
-    /// q and Ctrl+C to request quit, Ctrl+N/Ctrl+P to cycle views, z to toggle the
-    /// maximized layout, / to jump into search, t to open the dependency tree on
-    /// the current selection, e to edit it, x to close or reopen it, X to delete
-    /// it, s to open the status quick picker on it, p to open the priority quick
-    /// picker on it, c to open the task create form (as a child of the current
-    /// selection when there is one), C to open it preset to the epic type, and
-    /// Escape to leave the active mode.
+    /// Creates the default global bindings for navigation, task actions, mode
+    /// selection, and quit requests.
     /// </summary>
-    /// <remarks>
-    /// Only a curated subset carries a <see cref="KeyBinding.Hint"/>, so the
-    /// footer stays a short-help bar rather than a full binding dump: the four
-    /// direction keys collapse into one <c>hjkl move</c> hint (their arrow-key
-    /// equivalents stay unhinted), and the rarer or currently inert gestures
-    /// (g/G, /, t, x, X, s, p, c, C, Ctrl+C, and Ctrl+N/P, which cycles
-    /// between views but has nothing to cycle to until a second board view
-    /// exists) stay hidden from the footer while remaining fully bound. Quit's
-    /// binding is declared last so it is also the last global hint, per the
-    /// footer's display order.
-    /// </remarks>
     public static KeyMap CreateDefaultGlobal() => new(
     [
         new KeyBinding(

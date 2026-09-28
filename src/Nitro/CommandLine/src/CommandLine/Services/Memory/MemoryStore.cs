@@ -7,11 +7,7 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Curated memories and the journal, in the workspace database beside tasks
-/// and mail: the curated vertical (save, update, forget, show, recent,
-/// search) and the journal vertical (log, promote). Search runs against the
-/// <c>memory_curated_fts</c> table the schema's own triggers maintain, so
-/// there is no index to rebuild or fall out of step.
+/// Stores, searches, and updates curated memories and journal entries in the agent workspace.
 /// </summary>
 internal sealed class MemoryStore(
     IFileSystem fileSystem,
@@ -159,8 +155,7 @@ internal sealed class MemoryStore(
 
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // The query is quoted into a single FTS5 phrase rather than passed
-        // through: a caller's text is search input, never query syntax.
+        // Each whitespace-separated search word is quoted as an FTS phrase.
         var match = MemoryFtsQuery.BuildLiteralMatch(query);
 
         var sql =
@@ -176,36 +171,50 @@ internal sealed class MemoryStore(
             sql += "\n  AND c.type = @type";
         }
 
-        if (since is { } minimum)
+        if (since is not null)
         {
-            _ = minimum;
             sql += "\n  AND c.updated_at >= @since";
         }
 
-        foreach (var (tag, index) in normalizedTags.Select((tag, index) => (tag, index)))
+        for (var index = 0; index < normalizedTags.Count; index++)
         {
-            _ = tag;
             sql += "\n  AND EXISTS (SELECT 1 FROM memory_curated_tags t "
                 + $"WHERE t.id = c.id AND t.tag = @tag{index})";
         }
 
         sql += "\nORDER BY f.rank, c.updated_at DESC, c.id\nLIMIT @limit;";
 
-        var parameters = new DynamicParameters();
-        parameters.Add("match", match);
-        parameters.Add("type", normalizedType);
-        parameters.Add("since", since);
-        parameters.Add("limit", limit ?? -1);
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("@match", match);
+        command.Parameters.AddWithValue("@limit", limit ?? -1);
+
+        if (normalizedType is not null)
+        {
+            command.Parameters.AddWithValue("@type", normalizedType);
+        }
+
+        if (since is { } minimum)
+        {
+            command.Parameters.AddWithValue("@since", minimum);
+        }
 
         for (var index = 0; index < normalizedTags.Count; index++)
         {
-            parameters.Add($"tag{index}", normalizedTags[index]);
+            command.Parameters.AddWithValue($"@tag{index}", normalizedTags[index]);
         }
 
-        var ids = await connection.QueryAsync<string>(
-            new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
+        var ids = new List<string>();
 
-        return await LoadCuratedAsync(connection, ids.ToList());
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                ids.Add(reader.GetString(0));
+            }
+        }
+
+        return await LoadCuratedAsync(connection, ids);
     }
 
     public async Task<MemoryJournalEntry> LogAsync(
@@ -266,7 +275,7 @@ internal sealed class MemoryStore(
     public async Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalAsync(
         string query, DateTimeOffset? since, int? limit, CancellationToken cancellationToken)
     {
-        var words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var words = query.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -276,9 +285,7 @@ internal sealed class MemoryStore(
             + "ORDER BY created_at DESC, id;",
             new { since });
 
-        // Matched in memory rather than in SQL: the journal has no FTS
-        // index, and the match is every word as a literal substring, which
-        // LIKE cannot express without escaping the caller's text itself.
+        // Every search term must occur in the journal body, ignoring case.
         var matched = entries.Where(row => MatchesAllWords(row.Body, words));
 
         return (limit is { } max ? matched.Take(max) : matched).Select(row => row.ToEntry()).ToList();
@@ -313,20 +320,16 @@ internal sealed class MemoryStore(
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         var entry = await connection.QueryFirstOrDefaultAsync<JournalRow>(
-            new CommandDefinition(
-                "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
                 + "FROM memory_journal WHERE id = @journalId;",
                 new { journalId },
-                transaction,
-                cancellationToken: cancellationToken))
+                transaction)
             ?? throw new ExitException($"Journal entry '{journalId}' does not exist.");
 
         var id = MemoryPromotedId.Derive(journalId);
         var now = timeProvider.GetUtcNow();
 
-        // INSERT OR IGNORE against the unique promoted_from index: a second
-        // promote of the same entry, including a concurrent one, affects no
-        // rows and reports the memory the first one produced.
+        // An existing promotion is returned unchanged, including its type and tags.
         var inserted = await connection.ExecuteAsync(
             """
             INSERT OR IGNORE INTO memory_curated (
@@ -351,6 +354,46 @@ internal sealed class MemoryStore(
         return new MemoryPromotionOutcome(record, AlreadyPromoted: false);
     }
 
+    public async Task<IReadOnlyList<MemoryParticipationEntry>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<ParticipationRow>(
+            """
+                SELECT id AS Id, 'curated' AS Kind, created_at AS CreatedAt
+                FROM memory_curated
+                WHERE created_by = @agent
+                UNION ALL
+                SELECT j.id AS Id, 'journal' AS Kind, j.created_at AS CreatedAt
+                FROM memory_journal j
+                WHERE j.created_by = @agent
+                  AND NOT EXISTS (SELECT 1 FROM memory_curated c WHERE c.promoted_from = j.id)
+                ORDER BY CreatedAt DESC, Id
+                LIMIT @limit;
+                """,
+                new { agent, limit = limit ?? -1 });
+
+        var ordered = rows.ToList();
+        var curatedIds = ordered.Where(row => row.Kind == "curated").Select(row => row.Id).ToList();
+        var journalIds = ordered.Where(row => row.Kind == "journal").Select(row => row.Id).ToList();
+
+        var curatedById = (await LoadCuratedAsync(connection, curatedIds)).ToDictionary(record => record.Id);
+        var journalById = (await LoadJournalAsync(connection, journalIds)).ToDictionary(entry => entry.Id);
+
+        return ordered
+            .Select(row => row.Kind == "curated"
+                ? ToParticipationEntry(curatedById[row.Id])
+                : ToParticipationEntry(journalById[row.Id]))
+            .ToList();
+    }
+
+    private static MemoryParticipationEntry ToParticipationEntry(MemoryRecord record) => new(
+        MemoryParticipationKind.Curated, record.Id, record.Type, record.Tags, record.Body, record.CreatedAt);
+
+    private static MemoryParticipationEntry ToParticipationEntry(MemoryJournalEntry entry) => new(
+        MemoryParticipationKind.Journal, entry.Id, Type: null, Tags: [], entry.Body, entry.CreatedAt);
+
     private static async Task InsertTagsAsync(
         SqliteConnection connection,
         DbTransaction transaction,
@@ -367,9 +410,8 @@ internal sealed class MemoryStore(
     }
 
     /// <summary>
-    /// Loads full records for the given ids, preserving the order the ids
-    /// were given in: the ordering is decided by the query that produced
-    /// them (recency, or FTS rank), which a second lookup must not disturb.
+    /// Returns records for the supplied ids in input order, omitting missing records.
+    /// Empty input returns an empty result.
     /// </summary>
     private static async Task<IReadOnlyList<MemoryRecord>> LoadCuratedAsync(
         SqliteConnection connection,
@@ -399,34 +441,80 @@ internal sealed class MemoryStore(
         return ids.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
     }
 
+    /// <summary>
+    /// Returns journal entries for the supplied ids, omitting missing entries.
+    /// Empty input returns an empty result.
+    /// </summary>
+    private static async Task<IReadOnlyList<MemoryJournalEntry>> LoadJournalAsync(
+        SqliteConnection connection,
+        IReadOnlyList<string> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var idList = string.Join(", ", ids.Select(id => $"'{MemoryId.Require(id)}'"));
+
+        var rows = await connection.QueryAsync<JournalRow>(
+            "SELECT id AS Id, body AS Body, created_at AS CreatedAt, created_by AS CreatedBy "
+            + $"FROM memory_journal WHERE id IN ({idList});");
+
+        return rows.Select(row => row.ToEntry()).ToList();
+    }
+
     private static async Task<MemoryRecord?> FindCuratedAsync(
         SqliteConnection connection,
         DbTransaction? transaction,
         string id,
         CancellationToken cancellationToken)
     {
-        var row = await connection.QueryFirstOrDefaultAsync<CuratedRow>(
-            new CommandDefinition(
-                "SELECT id AS Id, type AS Type, body AS Body, created_at AS CreatedAt, "
-                + "updated_at AS UpdatedAt, created_by AS CreatedBy, promoted_from AS PromotedFrom "
-                + "FROM memory_curated WHERE id = @id;",
-                new { id },
-                transaction,
-                cancellationToken: cancellationToken));
+        await using var command = connection.CreateCommand();
+        command.Transaction = (SqliteTransaction?)transaction;
+        command.CommandText =
+            "SELECT id, type, body, created_at, updated_at, created_by, promoted_from "
+            + "FROM memory_curated WHERE id = @id;";
+        command.Parameters.AddWithValue("@id", id);
+
+        CuratedRow? row;
+
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            row = await reader.ReadAsync(cancellationToken)
+                ? new CuratedRow
+                {
+                    Id = reader.GetString(0),
+                    Type = reader.GetString(1),
+                    Body = reader.GetString(2),
+                    CreatedAt = reader.GetString(3),
+                    UpdatedAt = reader.GetString(4),
+                    CreatedBy = reader.GetString(5),
+                    PromotedFrom = reader.IsDBNull(6) ? null : reader.GetString(6)
+                }
+                : null;
+        }
 
         if (row is null)
         {
             return null;
         }
 
-        var tags = await connection.QueryAsync<string>(
-            new CommandDefinition(
-                "SELECT tag FROM memory_curated_tags WHERE id = @id ORDER BY tag;",
-                new { id },
-                transaction,
-                cancellationToken: cancellationToken));
+        var tags = new List<string>();
 
-        return row.ToRecord(tags.ToArray());
+        await using var tagsCommand = connection.CreateCommand();
+        tagsCommand.Transaction = (SqliteTransaction?)transaction;
+        tagsCommand.CommandText = "SELECT tag FROM memory_curated_tags WHERE id = @id ORDER BY tag;";
+        tagsCommand.Parameters.AddWithValue("@id", id);
+
+        await using (var reader = await tagsCommand.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                tags.Add(reader.GetString(0));
+            }
+        }
+
+        return row.ToRecord(tags);
     }
 
     private static async Task<MemoryRecord> FindPromotedAsync(
@@ -436,11 +524,9 @@ internal sealed class MemoryStore(
         CancellationToken cancellationToken)
     {
         var id = await connection.QueryFirstAsync<string>(
-            new CommandDefinition(
-                "SELECT id FROM memory_curated WHERE promoted_from = @journalId;",
+            "SELECT id FROM memory_curated WHERE promoted_from = @journalId;",
                 new { journalId },
-                transaction,
-                cancellationToken: cancellationToken));
+                transaction);
 
         return (await FindCuratedAsync(connection, transaction, id, cancellationToken))!;
     }
@@ -525,7 +611,14 @@ internal sealed class MemoryStore(
         return trimmed;
     }
 
-    private sealed class JournalRow
+    internal sealed class ParticipationRow
+    {
+        public required string Id { get; init; }
+        public required string Kind { get; init; }
+        public required string CreatedAt { get; init; }
+    }
+
+    internal sealed class JournalRow
     {
         public required string Id { get; init; }
         public required string Body { get; init; }
@@ -541,13 +634,13 @@ internal sealed class MemoryStore(
         };
     }
 
-    private sealed class CuratedTagRow
+    internal sealed class CuratedTagRow
     {
         public required string Id { get; init; }
         public required string Tag { get; init; }
     }
 
-    private sealed class CuratedRow
+    internal sealed class CuratedRow
     {
         public required string Id { get; init; }
         public required string Type { get; init; }

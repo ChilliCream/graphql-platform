@@ -15,6 +15,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
         OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
@@ -42,6 +43,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
             {
                 services.AddRouting();
                 services.AddGraphQLServer("NamedSchema")
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddOpenApi()
                     .AddOpenApiDefinitionStorage(storage)
                     .AddBasicServer();

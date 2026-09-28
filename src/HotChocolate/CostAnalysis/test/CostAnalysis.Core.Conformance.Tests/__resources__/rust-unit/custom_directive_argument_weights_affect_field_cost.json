@@ -1,0 +1,15 @@
+{
+  "id": "custom_directive_argument_weights_affect_field_cost",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\ndirective @approx(tolerance: Float! @cost(weight: \"-1.0\")) on FIELD\ntype Query { value: String @cost(weight: \"5.0\") }\n",
+  "operation": "{ value @approx(tolerance: 0.5) }",
+  "operationName": null,
+  "variables": {},
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 1,
+    "fieldCost": 4
+  },
+  "notes": "Port of estimator.rs test `custom_directive_argument_weights_affect_field_cost` at line 1312, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. The source asserts fieldCost 4; typeCost 1 is the oracle's root-object cost."
+}

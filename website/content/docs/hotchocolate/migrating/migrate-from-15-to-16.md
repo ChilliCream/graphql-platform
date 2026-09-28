@@ -355,7 +355,7 @@ if (context.Result is OperationResult result)
 
 Most of the properties you'd want to modify are now immutable data structures that can be modified.
 
-`OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
+`OperationResultBuilder.CreateError(error)` can be simply replaced with `#!csharp new OperationResult([error])`.
 
 ## Page and cursor API changes
 
@@ -570,7 +570,7 @@ public sealed class BookDTO
 ```
 
 Note that this change implies that all type parameters of the generic `ID<Type>`-attribute must now be valid GraphQL types.
-If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `[ID("BookDTO")]`.
+If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `#!csharp [ID("BookDTO")]`.
 
 ## DescriptorAttribute attributeProvider is nullable
 
@@ -803,9 +803,15 @@ query {
 
 This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
 
-## Byte arrays now mapped to Base64String
+## ByteArray scalar deprecated in favor of Base64String
 
-C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+The `ByteArray` scalar type is deprecated. Use `Base64String` instead. `byte[]` is not bound to it implicitly, so bind it explicitly:
+
+```csharp
+AddGraphQL().BindRuntimeType<byte[], Base64StringType>()
+```
+
+Without a binding, `byte[]` members are inferred as `[UnsignedByte!]!` and `byte[]?` members as `[UnsignedByte!]`.
 
 ## Uri now mapped to URI scalar instead of URL
 
@@ -966,16 +972,16 @@ Per-endpoint overrides are still supported via `WithOptions` on the endpoint bui
 endpoints.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
 
-## Batching is now disabled by default
+## Request batching is now disabled by default
 
-In v15, request batching was enabled by default (`EnableBatching = true`). In v16, batching is **disabled by default** as a security measure. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
+In v15, request batching was enabled by default (`EnableBatching = true`). In v16, **variable batching is enabled by default** and **request batching is disabled by default**. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
 
 ```diff
 -o.EnableBatching = true;
 +o.Batching = AllowedBatching.All;
 ```
 
-If you were relying on the previous default, you need to explicitly enable batching:
+If you were relying on request batching, you need to explicitly enable it:
 
 ```csharp
 builder.AddGraphQL()
@@ -1117,6 +1123,8 @@ If you prefer, you can still register the remaining scalar types individually in
 - `RenameRootActivity` was removed. See [Recreating `RenameRootActivity`](#recreating-renamerootactivity) to reproduce the previous behavior in user code.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+- `IncludeOperationNameInSpanName` was added. It defaults to `false`, which is what produces the low-cardinality root span name described below. Set it to `true` to name the root span `{graphql.operation.type} {graphql.operation.name}`, and only do so for operation domains with bounded cardinality, such as persisted operations.
+- `MaxErrorEvents` was added. It caps the number of `graphql.error` events emitted on the root span and defaults to `10`. Set it to `0` to suppress the events entirely; `graphql.error.count` is unaffected by this setting.
 
 ### Recreating `RenameRootActivity`
 
@@ -1183,25 +1191,70 @@ If you have dashboards or alerts that filter on the old attribute names or value
 
 Besides changes to the attributes, the most notable change is that the name of the root GraphQL span has been changed to just include the operation type (`query`, `mutation` or `subscription`), and no longer the operation name, to keep the cardinality low. The operation name can still be retrieved from the `graphql.operation.name` span attribute.
 
+### Renamed spans
+
+Every pipeline stage span was renamed, not just the root span:
+
+| v15                                              | v16                                     |
+| ------------------------------------------------ | --------------------------------------- |
+| `Execute Request`                                | `GraphQL Operation`                     |
+| `Parse Document`                                 | `GraphQL Document Parsing`              |
+| `Validate Document`                              | `GraphQL Document Validation`           |
+| `Analyze Operation Complexity`                   | `GraphQL Complexity Analysis`           |
+| `Coerce Variable`                                | `GraphQL Variable Coercion`             |
+| `Compile Operation`                              | `GraphQL Operation Planning`            |
+| `Execute Operation` / `Execute Operation <name>` | `GraphQL Operation Execution`           |
+| `Execute <DataLoader> Batch`                     | `GraphQL DataLoader Batch <DataLoader>` |
+
+The field resolver span is now named after the schema coordinate of the resolved field, for example `Query.hero`, rather than the response path of the field. The subscription event span is now explicitly named `GraphQL Subscription Event`, and a new `GraphQL DataLoader Dispatch` span covers the batch dispatch coordinator. `Parse HTTP Request` and `Format HTTP Response` are unchanged.
+
 ### Removed attributes
 
-| Attribute                     |
-| ----------------------------- |
-| `graphql.operation.id`        |
-| `graphql.selection.type`      |
-| `graphql.selection.hierarchy` |
+| Attribute                              |
+| -------------------------------------- |
+| `graphql.document.valid`               |
+| `graphql.operation.id`                 |
+| `graphql.schema.isDefault`             |
+| `graphql.selection.type`               |
+| `graphql.selection.hierarchy`          |
+| `graphql.selection.field.isDeprecated` |
 
 ### Renamed attributes
 
-| Old Attribute                           | New Attribute                         |
-| --------------------------------------- | ------------------------------------- |
-| `graphql.operation.kind`                | `graphql.operation.type`              |
-| `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
-| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
-| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
-| `graphql.fusion.node.schema`            | `graphql.source.name`                 |
-| `graphql.fusion.node.type`              | `graphql.operation.step.kind`         |
-| `graphql.error.location.line/column`    | `graphql.error.locations`             |
+The field-related `graphql.selection.*` attributes were replaced by `graphql.field.*`. The rest of that family was removed outright and is listed above:
+
+| Old Attribute                           | New Attribute                     |
+| --------------------------------------- | --------------------------------- |
+| `graphql.operation.kind`                | `graphql.operation.type`          |
+| `graphql.errors.count`                  | `graphql.error.count`             |
+| `graphql.selection.name`                | `graphql.field.alias`             |
+| `graphql.selection.path`                | `graphql.field.path`              |
+| `graphql.selection.field.name`          | `graphql.field.name`              |
+| `graphql.selection.field.coordinate`    | `graphql.field.schema_coordinate` |
+| `graphql.selection.field.declaringType` | `graphql.field.parent_type`       |
+| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`   |
+| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`   |
+| `graphql.error.path`                    | `graphql.field.path`              |
+| `graphql.error.location.line/column`    | `graphql.document.locations`      |
+
+The last two rows describe where the error path and error locations moved to: both are now attributes of the `graphql.error` event described in [Error events](#error-events), rather than of the span. `graphql.field.path` is still a span attribute in its own right, set on field resolver spans.
+
+### New attributes
+
+| Attribute                                     | Description                                                                                                                                                                                                                                                                                                             |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error.type`                                  | The kind of failure a span ended with, for example a GraphQL error code or an exception type name.                                                                                                                                                                                                                      |
+| `server.address` / `server.port`              | The host the request was addressed to, taken from the HTTP request when one is available.                                                                                                                                                                                                                               |
+| `graphql.processing.type`                     | Identifies the stage a span covers: `request`, `validate`, `variable_coercion`, `plan`, `execute`, `step_execute`, `resolve`, `dataloader_dispatch`, `dataloader_batch`, or `subscription_event`. Document parsing spans carry no value, because parsing can run in either the HTTP middleware or the request pipeline. |
+| `graphql.dataloader.name`                     | The name of the DataLoader a batch span belongs to.                                                                                                                                                                                                                                                                     |
+| `graphql.subscription.id`                     | Correlates every event span of one subscription.                                                                                                                                                                                                                                                                        |
+| `graphql.operation.step.id`                   | Gateway only. The ID of the plan step a `GraphQL Step Execution` span covers.                                                                                                                                                                                                                                           |
+| `graphql.operation.step.kind`                 | Gateway only. The kind of plan step: `operation`, `operation_batch`, `event_stream`, `introspection`, or `node`.                                                                                                                                                                                                        |
+| `graphql.source_schema.name`                  | Gateway only. The name of the source schema a step targets. Set only on operation and operation batch steps, so event stream, introspection, and node steps carry no `graphql.source_schema.*` attributes.                                                                                                              |
+| `graphql.operation.step.plan.id`              | Gateway only. The ID of the operation plan the step belongs to.                                                                                                                                                                                                                                                         |
+| `graphql.source_schema.operation.name`        | Gateway only. The name of the operation sent to the source schema.                                                                                                                                                                                                                                                      |
+| `graphql.source_schema.operation.hash`        | Gateway only. The SHA-256 of the operation document sent to the source schema, prefixed with `sha256:`.                                                                                                                                                                                                                 |
+| `graphql.source_schema.batch.operation_count` | Gateway only. The number of operations in a batched step.                                                                                                                                                                                                                                                               |
 
 ### Changed attribute values
 
@@ -1211,6 +1264,18 @@ Besides changes to the attributes, the most notable change is that the name of t
 | `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                                   |
 | `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
 | `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
+
+### Error events
+
+GraphQL errors are now reported as `graphql.error` events, rather than only as span attributes. Each event carries `graphql.error.message`, and where available `graphql.error.code`, `graphql.field.path`, `graphql.field.schema_coordinate`, `graphql.document.locations`, and the operation and document attributes. An exception that reaches the pipeline as a GraphQL error is reported this way too, with `exception.type`, `exception.message`, and `exception.stacktrace` added to the event. Only exceptions handled directly by a request or transport callback, such as `RequestError`, are recorded as a standard `exception` event instead.
+
+The span that records an error status is not always the span that carries the event. A failing field resolver marks its own span with `error.type` and an error status, but its `graphql.error` event is emitted on the root `GraphQL Operation` span along with the rest of the operation result. The event is emitted elsewhere in only a few places: the HTTP spans for parse and request failures, the `GraphQL Subscription Event` span for a per-event subscription error, and, on the gateway, the execution node, source schema transport, source schema store, and subscription event error callbacks.
+
+`MaxErrorEvents` (default `10`) and the `graphql.error.count` attribute apply to the operation-result errors on the root span only. Those other places emit one event per error with no cap and no count attribute. The parsing, validation, complexity, variable coercion, and operation execution spans emit no `graphql.error` events at all.
+
+### Cancellation is no longer an error
+
+A caller cancellation, such as a closed browser tab or a dropped connection, leaves the span status `Unset` with no `error.type` attribute and no error event, per the OpenTelemetry semantic conventions. A server-side execution timeout is not a client cancellation and continues to be reported as an error.
 
 ### Custom enricher changes
 
@@ -1350,7 +1415,7 @@ app.MapGraphQLSemanticNonNullSchema();
 
 If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
 
-```bash
+```shell
 dotnet run -- schema export --output schema.graphql --semantic-non-null
 ```
 
@@ -1488,6 +1553,23 @@ The public `HotChocolate.Data.Projections.ProjectionFeature` record has been rem
 
 Use the existing `IsProjected()` descriptor extension or the `[IsProjected]` attribute to configure projection behavior; reading the feature from a field's `Features` collection is no longer possible.
 
+## Sorting is applied after the resolver's projection
+
+Hot Chocolate 16.0 through 16.6.6 moved a sort in front of the resolver's `Select` projection when it could map the sorted field back to the source, and removed `.DateTime` from `DateTimeOffset` members while doing so. Sorting is now applied to the `IQueryable<T>` that the resolver returns, after its `Select` projection, as in Hot Chocolate 15. This change lands in **16.6.7**.
+
+A sorted field that the projection assigns from `DateTimeOffset.DateTime` is now sorted on `DateTimeOffset.DateTime`:
+
+```csharp
+[UseSorting]
+public static IQueryable<OrderDto> GetOrders(CatalogContext db)
+    => db.Orders.Select(o => new OrderDto { Id = o.Id, PlacedAt = o.PlacedAt.DateTime });
+```
+
+- **SQL Server with EF Core 8, 9, or 10** does not translate `DateTimeOffset.DateTime`, so sorting on `placedAt` fails with EF Core's "could not be translated" error. See [Troubleshooting](../fetching-data/sorting.md#the-linq-expression-could-not-be-translated) for the fixes.
+- **SQL Server with EF Core 11** sorts by the local date and time instead of the UTC instant, which changes the order when rows have different offsets.
+
+`OnAfterSortingApplied` callbacks can call `ThenBy` again when the resolver ends with a `Select` projection.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -1500,6 +1582,9 @@ The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type in
 
 ## Validation walker is now operation-scoped for fragment visits by default
 
+> [!NOTE]
+> The `CostAnalyzer` example below describes the analyzer that shipped with version 16. The current cost analyzer compiles and evaluates its own cost plan and does not use `DocumentValidatorVisitor`.
+
 The base `DocumentValidatorVisitor` no longer re-walks a fragment definition on every sibling spread within an operation. Each fragment is now visited at most once per operation. Cycle detection continues to work via `context.Path.Contains(fragment)` in `FragmentVisitor`.
 
 User-visible effect: some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
@@ -1507,14 +1592,14 @@ User-visible effect: some queries that previously failed validation with false-p
 If you wrote a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you have two options:
 
 1. **Match the new default (operation-scoped):** remove the `Leave` call. Each fragment is walked at most once per operation; sibling spreads short-circuit.
-2. **Opt back into per-spread re-walks:** keep the `Leave` call. This is what `CostAnalyzer` does, because per-spread re-walks are required to correctly accumulate cost across reused fragments.
+2. **Opt back into per-spread re-walks:** keep the `Leave` call. The version 16 `CostAnalyzer` used this behavior to accumulate cost across reused fragments.
 
 ```diff
 if (context.Fragments.TryEnter(node, out var fragment))
 {
     var result = Visit(fragment, node, context);
 -   context.Fragments.Leave(fragment); // remove for operation-scoped (recommended for validation rules)
-    // keep the Leave(...) call if your rule needs per-spread re-walks (e.g. cost analysis)
+    // keep the Leave(...) call if your rule needs per-spread re-walks
 
     if (result.IsBreak())
     {

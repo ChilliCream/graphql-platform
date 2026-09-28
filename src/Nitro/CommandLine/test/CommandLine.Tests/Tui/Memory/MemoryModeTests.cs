@@ -3,17 +3,14 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Memory;
 
 /// <summary>
-/// Exercises <see cref="MemoryMode"/> and its overlays against a real
-/// <see cref="MemoryStore"/>, the same way <c>MailModeRealStoreTests</c>
-/// does for the mail board: memory has no fake store double, so every
-/// memory TUI component test runs against the real store, matching
-/// <c>MemoryStoreTests</c>'s own convention.
+/// Exercises <see cref="MemoryMode"/> against a real <see cref="MemoryStore"/>.
 /// </summary>
 public sealed class MemoryModeTests : MemoryTestBase
 {
@@ -41,9 +38,17 @@ public sealed class MemoryModeTests : MemoryTestBase
 
     private MemoryMode CreateMode() => new(_store, TimeProvider);
 
-    private Task<MemoryRecord> SaveAsync(string text = "Some text.", string type = "fact")
+    private static string RenderToText(MemoryMode mode, int width = 100, int height = 24)
+    {
+        var console = new TestConsole().Width(width);
+        console.Write(mode.Render(width, height));
+        return console.Output;
+    }
+
+    private Task<MemoryRecord> SaveAsync(
+        string text = "Some text.", string type = "fact", IReadOnlyList<string>? tags = null)
         => _store.SaveAsync(
-            new MemoryRecordCreation { Text = text, Type = type, Actor = "test-agent" },
+            new MemoryRecordCreation { Text = text, Type = type, Tags = tags ?? [], Actor = "test-agent" },
             TestContext.Current.CancellationToken);
 
     private Task<MemoryJournalEntry> LogAsync(string text = "Journal note.")
@@ -52,21 +57,105 @@ public sealed class MemoryModeTests : MemoryTestBase
             TestContext.Current.CancellationToken);
 
     [Fact]
-    public async Task OnEnter_Should_LoadCuratedMemories()
+    public void Render_Should_ShowTheEmptyStateMessage_When_NoMemoryExists()
     {
-        // arrange: OnEnter only marks a refresh pending; the actual store
-        // read happens lazily on the first Render or Handle call, so a
-        // manual refresh stands in for the shell rendering the tab.
-        await SaveAsync("First.");
+        // arrange
         var mode = CreateMode();
+        mode.OnEnter();
 
         // act
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.RefreshRequested());
+        var text = RenderToText(mode);
 
         // assert
-        Assert.Single(mode.State.CuratedRecords);
-        Assert.Equal(MemoryCollectionFilter.Curated, mode.State.Collection);
+        Assert.Contains("No memory yet.", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTheLoadError_When_TheStoreRejectsTheRead()
+    {
+        // arrange
+        // a store over a directory that has no agent workspace
+        var noWorkspaceDirectory = Path.Combine(Path.GetDirectoryName(WorkingDirectory)!, "no-workspace");
+        Directory.CreateDirectory(noWorkspaceDirectory);
+        var storeWithNoWorkspace = new MemoryStore(new TestFileSystem(noWorkspaceDirectory), TimeProvider, new AgentDatabase());
+        var mode = new MemoryMode(storeWithNoWorkspace, TimeProvider);
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        Assert.Contains("No agent workspace found", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowTheRowCount_When_HeaderIsRendered()
+    {
+        // arrange
+        await SaveAsync("First.");
+        await LogAsync("Note one.");
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        Assert.Contains("Memory (2)", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Render_Should_OrderRowsByTimeDescending_When_CuratedAndJournalRowsExist()
+    {
+        // arrange
+        await SaveAsync("Oldest curated.", type: "alpha");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await LogAsync("Middle journal.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Newest curated.", type: "omega");
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var text = RenderToText(mode);
+
+        // assert
+        var newestIndex = text.IndexOf("omega", StringComparison.Ordinal);
+        var middleIndex = text.IndexOf("journal", StringComparison.Ordinal);
+        var oldestIndex = text.IndexOf("alpha", StringComparison.Ordinal);
+        Assert.True(newestIndex >= 0 && middleIndex > newestIndex && oldestIndex > middleIndex);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowHeaderRuleAndRows_When_TwoCuratedAndOneJournalRowsArePresent()
+    {
+        // arrange
+        await SaveAsync("Ops runbook.", type: "fact", tags: ["ops"]);
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Deploy notes.", type: "decision");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await LogAsync("Follow up needed.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 9));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Memory (3)───────────────────────────────────────────────────────────────────────────────────────╮
+            │                                                                                                  │
+            │    KIND        TYPE          TAGS                                                     AGE        │
+            │ ──────────────────────────────────────────────────────────────────────────────────────────────── │
+            │ >  journal     -             -                                                        just now   │
+            │    curated     decision      -                                                        1m ago     │
+            │    curated     fact          ops                                                      2m ago     │
+            │                                                                                                  │
+            ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+            """);
     }
 
     [Fact]
@@ -81,61 +170,173 @@ public sealed class MemoryModeTests : MemoryTestBase
         // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
-        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
 
         // assert
         Assert.Equal(1, mode.State.SelectedRow);
     }
 
     [Fact]
-    public void MoveCursor_Should_TogglePaneFocus_When_Left()
+    public async Task MoveSelectionToEdge_Should_SelectLastRow_When_Bottom()
     {
         // arrange
-        var mode = CreateMode();
-        mode.OnEnter();
-        Assert.Equal(MemoryFocus.List, mode.State.Focus);
-
-        // act
-        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
-
-        // assert
-        Assert.Equal(MemoryFocus.Detail, mode.State.Focus);
-    }
-
-    [Fact]
-    public async Task CycleView_Should_SwitchToTheJournalCollection()
-    {
-        // arrange
-        await LogAsync("Note one.");
+        await SaveAsync("First.");
+        await SaveAsync("Second.");
+        await SaveAsync("Third.");
         var mode = CreateMode();
         mode.OnEnter();
 
         // act
-        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
 
         // assert
-        Assert.Equal(MemoryCollectionFilter.Journal, mode.State.Collection);
-        Assert.Single(mode.State.JournalEntries);
+        Assert.Equal(2, mode.State.SelectedRow);
     }
 
     [Fact]
-    public async Task RefreshRequested_Should_ReloadMemories()
+    public async Task OpenSelected_Should_BeANoOp_When_ARowIsSelected()
+    {
+        // arrange
+        await SaveAsync("First.");
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
+        Assert.Empty(followUp);
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void OpenSelected_Should_ReturnAWarning_When_NoRowIsSelected()
     {
         // arrange
         var mode = CreateMode();
         mode.OnEnter();
-        Assert.Empty(mode.State.CuratedRecords);
 
         // act
-        await SaveAsync("New memory.");
-        mode.Handle(new TuiMessage.RefreshRequested());
+        var followUp = mode.Handle(new TuiMessage.OpenSelected());
 
         // assert
-        Assert.Single(mode.State.CuratedRecords);
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
     }
 
     [Fact]
-    public async Task CopySelectedId_Should_ShowInfoToast_When_ItemSelected()
+    public void TryCreatePopover_Should_ReturnNull_When_NoRowIsSelected()
+    {
+        // arrange
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var popover = mode.TryCreatePopover();
+
+        // assert
+        Assert.Null(popover);
+    }
+
+    [Fact]
+    public async Task TryCreatePopover_Should_ReturnAPopoverForTheSelectedRow_When_ARowIsSelected()
+    {
+        // arrange
+        var saved = await SaveAsync("First.");
+        var mode = CreateMode();
+        mode.OnEnter();
+
+        // act
+        var popover = mode.TryCreatePopover();
+        popover?.Load(TestContext.Current.CancellationToken);
+        var console = new TestConsole().Width(100);
+        console.Write(popover!.Render(100, 30));
+
+        // assert
+        Assert.NotNull(popover);
+        Assert.Contains(saved.Id, console.Output);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_MoveTheModeSelectionToTheNextRow_When_DownArrowIsPressedOnThePopover()
+    {
+        // arrange
+        // rows sort by time descending, so "Second." lands at row 0 and "First." at row 1
+        var first = await SaveAsync("First.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+        var console = new TestConsole().Width(100);
+        console.Write(popover.Render(100, 30));
+
+        // assert
+        Assert.Equal(1, mode.State.SelectedRow);
+        Assert.Contains(first.Id, console.Output);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_LeaveTheModeSelectionUnchanged_When_UpArrowIsPressedOnThePopoverAtTheFirstRow()
+    {
+        // arrange
+        await SaveAsync("First.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.UpArrow));
+
+        // assert
+        Assert.Null(result);
+        Assert.Equal(0, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public async Task HandleKey_Should_LeaveTheModeSelectionOnTheRowReached_When_EscapeIsPressedOnThePopoverAfterMovingDown()
+    {
+        // arrange
+        await SaveAsync("First.");
+        TimeProvider.Advance(TimeSpan.FromMinutes(1));
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        var popover = mode.TryCreatePopover();
+        popover!.Load(TestContext.Current.CancellationToken);
+        popover.HandleKey(Key(ConsoleKey.DownArrow));
+
+        // act
+        var result = popover.HandleKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.IsType<PopoverResult.Closed>(result);
+        Assert.Equal(1, mode.State.SelectedRow);
+    }
+
+    [Fact]
+    public void HandlePopoverRequest_Should_ReturnACopyToast_When_TheEntryPopoverRequestsACopy()
+    {
+        // arrange
+        var mode = CreateMode();
+        var request = new PopoverResult.Request(new MemoryEntryPopoverRequest.CopyRequested("mem-1"));
+
+        // act
+        var followUp = mode.HandlePopoverRequest(request);
+
+        // assert
+        var toast = Assert.Single(followUp);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(("mem-1", ToastStyle.Info), (shown.Text, shown.Style));
+    }
+
+    [Fact]
+    public async Task CopySelectedId_Should_ReturnTheRowId_When_ARowIsSelected()
     {
         // arrange
         var saved = await SaveAsync("First.");
@@ -149,11 +350,10 @@ public sealed class MemoryModeTests : MemoryTestBase
         var toast = Assert.Single(followUp);
         var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
         Assert.Equal(saved.Id, shown.Text);
-        Assert.Equal(ToastStyle.Info, shown.Style);
     }
 
     [Fact]
-    public void CopySelectedId_Should_ShowWarningToast_When_NoItemSelected()
+    public void CopySelectedId_Should_ReturnAWarning_When_NoRowIsSelected()
     {
         // arrange
         var mode = CreateMode();
@@ -164,188 +364,84 @@ public sealed class MemoryModeTests : MemoryTestBase
 
         // assert
         var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
+        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
+        Assert.Equal(ToastStyle.Warn, shown.Style);
     }
 
     [Fact]
-    public async Task ForgetRequested_Should_OpenConfirmation_Without_DeletingYet()
+    public async Task RefreshRequested_Should_ReloadRowsFromTheStore_When_ANewMemoryWasAdded()
     {
         // arrange
-        var saved = await SaveAsync("First.");
         var mode = CreateMode();
         mode.OnEnter();
+        Assert.Empty(mode.State.Rows);
+        await SaveAsync("New memory.");
 
         // act
-        var followUp = mode.Handle(new TuiMessage.ForgetRequested());
+        mode.Handle(new TuiMessage.RefreshRequested());
 
         // assert
-        Assert.Empty(followUp);
-        Assert.True(mode.IsInputCapturing);
-        var stillThere = await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken);
-        Assert.NotNull(stillThere);
+        Assert.Single(mode.State.Rows);
     }
 
     [Fact]
-    public void ForgetRequested_Should_ShowWarnToast_When_NoCuratedMemorySelected()
-    {
-        // arrange: the journal collection has no notion of a selected
-        // curated memory to forget.
-        var mode = CreateMode();
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.CycleView(1));
-
-        // act
-        var followUp = mode.Handle(new TuiMessage.ForgetRequested());
-
-        // assert
-        var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
-    }
-
-    [Fact]
-    public async Task ForgetConfirmation_Confirmed_Should_DeleteMemory_And_RemoveItFromTheList()
+    public async Task CycleView_Should_NarrowToCuratedOnly_When_PressedOnceFromAll()
     {
         // arrange
-        var saved = await SaveAsync("First.");
-        var mode = CreateMode();
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.ForgetRequested());
-
-        // act: Enter confirms from the dialog's initially focused (empty) reason field.
-        var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
-
-        // assert
-        var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
-        Assert.False(mode.IsInputCapturing);
-        Assert.Empty(mode.State.CuratedRecords);
-        var deleted = await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken);
-        Assert.Null(deleted);
-    }
-
-    [Fact]
-    public async Task ForgetConfirmation_Cancelled_Should_LeaveTheMemoryUntouched()
-    {
-        // arrange
-        var saved = await SaveAsync("First.");
-        var mode = CreateMode();
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.ForgetRequested());
-
-        // act
-        var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
-
-        // assert
-        Assert.Empty(followUp);
-        Assert.False(mode.IsInputCapturing);
-        Assert.Single(mode.State.CuratedRecords);
-        var stillThere = await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken);
-        Assert.NotNull(stillThere);
-    }
-
-    [Fact]
-    public void PromoteRequested_Should_ShowWarnToast_When_NoJournalEntrySelected()
-    {
-        // arrange: default collection is curated, which has no notion of a
-        // selected journal entry to promote.
-        var mode = CreateMode();
-        mode.OnEnter();
-
-        // act
-        var followUp = mode.Handle(new TuiMessage.PromoteRequested());
-
-        // assert
-        var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
-    }
-
-    [Fact]
-    public async Task PromoteRequested_Should_OpenForm_When_JournalEntrySelected()
-    {
-        // arrange
+        await SaveAsync("First.");
         await LogAsync("Note one.");
         var mode = CreateMode();
         mode.OnEnter();
-        mode.Handle(new TuiMessage.CycleView(1));
 
         // act
-        var followUp = mode.Handle(new TuiMessage.PromoteRequested());
+        mode.Handle(new TuiMessage.CycleView(1));
 
         // assert
-        Assert.Empty(followUp);
-        Assert.True(mode.IsInputCapturing);
+        Assert.Equal(MemoryCollectionFilter.Curated, mode.State.Filter);
+        var row = Assert.Single(mode.State.Rows);
+        Assert.Equal(MemoryCollectionFilter.Curated, row.Kind);
     }
 
     [Fact]
-    public async Task PromoteForm_Submit_Should_PromoteJournalEntry_And_ShowSuccessToast()
+    public async Task CycleView_Should_NarrowToJournalOnly_When_PressedTwiceFromAll()
     {
         // arrange
-        var entry = await LogAsync("Note one.");
+        await SaveAsync("First.");
+        await LogAsync("Note one.");
         var mode = CreateMode();
         mode.OnEnter();
-        mode.Handle(new TuiMessage.CycleView(1));
-        mode.Handle(new TuiMessage.PromoteRequested());
-        Type(mode, "decision");
 
         // act
-        var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.CycleView(1));
 
         // assert
-        var toast = Assert.Single(followUp);
-        Assert.Equal(ToastStyle.Success, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
-        Assert.False(mode.IsInputCapturing);
-
-        var curatedId = MemoryPromotedId.Derive(entry.Id);
-        var promoted = await _store.FindAsync(curatedId, TestContext.Current.CancellationToken);
-        Assert.NotNull(promoted);
-        Assert.Equal("decision", promoted!.Type);
+        Assert.Equal(MemoryCollectionFilter.Journal, mode.State.Filter);
+        var row = Assert.Single(mode.State.Rows);
+        Assert.Equal(MemoryCollectionFilter.Journal, row.Kind);
     }
 
     [Fact]
-    public async Task PromoteForm_Submit_Should_ReportAlreadyPromoted_When_TheJournalEntryWasPromotedBefore()
-    {
-        // arrange: the entry was already promoted outside the tab (for
-        // example via the CLI); promoting it again from the tab must be
-        // idempotent, not an error.
-        var entry = await LogAsync("Note one.");
-        await _store.PromoteAsync(entry.Id, "fact", [], TestContext.Current.CancellationToken);
-
-        var mode = CreateMode();
-        mode.OnEnter();
-        mode.Handle(new TuiMessage.CycleView(1));
-        mode.Handle(new TuiMessage.PromoteRequested());
-        Type(mode, "decision");
-
-        // act
-        var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
-
-        // assert
-        var toast = Assert.Single(followUp);
-        var shown = Assert.IsType<TuiMessage.ShowToast>(toast);
-        Assert.Equal(ToastStyle.Success, shown.Style);
-        Assert.Contains("already promoted", shown.Text, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public async Task PromoteForm_Cancel_Should_CloseImmediately_When_NotDirty()
+    public async Task CycleView_Should_ReturnToAll_When_PressedThreeTimes()
     {
         // arrange
-        await LogAsync("Note.");
+        await SaveAsync("First.");
+        await LogAsync("Note one.");
         var mode = CreateMode();
         mode.OnEnter();
-        mode.Handle(new TuiMessage.CycleView(1));
-        mode.Handle(new TuiMessage.PromoteRequested());
 
         // act
-        var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
+        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.CycleView(1));
 
         // assert
-        Assert.Empty(followUp);
-        Assert.False(mode.IsInputCapturing);
+        Assert.Equal(MemoryCollectionFilter.All, mode.State.Filter);
+        Assert.Equal(2, mode.State.Rows.Count);
     }
 
     [Fact]
-    public async Task SearchRequested_Should_OpenSearchForm()
+    public async Task SearchRequested_Should_OpenTheSearchForm_When_Requested()
     {
         // arrange
         await SaveAsync("First.");
@@ -361,17 +457,14 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task SearchForm_Apply_Should_NarrowTheListByTag()
+    public async Task SearchForm_Apply_Should_NarrowRowsByTag_When_TagTermIsUsed()
     {
         // arrange
         await SaveAsync("Deploy checklist.");
-        await _store.SaveAsync(
-            new MemoryRecordCreation { Text = "Ops note.", Type = "fact", Tags = ["ops"], Actor = "test-agent" },
-            TestContext.Current.CancellationToken);
+        await SaveAsync("Ops note.", tags: ["ops"]);
         var mode = CreateMode();
         mode.OnEnter();
         mode.Handle(new TuiMessage.SearchRequested());
-        Assert.Equal(2, mode.State.CuratedRecords.Count);
         Type(mode, "tag:ops");
 
         // act
@@ -379,32 +472,85 @@ public sealed class MemoryModeTests : MemoryTestBase
 
         // assert
         Assert.False(mode.IsInputCapturing);
-        var record = Assert.Single(mode.State.CuratedRecords);
-        Assert.Contains("ops", record.Tags);
+        var row = Assert.Single(mode.State.Rows);
+        Assert.Equal("Ops note.", row.Body);
     }
 
     [Fact]
-    public async Task SearchForm_Apply_Should_ShowTypeTagIgnoredMarker_When_JournalCollectionSearchedWithType()
+    public async Task SearchForm_Apply_Should_NarrowCuratedAndJournalRows_When_FreeTextIsUsed()
     {
-        // arrange: type: and tag: prefixes narrow the curated list, but the
-        // journal collection has no type or tags to filter by; the list
-        // title must surface that the qualifier was ignored rather than
-        // silently dropping it.
-        await LogAsync("Note one.");
+        // arrange
+        await SaveAsync("Deploy checklist for staging.");
+        await LogAsync("Deploy failed overnight.");
+        await LogAsync("Unrelated note.");
         var mode = CreateMode();
         mode.OnEnter();
-        mode.Handle(new TuiMessage.CycleView(1));
         mode.Handle(new TuiMessage.SearchRequested());
-        Type(mode, "type:decision");
+        Type(mode, "deploy");
+
+        // act
+        mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // assert
+        Assert.False(mode.IsInputCapturing);
+        Assert.Equal(2, mode.State.Rows.Count);
+    }
+
+    [Fact]
+    public async Task SearchForm_Cancel_Should_LeaveRowsUnfiltered_When_FormIsCancelled()
+    {
+        // arrange
+        await SaveAsync("First.");
+        await SaveAsync("Second.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SearchRequested());
+        Type(mode, "no-match");
+
+        // act
+        mode.HandleRawKey(Key(ConsoleKey.Escape));
+
+        // assert
+        Assert.False(mode.IsInputCapturing);
+        Assert.Equal(2, mode.State.Rows.Count);
+    }
+
+    [Fact]
+    public async Task Render_Should_ShowFilteredSuffix_When_SearchTextIsSet()
+    {
+        // arrange
+        await SaveAsync("Deploy checklist.");
+        var mode = CreateMode();
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.SearchRequested());
+        Type(mode, "deploy");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
         // act
-        var console = new TestConsole().Width(100);
-        console.Write(mode.Render(100, 24));
-        var text = console.Output;
+        var text = RenderToText(mode);
 
         // assert
-        Assert.Contains("(type/tag ignored)", text);
+        Assert.Contains("Memory (1) (filtered)", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Render_Should_DropTypeColumn_When_WidthIsTooNarrowForEveryColumn()
+    {
+        // arrange
+        await SaveAsync("Deploy checklist.", tags: ["ops"]);
+        var mode = CreateMode();
+        mode.OnEnter();
+        var wide = RenderToText(mode, width: 100);
+
+        // act
+        var narrow = RenderToText(mode, width: 35);
+        var actual = (
+            WideHasType: wide.Contains("fact", StringComparison.Ordinal),
+            NarrowHasType: narrow.Contains("fact", StringComparison.Ordinal),
+            NarrowHasKind: narrow.Contains("curated", StringComparison.Ordinal));
+
+        // assert
+        Assert.Equal((true, false, true), actual);
     }
 
     [Fact]

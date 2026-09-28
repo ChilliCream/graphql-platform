@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "The value provided for `ids` is not in a valid format.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 70
-        }
-      ],
       "path": [
         "fieldWithObjectWithListOfScalarsInput"
       ],

@@ -34,44 +34,26 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public void BuildMailTab_Should_OpenWithoutAnActor()
-    {
-        var store = new FakeMailStore();
-
-        var mailTab = AgentTuiLauncher.BuildMailTab(
-            store,
-            new Tui.Agents.FakeAgentRegistry(),
-            new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
-
-        var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
-        Assert.Null(mailMode.State.Actor);
-    }
-
-    [Fact]
-    public void BuildMailTab_Should_HostAWorkingMailMode()
+    public void BuildMailTab_Should_HostAWorkingMailMode_When_MailStoreIsGiven()
     {
         // arrange
         var store = new FakeMailStore();
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(s_now),
-            TestContext.Current.CancellationToken);
+            store, new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)), new FakeTimeProvider(s_now));
 
-        // assert: today's behavior, unchanged: a working MailMode, badge-free
-        // title until a refresh reports unread messages.
+        // assert
         Assert.IsType<MailMode>(mailTab.RootMode);
         Assert.Equal("Mail", mailTab.Title);
     }
 
     [Fact]
-    public void BuildTabs_Should_RegisterTabsInOrder_TasksMailAgentsMemory()
+    public void BuildTabs_Should_RegisterTabsInOrderTasksMailAgentsMemory_When_AllStoresAreGiven()
     {
-        // arrange: guards against the tab order regressing now that a
-        // fourth tab exists.
+        // arrange
         var taskStore = new FakeTaskStore();
         var mailStore = new FakeMailStore();
-        var agentRegistry = new Tui.Agents.FakeAgentRegistry();
         var timeProvider = new FakeTimeProvider(s_now);
 
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
@@ -85,31 +67,30 @@ public sealed class AgentTuiLauncherTests
                 timeProvider,
                 new AgentDatabase());
 
+            var agentStore = new Tui.Agents.FakeAgentStore(timeProvider);
+
             var tabs = AgentTuiLauncher.BuildTabs(
                 taskStore,
                 mailStore,
                 memoryStore,
-                agentRegistry,
-                new Tui.Agents.FakeAgentSessionRegistry(),
-                new Tui.Agents.FakeClaudeSessionActivityReader(),
-                timeProvider,
-                TestContext.Current.CancellationToken);
+                agentStore,
+                timeProvider);
 
             var shell = new TuiShell(
                 tabs,
                 80,
                 24,
+                agentStore: agentStore,
                 tasksTabIndex: 0,
-                new SearchMode(taskStore),
-                new DependencyTreeView(taskStore, rootId: ""),
-                taskStore,
+                searchMode: new SearchMode(taskStore),
+                treeView: new DependencyTreeView(taskStore, rootId: ""),
+                store: taskStore,
                 actor: "tasks-actor");
 
             // act
             var text = RenderToText(shell);
 
-            // assert: order matters here, not just presence, since
-            // Assert.Contains alone would not catch the tabs being reordered.
+            // assert
             var tasksIndex = text.IndexOf("[T]asks", StringComparison.Ordinal);
             var mailIndex = text.IndexOf("[M]ail", StringComparison.Ordinal);
             var agentsIndex = text.IndexOf("[A]gents", StringComparison.Ordinal);
@@ -131,20 +112,19 @@ public sealed class AgentTuiLauncherTests
     public void Render_Should_ShowTheMailWakeDaemonBadge_When_AStateProviderIsGiven(
         string stateName, string expectedBadge)
     {
-        // arrange: InlineData cannot carry the internal MailWakeDaemonState
-        // enum directly (a public test method's parameter types must be at
-        // least as accessible as the method), so the case is named and
-        // parsed back into the real enum here instead.
+        // arrange
         var state = Enum.Parse<MailWakeDaemonState>(stateName);
         const int width = 160;
         var taskStore = new FakeTaskStore();
         var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(s_now));
         var boardMode = new BoardMode(loader);
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
             boardMode,
             width,
             24,
+            agentStore: new Tui.Agents.FakeAgentStore(time),
             actor: "tasks-actor",
             mailWakeDaemonState: () => state);
 
@@ -156,12 +136,9 @@ public sealed class AgentTuiLauncherTests
     }
 
     [Fact]
-    public async Task RunAsync_Should_StartAndStopTheMailWakeDaemonCoordinator_AroundTheApplicationLoop()
+    public async Task RunAsync_Should_StartAndStopTheMailWakeDaemonCoordinator_When_TheApplicationLoopIsCancelled()
     {
-        // arrange: the coordinator is started once the shell exists and
-        // stopped again once the application loop returns, matching the
-        // Ctrl+C/cancellation exit path (the caller's own cancellation token
-        // is what unwinds TuiApplication.RunAsync's loop here).
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-coordinator-tests");
 
@@ -200,9 +177,7 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new Tui.Agents.FakeAgentRegistry(),
-                new Tui.Agents.FakeAgentSessionRegistry(),
-                new Tui.Agents.FakeClaudeSessionActivityReader(),
+                new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,
                 coordinator.Object,
@@ -226,9 +201,8 @@ public sealed class AgentTuiLauncherTests
     [Fact]
     public async Task RunAsync_Should_StillStopTheMailWakeDaemonCoordinator_When_CancellationIsAlreadyRequestedBeforeTheLoopStarts()
     {
-        // arrange: stands in for a startup/runtime error unwinding the
-        // application loop before it ever paints a frame; the coordinator
-        // must still see a matching StopAsync, not just StartAsync.
+        // arrange
+        // Pass an already-cancelled token to the launcher.
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-coordinator-tests");
 
@@ -268,9 +242,7 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new Tui.Agents.FakeAgentRegistry(),
-                new Tui.Agents.FakeAgentSessionRegistry(),
-                new Tui.Agents.FakeClaudeSessionActivityReader(),
+                new Tui.Agents.FakeAgentStore(new FakeTimeProvider(s_now)),
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,
                 coordinator.Object,

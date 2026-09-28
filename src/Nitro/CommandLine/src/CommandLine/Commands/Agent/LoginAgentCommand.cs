@@ -28,10 +28,10 @@ internal sealed class LoginAgentCommand : Command
         CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<INitroConsole>();
-        var registry = services.GetRequiredService<IAgentRegistry>();
+        var agents = services.GetRequiredService<IAgentStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var agent = await registry.AllocateAsync(cancellationToken);
+        var agent = await agents.LoginAsync(cancellationToken);
 
         if (!console.IsHumanReadable)
         {

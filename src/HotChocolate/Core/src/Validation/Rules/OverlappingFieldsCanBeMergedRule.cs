@@ -16,12 +16,16 @@ namespace HotChocolate.Validation.Rules;
 internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 {
     private readonly int _maxAllowedFieldMergeComparisons;
+    private readonly bool _enableCovariantFieldMerging;
 
-    public OverlappingFieldsCanBeMergedRule(int maxAllowedFieldMergeComparisons)
+    public OverlappingFieldsCanBeMergedRule(
+        int maxAllowedFieldMergeComparisons,
+        bool enableCovariantFieldMerging)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedFieldMergeComparisons, 1);
 
         _maxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons;
+        _enableCovariantFieldMerging = enableCovariantFieldMerging;
     }
 
     public ushort Priority => ushort.MaxValue;
@@ -33,7 +37,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(document);
 
-        ValidateInternal(new MergeContext(context, _maxAllowedFieldMergeComparisons), document);
+        var mergeContext = new MergeContext(
+            context,
+            _maxAllowedFieldMergeComparisons,
+            _enableCovariantFieldMerging);
+
+        ValidateInternal(mergeContext, document);
     }
 
     private static void ValidateInternal(MergeContext context, DocumentNode document)
@@ -449,7 +458,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
             while (true)
             {
-                if (a is NonNullType || b is NonNullType)
+                if (context.IsCovariantFieldMergingEnabled)
+                {
+                    a = a.NullableType();
+                    b = b.NullableType();
+                }
+                else if (a is NonNullType || b is NonNullType)
                 {
                     if (a is not NonNullType || b is not NonNullType)
                     {
@@ -782,11 +796,15 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         private readonly Stack<List<Conflict>> _conflictListPool = new();
         private int _remainingBudget;
 
-        public MergeContext(DocumentValidatorContext context, int maxAllowedFieldMergeComparisons)
+        public MergeContext(
+            DocumentValidatorContext context,
+            int maxAllowedFieldMergeComparisons,
+            bool enableCovariantFieldMerging)
         {
             _context = context;
             _maxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons;
             _remainingBudget = maxAllowedFieldMergeComparisons;
+            IsCovariantFieldMergingEnabled = enableCovariantFieldMerging;
             TypenameFieldType = new NonNullType(context.Schema.Types["String"]);
             IsStreamEnabled = context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
         }
@@ -840,6 +858,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         public DocumentValidatorContext.FragmentContext Fragments => _context.Fragments;
 
         public bool IsStreamEnabled { get; }
+
+        public bool IsCovariantFieldMergingEnabled { get; }
 
         public Dictionary<string, HashSet<FieldAndType>> RentFieldMap()
         {

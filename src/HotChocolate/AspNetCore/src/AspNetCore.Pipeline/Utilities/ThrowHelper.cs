@@ -24,11 +24,13 @@ internal static class ThrowHelper
 
     public static GraphQLRequestException DefaultHttpRequestParser_UnexpectedError(
         Exception ex) =>
-        new(ErrorBuilder.New()
-            .SetMessage(ex.Message)
-            .SetException(ex)
-            .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
-            .Build());
+        new(
+            ErrorBuilder.New()
+                .SetMessage(ex.Message)
+                .SetException(ex)
+                .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
+                .Build(),
+            ex);
 
     public static GraphQLRequestException DefaultHttpRequestParser_RequestIsEmpty() =>
         new(ErrorBuilder.New()
@@ -128,6 +130,11 @@ internal static class ThrowHelper
         string contentType)
         => new(string.Format(ThrowHelper_Formatter_ResponseContentTypeNotSupported, contentType));
 
-    public static InvalidOperationException Formatter_InvalidAcceptMediaType()
-        => new(ThrowHelper_Formatter_InvalidAcceptMediaType);
+    public static ArgumentOutOfRangeException Formatter_TransportVersionNotSupported(
+        string paramName,
+        HttpTransportVersion transportVersion)
+        => new(
+            paramName,
+            transportVersion,
+            string.Format(ThrowHelper_Formatter_TransportVersionNotSupported, transportVersion));
 }

@@ -224,6 +224,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
                     var builder =
                         services
                             .AddGraphQLServer()
+                            .ModifyCostOptions(o => o.DefaultListSize = 1)
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddMcpStorage(storage)

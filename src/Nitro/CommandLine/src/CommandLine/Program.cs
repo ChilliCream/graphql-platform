@@ -2,6 +2,8 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using Skills.Commands;
+using Skills.Extensions;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
@@ -27,6 +29,7 @@ public static class Program
         var services = new ServiceCollection();
 
         services.AddNitroServices();
+        services.AddSkillsServices("nitro skills");
 
         services.AddSingleton<NitroClientContext>();
         services.AddSingleton<INitroClientContextProvider>(sp => sp.GetRequiredService<NitroClientContext>());
@@ -60,6 +63,7 @@ public static class Program
         await using var provider = services.BuildServiceProvider();
 
         var rootCommand = new NitroRootCommand();
+        rootCommand.Subcommands.Add(new SkillsCommand(provider));
 
         return await rootCommand.ExecuteAsync(args, provider, null, cts.Token);
     }

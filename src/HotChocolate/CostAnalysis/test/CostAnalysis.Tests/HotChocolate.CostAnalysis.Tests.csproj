@@ -15,4 +15,10 @@
     <ProjectReference Include="..\..\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
+          Link="__resources__\precision\%(Filename)%(Extension)"
+          CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
 </Project>

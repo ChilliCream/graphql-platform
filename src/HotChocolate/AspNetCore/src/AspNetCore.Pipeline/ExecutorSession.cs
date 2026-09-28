@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +47,10 @@ public sealed class ExecutorSession
     public ISocketSessionInterceptor SocketSessionInterceptor => _socketSessionInterceptor;
 
     public IServerDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
+
+    internal bool ReportsUnsupportedMethodOrMediaType
+        => _responseFormatter is DefaultHttpResponseFormatter formatter
+            && formatter.ReportsUnsupportedMethodOrMediaType;
 
     public ulong Version => _executor.Version;
 
@@ -250,18 +255,30 @@ public sealed class ExecutorSession
 
     public async Task WriteSchemaAsync(
         HttpContext context)
+        => await WriteSchemaAsync(context, null);
+
+    public async Task WriteSchemaAsync(
+        HttpContext context,
+        GraphQLSpecVersion? specVersion)
         => await _responseFormatter.FormatAsync(
             context.Response,
             Schema,
             Version,
+            specVersion,
             context.RequestAborted);
 
     public async Task WriteSemanticNonNullSchemaAsync(
         HttpContext context)
+        => await WriteSemanticNonNullSchemaAsync(context, null);
+
+    public async Task WriteSemanticNonNullSchemaAsync(
+        HttpContext context,
+        GraphQLSpecVersion? specVersion)
         => await _responseFormatter.FormatSemanticNonNullSchemaAsync(
             context.Response,
             Schema,
             Version,
+            specVersion,
             context.RequestAborted);
 
     public RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)

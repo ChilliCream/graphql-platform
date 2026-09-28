@@ -97,6 +97,63 @@ public sealed class SchemaComposerTests
                 """);
     }
 
+    [Fact]
+    public void Compose_Should_NotEmitCostOptions_When_DefaultListSizeIsUnset()
+    {
+        // arrange
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+
+        Assert.DoesNotContain(
+            schemaDefinition.Directives,
+            directive => directive.Name.Value == "fusion__cost_options");
+    }
+
+    [Fact]
+    public void Compose_Should_EmitCostOptions_When_DefaultListSizeIsSet()
+    {
+        // arrange
+        var options = new SchemaComposerOptions
+        {
+            Merger = { DefaultListSize = 7 }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+        var costOptionsApplications = schemaDefinition.Directives
+            .Where(directive => directive.Name.Value == "fusion__cost_options")
+            .ToArray();
+
+        var costOptionsApplication = Assert.Single(costOptionsApplications);
+        costOptionsApplication.ToString().MatchInlineSnapshot(
+            """
+            @fusion__cost_options(defaultListSize: 7)
+            """);
+    }
+
     [Theory]
     [InlineData(ShareableFieldRuntimeTypeRouting.SourceLocal)]
     [InlineData(ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes)]
@@ -1052,6 +1109,7 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
+                "CostDirectiveDefinitionRule",
                 "DisallowedInaccessibleElementsRule",
                 "ExternalOnInterfaceRule",
                 "ExternalOverrideCollisionRule",
@@ -1069,6 +1127,7 @@ public sealed class SchemaComposerTests
                 "KeyInvalidArgumentsRule",
                 "KeyInvalidFieldsTypeRule",
                 "KeyInvalidSyntaxRule",
+                "ListSizeDirectiveArgumentRule",
                 "LookupMustHaveArgumentsRule",
                 "LookupReturnsListRule",
                 "LookupReturnsNonNullableTypeRule",

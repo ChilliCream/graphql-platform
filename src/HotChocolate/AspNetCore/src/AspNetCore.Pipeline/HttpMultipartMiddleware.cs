@@ -5,9 +5,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
@@ -64,8 +64,15 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)
                 && options.EnforceMultipartRequestsPreflightHeader)
             {
+                // The preflight check is a cross-site request guard and runs before content
+                // negotiation, so the status stays 400. The client's media types still travel
+                // with it so the formatter can tell whether the error body would be readable.
                 var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
-                await session.WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
+                await session.WriteResultAsync(
+                    context,
+                    _multipartRequestError,
+                    headerResult.AcceptMediaTypes,
+                    BadRequest);
                 return;
             }
 

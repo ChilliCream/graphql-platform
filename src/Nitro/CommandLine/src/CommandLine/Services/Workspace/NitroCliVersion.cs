@@ -3,9 +3,7 @@ using System.Reflection;
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Resolves the running Nitro CLI's own exact version, for stamping onto a
-/// session row the same way a coding harness's hook adapters stamp their
-/// own harness version.
+/// Exposes the running Nitro CLI assembly's informational version.
 /// </summary>
 internal static class NitroCliVersion
 {

@@ -1,0 +1,39 @@
+title: Gateway_Should_RejectUndefinedInputFields_When_IgnoreAdditionalInputFieldsIsDisabled
+request:
+  document: |
+    query testQuery($input: SearchInput!) {
+      search(input: $input)
+    }
+  variables: |
+    {
+      "input": {
+        "term": "abc",
+        "unknown": "wrong"
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The field \u0060unknown\u0060 is not defined on the input object type \u0060SearchInput\u0060.",
+          "extensions": {
+            "variable": "input"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        search(input: SearchInput!): String
+      }
+
+      input SearchInput {
+        term: String!
+      }

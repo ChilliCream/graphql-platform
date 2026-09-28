@@ -17,13 +17,18 @@ internal ref struct JsonVariableCoercion
     private const int MaxAllowedDepth = 64;
     private const int MaxPathSegments = MaxAllowedDepth + 2;
     private readonly IFeatureProvider _context;
+    private readonly bool _ignoreAdditionalInputFields;
     private readonly ref Utf8MemoryBuilder? _memory;
     private DeferredPathSegmentBuffer _pathSegments;
     private int _pathSegmentCount;
 
-    public JsonVariableCoercion(IFeatureProvider context, ref Utf8MemoryBuilder? memory)
+    public JsonVariableCoercion(
+        IFeatureProvider context,
+        ref Utf8MemoryBuilder? memory,
+        bool ignoreAdditionalInputFields)
     {
         _context = context;
+        _ignoreAdditionalInputFields = ignoreAdditionalInputFields;
         _memory = ref memory;
         _pathSegments = default;
         _pathSegmentCount = 0;
@@ -225,9 +230,18 @@ internal ref struct JsonVariableCoercion
 
         if (oneOf)
         {
-            foreach (var _ in element.EnumerateObject())
+            foreach (var property in element.EnumerateObject())
             {
-                fieldCount++;
+                if (_ignoreAdditionalInputFields
+                    && !inputObjectType.Fields.ContainsName(property.Name))
+                {
+                    continue;
+                }
+
+                if (++fieldCount > 1)
+                {
+                    break;
+                }
             }
         }
 
@@ -274,6 +288,11 @@ internal ref struct JsonVariableCoercion
             {
                 if (!inputObjectType.Fields.TryGetField(property.Name, out var fieldDefinition))
                 {
+                    if (_ignoreAdditionalInputFields)
+                    {
+                        continue;
+                    }
+
                     value = null;
                     error = ErrorBuilder.New()
                         .SetMessage(

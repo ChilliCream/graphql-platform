@@ -439,9 +439,9 @@ internal static class FusionPublishHelpers
             }
 
             // Precedence:
-            //   server .far + no flag -> use .far (existing embedded .fgp carried forward via Update mode)
+            //   server .far + no flag -> use .far
             //   server .far + flag    -> use .far, refresh embedded .fgp from local flag
-            //   server .fgp + no flag -> error (server .fgp may be outdated, require explicit local flag)
+            //   server .fgp + no flag -> error
             //   server .fgp + flag    -> use local flag as migration source
             //   nothing + flag        -> use local flag as composition base
             //   nothing + no flag     -> fresh compose
