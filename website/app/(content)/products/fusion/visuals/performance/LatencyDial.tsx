@@ -6,7 +6,10 @@ import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { token } from "@/src/nitro";
 import { ease } from "@/src/nitro/lib/motion";
 
+import { DialFace } from "./DialFace";
+import { DialNumeral } from "./DialNumeral";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
+import { CX, CY, ELECTRIC, ELECTRIC_BRIGHT, ELECTRIC_DIM, VB } from "./hud";
 import { LATENCY_MAX, LATENCY_P50, LATENCY_P95 } from "./data";
 
 interface LatencyDialProps {
@@ -14,30 +17,24 @@ interface LatencyDialProps {
   readonly reduced: boolean;
 }
 
-const VB = 300;
-const CX = VB / 2;
-const CY = VB / 2;
-const BEZEL_R = 148;
-const FACE_R = 104;
-const TRACK_R = 118;
+const FACE_R = 74;
+const TRACK_R = 86;
 const TRACK_WIDTH = 6;
-const FILL_GLOW_WIDTH = TRACK_WIDTH + 6;
-const START_ANGLE = 320;
-const END_ANGLE = 40;
+const FILL_GLOW_WIDTH = TRACK_WIDTH * 2;
+const MAJOR_TICK = FILL_GLOW_WIDTH / 2;
+const MINOR_TICK = TRACK_WIDTH / 2;
+const P50_TICK = MAJOR_TICK + 0.5;
+const START_ANGLE = 225;
+const END_ANGLE = -45;
 const TICK_STEPS = 10;
 const MAJOR_EVERY = 2;
-const NUMERAL_R = TRACK_R + 19;
 const SWEEP_MS = 1200;
-
-const GLOW = token.info;
-const GLOW_BRIGHT = `color-mix(in srgb, ${token.info} 65%, white)`;
 
 export function LatencyDial({ active, reduced }: LatencyDialProps) {
   const filterId = useId().replace(/:/g, "");
   const value = useMotionValue(reduced ? LATENCY_P95 : 0);
   const readout = useTransform(value, (v) => Math.round(v).toString());
-  const fraction = useTransform(value, (v) => v / LATENCY_MAX);
-  const fillOffset = useTransform(fraction, (f) => 1 - f);
+  const fillOffset = useTransform(value, (v) => 1 - v / LATENCY_MAX);
 
   useEffect(() => {
     if (reduced) {
@@ -58,27 +55,27 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
     START_ANGLE,
     END_ANGLE,
   );
-  const [p50x1, p50y1] = polarPoint(CX, CY, TRACK_R + 6, p50Angle);
-  const [p50x2, p50y2] = polarPoint(CX, CY, TRACK_R - 10, p50Angle);
+  const [p50x1, p50y1] = polarPoint(CX, CY, TRACK_R + P50_TICK, p50Angle);
+  const [p50x2, p50y2] = polarPoint(CX, CY, TRACK_R - P50_TICK, p50Angle);
 
-  const ticks: { x1: number; y1: number; x2: number; y2: number }[] = [];
-  const numerals: { x: number; y: number; label: string }[] = [];
-  for (let i = 0; i <= TICK_STEPS; i++) {
+  const ticks = Array.from({ length: TICK_STEPS + 1 }, (_, i) => {
     const f = i / TICK_STEPS;
-    const major = i % MAJOR_EVERY === 0;
     const angle = sweepAngle(f, START_ANGLE, END_ANGLE);
-    const [x1, y1] = polarPoint(CX, CY, TRACK_R + 5, angle);
-    const [x2, y2] = polarPoint(CX, CY, TRACK_R - (major ? 10 : 5), angle);
-    ticks.push({ x1, y1, x2, y2 });
-    if (major) {
-      const [nx, ny] = polarPoint(CX, CY, NUMERAL_R, angle);
-      numerals.push({
-        x: nx,
-        y: ny,
+    const reach = i % MAJOR_EVERY === 0 ? MAJOR_TICK : MINOR_TICK;
+    const [x1, y1] = polarPoint(CX, CY, TRACK_R + reach, angle);
+    const [x2, y2] = polarPoint(CX, CY, TRACK_R - reach, angle);
+    return { x1, y1, x2, y2 };
+  });
+  const numerals = Array.from(
+    { length: TICK_STEPS / MAJOR_EVERY + 1 },
+    (_, i) => {
+      const f = i / (TICK_STEPS / MAJOR_EVERY);
+      return {
+        angle: sweepAngle(f, START_ANGLE, END_ANGLE),
         label: String(Math.round(f * LATENCY_MAX)),
-      });
-    }
-  }
+      };
+    },
+  );
 
   return (
     <div className="@container w-full" style={{ aspectRatio: "1 / 1" }}>
@@ -103,39 +100,23 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
             </filter>
           </defs>
 
-          <circle
-            cx={CX}
-            cy={CY}
-            r={FACE_R}
-            fill={`color-mix(in srgb, ${token.bg} 55%, black)`}
-            stroke={token.borderStrong}
-            strokeWidth={1.25}
-          />
-          <circle
-            cx={CX}
-            cy={CY}
-            r={BEZEL_R}
-            fill="none"
-            stroke={token.border}
-            strokeWidth={1.25}
-            opacity={0.5}
-          />
+          <DialFace faceRadius={FACE_R} />
+
           <path
             d={trackPath}
             fill="none"
-            stroke={token.border}
+            stroke={ELECTRIC_DIM}
             strokeWidth={TRACK_WIDTH}
-            strokeLinecap="round"
-            opacity={0.3}
+            strokeLinecap="butt"
           />
           <motion.path
             d={trackPath}
             pathLength={1}
             fill="none"
-            stroke={GLOW}
+            stroke={ELECTRIC}
             strokeWidth={FILL_GLOW_WIDTH}
-            strokeLinecap="round"
-            opacity={0.5}
+            strokeLinecap="butt"
+            opacity={0.6}
             filter={`url(#glow-${filterId})`}
             style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
           />
@@ -143,18 +124,10 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
             d={trackPath}
             pathLength={1}
             fill="none"
-            stroke={GLOW}
+            stroke={ELECTRIC}
             strokeWidth={TRACK_WIDTH}
-            strokeLinecap="round"
+            strokeLinecap="butt"
             style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
-          />
-          <line
-            x1={p50x1}
-            y1={p50y1}
-            x2={p50x2}
-            y2={p50y2}
-            stroke={GLOW_BRIGHT}
-            strokeWidth={2}
           />
           {ticks.map((t, i) => (
             <line
@@ -163,30 +136,22 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
               y1={t.y1}
               x2={t.x2}
               y2={t.y2}
-              stroke={token.borderStrong}
+              stroke={token.bg}
               strokeWidth={1}
             />
           ))}
+          <line
+            x1={p50x1}
+            y1={p50y1}
+            x2={p50x2}
+            y2={p50y2}
+            stroke={ELECTRIC_BRIGHT}
+            strokeWidth={2}
+          />
         </svg>
 
-        {numerals.map((n, i) => (
-          <div
-            key={i}
-            aria-hidden="true"
-            className="whitespace-nowrap"
-            style={{
-              position: "absolute",
-              left: `${(n.x / VB) * 100}%`,
-              top: `${(n.y / VB) * 100}%`,
-              transform: "translate(-50%, -50%)",
-              fontSize: 11,
-              lineHeight: 1,
-              fontFamily: token.mono,
-              color: token.textDim,
-            }}
-          >
-            {n.label}
-          </div>
+        {numerals.map((n) => (
+          <DialNumeral key={n.label} angle={n.angle} label={n.label} />
         ))}
 
         <div
@@ -203,18 +168,19 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
         >
           <motion.span
             aria-hidden="true"
+            className="whitespace-nowrap"
             style={{
               display: "inline-block",
               minWidth: "2ch",
               textAlign: "center",
               fontFamily: token.mono,
-              fontSize: "clamp(22px, 15cqw, 34px)",
+              fontSize: "clamp(22px, 15cqw, 36px)",
               fontWeight: 800,
               fontStyle: "italic",
               lineHeight: 1,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 6px ${GLOW})`,
+              filter: `drop-shadow(0 0 8px ${ELECTRIC})`,
             }}
           >
             {readout}
@@ -225,6 +191,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
             style={{
               marginTop: 2,
               fontSize: 11,
+              lineHeight: 1,
               color: token.textSecondary,
               fontFamily: token.mono,
             }}

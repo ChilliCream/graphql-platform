@@ -35,3 +35,17 @@ export function sweepAngle(
 ): number {
   return startAngle + fraction * (endAngle - startAngle);
 }
+
+export function polarCss(
+  angleDeg: number,
+  rFraction: number,
+  offsetPx: number,
+): { readonly left: string; readonly top: string } {
+  const rad = toRad(angleDeg);
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return {
+    left: `calc(${round(50 + cos * rFraction * 100)}% + ${round(cos * offsetPx)}px)`,
+    top: `calc(${round(50 - sin * rFraction * 100)}% + ${round(-sin * offsetPx)}px)`,
+  };
+}

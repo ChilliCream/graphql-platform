@@ -12,7 +12,10 @@ import {
 import { token } from "@/src/nitro";
 import { ease } from "@/src/nitro/lib/motion";
 
+import { DialFace } from "./DialFace";
+import { DialNumeral } from "./DialNumeral";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
+import { CX, CY, ELECTRIC, ELECTRIC_BRIGHT, VB } from "./hud";
 import { OPS_IDLE_BAND, OPS_MAX, OPS_SETTLE, formatOps } from "./data";
 
 interface CenterOpsDialProps {
@@ -20,32 +23,20 @@ interface CenterOpsDialProps {
   readonly reduced: boolean;
 }
 
-const VB = 300;
-const CX = VB / 2;
-const CY = VB / 2;
-const BEZEL_R = 148;
-const FACE_R = 104;
-const RING_R = 112;
-const TICK_OUTER = 118;
-const TICK_INNER = 106;
-const SEGMENT_COUNT = 56;
+const FACE_R = 86;
+const SEGMENT_INNER = 91;
+const SEGMENT_OUTER = 103;
+const MAJOR_SEGMENT_INNER = 89;
+const RING_R = (SEGMENT_INNER + SEGMENT_OUTER) / 2;
+const SCALE_STEPS = 8;
+const SEGMENTS_PER_STEP = 7;
+const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
+const ARC_START = 225;
+const ARC_END = -45;
 const SWEEP_SPAN = 16;
 const SWEEP_MS = 1300;
 const IDLE_MS = 4400;
 const ROTATE_MS = 5200;
-
-// Shared by the segment ring and the numeral scale, so the fill and the
-// labels agree on where a given fraction of the value sits.
-const ARC_START = 225;
-const ARC_END = -45;
-
-const SCALE_TICK_INNER = 120;
-const SCALE_TICK_OUTER = 124;
-const SCALE_NUMERAL_R = 134;
-const SCALE_STEPS = 8;
-
-const GLOW = token.info;
-const GLOW_BRIGHT = `color-mix(in srgb, ${token.info} 65%, white)`;
 
 function Segment({
   index,
@@ -54,18 +45,24 @@ function Segment({
   readonly index: number;
   readonly fraction: MotionValue<number>;
 }) {
-  const angle = sweepAngle(index / SEGMENT_COUNT, ARC_START, ARC_END);
-  const [x1, y1] = polarPoint(CX, CY, TICK_INNER, angle);
-  const [x2, y2] = polarPoint(CX, CY, TICK_OUTER, angle);
-  const threshold = index / SEGMENT_COUNT;
-  const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : 0.16));
+  const threshold = index / SEGMENT_STEPS;
+  const major = index % SEGMENTS_PER_STEP === 0;
+  const angle = sweepAngle(threshold, ARC_START, ARC_END);
+  const [x1, y1] = polarPoint(
+    CX,
+    CY,
+    major ? MAJOR_SEGMENT_INNER : SEGMENT_INNER,
+    angle,
+  );
+  const [x2, y2] = polarPoint(CX, CY, SEGMENT_OUTER, angle);
+  const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : 0.18));
   return (
     <motion.line
       x1={x1}
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke={GLOW}
+      stroke={major ? ELECTRIC_BRIGHT : ELECTRIC}
       strokeWidth={3}
       strokeLinecap="round"
       style={{ opacity }}
@@ -126,24 +123,11 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
     90 + SWEEP_SPAN / 2,
     90 - SWEEP_SPAN / 2,
   );
-  const segments = Array.from({ length: SEGMENT_COUNT }, (_, i) => i);
-
-  const scaleTicks: { x1: number; y1: number; x2: number; y2: number }[] = [];
-  const scaleNumerals: { x: number; y: number; label: string }[] = [];
-  for (let i = 0; i <= SCALE_STEPS; i++) {
-    const f = i / SCALE_STEPS;
-    const angle = sweepAngle(f, ARC_START, ARC_END);
-    const [x1, y1] = polarPoint(CX, CY, SCALE_TICK_INNER, angle);
-    const [x2, y2] = polarPoint(CX, CY, SCALE_TICK_OUTER, angle);
-    scaleTicks.push({ x1, y1, x2, y2 });
-    const [nx, ny] = polarPoint(CX, CY, SCALE_NUMERAL_R, angle);
-    const thousands = (f * OPS_MAX) / 1000;
-    scaleNumerals.push({
-      x: nx,
-      y: ny,
-      label: i === 0 ? "0" : `${thousands}K`,
-    });
-  }
+  const segments = Array.from({ length: SEGMENT_STEPS + 1 }, (_, i) => i);
+  const numerals = Array.from({ length: SCALE_STEPS + 1 }, (_, i) => ({
+    angle: sweepAngle(i / SCALE_STEPS, ARC_START, ARC_END),
+    label: i === 0 ? "0" : `${(i * OPS_MAX) / SCALE_STEPS / 1000}K`,
+  }));
 
   return (
     <div className="@container w-full" style={{ aspectRatio: "1 / 1" }}>
@@ -168,38 +152,10 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             </filter>
           </defs>
 
-          <circle
-            cx={CX}
-            cy={CY}
-            r={FACE_R}
-            fill={`color-mix(in srgb, ${token.bg} 55%, black)`}
-            stroke={token.borderStrong}
-            strokeWidth={1.5}
-          />
-          <circle
-            cx={CX}
-            cy={CY}
-            r={BEZEL_R}
-            fill="none"
-            stroke={token.border}
-            strokeWidth={1.5}
-            opacity={0.5}
-          />
+          <DialFace faceRadius={FACE_R} />
 
           {segments.map((i) => (
             <Segment key={i} index={i} fraction={fraction} />
-          ))}
-
-          {scaleTicks.map((t, i) => (
-            <line
-              key={i}
-              x1={t.x1}
-              y1={t.y1}
-              x2={t.x2}
-              y2={t.y2}
-              stroke={token.borderStrong}
-              strokeWidth={1}
-            />
           ))}
 
           <motion.g
@@ -212,7 +168,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             <path
               d={highlightPath}
               fill="none"
-              stroke={GLOW_BRIGHT}
+              stroke={ELECTRIC_BRIGHT}
               strokeWidth={6}
               strokeLinecap="round"
               filter={`url(#glow-${filterId})`}
@@ -221,24 +177,8 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
           </motion.g>
         </svg>
 
-        {scaleNumerals.map((n, i) => (
-          <div
-            key={i}
-            aria-hidden="true"
-            className="whitespace-nowrap"
-            style={{
-              position: "absolute",
-              left: `${(n.x / VB) * 100}%`,
-              top: `${(n.y / VB) * 100}%`,
-              transform: "translate(-50%, -50%)",
-              fontSize: 11,
-              lineHeight: 1,
-              fontFamily: token.mono,
-              color: token.textDim,
-            }}
-          >
-            {n.label}
-          </div>
+        {numerals.map((n) => (
+          <DialNumeral key={n.label} angle={n.angle} label={n.label} />
         ))}
 
         <div
@@ -255,19 +195,18 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
         >
           <motion.span
             aria-hidden="true"
+            className="whitespace-nowrap"
             style={{
               display: "inline-block",
-              minWidth: "3ch",
-              textAlign: "center",
               fontFamily: token.mono,
-              fontSize: "clamp(42px, 17cqw, 58px)",
+              fontSize: "clamp(30px, 18cqw, 52px)",
               lineHeight: 1,
               fontWeight: 700,
               fontStyle: "italic",
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 8px ${GLOW})`,
+              filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
             }}
           >
             {readout}
@@ -278,6 +217,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             style={{
               marginTop: 3,
               fontSize: 11,
+              lineHeight: 1,
               letterSpacing: "0.08em",
               color: token.textSecondary,
               fontFamily: token.mono,

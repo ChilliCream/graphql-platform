@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId } from "react";
+import { useEffect, useId, type ReactNode } from "react";
 import {
   animate,
   motion,
@@ -12,7 +12,9 @@ import {
 import { token } from "@/src/nitro";
 import { ease } from "@/src/nitro/lib/motion";
 
-import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
+import { DialFace } from "./DialFace";
+import { gaugeArcPath } from "./gauge";
+import { CX, CY, ELECTRIC, ELECTRIC_BRIGHT, ELECTRIC_DIM, VB } from "./hud";
 import {
   CACHED_DOCUMENTS,
   CACHED_PLANS,
@@ -28,26 +30,93 @@ interface PressureDialProps {
   readonly reduced: boolean;
 }
 
-const VB = 300;
-const CX = VB / 2;
-const CY = VB / 2;
-const BEZEL_R = 148;
-const FACE_R = 104;
-const ARC_R = 118;
-const ARC_WIDTH = 6;
-const GLOW_WIDTH = ARC_WIDTH + 6;
-const WORD_R = FACE_R - 26;
-const VALUE_R = ARC_R + 19;
+const FACE_R = 128;
+const ARC_R = 139;
+const ARC_WIDTH = 7;
+const GLOW_WIDTH = 12;
 const SWEEP_MS = 1200;
 const IDLE_MS = 5200;
 
-const CPU_START = 200;
-const CPU_END = 270;
-const MEM_START = 270;
-const MEM_END = 340;
+const CPU_START = 145;
+const CPU_END = 35;
+const MEM_START = 215;
+const MEM_END = 325;
 
-const GLOW = token.info;
-const GLOW_BRIGHT = `color-mix(in srgb, ${token.info} 65%, white)`;
+const LABEL_STYLE = {
+  fontSize: 11,
+  lineHeight: 1,
+  letterSpacing: "0.04em",
+  color: token.textSecondary,
+  fontFamily: token.mono,
+} as const;
+
+const COUNT_STYLE = {
+  fontSize: "clamp(14px, 9cqw, 22px)",
+  lineHeight: 1,
+  fontWeight: 800,
+  fontStyle: "italic",
+  color: token.textStrong,
+  fontFamily: token.mono,
+  fontVariantNumeric: "tabular-nums",
+} as const;
+
+function PressureRow({
+  label,
+  value,
+  color,
+}: {
+  readonly label: string;
+  readonly value: MotionValue<string>;
+  readonly color: string;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex items-baseline whitespace-nowrap"
+      style={{ gap: 6 }}
+    >
+      <span className="uppercase" style={LABEL_STYLE}>
+        {label}
+      </span>
+      <motion.span
+        style={{
+          display: "inline-block",
+          minWidth: "3ch",
+          textAlign: "right",
+          fontSize: 11,
+          lineHeight: 1,
+          fontWeight: 700,
+          color,
+          fontFamily: token.mono,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {value}
+      </motion.span>
+    </div>
+  );
+}
+
+function CountRow({
+  label,
+  children,
+}: {
+  readonly label: string;
+  readonly children: ReactNode;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex flex-col items-center whitespace-nowrap"
+      style={{ gap: 2 }}
+    >
+      <span className="uppercase" style={LABEL_STYLE}>
+        {label}
+      </span>
+      <span style={COUNT_STYLE}>{children}</span>
+    </div>
+  );
+}
 
 function useArcValue(
   settle: number,
@@ -94,22 +163,25 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
   const cpu = useArcValue(CPU_PRESSURE, CPU_IDLE_BAND, active, reduced);
   const mem = useArcValue(MEMORY_PRESSURE, MEMORY_IDLE_BAND, active, reduced);
 
-  const cpuFraction = useTransform(cpu, (v) => v / 100);
-  const memFraction = useTransform(mem, (v) => v / 100);
-  const cpuOffset = useTransform(cpuFraction, (f) => 1 - f);
-  const memOffset = useTransform(memFraction, (f) => 1 - f);
+  const cpuOffset = useTransform(cpu, (v) => 1 - v / 100);
+  const memOffset = useTransform(mem, (v) => 1 - v / 100);
   const cpuLabel = useTransform(cpu, (v) => `${Math.round(v)}%`);
   const memLabel = useTransform(mem, (v) => `${Math.round(v)}%`);
 
-  const cpuTrack = gaugeArcPath(CX, CY, ARC_R, CPU_START, CPU_END);
-  const memTrack = gaugeArcPath(CX, CY, ARC_R, MEM_START, MEM_END);
-
-  const cpuMidAngle = sweepAngle(0.5, CPU_START, CPU_END);
-  const memMidAngle = sweepAngle(0.5, MEM_START, MEM_END);
-  const [cpuWordX, cpuWordY] = polarPoint(CX, CY, WORD_R, cpuMidAngle);
-  const [memWordX, memWordY] = polarPoint(CX, CY, WORD_R, memMidAngle);
-  const [cpuValueX, cpuValueY] = polarPoint(CX, CY, VALUE_R, cpuMidAngle);
-  const [memValueX, memValueY] = polarPoint(CX, CY, VALUE_R, memMidAngle);
+  const arcs = [
+    {
+      key: "cpu",
+      d: gaugeArcPath(CX, CY, ARC_R, CPU_START, CPU_END),
+      color: ELECTRIC,
+      offset: cpuOffset,
+    },
+    {
+      key: "mem",
+      d: gaugeArcPath(CX, CY, ARC_R, MEM_START, MEM_END),
+      color: ELECTRIC_BRIGHT,
+      offset: memOffset,
+    },
+  ];
 
   return (
     <div className="@container w-full" style={{ aspectRatio: "1 / 1" }}>
@@ -134,260 +206,59 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             </filter>
           </defs>
 
-          <circle
-            cx={CX}
-            cy={CY}
-            r={FACE_R}
-            fill={`color-mix(in srgb, ${token.bg} 55%, black)`}
-            stroke={token.borderStrong}
-            strokeWidth={1.25}
-          />
-          <circle
-            cx={CX}
-            cy={CY}
-            r={BEZEL_R}
-            fill="none"
-            stroke={token.border}
-            strokeWidth={1.25}
-            opacity={0.5}
-          />
+          <DialFace faceRadius={FACE_R} />
 
-          <path
-            d={cpuTrack}
-            fill="none"
-            stroke={token.border}
-            strokeWidth={ARC_WIDTH}
-            strokeLinecap="round"
-            opacity={0.3}
-          />
-          <motion.path
-            d={cpuTrack}
-            pathLength={1}
-            fill="none"
-            stroke={GLOW}
-            strokeWidth={GLOW_WIDTH}
-            strokeLinecap="round"
-            opacity={0.45}
-            filter={`url(#glow-${filterId})`}
-            style={{ strokeDasharray: "1 1", strokeDashoffset: cpuOffset }}
-          />
-          <motion.path
-            d={cpuTrack}
-            pathLength={1}
-            fill="none"
-            stroke={GLOW}
-            strokeWidth={ARC_WIDTH}
-            strokeLinecap="round"
-            style={{ strokeDasharray: "1 1", strokeDashoffset: cpuOffset }}
-          />
-
-          <path
-            d={memTrack}
-            fill="none"
-            stroke={token.border}
-            strokeWidth={ARC_WIDTH}
-            strokeLinecap="round"
-            opacity={0.3}
-          />
-          <motion.path
-            d={memTrack}
-            pathLength={1}
-            fill="none"
-            stroke={GLOW_BRIGHT}
-            strokeWidth={GLOW_WIDTH}
-            strokeLinecap="round"
-            opacity={0.45}
-            filter={`url(#glow-${filterId})`}
-            style={{ strokeDasharray: "1 1", strokeDashoffset: memOffset }}
-          />
-          <motion.path
-            d={memTrack}
-            pathLength={1}
-            fill="none"
-            stroke={GLOW_BRIGHT}
-            strokeWidth={ARC_WIDTH}
-            strokeLinecap="round"
-            style={{ strokeDasharray: "1 1", strokeDashoffset: memOffset }}
-          />
+          {arcs.map((arc) => (
+            <g key={arc.key}>
+              <path
+                d={arc.d}
+                fill="none"
+                stroke={ELECTRIC_DIM}
+                strokeWidth={ARC_WIDTH}
+                strokeLinecap="butt"
+              />
+              <motion.path
+                d={arc.d}
+                pathLength={1}
+                fill="none"
+                stroke={arc.color}
+                strokeWidth={GLOW_WIDTH}
+                strokeLinecap="butt"
+                opacity={0.55}
+                filter={`url(#glow-${filterId})`}
+                style={{ strokeDasharray: "1 1", strokeDashoffset: arc.offset }}
+              />
+              <motion.path
+                d={arc.d}
+                pathLength={1}
+                fill="none"
+                stroke={arc.color}
+                strokeWidth={ARC_WIDTH}
+                strokeLinecap="butt"
+                style={{ strokeDasharray: "1 1", strokeDashoffset: arc.offset }}
+              />
+            </g>
+          ))}
         </svg>
-
-        <div
-          role="img"
-          aria-label={`CPU pressure near ${CPU_PRESSURE}%`}
-          style={{
-            position: "absolute",
-            left: `${(cpuWordX / VB) * 100}%`,
-            top: `${(cpuWordY / VB) * 100}%`,
-            transform: "translate(-50%, -50%)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            className="uppercase"
-            style={{
-              fontSize: 11,
-              letterSpacing: "0.06em",
-              color: token.textSecondary,
-              fontFamily: token.mono,
-            }}
-          >
-            cpu
-          </span>
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: `${(cpuValueX / VB) * 100}%`,
-            top: `${(cpuValueY / VB) * 100}%`,
-            transform: "translate(-50%, -50%)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <motion.span
-            style={{
-              fontSize: 11,
-              lineHeight: 1,
-              fontWeight: 700,
-              color: token.textStrong,
-              fontFamily: token.mono,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {cpuLabel}
-          </motion.span>
-        </div>
-
-        <div
-          role="img"
-          aria-label={`Memory pressure near ${MEMORY_PRESSURE}%`}
-          style={{
-            position: "absolute",
-            left: `${(memWordX / VB) * 100}%`,
-            top: `${(memWordY / VB) * 100}%`,
-            transform: "translate(-50%, -50%)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            className="uppercase"
-            style={{
-              fontSize: 11,
-              letterSpacing: "0.06em",
-              color: token.textSecondary,
-              fontFamily: token.mono,
-            }}
-          >
-            mem
-          </span>
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: `${(memValueX / VB) * 100}%`,
-            top: `${(memValueY / VB) * 100}%`,
-            transform: "translate(-50%, -50%)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <motion.span
-            style={{
-              fontSize: 11,
-              lineHeight: 1,
-              fontWeight: 700,
-              color: token.textStrong,
-              fontFamily: token.mono,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {memLabel}
-          </motion.span>
-        </div>
 
         <div
           role="group"
           aria-label={`${formatCount(CACHED_DOCUMENTS)} cached documents, ${formatCount(CACHED_PLANS)} cached operation plans`}
+          className="flex flex-col items-center"
           style={{
             position: "absolute",
             left: "50%",
-            top: "46%",
+            top: "50%",
             transform: "translate(-50%, -50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
+            gap: 4,
           }}
         >
-          <div
-            aria-hidden="true"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <span
-              className="text-center whitespace-nowrap uppercase"
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.04em",
-                color: token.textSecondary,
-                fontFamily: token.mono,
-              }}
-            >
-              cached docs
-            </span>
-            <span
-              className="whitespace-nowrap"
-              style={{
-                fontSize: "clamp(14px, 8cqw, 18px)",
-                fontWeight: 800,
-                fontStyle: "italic",
-                color: token.textStrong,
-                fontFamily: token.mono,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {formatCount(CACHED_DOCUMENTS)}
-            </span>
-          </div>
-          <div
-            aria-hidden="true"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <span
-              className="text-center whitespace-nowrap uppercase"
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.04em",
-                color: token.textSecondary,
-                fontFamily: token.mono,
-              }}
-            >
-              cached plans
-            </span>
-            <span
-              className="whitespace-nowrap"
-              style={{
-                fontSize: "clamp(14px, 8cqw, 18px)",
-                fontWeight: 800,
-                fontStyle: "italic",
-                color: token.textStrong,
-                fontFamily: token.mono,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {formatCount(CACHED_PLANS)}
-            </span>
-          </div>
+          <PressureRow label="cpu" value={cpuLabel} color={ELECTRIC} />
+          <CountRow label="cached docs">
+            {formatCount(CACHED_DOCUMENTS)}
+          </CountRow>
+          <CountRow label="cached plans">{formatCount(CACHED_PLANS)}</CountRow>
+          <PressureRow label="mem" value={memLabel} color={ELECTRIC_BRIGHT} />
         </div>
       </div>
     </div>
