@@ -23,9 +23,29 @@ export function gaugeArcPath(
   const [sx, sy] = polarPoint(cx, cy, r, startAngle);
   const [ex, ey] = polarPoint(cx, cy, r, endAngle);
   const large = Math.abs(startAngle - endAngle) > 180 ? 1 : 0;
-  return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
+  // Ascending angle sweeps counter-clockwise on screen, so it needs the opposite flag.
+  const sweep = endAngle > startAngle ? 0 : 1;
+  return `M ${sx} ${sy} A ${r} ${r} 0 ${large} ${sweep} ${ex} ${ey}`;
 }
 
-export function fractionAngle(fraction: number, mirror = false): number {
-  return mirror ? fraction * 180 : 180 - fraction * 180;
+export function sweepAngle(
+  fraction: number,
+  startAngle: number,
+  endAngle: number,
+): number {
+  return startAngle + fraction * (endAngle - startAngle);
+}
+
+export function polarCss(
+  angleDeg: number,
+  rFraction: number,
+  offsetPx: number,
+): { readonly left: string; readonly top: string } {
+  const rad = toRad(angleDeg);
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return {
+    left: `calc(${round(50 + cos * rFraction * 100)}% + ${round(cos * offsetPx)}px)`,
+    top: `calc(${round(50 - sin * rFraction * 100)}% + ${round(-sin * offsetPx)}px)`,
+  };
 }

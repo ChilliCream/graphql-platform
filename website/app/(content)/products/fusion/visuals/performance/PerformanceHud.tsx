@@ -1,17 +1,41 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type CSSProperties, type ReactNode } from "react";
 
 import { Card } from "@/src/design-system/Card";
 import { NitroTheme, token } from "@/src/nitro";
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import { useElementMotion } from "../hooks";
-import { LatencyGauge } from "./LatencyGauge";
-import { LiveThroughput } from "./LiveThroughput";
-import { SideReadouts } from "./SideReadouts";
-import { StatusStrip } from "./StatusStrip";
-import { Tachometer } from "./Tachometer";
+import { CenterOpsDial } from "./CenterOpsDial";
+import { BACKDROP, BACKDROP_GLOW, CLUSTER, ELECTRIC_DIM } from "./hud";
+import { LatencyDial } from "./LatencyDial";
+import { PressureDial } from "./PressureDial";
+
+interface DialSlotProps {
+  readonly slot: (typeof CLUSTER)["centre"];
+  readonly children: ReactNode;
+}
+
+function DialSlot({ slot, children }: DialSlotProps) {
+  return (
+    <div
+      className="absolute top-(--stack-top) left-(--stack-left) w-(--stack-size) @min-[416px]:top-(--row-top) @min-[416px]:left-(--row-left) @min-[416px]:w-(--row-size)"
+      style={
+        {
+          "--stack-top": slot.stack.top,
+          "--stack-left": slot.stack.left,
+          "--stack-size": slot.stack.size,
+          "--row-top": slot.row.top,
+          "--row-left": slot.row.left,
+          "--row-size": slot.row.size,
+        } as CSSProperties
+      }
+    >
+      {children}
+    </div>
+  );
+}
 
 export function PerformanceHud() {
   const ref = useRef<HTMLDivElement>(null);
@@ -23,24 +47,39 @@ export function PerformanceHud() {
       <Card className="overflow-hidden rounded-2xl" glow>
         <NitroTheme
           theme="dark"
-          className="@container relative z-10"
+          className="relative z-10"
           style={{
-            background: `color-mix(in srgb, ${token.bg} 88%, black)`,
-            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 28px -8px ${token.accent}`,
+            background: BACKDROP,
+            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 40px -8px ${ELECTRIC_DIM}`,
           }}
         >
-          <div className="flex flex-col gap-4 p-4">
-            <div className="flex flex-col items-center justify-center gap-1 @min-[560px]:flex-row @min-[560px]:items-end">
-              <div className="w-full @min-[560px]:basis-[57%]">
-                <Tachometer active={active} reduced={reduced} />
-              </div>
-              <div className="w-full @min-[560px]:basis-[50%]">
-                <LatencyGauge active={active} reduced={reduced} />
-              </div>
+          <div className="@container relative overflow-hidden p-4">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: `radial-gradient(closest-side, ${BACKDROP_GLOW}, transparent)`,
+              }}
+            />
+            <div
+              className="relative aspect-(--stack-aspect) w-full @min-[416px]:aspect-(--row-aspect)"
+              style={
+                {
+                  "--stack-aspect": CLUSTER.stackAspect,
+                  "--row-aspect": CLUSTER.rowAspect,
+                } as CSSProperties
+              }
+            >
+              <DialSlot slot={CLUSTER.latency}>
+                <LatencyDial active={active} reduced={reduced} />
+              </DialSlot>
+              <DialSlot slot={CLUSTER.centre}>
+                <CenterOpsDial active={active} reduced={reduced} />
+              </DialSlot>
+              <DialSlot slot={CLUSTER.pressure}>
+                <PressureDial active={active} reduced={reduced} />
+              </DialSlot>
             </div>
-            <SideReadouts />
-            <LiveThroughput active={active} />
-            <StatusStrip />
           </div>
         </NitroTheme>
       </Card>

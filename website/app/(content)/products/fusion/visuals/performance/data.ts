@@ -1,21 +1,23 @@
-export const GAUGE_MAX = 7000;
-export const RED_ZONE_START = 6000;
-export const SETTLE_VALUE = 5500;
-export const IDLE_BAND: readonly [number, number] = [5300, 5650];
-export const CORES = 8;
+export const OPS_MAX = 8000;
+export const OPS_SETTLE = 5500;
+export const OPS_IDLE_BAND: readonly [number, number] = [5300, 5700];
 
-export const LATENCY_MAX = 20;
-export const P95_SETTLE = 12;
-export const P50_MARK = 7;
+export const LATENCY_MAX = 50;
+export const LATENCY_P95 = 12;
+export const LATENCY_P50 = 7;
 
-export const PLAN_CACHE_HIT = 99.8;
-export const FETCHES_BEFORE = 5;
-export const FETCHES_AFTER = 3;
+export const CPU_PRESSURE = 42;
+export const MEMORY_PRESSURE = 58;
+export const CPU_IDLE_BAND: readonly [number, number] = [38, 46];
+export const MEMORY_IDLE_BAND: readonly [number, number] = [54, 62];
 
-export const UPTIME_LABEL = "182d 06h";
-export const REQUESTS_LABEL = "1.4B";
-export const STREAM_LABEL = "@defer · @stream";
+export const CACHED_DOCUMENTS = 1284;
+export const CACHED_PLANS = 3410;
 
 export function formatOps(n: number): string {
   return `${(n / 1000).toFixed(1)}K`;
+}
+
+export function formatCount(n: number): string {
+  return Math.round(n).toLocaleString("en-US");
 }
