@@ -355,7 +355,7 @@ builder.Services
         before: WellKnownRequestMiddleware.CostAnalyzerMiddleware);
 ```
 
-Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state. This applies to `execute`, `report`, and `validate` mode alike.
+Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an empty variable batch executed through `IRequestExecutor`; over HTTP, the transport refuses `variables: []` before execution), or when metrics cannot be attached to the execution-result state. This applies to `execute`, `report`, and `validate` mode alike.
 
 # Next Steps
 

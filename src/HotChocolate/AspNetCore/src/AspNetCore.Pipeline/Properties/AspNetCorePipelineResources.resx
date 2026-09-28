@@ -75,6 +75,9 @@
   <data name="ErrorHelper_RequestHasNoElements" xml:space="preserve">
     <value>The GraphQL batch request has no elements.</value>
   </data>
+  <data name="ErrorHelper_EmptyVariableBatch" xml:space="preserve">
+    <value>A variable batch request must contain at least one variable set.</value>
+  </data>
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
   </data>
