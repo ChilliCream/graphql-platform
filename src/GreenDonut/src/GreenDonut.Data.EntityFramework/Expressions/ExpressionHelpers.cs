@@ -395,8 +395,9 @@ internal static class ExpressionHelpers
     /// The value type.
     /// </typeparam>
     /// <exception cref="ArgumentException">
-    /// If the number of keys is less than one or
-    /// the number of order expressions does not match the number of order methods.
+    /// If the number of keys is less than one, the number of order expressions does not match
+    /// the number of order methods, or an end cursor is used without <c>before</c> and
+    /// <c>last</c>.
     /// </exception>
     public static BatchExpression<TK, TV> BuildBatchExpression<TK, TV>(
         PagingArguments arguments,
@@ -460,6 +461,14 @@ internal static class ExpressionHelpers
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
+
+            if (cursor.IsEndCursor)
+            {
+                throw new ArgumentException(
+                    "An end cursor is only valid when used with `before` and `last`.",
+                    nameof(arguments));
+            }
+
             var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
                 keys,
                 cursor,
@@ -474,6 +483,8 @@ internal static class ExpressionHelpers
             }
         }
 
+        var isEndCursor = false;
+
         if (arguments.Before is not null)
         {
             if (usesRelativeCursors)
@@ -484,14 +495,28 @@ internal static class ExpressionHelpers
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
-                keys,
-                cursor,
-                forward:
-                false,
-                arguments.NullOrdering);
-            source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
-            offset = cursorOffset;
+
+            if (cursor.IsEndCursor)
+            {
+                if (arguments.First is not null || arguments.Last is null)
+                {
+                    throw new ArgumentException(
+                        "An end cursor is only valid when used with `before` and `last`.",
+                        nameof(arguments));
+                }
+
+                isEndCursor = true;
+            }
+            else
+            {
+                var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
+                    keys,
+                    cursor,
+                    forward: false,
+                    arguments.NullOrdering);
+                source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
+                offset = cursorOffset;
+            }
         }
 
         if (arguments.First is not null)
@@ -514,36 +539,66 @@ internal static class ExpressionHelpers
             }
         }
 
-        offset = Math.Abs(offset);
-
-        if (offset > 0)
+        if (isEndCursor)
         {
-            source = Expression.Call(
-                typeof(Enumerable),
-                "Skip",
-                [typeof(TV)],
-                source,
-                Expression.Constant(offset * requestedCount));
-        }
+            var cachedTotal = cursor!.TotalCount!.Value;
+            var pagesBeforeLast = -cursor.Offset!.Value;
 
-        if (arguments.First is not null)
-        {
-            source = Expression.Call(
-                typeof(Enumerable),
-                "Take",
-                [typeof(TV)],
-                source,
-                Expression.Constant(arguments.First.Value + 1));
-        }
+            if (pagesBeforeLast > 0)
+            {
+                var remainder = cachedTotal % requestedCount == 0
+                    ? requestedCount
+                    : cachedTotal % requestedCount;
+                var skip = remainder + (pagesBeforeLast - 1) * requestedCount;
 
-        if (arguments.Last is not null)
-        {
+                source = Expression.Call(
+                    typeof(Enumerable),
+                    "Skip",
+                    [typeof(TV)],
+                    source,
+                    Expression.Constant(skip));
+            }
+
             source = Expression.Call(
                 typeof(Enumerable),
                 "Take",
                 [typeof(TV)],
                 source,
-                Expression.Constant(arguments.Last.Value + 1));
+                Expression.Constant(requestedCount));
+        }
+        else
+        {
+            offset = Math.Abs(offset);
+
+            if (offset > 0)
+            {
+                source = Expression.Call(
+                    typeof(Enumerable),
+                    "Skip",
+                    [typeof(TV)],
+                    source,
+                    Expression.Constant(offset * requestedCount));
+            }
+
+            if (arguments.First is not null)
+            {
+                source = Expression.Call(
+                    typeof(Enumerable),
+                    "Take",
+                    [typeof(TV)],
+                    source,
+                    Expression.Constant(arguments.First.Value + 1));
+            }
+
+            if (arguments.Last is not null)
+            {
+                source = Expression.Call(
+                    typeof(Enumerable),
+                    "Take",
+                    [typeof(TV)],
+                    source,
+                    Expression.Constant(arguments.Last.Value + 1));
+            }
         }
 
         // apply the selector after cursor filtering and paging so cursor predicates
