@@ -168,7 +168,7 @@ internal static class DataLoaderStateHelper
 
             if (!pagingArguments.First.Value.TryFormat(buffer[written..], out var charsWritten))
             {
-                throw new InvalidOperationException("Buffer is too small.");
+                throw ThrowHelper.PagingArgumentsHash_BufferTooSmall();
             }
 
             written += charsWritten;
@@ -195,7 +195,7 @@ internal static class DataLoaderStateHelper
 
             if (!pagingArguments.Last.Value.TryFormat(buffer[written..], out var charsWritten))
             {
-                throw new InvalidOperationException("Buffer is too small.");
+                throw ThrowHelper.PagingArgumentsHash_BufferTooSmall();
             }
 
             written += charsWritten;

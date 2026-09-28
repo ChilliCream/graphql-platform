@@ -403,7 +403,7 @@ public class StreamPageTests
         // assert
         Assert.True(page.IsCompleted);
         Assert.Empty(items);
-        Assert.Null(totalCount);
+        Assert.Equal(0, totalCount);
         Assert.False(hasNextPage);
         Assert.False(hasPreviousPage);
     }

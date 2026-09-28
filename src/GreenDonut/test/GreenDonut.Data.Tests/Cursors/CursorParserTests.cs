@@ -79,6 +79,66 @@ public class CursorParserTests
     }
 
     [Fact]
+    public void Parse_Rejects_EndCursor_With_Trailing_Garbage()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{end|0|25}garbage"u8);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Rejects_EndCursor_With_Partially_Parsed_Offset()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{end|0x|25}"u8);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Rejects_EndCursor_With_Partially_Parsed_TotalCount()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{end|0|25:extra}"u8);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Rejects_EndCursor_With_Leading_Whitespace()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{end| 0|25}"u8);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
     public void Parse_Parses_Legacy_ThreeNumber_PageInfo()
     {
         // arrange

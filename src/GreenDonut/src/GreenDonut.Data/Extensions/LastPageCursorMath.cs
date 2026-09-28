@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using GreenDonut.Data.Cursors;
+using GreenDonut.Data.Internal;
 
 namespace GreenDonut.Data;
 
@@ -46,15 +47,12 @@ internal static class LastPageCursorMath
     {
         if (offset > 0)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(offset),
-                offset,
-                "The offset of a last page cursor must not be greater than zero.");
+            throw ThrowHelper.LastPageCursor_OffsetMustNotBeGreaterThanZero(offset);
         }
 
         if (totalCount is null || requestedSize is null)
         {
-            throw new InvalidOperationException("This page does not allow relative cursors.");
+            throw ThrowHelper.LastPageCursor_RelativeCursorsNotAllowed();
         }
 
         var lastPageNumber = GetLastPageNumber(totalCount.Value, requestedSize.Value);
@@ -62,10 +60,7 @@ internal static class LastPageCursorMath
 
         if (pageNumber < 1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(offset),
-                offset,
-                "The offset moves the page number before the first page.");
+            throw ThrowHelper.LastPageCursor_OffsetMovesBeforeFirstPage(offset);
         }
 
         return new PageCursor(CursorFormatter.FormatEndCursor(offset, totalCount.Value), pageNumber);
@@ -102,9 +97,7 @@ internal static class LastPageCursorMath
     {
         if (maxCursors < 0)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(maxCursors),
-                "Max cursors must be greater than or equal to 0.");
+            throw ThrowHelper.RelativeCursors_MaxCursorsMustNotBeNegative(maxCursors);
         }
 
         if (totalCount is null || requestedSize is null || index is null)

@@ -697,7 +697,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
-        var startCursor = page.CreateStartCursor();
+        var startCursor = await page.CreateStartCursorAsync(cancellationToken);
         var endCursor = await page.CreateEndCursorAsync(cancellationToken);
 
         // Act
@@ -890,7 +890,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if a nested projection order key was collected.
-        page.CreateStartCursor();
+        await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
         var snapshot = Snapshot
@@ -935,7 +935,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if a nested projection order key was collected.
-        page.CreateStartCursor();
+        await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
         var snapshot = Snapshot
@@ -973,7 +973,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if the predicate's nested order key was collected.
-        page.CreateStartCursor();
+        await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
         var snapshot = Snapshot
@@ -1011,7 +1011,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
 
         // a cursor must be creatable for each edge. this evaluates the cursor keys against
         // the projected Brand, which fails if the predicate's nested order key was collected.
-        page.CreateStartCursor();
+        await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
         var snapshot = Snapshot
@@ -1054,7 +1054,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
 
         // a cursor must be creatable for each edge. this evaluates the computed
         // order key against the projected Brand and requires Products to be loaded.
-        page.CreateStartCursor();
+        await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
         var snapshot = Snapshot
@@ -1120,7 +1120,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
-        var startCursor = page.CreateStartCursor();
+        var startCursor = await page.CreateStartCursorAsync(cancellationToken);
         await page.DisposeAsync();
 
         // Act
@@ -1148,7 +1148,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
-        var startCursor = page.CreateStartCursor();
+        var startCursor = await page.CreateStartCursorAsync(cancellationToken);
         var endCursor = await page.CreateEndCursorAsync(cancellationToken);
 
         // Act

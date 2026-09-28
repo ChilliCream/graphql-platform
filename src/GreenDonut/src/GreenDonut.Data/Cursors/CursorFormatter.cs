@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
+using GreenDonut.Data.Internal;
 
 namespace GreenDonut.Data.Cursors;
 
@@ -160,10 +161,7 @@ public static class CursorFormatter
     {
         if (offset > 0)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(offset),
-                offset,
-                "The offset of an end cursor must not be greater than zero.");
+            throw ThrowHelper.EndCursor_OffsetMustNotBeGreaterThanZero(offset);
         }
 
         ArgumentOutOfRangeException.ThrowIfNegative(totalCount);

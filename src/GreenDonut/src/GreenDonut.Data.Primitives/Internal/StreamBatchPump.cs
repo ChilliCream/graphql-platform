@@ -15,10 +15,14 @@ namespace GreenDonut.Data.Internal;
 /// </typeparam>
 /// <remarks>
 /// Rows arrive grouped by key. A row whose key differs from the previous row's key completes the
-/// previous key's page; source exhaustion completes every page not yet complete, so a requested
-/// key that never appears in the stream completes as an empty page. Pulling on any key's page
-/// drives this pump; rows for other keys are buffered into their own pages. This type has no
-/// cross-thread safety, the same stance as <see cref="StreamPageBuffer{TElement}"/>.
+/// previous key's page; source exhaustion completes every page already created, and leaves a
+/// still-unbuilt key's channel to complete on its own first pull. This way a requested key that
+/// never appears in the stream, and whose page is created only after the source ran out, still
+/// completes as an empty page. Pulling on any key's page drives this pump; rows for other keys
+/// are buffered into their own pages. A key whose page was disposed before it completed is
+/// abandoned: the pump keeps advancing past its remaining rows but discards them instead of
+/// buffering them. This type has no cross-thread safety, the same stance as
+/// <see cref="StreamPageBuffer{TElement}"/>.
 /// </remarks>
 internal sealed class StreamBatchPump<TKey, TElement>
     where TKey : notnull
@@ -30,6 +34,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
     private bool _hasCurrentKey;
     private TKey _currentKey = default!;
     private bool _released;
+    private bool _sourceExhausted;
     private ExceptionDispatchInfo? _fault;
 
     private StreamBatchPump(
@@ -53,8 +58,10 @@ internal sealed class StreamBatchPump<TKey, TElement>
     }
 
     /// <summary>
-    /// Creates a batch pump for the given requested keys, or, for an empty key set, disposes
-    /// <paramref name="source"/> and <paramref name="lifetime"/> immediately and returns null.
+    /// Creates a batch pump for the given requested keys, reading exactly one row from
+    /// <paramref name="source"/> and parking it in whichever requested key sorts first, or, for
+    /// an empty key set, disposes <paramref name="source"/> and <paramref name="lifetime"/>
+    /// immediately and returns null.
     /// </summary>
     /// <param name="source">
     /// The shared, key-ordered source enumerator that produces rows for every requested key.
@@ -81,7 +88,19 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
         if (keys.Count > 0)
         {
-            return new StreamBatchPump<TKey, TElement>(source, keys, lifetime);
+            var pump = new StreamBatchPump<TKey, TElement>(source, keys, lifetime);
+
+            try
+            {
+                await pump.PumpOnceAsync().ConfigureAwait(false);
+            }
+            catch
+            {
+                await pump.ReleaseCoreAsync().ConfigureAwait(false);
+                throw;
+            }
+
+            return pump;
         }
 
         await source.DisposeAsync().ConfigureAwait(false);
@@ -130,6 +149,15 @@ internal sealed class StreamBatchPump<TKey, TElement>
         return page;
     }
 
+    /// <summary>
+    /// The number of rows already read for <paramref name="key"/> but not yet handed to its
+    /// page, for tests to observe staging that has no other externally visible effect.
+    /// </summary>
+    /// <param name="key">
+    /// One of the keys this batch pump was created with.
+    /// </param>
+    internal int StagedRowCount(TKey key) => _keys[key].Rows.Count;
+
     // Returns the next row for the given key, reading from the shared source until one arrives,
     // the key's run completes, or the source is exhausted.
     private async ValueTask<StreamRow<TElement>?> ReadNextAsync(TKey key)
@@ -146,44 +174,53 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
     // Advances the shared source by exactly one row, routing it to its key's channel. A key
     // change completes the previously active key's page; source exhaustion completes every page
-    // not yet complete. Completing a channel here also drains its page, so the page's own
-    // completion (and, once every key has completed or been disposed, the source and the
-    // lifetime) happens without waiting for a consumer to pull the remaining buffered rows.
+    // already created and leaves a still-unbuilt key's channel alone, so it completes on its own
+    // first pull instead (that pull re-enters this method, finds the source already exhausted,
+    // and falls straight into this same completion pass). Completing a channel here also drains
+    // its page, so the page's own completion (and, once every key has completed or been
+    // disposed, the source and the lifetime) happens without waiting for a consumer to pull the
+    // remaining buffered rows.
     private async ValueTask PumpOnceAsync()
     {
         _fault?.Throw();
 
         bool hasNext;
 
-        try
+        if (_sourceExhausted)
         {
-            hasNext = await _source.MoveNextAsync().ConfigureAwait(false);
+            hasNext = false;
         }
-        catch (Exception ex)
+        else
         {
-            // a source that faults mid-stream still releases the shared source and the lifetime,
-            // exactly as reaching the end of the source does, and every later pull for any key
-            // rethrows the same exception instead of touching the now-disposed source again.
-            _fault = ExceptionDispatchInfo.Capture(ex);
-            await ReleaseCoreAsync().ConfigureAwait(false);
-            throw;
+            try
+            {
+                hasNext = await _source.MoveNextAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // a source that faults mid-stream still releases the shared source and the
+                // lifetime, exactly as reaching the end of the source does, and every later pull
+                // for any key rethrows the same exception instead of touching the now-disposed
+                // source again.
+                _fault = ExceptionDispatchInfo.Capture(ex);
+                await ReleaseCoreAsync().ConfigureAwait(false);
+                throw;
+            }
         }
 
         if (!hasNext)
         {
+            _sourceExhausted = true;
+
             foreach (var each in _keys.Values)
             {
-                if (each.Completed)
+                if (each.Completed || each.Drain is null)
                 {
                     continue;
                 }
 
                 each.Completed = true;
-
-                if (each.Drain is not null)
-                {
-                    await each.Drain(CancellationToken.None).ConfigureAwait(false);
-                }
+                await each.Drain(CancellationToken.None).ConfigureAwait(false);
             }
 
             return;
@@ -209,18 +246,36 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
         _hasCurrentKey = true;
         _currentKey = row.Key;
-        channel.Rows.Enqueue(new StreamRow<TElement>
+
+        if (!channel.Abandoned)
         {
-            Item = row.Item,
-            TotalCount = row.TotalCount,
-            HasMore = row.HasMore
-        });
+            channel.Rows.Enqueue(new StreamRow<TElement>
+            {
+                Item = row.Item,
+                TotalCount = row.TotalCount,
+                HasMore = row.HasMore
+            });
+        }
     }
 
-    // Signals that one requested key's page has completed or been disposed. Once every key has
-    // done so, disposes the source and then the lifetime, exactly once.
-    private async ValueTask ReleaseAsync()
+    // Signals that one requested key's page has completed or been disposed. A page disposed
+    // before its channel completed naturally is abandoned here: its channel is marked completed
+    // so the key-change and source-exhaustion handling above leave it alone, its already-staged
+    // rows are dropped, and later rows for the same key are discarded as they are read instead of
+    // buffered. Once every key has completed or been disposed, disposes the source and then the
+    // lifetime, exactly once.
+    private async ValueTask ReleaseAsync(TKey key)
     {
+        var channel = _keys[key];
+
+        if (!channel.Completed)
+        {
+            channel.Completed = true;
+            channel.Abandoned = true;
+            channel.Rows.Clear();
+            channel.Drain = null;
+        }
+
         if (--_liveKeys > 0)
         {
             return;
@@ -230,7 +285,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
     }
 
     // Disposes the source and then the lifetime, exactly once, however release was triggered:
-    // every requested key completing or being disposed, or the source faulting mid-stream.
+    // every requested key completing or being disposed, the source faulting mid-stream, or the
+    // priming read during creation failing before any page exists to reach this path otherwise.
     private async ValueTask ReleaseCoreAsync()
     {
         if (_released)
@@ -256,6 +312,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
         public bool Completed { get; set; }
 
+        public bool Abandoned { get; set; }
+
         public Func<CancellationToken, ValueTask>? Drain { get; set; }
     }
 
@@ -274,6 +332,6 @@ internal sealed class StreamBatchPump<TKey, TElement>
             return _current is not null;
         }
 
-        public ValueTask DisposeAsync() => pump.ReleaseAsync();
+        public ValueTask DisposeAsync() => pump.ReleaseAsync(key);
     }
 }

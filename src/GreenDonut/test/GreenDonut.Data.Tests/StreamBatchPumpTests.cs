@@ -192,6 +192,70 @@ public class StreamBatchPumpTests
     }
 
     [Fact]
+    public async Task CreateAsync_Should_ReadExactlyOneRow_When_CreatingAMultiKeyBatch()
+    {
+        // arrange
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"), Row("B", "b1"), Row("C", "c1"));
+
+        // act: create the pump for three keys, then pull the primed row through its page
+        var pump = await CreatePump(source, ["A", "B", "C"]);
+        var movesAfterCreate = source.MoveNextCount;
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
+        var enumeratorA = pageA.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        var hasFirst = await enumeratorA.MoveNextAsync();
+
+        // assert: creation read only the first key's first row, and pulling its page needed no
+        // further physical reads
+        Assert.Equal(1, movesAfterCreate);
+        Assert.True(hasFirst);
+        Assert.Equal("a1", enumeratorA.Current);
+        Assert.Equal(1, source.MoveNextCount);
+    }
+
+    [Fact]
+    public async Task CreateAsync_Should_DisposeSourceAndLifetime_When_FirstRowBelongsToAnUnrequestedKey()
+    {
+        // arrange
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("Z", "z1"), Row("A", "a1"));
+
+        // act
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => StreamBatchPump<string, string>.CreateAsync(
+                source.GetAsyncEnumerator(TestContext.Current.CancellationToken), ["A", "B"], lifetime).AsTask());
+
+        // assert
+        Assert.Equal((1, 1, 1), (source.MoveNextCount, source.DisposeCount, lifetime.DisposeCount));
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_AbandonTheKey_And_DiscardItsRemainingRows_When_DisposedBeforeCompletion()
+    {
+        // arrange: B has three rows, but only its first is ever read before its page is disposed.
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"), Row("B", "b1"), Row("B", "b2"), Row("B", "b3"), Row("C", "c1"));
+        var pump = await CreatePump(source, ["A", "B", "C"]);
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 3, forward: true));
+        var pageC = CreatePage(pump, "C", Definition<string>(requestedCount: 1, forward: true));
+
+        // act: read B's first row, abandon B, then drain C, which forces the pump past B's two
+        // remaining rows along the way
+        var enumeratorB = pageB.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        await enumeratorB.MoveNextAsync();
+        var bufferedBeforeDispose = pageB.BufferedCount;
+        await pageB.DisposeAsync();
+        var itemsC = await CollectAsync(pageC);
+
+        // assert: B's remaining rows were never buffered, but its pre-disposal row still replays
+        Assert.Equal(1, bufferedBeforeDispose);
+        Assert.Equal(0, pump.StagedRowCount("B"));
+        Assert.True(pageB.IsCompleted);
+        Assert.Equal(["b1"], await CollectAsync(pageB));
+        Assert.Equal(["c1"], itemsC);
+    }
+
+    [Fact]
     public async Task DuplicateKey_Should_Throw_ArgumentException_NamingTheKey()
     {
         // arrange
@@ -306,6 +370,24 @@ public class StreamBatchPumpTests
         // A's buffered rows still replay with no further physical reads
         Assert.Equal(["a1", "a2"], await CollectAsync(pageA));
         Assert.Equal(3, source.Yielded.Count);
+    }
+
+    [Fact]
+    public async Task SourceEof_Should_CompleteEverySiblingPage_And_ReleaseOnce_When_TheBatchHasNoRows()
+    {
+        // arrange: the source has no rows at all, so creation already reaches end of source.
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>();
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+
+        // act: draining A alone must also complete B, whose page did not exist yet at EOF
+        var itemsA = await CollectAsync(pageA);
+
+        // assert
+        Assert.Empty(itemsA);
+        Assert.Equal((true, 1, 1), (pageB.IsCompleted, source.DisposeCount, lifetime.DisposeCount));
     }
 
     private static StreamBatchRow<TKey, TElement> Row<TKey, TElement>(TKey key, TElement item)

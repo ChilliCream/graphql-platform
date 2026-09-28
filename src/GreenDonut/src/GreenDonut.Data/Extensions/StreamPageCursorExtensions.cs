@@ -6,18 +6,41 @@ namespace GreenDonut.Data;
 public static class StreamPageCursorExtensions
 {
     /// <summary>
-    /// Creates a cursor for the first item of the page, without reading ahead.
+    /// Creates a cursor for the first item of the page, reading ahead only until the first item
+    /// has arrived.
     /// </summary>
     /// <param name="page">
     /// The page to create the cursor for.
     /// </param>
+    /// <param name="cancellationToken">
+    /// A token to cancel the operation.
+    /// </param>
     /// <returns>
     /// The cursor of the first item, or null if the page is empty.
     /// </returns>
-    public static string? CreateStartCursor<T>(this StreamPage<T> page)
+    public static ValueTask<string?> CreateStartCursorAsync<T>(
+        this StreamPage<T> page,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(page);
-        return page.BufferedCount > 0 ? page.CreateCursor(page.GetBufferedEntry(0)) : null;
+
+        if (page.BufferedCount > 0 || page.IsCompleted)
+        {
+            return new ValueTask<string?>(CreateStartCursor(page));
+        }
+
+        return AwaitFirstEntryAsync(page, cancellationToken);
+
+        static async ValueTask<string?> AwaitFirstEntryAsync(
+            StreamPage<T> page,
+            CancellationToken cancellationToken)
+        {
+            await page.PrimeAsync(cancellationToken).ConfigureAwait(false);
+            return CreateStartCursor(page);
+        }
+
+        static string? CreateStartCursor(StreamPage<T> page)
+            => page.BufferedCount > 0 ? page.CreateCursor(page.GetBufferedEntry(0)) : null;
     }
 
     /// <summary>

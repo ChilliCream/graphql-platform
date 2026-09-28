@@ -47,7 +47,21 @@ internal sealed class ValueCursorStreamPage<T> : StreamPage<T>
     /// An empty page.
     /// </summary>
     public static new ValueCursorStreamPage<T> Empty { get; } =
-        new(pump: null, definition: default, createCursor: static _ => string.Empty);
+        new(
+            pump: null,
+            definition: new StreamPageDefinition<T>(
+                RequestedCount: 0,
+                Forward: false,
+                TrailingSentinel: false,
+                SkipFront: 0,
+                SkipFrontFromCount: null,
+                Index: null,
+                RequestedSize: null,
+                TotalCount: 0,
+                HasNextPage: false,
+                HasPreviousPage: false,
+                FlagsFromFirstRow: null),
+            createCursor: static _ => string.Empty);
 
     protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
         => _createCursor(new EdgeEntry<T>(_buffer[index], offset, pageIndex, totalCount));
