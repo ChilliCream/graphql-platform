@@ -8,7 +8,7 @@ import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import { useElementMotion } from "../hooks";
 import { CenterOpsDial } from "./CenterOpsDial";
-import { CLUSTER, ELECTRIC } from "./hud";
+import { BACKDROP, BACKDROP_GLOW, CLUSTER, ELECTRIC_DIM } from "./hud";
 import { LatencyDial } from "./LatencyDial";
 import { PressureDial } from "./PressureDial";
 
@@ -49,8 +49,8 @@ export function PerformanceHud() {
           theme="dark"
           className="relative z-10"
           style={{
-            background: `color-mix(in srgb, ${ELECTRIC} 20%, black)`,
-            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 40px -8px ${ELECTRIC}`,
+            background: BACKDROP,
+            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 40px -8px ${ELECTRIC_DIM}`,
           }}
         >
           <div className="@container relative overflow-hidden p-4">
@@ -58,7 +58,7 @@ export function PerformanceHud() {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
               style={{
-                background: `radial-gradient(closest-side, color-mix(in srgb, ${ELECTRIC} 55%, transparent), transparent 88%)`,
+                background: `radial-gradient(closest-side, ${BACKDROP_GLOW}, transparent)`,
               }}
             />
             <div

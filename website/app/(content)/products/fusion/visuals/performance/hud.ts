@@ -66,11 +66,13 @@ export const CLUSTER = {
   },
 } as const;
 
-export const ELECTRIC = `color-mix(in oklch, ${token.info} 80%, ${token.purple})`;
-export const ELECTRIC_BRIGHT = `color-mix(in srgb, ${ELECTRIC} 60%, white)`;
+export const ELECTRIC = "var(--color-cc-electric)";
+export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;
 export const ELECTRIC_DIM = `color-mix(in srgb, ${ELECTRIC} 30%, transparent)`;
 export const DISC_CORE = `color-mix(in srgb, ${ELECTRIC} 12%, black)`;
 export const DISC_RIM = `color-mix(in srgb, ${ELECTRIC} 48%, black)`;
-export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 4%, black)`;
-export const FACE_RIM = `color-mix(in srgb, ${ELECTRIC} 34%, black)`;
+export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 25%, black)`;
+export const FACE_RIM = `color-mix(in srgb-linear, ${ELECTRIC} 30%, black)`;
+export const BACKDROP = `color-mix(in srgb, ${ELECTRIC} 8%, black)`;
+export const BACKDROP_GLOW = `color-mix(in srgb, ${ELECTRIC} 85%, transparent)`;
 export const NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 55%, ${token.textStrong})`;

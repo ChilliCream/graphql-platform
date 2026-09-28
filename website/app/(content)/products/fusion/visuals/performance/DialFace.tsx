@@ -8,7 +8,6 @@ import {
   CX,
   CY,
   ELECTRIC,
-  ELECTRIC_BRIGHT,
   DISC_CORE,
   DISC_RIM,
   FACE_CORE,
@@ -52,7 +51,7 @@ export function DialFace({ faceRadius }: DialFaceProps) {
         cy={CY}
         r={BEZEL_R}
         fill="none"
-        stroke={ELECTRIC_BRIGHT}
+        stroke={ELECTRIC}
         strokeWidth={BEZEL_WIDTH}
       />
       <circle
