@@ -37,7 +37,7 @@ const ARC_R = 118;
 const ARC_WIDTH = 6;
 const GLOW_WIDTH = ARC_WIDTH + 6;
 const WORD_R = FACE_R - 26;
-const VALUE_R = ARC_R + 29;
+const VALUE_R = ARC_R + 19;
 const SWEEP_MS = 1200;
 const IDLE_MS = 5200;
 
@@ -248,6 +248,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           <motion.span
             style={{
               fontSize: 11,
+              lineHeight: 1,
               fontWeight: 700,
               color: token.textStrong,
               fontFamily: token.mono,
@@ -295,6 +296,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           <motion.span
             style={{
               fontSize: 11,
+              lineHeight: 1,
               fontWeight: 700,
               color: token.textStrong,
               fontFamily: token.mono,
@@ -311,7 +313,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           style={{
             position: "absolute",
             left: "50%",
-            top: "36%",
+            top: "46%",
             transform: "translate(-50%, -50%)",
             display: "flex",
             flexDirection: "column",
