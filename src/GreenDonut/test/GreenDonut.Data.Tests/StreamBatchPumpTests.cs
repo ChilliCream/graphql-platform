@@ -8,7 +8,7 @@ public class StreamBatchPumpTests
     public async Task Rows_Should_RouteToTheirKeysPage()
     {
         // arrange
-        var source = new ScriptedBatchRowSource<string, string>(
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"));
         var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
@@ -27,7 +27,7 @@ public class StreamBatchPumpTests
     public async Task KeyChange_Should_CompleteThePreviousKeysPage()
     {
         // arrange
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
         var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 2, forward: true));
@@ -36,7 +36,7 @@ public class StreamBatchPumpTests
         // buffer them, before A is ever touched directly
         await using var enumeratorB = pageB.GetAsyncEnumerator(TestContext.Current.CancellationToken);
         await enumeratorB.MoveNextAsync();
-        var rowsReadAfterB = source.RowsRead;
+        var rowsReadAfterB = source.Yielded.Count;
         var itemsA = await CollectAsync(pageA);
 
         // assert: A's key change was already detected, so completing A needed no further reads
@@ -44,14 +44,14 @@ public class StreamBatchPumpTests
         Assert.Equal(["a1", "a2"], itemsA);
         Assert.True(pageA.IsCompleted);
         Assert.False(pageB.IsCompleted);
-        Assert.Equal(3, source.RowsRead);
+        Assert.Equal(3, source.Yielded.Count);
     }
 
     [Fact]
     public async Task TrailingSentinel_Should_ApplyPerKey()
     {
         // arrange: A's second row is its sentinel and must never be yielded; B is unaffected.
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
         var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true, trailingSentinel: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
@@ -72,7 +72,7 @@ public class StreamBatchPumpTests
     {
         // arrange: backward pages never over-fetch, so each key's flags and total come from the
         // per-key definition, exactly as the EF layer would supply them.
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("B", "b1"), Row("B", "b2"));
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"), Row("B", "b1"), Row("B", "b2"));
         var pump = await CreatePump(source, ["A", "B"]);
         var definitionA = Definition<string>(requestedCount: 1, forward: false) with
         {
@@ -109,7 +109,7 @@ public class StreamBatchPumpTests
     public async Task UnseenKey_Should_CompleteAsEmptyPage_When_SourceReachesEnd()
     {
         // arrange: "B" is requested but never appears in the source.
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"));
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"));
         var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
@@ -128,7 +128,7 @@ public class StreamBatchPumpTests
     public async Task ConsumingLastKeyFirst_Should_BufferEarlierKeys()
     {
         // arrange
-        var source = new ScriptedBatchRowSource<string, string>(
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"), Row("C", "c1"), Row("C", "c2"));
         var pump = await CreatePump(source, ["A", "B", "C"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
@@ -137,7 +137,7 @@ public class StreamBatchPumpTests
 
         // act: draining the last key first must buffer every earlier key's rows along the way
         var itemsC = await CollectAsync(pageC);
-        var rowsReadAfterC = source.RowsRead;
+        var rowsReadAfterC = source.Yielded.Count;
         var itemsA = await CollectAsync(pageA);
         var itemsB = await CollectAsync(pageB);
 
@@ -146,14 +146,14 @@ public class StreamBatchPumpTests
         Assert.Equal(6, rowsReadAfterC);
         Assert.Equal(["a1", "a2"], itemsA);
         Assert.Equal(["b1", "b2"], itemsB);
-        Assert.Equal(6, source.RowsRead);
+        Assert.Equal(6, source.Yielded.Count);
     }
 
     [Fact]
     public async Task Enumerators_Should_Interleave_AcrossKeys_OverTheSharedPump()
     {
         // arrange
-        var source = new ScriptedBatchRowSource<string, string>(
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"));
         var pump = await CreatePump(source, ["A", "B"]);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
@@ -170,15 +170,15 @@ public class StreamBatchPumpTests
 
         // assert: B's first pull already had to drive the pump through A's second row
         Assert.Equal([(true, "a1"), (true, "b1"), (true, "a2"), (true, "b2")], [r1, r2, r3, r4]);
-        Assert.Equal(4, source.RowsRead);
+        Assert.Equal(4, source.Yielded.Count);
     }
 
     [Fact]
     public async Task EmptyKeySet_Should_DisposeSourceAndLifetime_Immediately()
     {
         // arrange
-        var lifetime = new RecordingLifetime();
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"));
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"));
 
         // act
         var pump = await StreamBatchPump<string, string>.CreateAsync(
@@ -186,16 +186,16 @@ public class StreamBatchPumpTests
 
         // assert
         Assert.Null(pump);
-        Assert.Equal(1, source.DisposedCount);
+        Assert.Equal(1, source.DisposeCount);
         Assert.Equal(1, lifetime.DisposeCount);
-        Assert.Equal(0, source.RowsRead);
+        Assert.Empty(source.Yielded);
     }
 
     [Fact]
     public async Task DuplicateKey_Should_Throw_ArgumentException_NamingTheKey()
     {
         // arrange
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"));
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"));
 
         // act
         var exception = await Assert.ThrowsAsync<ArgumentException>(
@@ -214,8 +214,8 @@ public class StreamBatchPumpTests
     public async Task Counter_Should_ReachZero_Only_When_EveryKeyCompletesOrIsDisposed()
     {
         // arrange
-        var lifetime = new RecordingLifetime();
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("B", "b1"));
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"), Row("B", "b1"));
         var pump = await CreatePump(source, ["A", "B"], lifetime);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
@@ -228,15 +228,15 @@ public class StreamBatchPumpTests
         // assert
         Assert.Equal(0, lifetimeDisposedAfterA);
         Assert.Equal(1, lifetime.DisposeCount);
-        Assert.Equal(1, source.DisposedCount);
+        Assert.Equal(1, source.DisposeCount);
     }
 
     [Fact]
     public async Task DisposeAsync_Should_BeIdempotent_And_NotDoubleReleaseTheCounter()
     {
         // arrange
-        var lifetime = new RecordingLifetime();
-        var source = new ScriptedBatchRowSource<string, string>(
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
             Row("A", "a1"), Row("A", "a2"), Row("B", "b1"), Row("B", "b2"));
         var pump = await CreatePump(source, ["A", "B"], lifetime);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
@@ -256,15 +256,39 @@ public class StreamBatchPumpTests
         Assert.True(pageA.IsCompleted);
         Assert.Equal(0, lifetimeDisposedAfterA);
         Assert.Equal(1, lifetime.DisposeCount);
-        Assert.Equal(1, source.DisposedCount);
+        Assert.Equal(1, source.DisposeCount);
+    }
+
+    [Fact]
+    public async Task SourceException_Should_SurfaceToTheEnumerator_And_ReleaseTheLifetime_When_ThrownMidStream()
+    {
+        // arrange
+        var exception = new InvalidOperationException("boom");
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
+        source.ThrowAt(1, exception);
+        var lifetime = new ScriptedAsyncDisposable();
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+
+        // act
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageA));
+        var thrownB = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageB));
+
+        // assert: the fault releases the shared source and the lifetime once, and the sibling
+        // page rethrows the same fault instead of reading the now-disposed source
+        Assert.Same(exception, thrown);
+        Assert.Same(exception, thrownB);
+        Assert.Equal((2, 1, 1), (source.MoveNextCount, source.DisposeCount, lifetime.DisposeCount));
     }
 
     [Fact]
     public async Task SourceEof_Should_CompleteEveryPage_And_ReleaseOnce_When_OnlyOnePageIsDrained()
     {
         // arrange
-        var lifetime = new RecordingLifetime();
-        var source = new ScriptedBatchRowSource<string, string>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"), Row("A", "a2"), Row("B", "b1"));
         var pump = await CreatePump(source, ["A", "B"], lifetime);
         var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 2, forward: true));
         var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
@@ -277,11 +301,11 @@ public class StreamBatchPumpTests
         // assert: A completed and everything released as soon as the source ran out, with no
         // consumer ever pulling on A directly
         Assert.Equal(["b1"], itemsB);
-        Assert.Equal((true, 1, 1), (pageA.IsCompleted, source.DisposedCount, lifetime.DisposeCount));
+        Assert.Equal((true, 1, 1), (pageA.IsCompleted, source.DisposeCount, lifetime.DisposeCount));
 
         // A's buffered rows still replay with no further physical reads
         Assert.Equal(["a1", "a2"], await CollectAsync(pageA));
-        Assert.Equal(3, source.RowsRead);
+        Assert.Equal(3, source.Yielded.Count);
     }
 
     private static StreamBatchRow<TKey, TElement> Row<TKey, TElement>(TKey key, TElement item)
@@ -289,7 +313,7 @@ public class StreamBatchPumpTests
         => new() { Key = key, Item = item };
 
     private static async Task<StreamBatchPump<TKey, TElement>> CreatePump<TKey, TElement>(
-        ScriptedBatchRowSource<TKey, TElement> source,
+        ScriptedAsyncSource<StreamBatchRow<TKey, TElement>> source,
         IReadOnlyCollection<TKey> keys,
         IAsyncDisposable? lifetime = null)
         where TKey : notnull
@@ -337,61 +361,5 @@ public class StreamBatchPumpTests
         }
 
         return items;
-    }
-
-    private sealed class RecordingLifetime : IAsyncDisposable
-    {
-        public int DisposeCount { get; private set; }
-
-        public ValueTask DisposeAsync()
-        {
-            DisposeCount++;
-            return ValueTask.CompletedTask;
-        }
-    }
-
-    // A minimal hand-rolled async source for these smoke tests, mirroring ScriptedRowSource in
-    // StreamPageBasicsTests.cs but carrying a routing key on every row.
-    private sealed class ScriptedBatchRowSource<TKey, TElement> : IAsyncEnumerable<StreamBatchRow<TKey, TElement>>
-        where TKey : notnull
-    {
-        private readonly StreamBatchRow<TKey, TElement>[] _rows;
-
-        public ScriptedBatchRowSource(params StreamBatchRow<TKey, TElement>[] rows) => _rows = rows;
-
-        public int RowsRead { get; private set; }
-
-        public int DisposedCount { get; private set; }
-
-        public IAsyncEnumerator<StreamBatchRow<TKey, TElement>> GetAsyncEnumerator(
-            CancellationToken cancellationToken = default)
-            => new Enumerator(this);
-
-        private sealed class Enumerator(ScriptedBatchRowSource<TKey, TElement> owner)
-            : IAsyncEnumerator<StreamBatchRow<TKey, TElement>>
-        {
-            private int _index = -1;
-
-            public StreamBatchRow<TKey, TElement> Current => owner._rows[_index];
-
-            public ValueTask<bool> MoveNextAsync()
-            {
-                _index++;
-
-                if (_index >= owner._rows.Length)
-                {
-                    return new ValueTask<bool>(false);
-                }
-
-                owner.RowsRead++;
-                return new ValueTask<bool>(true);
-            }
-
-            public ValueTask DisposeAsync()
-            {
-                owner.DisposedCount++;
-                return ValueTask.CompletedTask;
-            }
-        }
     }
 }

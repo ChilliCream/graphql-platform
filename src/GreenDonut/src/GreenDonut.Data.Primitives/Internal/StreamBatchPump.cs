@@ -1,3 +1,5 @@
+using System.Runtime.ExceptionServices;
+
 namespace GreenDonut.Data.Internal;
 
 /// <summary>
@@ -27,6 +29,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
     private int _liveKeys;
     private bool _hasCurrentKey;
     private TKey _currentKey = default!;
+    private bool _released;
+    private ExceptionDispatchInfo? _fault;
 
     private StreamBatchPump(
         IAsyncEnumerator<StreamBatchRow<TKey, TElement>> source,
@@ -147,7 +151,25 @@ internal sealed class StreamBatchPump<TKey, TElement>
     // lifetime) happens without waiting for a consumer to pull the remaining buffered rows.
     private async ValueTask PumpOnceAsync()
     {
-        if (!await _source.MoveNextAsync().ConfigureAwait(false))
+        _fault?.Throw();
+
+        bool hasNext;
+
+        try
+        {
+            hasNext = await _source.MoveNextAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // a source that faults mid-stream still releases the shared source and the lifetime,
+            // exactly as reaching the end of the source does, and every later pull for any key
+            // rethrows the same exception instead of touching the now-disposed source again.
+            _fault = ExceptionDispatchInfo.Capture(ex);
+            await ReleaseCoreAsync().ConfigureAwait(false);
+            throw;
+        }
+
+        if (!hasNext)
         {
             foreach (var each in _keys.Values)
             {
@@ -204,6 +226,19 @@ internal sealed class StreamBatchPump<TKey, TElement>
             return;
         }
 
+        await ReleaseCoreAsync().ConfigureAwait(false);
+    }
+
+    // Disposes the source and then the lifetime, exactly once, however release was triggered:
+    // every requested key completing or being disposed, or the source faulting mid-stream.
+    private async ValueTask ReleaseCoreAsync()
+    {
+        if (_released)
+        {
+            return;
+        }
+
+        _released = true;
         await _source.DisposeAsync().ConfigureAwait(false);
 
         var lifetime = _lifetime;

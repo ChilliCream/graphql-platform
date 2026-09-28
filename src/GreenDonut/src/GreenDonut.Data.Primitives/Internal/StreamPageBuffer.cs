@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 
 namespace GreenDonut.Data.Internal;
 
@@ -27,6 +28,8 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     private int? _totalCount;
     private bool? _hasNextPage;
     private bool? _hasPreviousPage;
+    private ExceptionDispatchInfo? _fault;
+    private bool _pumpReleased;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamPageBuffer{TElement}"/> class.
@@ -192,11 +195,28 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
             return;
         }
 
+        _fault?.Throw();
+
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var row = _pump is null ? null : await _pump.ReadNextAsync().ConfigureAwait(false);
+            StreamRow<TElement>? row;
+
+            try
+            {
+                row = _pump is null ? null : await _pump.ReadNextAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // a source that faults mid-stream releases the pump, exactly as reaching the end
+                // of the source or disposing the page does, but the page itself stays not
+                // completed so every later call rethrows the same exception instead of silently
+                // truncating.
+                _fault = ExceptionDispatchInfo.Capture(ex);
+                await ReleasePumpAsync().ConfigureAwait(false);
+                throw;
+            }
 
             if (row is null)
             {
@@ -250,12 +270,26 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
 
     private async ValueTask CompleteAsync()
     {
-        if (_isCompleted)
+        if (_isCompleted || _fault is not null)
         {
             return;
         }
 
         _isCompleted = true;
+        await ReleasePumpAsync().ConfigureAwait(false);
+    }
+
+    // Releases the pump exactly once, however release was triggered: normal completion or the
+    // source faulting mid-stream. A faulted page stays not completed, so it needs its own
+    // released flag separate from _isCompleted.
+    private async ValueTask ReleasePumpAsync()
+    {
+        if (_pumpReleased)
+        {
+            return;
+        }
+
+        _pumpReleased = true;
 
         if (_pump is not null)
         {

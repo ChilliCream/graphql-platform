@@ -1,13 +1,19 @@
 using GreenDonut.Data.TestContext.EntityConfigurations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenDonut.Data.TestContext;
 
-public class CatalogContext(string connectionString) : DbContext
+public class CatalogContext(string connectionString, IEnumerable<IInterceptor>? interceptors = null) : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseNpgsql(connectionString);
+
+        if (interceptors is not null)
+        {
+            optionsBuilder.AddInterceptors(interceptors);
+        }
     }
 
     public DbSet<Product> Products { get; set; } = null!;
