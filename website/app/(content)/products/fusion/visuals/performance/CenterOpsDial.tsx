@@ -108,7 +108,8 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
 
   useEffect(() => {
     if (reduced || !active) return;
-    const spin = animate(rotate, 360, {
+    const from = rotate.get() % 360;
+    const spin = animate(rotate, [from, from + 360], {
       duration: ROTATE_MS / 1000,
       ease: ease.linear,
       repeat: Infinity,
