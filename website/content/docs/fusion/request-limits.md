@@ -167,6 +167,8 @@ The maximum HTTP request body size defaults to approximately 20 MB:
 builder.AddGraphQLGateway(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
 ```
 
+A request over the limit is rejected before parsing with the error code `HC0010`. Under the `Draft20260903` [transport version](../hotchocolate/server/http-transport.md#transport-versions), the response has a `413` status code.
+
 ## Server Options
 
 Control which HTTP methods and features are available:

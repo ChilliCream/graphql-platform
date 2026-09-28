@@ -44,6 +44,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo[] _streamPreferred;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
     private readonly bool _jsonFollowsGraphQLResponseRules;
+    private readonly bool _reportsContentTooLarge;
     private readonly bool _reportsPartialSuccess;
     private readonly bool _reportsUnprocessableRequest;
 
@@ -140,13 +141,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         // From the 2026-09-03 revision on, a client that accepts application/json is answered as
         // if it had asked for application/graphql-response+json, and only a 2xx response is
-        // written with application/json as its Content-Type. The same revision answers a result
-        // that carries errors beside its data with 294, a request the server read but cannot
-        // execute with 422 rather than 400, and a request whose method or Content-Type the
-        // endpoint does not support with 405 or 415 rather than 404.
+        // written with application/json as its Content-Type. The same revision answers a request
+        // body over the maximum request size with 413 rather than 400, a result that carries
+        // errors beside its data with 294, a request the server read but cannot execute with 422
+        // rather than 400, and a request whose method or Content-Type the endpoint does not
+        // support with 405 or 415 rather than 404.
         var usesRevision20260903 = TransportVersion is not
             (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
         _jsonFollowsGraphQLResponseRules = usesRevision20260903;
+        _reportsContentTooLarge = usesRevision20260903;
         _reportsPartialSuccess = usesRevision20260903;
         _reportsUnprocessableRequest = usesRevision20260903;
         ReportsUnsupportedMethodOrMediaType = usesRevision20260903;
@@ -620,6 +623,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     && result.ContextData.ContainsKey(HttpResultContextData.RequestNotWellFormed))
                 {
                     return HttpStatusCode.UnprocessableContent;
+                }
+
+                // From the 2026-09-03 revision on, a request body over the maximum request size
+                // is answered 413.
+                if (_reportsContentTooLarge
+                    && proposedStatusCode is HttpStatusCode.BadRequest
+                    && result.ContextData.ContainsKey(HttpResultContextData.RequestTooLarge))
+                {
+                    return HttpStatusCode.RequestEntityTooLarge;
                 }
 
                 return proposedStatusCode.Value;

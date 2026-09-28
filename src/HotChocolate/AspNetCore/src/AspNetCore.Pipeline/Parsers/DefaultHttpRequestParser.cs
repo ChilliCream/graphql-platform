@@ -165,7 +165,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             if (result.Buffer.Length > _maxRequestSize)
             {
                 requestBody.AdvanceTo(result.Buffer.End);
-                throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+                throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
             }
 
             if (result.IsCompleted || result.IsCanceled)
