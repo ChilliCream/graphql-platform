@@ -20,14 +20,17 @@ const CY = VB / 2;
 const BEZEL_R = 148;
 const FACE_R = 104;
 const TRACK_R = 118;
-const TRACK_WIDTH = 10;
+const TRACK_WIDTH = 6;
 const FILL_GLOW_WIDTH = TRACK_WIDTH + 6;
-const START_ANGLE = 250;
-const END_ANGLE = -70;
+const START_ANGLE = 320;
+const END_ANGLE = 40;
 const TICK_STEPS = 10;
 const MAJOR_EVERY = 2;
-const NUMERAL_R = TRACK_R + 20;
+const NUMERAL_R = TRACK_R + 27;
 const SWEEP_MS = 1200;
+
+const GLOW = token.info;
+const GLOW_BRIGHT = `color-mix(in srgb, ${token.info} 65%, white)`;
 
 export function LatencyDial({ active, reduced }: LatencyDialProps) {
   const filterId = useId().replace(/:/g, "");
@@ -129,7 +132,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
             d={trackPath}
             pathLength={1}
             fill="none"
-            stroke={token.accent}
+            stroke={GLOW}
             strokeWidth={FILL_GLOW_WIDTH}
             strokeLinecap="round"
             opacity={0.5}
@@ -140,7 +143,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
             d={trackPath}
             pathLength={1}
             fill="none"
-            stroke={token.accent}
+            stroke={GLOW}
             strokeWidth={TRACK_WIDTH}
             strokeLinecap="round"
             style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
@@ -150,7 +153,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
             y1={p50y1}
             x2={p50x2}
             y2={p50y2}
-            stroke={token.accentHover}
+            stroke={GLOW_BRIGHT}
             strokeWidth={2}
           />
           {ticks.map((t, i) => (
@@ -170,6 +173,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
           <div
             key={i}
             aria-hidden="true"
+            className="whitespace-nowrap"
             style={{
               position: "absolute",
               left: `${(n.x / VB) * 100}%`,
@@ -209,7 +213,7 @@ export function LatencyDial({ active, reduced }: LatencyDialProps) {
               lineHeight: 1,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 6px ${token.accent})`,
+              filter: `drop-shadow(0 0 6px ${GLOW})`,
             }}
           >
             {readout}

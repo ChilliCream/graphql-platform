@@ -23,7 +23,11 @@ export function gaugeArcPath(
   const [sx, sy] = polarPoint(cx, cy, r, startAngle);
   const [ex, ey] = polarPoint(cx, cy, r, endAngle);
   const large = Math.abs(startAngle - endAngle) > 180 ? 1 : 0;
-  return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
+  // polarPoint negates sin for its y-up sweep, so an ascending angle draws
+  // counter-clockwise on screen and needs the opposite SVG sweep flag from a
+  // descending one to hug the circle instead of bowing across the chord.
+  const sweep = endAngle > startAngle ? 0 : 1;
+  return `M ${sx} ${sy} A ${r} ${r} 0 ${large} ${sweep} ${ex} ${ey}`;
 }
 
 export function sweepAngle(

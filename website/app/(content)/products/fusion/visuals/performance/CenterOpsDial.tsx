@@ -25,14 +25,24 @@ const CX = VB / 2;
 const CY = VB / 2;
 const BEZEL_R = 148;
 const FACE_R = 104;
-const RING_R = 124;
-const TICK_OUTER = RING_R + 7;
-const TICK_INNER = RING_R - 7;
+const RING_R = 122;
+const TICK_OUTER = RING_R + 6;
+const TICK_INNER = RING_R - 6;
 const SEGMENT_COUNT = 56;
 const SWEEP_SPAN = 16;
 const SWEEP_MS = 1300;
 const IDLE_MS = 4400;
 const ROTATE_MS = 5200;
+
+const SCALE_TICK_INNER = 136;
+const SCALE_TICK_OUTER = 140;
+const SCALE_NUMERAL_R = 146;
+const SCALE_START = 150;
+const SCALE_END = 30;
+const SCALE_STEPS = 8;
+
+const GLOW = token.info;
+const GLOW_BRIGHT = `color-mix(in srgb, ${token.info} 65%, white)`;
 
 function Segment({
   index,
@@ -52,7 +62,7 @@ function Segment({
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke={token.accent}
+      stroke={GLOW}
       strokeWidth={3}
       strokeLinecap="round"
       style={{ opacity }}
@@ -115,6 +125,23 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
   );
   const segments = Array.from({ length: SEGMENT_COUNT }, (_, i) => i);
 
+  const scaleTicks: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  const scaleNumerals: { x: number; y: number; label: string }[] = [];
+  for (let i = 0; i <= SCALE_STEPS; i++) {
+    const f = i / SCALE_STEPS;
+    const angle = sweepAngle(f, SCALE_START, SCALE_END);
+    const [x1, y1] = polarPoint(CX, CY, SCALE_TICK_INNER, angle);
+    const [x2, y2] = polarPoint(CX, CY, SCALE_TICK_OUTER, angle);
+    scaleTicks.push({ x1, y1, x2, y2 });
+    const [nx, ny] = polarPoint(CX, CY, SCALE_NUMERAL_R, angle);
+    const thousands = (f * OPS_MAX) / 1000;
+    scaleNumerals.push({
+      x: nx,
+      y: ny,
+      label: i === 0 ? "0" : `${thousands}K`,
+    });
+  }
+
   return (
     <div className="@container w-full" style={{ aspectRatio: "1 / 1" }}>
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -160,11 +187,23 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             <Segment key={i} index={i} fraction={fraction} />
           ))}
 
+          {scaleTicks.map((t, i) => (
+            <line
+              key={i}
+              x1={t.x1}
+              y1={t.y1}
+              x2={t.x2}
+              y2={t.y2}
+              stroke={token.borderStrong}
+              strokeWidth={1}
+            />
+          ))}
+
           <motion.g style={{ rotate, transformOrigin: `${CX}px ${CY}px` }}>
             <path
               d={highlightPath}
               fill="none"
-              stroke={token.accentHover}
+              stroke={GLOW_BRIGHT}
               strokeWidth={6}
               strokeLinecap="round"
               filter={`url(#glow-${filterId})`}
@@ -172,6 +211,25 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             />
           </motion.g>
         </svg>
+
+        {scaleNumerals.map((n, i) => (
+          <div
+            key={i}
+            aria-hidden="true"
+            className="whitespace-nowrap"
+            style={{
+              position: "absolute",
+              left: `${(n.x / VB) * 100}%`,
+              top: `${(n.y / VB) * 100}%`,
+              transform: "translate(-50%, -50%)",
+              fontSize: 11,
+              fontFamily: token.mono,
+              color: token.textDim,
+            }}
+          >
+            {n.label}
+          </div>
+        ))}
 
         <div
           role="img"
@@ -199,7 +257,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 8px ${token.accent})`,
+              filter: `drop-shadow(0 0 8px ${GLOW})`,
             }}
           >
             {readout}

@@ -23,8 +23,8 @@ export function PerformanceHud() {
           theme="dark"
           className="relative z-10"
           style={{
-            background: `color-mix(in srgb, ${token.bg} 88%, black)`,
-            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 28px -8px ${token.accent}`,
+            background: `color-mix(in srgb, ${token.bg} 78%, black)`,
+            boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 32px -8px ${token.info}`,
           }}
         >
           <div className="@container relative overflow-hidden p-4">
@@ -32,17 +32,17 @@ export function PerformanceHud() {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
               style={{
-                background: `radial-gradient(closest-side, color-mix(in srgb, ${token.accent} 22%, transparent), transparent 72%)`,
+                background: `radial-gradient(closest-side, color-mix(in srgb, ${token.info} 28%, transparent), transparent 72%)`,
               }}
             />
             <div className="relative flex flex-wrap items-center justify-center gap-x-2 gap-y-6 @min-[640px]:flex-nowrap @min-[640px]:gap-x-0 @min-[640px]:gap-y-0">
-              <div className="z-0 order-2 w-[46%] @min-[640px]:order-1 @min-[640px]:-mr-[10%] @min-[640px]:w-[34%]">
+              <div className="z-0 order-2 w-[46%] @min-[640px]:order-1 @min-[640px]:-mr-[6%] @min-[640px]:w-[34%]">
                 <LatencyDial active={active} reduced={reduced} />
               </div>
               <div className="z-10 order-1 w-[68%] @min-[640px]:order-2 @min-[640px]:w-[46%]">
                 <CenterOpsDial active={active} reduced={reduced} />
               </div>
-              <div className="z-0 order-3 w-[46%] @min-[640px]:-ml-[10%] @min-[640px]:w-[34%]">
+              <div className="z-0 order-3 w-[46%] @min-[640px]:-ml-[6%] @min-[640px]:w-[34%]">
                 <PressureDial active={active} reduced={reduced} />
               </div>
             </div>

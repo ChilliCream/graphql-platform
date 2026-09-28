@@ -34,16 +34,20 @@ const CY = VB / 2;
 const BEZEL_R = 148;
 const FACE_R = 104;
 const ARC_R = 118;
-const ARC_WIDTH = 14;
+const ARC_WIDTH = 8;
 const GLOW_WIDTH = ARC_WIDTH + 6;
-const LABEL_R = ARC_R + 14;
+const WORD_R = FACE_R - 26;
+const VALUE_R = ARC_R + 29;
 const SWEEP_MS = 1200;
 const IDLE_MS = 5200;
 
-const CPU_START = 180;
+const CPU_START = 200;
 const CPU_END = 270;
 const MEM_START = 270;
-const MEM_END = 360;
+const MEM_END = 340;
+
+const GLOW = token.info;
+const GLOW_BRIGHT = `color-mix(in srgb, ${token.info} 65%, white)`;
 
 function useArcValue(
   settle: number,
@@ -102,8 +106,10 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
 
   const cpuMidAngle = sweepAngle(0.5, CPU_START, CPU_END);
   const memMidAngle = sweepAngle(0.5, MEM_START, MEM_END);
-  const [cpuLx, cpuLy] = polarPoint(CX, CY, LABEL_R, cpuMidAngle);
-  const [memLx, memLy] = polarPoint(CX, CY, LABEL_R, memMidAngle);
+  const [cpuWordX, cpuWordY] = polarPoint(CX, CY, WORD_R, cpuMidAngle);
+  const [memWordX, memWordY] = polarPoint(CX, CY, WORD_R, memMidAngle);
+  const [cpuValueX, cpuValueY] = polarPoint(CX, CY, VALUE_R, cpuMidAngle);
+  const [memValueX, memValueY] = polarPoint(CX, CY, VALUE_R, memMidAngle);
 
   return (
     <div className="@container w-full" style={{ aspectRatio: "1 / 1" }}>
@@ -158,7 +164,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             d={cpuTrack}
             pathLength={1}
             fill="none"
-            stroke={token.accent}
+            stroke={GLOW}
             strokeWidth={GLOW_WIDTH}
             strokeLinecap="round"
             opacity={0.45}
@@ -169,7 +175,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             d={cpuTrack}
             pathLength={1}
             fill="none"
-            stroke={token.accent}
+            stroke={GLOW}
             strokeWidth={ARC_WIDTH}
             strokeLinecap="round"
             style={{ strokeDasharray: "1 1", strokeDashoffset: cpuOffset }}
@@ -187,7 +193,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             d={memTrack}
             pathLength={1}
             fill="none"
-            stroke={token.accentHover}
+            stroke={GLOW_BRIGHT}
             strokeWidth={GLOW_WIDTH}
             strokeLinecap="round"
             opacity={0.45}
@@ -198,7 +204,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             d={memTrack}
             pathLength={1}
             fill="none"
-            stroke={token.accentHover}
+            stroke={GLOW_BRIGHT}
             strokeWidth={ARC_WIDTH}
             strokeLinecap="round"
             style={{ strokeDasharray: "1 1", strokeDashoffset: memOffset }}
@@ -210,12 +216,10 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           aria-label={`CPU pressure near ${CPU_PRESSURE}%`}
           style={{
             position: "absolute",
-            left: `${(cpuLx / VB) * 100}%`,
-            top: `${(cpuLy / VB) * 100}%`,
+            left: `${(cpuWordX / VB) * 100}%`,
+            top: `${(cpuWordY / VB) * 100}%`,
             transform: "translate(-50%, -50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            whiteSpace: "nowrap",
           }}
         >
           <span
@@ -230,10 +234,20 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           >
             cpu
           </span>
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: `${(cpuValueX / VB) * 100}%`,
+            top: `${(cpuValueY / VB) * 100}%`,
+            transform: "translate(-50%, -50%)",
+            whiteSpace: "nowrap",
+          }}
+        >
           <motion.span
-            aria-hidden="true"
             style={{
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
               color: token.textStrong,
               fontFamily: token.mono,
@@ -249,12 +263,10 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           aria-label={`Memory pressure near ${MEMORY_PRESSURE}%`}
           style={{
             position: "absolute",
-            left: `${(memLx / VB) * 100}%`,
-            top: `${(memLy / VB) * 100}%`,
+            left: `${(memWordX / VB) * 100}%`,
+            top: `${(memWordY / VB) * 100}%`,
             transform: "translate(-50%, -50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            whiteSpace: "nowrap",
           }}
         >
           <span
@@ -269,10 +281,20 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
           >
             mem
           </span>
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: `${(memValueX / VB) * 100}%`,
+            top: `${(memValueY / VB) * 100}%`,
+            transform: "translate(-50%, -50%)",
+            whiteSpace: "nowrap",
+          }}
+        >
           <motion.span
-            aria-hidden="true"
             style={{
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
               color: token.textStrong,
               fontFamily: token.mono,
@@ -307,7 +329,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             }}
           >
             <span
-              className="text-center uppercase"
+              className="text-center whitespace-nowrap uppercase"
               style={{
                 fontSize: 11,
                 letterSpacing: "0.04em",
@@ -318,6 +340,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
               cached docs
             </span>
             <span
+              className="whitespace-nowrap"
               style={{
                 fontSize: "clamp(14px, 8cqw, 18px)",
                 fontWeight: 800,
@@ -339,7 +362,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
             }}
           >
             <span
-              className="text-center uppercase"
+              className="text-center whitespace-nowrap uppercase"
               style={{
                 fontSize: 11,
                 letterSpacing: "0.04em",
@@ -350,6 +373,7 @@ export function PressureDial({ active, reduced }: PressureDialProps) {
               cached plans
             </span>
             <span
+              className="whitespace-nowrap"
               style={{
                 fontSize: "clamp(14px, 8cqw, 18px)",
                 fontWeight: 800,
