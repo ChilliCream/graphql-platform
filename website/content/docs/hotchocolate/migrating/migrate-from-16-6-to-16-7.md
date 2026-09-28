@@ -235,7 +235,7 @@ On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.De
 
 ## Empty variable batches are refused
 
-A request whose `variables` field is an empty array is refused before execution with HTTP 400, or 422 under the `Draft20260903` transport version, and the error code `HC0009`. This includes an operation that declares no variables, which 16.6 executed once. Send `variables` as an object, or omit it, for a request without variables.
+A request whose `variables` field is an empty array is refused before execution with the error code `HC0009`, including for an operation that declares no variables, which 16.6 executed once. The response is HTTP 400, or 422 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200. Send `variables` as an object, or omit it, for a request without variables.
 
 # Noteworthy changes
 

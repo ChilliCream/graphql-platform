@@ -190,8 +190,7 @@ public sealed class ExecutorSession
         CancellationToken cancellationToken)
     {
         var requests = await _requestParser.ParseRequestAsync(requestBody, _skipDocumentBody, cancellationToken);
-        ThrowIfDocumentBodyNotAllowed(requests);
-        ThrowIfVariableBatchIsEmpty(requests);
+        ValidateParsedRequests(requests);
         return requests;
     }
 
@@ -203,16 +202,14 @@ public sealed class ExecutorSession
     {
         var request = await _requestParser.ParsePersistedOperationRequestAsync(
             documentId, operationName, requestBody, _skipDocumentBody, cancellationToken);
-        ThrowIfDocumentBodyNotAllowed(request);
-        ThrowIfVariableBatchIsEmpty(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
     public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
         var request = _requestParser.ParseRequestFromParams(parameters, _skipDocumentBody);
-        ThrowIfDocumentBodyNotAllowed(request);
-        ThrowIfVariableBatchIsEmpty(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
@@ -225,16 +222,47 @@ public sealed class ExecutorSession
             operationId,
             operationName,
             parameters);
-        ThrowIfVariableBatchIsEmpty(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
     public GraphQLRequest[] ParseRequest(string sourceText)
     {
         var requests = _requestParser.ParseRequest(sourceText, _skipDocumentBody);
-        ThrowIfDocumentBodyNotAllowed(requests);
-        ThrowIfVariableBatchIsEmpty(requests);
+        ValidateParsedRequests(requests);
         return requests;
+    }
+
+    private void ValidateParsedRequest(GraphQLRequest request)
+    {
+        try
+        {
+            ThrowIfDocumentBodyNotAllowed(request);
+            ThrowIfVariableBatchIsEmpty(request);
+        }
+        catch
+        {
+            request.Dispose();
+            throw;
+        }
+    }
+
+    private void ValidateParsedRequests(GraphQLRequest[] requests)
+    {
+        try
+        {
+            ThrowIfDocumentBodyNotAllowed(requests);
+            ThrowIfVariableBatchIsEmpty(requests);
+        }
+        catch
+        {
+            foreach (var request in requests)
+            {
+                request.Dispose();
+            }
+
+            throw;
+        }
     }
 
     private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest request)

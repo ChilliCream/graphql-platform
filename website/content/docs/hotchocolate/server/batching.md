@@ -86,7 +86,7 @@ The operation executes once per variable set. Each result in the response stream
 
 Results are delivered out of order. Whichever variable set finishes first is streamed to the client first. The `variableIndex` field is how the client correlates each result back to its input.
 
-The array must contain at least one variable set. The server refuses `"variables": []` before execution with HTTP 400, or 422 under the `Draft20260903` transport version, and refuses a request batch that contains such an entry as a whole.
+The array must contain at least one variable set. The server refuses `"variables": []` before execution, and refuses a request batch that contains such an entry as a whole. The response is HTTP 400, or 422 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
 
 # Request Batching
 
