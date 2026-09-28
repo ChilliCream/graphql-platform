@@ -36,6 +36,7 @@ public static class OpenApiRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddOpenApiServices();
+        builder.Services.ConfigureOpenApiSetup(builder.Name);
         builder.Services.AddOpenApiAspNetCoreServices();
 
         builder.ConfigureSchemaServices((_, schemaServices) =>
