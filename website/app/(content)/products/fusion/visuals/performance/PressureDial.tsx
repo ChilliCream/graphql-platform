@@ -60,15 +60,13 @@ const COUNT_STYLE = {
   fontVariantNumeric: "tabular-nums",
 } as const;
 
-function PressureRow({
-  label,
-  value,
-  color,
-}: {
+interface PressureRowProps {
   readonly label: string;
   readonly value: MotionValue<string>;
   readonly color: string;
-}) {
+}
+
+function PressureRow({ label, value, color }: PressureRowProps) {
   return (
     <div
       aria-hidden="true"
@@ -97,13 +95,12 @@ function PressureRow({
   );
 }
 
-function CountRow({
-  label,
-  children,
-}: {
+interface CountRowProps {
   readonly label: string;
   readonly children: ReactNode;
-}) {
+}
+
+function CountRow({ label, children }: CountRowProps) {
   return (
     <div
       aria-hidden="true"
