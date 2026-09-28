@@ -51,7 +51,7 @@ internal sealed class MailDetailView
 
     /// <summary>
     /// Renders a thread's messages, oldest first, with the thread's subject as the header
-    /// and optional <see cref="ChilliCream.Nitro.CommandLine.Services.Workspace.AgentRow.Harness"/>
+    /// and optional <see cref="Services.Workspace.AgentRow.Harness"/>
     /// attribution. A null lookup or an absent or empty harness entry adds no attribution.
     /// </summary>
     public IRenderable RenderThread(
