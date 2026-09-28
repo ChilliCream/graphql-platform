@@ -7,9 +7,9 @@ using static GreenDonut.Data.Internal.DataLoaderStateHelper;
 namespace GreenDonut.Data;
 
 /// <summary>
-/// Provides extension methods to pass a pagination context to a DataLoader.
+/// Provides extension methods to pass a pagination context to a DataLoader that streams its pages.
 /// </summary>
-public static class GreenDonutPaginationBatchingDataLoaderExtensions
+public static class GreenDonutStreamPaginationBatchingDataLoaderExtensions
 {
     /// <summary>
     /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
@@ -35,14 +35,15 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, Page<TValue>> With<TKey, TValue>(this IDataLoader<TKey, Page<TValue>> dataLoader,
+    public static IDataLoader<TKey, StreamPage<TValue>> With<TKey, TValue>(
+        this IDataLoader<TKey, StreamPage<TValue>> dataLoader,
         PagingArguments pagingArguments,
         QueryContext<TValue>? context = null)
         where TKey : notnull
         => WithInternal(dataLoader, pagingArguments, context);
 
-    private static IDataLoader<TKey, Page<TValue>> WithInternal<TKey, TValue>(
-        this IDataLoader<TKey, Page<TValue>> dataLoader,
+    private static IDataLoader<TKey, StreamPage<TValue>> WithInternal<TKey, TValue>(
+        this IDataLoader<TKey, StreamPage<TValue>> dataLoader,
         PagingArguments pagingArguments,
         QueryContext<TValue>? context)
         where TKey : notnull
@@ -51,7 +52,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = pagingArguments.ComputeHash(context);
         var state = new PagingState<TValue>(pagingArguments, context);
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch, state);
+        return (IQueryDataLoader<TKey, StreamPage<TValue>>)dataLoader.Branch(branchKey, CreateBranch, state);
     }
 
     /// <summary>
@@ -75,8 +76,8 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
-        this IDataLoader<TKey, Page<TValue>> dataLoader,
+    public static IDataLoader<TKey, StreamPage<TValue>> Select<TKey, TValue>(
+        this IDataLoader<TKey, StreamPage<TValue>> dataLoader,
         Expression<Func<TValue, TValue>>? selector)
         where TKey : notnull
     {
@@ -96,7 +97,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = selector.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Selector, new DefaultSelectorBuilder(selector));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
+        return (IQueryDataLoader<TKey, StreamPage<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
             state);
     }
 
@@ -121,8 +122,8 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, Page<TValue>> Where<TKey, TValue>(
-        this IDataLoader<TKey, Page<TValue>> dataLoader,
+    public static IDataLoader<TKey, StreamPage<TValue>> Where<TKey, TValue>(
+        this IDataLoader<TKey, StreamPage<TValue>> dataLoader,
         Expression<Func<TValue, bool>>? predicate)
         where TKey : notnull
     {
@@ -136,7 +137,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
         var branchKey = predicate.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Predicate,
             GetOrCreateBuilder(dataLoader.ContextData, predicate));
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
+        return (IQueryDataLoader<TKey, StreamPage<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
             state);
     }
 
@@ -161,8 +162,8 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
     /// <exception cref="ArgumentNullException">
     /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
     /// </exception>
-    public static IDataLoader<TKey, Page<TValue>> OrderBy<TKey, TValue>(
-        this IDataLoader<TKey, Page<TValue>> dataLoader,
+    public static IDataLoader<TKey, StreamPage<TValue>> OrderBy<TKey, TValue>(
+        this IDataLoader<TKey, StreamPage<TValue>> dataLoader,
         SortDefinition<TValue>? sortDefinition)
         where TKey : notnull
     {
@@ -175,7 +176,7 @@ public static class GreenDonutPaginationBatchingDataLoaderExtensions
 
         var branchKey = sortDefinition.ComputeHash();
         var state = new QueryState(DataLoaderStateKeys.Sorting, sortDefinition);
-        return (IQueryDataLoader<TKey, Page<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
+        return (IQueryDataLoader<TKey, StreamPage<TValue>>)dataLoader.Branch(branchKey, CreateBranch,
             state);
     }
 }
