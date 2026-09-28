@@ -25,20 +25,23 @@ const CX = VB / 2;
 const CY = VB / 2;
 const BEZEL_R = 148;
 const FACE_R = 104;
-const RING_R = 122;
-const TICK_OUTER = RING_R + 6;
-const TICK_INNER = RING_R - 6;
+const RING_R = 112;
+const TICK_OUTER = 118;
+const TICK_INNER = 106;
 const SEGMENT_COUNT = 56;
 const SWEEP_SPAN = 16;
 const SWEEP_MS = 1300;
 const IDLE_MS = 4400;
 const ROTATE_MS = 5200;
 
-const SCALE_TICK_INNER = 136;
-const SCALE_TICK_OUTER = 140;
-const SCALE_NUMERAL_R = 146;
-const SCALE_START = 150;
-const SCALE_END = 30;
+// Shared by the segment ring and the numeral scale, so the fill and the
+// labels agree on where a given fraction of the value sits.
+const ARC_START = 225;
+const ARC_END = -45;
+
+const SCALE_TICK_INNER = 120;
+const SCALE_TICK_OUTER = 124;
+const SCALE_NUMERAL_R = 134;
 const SCALE_STEPS = 8;
 
 const GLOW = token.info;
@@ -51,7 +54,7 @@ function Segment({
   readonly index: number;
   readonly fraction: MotionValue<number>;
 }) {
-  const angle = sweepAngle(index / SEGMENT_COUNT, 90, 90 - 360);
+  const angle = sweepAngle(index / SEGMENT_COUNT, ARC_START, ARC_END);
   const [x1, y1] = polarPoint(CX, CY, TICK_INNER, angle);
   const [x2, y2] = polarPoint(CX, CY, TICK_OUTER, angle);
   const threshold = index / SEGMENT_COUNT;
@@ -129,7 +132,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
   const scaleNumerals: { x: number; y: number; label: string }[] = [];
   for (let i = 0; i <= SCALE_STEPS; i++) {
     const f = i / SCALE_STEPS;
-    const angle = sweepAngle(f, SCALE_START, SCALE_END);
+    const angle = sweepAngle(f, ARC_START, ARC_END);
     const [x1, y1] = polarPoint(CX, CY, SCALE_TICK_INNER, angle);
     const [x2, y2] = polarPoint(CX, CY, SCALE_TICK_OUTER, angle);
     scaleTicks.push({ x1, y1, x2, y2 });
@@ -199,7 +202,13 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             />
           ))}
 
-          <motion.g style={{ rotate, transformOrigin: `${CX}px ${CY}px` }}>
+          <motion.g
+            style={{
+              rotate,
+              transformOrigin: `${CX}px ${CY}px`,
+              transformBox: "view-box",
+            }}
+          >
             <path
               d={highlightPath}
               fill="none"
@@ -223,6 +232,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
               top: `${(n.y / VB) * 100}%`,
               transform: "translate(-50%, -50%)",
               fontSize: 11,
+              lineHeight: 1,
               fontFamily: token.mono,
               color: token.textDim,
             }}
