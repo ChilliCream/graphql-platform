@@ -1302,29 +1302,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     [Theory]
-    [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData("query($id: String!) { human(id: $id) { name } }", Draft20250508, BadRequest)]
+    [InlineData(
+        "query($id: String!) { human(id: $id) { name } }",
+        Draft20260903,
+        UnprocessableContent)]
+    [InlineData("{ __typename }", Draft20250508, BadRequest)]
+    [InlineData("{ __typename }", Draft20260903, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        string query,
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
     {
         // arrange
-        // with the cost analyzer skipped, the empty batch reaches operation execution
-        var server = CreateStarWarsServer(
-            configureServices: s => s
-                .AddGraphQLServer()
-                .ModifyCostOptions(o => o.SkipAnalyzer = true)
-                .AddHttpResponseFormatter(
-                    new HttpResponseFormatterOptions
-                    {
-                        HttpTransportVersion = transportVersion
-                    }));
-        var client = server.CreateClient();
+        var client = GetClient(transportVersion);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
-            """{ "query": "query($id: String!) { human(id: $id) { name } }", "variables": [] }""",
+            $$"""{ "query": "{{query}}", "variables": [] }""",
             Encoding.UTF8,
             "application/json");
 
@@ -1341,20 +1337,56 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
-                {"errors":[{"message":"A variable batch request must contain at least one variable set."}]}
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={Uri.EscapeDataString("{ __typename }")}&variables=%5B%5D"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
                 """);
     }
 
     [Fact]
-    public async Task Post_Should_ExecuteOnce_When_VariableBatchIsEmptyAndNoVariableIsDeclared()
+    public async Task Post_Should_ReturnBadRequest_When_RequestBatchContainsEmptyVariableBatch()
     {
         // arrange
-        var client = GetClient(Latest);
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var client = server.CreateClient();
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
-            """{ "query": "{ __typename }", "variables": [] }""",
+            """[{ "query": "{ __typename }" }, { "query": "{ __typename }", "variables": [] }]""",
             Encoding.UTF8,
             "application/json");
 
@@ -1369,9 +1401,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
-                Status Code: OK
+                Status Code: BadRequest
                 -------------------------->
-                {"data":{"__typename":"Query"}}
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
                 """);
     }
 

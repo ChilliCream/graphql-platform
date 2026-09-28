@@ -233,6 +233,10 @@ On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.De
 +    .ModifyCostOptions(options => options.DefaultListSize = 100);
 ```
 
+## Empty variable batches are refused
+
+A request whose `variables` field is an empty array is refused before execution with HTTP 400, or 422 under the `Draft20260903` transport version, and the error code `HC0009`. This includes an operation that declares no variables, which 16.6 executed once. Send `variables` as an object, or omit it, for a request without variables.
+
 # Noteworthy changes
 
 ## New cost options
@@ -261,4 +265,4 @@ Cost rejections, including the single result for a rejected variable batch, retu
 
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
-Use `#!csharp RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.
+Use `#!csharp RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an empty variable batch executed through `IRequestExecutor`; over HTTP, the transport refuses `variables: []` before execution), or when metrics cannot be attached to the execution-result state.
