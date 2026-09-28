@@ -29,7 +29,7 @@ internal sealed class FakeMemoryStore : IMemoryStore
 
     public Task<IReadOnlyList<MemoryParticipationEntry>> QueryParticipationAsync(
         string agent, int? limit, CancellationToken cancellationToken)
-        => Task.FromResult<IReadOnlyList<MemoryParticipationEntry>>(
+        => Task.FromResult(
             limit is { } max ? [.. ParticipationRows.Take(max)] : ParticipationRows);
 
     public string? FindWorkspaceDirectory() => throw new NotSupportedException();

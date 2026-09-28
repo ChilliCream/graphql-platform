@@ -43,7 +43,7 @@ internal sealed class FakeMailStore : IMailStore
     {
         LastParticipationQuery = (agent, limit);
 
-        return Task.FromResult<IReadOnlyList<MailThreadSummary>>(
+        return Task.FromResult(
             limit is { } max ? [.. ParticipationRows.Take(max)] : ParticipationRows);
     }
 

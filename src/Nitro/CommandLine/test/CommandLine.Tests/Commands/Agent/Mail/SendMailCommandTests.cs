@@ -162,8 +162,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var nudge = new MailNudge(
             CreateAgentStore(),
             CreateStore(),
-            new AgentDeliveryLedger(
-                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            new AgentDeliveryLedger(new Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
             peerClient,
             new FakeCodexQueueClient(),
             FakeTime);
@@ -193,8 +192,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var nudge = new MailNudge(
             CreateAgentStore(),
             CreateStore(),
-            new AgentDeliveryLedger(
-                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            new AgentDeliveryLedger(new Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
             new FakeClaudePeerClient(),
             codexQueueClient,
             FakeTime);
@@ -228,8 +226,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var nudge = new MailNudge(
             CreateAgentStore(),
             CreateStore(),
-            new AgentDeliveryLedger(
-                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            new AgentDeliveryLedger(new Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
             peerClient,
             new FakeCodexQueueClient(),
             FakeTime);
@@ -264,8 +261,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var nudge = new MailNudge(
             CreateAgentStore(),
             CreateStore(),
-            new AgentDeliveryLedger(
-                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            new AgentDeliveryLedger(new Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
             peerClient,
             new FakeCodexQueueClient(),
             FakeTime);
@@ -300,8 +296,7 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
         var nudge = new MailNudge(
             CreateAgentStore(),
             CreateStore(),
-            new AgentDeliveryLedger(
-                new ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
+            new AgentDeliveryLedger(new Hook.TestFileSystem(WorkingDirectory), new AgentDatabase()),
             peerClient,
             new FakeCodexQueueClient(),
             FakeTime);
