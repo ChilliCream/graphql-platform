@@ -1096,6 +1096,39 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task BatchResolver_With_KeyedService_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class GreetingService
+            {
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    [Service("greeting")] GreetingService greetingService)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task BatchResolver_With_Argument_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
