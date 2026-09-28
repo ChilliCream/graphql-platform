@@ -5,7 +5,6 @@
     <TargetFramework>$(BenchmarkTargetFramework)</TargetFramework>
     <TargetFrameworks>$(BenchmarkTargetFramework)</TargetFrameworks>
     <IsPackable>false</IsPackable>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
 </Project>
