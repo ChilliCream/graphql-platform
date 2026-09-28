@@ -1342,6 +1342,33 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     [Theory]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    [InlineData(Draft20250508, BadRequest, ContentType.Json)]
+    [InlineData(Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ApplyContentTypeRule_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, ContentType.Json);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
     [InlineData(Draft20250508, BadRequest)]
     [InlineData(Draft20260903, UnprocessableContent)]
     public async Task Get_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
@@ -2021,6 +2048,41 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(
             """{"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}""",
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, ContentType.GraphQLResponse);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
     }
 
     [Theory]
