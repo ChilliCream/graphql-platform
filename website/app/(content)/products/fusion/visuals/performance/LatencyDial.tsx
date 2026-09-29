@@ -17,6 +17,7 @@ import {
   ELECTRIC_BRIGHT,
   ELECTRIC_DIM,
   LABEL_COLOR,
+  LATENCY_NUMERAL_COLOR,
   VB,
   type Arc,
 } from "./hud";
@@ -123,6 +124,7 @@ function LatencyNumerals({ arc }: LatencyNumeralsProps) {
           angle={sweepAngle(i / stops, arc.start, arc.end)}
           label={String(Math.round((i / stops) * LATENCY_MAX))}
           edge={NUMERAL_EDGE}
+          color={LATENCY_NUMERAL_COLOR}
         />
       ))}
     </>

@@ -9,7 +9,15 @@ import { DialFace } from "./DialFace";
 import { DialNumeral } from "./DialNumeral";
 import { OPS_BURST_LABEL, OPS_MAX, OPS_RED_START, formatOps } from "./data";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
-import { CX, CY, DANGER, ELECTRIC, ELECTRIC_BRIGHT, VB } from "./hud";
+import {
+  CX,
+  CY,
+  DANGER,
+  ELECTRIC,
+  ELECTRIC_BRIGHT,
+  OPS_NUMERAL_COLOR,
+  VB,
+} from "./hud";
 import { OpsScreen } from "./OpsScreen";
 import type { TelemetryMotion } from "./useTelemetryClock";
 
@@ -146,6 +154,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
             angle={n.angle}
             label={n.label}
             edge={NUMERAL_EDGE}
+            color={OPS_NUMERAL_COLOR}
           />
         ))}
 
