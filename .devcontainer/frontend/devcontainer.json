@@ -23,8 +23,7 @@
   "postCreateCommand": "yarn install --immutable && yarn playwright install chromium",
   "postStartCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/setup-git-signing.sh",
   "containerEnv": {
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "CHILLICREAM_FRONTEND_ENV": "devcontainer"
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "customizations": {
     "vscode": {
