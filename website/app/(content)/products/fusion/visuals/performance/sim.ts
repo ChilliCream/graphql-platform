@@ -103,21 +103,25 @@ function phaseClamp(
   return raw;
 }
 
+const NET_IN_SEED = 70;
+const NET_OUT_SEED = 90;
+
 function netAt(
   elapsedMs: number,
   seed: number,
   calm: readonly [number, number],
   burst: readonly [number, number],
+  sustained = false,
 ): number {
   const t = wrap(elapsedMs);
-  const env = fastEnvelope(t);
+  const env = sustained ? 1 : fastEnvelope(t);
   const raw = bandValue(elapsedMs, seed, calm, burst, env);
   return phaseClamp(
     raw,
     calm,
     burst,
-    t < CALM_END,
-    t >= RAMP_END && t < BURST_END,
+    !sustained && t < CALM_END,
+    sustained || (t >= RAMP_END && t < BURST_END),
   );
 }
 
@@ -197,8 +201,10 @@ export function telemetryAt(elapsedMs: number): Telemetry {
     pureBurst,
   );
 
-  const sampleIn = (at: number) => netAt(at, 70, NET_IN_CALM, NET_IN_BURST);
-  const sampleOut = (at: number) => netAt(at, 90, NET_OUT_CALM, NET_OUT_BURST);
+  const sampleIn = (at: number) =>
+    netAt(at, NET_IN_SEED, NET_IN_CALM, NET_IN_BURST);
+  const sampleOut = (at: number) =>
+    netAt(at, NET_OUT_SEED, NET_OUT_CALM, NET_OUT_BURST);
 
   return {
     ops,
@@ -222,6 +228,13 @@ function endingOn(history: readonly number[], last: number): readonly number[] {
   return history.map((v, i) => (i === history.length - 1 ? last : v + shift));
 }
 
+// No real instant has a full history window inside the burst, so hold the envelope at full burst.
+const sustainedHistory = (
+  seed: number,
+  calm: readonly [number, number],
+  burst: readonly [number, number],
+) => historyOf(STATIC_BURST_AT_MS, (at) => netAt(at, seed, calm, burst, true));
+
 const burstFrame = telemetryAt(STATIC_BURST_AT_MS);
 
 export const STATIC_BURST: Telemetry = {
@@ -231,8 +244,14 @@ export const STATIC_BURST: Telemetry = {
   memory: 84,
   netIn: 82,
   netOut: 72,
-  netInHistory: endingOn(burstFrame.netInHistory, 82),
-  netOutHistory: endingOn(burstFrame.netOutHistory, 72),
+  netInHistory: endingOn(
+    sustainedHistory(NET_IN_SEED, NET_IN_CALM, NET_IN_BURST),
+    82,
+  ),
+  netOutHistory: endingOn(
+    sustainedHistory(NET_OUT_SEED, NET_OUT_CALM, NET_OUT_BURST),
+    72,
+  ),
   latency: 12,
   latencyHistory: endingOn(burstFrame.latencyHistory, 12),
 };
