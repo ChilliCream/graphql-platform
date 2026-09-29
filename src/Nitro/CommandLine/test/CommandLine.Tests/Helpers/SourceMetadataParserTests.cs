@@ -352,10 +352,9 @@ public sealed class SourceMetadataParserTests
         static void Act() => SourceMetadataParser.Parse(json);
 
         // assert
-        Assert.Throws<ExitException>(Act).Message.MatchInlineSnapshot(
-            "Failed to parse --source-metadata: The JSON value could not be converted to "
-            + "ChilliCream.Nitro.CommandLine.Helpers.GitHubSourceMetadataDto. "
-            + "Path: $.pullRequestNumber | LineNumber: 8 | BytePositionInLine: 27.");
+        // the converter wording differs between runtimes, so only the rejected path is asserted
+        var exception = Assert.Throws<ExitException>(Act);
+        Assert.Contains("Path: $.pullRequestNumber", exception.Message);
     }
 
     [Fact]
