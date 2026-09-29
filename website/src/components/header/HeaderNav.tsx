@@ -141,7 +141,7 @@ function SubmenuPanel({
   return (
     <div
       className={[
-        "pointer-events-none invisible absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200 max-[1200px]:left-0 max-[1200px]:translate-x-0",
+        "pointer-events-none invisible absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200 max-[1273px]:left-0 max-[1273px]:translate-x-0",
         closed
           ? ""
           : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
