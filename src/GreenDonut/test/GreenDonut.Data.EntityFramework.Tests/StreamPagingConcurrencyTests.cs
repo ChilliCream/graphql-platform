@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GreenDonut.Data;
 
-// Pins the concurrency behaviour documented as a risk in the design (hc-fork-1-m89.4,
-// hc-fork-1-m89.10): a live stream page owns its DbContext's connection until it completes or is
-// disposed, so a second operation on the SAME context while a page is paused mid-iteration fails
-// with a provider-specific exception; a second, separate context is unaffected.
+// Pins the concurrency behaviour documented as a risk in the design: a live stream page owns
+// its DbContext's connection until it completes or is disposed, so a second operation on the
+// SAME context while a page is paused mid-iteration fails with a provider-specific exception; a
+// second, separate context is unaffected.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamPagingConcurrencyTests(PostgreSqlResource resource)
 {

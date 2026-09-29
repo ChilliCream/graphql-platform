@@ -9,10 +9,10 @@ namespace GreenDonut.Data;
 
 // Gated to NET9_0_OR_GREATER, like RelativeCursorTests.cs and StreamPagingHelperTests.cs: the
 // physical-command-count assertions below (RecordingReaderInterceptor) rely on the single-command
-// inlined-count query shape validated for EF Core 9+ (hc-fork-1-m89.4); EF Core 8 splits it into an
+// inlined-count query shape validated for EF Core 9+; EF Core 8 splits it into an
 // extra up-front command.
 //
-// Locks down the end-cursor test matrix (hc-fork-1-m89.10, hc-fork-1-m89.11) for ToPageAsync. Its
+// Locks down the end-cursor test matrix for ToPageAsync. Its
 // stream twin, StreamEndCursorTests below, carries the same cases plus the streaming-specific
 // guarantees (trimmed front rows are read but never yielded, no pre-query). Batch end-cursor
 // cases beyond the existing per-key trim test in RelativeCursorTests.cs are out of scope here.
@@ -362,10 +362,10 @@ public class EndCursorTests(PostgreSqlResource resource)
 }
 
 // The stream twin of EndCursorTests above: same matrix, same names (prefixed ToStreamPageAsync
-// instead of ToPageAsync), plus the streaming-specific guarantees from the testing strategy
-// (hc-fork-1-m89.10): the front rows trimmed from an offset-zero end cursor page are read from the
-// database but never handed to the consumer, and no query runs ahead of the row query that carries
-// the first served row.
+// instead of ToPageAsync), plus the streaming-specific guarantees from the testing strategy: the
+// front rows trimmed from an offset-zero end cursor page are read from the database but never
+// handed to the consumer, and no query runs ahead of the row query that carries the first served
+// row.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamEndCursorTests(PostgreSqlResource resource)
 {

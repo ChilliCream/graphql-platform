@@ -360,9 +360,9 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         Assert.Equal(["Item0003", "Item0004"], items);
     }
 
-    // The following cases lock down the streaming-specific guarantees from the testing strategy
-    // (hc-fork-1-m89.10): reads happen in lockstep with what the caller actually asks for, and the
-    // lifetime is released exactly once, when the page is done with it.
+    // The following cases lock down the streaming-specific guarantees from the testing strategy:
+    // reads happen in lockstep with what the caller actually asks for, and the lifetime is
+    // released exactly once, when the page is done with it.
 
     [Fact]
     public async Task Fetch_Forward_First_Item_Yielded_After_Exactly_One_Read()

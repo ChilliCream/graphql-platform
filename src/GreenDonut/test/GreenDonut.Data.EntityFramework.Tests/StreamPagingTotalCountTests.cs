@@ -7,7 +7,8 @@ using XunitTestContext = Xunit.TestContext;
 namespace GreenDonut.Data;
 
 // Mirrors PagingTotalCountTests.cs one for one against ToStreamPageAsync, so a failure names the
-// API. Batch cases (hc-fork-1-o47.4, ToBatchStreamPageAsync) are out of scope for this suite.
+// API. Batch cases are out of scope for this suite because ToBatchStreamPageAsync does not
+// exist yet.
 public class StreamPagingTotalCountTests
 {
     [Fact]

@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace GreenDonut.Data;
 
 // Mirrors the Fetch_* navigation cases of RelativeCursorTests.cs one for one against
-// ToStreamPageAsync, so a failure names the API. Batch cases (hc-fork-1-o47.4,
-// ToBatchStreamPageAsync) are out of scope for this suite. Every Fetch_End_Cursor_* case in
+// ToStreamPageAsync, so a failure names the API. Batch cases are out of scope for this suite
+// because ToBatchStreamPageAsync does not exist yet. Every Fetch_End_Cursor_* case in
 // RelativeCursorTests.cs has a Should_-named twin in StreamEndCursorTests (EndCursorTests.cs)
 // instead, which locks the matrix for both variants.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]

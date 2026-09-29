@@ -7,7 +7,7 @@ namespace GreenDonut.Data;
 // Mirrors PagingHelperPostgreSqlNullableTests.cs one for one against ToStreamPageAsync, draining
 // every page before snapshotting, so a failure names the API that broke. The backward cases at
 // the bottom have no ToPageAsync counterpart: they lock the nested re-sort subquery and the
-// inlined HasMore scalar (hc-fork-1-m89.7) across a null boundary.
+// inlined HasMore scalar across a null boundary.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamPagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
 {
@@ -404,9 +404,9 @@ public class StreamPagingHelperPostgreSqlNullableTests(PostgreSqlResource resour
     }
 
     // The following cases have no ToPageAsync counterpart. They lock the backward nested
-    // re-sort subquery and its inlined HasMore scalar (hc-fork-1-m89.7) across a null boundary
-    // on Postgres, whose native null comparison is NativeNullsLast regardless of the declared
-    // sort direction, exactly as the forward cases above already assume.
+    // re-sort subquery and its inlined HasMore scalar across a null boundary on Postgres,
+    // whose native null comparison is NativeNullsLast regardless of the declared sort
+    // direction, exactly as the forward cases above already assume.
 
     [Fact]
     public async Task ToStreamPageAsync_Should_ResortAscending_When_BackwardPagingCrossesNullBoundary()

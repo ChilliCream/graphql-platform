@@ -7,8 +7,8 @@ namespace GreenDonut.Data;
 // Mirrors PagingInheritanceTests.cs one for one against ToStreamPageAsync, so a failure names the
 // API. The batch cases (BatchPaging_With_TPC_Selector_And_Navigation_Property,
 // BatchPaging_With_TPC_Selector_And_Scalar_Property, BatchPaging_With_TPH_Selector_After_Cursor)
-// use ToBatchPageAsync and are out of scope for this suite (hc-fork-1-o47.4, ToBatchStreamPageAsync,
-// does not exist yet).
+// use ToBatchPageAsync and are out of scope for this suite because ToBatchStreamPageAsync
+// does not exist yet.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamPagingInheritanceTests(PostgreSqlResource resource)
 {

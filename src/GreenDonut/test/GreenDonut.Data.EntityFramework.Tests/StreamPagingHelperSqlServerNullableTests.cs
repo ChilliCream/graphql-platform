@@ -7,8 +7,8 @@ namespace GreenDonut.Data;
 // Mirrors PagingHelperSqlServerNullableTests.cs one for one against ToStreamPageAsync, draining
 // every page before snapshotting, so a failure names the API that broke. The backward cases at
 // the bottom have no ToPageAsync counterpart: they verify that the nested TOP/ORDER BY subquery
-// (hc-fork-1-m89.7) translates on SQL Server across a null boundary, since SQL Server requires
-// ORDER BY together with TOP in a subquery.
+// translates on SQL Server across a null boundary, since SQL Server requires ORDER BY together
+// with TOP in a subquery.
 [Collection(SqlServerCacheCollectionFixture.DefinitionName)]
 public class StreamPagingHelperSqlServerNullableTests(SqlServerResource resource)
 {
@@ -360,9 +360,9 @@ public class StreamPagingHelperSqlServerNullableTests(SqlServerResource resource
     }
 
     // The following cases have no ToPageAsync counterpart. They lock the backward nested
-    // re-sort subquery and its inlined HasMore scalar (hc-fork-1-m89.7) across a null boundary
-    // on SQL Server, whose native null comparison is NativeNullsFirst regardless of the declared
-    // sort direction, exactly as the forward cases above already assume. SQL Server requires
+    // re-sort subquery and its inlined HasMore scalar across a null boundary on SQL Server,
+    // whose native null comparison is NativeNullsFirst regardless of the declared sort
+    // direction, exactly as the forward cases above already assume. SQL Server requires
     // ORDER BY together with TOP inside a subquery, which is exactly what the re-sort needs to
     // translate.
 
