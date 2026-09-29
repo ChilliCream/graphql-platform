@@ -133,6 +133,11 @@ function buildStack(): Layout {
 
 export const CLUSTER = { row: buildRow(), stack: buildStack() } as const;
 
+export const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
+export const READOUT_LINE_HEIGHT = 1.15;
+const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
+export const CONTENT_OFFSET = `calc(50% + ${READOUT_LINE_HEIGHT / 2} * ${READOUT_FONT} + ${CONTENT_GAP})`;
+
 export const ELECTRIC = "var(--color-cc-electric)";
 export const DANGER = "var(--color-cc-danger)";
 export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;
@@ -142,6 +147,7 @@ export const DISC_RIM = `color-mix(in srgb, ${ELECTRIC} 48%, black)`;
 export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 25%, black)`;
 export const FACE_RIM = `color-mix(in srgb-linear, ${ELECTRIC} 30%, black)`;
 export const ELECTRIC_TEXT = `color-mix(in srgb, ${ELECTRIC} 70%, ${token.textStrong})`;
-export const NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 20%, ${token.textStrong})`;
+export const OPS_NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 80%, ${token.textStrong})`;
+export const LATENCY_NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 30%, ${token.textStrong})`;
 export const LABEL_COLOR = `color-mix(in srgb, ${token.textSecondary} 40%, ${token.textStrong})`;
 export const RING_GLOW = `0 0 16px 2px color-mix(in srgb, ${ELECTRIC} 70%, transparent)`;

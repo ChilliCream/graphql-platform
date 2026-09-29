@@ -7,7 +7,14 @@ import { token } from "@/src/nitro";
 
 import { DialFace } from "./DialFace";
 import { DialNumeral } from "./DialNumeral";
-import { LATENCY_DOMAIN, LATENCY_MAX, LATENCY_P50, formatMs } from "./data";
+import {
+  LATENCY_DOMAIN,
+  LATENCY_MAJOR_TICKS,
+  LATENCY_MINOR_TICKS,
+  LATENCY_P50,
+  formatMs,
+  latencyFraction,
+} from "./data";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
 import {
   CLUSTER,
@@ -17,6 +24,7 @@ import {
   ELECTRIC_BRIGHT,
   ELECTRIC_DIM,
   LABEL_COLOR,
+  LATENCY_NUMERAL_COLOR,
   VB,
   type Arc,
 } from "./hud";
@@ -33,6 +41,12 @@ interface LatencyScaleProps {
   readonly glowId: string;
 }
 
+interface ScaleTickProps {
+  readonly arc: Arc;
+  readonly ms: number;
+  readonly inner: number;
+}
+
 interface LatencyNumeralsProps {
   readonly arc: Arc;
 }
@@ -44,15 +58,22 @@ const FILL_GLOW_WIDTH = TRACK_WIDTH * 2;
 const TICK_REACH = TRACK_WIDTH / 2;
 const NUMERAL_EDGE = TRACK_R - TICK_REACH;
 const P50_REACH = TICK_REACH + 0.5;
-const TICK_STEPS = 8;
-const MAJOR_EVERY = 2;
 
 const ROW_ONLY = "hidden @min-[504px]/hud:block";
 const STACK_ONLY = "@min-[504px]/hud:hidden";
 
+function ScaleTick({ arc, ms, inner }: ScaleTickProps) {
+  const angle = sweepAngle(latencyFraction(ms), arc.start, arc.end);
+  const [x1, y1] = polarPoint(CX, CY, TRACK_R + TICK_REACH, angle);
+  const [x2, y2] = polarPoint(CX, CY, inner, angle);
+  return (
+    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={token.bg} strokeWidth={1} />
+  );
+}
+
 function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
   const trackPath = gaugeArcPath(CX, CY, TRACK_R, arc.start, arc.end);
-  const p50Angle = sweepAngle(LATENCY_P50 / LATENCY_MAX, arc.start, arc.end);
+  const p50Angle = sweepAngle(latencyFraction(LATENCY_P50), arc.start, arc.end);
   const [p50x1, p50y1] = polarPoint(CX, CY, TRACK_R + P50_REACH, p50Angle);
   const [p50x2, p50y2] = polarPoint(CX, CY, TRACK_R - P50_REACH, p50Angle);
 
@@ -85,22 +106,12 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         strokeLinecap="butt"
         style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
       />
-      {Array.from({ length: TICK_STEPS + 1 }, (_, i) => {
-        const angle = sweepAngle(i / TICK_STEPS, arc.start, arc.end);
-        const [x1, y1] = polarPoint(CX, CY, TRACK_R + TICK_REACH, angle);
-        const [x2, y2] = polarPoint(CX, CY, TRACK_R - TICK_REACH, angle);
-        return (
-          <line
-            key={i}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke={token.bg}
-            strokeWidth={1}
-          />
-        );
-      })}
+      {LATENCY_MINOR_TICKS.map((ms) => (
+        <ScaleTick key={ms} arc={arc} ms={ms} inner={TRACK_R} />
+      ))}
+      {LATENCY_MAJOR_TICKS.map((ms) => (
+        <ScaleTick key={ms} arc={arc} ms={ms} inner={TRACK_R - TICK_REACH} />
+      ))}
       <line
         x1={p50x1}
         y1={p50y1}
@@ -114,15 +125,15 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
 }
 
 function LatencyNumerals({ arc }: LatencyNumeralsProps) {
-  const stops = TICK_STEPS / MAJOR_EVERY;
   return (
     <>
-      {Array.from({ length: stops + 1 }, (_, i) => (
+      {LATENCY_MAJOR_TICKS.map((ms) => (
         <DialNumeral
-          key={i}
-          angle={sweepAngle(i / stops, arc.start, arc.end)}
-          label={String(Math.round((i / stops) * LATENCY_MAX))}
+          key={ms}
+          angle={sweepAngle(latencyFraction(ms), arc.start, arc.end)}
+          label={String(ms)}
           edge={NUMERAL_EDGE}
+          color={LATENCY_NUMERAL_COLOR}
         />
       ))}
     </>
@@ -134,7 +145,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
   const glowId = `glow-${filterId}`;
   const { latency } = telemetry;
   const readout = useTransform(latency, formatMs);
-  const fillOffset = useTransform(latency, (v) => 1 - v / LATENCY_MAX);
+  const fillOffset = useTransform(latency, (v) => 1 - latencyFraction(v));
   const headTop = useTransform(latency, (v) => {
     const [lo, hi] = LATENCY_DOMAIN;
     const t = Math.min(1, Math.max(0, (v - lo) / (hi - lo)));
@@ -150,7 +161,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
           height="100%"
           style={{ display: "block", overflow: "visible" }}
           role="img"
-          aria-label="Latency gauge, p95 between 9 and 13 ms, p50 mark at 7 ms, on a 40 ms scale"
+          aria-label="Latency gauge, p95 between 9 and 13 ms, p50 mark at 7 ms, on a logarithmic scale from 1 to 40 ms"
         >
           <defs>
             <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">

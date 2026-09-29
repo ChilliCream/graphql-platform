@@ -1,15 +1,16 @@
 import { token } from "@/src/nitro";
 
 import { polarCss } from "./gauge";
-import { NUMERAL_COLOR, NUMERAL_FONT_PX, VB, numeralInset } from "./hud";
+import { NUMERAL_FONT_PX, VB, numeralInset } from "./hud";
 
 interface DialNumeralProps {
   readonly angle: number;
   readonly label: string;
   readonly edge: number;
+  readonly color: string;
 }
 
-export function DialNumeral({ angle, label, edge }: DialNumeralProps) {
+export function DialNumeral({ angle, label, edge, color }: DialNumeralProps) {
   const { left, top } = polarCss(angle, edge / VB, -numeralInset(angle, label));
 
   return (
@@ -25,7 +26,7 @@ export function DialNumeral({ angle, label, edge }: DialNumeralProps) {
         lineHeight: 1,
         fontFamily: token.mono,
         fontVariantNumeric: "tabular-nums",
-        color: NUMERAL_COLOR,
+        color,
       }}
     >
       {label}
