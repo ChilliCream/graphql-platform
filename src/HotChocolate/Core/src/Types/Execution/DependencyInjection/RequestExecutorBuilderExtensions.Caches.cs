@@ -1,4 +1,3 @@
-using HotChocolate;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -22,12 +21,11 @@ public static partial class RequestExecutorBuilderExtensions
                 return new DefaultDocumentCache(options.OperationDocumentCacheSize);
             });
 
+        var schemaName = builder.Name;
+
+        // The document cache is registered as an instance so that the schema service provider never disposes it.
         return builder.ConfigureSchemaServices(
-            static (applicationServices, s) =>
-                s.AddSingleton(schemaServices =>
-                {
-                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
-                    return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);
-                }));
+            (applicationServices, s) =>
+                s.AddSingleton(applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName)));
     }
 }
