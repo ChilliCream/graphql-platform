@@ -36,8 +36,8 @@ const ARC_START = 210;
 const ARC_END = -30;
 const SWEEP_SPAN = 16;
 const CONTENT_TOP = "calc(50% - clamp(8px, 4cqw, 14px))";
-const CONTENT_GAP = "clamp(3px, 3cqw - 5px, 12px)";
-const READOUT_FONT = "clamp(24px, 19.8cqw - 26px, 48px)";
+const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
+const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
 
 function Segment({ index, fraction }: SegmentProps) {
   const threshold = index / SEGMENT_STEPS;
@@ -169,7 +169,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
                 display: "inline-block",
                 fontFamily: token.mono,
                 fontSize: READOUT_FONT,
-                lineHeight: 1,
+                lineHeight: 1.15,
                 fontWeight: 700,
                 fontStyle: "italic",
                 letterSpacing: "-0.02em",

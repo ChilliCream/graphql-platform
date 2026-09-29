@@ -190,7 +190,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
             left: "50%",
             top: "50%",
             transform: "translate(-50%, -50%)",
-            gap: 1,
+            gap: 2,
           }}
         >
           <span
@@ -211,10 +211,10 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
               minWidth: "2ch",
               textAlign: "center",
               fontFamily: token.mono,
-              fontSize: "clamp(22px, 15cqw, 34px)",
+              fontSize: "clamp(18px, 20cqw - 10px, 34px)",
               fontWeight: 800,
               fontStyle: "italic",
-              lineHeight: 1,
+              lineHeight: 1.2,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
               filter: `drop-shadow(0 0 8px ${ELECTRIC})`,
@@ -236,8 +236,8 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
           <div
             className="relative"
             style={{
-              width: "clamp(36px, 34cqw, 84px)",
-              height: "clamp(12px, 9cqw, 26px)",
+              width: "clamp(30px, 30cqw, 84px)",
+              height: "clamp(8px, 12cqw - 8px, 26px)",
             }}
           >
             <TrendChart label="Latency over the last seconds, in milliseconds">

@@ -71,7 +71,7 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
   return (
     <div
       className="flex flex-col"
-      style={{ gap: "clamp(1px, 1.2cqw - 2px, 4px)", width: "max-content" }}
+      style={{ gap: "clamp(2px, 1.2cqw - 2px, 4px)", width: "max-content" }}
     >
       <span
         className="text-center uppercase"
@@ -83,8 +83,8 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
         style={{
           width: 0,
           minWidth: "calc(100% - 16px)",
-          height: "clamp(18px, 8cqw, 32px)",
-          margin: "0 8px 2px",
+          height: "clamp(14px, 10cqw - 9px, 32px)",
+          margin: "0 8px",
         }}
       >
         <TrendChart label="Network traffic, incoming in red and outgoing in blue, in percent">
