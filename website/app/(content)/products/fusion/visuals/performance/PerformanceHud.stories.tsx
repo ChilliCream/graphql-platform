@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
+import { AppMotionConfig } from "@/src/nitro/lib/motion";
+
 import { PerformanceHud } from "./PerformanceHud";
 
 const PANEL_WIDTHS = {
@@ -17,13 +19,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function panelStory(viewport: keyof typeof PANEL_WIDTHS): Story {
+function panelStory(
+  viewport: keyof typeof PANEL_WIDTHS,
+  reduced = false,
+): Story {
   return {
     decorators: [
       (Story) => (
-        <div style={{ width: PANEL_WIDTHS[viewport], maxWidth: "100%" }}>
-          <Story />
-        </div>
+        <AppMotionConfig reducedMotion={reduced ? "always" : "user"}>
+          <div style={{ width: PANEL_WIDTHS[viewport], maxWidth: "100%" }}>
+            <Story />
+          </div>
+        </AppMotionConfig>
       ),
     ],
   };
@@ -32,3 +39,4 @@ function panelStory(viewport: keyof typeof PANEL_WIDTHS): Story {
 export const Panel375: Story = panelStory(375);
 export const Panel1024: Story = panelStory(1024);
 export const Panel1440: Story = panelStory(1440);
+export const Panel1440Reduced: Story = panelStory(1440, true);

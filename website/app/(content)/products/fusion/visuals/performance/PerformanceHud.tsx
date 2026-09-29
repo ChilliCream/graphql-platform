@@ -8,27 +8,36 @@ import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import { useElementMotion } from "../hooks";
 import { CenterOpsDial } from "./CenterOpsDial";
-import { BACKDROP, BACKDROP_GLOW, CLUSTER, ELECTRIC_DIM } from "./hud";
+import {
+  BACKDROP,
+  BACKDROP_GLOW,
+  CLUSTER,
+  ELECTRIC_DIM,
+  RING_GLOW,
+} from "./hud";
 import { LatencyDial } from "./LatencyDial";
 import { PressureDial } from "./PressureDial";
+import { useTelemetryClock } from "./useTelemetryClock";
 
 interface DialSlotProps {
-  readonly slot: (typeof CLUSTER)["centre"];
+  readonly dial: "latency" | "centre" | "pressure";
   readonly children: ReactNode;
 }
 
-function DialSlot({ slot, children }: DialSlotProps) {
+function DialSlot({ dial, children }: DialSlotProps) {
+  const row = CLUSTER.row[dial];
+  const stack = CLUSTER.stack[dial];
   return (
     <div
-      className="absolute top-(--stack-top) left-(--stack-left) w-(--stack-size) @min-[416px]:top-(--row-top) @min-[416px]:left-(--row-left) @min-[416px]:w-(--row-size)"
+      className="absolute top-(--stack-top) left-(--stack-left) w-(--stack-size) @min-[416px]/hud:top-(--row-top) @min-[416px]/hud:left-(--row-left) @min-[416px]/hud:w-(--row-size)"
       style={
         {
-          "--stack-top": slot.stack.top,
-          "--stack-left": slot.stack.left,
-          "--stack-size": slot.stack.size,
-          "--row-top": slot.row.top,
-          "--row-left": slot.row.left,
-          "--row-size": slot.row.size,
+          "--stack-top": stack.top,
+          "--stack-left": stack.left,
+          "--stack-size": stack.size,
+          "--row-top": row.top,
+          "--row-left": row.left,
+          "--row-size": row.size,
         } as CSSProperties
       }
     >
@@ -37,10 +46,13 @@ function DialSlot({ slot, children }: DialSlotProps) {
   );
 }
 
+const DIALS = ["latency", "pressure", "centre"] as const;
+
 export function PerformanceHud() {
   const ref = useRef<HTMLDivElement>(null);
   const active = useElementMotion(ref);
   const reduced = useReducedMotionPreference();
+  const telemetry = useTelemetryClock(active, reduced);
 
   return (
     <div ref={ref}>
@@ -53,7 +65,7 @@ export function PerformanceHud() {
             boxShadow: `inset 0 0 0 1px ${token.borderStrong}, inset 0 0 40px -8px ${ELECTRIC_DIM}`,
           }}
         >
-          <div className="@container relative overflow-hidden p-4">
+          <div className="@container/hud relative overflow-hidden p-4">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
@@ -62,22 +74,31 @@ export function PerformanceHud() {
               }}
             />
             <div
-              className="relative aspect-(--stack-aspect) w-full @min-[416px]:aspect-(--row-aspect)"
+              className="relative aspect-(--stack-aspect) w-full @min-[416px]/hud:aspect-(--row-aspect)"
               style={
                 {
-                  "--stack-aspect": CLUSTER.stackAspect,
-                  "--row-aspect": CLUSTER.rowAspect,
+                  "--stack-aspect": CLUSTER.stack.aspect,
+                  "--row-aspect": CLUSTER.row.aspect,
                 } as CSSProperties
               }
             >
-              <DialSlot slot={CLUSTER.latency}>
-                <LatencyDial active={active} reduced={reduced} />
+              {DIALS.map((dial) => (
+                <DialSlot key={`glow-${dial}`} dial={dial}>
+                  <div
+                    aria-hidden="true"
+                    className="aspect-square rounded-full"
+                    style={{ boxShadow: RING_GLOW }}
+                  />
+                </DialSlot>
+              ))}
+              <DialSlot dial="latency">
+                <LatencyDial telemetry={telemetry} />
               </DialSlot>
-              <DialSlot slot={CLUSTER.centre}>
-                <CenterOpsDial active={active} reduced={reduced} />
+              <DialSlot dial="pressure">
+                <PressureDial telemetry={telemetry} />
               </DialSlot>
-              <DialSlot slot={CLUSTER.pressure}>
-                <PressureDial active={active} reduced={reduced} />
+              <DialSlot dial="centre">
+                <CenterOpsDial telemetry={telemetry} />
               </DialSlot>
             </div>
           </div>
