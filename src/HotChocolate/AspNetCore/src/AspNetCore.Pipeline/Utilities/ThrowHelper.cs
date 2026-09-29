@@ -129,6 +129,34 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                 .Build());
 
+    public static InvalidOperationException MultipartFormReader_AntiforgeryValidationFailed() =>
+        new(ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed);
+
+    public static InvalidDataException MultipartFormReader_BoundaryLengthLimitExceeded(int limit) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded, limit));
+
+    public static InvalidDataException MultipartFormReader_InvalidContentDisposition(
+        string? contentDisposition) =>
+        new(string.Format(
+            ThrowHelper_MultipartFormReader_InvalidContentDisposition,
+            contentDisposition));
+
+    public static InvalidDataException MultipartFormReader_MissingBoundary() =>
+        new(ThrowHelper_MultipartFormReader_MissingBoundary);
+
+    public static GraphQLRequestException MultipartFormReader_SectionTooLarge(string name) =>
+        new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_MultipartFormReader_SectionTooLarge, name)
+            .SetCode(ErrorCodes.Server.MultiPartSectionTooLarge)
+            .Build());
+
+    public static DirectoryNotFoundException MultipartFormReader_TempDirectoryNotFound(
+        string directory) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_TempDirectoryNotFound, directory));
+
+    public static InvalidDataException MultipartFormReader_ValueCountLimitExceeded(int limit) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_ValueCountLimitExceeded, limit));
+
     public static NotSupportedException Formatter_ResultKindNotSupported()
         => new(ThrowHelper_Formatter_ResultKindNotSupported);
 

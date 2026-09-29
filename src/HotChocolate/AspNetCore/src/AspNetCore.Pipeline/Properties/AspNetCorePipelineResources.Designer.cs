@@ -255,6 +255,48 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MultipartFormReader_InvalidContentDisposition {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_InvalidContentDisposition", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MultipartFormReader_MissingBoundary {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_MissingBoundary", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MultipartFormReader_SectionTooLarge {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_SectionTooLarge", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MultipartFormReader_TempDirectoryNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_TempDirectoryNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MultipartFormReader_ValueCountLimitExceeded {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_ValueCountLimitExceeded", resourceCulture);
+            }
+        }
+        
         internal static string ThrowHelper_RequestBodyTooLarge {
             get {
                 return ResourceManager.GetString("ThrowHelper_RequestBodyTooLarge", resourceCulture);

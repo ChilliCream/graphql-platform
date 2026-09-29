@@ -10,6 +10,7 @@ ALPN
 Andi
 annotatable
 anthropics
+Antiforgery
 apphost
 appsettings
 ASPDEPR004
