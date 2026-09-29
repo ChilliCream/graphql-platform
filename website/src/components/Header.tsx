@@ -28,7 +28,7 @@ export default async function Header() {
 
   return (
     <header className="border-cc-white/10 bg-cc-card-bg sticky top-0 z-40 flex h-18 w-full justify-center border-b shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
-      <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 lg:gap-8">
+      <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 min-[1060px]:max-[1200px]:gap-3! lg:gap-8">
         <Link
           href="/"
           prefetch={false}
@@ -41,7 +41,7 @@ export default async function Header() {
 
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
-        <div className="hidden flex-none items-center gap-5 min-[1060px]:flex">
+        <div className="hidden flex-none items-center gap-5 max-[1200px]:gap-3 min-[1060px]:flex">
           <GitHubStarButton />
           <Link
             href={CONTACT_HREF}
