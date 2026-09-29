@@ -6,16 +6,22 @@ export const CY = VB / 2;
 
 export const BEZEL_WIDTH = 2;
 export const BEZEL_R = CX - BEZEL_WIDTH / 2;
-const BEZEL_INNER = BEZEL_R - BEZEL_WIDTH / 2;
 
 export const NUMERAL_FONT_PX = 11;
 const NUMERAL_GAP_PX = 2;
-const NUMERAL_HALF_DIAGONAL_PX = Math.hypot(
-  NUMERAL_FONT_PX * 0.62,
-  NUMERAL_FONT_PX / 2,
-);
-export const NUMERAL_R_FRACTION = BEZEL_INNER / VB;
-export const NUMERAL_OFFSET_PX = -(NUMERAL_GAP_PX + NUMERAL_HALF_DIAGONAL_PX);
+const NUMERAL_ADVANCE = 0.6;
+
+// Pixels from a scale's inner edge to the numeral centre, clearing the glyph box at any angle.
+export function numeralInset(angle: number, label: string): number {
+  const rad = (angle * Math.PI) / 180;
+  const halfWidth = (label.length * NUMERAL_FONT_PX * NUMERAL_ADVANCE) / 2;
+  const halfHeight = NUMERAL_FONT_PX / 2;
+  return (
+    NUMERAL_GAP_PX +
+    Math.abs(Math.cos(rad)) * halfWidth +
+    Math.abs(Math.sin(rad)) * halfHeight
+  );
+}
 
 interface Circle {
   readonly x: number;
@@ -128,6 +134,7 @@ function buildStack(): Layout {
 export const CLUSTER = { row: buildRow(), stack: buildStack() } as const;
 
 export const ELECTRIC = "var(--color-cc-electric)";
+export const DANGER = "var(--color-cc-danger)";
 export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;
 export const ELECTRIC_DIM = `color-mix(in srgb, ${ELECTRIC} 30%, transparent)`;
 export const DISC_CORE = `color-mix(in srgb, ${ELECTRIC} 12%, black)`;

@@ -13,7 +13,8 @@ export const ROTATE_MS = 5200;
 export const MEM_RISE_LAG_MS = 350;
 export const MEM_FALL_LAG_MS = 300;
 
-export const OPS_MAX = 8000;
+export const OPS_MAX = 7000;
+export const OPS_RED_START = 5000;
 export const OPS_BURST_LABEL = 3000;
 export const OPS_CALM: readonly [number, number] = [800, 1200];
 export const OPS_BURST: readonly [number, number] = [5300, 5700];
@@ -31,7 +32,7 @@ export const NET_IN_BURST: readonly [number, number] = [75, 90];
 export const NET_OUT_CALM: readonly [number, number] = [8, 15];
 export const NET_OUT_BURST: readonly [number, number] = [65, 80];
 
-export const LATENCY_MAX = 50;
+export const LATENCY_MAX = 40;
 export const LATENCY_P50 = 7;
 export const LATENCY_BAND: readonly [number, number] = [9, 13];
 export const LATENCY_DOMAIN: readonly [number, number] = [7, 15];

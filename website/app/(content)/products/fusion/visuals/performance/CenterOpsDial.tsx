@@ -7,9 +7,9 @@ import { token } from "@/src/nitro";
 
 import { DialFace } from "./DialFace";
 import { DialNumeral } from "./DialNumeral";
-import { OPS_BURST_LABEL, OPS_MAX, formatOps } from "./data";
+import { OPS_BURST_LABEL, OPS_MAX, OPS_RED_START, formatOps } from "./data";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
-import { CX, CY, ELECTRIC, ELECTRIC_BRIGHT, VB } from "./hud";
+import { CX, CY, DANGER, ELECTRIC, ELECTRIC_BRIGHT, VB } from "./hud";
 import { OpsScreen } from "./OpsScreen";
 import type { TelemetryMotion } from "./useTelemetryClock";
 
@@ -23,12 +23,14 @@ interface SegmentProps {
 }
 
 const FACE_R = 96;
-const SEGMENT_INNER = 103;
-const SEGMENT_OUTER = 116;
-const MAJOR_SEGMENT_INNER = 100;
+const SEGMENT_INNER = 130;
+const SEGMENT_OUTER = 141;
+const MAJOR_SEGMENT_INNER = 127;
+const SEGMENT_WIDTH = 3;
+const NUMERAL_EDGE = MAJOR_SEGMENT_INNER - SEGMENT_WIDTH / 2;
 const RING_R = (SEGMENT_INNER + SEGMENT_OUTER) / 2;
-const SCALE_STEPS = 8;
-const SEGMENTS_PER_STEP = 7;
+const SCALE_STEPS = 7;
+const SEGMENTS_PER_STEP = 8;
 const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
 const ARC_START = 210;
 const ARC_END = -30;
@@ -36,6 +38,7 @@ const SWEEP_SPAN = 16;
 
 function Segment({ index, fraction }: SegmentProps) {
   const threshold = index / SEGMENT_STEPS;
+  const red = index * (OPS_MAX / SEGMENT_STEPS) >= OPS_RED_START;
   const major = index % SEGMENTS_PER_STEP === 0;
   const angle = sweepAngle(threshold, ARC_START, ARC_END);
   const [x1, y1] = polarPoint(
@@ -45,15 +48,16 @@ function Segment({ index, fraction }: SegmentProps) {
     angle,
   );
   const [x2, y2] = polarPoint(CX, CY, SEGMENT_OUTER, angle);
-  const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : 0.18));
+  const unlit = red ? 0.3 : 0.18;
+  const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : unlit));
   return (
     <motion.line
       x1={x1}
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke={major ? ELECTRIC_BRIGHT : ELECTRIC}
-      strokeWidth={3}
+      stroke={red ? DANGER : major ? ELECTRIC_BRIGHT : ELECTRIC}
+      strokeWidth={SEGMENT_WIDTH}
       strokeLinecap="round"
       style={{ opacity }}
     />
@@ -94,7 +98,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
           height="100%"
           style={{ display: "block", overflow: "visible" }}
           role="img"
-          aria-label="Operations per second, about 1K in normal traffic and about 5.5K in a burst, on an 8K scale"
+          aria-label="Operations per second, about 1K in normal traffic and about 5.5K in a burst, on a 7K scale with a red zone from 5K"
         >
           <defs>
             <filter
@@ -134,7 +138,12 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
         </svg>
 
         {NUMERALS.map((n) => (
-          <DialNumeral key={n.label} angle={n.angle} label={n.label} />
+          <DialNumeral
+            key={n.label}
+            angle={n.angle}
+            label={n.label}
+            edge={NUMERAL_EDGE}
+          />
         ))}
 
         <div

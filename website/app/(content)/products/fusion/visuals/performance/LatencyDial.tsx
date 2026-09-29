@@ -37,12 +37,13 @@ interface LatencyNumeralsProps {
 }
 
 const FACE_R = 85;
-const TRACK_R = 94;
-const TRACK_WIDTH = 8;
+const TRACK_R = 140;
+const TRACK_WIDTH = 6;
 const FILL_GLOW_WIDTH = TRACK_WIDTH * 2;
 const TICK_REACH = TRACK_WIDTH / 2;
+const NUMERAL_EDGE = TRACK_R - TICK_REACH;
 const P50_REACH = TICK_REACH + 0.5;
-const TICK_STEPS = 10;
+const TICK_STEPS = 8;
 const MAJOR_EVERY = 2;
 
 const ROW_ONLY = "hidden @min-[416px]/hud:block";
@@ -120,6 +121,7 @@ function LatencyNumerals({ arc }: LatencyNumeralsProps) {
           key={i}
           angle={sweepAngle(i / stops, arc.start, arc.end)}
           label={String(Math.round((i / stops) * LATENCY_MAX))}
+          edge={NUMERAL_EDGE}
         />
       ))}
     </>
@@ -147,7 +149,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
           height="100%"
           style={{ display: "block", overflow: "visible" }}
           role="img"
-          aria-label="Latency gauge, p95 between 9 and 13 ms, p50 mark at 7 ms, on a 50 ms scale"
+          aria-label="Latency gauge, p95 between 9 and 13 ms, p50 mark at 7 ms, on a 40 ms scale"
         >
           <defs>
             <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
