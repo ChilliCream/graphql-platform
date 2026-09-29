@@ -133,6 +133,11 @@ function buildStack(): Layout {
 
 export const CLUSTER = { row: buildRow(), stack: buildStack() } as const;
 
+export const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
+export const READOUT_LINE_HEIGHT = 1.15;
+const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
+export const CONTENT_OFFSET = `calc(50% + ${READOUT_LINE_HEIGHT / 2} * ${READOUT_FONT} + ${CONTENT_GAP})`;
+
 export const ELECTRIC = "var(--color-cc-electric)";
 export const DANGER = "var(--color-cc-danger)";
 export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;

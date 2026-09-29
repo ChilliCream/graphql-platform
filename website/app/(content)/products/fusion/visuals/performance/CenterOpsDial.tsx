@@ -10,12 +10,15 @@ import { DialNumeral } from "./DialNumeral";
 import { OPS_BURST_LABEL, OPS_MAX, OPS_RED_START, formatOps } from "./data";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
 import {
+  CONTENT_OFFSET,
   CX,
   CY,
   DANGER,
   ELECTRIC,
   ELECTRIC_BRIGHT,
   OPS_NUMERAL_COLOR,
+  READOUT_FONT,
+  READOUT_LINE_HEIGHT,
   VB,
 } from "./hud";
 import { OpsScreen } from "./OpsScreen";
@@ -43,9 +46,6 @@ const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
 const ARC_START = 210;
 const ARC_END = -30;
 const SWEEP_SPAN = 16;
-const CONTENT_TOP = "calc(50% - clamp(8px, 4cqw, 14px))";
-const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
-const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
 
 function Segment({ index, fraction }: SegmentProps) {
   const threshold = index / SEGMENT_STEPS;
@@ -159,64 +159,73 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
         ))}
 
         <div
+          aria-hidden="true"
           className="absolute flex flex-col items-center"
           style={{
             left: "50%",
-            top: CONTENT_TOP,
-            transform: "translate(-50%, -50%)",
-            gap: CONTENT_GAP,
+            bottom: CONTENT_OFFSET,
+            transform: "translateX(-50%)",
+            gap: 2,
           }}
         >
-          <div
-            aria-hidden="true"
-            className="flex flex-col items-center"
-            style={{ gap: 2 }}
+          <motion.span
+            className="whitespace-nowrap"
+            style={{
+              display: "inline-block",
+              minWidth: "7ch",
+              textAlign: "center",
+              fontSize: 11,
+              lineHeight: 1,
+              letterSpacing: "0.08em",
+              color: phaseColor,
+              fontFamily: token.mono,
+            }}
           >
-            <motion.span
-              className="whitespace-nowrap"
-              style={{
-                display: "inline-block",
-                fontFamily: token.mono,
-                fontSize: READOUT_FONT,
-                lineHeight: 1.15,
-                fontWeight: 700,
-                fontStyle: "italic",
-                letterSpacing: "-0.02em",
-                color: token.textStrong,
-                fontVariantNumeric: "tabular-nums",
-                filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
-              }}
-            >
-              {readout}
-            </motion.span>
-            <span
-              className="whitespace-nowrap uppercase"
-              style={{
-                fontSize: 11,
-                lineHeight: 1,
-                letterSpacing: "0.08em",
-                color: token.textSecondary,
-                fontFamily: token.mono,
-              }}
-            >
-              ops/s
-            </span>
-            <motion.span
-              className="whitespace-nowrap"
-              style={{
-                display: "inline-block",
-                minWidth: "7ch",
-                textAlign: "center",
-                fontSize: 11,
-                lineHeight: 1,
-                letterSpacing: "0.08em",
-                color: phaseColor,
-                fontFamily: token.mono,
-              }}
-            >
-              {phase}
-            </motion.span>
-          </div>
+            {phase}
+          </motion.span>
+          <span
+            className="whitespace-nowrap uppercase"
+            style={{
+              fontSize: 11,
+              lineHeight: 1,
+              letterSpacing: "0.08em",
+              color: token.textSecondary,
+              fontFamily: token.mono,
+            }}
+          >
+            ops/s
+          </span>
+        </div>
+
+        <motion.span
+          aria-hidden="true"
+          className="absolute whitespace-nowrap"
+          style={{
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            fontFamily: token.mono,
+            fontSize: READOUT_FONT,
+            lineHeight: READOUT_LINE_HEIGHT,
+            fontWeight: 700,
+            fontStyle: "italic",
+            letterSpacing: "-0.02em",
+            color: token.textStrong,
+            fontVariantNumeric: "tabular-nums",
+            filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+          }}
+        >
+          {readout}
+        </motion.span>
+
+        <div
+          className="absolute"
+          style={{
+            left: "50%",
+            top: CONTENT_OFFSET,
+            transform: "translateX(-50%)",
+          }}
+        >
           <OpsScreen telemetry={telemetry} />
         </div>
       </div>

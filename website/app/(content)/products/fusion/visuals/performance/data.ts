@@ -48,9 +48,6 @@ export const latencyFraction = (ms: number): number =>
 export const HISTORY_POINTS = 36;
 export const HISTORY_STEP_MS = 160;
 
-export const CACHED_DOCUMENTS = 1284;
-export const CACHED_PLANS = 3410;
-
 export function formatOps(n: number): string {
   return `${(n / 1000).toFixed(1)}K`;
 }
@@ -61,8 +58,4 @@ export function formatPercent(n: number): string {
 
 export function formatMs(n: number): string {
   return `${Math.round(n)}`;
-}
-
-export function formatCount(n: number): string {
-  return Math.round(n).toLocaleString("en-US");
 }

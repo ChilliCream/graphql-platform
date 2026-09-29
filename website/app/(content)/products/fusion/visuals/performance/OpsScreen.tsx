@@ -2,7 +2,6 @@
 
 import { token } from "@/src/nitro";
 
-import { CACHED_DOCUMENTS, CACHED_PLANS, formatCount } from "./data";
 import type { TelemetryMotion } from "./useTelemetryClock";
 import { LABEL_COLOR } from "./hud";
 import { TrendChart, TrendLine } from "./TrendLine";
@@ -14,11 +13,6 @@ interface OpsScreenProps {
 interface KeyProps {
   readonly color: string;
   readonly label: string;
-}
-
-interface OdometerRowProps {
-  readonly label: string;
-  readonly value: number;
 }
 
 const TEXT = {
@@ -44,34 +38,14 @@ function Key({ color, label }: KeyProps) {
   );
 }
 
-function OdometerRow({ label, value }: OdometerRowProps) {
-  return (
-    <div
-      className="flex items-baseline justify-between whitespace-nowrap"
-      style={{ gap: 4 }}
-    >
-      <span className="uppercase" style={{ ...TEXT, color: LABEL_COLOR }}>
-        {label}
-      </span>
-      <span
-        style={{
-          ...TEXT,
-          fontWeight: 700,
-          color: token.textStrong,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {formatCount(value)}
-      </span>
-    </div>
-  );
-}
-
 export function OpsScreen({ telemetry }: OpsScreenProps) {
   return (
     <div
       className="flex flex-col"
-      style={{ gap: "clamp(2px, 1.2cqw - 2px, 4px)", width: "max-content" }}
+      style={{
+        gap: "clamp(2px, 1.2cqw - 2px, 4px)",
+        width: "clamp(72px, 30cqw, 130px)",
+      }}
     >
       <span
         className="text-center uppercase"
@@ -83,7 +57,7 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
         style={{
           width: 0,
           minWidth: "calc(100% - 16px)",
-          height: "clamp(14px, 10cqw - 9px, 32px)",
+          height: "clamp(16px, 12cqw - 12px, 40px)",
           margin: "0 8px",
         }}
       >
@@ -108,8 +82,6 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
         <Key color={token.error} label="in" />
         <Key color={token.chThroughput} label="out" />
       </div>
-      <OdometerRow label="cached docs" value={CACHED_DOCUMENTS} />
-      <OdometerRow label="cached plans" value={CACHED_PLANS} />
     </div>
   );
 }
