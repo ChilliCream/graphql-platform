@@ -15,6 +15,7 @@ import {
   ELECTRIC,
   ELECTRIC_BRIGHT,
   ELECTRIC_DIM,
+  ELECTRIC_TEXT,
   VB,
   type Arc,
 } from "./hud";
@@ -239,7 +240,7 @@ export function PressureDial({ telemetry }: PressureDialProps) {
             ...SHIFT_VARS,
           }}
         >
-          <ReadRow label="cpu" value={cpuLabel} color={ELECTRIC} />
+          <ReadRow label="cpu" value={cpuLabel} color={ELECTRIC_TEXT} />
           <div
             className="flex items-end"
             style={{

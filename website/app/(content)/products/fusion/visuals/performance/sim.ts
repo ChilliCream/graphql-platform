@@ -214,6 +214,16 @@ export function telemetryAt(elapsedMs: number): Telemetry {
   };
 }
 
+const STATIC_BURST_AT_MS = 8241;
+
+// Translates a trace so it ends on the static readout while keeping its live shape.
+function endingOn(history: readonly number[], last: number): readonly number[] {
+  const shift = last - history[history.length - 1];
+  return history.map((v, i) => (i === history.length - 1 ? last : v + shift));
+}
+
+const burstFrame = telemetryAt(STATIC_BURST_AT_MS);
+
 export const STATIC_BURST: Telemetry = {
   ops: 5500,
   cores: [88, 92, 85, 95, 90, 87, 93, 89],
@@ -221,16 +231,8 @@ export const STATIC_BURST: Telemetry = {
   memory: 84,
   netIn: 82,
   netOut: 72,
-  netInHistory: Array.from(
-    { length: HISTORY_POINTS },
-    (_, i) => 78 + ((i * 7) % 13),
-  ),
-  netOutHistory: Array.from(
-    { length: HISTORY_POINTS },
-    (_, i) => 66 + ((i * 5) % 15),
-  ),
+  netInHistory: endingOn(burstFrame.netInHistory, 82),
+  netOutHistory: endingOn(burstFrame.netOutHistory, 72),
   latency: 12,
-  latencyHistory: Array.from({ length: HISTORY_POINTS }, (_, i) =>
-    i === HISTORY_POINTS - 1 ? 12 : 9.5 + ((i * 7) % 11) * 0.3,
-  ),
+  latencyHistory: endingOn(burstFrame.latencyHistory, 12),
 };
