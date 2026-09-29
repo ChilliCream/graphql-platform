@@ -25,6 +25,7 @@ internal sealed class FusionValidateCommand : Command
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
         this.AddExamples(
@@ -57,6 +58,8 @@ internal sealed class FusionValidateCommand : Command
         var legacyArchiveFile = parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var sourceSchemaFiles =
             parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         var exclusiveOptionsCount = new[]
         {
@@ -150,7 +153,7 @@ internal sealed class FusionValidateCommand : Command
                 apiId,
                 stageName,
                 archiveStream,
-                source: null,
+                source,
                 ct);
 
             if (result.Errors?.Count > 0)
