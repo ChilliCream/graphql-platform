@@ -35,6 +35,9 @@ const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
 const ARC_START = 210;
 const ARC_END = -30;
 const SWEEP_SPAN = 16;
+const CONTENT_TOP = "calc(50% - clamp(8px, 4cqw, 14px))";
+const CONTENT_GAP = "clamp(3px, 3cqw - 5px, 12px)";
+const READOUT_FONT = "clamp(24px, 19.8cqw - 26px, 48px)";
 
 function Segment({ index, fraction }: SegmentProps) {
   const threshold = index / SEGMENT_STEPS;
@@ -98,7 +101,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
           height="100%"
           style={{ display: "block", overflow: "visible" }}
           role="img"
-          aria-label="Operations per second, about 1K in normal traffic and about 5.5K in a burst, on a 7K scale with a red zone from 5K"
+          aria-label="Operations per second, about 1K in normal traffic and about 5.5K in a burst, on a 7K scale with a red zone from 5.5K"
         >
           <defs>
             <filter
@@ -147,65 +150,64 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
         ))}
 
         <div
-          aria-hidden="true"
           className="absolute flex flex-col items-center"
-          style={{ inset: "25% 0 auto", gap: 2 }}
-        >
-          <motion.span
-            className="whitespace-nowrap"
-            style={{
-              display: "inline-block",
-              fontFamily: token.mono,
-              fontSize: "clamp(26px, 16cqw, 52px)",
-              lineHeight: 1,
-              fontWeight: 700,
-              fontStyle: "italic",
-              letterSpacing: "-0.02em",
-              color: token.textStrong,
-              fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
-            }}
-          >
-            {readout}
-          </motion.span>
-          <span
-            className="whitespace-nowrap uppercase"
-            style={{
-              fontSize: 11,
-              lineHeight: 1,
-              letterSpacing: "0.08em",
-              color: token.textSecondary,
-              fontFamily: token.mono,
-            }}
-          >
-            ops/s
-          </span>
-          <motion.span
-            className="whitespace-nowrap"
-            style={{
-              display: "inline-block",
-              minWidth: "7ch",
-              textAlign: "center",
-              fontSize: 11,
-              lineHeight: 1,
-              letterSpacing: "0.08em",
-              color: phaseColor,
-              fontFamily: token.mono,
-            }}
-          >
-            {phase}
-          </motion.span>
-        </div>
-
-        <div
-          className="absolute"
           style={{
             left: "50%",
-            bottom: "12.5%",
-            width: "clamp(128px, 54cqw, 160px)",
-            transform: "translateX(-50%)",
+            top: CONTENT_TOP,
+            transform: "translate(-50%, -50%)",
+            gap: CONTENT_GAP,
           }}
         >
+          <div
+            aria-hidden="true"
+            className="flex flex-col items-center"
+            style={{ gap: 2 }}
+          >
+            <motion.span
+              className="whitespace-nowrap"
+              style={{
+                display: "inline-block",
+                fontFamily: token.mono,
+                fontSize: READOUT_FONT,
+                lineHeight: 1,
+                fontWeight: 700,
+                fontStyle: "italic",
+                letterSpacing: "-0.02em",
+                color: token.textStrong,
+                fontVariantNumeric: "tabular-nums",
+                filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+              }}
+            >
+              {readout}
+            </motion.span>
+            <span
+              className="whitespace-nowrap uppercase"
+              style={{
+                fontSize: 11,
+                lineHeight: 1,
+                letterSpacing: "0.08em",
+                color: token.textSecondary,
+                fontFamily: token.mono,
+              }}
+            >
+              ops/s
+            </span>
+            <motion.span
+              className="whitespace-nowrap"
+              style={{
+                display: "inline-block",
+                minWidth: "7ch",
+                textAlign: "center",
+                fontSize: 11,
+                lineHeight: 1,
+                letterSpacing: "0.08em",
+                color: phaseColor,
+                fontFamily: token.mono,
+              }}
+            >
+              {phase}
+            </motion.span>
+          </div>
           <OpsScreen telemetry={telemetry} />
         </div>
       </div>

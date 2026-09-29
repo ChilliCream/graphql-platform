@@ -3,8 +3,8 @@
 import { token } from "@/src/nitro";
 
 import { CACHED_DOCUMENTS, CACHED_PLANS, formatCount } from "./data";
-import { ELECTRIC_DIM, SCREEN_BG } from "./hud";
 import type { TelemetryMotion } from "./useTelemetryClock";
+import { LABEL_COLOR } from "./hud";
 import { TrendChart, TrendLine } from "./TrendLine";
 
 interface OpsScreenProps {
@@ -39,7 +39,7 @@ function Key({ color, label }: KeyProps) {
           display: "inline-block",
         }}
       />
-      <span style={{ ...TEXT, color: token.textSecondary }}>{label}</span>
+      <span style={{ ...TEXT, color: LABEL_COLOR }}>{label}</span>
     </span>
   );
 }
@@ -48,12 +48,9 @@ function OdometerRow({ label, value }: OdometerRowProps) {
   return (
     <div
       className="flex items-baseline justify-between whitespace-nowrap"
-      style={{ gap: 6 }}
+      style={{ gap: 4 }}
     >
-      <span
-        className="uppercase"
-        style={{ ...TEXT, color: token.textSecondary }}
-      >
+      <span className="uppercase" style={{ ...TEXT, color: LABEL_COLOR }}>
         {label}
       </span>
       <span
@@ -74,15 +71,22 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
   return (
     <div
       className="flex flex-col"
-      style={{
-        gap: 3,
-        padding: "4px 6px",
-        borderRadius: 4,
-        background: SCREEN_BG,
-        boxShadow: `inset 0 0 0 1px ${ELECTRIC_DIM}`,
-      }}
+      style={{ gap: "clamp(1px, 1.2cqw - 2px, 4px)", width: "max-content" }}
     >
-      <div style={{ height: "clamp(22px, 10cqw, 40px)", margin: "0 8px" }}>
+      <span
+        className="text-center uppercase"
+        style={{ ...TEXT, color: LABEL_COLOR }}
+      >
+        network
+      </span>
+      <div
+        style={{
+          width: 0,
+          minWidth: "calc(100% - 16px)",
+          height: "clamp(18px, 8cqw, 32px)",
+          margin: "0 8px 2px",
+        }}
+      >
         <TrendChart label="Network traffic, incoming in red and outgoing in blue, in percent">
           <TrendLine
             values={telemetry.netOutHistory}

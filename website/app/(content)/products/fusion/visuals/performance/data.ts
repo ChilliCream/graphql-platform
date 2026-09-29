@@ -14,7 +14,7 @@ export const MEM_RISE_LAG_MS = 350;
 export const MEM_FALL_LAG_MS = 300;
 
 export const OPS_MAX = 7000;
-export const OPS_RED_START = 5000;
+export const OPS_RED_START = 5500;
 export const OPS_BURST_LABEL = 3000;
 export const OPS_CALM: readonly [number, number] = [800, 1200];
 export const OPS_BURST: readonly [number, number] = [5300, 5700];

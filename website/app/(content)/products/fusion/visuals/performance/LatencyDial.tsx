@@ -16,6 +16,7 @@ import {
   ELECTRIC,
   ELECTRIC_BRIGHT,
   ELECTRIC_DIM,
+  LABEL_COLOR,
   VB,
   type Arc,
 } from "./hud";
@@ -46,8 +47,8 @@ const P50_REACH = TICK_REACH + 0.5;
 const TICK_STEPS = 8;
 const MAJOR_EVERY = 2;
 
-const ROW_ONLY = "hidden @min-[464px]/hud:block";
-const STACK_ONLY = "@min-[464px]/hud:hidden";
+const ROW_ONLY = "hidden @min-[504px]/hud:block";
+const STACK_ONLY = "@min-[504px]/hud:hidden";
 
 function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
   const trackPath = gaugeArcPath(CX, CY, TRACK_R, arc.start, arc.end);
@@ -189,9 +190,20 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
             left: "50%",
             top: "50%",
             transform: "translate(-50%, -50%)",
-            gap: 2,
+            gap: 1,
           }}
         >
+          <span
+            className="whitespace-nowrap uppercase"
+            style={{
+              fontSize: 11,
+              lineHeight: 1,
+              color: LABEL_COLOR,
+              fontFamily: token.mono,
+            }}
+          >
+            latency
+          </span>
           <motion.span
             className="whitespace-nowrap"
             style={{
@@ -224,7 +236,6 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
           <div
             className="relative"
             style={{
-              marginTop: 3,
               width: "clamp(36px, 34cqw, 84px)",
               height: "clamp(12px, 9cqw, 26px)",
             }}
