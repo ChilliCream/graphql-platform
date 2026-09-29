@@ -55,8 +55,8 @@ const ARC_R = 139;
 const ARC_WIDTH = 7;
 const GLOW_WIDTH = 12;
 
-const ROW_ONLY = "hidden @min-[416px]/hud:block";
-const STACK_ONLY = "@min-[416px]/hud:hidden";
+const ROW_ONLY = "hidden @min-[464px]/hud:block";
+const STACK_ONLY = "@min-[464px]/hud:hidden";
 
 const CONTENT_WIDTH = "clamp(50px, 36cqw, 92px)";
 const SHIFT_CQW = 4;
@@ -229,7 +229,7 @@ export function PressureDial({ telemetry }: PressureDialProps) {
 
         <div
           aria-hidden="true"
-          className="absolute flex flex-col items-center [--dx:var(--stack-dx)] [--dy:var(--stack-dy)] @min-[416px]/hud:[--dx:var(--row-dx)] @min-[416px]/hud:[--dy:var(--row-dy)]"
+          className="absolute flex flex-col items-center [--dx:var(--stack-dx)] [--dy:var(--stack-dy)] @min-[464px]/hud:[--dx:var(--row-dx)] @min-[464px]/hud:[--dy:var(--row-dy)]"
           style={{
             left: "50%",
             top: "50%",

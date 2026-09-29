@@ -29,7 +29,7 @@ function DialSlot({ dial, children }: DialSlotProps) {
   const stack = CLUSTER.stack[dial];
   return (
     <div
-      className="absolute top-(--stack-top) left-(--stack-left) w-(--stack-size) @min-[416px]/hud:top-(--row-top) @min-[416px]/hud:left-(--row-left) @min-[416px]/hud:w-(--row-size)"
+      className="absolute top-(--stack-top) left-(--stack-left) w-(--stack-size) @min-[464px]/hud:top-(--row-top) @min-[464px]/hud:left-(--row-left) @min-[464px]/hud:w-(--row-size)"
       style={
         {
           "--stack-top": stack.top,
@@ -74,7 +74,7 @@ export function PerformanceHud() {
               }}
             />
             <div
-              className="relative aspect-(--stack-aspect) w-full @min-[416px]/hud:aspect-(--row-aspect)"
+              className="relative aspect-(--stack-aspect) w-full @min-[464px]/hud:aspect-(--row-aspect)"
               style={
                 {
                   "--stack-aspect": CLUSTER.stack.aspect,

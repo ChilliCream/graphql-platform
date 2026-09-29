@@ -46,8 +46,8 @@ const P50_REACH = TICK_REACH + 0.5;
 const TICK_STEPS = 8;
 const MAJOR_EVERY = 2;
 
-const ROW_ONLY = "hidden @min-[416px]/hud:block";
-const STACK_ONLY = "@min-[416px]/hud:hidden";
+const ROW_ONLY = "hidden @min-[464px]/hud:block";
+const STACK_ONLY = "@min-[464px]/hud:hidden";
 
 function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
   const trackPath = gaugeArcPath(CX, CY, TRACK_R, arc.start, arc.end);
