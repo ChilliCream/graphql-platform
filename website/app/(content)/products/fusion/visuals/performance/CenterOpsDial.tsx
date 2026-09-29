@@ -1,51 +1,47 @@
 "use client";
 
-import { useEffect, useId } from "react";
-import {
-  animate,
-  motion,
-  useMotionValue,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { useId } from "react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 
 import { token } from "@/src/nitro";
-import { ease } from "@/src/nitro/lib/motion";
 
 import { DialFace } from "./DialFace";
 import { DialNumeral } from "./DialNumeral";
+import { OPS_BURST_LABEL, OPS_MAX, OPS_RED_START, formatOps } from "./data";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
-import { CX, CY, ELECTRIC, ELECTRIC_BRIGHT, VB } from "./hud";
-import { OPS_IDLE_BAND, OPS_MAX, OPS_SETTLE, formatOps } from "./data";
+import { CX, CY, DANGER, ELECTRIC, ELECTRIC_BRIGHT, VB } from "./hud";
+import { OpsScreen } from "./OpsScreen";
+import type { TelemetryMotion } from "./useTelemetryClock";
 
 interface CenterOpsDialProps {
-  readonly active: boolean;
-  readonly reduced: boolean;
+  readonly telemetry: TelemetryMotion;
 }
 
-const FACE_R = 86;
-const SEGMENT_INNER = 91;
-const SEGMENT_OUTER = 103;
-const MAJOR_SEGMENT_INNER = 89;
-const RING_R = (SEGMENT_INNER + SEGMENT_OUTER) / 2;
-const SCALE_STEPS = 8;
-const SEGMENTS_PER_STEP = 7;
-const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
-const ARC_START = 225;
-const ARC_END = -45;
-const SWEEP_SPAN = 16;
-const SWEEP_MS = 1300;
-const IDLE_MS = 4400;
-const ROTATE_MS = 5200;
-
-function Segment({
-  index,
-  fraction,
-}: {
+interface SegmentProps {
   readonly index: number;
   readonly fraction: MotionValue<number>;
-}) {
+}
+
+const FACE_R = 96;
+const SEGMENT_INNER = 130;
+const SEGMENT_OUTER = 141;
+const MAJOR_SEGMENT_INNER = 127;
+const SEGMENT_WIDTH = 3;
+const NUMERAL_EDGE = MAJOR_SEGMENT_INNER - SEGMENT_WIDTH / 2;
+const RING_R = (SEGMENT_INNER + SEGMENT_OUTER) / 2;
+const SCALE_STEPS = 7;
+const SEGMENTS_PER_STEP = 8;
+const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
+const ARC_START = 210;
+const ARC_END = -30;
+const SWEEP_SPAN = 16;
+const CONTENT_TOP = "calc(50% - clamp(8px, 4cqw, 14px))";
+const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
+const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
+
+function Segment({ index, fraction }: SegmentProps) {
   const threshold = index / SEGMENT_STEPS;
+  const red = index * (OPS_MAX / SEGMENT_STEPS) >= OPS_RED_START;
   const major = index % SEGMENTS_PER_STEP === 0;
   const angle = sweepAngle(threshold, ARC_START, ARC_END);
   const [x1, y1] = polarPoint(
@@ -55,80 +51,46 @@ function Segment({
     angle,
   );
   const [x2, y2] = polarPoint(CX, CY, SEGMENT_OUTER, angle);
-  const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : 0.18));
+  const unlit = red ? 0.3 : 0.18;
+  const opacity = useTransform(fraction, (f) => (f >= threshold ? 1 : unlit));
   return (
     <motion.line
       x1={x1}
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke={major ? ELECTRIC_BRIGHT : ELECTRIC}
-      strokeWidth={3}
+      stroke={red ? DANGER : major ? ELECTRIC_BRIGHT : ELECTRIC}
+      strokeWidth={SEGMENT_WIDTH}
       strokeLinecap="round"
       style={{ opacity }}
     />
   );
 }
 
-export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
+const HIGHLIGHT_PATH = gaugeArcPath(
+  CX,
+  CY,
+  RING_R,
+  90 + SWEEP_SPAN / 2,
+  90 - SWEEP_SPAN / 2,
+);
+const SEGMENTS = Array.from({ length: SEGMENT_STEPS + 1 }, (_, i) => i);
+const NUMERALS = Array.from({ length: SCALE_STEPS + 1 }, (_, i) => ({
+  angle: sweepAngle(i / SCALE_STEPS, ARC_START, ARC_END),
+  label: i === 0 ? "0" : `${(i * OPS_MAX) / SCALE_STEPS / 1000}K`,
+}));
+
+export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
   const filterId = useId().replace(/:/g, "");
-  const value = useMotionValue(reduced ? OPS_SETTLE : 0);
-  const fraction = useTransform(value, (v) => v / OPS_MAX);
-  const readout = useTransform(value, formatOps);
-  const rotate = useMotionValue(0);
-
-  useEffect(() => {
-    if (reduced) {
-      value.set(OPS_SETTLE);
-      return;
-    }
-    if (!active) return;
-
-    let cancelled = false;
-    const sweep = animate(value, OPS_SETTLE, {
-      duration: SWEEP_MS / 1000,
-      ease: ease.out,
-    });
-    let idle = sweep;
-    sweep.then(() => {
-      if (cancelled) return;
-      idle = animate(
-        value,
-        [OPS_SETTLE, OPS_IDLE_BAND[0], OPS_IDLE_BAND[1], OPS_SETTLE],
-        { duration: IDLE_MS / 1000, ease: ease.inOut, repeat: Infinity },
-      );
-    });
-
-    return () => {
-      cancelled = true;
-      sweep.stop();
-      idle.stop();
-    };
-  }, [active, reduced, value]);
-
-  useEffect(() => {
-    if (reduced || !active) return;
-    const from = rotate.get() % 360;
-    const spin = animate(rotate, [from, from + 360], {
-      duration: ROTATE_MS / 1000,
-      ease: ease.linear,
-      repeat: Infinity,
-    });
-    return () => spin.stop();
-  }, [active, reduced, rotate]);
-
-  const highlightPath = gaugeArcPath(
-    CX,
-    CY,
-    RING_R,
-    90 + SWEEP_SPAN / 2,
-    90 - SWEEP_SPAN / 2,
+  const { ops, rotate } = telemetry;
+  const fraction = useTransform(ops, (v) => v / OPS_MAX);
+  const readout = useTransform(ops, formatOps);
+  const phase = useTransform(ops, (v): string =>
+    v >= OPS_BURST_LABEL ? "BURST" : "NORMAL",
   );
-  const segments = Array.from({ length: SEGMENT_STEPS + 1 }, (_, i) => i);
-  const numerals = Array.from({ length: SCALE_STEPS + 1 }, (_, i) => ({
-    angle: sweepAngle(i / SCALE_STEPS, ARC_START, ARC_END),
-    label: i === 0 ? "0" : `${(i * OPS_MAX) / SCALE_STEPS / 1000}K`,
-  }));
+  const phaseColor = useTransform(ops, (v) =>
+    v >= OPS_BURST_LABEL ? ELECTRIC_BRIGHT : token.textSecondary,
+  );
 
   return (
     <div className="@container w-full" style={{ aspectRatio: "1 / 1" }}>
@@ -139,7 +101,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
           height="100%"
           style={{ display: "block", overflow: "visible" }}
           role="img"
-          aria-label={`Operations per second, near ${formatOps(OPS_SETTLE)} of ${formatOps(OPS_MAX)} scale`}
+          aria-label="Operations per second, about 1K in normal traffic and about 5.5K in a burst, on a 7K scale with a red zone from 5.5K"
         >
           <defs>
             <filter
@@ -155,7 +117,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
 
           <DialFace faceRadius={FACE_R} />
 
-          {segments.map((i) => (
+          {SEGMENTS.map((i) => (
             <Segment key={i} index={i} fraction={fraction} />
           ))}
 
@@ -167,7 +129,7 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
             }}
           >
             <path
-              d={highlightPath}
+              d={HIGHLIGHT_PATH}
               fill="none"
               stroke={ELECTRIC_BRIGHT}
               strokeWidth={6}
@@ -178,54 +140,75 @@ export function CenterOpsDial({ active, reduced }: CenterOpsDialProps) {
           </motion.g>
         </svg>
 
-        {numerals.map((n) => (
-          <DialNumeral key={n.label} angle={n.angle} label={n.label} />
+        {NUMERALS.map((n) => (
+          <DialNumeral
+            key={n.label}
+            angle={n.angle}
+            label={n.label}
+            edge={NUMERAL_EDGE}
+          />
         ))}
 
         <div
-          role="img"
-          aria-label={`${formatOps(OPS_SETTLE)} operations per second`}
+          className="absolute flex flex-col items-center"
           style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
+            left: "50%",
+            top: CONTENT_TOP,
+            transform: "translate(-50%, -50%)",
+            gap: CONTENT_GAP,
           }}
         >
-          <motion.span
+          <div
             aria-hidden="true"
-            className="whitespace-nowrap"
-            style={{
-              display: "inline-block",
-              fontFamily: token.mono,
-              fontSize: "clamp(30px, 18cqw, 52px)",
-              lineHeight: 1,
-              fontWeight: 700,
-              fontStyle: "italic",
-              letterSpacing: "-0.02em",
-              color: token.textStrong,
-              fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
-            }}
+            className="flex flex-col items-center"
+            style={{ gap: 2 }}
           >
-            {readout}
-          </motion.span>
-          <span
-            aria-hidden="true"
-            className="whitespace-nowrap uppercase"
-            style={{
-              marginTop: 3,
-              fontSize: 11,
-              lineHeight: 1,
-              letterSpacing: "0.08em",
-              color: token.textSecondary,
-              fontFamily: token.mono,
-            }}
-          >
-            ops/s
-          </span>
+            <motion.span
+              className="whitespace-nowrap"
+              style={{
+                display: "inline-block",
+                fontFamily: token.mono,
+                fontSize: READOUT_FONT,
+                lineHeight: 1.15,
+                fontWeight: 700,
+                fontStyle: "italic",
+                letterSpacing: "-0.02em",
+                color: token.textStrong,
+                fontVariantNumeric: "tabular-nums",
+                filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+              }}
+            >
+              {readout}
+            </motion.span>
+            <span
+              className="whitespace-nowrap uppercase"
+              style={{
+                fontSize: 11,
+                lineHeight: 1,
+                letterSpacing: "0.08em",
+                color: token.textSecondary,
+                fontFamily: token.mono,
+              }}
+            >
+              ops/s
+            </span>
+            <motion.span
+              className="whitespace-nowrap"
+              style={{
+                display: "inline-block",
+                minWidth: "7ch",
+                textAlign: "center",
+                fontSize: 11,
+                lineHeight: 1,
+                letterSpacing: "0.08em",
+                color: phaseColor,
+                fontFamily: token.mono,
+              }}
+            >
+              {phase}
+            </motion.span>
+          </div>
+          <OpsScreen telemetry={telemetry} />
         </div>
       </div>
     </div>

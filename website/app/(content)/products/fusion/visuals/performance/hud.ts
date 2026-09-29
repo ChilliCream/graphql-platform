@@ -6,38 +6,33 @@ export const CY = VB / 2;
 
 export const BEZEL_WIDTH = 2;
 export const BEZEL_R = CX - BEZEL_WIDTH / 2;
-const BEZEL_INNER = BEZEL_R - BEZEL_WIDTH / 2;
 
 export const NUMERAL_FONT_PX = 11;
 const NUMERAL_GAP_PX = 2;
-const NUMERAL_HALF_DIAGONAL_PX = Math.hypot(
-  NUMERAL_FONT_PX * 0.62,
-  NUMERAL_FONT_PX / 2,
-);
-export const NUMERAL_R_FRACTION = BEZEL_INNER / VB;
-export const NUMERAL_OFFSET_PX = -(NUMERAL_GAP_PX + NUMERAL_HALF_DIAGONAL_PX);
+const NUMERAL_ADVANCE = 0.6;
 
-const TOUCH = BEZEL_R / CX;
-
-const SIDE_TO_CENTRE = 0.74;
-const ROW_CENTRE = 1 / (SIDE_TO_CENTRE + TOUCH * (1 + SIDE_TO_CENTRE));
-const ROW_SIDE = SIDE_TO_CENTRE * ROW_CENTRE;
-const ROW_CENTRE_LEFT =
-  ROW_SIDE / 2 + (TOUCH * (ROW_SIDE + ROW_CENTRE)) / 2 - ROW_CENTRE / 2;
-const ROW_SIDE_TOP = (ROW_CENTRE - ROW_SIDE) / 2;
-
-const STACK_CENTRE = 0.68;
-const STACK_SIDE = 1 / (1 + TOUCH);
-const STACK_SIDE_Y =
-  STACK_CENTRE / 2 +
-  Math.sqrt(
-    ((TOUCH * (STACK_CENTRE + STACK_SIDE)) / 2) ** 2 -
-      (0.5 - STACK_SIDE / 2) ** 2,
+// Pixels from a scale's inner edge to the numeral centre, clearing the glyph box at any angle.
+export function numeralInset(angle: number, label: string): number {
+  const rad = (angle * Math.PI) / 180;
+  const halfWidth = (label.length * NUMERAL_FONT_PX * NUMERAL_ADVANCE) / 2;
+  const halfHeight = NUMERAL_FONT_PX / 2;
+  return (
+    NUMERAL_GAP_PX +
+    Math.abs(Math.cos(rad)) * halfWidth +
+    Math.abs(Math.sin(rad)) * halfHeight
   );
-const STACK_HEIGHT = STACK_SIDE_Y + STACK_SIDE / 2;
-const STACK_SIDE_TOP = STACK_SIDE_Y - STACK_SIDE / 2;
+}
 
-const pct = (n: number) => `${Math.round(n * 1e5) / 1e3}%`;
+interface Circle {
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+}
+
+export interface Arc {
+  readonly start: number;
+  readonly end: number;
+}
 
 interface Slot {
   readonly left: string;
@@ -45,34 +40,107 @@ interface Slot {
   readonly size: string;
 }
 
-function slot(left: number, top: number, size: number, height: number): Slot {
-  return { left: pct(left), top: pct(top / height), size: pct(size) };
+interface Layout {
+  readonly aspect: string;
+  readonly latency: Slot;
+  readonly centre: Slot;
+  readonly pressure: Slot;
+  readonly latencyScale: Arc;
+  readonly pressureArcs: { readonly cpu: Arc; readonly mem: Arc };
+  readonly pressureShift: { readonly x: number; readonly y: number };
 }
 
-export const CLUSTER = {
-  stackAspect: String(Math.round((1 / STACK_HEIGHT) * 1e5) / 1e5),
-  rowAspect: String(Math.round((1 / ROW_CENTRE) * 1e5) / 1e5),
-  latency: {
-    stack: slot(0, STACK_SIDE_TOP, STACK_SIDE, STACK_HEIGHT),
-    row: slot(0, ROW_SIDE_TOP, ROW_SIDE, ROW_CENTRE),
-  },
-  centre: {
-    stack: slot((1 - STACK_CENTRE) / 2, 0, STACK_CENTRE, STACK_HEIGHT),
-    row: slot(ROW_CENTRE_LEFT, 0, ROW_CENTRE, ROW_CENTRE),
-  },
-  pressure: {
-    stack: slot(1 - STACK_SIDE, STACK_SIDE_TOP, STACK_SIDE, STACK_HEIGHT),
-    row: slot(1 - ROW_SIDE, ROW_SIDE_TOP, ROW_SIDE, ROW_CENTRE),
-  },
-} as const;
+// Share of a side dial's diameter that sits hidden behind the centre dial.
+const OVERLAP = 0.2;
+const LENS_MARGIN_DEG = 12;
+const ARC_GAP_DEG = 5;
+
+const ROW_SIDE_RATIO = 0.66;
+const ROW_DROP = 0.7;
+const STACK_CENTRE_WIDTH = 0.9;
+const STACK_SIDE_WIDTH = 0.49;
+
+const deg = (rad: number) => (rad * 180) / Math.PI;
+const pct = (n: number) => `${Math.round(n * 1e5) / 1e3}%`;
+const ratio = (n: number) => String(Math.round(n * 1e5) / 1e5);
+
+function slot(c: Circle, width: number, height: number): Slot {
+  return {
+    left: pct((c.x - c.r) / width),
+    top: pct((c.y - c.r) / height),
+    size: pct((2 * c.r) / width),
+  };
+}
+
+function build(
+  width: number,
+  height: number,
+  centre: Circle,
+  left: Circle,
+): Layout {
+  const right: Circle = { ...left, x: width - left.x };
+  const dx = centre.x - left.x;
+  const dy = left.y - centre.y;
+  const d = Math.hypot(dx, dy);
+  const theta = deg(Math.atan2(dy, dx));
+  const half = deg(
+    Math.acos(
+      (d * d + left.r * left.r - centre.r * centre.r) / (2 * d * left.r),
+    ),
+  );
+  const latencyScale: Arc = {
+    start: theta - half - LENS_MARGIN_DEG,
+    end: theta + half + LENS_MARGIN_DEG - 360,
+  };
+  const outerStart = 180 - latencyScale.start;
+  const outerEnd = 180 - latencyScale.end;
+  const mid = (outerStart + outerEnd) / 2;
+  return {
+    aspect: ratio(width / height),
+    latency: slot(left, width, height),
+    centre: slot(centre, width, height),
+    pressure: slot(right, width, height),
+    latencyScale,
+    pressureArcs: {
+      mem: { start: outerStart, end: mid - ARC_GAP_DEG / 2 },
+      cpu: { start: outerEnd, end: mid + ARC_GAP_DEG / 2 },
+    },
+    pressureShift: {
+      x: Math.cos((theta * Math.PI) / 180),
+      y: Math.sin((theta * Math.PI) / 180),
+    },
+  };
+}
+
+function buildRow(): Layout {
+  const rc = 0.5;
+  const rs = ROW_SIDE_RATIO / 2;
+  const y = rc + ROW_DROP * (rc - rs);
+  const d = rc + rs - 2 * rs * OVERLAP;
+  const dx = Math.sqrt(d * d - (y - rc) ** 2);
+  const width = 2 * (dx + rs);
+  return build(width, 1, { x: width / 2, y: rc, r: rc }, { x: rs, y, r: rs });
+}
+
+function buildStack(): Layout {
+  const rc = STACK_CENTRE_WIDTH / 2;
+  const rs = STACK_SIDE_WIDTH / 2;
+  const d = rc + rs - 2 * rs * OVERLAP;
+  const dx = 0.5 - rs;
+  const y = rc + Math.sqrt(d * d - dx * dx);
+  return build(1, y + rs, { x: 0.5, y: rc, r: rc }, { x: rs, y, r: rs });
+}
+
+export const CLUSTER = { row: buildRow(), stack: buildStack() } as const;
 
 export const ELECTRIC = "var(--color-cc-electric)";
+export const DANGER = "var(--color-cc-danger)";
 export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;
 export const ELECTRIC_DIM = `color-mix(in srgb, ${ELECTRIC} 30%, transparent)`;
 export const DISC_CORE = `color-mix(in srgb, ${ELECTRIC} 12%, black)`;
 export const DISC_RIM = `color-mix(in srgb, ${ELECTRIC} 48%, black)`;
 export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 25%, black)`;
 export const FACE_RIM = `color-mix(in srgb-linear, ${ELECTRIC} 30%, black)`;
-export const BACKDROP = `color-mix(in srgb, ${ELECTRIC} 8%, black)`;
-export const BACKDROP_GLOW = `color-mix(in srgb, ${ELECTRIC} 85%, transparent)`;
 export const NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 55%, ${token.textStrong})`;
+export const LABEL_COLOR = `color-mix(in srgb, ${token.textSecondary} 40%, ${token.textStrong})`;
+export const RING_GLOW = `0 0 16px 2px color-mix(in srgb, ${ELECTRIC} 70%, transparent)`;

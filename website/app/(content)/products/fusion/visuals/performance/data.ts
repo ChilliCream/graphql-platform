@@ -1,21 +1,58 @@
-export const OPS_MAX = 8000;
-export const OPS_SETTLE = 5500;
-export const OPS_IDLE_BAND: readonly [number, number] = [5300, 5700];
+export const CALM_MS = 4000;
+export const RAMP_MS = 1500;
+export const BURST_MS = 5000;
+export const COOLDOWN_MS = 2000;
 
-export const LATENCY_MAX = 50;
-export const LATENCY_P95 = 12;
+export const CALM_END = CALM_MS;
+export const RAMP_END = CALM_END + RAMP_MS;
+export const BURST_END = RAMP_END + BURST_MS;
+export const CYCLE_MS = BURST_END + COOLDOWN_MS;
+
+export const ROTATE_MS = 5200;
+
+export const MEM_RISE_LAG_MS = 350;
+export const MEM_FALL_LAG_MS = 300;
+
+export const OPS_MAX = 7000;
+export const OPS_RED_START = 5500;
+export const OPS_BURST_LABEL = 3000;
+export const OPS_CALM: readonly [number, number] = [800, 1200];
+export const OPS_BURST: readonly [number, number] = [5300, 5700];
+
+export const CORE_COUNT = 8;
+export const CPU_CORE_CALM: readonly [number, number] = [8, 20];
+export const CPU_CORE_BURST: readonly [number, number] = [84, 96];
+export const CPU_TOTAL_BURST: readonly [number, number] = [88, 92];
+
+export const MEMORY_CALM: readonly [number, number] = [38, 44];
+export const MEMORY_BURST: readonly [number, number] = [82, 86];
+
+export const NET_IN_CALM: readonly [number, number] = [10, 20];
+export const NET_IN_BURST: readonly [number, number] = [75, 90];
+export const NET_OUT_CALM: readonly [number, number] = [8, 15];
+export const NET_OUT_BURST: readonly [number, number] = [65, 80];
+
+export const LATENCY_MAX = 40;
 export const LATENCY_P50 = 7;
+export const LATENCY_BAND: readonly [number, number] = [9, 13];
+export const LATENCY_DOMAIN: readonly [number, number] = [7, 15];
 
-export const CPU_PRESSURE = 42;
-export const MEMORY_PRESSURE = 58;
-export const CPU_IDLE_BAND: readonly [number, number] = [38, 46];
-export const MEMORY_IDLE_BAND: readonly [number, number] = [54, 62];
+export const HISTORY_POINTS = 36;
+export const HISTORY_STEP_MS = 160;
 
 export const CACHED_DOCUMENTS = 1284;
 export const CACHED_PLANS = 3410;
 
 export function formatOps(n: number): string {
   return `${(n / 1000).toFixed(1)}K`;
+}
+
+export function formatPercent(n: number): string {
+  return `${Math.round(n)}%`;
+}
+
+export function formatMs(n: number): string {
+  return `${Math.round(n)}`;
 }
 
 export function formatCount(n: number): string {
