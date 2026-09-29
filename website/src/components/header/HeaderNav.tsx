@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent, type ReactNode, useState } from "react";
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { ProductArtworkIcon } from "@/src/components/ProductArtworkIcon";
 import { formatDate } from "@/src/helpers/formatDate";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
@@ -16,8 +23,8 @@ import {
 type NavigateHandler = (e: MouseEvent<HTMLAnchorElement>) => void;
 
 interface HeaderNavProps {
-  latestBlog: BlogPostSummary | null;
-  blogImage: ReactNode;
+  readonly latestBlog: BlogPostSummary | null;
+  readonly blogImage: ReactNode;
 }
 
 /**
@@ -36,6 +43,8 @@ function navigatesInCurrentTab(e: MouseEvent<HTMLAnchorElement>): boolean {
 }
 
 export function HeaderNav({ latestBlog, blogImage }: HeaderNavProps) {
+  const [expandedHref, setExpandedHref] = useState<string | null>(null);
+
   return (
     <nav className="relative hidden h-full flex-1 min-[1060px]:block">
       <ol className="m-0 flex h-full list-none items-stretch p-0">
@@ -46,6 +55,12 @@ export function HeaderNav({ latestBlog, blogImage }: HeaderNavProps) {
               item={item}
               latestBlog={latestBlog}
               blogImage={blogImage}
+              expanded={expandedHref === item.href}
+              onExpandedChange={(expanded) =>
+                setExpandedHref((current) =>
+                  expanded ? item.href : current === item.href ? null : current,
+                )
+              }
             />
           ) : (
             <NavSimple key={item.href} item={item} />
@@ -70,62 +85,105 @@ function NavSimple({ item }: { item: NavItem }) {
   );
 }
 
+interface NavWithSubmenuProps {
+  readonly item: NavItem;
+  readonly latestBlog: BlogPostSummary | null;
+  readonly blogImage: ReactNode;
+  readonly expanded: boolean;
+  readonly onExpandedChange: (expanded: boolean) => void;
+}
+
 function NavWithSubmenu({
   item,
   latestBlog,
   blogImage,
-}: {
-  item: NavItem;
-  latestBlog: BlogPostSummary | null;
-  blogImage: ReactNode;
-}) {
+  expanded,
+  onExpandedChange,
+}: NavWithSubmenuProps) {
   const [closed, setClosed] = useState(false);
+  const panelId = useId();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleNavigate: NavigateHandler = (e) => {
     if (navigatesInCurrentTab(e)) {
       setClosed(true);
+      onExpandedChange(false);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLLIElement>) => {
+    if (e.key === "Escape" && expanded) {
+      onExpandedChange(false);
+      buttonRef.current?.focus();
     }
   };
 
   return (
     <li
       className="group/nav flex items-stretch"
-      onMouseLeave={() => setClosed(false)}
+      onMouseLeave={() => {
+        setClosed(false);
+        onExpandedChange(false);
+      }}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          onExpandedChange(false);
+        }
+      }}
+      onKeyDown={handleKeyDown}
     >
       <Link
         href={item.href}
         prefetch={false}
         onClick={handleNavigate}
-        className="text-cc-heading flex items-center gap-1.5 px-4 text-sm font-medium no-underline max-[1200px]:px-2.5"
+        className="text-cc-heading flex items-center pl-4 text-sm font-medium no-underline max-[1200px]:pl-2.5"
       >
         {item.label}
-        <ChevronDownIcon className="h-3 w-3 fill-current" />
       </Link>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label={`Show ${item.label} menu`}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        onClick={() => onExpandedChange(!expanded)}
+        className="text-cc-heading focus-visible:ring-cc-accent/50 mr-2.5 cursor-pointer self-center rounded-md p-1.5 focus-visible:ring-2 focus-visible:outline-none max-[1200px]:mr-1"
+      >
+        <ChevronDownIcon className="h-3 w-3 fill-current" />
+      </button>
 
       <SubmenuPanel
+        id={panelId}
         item={item}
         latestBlog={latestBlog}
         blogImage={blogImage}
         closed={closed}
+        expanded={expanded}
         onNavigate={handleNavigate}
       />
     </li>
   );
 }
 
+interface SubmenuPanelProps {
+  readonly id: string;
+  readonly item: NavItem;
+  readonly latestBlog: BlogPostSummary | null;
+  readonly blogImage: ReactNode;
+  readonly closed: boolean;
+  readonly expanded: boolean;
+  readonly onNavigate: NavigateHandler;
+}
+
 function SubmenuPanel({
+  id,
   item,
   latestBlog,
   blogImage,
   closed,
+  expanded,
   onNavigate,
-}: {
-  item: NavItem;
-  latestBlog: BlogPostSummary | null;
-  blogImage: ReactNode;
-  closed: boolean;
-  onNavigate: NavigateHandler;
-}) {
+}: SubmenuPanelProps) {
   const aside =
     item.aside === "blog" && latestBlog ? (
       <LatestBlogPanel
@@ -140,11 +198,15 @@ function SubmenuPanel({
 
   return (
     <div
+      id={id}
       className={[
         "pointer-events-none invisible absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-200 max-[1273px]:left-0 max-[1273px]:translate-x-0",
-        closed
-          ? ""
-          : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
+        // Visibility must not transition on open, or the links are untabbable for a frame.
+        expanded
+          ? "pointer-events-auto! visible! opacity-100! transition-[opacity]!"
+          : closed
+            ? ""
+            : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
       ].join(" ")}
     >
       <div
@@ -241,7 +303,7 @@ function SubLinkRow({
       prefetch={false}
       onClick={onNavigate}
       {...linkProps}
-      className="group/link text-cc-ink-dim hover:bg-cc-hover flex items-start gap-3 rounded-md px-2 py-2 no-underline transition-colors"
+      className="group/link text-cc-ink-dim hover:bg-cc-hover focus-visible:ring-cc-accent/50 flex items-start gap-3 rounded-md px-2 py-2 no-underline transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       {Icon && (
         <span className="text-cc-ink-dim group-hover/link:text-cc-ink flex h-5 w-5 flex-none items-center justify-center transition-colors">
@@ -290,7 +352,7 @@ function LatestBlogPanel({
         href={post.href}
         prefetch={false}
         onClick={onNavigate}
-        className="group/blog text-cc-ink flex flex-col gap-2 rounded-md no-underline"
+        className="group/blog text-cc-ink focus-visible:ring-cc-accent/50 flex flex-col gap-2 rounded-md no-underline focus-visible:ring-2 focus-visible:outline-none"
       >
         {image && (
           <div className="border-cc-white/10 overflow-hidden rounded-md border">
