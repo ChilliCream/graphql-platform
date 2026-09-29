@@ -1,4 +1,6 @@
+using System.Globalization;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -104,17 +106,16 @@ internal static class Messages
 
         return $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish "
             + $"is marked as protected{reasons} "
-            + $"Use '{OptionalForceOption.OptionName}' to unpublish it anyway.";
+            + $"Use '{ClientForceUnpublishOption.OptionName}' to unpublish it anyway.";
     }
 
     public static string ClientRecentTrafficProtectionNotEvaluable(
         string tag,
         TimeSpan clientTrafficRequiredWithin)
         => $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish is protected "
-            + "by a rule that checks that the version no longer receives traffic. The client "
-            + "received no traffic for any version within the last "
-            + $"{FormatDuration(clientTrafficRequiredWithin)}, so the rule could not be evaluated. "
-            + $"Use '{OptionalForceOption.OptionName}' to unpublish it anyway.";
+            + "by a rule that checks that the version no longer receives traffic. The rule could "
+            + $"not be evaluated for the required window of {FormatDuration(clientTrafficRequiredWithin)}. "
+            + $"Use '{ClientForceUnpublishOption.OptionName}' to unpublish it anyway.";
 
     private static string ProtectionReason(ClientUnpublishProtectionRuleKind kind)
         => kind switch
@@ -130,25 +131,30 @@ internal static class Messages
 
     private static string FormatDuration(TimeSpan duration)
     {
-        if (duration >= TimeSpan.FromDays(1))
+        if (duration.Ticks % TimeSpan.TicksPerDay == 0)
         {
-            return Pluralize((int)duration.TotalDays, "day");
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerDay, "day");
         }
 
-        if (duration >= TimeSpan.FromHours(1))
+        if (duration.Ticks % TimeSpan.TicksPerHour == 0)
         {
-            return Pluralize((int)duration.TotalHours, "hour");
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerHour, "hour");
         }
 
-        if (duration >= TimeSpan.FromMinutes(1))
+        if (duration.Ticks % TimeSpan.TicksPerMinute == 0)
         {
-            return Pluralize((int)duration.TotalMinutes, "minute");
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerMinute, "minute");
         }
 
-        return Pluralize((int)duration.TotalSeconds, "second");
+        if (duration.Ticks % TimeSpan.TicksPerSecond == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerSecond, "second");
+        }
+
+        return $"{duration.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture)} seconds";
     }
 
-    private static string Pluralize(int value, string unit)
+    private static string Pluralize(long value, string unit)
         => value == 1 ? $"{value} {unit}" : $"{value} {unit}s";
 
     public const string Validating = "Validating...";

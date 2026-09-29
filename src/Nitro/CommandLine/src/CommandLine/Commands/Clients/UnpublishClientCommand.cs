@@ -15,7 +15,7 @@ internal sealed class UnpublishClientCommand : Command
         Options.Add(Opt<ClientTagsToUnpublishOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ClientIdOption>.Instance);
-        Options.Add(Opt<OptionalForceOption>.Instance);
+        Options.Add(Opt<ClientForceUnpublishOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -44,7 +44,7 @@ internal sealed class UnpublishClientCommand : Command
         var tags = parseResult.GetRequiredValue(Opt<ClientTagsToUnpublishOption>.Instance).ToArray();
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
-        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
+        var force = parseResult.GetValue(Opt<ClientForceUnpublishOption>.Instance);
 
         await using var activity = console.StartActivity(
             $"Unpublishing client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'",

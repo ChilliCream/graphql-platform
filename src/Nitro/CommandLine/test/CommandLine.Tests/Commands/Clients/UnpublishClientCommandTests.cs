@@ -26,7 +26,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
               --tag <tag> (REQUIRED)              One or more client version tags to unpublish [env: NITRO_TAG]
               --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
               --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
-              --force                             Skip confirmation prompts for deletes and overwrites
+              --force                             Unpublish the client version even if an unpublish protection rule protects it
               --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
@@ -95,7 +95,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
     }
 
     [Fact]
-    public async Task WithForce_ReturnsSuccess()
+    public async Task Unpublish_Should_ForceUnpublish_When_ForceIsSet()
     {
         // arrange
         SetupUnpublishClientMutation(force: true);
@@ -326,19 +326,31 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
             {
                 CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(),
                 """
-                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The client received no traffic for any version within the last 7 days, so the rule could not be evaluated. Use '--force' to unpublish it anyway.
+                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The rule could not be evaluated for the required window of 7 days. Use '--force' to unpublish it anyway.
                 """
             },
             {
                 CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(TimeSpan.FromHours(12)),
                 """
-                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The client received no traffic for any version within the last 12 hours, so the rule could not be evaluated. Use '--force' to unpublish it anyway.
+                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The rule could not be evaluated for the required window of 12 hours. Use '--force' to unpublish it anyway.
                 """
             },
             {
                 CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(TimeSpan.FromDays(1)),
                 """
-                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The client received no traffic for any version within the last 1 day, so the rule could not be evaluated. Use '--force' to unpublish it anyway.
+                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The rule could not be evaluated for the required window of 1 day. Use '--force' to unpublish it anyway.
+                """
+            },
+            {
+                CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(TimeSpan.FromHours(36)),
+                """
+                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The rule could not be evaluated for the required window of 36 hours. Use '--force' to unpublish it anyway.
+                """
+            },
+            {
+                CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(TimeSpan.FromMinutes(90)),
+                """
+                The client version 'v1' you are trying to unpublish is protected by a rule that checks that the version no longer receives traffic. The rule could not be evaluated for the required window of 90 minutes. Use '--force' to unpublish it anyway.
                 """
             }
         };

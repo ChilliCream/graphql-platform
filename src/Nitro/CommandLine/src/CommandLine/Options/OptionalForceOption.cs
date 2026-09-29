@@ -2,9 +2,7 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalForceOption : Option<bool>
 {
-    public const string OptionName = "--force";
-
-    public OptionalForceOption() : base(OptionName)
+    public OptionalForceOption() : base("--force")
     {
         Description = "Skip confirmation prompts for deletes and overwrites";
         Required = false;
