@@ -708,7 +708,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -851,7 +853,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2534,7 +2538,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2611,7 +2617,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -4503,7 +4511,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -4582,7 +4592,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
