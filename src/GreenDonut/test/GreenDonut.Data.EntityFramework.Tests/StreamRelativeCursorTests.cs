@@ -5,11 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GreenDonut.Data;
 
-// Mirrors the Fetch_* navigation cases of RelativeCursorTests.cs one for one against
-// ToStreamPageAsync, so a failure names the API. Batch cases are out of scope for this suite
-// because ToBatchStreamPageAsync does not exist yet. Every Fetch_End_Cursor_* case in
-// RelativeCursorTests.cs has a Should_-named twin in StreamEndCursorTests (EndCursorTests.cs)
-// instead, which locks the matrix for both variants.
+// Mirrors the Fetch_* navigation cases of RelativeCursorTests.cs one for one against ToStreamPageAsync.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamRelativeCursorTests(PostgreSqlResource resource)
 {
@@ -479,7 +475,7 @@ public class StreamRelativeCursorTests(PostgreSqlResource resource)
     {
         List<PageEntry<Brand>> entries = [];
 
-        await foreach (var entry in page.EnumerateEntriesAsync(cancellationToken))
+        await foreach (var entry in page.GetEntriesAsync(cancellationToken))
         {
             entries.Add(entry);
         }

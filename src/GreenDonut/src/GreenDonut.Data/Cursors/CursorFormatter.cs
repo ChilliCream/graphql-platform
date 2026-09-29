@@ -166,8 +166,29 @@ public static class CursorFormatter
 
         ArgumentOutOfRangeException.ThrowIfNegative(totalCount);
 
-        var value = $"{{end|{offset}|{totalCount}}}";
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+        Span<byte> buffer = stackalloc byte[64];
+        var totalWritten = 0;
+
+        "{end|"u8.CopyTo(buffer);
+        totalWritten += "{end|"u8.Length;
+
+        if (!Utf8Formatter.TryFormat(offset, buffer[totalWritten..], out var written))
+        {
+            throw ThrowHelper.EndCursor_BufferTooSmall();
+        }
+        totalWritten += written;
+
+        buffer[totalWritten++] = (byte)'|';
+
+        if (!Utf8Formatter.TryFormat(totalCount, buffer[totalWritten..], out written))
+        {
+            throw ThrowHelper.EndCursor_BufferTooSmall();
+        }
+        totalWritten += written;
+
+        buffer[totalWritten++] = (byte)'}';
+
+        return Convert.ToBase64String(buffer[..totalWritten]);
     }
 
     private static void ExpandBuffer(

@@ -188,9 +188,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .AddSql(capture)
             .MatchSnapshot();
 
-        // rows-only executes exactly one command against the database: the row query. The
-        // limit parameter's generated name differs across target frameworks, so it is
-        // normalized before matching.
+        // rows-only executes exactly one command against the database: the row query.
         interceptor.CommandTexts
             .Select(t => t.Replace("@__p_0", "@p"))
             .MatchInlineSnapshot(
@@ -360,9 +358,8 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         Assert.Equal(["Item0003", "Item0004"], items);
     }
 
-    // The following cases lock down the streaming-specific guarantees from the testing strategy:
-    // reads happen in lockstep with what the caller actually asks for, and the lifetime is
-    // released exactly once, when the page is done with it.
+    // The following cases lock down the streaming-specific guarantees: reads happen in lockstep
+    // with what the caller actually asks for, and the lifetime is released exactly once.
 
     [Fact]
     public async Task Fetch_Forward_First_Item_Yielded_After_Exactly_One_Read()
@@ -509,8 +506,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         Assert.Equal(1, lifetime.DisposeCount);
     }
 
-    // The following cases mirror PagingHelperTests.cs one for one, so the same case run against
-    // ToPageAsync and ToStreamPageAsync fails under a name that identifies which API broke.
+    // The following cases mirror PagingHelperTests.cs one for one against ToStreamPageAsync.
 
     [Fact]
     public async Task Fetch_First_2_Items()
@@ -865,9 +861,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
 
         // Act
-        // the selector contains an OrderByDescending nested inside the projection. its
-        // ordering key (Product.Price) is not a member of the projected Brand type and
-        // must not be hoisted into the Brand selector when paging.
+        // The projection's nested OrderByDescending key must not be hoisted into the Brand selector.
         var query = new QueryContext<Brand>(
             Selector: t => new Brand { Id = t.Id, Name = t.Name },
             Sorting: new SortDefinition<Brand>().AddAscending(t => t.Id));
@@ -888,8 +882,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .With(query)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
 
-        // a cursor must be creatable for each edge. this evaluates the cursor keys against
-        // the projected Brand, which fails if a nested projection order key was collected.
+        // A cursor must be creatable for each edge, against the projected Brand.
         await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
@@ -910,9 +903,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
 
         // Act
-        // the selector contains an OrderByDescending nested inside the projection. its
-        // ordering key (Product.Price) is not a member of the projected Brand type and
-        // must not be hoisted into the Brand selector when paging.
+        // The projection's nested OrderByDescending key must not be hoisted into the Brand selector.
         var query = new QueryContext<Brand>(
             Selector: t => new Brand { Id = t.Id, Name = t.Name },
             Sorting: new SortDefinition<Brand>().AddAscending(t => t.Id));
@@ -933,8 +924,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .With(query)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
 
-        // a cursor must be creatable for each edge. this evaluates the cursor keys against
-        // the projected Brand, which fails if a nested projection order key was collected.
+        // A cursor must be creatable for each edge, against the projected Brand.
         await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
@@ -955,9 +945,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
 
         // Act
-        // the predicate contains an OrderByDescending nested inside the Where lambda. its
-        // ordering key (Product.Price) is not a pagination key and must not be hoisted
-        // into the Brand selector or collected as a cursor key.
+        // The Where lambda's nested OrderByDescending key must not be hoisted or collected as a cursor key.
         var query = new QueryContext<Brand>(
             Selector: t => new Brand { Id = t.Id, Name = t.Name },
             Predicate: t => t.Products.OrderByDescending(p => p.Price).FirstOrDefault()!.Price >= 0m,
@@ -971,8 +959,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .With(query)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
 
-        // a cursor must be creatable for each edge. this evaluates the cursor keys against
-        // the projected Brand, which fails if the predicate's nested order key was collected.
+        // A cursor must be creatable for each edge, against the projected Brand.
         await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
@@ -993,9 +980,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
 
         // Act
-        // the predicate contains an OrderByDescending nested inside the Where lambda.
-        // backward paging reverses the top-level ordering and must not touch or reverse
-        // the order operations inside the predicate.
+        // Backward paging must not reverse the order operations inside the Where lambda.
         var query = new QueryContext<Brand>(
             Selector: t => new Brand { Id = t.Id, Name = t.Name },
             Predicate: t => t.Products.OrderByDescending(p => p.Price).FirstOrDefault()!.Price >= 0m,
@@ -1009,8 +994,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .With(query)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
 
-        // a cursor must be creatable for each edge. this evaluates the cursor keys against
-        // the projected Brand, which fails if the predicate's nested order key was collected.
+        // A cursor must be creatable for each edge, against the projected Brand.
         await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
@@ -1031,9 +1015,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
 
         // Act
-        // the sort key itself orders a child collection. the key's root member
-        // (Brand.Products) must be hoisted into the selector so cursors can be
-        // created, while the inner key (Product.Price) must not be.
+        // The sort key's root member must be hoisted into the selector; the inner key must not be.
         var query = new QueryContext<Brand>(
             Selector: t => new Brand { Id = t.Id },
             Sorting: new SortDefinition<Brand>()
@@ -1052,8 +1034,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             .With(query)
             .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
 
-        // a cursor must be creatable for each edge. this evaluates the computed
-        // order key against the projected Brand and requires Products to be loaded.
+        // A cursor must be creatable for each edge, against the computed order key.
         await page.CreateStartCursorAsync(cancellationToken);
 
         // Assert
@@ -1091,8 +1072,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
         var endCursor = await page.CreateEndCursorAsync(cancellationToken);
 
         // Act
-        // paging to the second page builds a keyset predicate from the computed
-        // order key, which must translate to SQL.
+        // The keyset predicate from the computed order key must translate to SQL.
         arguments = new PagingArguments(first: 2, after: endCursor);
         page = await context.Brands.With(query).ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
         var entries = await DrainEntriesAndDisposeAsync(page, cancellationToken);
@@ -1158,8 +1138,8 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             cancellationToken: cancellationToken);
 
         // Assert
-        // HasPreviousPage is intentionally left out of this snapshot. For after+last,
-        // ToStreamPageAsync and ToPageAsync disagree on its value (NEEDS-PLANNER, open).
+        // HasPreviousPage is intentionally left out of this snapshot: ToStreamPageAsync and
+        // ToPageAsync disagree on its value for after+last.
         var entries = await DrainEntriesAndDisposeAsync(page, cancellationToken);
         new
         {
@@ -1258,7 +1238,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     {
         List<PageEntry<T>> entries = [];
 
-        await foreach (var entry in page.EnumerateEntriesAsync(cancellationToken))
+        await foreach (var entry in page.GetEntriesAsync(cancellationToken))
         {
             entries.Add(entry);
         }

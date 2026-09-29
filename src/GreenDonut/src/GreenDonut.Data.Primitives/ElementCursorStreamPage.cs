@@ -17,23 +17,7 @@ internal sealed class ElementCursorStreamPage<TElement, TValue> : StreamPage<TVa
     private readonly StreamPageBuffer<TElement> _buffer;
     private readonly Func<EdgeEntry<TElement>, string> _createCursor;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ElementCursorStreamPage{TElement,TValue}"/>
-    /// class.
-    /// </summary>
-    /// <param name="pump">
-    /// The pump this page reads from, or null for an already fully resolved page.
-    /// </param>
-    /// <param name="definition">
-    /// The definition that governs how rows turn into content, flags, and a total count.
-    /// </param>
-    /// <param name="valueSelector">
-    /// Projects a source row into a page item.
-    /// </param>
-    /// <param name="createCursor">
-    /// Creates a cursor from a source row.
-    /// </param>
-    public ElementCursorStreamPage(
+    private ElementCursorStreamPage(
         StreamPagePump<TElement>? pump,
         StreamPageDefinition<TElement> definition,
         Func<TElement, TValue> valueSelector,
@@ -52,6 +36,62 @@ internal sealed class ElementCursorStreamPage<TElement, TValue> : StreamPage<TVa
         _buffer = buffer;
         _createCursor = createCursor;
     }
+
+    /// <summary>
+    /// Creates a page whose buffer is already primed.
+    /// </summary>
+    /// <param name="pump">
+    /// The pump this page reads from, or null for an already fully resolved page.
+    /// </param>
+    /// <param name="definition">
+    /// The definition that governs how rows turn into content, flags, and a total count.
+    /// </param>
+    /// <param name="valueSelector">
+    /// Projects a source row into a page item.
+    /// </param>
+    /// <param name="createCursor">
+    /// Creates a cursor from a source row.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to cancel priming the page.
+    /// </param>
+    internal static async ValueTask<StreamPage<TValue>> CreatePrimedAsync(
+        StreamPagePump<TElement>? pump,
+        StreamPageDefinition<TElement> definition,
+        Func<TElement, TValue> valueSelector,
+        Func<EdgeEntry<TElement>, string> createCursor,
+        CancellationToken cancellationToken = default)
+    {
+        var buffer = await StreamPageBuffer<TElement>.CreatePrimedAsync(
+            pump,
+            definition,
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        return new ElementCursorStreamPage<TElement, TValue>(buffer, definition.Index, valueSelector, createCursor);
+    }
+
+    /// <summary>
+    /// Creates an unprimed page for the batch pump's own per-key construction path.
+    /// </summary>
+    /// <param name="pump">
+    /// The pump this page reads from.
+    /// </param>
+    /// <param name="definition">
+    /// The definition that governs how rows turn into content, flags, and a total count.
+    /// </param>
+    /// <param name="valueSelector">
+    /// Projects a source row into a page item.
+    /// </param>
+    /// <param name="createCursor">
+    /// Creates a cursor from a source row.
+    /// </param>
+    internal static StreamPage<TValue> CreateForBatch(
+        StreamPagePump<TElement> pump,
+        StreamPageDefinition<TElement> definition,
+        Func<TElement, TValue> valueSelector,
+        Func<EdgeEntry<TElement>, string> createCursor)
+        => new ElementCursorStreamPage<TElement, TValue>(pump, definition, valueSelector, createCursor);
 
     protected override string CreateCursor(int index, int offset, int pageIndex, int totalCount)
         => _createCursor(new EdgeEntry<TElement>(_buffer[index], offset, pageIndex, totalCount));

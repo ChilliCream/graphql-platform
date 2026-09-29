@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Linq.Expressions;
+using System.Text;
 using GreenDonut.Data.Cursors.Serializers;
 
 namespace GreenDonut.Data.Cursors;
@@ -31,6 +33,46 @@ public class CursorParserTests
         Assert.Equal(offset, parsed.Offset);
         Assert.Null(parsed.PageIndex);
         Assert.Equal(totalCount, parsed.TotalCount);
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(0, 1)]
+    [InlineData(0, 100)]
+    [InlineData(-1, 0)]
+    [InlineData(-1, 1)]
+    [InlineData(-1, 100)]
+    [InlineData(-5, 0)]
+    [InlineData(-5, 1)]
+    [InlineData(-5, 100)]
+    public void FormatEndCursor_Should_RoundTripWithAsciiMinus_When_CultureUsesUnicodeMinusSign(
+        int offset,
+        int totalCount)
+    {
+        // arrange
+        var keys = CreateKeys();
+        var originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+
+        try
+        {
+            // act
+            var formatted = CursorFormatter.FormatEndCursor(offset, totalCount);
+            var bytes = Convert.FromBase64String(formatted);
+            var parsed = CursorParser.Parse(formatted, keys);
+
+            // assert
+            Assert.Equal(
+                $"{{end|{offset.ToString(CultureInfo.InvariantCulture)}|{totalCount.ToString(CultureInfo.InvariantCulture)}}}",
+                Encoding.UTF8.GetString(bytes));
+            Assert.True(parsed.IsEndCursor);
+            Assert.Equal(offset, parsed.Offset);
+            Assert.Equal(totalCount, parsed.TotalCount);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     [Fact]

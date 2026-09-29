@@ -1,8 +1,7 @@
 namespace GreenDonut.Data.Internal;
 
 /// <summary>
-/// Creates the exceptions thrown by the cursor and streaming page APIs, so their messages live in
-/// one place.
+/// Creates the exceptions thrown by the cursor and streaming page APIs.
 /// </summary>
 internal static class ThrowHelper
 {
@@ -36,5 +35,8 @@ internal static class ThrowHelper
             "Max cursors must be greater than or equal to 0.");
 
     public static InvalidOperationException PagingArgumentsHash_BufferTooSmall()
+        => new("Buffer is too small.");
+
+    public static InvalidOperationException EndCursor_BufferTooSmall()
         => new("Buffer is too small.");
 }

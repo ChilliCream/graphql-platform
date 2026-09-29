@@ -15,6 +15,7 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
     private readonly List<T> _yielded = [];
     private int? _throwAtIndex;
     private Exception? _exceptionToThrow;
+    private Exception? _disposeException;
 
     public ScriptedAsyncSource(params T[] items) : this((IEnumerable<T>)items)
     {
@@ -67,6 +68,15 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
         _exceptionToThrow = exception;
     }
 
+    /// <summary>
+    /// Makes every enumerator's <c>DisposeAsync</c> throw <paramref name="exception"/> after
+    /// still counting the disposal.
+    /// </summary>
+    /// <param name="exception">
+    /// The exception an enumerator throws when disposed.
+    /// </param>
+    public void ThrowOnDispose(Exception exception) => _disposeException = exception;
+
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         => new Enumerator(this, cancellationToken);
 
@@ -107,6 +117,12 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
         public ValueTask DisposeAsync()
         {
             source.DisposeCount++;
+
+            if (source._disposeException is { } exception)
+            {
+                throw exception;
+            }
+
             return ValueTask.CompletedTask;
         }
     }
@@ -118,14 +134,31 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
 /// </summary>
 public sealed class ScriptedAsyncDisposable : IAsyncDisposable
 {
+    private Exception? _disposeException;
+
     /// <summary>
     /// The number of times this instance was disposed.
     /// </summary>
     public int DisposeCount { get; private set; }
 
+    /// <summary>
+    /// Makes <c>DisposeAsync</c> throw <paramref name="exception"/> after still counting the
+    /// disposal.
+    /// </summary>
+    /// <param name="exception">
+    /// The exception thrown when this instance is disposed.
+    /// </param>
+    public void ThrowOnDispose(Exception exception) => _disposeException = exception;
+
     public ValueTask DisposeAsync()
     {
         DisposeCount++;
+
+        if (_disposeException is { } exception)
+        {
+            throw exception;
+        }
+
         return ValueTask.CompletedTask;
     }
 }

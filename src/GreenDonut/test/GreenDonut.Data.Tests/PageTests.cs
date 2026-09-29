@@ -138,6 +138,27 @@ public class PageTests
     }
 
     [Fact]
+    public void CreateRelativeForwardCursors_Should_ReturnEmpty_When_MaxCursorsIsZero()
+    {
+        // arrange
+        var page = Page<string>.Create(
+            items: ["duplicate", "duplicate"],
+            elements: ImmutableArray.Create(1, 2),
+            hasNextPage: true,
+            hasPreviousPage: true,
+            createCursor: static entry => $"{entry.Node}:{entry.Offset}:{entry.PageIndex}:{entry.TotalCount}",
+            index: 1,
+            requestedPageSize: 2,
+            totalCount: 10);
+
+        // act
+        var cursors = page.CreateRelativeForwardCursors(0);
+
+        // assert
+        Assert.Empty(cursors);
+    }
+
+    [Fact]
     public void CreateRelativeLastPageCursors_ReturnsPagesUpToLast_WhenNotOnLastPage()
     {
         // arrange

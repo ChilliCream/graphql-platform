@@ -14,55 +14,48 @@ namespace GreenDonut.Data.Internal;
 /// </typeparam>
 internal sealed class ElementProjectingSource<TElement, TValue>(
     StreamPageBuffer<TElement> buffer,
-    Func<TElement, TValue> valueSelector) : IStreamPageSource<TValue>
+    Func<TElement, TValue> valueSelector) : StreamPageSourceBase<TValue>
 {
     private readonly List<TValue> _values = [];
 
     /// <inheritdoc />
-    public bool IsCompleted => buffer.IsCompleted;
+    public override bool IsCompleted => buffer.IsCompleted;
 
     /// <inheritdoc />
-    public int? TotalCount => buffer.TotalCount;
+    public override int? TotalCount => buffer.TotalCount;
 
     /// <inheritdoc />
-    public int? RequestedSize => buffer.RequestedSize;
+    public override int? RequestedSize => buffer.RequestedSize;
 
     /// <inheritdoc />
-    public int BufferedCount => buffer.BufferedCount;
+    public override int BufferedCount => buffer.BufferedCount;
 
     /// <inheritdoc />
-    public IAsyncEnumerator<TValue> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        => EnumerateAsync(cancellationToken).GetAsyncEnumerator();
+    public override IAsyncEnumerable<PageEntry<TValue>> GetEntriesAsync(
+        CancellationToken cancellationToken = default)
+        => GetEntriesCore(cancellationToken);
 
     /// <inheritdoc />
-    public IAsyncEnumerable<PageEntry<TValue>> EnumerateEntriesAsync(CancellationToken cancellationToken = default)
-        => EnumerateEntriesCore(cancellationToken);
-
-    /// <inheritdoc />
-    public ValueTask<int?> TotalCountAsync(CancellationToken cancellationToken = default)
+    public override ValueTask<int?> TotalCountAsync(CancellationToken cancellationToken = default)
         => buffer.TotalCountAsync(cancellationToken);
 
     /// <inheritdoc />
-    public ValueTask<bool> HasNextPageAsync(CancellationToken cancellationToken = default)
+    public override ValueTask<bool> HasNextPageAsync(CancellationToken cancellationToken = default)
         => buffer.HasNextPageAsync(cancellationToken);
 
     /// <inheritdoc />
-    public ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default)
+    public override ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default)
         => buffer.HasPreviousPageAsync(cancellationToken);
 
     /// <inheritdoc />
-    public ValueTask PrimeAsync(CancellationToken cancellationToken = default)
+    public override ValueTask PrimeAsync(CancellationToken cancellationToken = default)
         => buffer.PrimeAsync(cancellationToken);
 
     /// <inheritdoc />
-    public PageEntry<TValue> GetBufferedEntry(int index) => new(Get(index), index);
+    public override PageEntry<TValue> GetBufferedEntry(int index) => new(Get(index), index);
 
     /// <inheritdoc />
-    public ValueTask DrainAsync(CancellationToken cancellationToken = default)
-        => buffer.DrainAsync(cancellationToken);
-
-    /// <inheritdoc />
-    public ValueTask DisposeAsync() => buffer.DisposeAsync();
+    public override ValueTask DisposeAsync() => buffer.DisposeAsync();
 
     // Projects and caches source rows into page items on demand, so a row is only ever run
     // through the value selector once no matter how many times the page is enumerated.
@@ -76,21 +69,10 @@ internal sealed class ElementProjectingSource<TElement, TValue>(
         return _values[index];
     }
 
-    private async IAsyncEnumerable<TValue> EnumerateAsync(
+    private async IAsyncEnumerable<PageEntry<TValue>> GetEntriesCore(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var entries = buffer.EnumerateEntriesAsync(cancellationToken);
-
-        await foreach (var entry in entries.WithCancellation(cancellationToken).ConfigureAwait(false))
-        {
-            yield return Get(entry.Index);
-        }
-    }
-
-    private async IAsyncEnumerable<PageEntry<TValue>> EnumerateEntriesCore(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var entries = buffer.EnumerateEntriesAsync(cancellationToken);
+        var entries = buffer.GetEntriesAsync(cancellationToken);
 
         await foreach (var entry in entries.WithCancellation(cancellationToken).ConfigureAwait(false))
         {

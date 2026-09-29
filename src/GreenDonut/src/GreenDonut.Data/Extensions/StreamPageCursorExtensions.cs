@@ -18,29 +18,17 @@ public static class StreamPageCursorExtensions
     /// <returns>
     /// The cursor of the first item, or null if the page is empty.
     /// </returns>
-    public static ValueTask<string?> CreateStartCursorAsync<T>(
+    public static async ValueTask<string?> CreateStartCursorAsync<T>(
         this StreamPage<T> page,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        if (page.BufferedCount > 0 || page.IsCompleted)
-        {
-            return new ValueTask<string?>(CreateStartCursor(page));
-        }
+        await using var entries = page.GetEntriesAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
 
-        return AwaitFirstEntryAsync(page, cancellationToken);
-
-        static async ValueTask<string?> AwaitFirstEntryAsync(
-            StreamPage<T> page,
-            CancellationToken cancellationToken)
-        {
-            await page.PrimeAsync(cancellationToken).ConfigureAwait(false);
-            return CreateStartCursor(page);
-        }
-
-        static string? CreateStartCursor(StreamPage<T> page)
-            => page.BufferedCount > 0 ? page.CreateCursor(page.GetBufferedEntry(0)) : null;
+        return await entries.MoveNextAsync().ConfigureAwait(false)
+            ? page.CreateCursor(entries.Current)
+            : null;
     }
 
     /// <summary>
@@ -61,10 +49,13 @@ public static class StreamPageCursorExtensions
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        await page.DrainAsync(cancellationToken).ConfigureAwait(false);
+        PageEntry<T>? lastEntry = null;
 
-        return page.BufferedCount > 0
-            ? page.CreateCursor(page.GetBufferedEntry(page.BufferedCount - 1))
-            : null;
+        await foreach (var entry in page.GetEntriesAsync(cancellationToken).ConfigureAwait(false))
+        {
+            lastEntry = entry;
+        }
+
+        return lastEntry is null ? null : page.CreateCursor(lastEntry.Value);
     }
 }

@@ -14,15 +14,9 @@ namespace GreenDonut.Data.Internal;
 /// The type of the source rows.
 /// </typeparam>
 /// <remarks>
-/// Rows arrive grouped by key. A row whose key differs from the previous row's key completes the
-/// previous key's page; source exhaustion completes every page already created, and leaves a
-/// still-unbuilt key's channel to complete on its own first pull. This way a requested key that
-/// never appears in the stream, and whose page is created only after the source ran out, still
-/// completes as an empty page. Pulling on any key's page drives this pump; rows for other keys
-/// are buffered into their own pages. A key whose page was disposed before it completed is
-/// abandoned: the pump keeps advancing past its remaining rows but discards them instead of
-/// buffering them. This type has no cross-thread safety, the same stance as
-/// <see cref="StreamPageBuffer{TElement}"/>.
+/// Rows arrive grouped by key; pulling on any key's page drives this pump, buffering rows for
+/// other keys into their own pages until a key change or source exhaustion completes them. This
+/// type has no cross-thread safety, the same stance as <see cref="StreamPageBuffer{TElement}"/>.
 /// </remarks>
 internal sealed class StreamBatchPump<TKey, TElement>
     where TKey : notnull
@@ -94,21 +88,29 @@ internal sealed class StreamBatchPump<TKey, TElement>
             {
                 await pump.PumpOnceAsync().ConfigureAwait(false);
             }
-            catch
+            catch (Exception primingException)
             {
-                await pump.ReleaseCoreAsync().ConfigureAwait(false);
+                // A disposal failure while releasing for the priming failure is attached to it
+                // instead of replacing it.
+                try
+                {
+                    await pump.ReleaseCoreAsync().ConfigureAwait(false);
+                }
+                catch (Exception releaseException)
+                {
+                    OrderedDisposal.Attach(primingException, releaseException);
+                }
+
                 throw;
             }
 
             return pump;
         }
 
-        await source.DisposeAsync().ConfigureAwait(false);
-
-        if (lifetime is not null)
-        {
-            await lifetime.DisposeAsync().ConfigureAwait(false);
-        }
+        await OrderedDisposal.ReleaseAsync(
+            source.DisposeAsync,
+            lifetime is null ? null : lifetime.DisposeAsync)
+            .ConfigureAwait(false);
 
         return null;
     }
@@ -118,21 +120,65 @@ internal sealed class StreamBatchPump<TKey, TElement>
     /// moves past that key. Must be called exactly once for every key this batch pump was created
     /// with, before any page is primed.
     /// </summary>
+    /// <param name="key">
+    /// One of the keys this batch pump was created with.
+    /// </param>
+    /// <param name="definition">
+    /// The definition that governs how rows turn into content, flags, and a total count.
+    /// </param>
+    /// <param name="createCursor">
+    /// Creates a cursor from a page item.
+    /// </param>
+    public StreamPage<TElement> CreatePage(
+        TKey key,
+        StreamPageDefinition<TElement> definition,
+        Func<EdgeEntry<TElement>, string> createCursor)
+    {
+        var pump = CreateKeyPump(key);
+        var page = ValueCursorStreamPage<TElement>.CreateForBatch(pump, definition, createCursor);
+        RegisterDrain(key, page);
+        return page;
+    }
+
+    /// <summary>
+    /// Builds the page for the given requested key, projecting each source row into a different
+    /// item type, and wiring it to complete when the shared source moves past that key. Must be
+    /// called exactly once for every key this batch pump was created with, before any page is
+    /// primed.
+    /// </summary>
     /// <typeparam name="TValue">
     /// The type of the page's items.
     /// </typeparam>
     /// <param name="key">
     /// One of the keys this batch pump was created with.
     /// </param>
-    /// <param name="createPage">
-    /// Builds the page from the per-key pump this batch pump creates for <paramref name="key"/>.
+    /// <param name="definition">
+    /// The definition that governs how rows turn into content, flags, and a total count.
+    /// </param>
+    /// <param name="valueSelector">
+    /// Projects a source row into a page item.
+    /// </param>
+    /// <param name="createCursor">
+    /// Creates a cursor from a source row.
     /// </param>
     public StreamPage<TValue> CreatePage<TValue>(
         TKey key,
-        Func<StreamPagePump<TElement>, StreamPage<TValue>> createPage)
+        StreamPageDefinition<TElement> definition,
+        Func<TElement, TValue> valueSelector,
+        Func<EdgeEntry<TElement>, string> createCursor)
     {
-        ArgumentNullException.ThrowIfNull(createPage);
+        var pump = CreateKeyPump(key);
+        var page = ElementCursorStreamPage<TElement, TValue>.CreateForBatch(
+            pump,
+            definition,
+            valueSelector,
+            createCursor);
+        RegisterDrain(key, page);
+        return page;
+    }
 
+    private StreamPagePump<TElement> CreateKeyPump(TKey key)
+    {
         if (!_keys.TryGetValue(key, out var channel))
         {
             throw ThrowHelper.StreamBatchPump_KeyNotRequested(key);
@@ -143,10 +189,21 @@ internal sealed class StreamBatchPump<TKey, TElement>
             throw ThrowHelper.StreamBatchPump_KeyAlreadyHasPage(key);
         }
 
-        var pump = new StreamPagePump<TElement>(new KeyReader(this, key), pageCount: 1);
-        var page = createPage(pump);
-        channel.Drain = page.DrainAsync;
-        return page;
+        return new StreamPagePump<TElement>(new KeyReader(this, key), pageCount: 1);
+    }
+
+    private void RegisterDrain<TValue>(TKey key, StreamPage<TValue> page)
+        => _keys[key].Drain = cancellationToken => DrainAsync(page, cancellationToken);
+
+    // Reads a page to completion over its public surface.
+    private static async ValueTask DrainAsync<TValue>(
+        StreamPage<TValue> page,
+        CancellationToken cancellationToken)
+    {
+        await foreach (var _ in page.GetEntriesAsync(cancellationToken).ConfigureAwait(false))
+        {
+            // Only the buffering side effect is needed; entries are discarded.
+        }
     }
 
     /// <summary>
@@ -172,14 +229,9 @@ internal sealed class StreamBatchPump<TKey, TElement>
         return channel.Rows.Count > 0 ? channel.Rows.Dequeue() : null;
     }
 
-    // Advances the shared source by exactly one row, routing it to its key's channel. A key
-    // change completes the previously active key's page; source exhaustion completes every page
-    // already created and leaves a still-unbuilt key's channel alone, so it completes on its own
-    // first pull instead (that pull re-enters this method, finds the source already exhausted,
-    // and falls straight into this same completion pass). Completing a channel here also drains
-    // its page, so the page's own completion (and, once every key has completed or been
-    // disposed, the source and the lifetime) happens without waiting for a consumer to pull the
-    // remaining buffered rows.
+    // Reads one row from the shared source and routes it to its key's channel; a row for a key
+    // that already completed faults the pump. A key change completes the previous key's page,
+    // and source exhaustion completes every remaining page.
     private async ValueTask PumpOnceAsync()
     {
         _fault?.Throw();
@@ -198,12 +250,20 @@ internal sealed class StreamBatchPump<TKey, TElement>
             }
             catch (Exception ex)
             {
-                // a source that faults mid-stream still releases the shared source and the
-                // lifetime, exactly as reaching the end of the source does, and every later pull
-                // for any key rethrows the same exception instead of touching the now-disposed
-                // source again.
+                // A mid-stream fault releases the source and the lifetime, and every later pull
+                // rethrows it. A disposal failure while releasing is attached to this fault
+                // instead of replacing it.
                 _fault = ExceptionDispatchInfo.Capture(ex);
-                await ReleaseCoreAsync().ConfigureAwait(false);
+
+                try
+                {
+                    await ReleaseCoreAsync().ConfigureAwait(false);
+                }
+                catch (Exception releaseException)
+                {
+                    OrderedDisposal.Attach(ex, releaseException);
+                }
+
                 throw;
             }
         }
@@ -233,6 +293,26 @@ internal sealed class StreamBatchPump<TKey, TElement>
             throw ThrowHelper.StreamBatchPump_RowForUnrequestedKey(row.Key);
         }
 
+        if (channel.Completed && !channel.Abandoned)
+        {
+            // A row for a key whose run already completed and was not abandoned is a source
+            // ordering violation, and faults the pump like a mid-stream exception. A disposal
+            // failure while releasing is attached to this fault instead of replacing it.
+            var fault = ThrowHelper.StreamBatchPump_SourceNotGroupedByKey(row.Key);
+            _fault = ExceptionDispatchInfo.Capture(fault);
+
+            try
+            {
+                await ReleaseCoreAsync().ConfigureAwait(false);
+            }
+            catch (Exception releaseException)
+            {
+                OrderedDisposal.Attach(fault, releaseException);
+            }
+
+            throw fault;
+        }
+
         if (_hasCurrentKey && !EqualityComparer<TKey>.Default.Equals(_currentKey, row.Key))
         {
             var previous = _keys[_currentKey];
@@ -258,12 +338,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
         }
     }
 
-    // Signals that one requested key's page has completed or been disposed. A page disposed
-    // before its channel completed naturally is abandoned here: its channel is marked completed
-    // so the key-change and source-exhaustion handling above leave it alone, its already-staged
-    // rows are dropped, and later rows for the same key are discarded as they are read instead of
-    // buffered. Once every key has completed or been disposed, disposes the source and then the
-    // lifetime, exactly once.
+    // Signals that a key's page has completed or been disposed; a disposed page is abandoned and
+    // its remaining rows discarded. Releases the source and the lifetime once every key is done.
     private async ValueTask ReleaseAsync(TKey key)
     {
         var channel = _keys[key];
@@ -284,9 +360,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
         await ReleaseCoreAsync().ConfigureAwait(false);
     }
 
-    // Disposes the source and then the lifetime, exactly once, however release was triggered:
-    // every requested key completing or being disposed, the source faulting mid-stream, or the
-    // priming read during creation failing before any page exists to reach this path otherwise.
+    // Disposes the source and then the lifetime exactly once; if both throw, the source's exception
+    // is rethrown with the lifetime's attached.
     private async ValueTask ReleaseCoreAsync()
     {
         if (_released)
@@ -295,15 +370,14 @@ internal sealed class StreamBatchPump<TKey, TElement>
         }
 
         _released = true;
-        await _source.DisposeAsync().ConfigureAwait(false);
 
         var lifetime = _lifetime;
         _lifetime = null;
 
-        if (lifetime is not null)
-        {
-            await lifetime.DisposeAsync().ConfigureAwait(false);
-        }
+        await OrderedDisposal.ReleaseAsync(
+            _source.DisposeAsync,
+            lifetime is null ? null : lifetime.DisposeAsync)
+            .ConfigureAwait(false);
     }
 
     private sealed class KeyChannel

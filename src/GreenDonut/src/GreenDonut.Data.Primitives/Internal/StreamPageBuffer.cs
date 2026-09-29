@@ -16,7 +16,7 @@ namespace GreenDonut.Data.Internal;
 /// enumerators may interleave, but this type has no cross-thread safety, the same stance as
 /// <c>DbContext</c>.
 /// </remarks>
-internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
+internal sealed class StreamPageBuffer<TElement> : StreamPageSourceBase<TElement>
 {
     private readonly List<TElement> _items = [];
     private readonly StreamPagePump<TElement>? _pump;
@@ -41,7 +41,7 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     /// <param name="definition">
     /// The definition that governs how rows turn into content, flags, and a total count.
     /// </param>
-    public StreamPageBuffer(StreamPagePump<TElement>? pump, StreamPageDefinition<TElement> definition)
+    internal StreamPageBuffer(StreamPagePump<TElement>? pump, StreamPageDefinition<TElement> definition)
     {
         _pump = pump;
         _definition = definition;
@@ -53,16 +53,16 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     }
 
     /// <inheritdoc />
-    public bool IsCompleted => _isCompleted;
+    public override bool IsCompleted => _isCompleted;
 
     /// <inheritdoc />
-    public int? TotalCount => _totalCount;
+    public override int? TotalCount => _totalCount;
 
     /// <inheritdoc />
-    public int? RequestedSize => _definition.RequestedSize;
+    public override int? RequestedSize => _definition.RequestedSize;
 
     /// <inheritdoc />
-    public int BufferedCount => _items.Count;
+    public override int BufferedCount => _items.Count;
 
     /// <summary>
     /// Gets the buffered row at the given index, throwing when it has not streamed yet.
@@ -73,7 +73,7 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
         {
             if ((uint)index >= (uint)_items.Count)
             {
-                throw new ArgumentOutOfRangeException(nameof(index));
+                throw ThrowHelper.StreamPageBuffer_IndexNotBuffered(index);
             }
 
             return _items[index];
@@ -81,15 +81,12 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     }
 
     /// <inheritdoc />
-    public IAsyncEnumerator<TElement> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        => EnumerateAsync(cancellationToken).GetAsyncEnumerator();
+    public override IAsyncEnumerable<PageEntry<TElement>> GetEntriesAsync(
+        CancellationToken cancellationToken = default)
+        => GetEntriesCore(cancellationToken);
 
     /// <inheritdoc />
-    public IAsyncEnumerable<PageEntry<TElement>> EnumerateEntriesAsync(CancellationToken cancellationToken = default)
-        => EnumerateEntriesCore(cancellationToken);
-
-    /// <inheritdoc />
-    public async ValueTask<int?> TotalCountAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask<int?> TotalCountAsync(CancellationToken cancellationToken = default)
     {
         if (_totalCount is null && !_firstRowObserved && !_isCompleted)
         {
@@ -100,7 +97,7 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     }
 
     /// <inheritdoc />
-    public async ValueTask<bool> HasNextPageAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask<bool> HasNextPageAsync(CancellationToken cancellationToken = default)
     {
         while (_hasNextPage is null && !_isCompleted)
         {
@@ -111,7 +108,7 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     }
 
     /// <inheritdoc />
-    public async ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default)
     {
         while (_hasPreviousPage is null && !_isCompleted)
         {
@@ -122,47 +119,58 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
     }
 
     /// <inheritdoc />
-    public ValueTask PrimeAsync(CancellationToken cancellationToken = default) => AdvanceAsync(cancellationToken);
+    public override ValueTask PrimeAsync(CancellationToken cancellationToken = default)
+        => AdvanceAsync(cancellationToken);
 
     /// <inheritdoc />
-    public PageEntry<TElement> GetBufferedEntry(int index) => new(this[index], index);
+    public override PageEntry<TElement> GetBufferedEntry(int index) => new(this[index], index);
 
     /// <inheritdoc />
-    public async ValueTask DrainAsync(CancellationToken cancellationToken = default)
+    public override ValueTask DisposeAsync() => CompleteAsync();
+
+    /// <summary>
+    /// Creates and primes a buffer for <paramref name="pump"/> before returning it.
+    /// </summary>
+    /// <param name="pump">
+    /// The pump the buffer reads from, or null for an already fully resolved page.
+    /// </param>
+    /// <param name="definition">
+    /// The definition that governs how rows turn into content, flags, and a total count.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A token to cancel priming the buffer.
+    /// </param>
+    public static async ValueTask<StreamPageBuffer<TElement>> CreatePrimedAsync(
+        StreamPagePump<TElement>? pump,
+        StreamPageDefinition<TElement> definition,
+        CancellationToken cancellationToken = default)
     {
-        while (!_isCompleted)
+        var buffer = new StreamPageBuffer<TElement>(pump, definition);
+
+        try
         {
-            await AdvanceAsync(cancellationToken).ConfigureAwait(false);
+            await buffer.PrimeAsync(cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    /// <inheritdoc />
-    public ValueTask DisposeAsync() => CompleteAsync();
-
-    private async IAsyncEnumerable<TElement> EnumerateAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var index = 0;
-
-        while (true)
+        catch (Exception primingException)
         {
-            if (index < _items.Count)
+            // A disposal failure while cleaning up is attached to the priming failure instead of
+            // replacing it.
+            try
             {
-                yield return _items[index];
-                index++;
-                continue;
+                await buffer.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception disposeException)
+            {
+                OrderedDisposal.Attach(primingException, disposeException);
             }
 
-            if (_isCompleted)
-            {
-                yield break;
-            }
-
-            await AdvanceAsync(cancellationToken).ConfigureAwait(false);
+            throw;
         }
+
+        return buffer;
     }
 
-    private async IAsyncEnumerable<PageEntry<TElement>> EnumerateEntriesCore(
+    private async IAsyncEnumerable<PageEntry<TElement>> GetEntriesCore(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var index = 0;
@@ -185,9 +193,7 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
         }
     }
 
-    // Reads from the pump until either one more content row is buffered or the page completes
-    // (the source is exhausted, or, for a forward page, the trailing sentinel is found). Rows
-    // consumed by SkipFront are read and discarded in the same call.
+    // Reads from the pump until one more content row is buffered or the page completes.
     private async ValueTask AdvanceAsync(CancellationToken cancellationToken)
     {
         if (_isCompleted)
@@ -209,12 +215,20 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
             }
             catch (Exception ex)
             {
-                // a source that faults mid-stream releases the pump, exactly as reaching the end
-                // of the source or disposing the page does, but the page itself stays not
-                // completed so every later call rethrows the same exception instead of silently
-                // truncating.
+                // A mid-stream fault releases the pump but leaves the page not completed, so
+                // every later call rethrows it; a disposal failure while releasing is attached
+                // to it instead of replacing it.
                 _fault = ExceptionDispatchInfo.Capture(ex);
-                await ReleasePumpAsync().ConfigureAwait(false);
+
+                try
+                {
+                    await ReleasePumpAsync().ConfigureAwait(false);
+                }
+                catch (Exception releaseException)
+                {
+                    OrderedDisposal.Attach(ex, releaseException);
+                }
+
                 throw;
             }
 
@@ -279,9 +293,7 @@ internal sealed class StreamPageBuffer<TElement> : IStreamPageSource<TElement>
         await ReleasePumpAsync().ConfigureAwait(false);
     }
 
-    // Releases the pump exactly once, however release was triggered: normal completion or the
-    // source faulting mid-stream. A faulted page stays not completed, so it needs its own
-    // released flag separate from _isCompleted.
+    // Releases the pump exactly once, whether triggered by normal completion or a mid-stream fault.
     private async ValueTask ReleasePumpAsync()
     {
         if (_pumpReleased)

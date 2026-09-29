@@ -4,11 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GreenDonut.Data;
 
-// Locks down the cross-API cursor round trip: a cursor
-// produced by one API, fed into the other, returns the same rows and continues navigation with
-// byte-identical cursors, for every cursor kind. Each test compares the cross-API result against a
-// same-API reference fetched with the very same cursor value, so a mismatch names which side of the
-// pair broke.
+// A cursor produced by one API, fed into the other, returns the same rows and continues
+// navigation with byte-identical cursors, for every cursor kind.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class CursorInteropTests(PostgreSqlResource resource)
 {
@@ -212,7 +209,7 @@ public class CursorInteropTests(PostgreSqlResource resource)
     {
         List<PageEntry<Brand>> entries = [];
 
-        await foreach (var entry in page.EnumerateEntriesAsync(cancellationToken))
+        await foreach (var entry in page.GetEntriesAsync(cancellationToken))
         {
             entries.Add(entry);
         }

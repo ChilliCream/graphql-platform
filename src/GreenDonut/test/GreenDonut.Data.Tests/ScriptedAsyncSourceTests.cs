@@ -78,6 +78,24 @@ public class ScriptedAsyncSourceTests
     }
 
     [Fact]
+    public async Task ThrowOnDispose_Should_ThrowScriptedException_But_StillCountTheDisposal()
+    {
+        // arrange
+        var source = new ScriptedAsyncSource<string>("a");
+        var exception = new InvalidOperationException("dispose boom");
+        source.ThrowOnDispose(exception);
+        var enumerator = source.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await enumerator.DisposeAsync());
+
+        // assert
+        Assert.Same(exception, thrown);
+        Assert.Equal(1, source.DisposeCount);
+    }
+
+    [Fact]
     public async Task ScriptedAsyncDisposable_Should_CountEveryDisposeAsyncCall()
     {
         // arrange
@@ -89,5 +107,22 @@ public class ScriptedAsyncSourceTests
 
         // assert
         Assert.Equal(2, lifetime.DisposeCount);
+    }
+
+    [Fact]
+    public async Task ScriptedAsyncDisposable_ThrowOnDispose_Should_ThrowScriptedException_But_StillCount()
+    {
+        // arrange
+        var lifetime = new ScriptedAsyncDisposable();
+        var exception = new InvalidOperationException("dispose boom");
+        lifetime.ThrowOnDispose(exception);
+
+        // act
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await lifetime.DisposeAsync());
+
+        // assert
+        Assert.Same(exception, thrown);
+        Assert.Equal(1, lifetime.DisposeCount);
     }
 }

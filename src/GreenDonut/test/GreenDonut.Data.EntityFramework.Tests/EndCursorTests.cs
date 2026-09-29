@@ -7,15 +7,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenDonut.Data;
 
-// Gated to NET9_0_OR_GREATER, like RelativeCursorTests.cs and StreamPagingHelperTests.cs: the
-// physical-command-count assertions below (RecordingReaderInterceptor) rely on the single-command
-// inlined-count query shape validated for EF Core 9+; EF Core 8 splits it into an
-// extra up-front command.
-//
-// Locks down the end-cursor test matrix for ToPageAsync. Its
-// stream twin, StreamEndCursorTests below, carries the same cases plus the streaming-specific
-// guarantees (trimmed front rows are read but never yielded, no pre-query). Batch end-cursor
-// cases beyond the existing per-key trim test in RelativeCursorTests.cs are out of scope here.
+// Locks down the end-cursor test matrix for ToPageAsync.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class EndCursorTests(PostgreSqlResource resource)
 {
@@ -187,8 +179,7 @@ public class EndCursorTests(PostgreSqlResource resource)
             Xunit.TestContext.Current.CancellationToken);
 
         // Act
-        // ceil(25 / 10) == 3, so the pages ahead of page 1 are page 2 (offset -1) and page 3
-        // (offset 0), which is exactly what CreateRelativeLastPageCursors' formula computes.
+        // The pages ahead of page 1 are computed by CreateRelativeLastPageCursors.
         var lastPageCursors = entryPage.CreateRelativeLastPageCursors(5);
         var lastCursor = lastPageCursors[^1];
         var lastPage = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
@@ -275,8 +266,7 @@ public class EndCursorTests(PostgreSqlResource resource)
             new PagingArguments(10) { EnableRelativeCursors = true },
             Xunit.TestContext.Current.CancellationToken);
 
-        // the cursor below carries the pre-existing three-number `{offset|page|total}` page info,
-        // the format the new `{end|offset|total}` branch was added next to.
+        // The cursor below carries the pre-existing three-number `{offset|page|total}` format.
         var legacyCursor = firstPage.CreateCursor(firstPage.Last!.Value, 0);
 
         // Act
@@ -307,8 +297,7 @@ public class EndCursorTests(PostgreSqlResource resource)
             Xunit.TestContext.Current.CancellationToken);
 
         // Act
-        // ceil(25 / 10) == 3, so page3 reached by forward navigation must line up with the page
-        // reached directly through the end cursor.
+        // Page 3 reached by forward navigation must line up with the page reached directly through the end cursor.
         var forwardPage = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
             new PagingArguments(10, after: page2.CreateCursor(page2.Last!.Value, 0)) { EnableRelativeCursors = true },
             Xunit.TestContext.Current.CancellationToken);
@@ -361,11 +350,8 @@ public class EndCursorTests(PostgreSqlResource resource)
     }
 }
 
-// The stream twin of EndCursorTests above: same matrix, same names (prefixed ToStreamPageAsync
-// instead of ToPageAsync), plus the streaming-specific guarantees from the testing strategy: the
-// front rows trimmed from an offset-zero end cursor page are read from the database but never
-// handed to the consumer, and no query runs ahead of the row query that carries the first served
-// row.
+// The stream twin of EndCursorTests above: front rows trimmed from an offset-zero end cursor
+// page are read from the database but never handed to the consumer.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamEndCursorTests(PostgreSqlResource resource)
 {
@@ -706,8 +692,7 @@ public class StreamEndCursorTests(PostgreSqlResource resource)
             cancellationToken: cancellationToken);
         var firstEntries = await DrainEntriesAndDisposeAsync(firstPage, cancellationToken);
 
-        // the cursor below carries the pre-existing three-number `{offset|page|total}` page info,
-        // the format the new `{end|offset|total}` branch was added next to.
+        // The cursor below carries the pre-existing three-number `{offset|page|total}` format.
         var legacyCursor = firstPage.CreateCursor(firstEntries[^1], 0);
 
         // Act
@@ -742,8 +727,7 @@ public class StreamEndCursorTests(PostgreSqlResource resource)
         var page2Entries = await DrainEntriesAndDisposeAsync(page2, cancellationToken);
 
         // Act
-        // ceil(25 / 10) == 3, so page3 reached by forward navigation must line up with the page
-        // reached directly through the end cursor.
+        // Page 3 reached by forward navigation must line up with the page reached directly through the end cursor.
         var forwardPage = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
             new PagingArguments(10, after: page2.CreateCursor(page2Entries[^1], 0)) { EnableRelativeCursors = true },
             cancellationToken: cancellationToken);
@@ -776,16 +760,14 @@ public class StreamEndCursorTests(PostgreSqlResource resource)
 
         // Act
 
-        // priming the page (inside ToStreamPageAsync) reads and discards the 5 trimmed front rows,
-        // then reads and buffers the first served row: 6 reads before the consumer ever pulls.
+        // Priming reads and discards the 5 trimmed front rows, then reads and buffers the first served row.
         var page = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
             arguments,
             cancellationToken: cancellationToken);
         var commandsBeforePull = interceptor.CommandTexts.Count;
         var readsBeforePull = interceptor.Events.Count(e => e.Result);
 
-        // pulling the first item off the enumerator serves it straight from the row already
-        // buffered by priming, with no additional read from the database.
+        // Pulling the first item off the enumerator serves the row already buffered by priming.
         await using var enumerator = page.GetAsyncEnumerator(cancellationToken);
         await enumerator.MoveNextAsync();
         var first = enumerator.Current.Name;
@@ -824,7 +806,7 @@ public class StreamEndCursorTests(PostgreSqlResource resource)
     {
         List<PageEntry<Brand>> entries = [];
 
-        await foreach (var entry in page.EnumerateEntriesAsync(cancellationToken))
+        await foreach (var entry in page.GetEntriesAsync(cancellationToken))
         {
             entries.Add(entry);
         }

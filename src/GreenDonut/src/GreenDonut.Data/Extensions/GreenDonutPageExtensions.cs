@@ -102,7 +102,7 @@ public static class GreenDonutPageExtensions
                 "Max cursors must be greater than or equal to 0.");
         }
 
-        if (page.Last is null || page.Index is null)
+        if (maxCursors == 0 || page.Last is null || page.Index is null)
         {
             return [];
         }

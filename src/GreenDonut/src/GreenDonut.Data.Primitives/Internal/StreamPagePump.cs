@@ -14,6 +14,7 @@ internal sealed class StreamPagePump<TElement>
     private IAsyncDisposable? _lifetime;
     private int _livePages;
     private bool _sourceExhausted;
+    private bool _sourceDisposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamPagePump{TElement}"/> class.
@@ -50,6 +51,8 @@ internal sealed class StreamPagePump<TElement>
 
     /// <summary>
     /// Reads the next row from the shared source, or null once the source is exhausted.
+    /// Reaching the end marks the source exhausted without disposing it; disposal happens when
+    /// the pump is released.
     /// </summary>
     public async ValueTask<StreamRow<TElement>?> ReadNextAsync()
     {
@@ -69,13 +72,14 @@ internal sealed class StreamPagePump<TElement>
             return _source.Current;
         }
 
-        await ExhaustSourceAsync().ConfigureAwait(false);
+        _sourceExhausted = true;
         return null;
     }
 
     /// <summary>
-    /// Signals that one page fed by this pump has completed or been disposed. Once every page
-    /// has done so, disposes the source and then the lifetime, exactly once.
+    /// Signals that one page fed by this pump has completed or been disposed; once every page has,
+    /// disposes the source and then the lifetime exactly once. If both disposals throw, the
+    /// source's exception is rethrown with the lifetime's attached.
     /// </summary>
     public async ValueTask ReleaseAsync()
     {
@@ -84,25 +88,23 @@ internal sealed class StreamPagePump<TElement>
             return;
         }
 
-        await ExhaustSourceAsync().ConfigureAwait(false);
-
         var lifetime = _lifetime;
         _lifetime = null;
 
-        if (lifetime is not null)
-        {
-            await lifetime.DisposeAsync().ConfigureAwait(false);
-        }
+        await OrderedDisposal.ReleaseAsync(
+            DisposeSourceAsync,
+            lifetime is null ? null : lifetime.DisposeAsync)
+            .ConfigureAwait(false);
     }
 
-    private async ValueTask ExhaustSourceAsync()
+    private async ValueTask DisposeSourceAsync()
     {
-        if (_sourceExhausted)
+        if (_sourceDisposed)
         {
             return;
         }
 
-        _sourceExhausted = true;
+        _sourceDisposed = true;
         await _source.DisposeAsync().ConfigureAwait(false);
     }
 }

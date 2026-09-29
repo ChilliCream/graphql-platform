@@ -37,7 +37,7 @@ public static class GreenDonutStreamPageExtensions
     /// This method creates cursors for the previous pages based on the current page.
     /// The cursors are created using the <see cref="StreamPage{T}.CreateCursor(PageEntry{T}, int)"/> method.
     /// </remarks>
-    public static ValueTask<ImmutableArray<PageCursor>> CreateRelativeBackwardCursorsAsync<T>(
+    public static async ValueTask<ImmutableArray<PageCursor>> CreateRelativeBackwardCursorsAsync<T>(
         this StreamPage<T> page,
         int maxCursors = 5,
         CancellationToken cancellationToken = default)
@@ -51,49 +51,32 @@ public static class GreenDonutStreamPageExtensions
 
         if (page.Index is null || page.Index == 1 || maxCursors == 0)
         {
-            return new ValueTask<ImmutableArray<PageCursor>>([]);
+            return [];
         }
 
-        if (page.BufferedCount > 0 || page.IsCompleted)
+        await using var entries = page.GetEntriesAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+
+        if (!await entries.MoveNextAsync().ConfigureAwait(false))
         {
-            return new ValueTask<ImmutableArray<PageCursor>>(CreateCursors(page, maxCursors));
+            return [];
         }
 
-        return AwaitFirstEntryAsync(page, maxCursors, cancellationToken);
+        var firstEntry = entries.Current;
+        var previousPages = page.Index!.Value - 1;
+        var cursors = ImmutableArray.CreateBuilder<PageCursor>();
 
-        static async ValueTask<ImmutableArray<PageCursor>> AwaitFirstEntryAsync(
-            StreamPage<T> page,
-            int maxCursors,
-            CancellationToken cancellationToken)
+        maxCursors *= -1;
+
+        for (var i = 0; i > maxCursors && previousPages + i - 1 >= 0; i--)
         {
-            await page.PrimeAsync(cancellationToken).ConfigureAwait(false);
-            return CreateCursors(page, maxCursors);
+            cursors.Insert(
+                0,
+                new PageCursor(
+                    page.CreateCursor(firstEntry, i),
+                    previousPages + i));
         }
 
-        static ImmutableArray<PageCursor> CreateCursors(StreamPage<T> page, int maxCursors)
-        {
-            if (page.BufferedCount == 0)
-            {
-                return [];
-            }
-
-            var firstEntry = page.GetBufferedEntry(0);
-            var previousPages = page.Index!.Value - 1;
-            var cursors = ImmutableArray.CreateBuilder<PageCursor>();
-
-            maxCursors *= -1;
-
-            for (var i = 0; i > maxCursors && previousPages + i - 1 >= 0; i--)
-            {
-                cursors.Insert(
-                    0,
-                    new PageCursor(
-                        page.CreateCursor(firstEntry, i),
-                        previousPages + i));
-            }
-
-            return cursors.ToImmutable();
-        }
+        return cursors.ToImmutable();
     }
 
     /// <summary>
@@ -124,8 +107,6 @@ public static class GreenDonutStreamPageExtensions
     /// <remarks>
     /// This method creates cursors for the next pages based on the current page.
     /// The cursors are created using the <see cref="StreamPage{T}.CreateCursor(PageEntry{T}, int)"/> method.
-    /// It checks the index, and the total count, before draining the page to its last entry, so an
-    /// empty result never buffers the whole page.
     /// </remarks>
     public static async ValueTask<ImmutableArray<PageCursor>> CreateRelativeForwardCursorsAsync<T>(
         this StreamPage<T> page,
@@ -139,7 +120,7 @@ public static class GreenDonutStreamPageExtensions
             throw ThrowHelper.RelativeCursors_MaxCursorsMustNotBeNegative(maxCursors);
         }
 
-        if (page.Index is null)
+        if (maxCursors == 0 || page.Index is null)
         {
             return [];
         }
@@ -158,22 +139,26 @@ public static class GreenDonutStreamPageExtensions
             return [];
         }
 
-        await page.DrainAsync(cancellationToken).ConfigureAwait(false);
+        PageEntry<T>? lastEntry = null;
 
-        if (page.BufferedCount == 0)
+        await foreach (var entry in page.GetEntriesAsync(cancellationToken).ConfigureAwait(false))
+        {
+            lastEntry = entry;
+        }
+
+        if (lastEntry is null)
         {
             return [];
         }
 
-        var lastEntry = page.GetBufferedEntry(page.BufferedCount - 1);
         var cursors = ImmutableArray.CreateBuilder<PageCursor>();
-        cursors.Add(new PageCursor(page.CreateCursor(lastEntry, 0), page.Index.Value + 1));
+        cursors.Add(new PageCursor(page.CreateCursor(lastEntry.Value, 0), page.Index.Value + 1));
 
         for (var i = 1; i < maxCursors && page.Index + i < totalPages; i++)
         {
             cursors.Add(
                 new PageCursor(
-                    page.CreateCursor(lastEntry, i),
+                    page.CreateCursor(lastEntry.Value, i),
                     page.Index.Value + i + 1));
         }
 
