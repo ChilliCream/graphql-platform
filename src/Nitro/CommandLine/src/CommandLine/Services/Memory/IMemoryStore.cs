@@ -117,4 +117,13 @@ internal interface IMemoryStore
         string type,
         IReadOnlyList<string> tags,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the curated memories and journal entries the given agent created,
+    /// a promoted journal entry appearing once, as the curated memory. Ordered by
+    /// <c>created_at</c> descending, then id, up to the given limit (unlimited when
+    /// null).
+    /// </summary>
+    Task<IReadOnlyList<MemoryParticipationEntry>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken);
 }

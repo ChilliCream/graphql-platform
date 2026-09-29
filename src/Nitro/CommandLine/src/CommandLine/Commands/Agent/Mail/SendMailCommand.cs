@@ -80,11 +80,6 @@ internal sealed class SendMailCommand : Command
             $"Sent '{message.Id.EscapeMarkup()}' to "
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
 
-        foreach (var name in message.Unregistered)
-        {
-            console.WriteLine($"note: '{name}' has never registered.");
-        }
-
         return ExitCodes.Success;
     }
 }

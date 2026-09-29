@@ -15,6 +15,12 @@ internal static class ErrorHelper
             ExecutionContextData.ValidationErrors,
             true);
 
+    public static OperationResult EmptyVariableBatch()
+        => RequestError(
+            ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_EmptyVariableBatch)
+                .Build());
+
     public static OperationResult IncrementalDeliveryNotAcceptable()
     {
         var result = OperationResult.FromError(

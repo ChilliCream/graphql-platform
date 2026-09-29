@@ -307,6 +307,28 @@ public sealed class TaskBadgeTests
     }
 
     [Fact]
+    public void PriorityStyle_Should_MatchTheStyleEmbeddedInRender_When_SamePriority()
+    {
+        // arrange
+        const int priority = TaskPriorities.Medium;
+
+        // act
+        var style = TaskBadge.PriorityStyle(priority);
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Fix bug",
+            status: TaskStates.Open,
+            priority: priority,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: 80);
+
+        // assert
+        Assert.Equal("yellow", style);
+        Assert.Contains($"[{style}]P2[/]", line);
+    }
+
+    [Fact]
     public void Render_Should_RenderAsValidMarkup_When_PriorityIsOutOfRange()
     {
         // arrange

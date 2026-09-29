@@ -54,4 +54,17 @@ internal interface ITuiMode
     /// equality. The default suppresses no hints.
     /// </summary>
     IReadOnlyCollection<KeyHint> SuppressedGlobalHints => [];
+
+    /// <summary>
+    /// Creates a popover for the currently selected row, or null when nothing is selected or
+    /// the mode hosts no popover. The default implementation hosts none.
+    /// </summary>
+    IPopover? TryCreatePopover() => null;
+
+    /// <summary>
+    /// Handles a tab-specific request from this mode's own open popover, returning zero or
+    /// more follow-up messages for the shell to dispatch in turn. The default implementation
+    /// handles nothing.
+    /// </summary>
+    IReadOnlyList<TuiMessage> HandlePopoverRequest(PopoverResult.Request request) => [];
 }

@@ -285,6 +285,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string ErrorHelper_EmptyVariableBatch {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptyVariableBatch", resourceCulture);
+            }
+        }
+
         internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
             get {
                 return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);

@@ -134,7 +134,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
             // assert
-            activities.MatchSnapshot(Postfix([NET11_0]));
+            activities.MatchSnapshot(Postfix([NET9_0], [NET11_0]));
         }
     }
 

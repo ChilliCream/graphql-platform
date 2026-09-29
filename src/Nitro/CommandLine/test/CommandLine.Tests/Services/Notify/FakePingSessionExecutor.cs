@@ -5,8 +5,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// A scriptable <see cref="IPingSessionExecutor"/> whose per-session
-/// <see cref="ReasonBySessionId"/> entries override <see cref="NextReason"/>, which defaults to
+/// A scriptable <see cref="IPingSessionExecutor"/> whose per-actor
+/// <see cref="ReasonByActor"/> entries override <see cref="NextReason"/>, which defaults to
 /// <see cref="PingAttemptReason.Ok"/>. Signals <see cref="Entered"/> on entry and waits
 /// for cancellation when <see cref="HangUntilCancelled"/> is set.
 /// </summary>
@@ -22,7 +22,7 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
 
     public string? NextDetail { get; set; }
 
-    public ConcurrentDictionary<string, PingAttemptReason> ReasonBySessionId { get; } = new();
+    public ConcurrentDictionary<string, PingAttemptReason> ReasonByActor { get; } = new();
 
     public TimeSpan ConcurrentDelay { get; set; } = TimeSpan.Zero;
 
@@ -35,8 +35,6 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
     public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
-        string harness,
-        string sessionId,
         string actorName,
         string endpointAddr,
         string attemptId,
@@ -45,28 +43,24 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         CancellationToken cancellationToken)
     {
         RecordedDeadlines.Add(deadline);
-        return ExecuteAsync(
-            harness, sessionId, attemptId, isClaudePeer: false, isOpencodeServer: false, cancellationToken);
+        return ExecuteAsync(actorName, attemptId, isClaudePeer: false, isOpencodeServer: false, cancellationToken);
     }
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
-        string harness,
-        string sessionId,
         string actorName,
+        string sessionId,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
         CancellationToken cancellationToken)
     {
         RecordedDeadlines.Add(deadline);
-        return ExecuteAsync(
-            harness, sessionId, attemptId, isClaudePeer: true, isOpencodeServer: false, cancellationToken);
+        return ExecuteAsync(actorName, attemptId, isClaudePeer: true, isOpencodeServer: false, cancellationToken);
     }
 
     public Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
-        string harness,
-        string sessionId,
         string actorName,
+        string sessionId,
         string endpointAddr,
         string? endpointSecret,
         string attemptId,
@@ -75,19 +69,17 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
         CancellationToken cancellationToken)
     {
         RecordedDeadlines.Add(deadline);
-        return ExecuteAsync(
-            harness, sessionId, attemptId, isClaudePeer: false, isOpencodeServer: true, cancellationToken);
+        return ExecuteAsync(actorName, attemptId, isClaudePeer: false, isOpencodeServer: true, cancellationToken);
     }
 
     private async Task<PingAttemptOutcome> ExecuteAsync(
-        string harness,
-        string sessionId,
+        string actorName,
         string attemptId,
         bool isClaudePeer,
         bool isOpencodeServer,
         CancellationToken cancellationToken)
     {
-        Calls.Add(new FakePingSessionExecutorCall(harness, sessionId, isClaudePeer, isOpencodeServer));
+        Calls.Add(new FakePingSessionExecutorCall(actorName, isClaudePeer, isOpencodeServer));
         Entered.TrySetResult();
 
         var observed = Interlocked.Increment(ref _concurrent);
@@ -109,15 +101,14 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
             Interlocked.Decrement(ref _concurrent);
         }
 
-        var reason = ReasonBySessionId.GetValueOrDefault(sessionId, NextReason);
+        var reason = ReasonByActor.GetValueOrDefault(actorName, NextReason);
 
         return new PingAttemptOutcome(
             reason == PingAttemptReason.Ok ? AgentPingResult.Ok : AgentPingResult.Error,
             reason,
             Retryable: reason is PingAttemptReason.Timeout or PingAttemptReason.TransportError,
             Detail: NextDetail,
-            harness,
-            sessionId,
+            actorName,
             attemptId,
             DateTimeOffset.UtcNow);
     }

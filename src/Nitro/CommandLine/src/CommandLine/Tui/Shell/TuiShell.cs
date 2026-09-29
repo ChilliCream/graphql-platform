@@ -1,6 +1,8 @@
 using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -35,6 +37,7 @@ internal sealed class TuiShell
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
+    private readonly IAgentStore _agentStore;
     private readonly string? _actor;
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
@@ -55,6 +58,10 @@ internal sealed class TuiShell
     private TaskCreateForm? _createForm;
     private EditingConfirmDialog? _discardDialog;
     private DiscardTarget _discardTarget;
+    private EditingConfirmDialog? _agentDeleteDialog;
+    private string? _agentDeleteTarget;
+    private EditingConfirmDialog? _agentDeleteOfflineDialog;
+    private IPopover? _popover;
     private int _width;
     private int _height;
 
@@ -63,6 +70,7 @@ internal sealed class TuiShell
         ITuiMode activeMode,
         int initialWidth,
         int initialHeight,
+        IAgentStore agentStore,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
@@ -78,6 +86,7 @@ internal sealed class TuiShell
                 dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
             initialWidth,
             initialHeight,
+            agentStore,
             tasksTabIndex: 0,
             searchMode,
             treeView,
@@ -96,6 +105,7 @@ internal sealed class TuiShell
     /// <param name="tabs">The non-empty list of hosted tabs in display order.</param>
     /// <param name="initialWidth">The initial frame width.</param>
     /// <param name="initialHeight">The initial frame height.</param>
+    /// <param name="agentStore">The agent store backing the Agents tab's delete actions.</param>
     /// <param name="searchMode">The task search mode, or null to disable shell search entry.</param>
     /// <param name="treeView">The dependency tree mode, or null to disable shell tree entry.</param>
     /// <param name="store">The task store, or null to disable shell task writes and detail entry.</param>
@@ -116,6 +126,7 @@ internal sealed class TuiShell
         IReadOnlyList<TuiTab> tabs,
         int initialWidth,
         int initialHeight,
+        IAgentStore agentStore,
         int tasksTabIndex = 0,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
@@ -126,6 +137,7 @@ internal sealed class TuiShell
         TimeSpan? quitGateDrainBound = null)
     {
         ArgumentNullException.ThrowIfNull(tabs);
+        ArgumentNullException.ThrowIfNull(agentStore);
 
         if (tabs.Count == 0)
         {
@@ -144,6 +156,7 @@ internal sealed class TuiShell
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
+        _agentStore = agentStore;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
@@ -217,11 +230,17 @@ internal sealed class TuiShell
                     ? form.Render(_width, contentHeight)
                     : _lifecycleDialog is { } lifecycleDialog
                         ? lifecycleDialog.Render(_width, contentHeight)
-                        : _picker is { } picker
-                            ? picker.Render(_width, contentHeight)
-                            : _createForm is { } createForm
-                                ? createForm.Render(_width, contentHeight)
-                                : ActiveMode.Render(_width, contentHeight);
+                        : _agentDeleteDialog is { } agentDeleteDialog
+                            ? agentDeleteDialog.Render(_width, contentHeight)
+                            : _agentDeleteOfflineDialog is { } agentDeleteOfflineDialog
+                                ? agentDeleteOfflineDialog.Render(_width, contentHeight)
+                                : _picker is { } picker
+                                    ? picker.Render(_width, contentHeight)
+                                    : _popover is { } popover
+                                        ? popover.Render(_width, contentHeight)
+                                        : _createForm is { } createForm
+                                            ? createForm.Render(_width, contentHeight)
+                                            : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
             ?? new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
@@ -294,15 +313,22 @@ internal sealed class TuiShell
         var searchDirty = _searchMode is { } search
             && ReferenceEquals(ActiveMode, search)
             && search.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
+        var agentsDirty = ActiveMode is AgentsMode agents && agents.Tick();
+        var popoverDirty = _popover?.Tick() ?? false;
 
-        return toastDirty || searchDirty;
+        return toastDirty || searchDirty || agentsDirty || popoverDirty;
     }
 
     /// <summary>
-    /// Refreshes every hosted tab's currently active mode, not only the
-    /// active tab's.
+    /// Refreshes every hosted tab's currently active mode, not only the active tab's, and
+    /// reloads the open popover, if any.
     /// </summary>
-    private bool HandleDataChanged() => BroadcastToTabs(new TuiMessage.RefreshRequested());
+    private bool HandleDataChanged()
+    {
+        var tabsChanged = BroadcastToTabs(new TuiMessage.RefreshRequested());
+        _popover?.Load(CancellationToken.None);
+        return tabsChanged;
+    }
 
     /// <summary>
     /// Sends an effect-completion message to every tab's current mode to drain
@@ -357,9 +383,24 @@ internal sealed class TuiShell
             return HandleLifecycleDialogKey(info);
         }
 
+        if (_agentDeleteDialog is not null)
+        {
+            return HandleAgentDeleteDialogKey(info);
+        }
+
+        if (_agentDeleteOfflineDialog is not null)
+        {
+            return HandleAgentDeleteOfflineDialogKey(info);
+        }
+
         if (_picker is not null)
         {
             return HandlePickerKey(info);
+        }
+
+        if (_popover is not null)
+        {
+            return HandlePopoverKey(info);
         }
 
         if (_createForm is not null)
@@ -536,6 +577,80 @@ internal sealed class TuiShell
         return true;
     }
 
+    private bool HandleAgentDeleteDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _agentDeleteDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _agentDeleteDialog = null;
+                _agentDeleteTarget = null;
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                return SubmitAgentDelete();
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitAgentDelete()
+    {
+        var name = _agentDeleteTarget!;
+        _agentDeleteDialog = null;
+        _agentDeleteTarget = null;
+
+        // A confirmed delete from the popover closes it back to the table; the table
+        // shows the same effect through its own refresh below.
+        _popover = null;
+
+        var deleted = _agentStore.DeleteAsync(name, CancellationToken.None).GetAwaiter().GetResult();
+
+        HandleMessage(new TuiMessage.ShowToast(
+            deleted ? $"Deleted agent '{name}'." : $"Agent '{name}' was not found.",
+            deleted ? ToastStyle.Info : ToastStyle.Warn));
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
+    private bool HandleAgentDeleteOfflineDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _agentDeleteOfflineDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _agentDeleteOfflineDialog = null;
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                return SubmitAgentDeleteOffline();
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitAgentDeleteOffline()
+    {
+        _agentDeleteOfflineDialog = null;
+
+        var deletedCount = _agentStore.DeleteInactiveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+        HandleMessage(
+            new TuiMessage.ShowToast($"Deleted {deletedCount} offline or idle agents.", ToastStyle.Info));
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
     private bool HandleDiscardDialogKey(ConsoleKeyInfo info)
     {
         var result = _discardDialog!.HandleKey(info);
@@ -592,6 +707,37 @@ internal sealed class TuiShell
 
             case QuickPickerResult.Applied applied:
                 return SubmitPicker(applied.SelectedId);
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Routes one raw key to the open popover: a close dismisses it, and any other request is
+    /// handed to the active mode's own <see cref="ITuiMode.HandlePopoverRequest"/>, which is
+    /// how the agent delete and copy gestures keep working.
+    /// </summary>
+    private bool HandlePopoverKey(ConsoleKeyInfo info)
+    {
+        var result = _popover!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case PopoverResult.Closed:
+                _popover = null;
+                return true;
+
+            case PopoverResult.Request request:
+                foreach (var followUp in ActiveMode.HandlePopoverRequest(request))
+                {
+                    HandleMessage(followUp);
+                }
+
+                return true;
 
             default:
                 return true;
@@ -715,6 +861,9 @@ internal sealed class TuiShell
             case TuiMessage.OpenSelected when ActiveMode is BoardMode:
                 return TryOpenDetail();
 
+            case TuiMessage.OpenSelected:
+                return TryOpenPopover();
+
             case TuiMessage.FocusSearchRequested:
                 if (!IsTasksTabActive || _searchMode is not { } search)
                 {
@@ -736,6 +885,12 @@ internal sealed class TuiShell
 
             case TuiMessage.DeleteRequested:
                 return TryOpenDeleteDialog();
+
+            case TuiMessage.DeleteAgentRequested deleteAgent:
+                return TryOpenAgentDeleteDialog(deleteAgent.Name);
+
+            case TuiMessage.DeleteOfflineAgentsRequested:
+                return TryOpenAgentDeleteOfflineDialog();
 
             case TuiMessage.StatusPickerRequested:
                 return TryOpenPicker(PickerKind.Status);
@@ -852,6 +1007,30 @@ internal sealed class TuiShell
         return true;
     }
 
+    /// <summary>
+    /// Opens the popover the active mode returns for its currently selected row, hosted as a
+    /// shell overlay rather than switched to on the active tab's navigation stack. Falls back
+    /// to dispatching <see cref="TuiMessage.OpenSelected"/> to the active mode itself when it
+    /// hosts no popover for the current selection, which is how search's open-on-Tab and the
+    /// dependency tree's follow key keep working.
+    /// </summary>
+    private bool TryOpenPopover()
+    {
+        if (ActiveMode.TryCreatePopover() is { } popover)
+        {
+            popover.Load(CancellationToken.None);
+            _popover = popover;
+            return true;
+        }
+
+        foreach (var followUp in ActiveMode.Handle(new TuiMessage.OpenSelected()))
+        {
+            HandleMessage(followUp);
+        }
+
+        return true;
+    }
+
     private bool TryOpenTree()
     {
         if (_treeView is not { } tree)
@@ -951,6 +1130,55 @@ internal sealed class TuiShell
         _lifecycleTask = task;
         _lifecycleAction = TaskLifecycleAction.Delete;
         _lifecycleDialog = TaskLifecycleActions.CreateDeleteDialog(task);
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the delete confirmation for the named agent. Does nothing outside the Agents
+    /// tab, and shows a toast instead of a dialog when no agent is selected.
+    /// </summary>
+    private bool TryOpenAgentDeleteDialog(string name)
+    {
+        if (ActiveMode is not AgentsMode)
+        {
+            return false;
+        }
+
+        if (name.Length == 0)
+        {
+            return ShowToastNow("No agent selected.", ToastStyle.Warn);
+        }
+
+        _agentDeleteTarget = name;
+        _agentDeleteDialog = new EditingConfirmDialog(
+            $"Delete agent '{name}'? Its mail and tasks keep the name; this cannot be undone.",
+            "Delete",
+            ButtonKind.Danger);
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the delete-all-offline-or-idle confirmation. Does nothing outside the Agents tab,
+    /// and shows a toast instead of a dialog when there are no offline or idle agents.
+    /// </summary>
+    private bool TryOpenAgentDeleteOfflineDialog()
+    {
+        if (ActiveMode is not AgentsMode agentsMode)
+        {
+            return false;
+        }
+
+        var inactiveCount = agentsMode.CountInactiveAgents();
+
+        if (inactiveCount == 0)
+        {
+            return ShowToastNow("No offline or idle agents to delete.", ToastStyle.Warn);
+        }
+
+        _agentDeleteOfflineDialog = new EditingConfirmDialog(
+            $"Delete {inactiveCount} offline or idle agents? This cannot be undone.",
+            "Delete",
+            ButtonKind.Danger);
         return true;
     }
 
@@ -1059,9 +1287,19 @@ internal sealed class TuiShell
             return EditingConfirmDialog.Hints;
         }
 
+        if (_agentDeleteDialog is not null || _agentDeleteOfflineDialog is not null)
+        {
+            return EditingConfirmDialog.Hints;
+        }
+
         if (_picker is not null)
         {
             return QuickPicker.Hints;
+        }
+
+        if (_popover is { } popover)
+        {
+            return popover.Hints;
         }
 
         if (_createForm is not null)

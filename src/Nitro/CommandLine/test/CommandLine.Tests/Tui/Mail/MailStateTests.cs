@@ -6,683 +6,214 @@ public sealed class MailStateTests
 {
     private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    private static MailState CreateState(FakeMailStore store, string actor = "alice")
-        => new(actor, new MailDataLoader(store));
+    private static MailState CreateState(FakeMailStore store) => new(new MailDataLoader(store));
 
     [Fact]
-    public async Task RefreshAsync_Should_LoadInboxForTheCurrentFilter()
+    public async Task RefreshAsync_Should_LoadEveryWorkspaceThread_When_StoreHasThreads()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
 
         // act
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
-        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
+        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
     }
 
     [Fact]
-    public async Task RefreshAsync_Should_KeepSelectedRowOnSameMessage_When_MessageStillPresentAfterReorder()
+    public async Task RefreshAsync_Should_OrderNewestActivityFirst_When_MultipleThreadsExist()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        state.SelectedRow = 1; // m-1, currently the older/last row
 
         // act
-        // a newer message pushes m-1 to a different row on refresh
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
-        Assert.Equal(["m-3", "m-2", "m-1"], state.Messages.Select(m => m.Id));
+        Assert.Equal(["t-2", "t-1"], state.Threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
+    public async Task RefreshAsync_Should_KeepSelectedRowOnSameThread_When_ThreadStillPresentAfterReorder()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+        await state.RefreshAsync(CancellationToken.None);
+        state.SelectedRow = 1; // t-1, currently the older/last row
+
+        // act
+        // a newer message pushes t-1 to a different row on refresh
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-3", threadId: "t-3", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        await state.RefreshAsync(CancellationToken.None);
+
+        // assert
+        Assert.Equal(["t-3", "t-2", "t-1"], state.Threads.Select(t => t.ThreadId));
         Assert.Equal(2, state.SelectedRow);
-        Assert.Equal("m-1", state.SelectedMessage?.Id);
+        Assert.Equal("t-1", state.SelectedThread?.ThreadId);
     }
 
     [Fact]
-    public async Task RefreshAsync_Should_ClampSelectedRow_When_SelectedMessageNoLongerPresent()
+    public async Task RefreshAsync_Should_ClampSelectedRow_When_SelectedThreadNoLongerPresent()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
-        state.SelectedRow = 0; // m-2, newest first
+        state.SelectedRow = 0; // t-2, newest first
 
         // act
-        // m-2 is removed from the store entirely
+        // t-2's only message is removed from the store entirely
         store.Messages.RemoveAt(1);
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
-        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
+        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
         Assert.Equal(0, state.SelectedRow);
     }
 
     [Fact]
-    public async Task CycleFilterAsync_Should_AdvanceThroughFiltersAndWrap()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        var state = CreateState(store);
-        Assert.Equal(MailListFilter.Inbox, state.Filter);
-
-        // act & assert
-        // Inbox -> Unread -> Archived -> Inbox
-        await state.CycleFilterAsync(1, CancellationToken.None);
-        Assert.Equal(MailListFilter.Unread, state.Filter);
-
-        await state.CycleFilterAsync(1, CancellationToken.None);
-        Assert.Equal(MailListFilter.Archived, state.Filter);
-
-        await state.CycleFilterAsync(1, CancellationToken.None);
-        Assert.Equal(MailListFilter.Inbox, state.Filter);
-    }
-
-    [Fact]
-    public async Task CycleFilterAsync_Should_WrapBackward_When_DeltaIsNegative()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        var state = CreateState(store);
-
-        // act
-        await state.CycleFilterAsync(-1, CancellationToken.None);
-
-        // assert
-        Assert.Equal(MailListFilter.Archived, state.Filter);
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_HideFullyReadThreads_When_MailboxIsInboxAndFilterIsUnread()
-    {
-        // arrange
-        // t-1's only message is unread for alice; t-2's only message is already read for her
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-        Assert.Equal(["t-2", "t-1"], state.Threads.Select(t => t.ThreadId));
-
-        await store.MarkReadAsync(["m-2"], "alice", CancellationToken.None);
-
-        // act
-        await state.CycleFilterAsync(1, CancellationToken.None); // Inbox -> Unread
-
-        // assert
-        Assert.Equal(MailListFilter.Unread, state.Filter);
-        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_ExcludeFullyArchivedThreads_When_MailboxIsInboxAndFilterIsInbox()
-    {
-        // arrange
-        // t-1's only message to alice is archived for her; t-2's is not
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now,
-            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-
-        // act
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-
-        // assert
-        Assert.Equal(MailListFilter.Inbox, state.Filter);
-        Assert.Equal(["t-2"], state.Threads.Select(t => t.ThreadId));
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_ShowOnlyArchivedThreads_When_MailboxIsInboxAndFilterIsArchived()
-    {
-        // arrange
-        // t-1's only message to alice is archived for her; t-2's is not
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now,
-            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-
-        // act
-        await state.CycleFilterAsync(1, CancellationToken.None); // Inbox -> Unread
-        await state.CycleFilterAsync(1, CancellationToken.None); // Unread -> Archived
-
-        // assert
-        Assert.Equal(MailListFilter.Archived, state.Filter);
-        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
-    }
-
-    [Fact]
-    public async Task SelectMailboxAsync_Should_SwitchMailboxAndLoadFromItsOwnStoreMethod()
+    public async Task SelectAgentFilterAsync_Should_NarrowToThreadsTheAgentSentOrReceived_When_AgentIsGiven()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-        Assert.Empty(state.Messages); // alice is not a recipient of m-1, so the Inbox is empty
-
-        // act
-        await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
-
-        // assert
-        Assert.Equal(MailMailbox.Sent, state.Mailbox);
-        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task SelectMailboxAsync_Should_ResetSelectedRowToTop()
-    {
-        // arrange
-        var store = new FakeMailStore();
+            "m-1", sender: "alice", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-        state.SelectedRow = 1;
-
-        // act
-        // Switch from Inbox to Workspace.
-        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
-
-        // assert
-        Assert.Equal(0, state.SelectedRow);
-    }
-
-    [Fact]
-    public async Task SelectMailboxAsync_Should_BeNoOp_When_MailboxIsAlreadyActive()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-        state.SelectedRow = 1;
-
-        // act
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-
-        // assert
-        Assert.Equal(MailMailbox.Inbox, state.Mailbox);
-        Assert.Equal(1, state.SelectedRow);
-    }
-
-    [Fact]
-    public async Task ShowThreadAsync_Should_LoadSelectedMessagesThread()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
+            "m-2", sender: "carol", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
-
-        // act
-        var opened = await state.ShowThreadAsync(CancellationToken.None);
-
-        // assert
-        Assert.True(opened);
-        Assert.Equal(MailViewMode.Thread, state.ViewMode);
-        Assert.Equal(["m-1", "m-2"], state.ThreadMessages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task ShowThreadAsync_Should_ReturnFalse_When_NoMessageSelected()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        var state = CreateState(store);
-
-        // act
-        var opened = await state.ShowThreadAsync(CancellationToken.None);
-
-        // assert
-        Assert.False(opened);
-        Assert.Equal(MailViewMode.Message, state.ViewMode);
-    }
-
-    [Fact]
-    public async Task ShowMessage_Should_ClearThreadMessagesAndSwitchBack()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        await state.ShowThreadAsync(CancellationToken.None);
-
-        // act
-        state.ShowMessage();
-
-        // assert
-        Assert.Equal(MailViewMode.Message, state.ViewMode);
-        Assert.Empty(state.ThreadMessages);
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_PreserveAManualThreadOverride_When_TheSelectedMessageRowSurvivesTheRefresh()
-    {
-        // arrange
-        // Flat mode selects a MessageRow (default view Message); ShowThreadAsync overrides it to Thread
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        state.ToggleListMode(); // Threads -> Flat
-        Assert.Equal(MailListMode.Flat, state.ListMode);
-        Assert.Equal(MailViewMode.Message, state.ViewMode); // MessageRow's own default
-
-        var opened = await state.ShowThreadAsync(CancellationToken.None);
-        Assert.True(opened);
-        Assert.Equal(MailViewMode.Thread, state.ViewMode);
-
-        // act
-        // the same message row survives the reload by identity
-        await state.RefreshAsync(CancellationToken.None);
-
-        // assert
-        Assert.Equal(MailViewMode.Thread, state.ViewMode);
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_PreserveAManualMessageOverride_When_TheSelectedThreadRowSurvivesTheRefresh()
-    {
-        // arrange
-        // Threads mode (the default) selects a thread row (default view Thread); ShowMessage overrides it to Message
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        Assert.Equal(MailViewMode.Thread, state.ViewMode); // Thread row's own default
-
-        state.ShowMessage();
-        Assert.Equal(MailViewMode.Message, state.ViewMode);
-
-        // act
-        // the same thread row survives the reload by identity
-        await state.RefreshAsync(CancellationToken.None);
-
-        // assert
-        Assert.Equal(MailViewMode.Message, state.ViewMode);
-    }
-
-    [Fact]
-    public async Task SelectedRow_Should_ResolveTheRowsOwnDefaultViewMode_When_MovingToADifferentThreadRow()
-    {
-        // arrange
-        // two single-message threads in Threads mode; the first thread row's default is overridden to Message
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        state.ShowMessage();
-        Assert.Equal(MailViewMode.Message, state.ViewMode);
-
-        // act
-        // a genuine selection change to the other thread row
-        state.SelectedRow = 1;
-
-        // assert
-        Assert.Equal(MailViewMode.Thread, state.ViewMode);
-    }
-
-    [Fact]
-    public async Task SelectedRow_Should_ResolveTheRowsOwnDefaultViewMode_When_MovingToADifferentMessageRow()
-    {
-        // arrange
-        // two messages in Flat mode; the first message row's default is overridden to Thread
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        state.ToggleListMode(); // Threads -> Flat
-        var opened = await state.ShowThreadAsync(CancellationToken.None);
-        Assert.True(opened);
-        Assert.Equal(MailViewMode.Thread, state.ViewMode);
-
-        // act
-        // a genuine selection change to the other message row
-        state.SelectedRow = 1;
-
-        // assert
-        Assert.Equal(MailViewMode.Message, state.ViewMode);
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_RefreshThreadMessagesContent_When_ViewModeIsThread_AndTheSelectionSurvives()
-    {
-        // arrange
-        // a thread row's own Thread default is active, so ThreadMessages is populated from the start
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        Assert.Equal(MailViewMode.Thread, state.ViewMode);
-        Assert.Equal(["m-1"], state.ThreadMessages.Select(m => m.Id));
-
-        // act
-        // Add a reply to the selected thread, then refresh.
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
-        await state.RefreshAsync(CancellationToken.None);
-
-        // assert
-        Assert.Equal(["m-1", "m-2"], state.ThreadMessages.Select(m => m.Id));
-        Assert.Equal("m-2", state.SelectedMessage?.Id);
-    }
-
-    [Fact]
-    public async Task SelectAgentFilterAsync_Should_NarrowWorkspaceMessages_ToTheGivenAgent()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None); // already the default Workspace mailbox
-        Assert.Equal(["m-2", "m-1"], state.Messages.Select(m => m.Id));
 
         // act
         await state.SelectAgentFilterAsync("alice", CancellationToken.None);
 
         // assert
         Assert.Equal("alice", state.AgentFilter);
-        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
-    }
-
-    [Fact]
-    public async Task SelectAgentFilterAsync_Should_ResetSelectedRowToTop()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "alice", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None); // already the default Workspace mailbox
-        state.SelectedRow = 1;
-
-        // act
-        await state.SelectAgentFilterAsync("alice", CancellationToken.None);
-
-        // assert
+        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
         Assert.Equal(0, state.SelectedRow);
     }
 
     [Fact]
-    public async Task SelectAgentFilterAsync_Should_RestoreTheFullWorkspaceStream_When_AgentIsNull()
+    public async Task SelectAgentFilterAsync_Should_RestoreEveryThread_When_FilterIsClearedToNull()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-2", sender: "carol", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
         var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
+        await state.RefreshAsync(CancellationToken.None);
         await state.SelectAgentFilterAsync("alice", CancellationToken.None);
-        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id));
 
         // act
         await state.SelectAgentFilterAsync(null, CancellationToken.None);
 
         // assert
         Assert.Null(state.AgentFilter);
-        Assert.Equal(["m-2", "m-1"], state.Messages.Select(m => m.Id));
+        Assert.Equal(["t-2", "t-1"], state.Threads.Select(t => t.ThreadId));
     }
 
     [Fact]
-    public async Task SelectMailboxAsync_Should_ClearAgentFilter_When_LeavingWorkspace()
+    public async Task ApplySearch_Should_NarrowToThreadsMatchingSubject_When_TextMatchesOneThread()
     {
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
-        await state.SelectAgentFilterAsync("alice", CancellationToken.None);
-        Assert.Equal("alice", state.AgentFilter);
-
-        // act
-        // leave Workspace for Sent, then come back
-        await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
-        await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
-
-        // assert
-        Assert.Null(state.AgentFilter);
-        Assert.Equal(["m-1"], state.Messages.Select(m => m.Id)); // unfiltered again
-    }
-
-    [Fact]
-    public void SelectedMessage_Should_ReturnNull_When_MessagesIsEmpty()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        var state = CreateState(store);
-
-        // act & assert
-        Assert.Null(state.SelectedMessage);
-    }
-
-    [Fact]
-    public void MailState_Should_DefaultToWorkspaceMailboxAndThreadsListMode()
-    {
-        // arrange & act
-        var state = CreateState(new FakeMailStore());
-
-        // assert
-        Assert.Equal(MailMailbox.Workspace, state.Mailbox);
-        Assert.Equal(MailListMode.Threads, state.ListMode);
-    }
-
-    [Fact]
-    public async Task RefreshAsync_Should_PopulateThreadRollups_ForTheCurrentMailbox()
-    {
-        // arrange
-        var store = new FakeMailStore();
+            "m-1", subject: "Status update", threadId: "t-1", createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", subject: "Lunch plans", threadId: "t-2", createdAt: s_now.AddMinutes(1),
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
-
-        // act
         await state.RefreshAsync(CancellationToken.None);
+
+        // act
+        state.ApplySearch("status");
 
         // assert
         Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
-        Assert.Equal(2, state.Threads[0].MessageCount);
-        var row = Assert.Single(state.Rows);
-        var thread = Assert.IsType<MailListRow.Thread>(row);
-        Assert.False(thread.Expanded);
+        Assert.Equal(0, state.SelectedRow);
     }
 
     [Fact]
-    public async Task ExpandThread_Should_InsertTheThreadsMessages_AsIndentedRowsAfterIt()
+    public async Task ApplySearch_Should_MatchLastSenderAndLastRecipients_When_TextMatchesEither()
     {
         // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-
-        // act
-        state.ExpandThread("t-1");
-
-        // assert
-        Assert.Equal(3, state.Rows.Count);
-        var threadRow = Assert.IsType<MailListRow.Thread>(state.Rows[0]);
-        Assert.True(threadRow.Expanded);
-        var first = Assert.IsType<MailListRow.MessageRow>(state.Rows[1]);
-        var second = Assert.IsType<MailListRow.MessageRow>(state.Rows[2]);
-        Assert.True(first.ThreadChild);
-        Assert.True(second.ThreadChild);
-        Assert.Equal("m-1", first.Message.Id);
-        Assert.Equal("m-2", second.Message.Id);
-    }
-
-    [Fact]
-    public async Task CollapseThread_Should_RemoveTheIndentedChildRows()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        state.ExpandThread("t-1");
-
-        // act
-        state.CollapseThread("t-1");
-
-        // assert
-        var row = Assert.Single(state.Rows);
-        var thread = Assert.IsType<MailListRow.Thread>(row);
-        Assert.False(thread.Expanded);
-    }
-
-    [Fact]
-    public async Task ToggleThreadFold_Should_AlternateBetweenExpandedAndCollapsed()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-
-        // act & assert
-        state.ToggleThreadFold("t-1");
-        Assert.Equal(2, state.Rows.Count); // thread row + its one message
-
-        state.ToggleThreadFold("t-1");
-        Assert.Single(state.Rows);
-    }
-
-    [Fact]
-    public async Task ExpandAllThreads_And_CollapseAllThreads_Should_ActOnEveryThread()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-
-        // act
-        state.ExpandAllThreads();
-
-        // assert
-        Assert.Equal(4, state.Rows.Count);
-
-        // act
-        state.CollapseAllThreads();
-
-        // assert
-        Assert.Equal(2, state.Rows.Count);
-        Assert.All(state.Rows, row => Assert.False(((MailListRow.Thread)row).Expanded));
-    }
-
-    [Fact]
-    public async Task IsThreadUnreadToMe_Should_UseTheRollupsUnreadCount_OutsideWorkspace()
-    {
-        // arrange
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
-
-        // act & assert
-        Assert.True(state.IsThreadUnreadToMe(state.Threads[0]));
-
-        await store.MarkReadAsync(["m-1"], "alice", CancellationToken.None);
-        await state.RefreshAsync(CancellationToken.None);
-        Assert.False(state.IsThreadUnreadToMe(state.Threads[0]));
-    }
-
-    [Fact]
-    public async Task IsThreadUnreadToMe_Should_BeTrue_InWorkspace_When_UnreadAndAddressedToTheActor()
-    {
-        // arrange
-        // already the default Workspace mailbox
-        var store = new FakeMailStore();
-        store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
-        var state = CreateState(store);
-
-        // act
-        await state.RefreshAsync(CancellationToken.None);
-
-        // assert
-        Assert.True(state.IsThreadUnreadToMe(state.Threads[0]));
-    }
-
-    [Fact]
-    public async Task IsThreadUnreadToMe_Should_BeFalse_InWorkspace_ForAnUnreadThreadBetweenTwoOtherAgents()
-    {
-        // arrange
-        // bob and carol's thread never addresses alice, so it must never render as unread-to-me for her
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "bob", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", sender: "dave", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("erin")]));
         var state = CreateState(store);
-
-        // act
         await state.RefreshAsync(CancellationToken.None);
 
+        // act
+        state.ApplySearch("carol");
+
         // assert
-        Assert.False(state.IsThreadUnreadToMe(state.Threads[0]));
+        Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
+    public async Task ApplySearch_Should_ShowEveryThread_When_TextIsCleared()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", subject: "Status update", threadId: "t-1", createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", subject: "Lunch plans", threadId: "t-2", createdAt: s_now.AddMinutes(1),
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+        await state.RefreshAsync(CancellationToken.None);
+        state.ApplySearch("status");
+
+        // act
+        state.ApplySearch("");
+
+        // assert
+        Assert.Equal(["t-2", "t-1"], state.Threads.Select(t => t.ThreadId));
+    }
+
+    [Fact]
+    public async Task TotalCount_Should_IgnoreTheSearchFilter_When_SearchIsActive()
+    {
+        // arrange
+        var store = new FakeMailStore();
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-1", subject: "Status update", threadId: "t-1", createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", subject: "Lunch plans", threadId: "t-2", createdAt: s_now.AddMinutes(1),
+            recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        var state = CreateState(store);
+        await state.RefreshAsync(CancellationToken.None);
+
+        // act
+        state.ApplySearch("status");
+
+        // assert
+        Assert.Single(state.Threads);
+        Assert.Equal(2, state.TotalCount);
     }
 }

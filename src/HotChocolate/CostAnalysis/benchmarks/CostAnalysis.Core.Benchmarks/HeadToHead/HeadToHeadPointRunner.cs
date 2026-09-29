@@ -208,7 +208,7 @@ internal static class HeadToHeadPointRunner
         BenchmarkVariableValues variables,
         int iterations)
     {
-        ulong checksum = 14_695_981_039_346_656_037;
+        var checksum = 14_695_981_039_346_656_037;
         for (var index = 0; index < iterations; index++)
         {
             var result = phase is MeasurementPhase.Cold

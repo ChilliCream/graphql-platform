@@ -2,7 +2,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
-internal sealed class ActingActorResolver(IAgentRegistry agents) : IActingActorResolver
+internal sealed class ActingActorResolver(IAgentStore agents) : IActingActorResolver
 {
     public async Task<string> ResolveAsync(
         string? optionValue,
@@ -17,12 +17,22 @@ internal sealed class ActingActorResolver(IAgentRegistry agents) : IActingActorR
 
         var actor = MailAgentName.Normalize(optionValue);
 
-        if (await agents.GetAsync(actor, cancellationToken) is null)
+        var existing = await agents.FindAsync(actor, cancellationToken);
+
+        if (existing is null)
         {
             throw new ExitException(
                 $"Unknown actor '{actor}'. Run `nitro agent login` to allocate one, "
                 + "or `nitro agent list` to see the actors this workspace knows.");
         }
+
+        if (existing.IsDeleted)
+        {
+            throw new ExitException($"Agent '{existing.Name}' was deleted.");
+        }
+
+        // Every command run with --actor is a presence beat.
+        await agents.TouchAsync(actor, cancellationToken);
 
         return actor;
     }

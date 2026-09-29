@@ -1,16 +1,15 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The coordinator's latest leadership snapshot, with owner and epoch values that
-/// may remain set during stopping or degradation until the next standby observation.
+/// The coordinator's latest leadership snapshot, with an owner token that may
+/// remain set during stopping or degradation until the next standby observation.
 /// </summary>
 internal sealed record MailWakeDaemonStatus(
     MailWakeDaemonState State,
-    string? OwnerId,
-    long? Epoch,
+    string? OwnerToken,
     DateTimeOffset? LeaseExpiresAt,
     string? LastError)
 {
     public static readonly MailWakeDaemonStatus Initial =
-        new(MailWakeDaemonState.Standby, null, null, null, null);
+        new(MailWakeDaemonState.Standby, null, null, null);
 }

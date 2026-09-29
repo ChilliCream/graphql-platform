@@ -20,6 +20,17 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Returns the non-tombstone tasks an agent participated in, either through an event
+    /// whose actor is the agent or through a current assignment, ordered by the agent's
+    /// latest event on the task (falling back to updated_at when only assigned), newest
+    /// first then by id. A null limit returns every matching task.
+    /// </summary>
+    Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Returns the task, including a tombstone, or null when its id does not exist.
     /// </summary>
     Task<TaskItem?> GetTaskAsync(
@@ -279,6 +290,15 @@ internal interface ITaskStore
         string id,
         string reason,
         string actor,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Releases every in-progress task assigned to the given agent, moving each to open
+    /// with no assignee and recording the reason. Returns the number of tasks released.
+    /// </summary>
+    Task<int> ReleaseAssigneeAsync(
+        string agent,
+        string reason,
         CancellationToken cancellationToken);
 
     /// <summary>

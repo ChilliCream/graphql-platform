@@ -38,7 +38,6 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private IFileSystem? _fileSystemOverride;
-    private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
@@ -88,14 +87,6 @@ public abstract class CommandTestBase
     private protected void SetupFileSystem(IFileSystem fileSystem)
     {
         _fileSystemOverride = fileSystem;
-    }
-
-    /// <summary>
-    /// Configures Nitro instance id resolution to return <paramref name="id"/>.
-    /// </summary>
-    private protected void SetupInstanceId(string id)
-    {
-        _instanceIdProviderOverride = new FixedInstanceIdProvider(id);
     }
 
     /// <summary>
@@ -377,11 +368,6 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
 
-        if (_instanceIdProviderOverride is not null)
-        {
-            services.Replace(ServiceDescriptor.Singleton(_instanceIdProviderOverride));
-        }
-
         if (_globalConfigDirectoryProviderOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
@@ -634,12 +620,6 @@ public sealed record CommandResult(
     string StdOut,
     string StdErr,
     string ExecutableName);
-internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvider
-{
-    public Task<string> GetIdAsync(string globalConfigDirectory, CancellationToken cancellationToken)
-        => Task.FromResult(id);
-}
-
 internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
 {
     public string GetDirectory() => directory;

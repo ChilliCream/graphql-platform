@@ -33,30 +33,49 @@ public abstract class AgentCommandTestBase : CommandTestBase
         => AgentWorkspace.GetDatabasePath(WorkspaceDirectory);
 
     protected async Task SeedAgentAsync(string actor, string role = "")
-        => await new AgentRegistry(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase())
-            .RegisterAsync(actor, role, client: "", TestContext.Current.CancellationToken);
-
-    protected async Task InsertSessionIdentityAsync(
-        string actor,
-        string sessionId,
-        string harness = AgentSessionHarness.ClaudeCode,
-        string role = "")
     {
-        await SeedAgentAsync(actor, role);
-
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
+
         await using var command = connection.CreateCommand();
         command.CommandText =
-            "INSERT INTO agent_session_identities "
-            + "(harness, session_id, actor, role, actor_revision, created_at, last_seen_at) "
-            + "VALUES ($harness, $sessionId, $actor, $role, 1, $now, $now)";
-        command.Parameters.AddWithValue("$harness", harness);
-        command.Parameters.AddWithValue("$sessionId", sessionId);
-        command.Parameters.AddWithValue("$actor", actor);
+            """
+            INSERT INTO agents (name, role, registered_at, started_at, last_seen_at)
+            VALUES ($name, $role, $now, $now, $now)
+            ON CONFLICT (name) DO UPDATE SET role = excluded.role, last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("$name", actor);
         command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
+    /// Seeds the named agent and binds it to a Claude Code session directly on
+    /// the unified <c>agents</c> row, mirroring what <c>StartSessionAsync</c>
+    /// would write.
+    /// </summary>
+    protected async Task BindAgentSessionAsync(
+        string actor,
+        string sessionId,
+        string harness = AgentSessionHarness.ClaudeCode)
+    {
+        await SeedAgentAsync(actor);
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agents SET harness = $harness, session_id = $sessionId, "
+            + "started_at = $now, last_seen_at = $now WHERE name = $name";
+        command.Parameters.AddWithValue("$harness", harness);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        command.Parameters.AddWithValue("$name", actor);
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     protected async Task InitWorkspaceAsync()
@@ -66,125 +85,20 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts a session on <paramref name="host"/> with fresh start and heartbeat timestamps
-    /// and the supplied endpoint and ping state. A null <paramref name="agentName"/>
-    /// leaves the session without an associated agent.
+    /// Soft-deletes the named agent directly, bypassing the store, since delete mechanics
+    /// are a separate ticket.
     /// </summary>
-    protected async Task InsertAliveSessionRowAsync(
-        string host,
-        string sessionId,
-        string? agentName,
-        string bindingKind = "explicit",
-        string harness = "claude-code",
-        string endpointKind = "none",
-        string endpointAddr = "",
-        string role = "",
-        string harnessVersion = "",
-        string? lastPingResult = null,
-        string? lastPingDetail = null)
+    protected async Task MarkAgentDeletedAsync(string name)
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
-        await connection.OpenAsync(TestContext.Current.CancellationToken);
-
-        if (agentName is not null)
-        {
-            await using var agentCommand = connection.CreateCommand();
-            agentCommand.CommandText =
-                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
-                + "VALUES ($name, $now, $now);";
-            agentCommand.Parameters.AddWithValue("$name", agentName);
-            agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
-            await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-        }
-
+        await connection.OpenAsync(cancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText =
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                role, harness_version, last_ping_result, last_ping_detail
-            ) VALUES (
-                $harness, $sessionId, $agentName, $bindingKind, $host,
-                '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now,
-                $role, $harnessVersion, $lastPingResult, $lastPingDetail
-            );
-            """;
-        command.Parameters.AddWithValue("$harness", harness);
-        command.Parameters.AddWithValue("$sessionId", sessionId);
-        command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
-        command.Parameters.AddWithValue("$bindingKind", bindingKind);
-        command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$endpointKind", endpointKind);
-        command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
-        command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
-        command.Parameters.AddWithValue("$role", role);
-        command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
-        command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
-        command.Parameters.AddWithValue("$lastPingDetail", (object?)lastPingDetail ?? DBNull.Value);
-
-        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-    }
-
-    /// <summary>
-    /// Updates the role on all session rows matching <paramref name="host"/>
-    /// and <paramref name="sessionId"/>.
-    /// </summary>
-    protected async Task UpdateSessionRoleAsync(string host, string sessionId, string role)
-    {
-        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
-        await connection.OpenAsync(TestContext.Current.CancellationToken);
-        await using var command = connection.CreateCommand();
-        command.CommandText =
-            "UPDATE agent_sessions SET role = $role WHERE host = $host AND session_id = $sessionId";
-        command.Parameters.AddWithValue("$role", role);
-        command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$sessionId", sessionId);
-
-        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-    }
-
-    /// <summary>
-    /// Inserts an <c>agent_sessions</c> row on <paramref name="host"/> whose
-    /// heartbeat is far outside the registry's stale window, so it is reaped
-    /// on the next read when <paramref name="host"/> is the workspace's
-    /// current instance id (a remote host's row is never reaped, however
-    /// stale).
-    /// </summary>
-    protected async Task InsertStaleSessionRowAsync(string host, string sessionId, string? agentName = null)
-    {
-        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
-        await connection.OpenAsync(TestContext.Current.CancellationToken);
-
-        if (agentName is not null)
-        {
-            await using var agentCommand = connection.CreateCommand();
-            agentCommand.CommandText =
-                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
-                + "VALUES ($name, $now, $now);";
-            agentCommand.Parameters.AddWithValue("$name", agentName);
-            agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
-            await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-        }
-
-        await using var command = connection.CreateCommand();
-        command.CommandText =
-            """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'claude-code', $sessionId, $agentName, $bindingKind, $host,
-                '/work', '/work/.nitro/agents', 'none', '', $stale, $stale
-            );
-            """;
-        command.Parameters.AddWithValue("$sessionId", sessionId);
-        command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
-        command.Parameters.AddWithValue("$bindingKind", agentName is null ? "none" : "explicit");
-        command.Parameters.AddWithValue("$host", host);
-        command.Parameters.AddWithValue("$stale", FakeTime.GetUtcNow().AddDays(-30));
-
-        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+        command.CommandText = "UPDATE agents SET deleted_at = $now WHERE name = $name";
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+        command.Parameters.AddWithValue("$name", name);
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>

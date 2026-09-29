@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
-
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
@@ -7,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// An outcome that could not be recorded is reported as pending with null generations and diagnostic.
 /// </summary>
 internal sealed record ActorWakeTargetReceipt(
-    AgentSessionGeneration Target,
+    string Target,
     string Status,
     long? OfferedGeneration,
     long? AcceptedGeneration,

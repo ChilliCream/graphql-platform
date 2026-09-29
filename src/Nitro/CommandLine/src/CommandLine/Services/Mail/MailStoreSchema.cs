@@ -11,7 +11,7 @@ internal static class MailStoreSchema
             id TEXT PRIMARY KEY,
             thread_id TEXT NOT NULL,
             in_reply_to TEXT REFERENCES messages (id),
-            sender TEXT NOT NULL REFERENCES agents (name),
+            sender TEXT NOT NULL,
             subject TEXT NOT NULL CHECK (length(subject) BETWEEN 1 AND 500),
             body TEXT NOT NULL,
             created_at TEXT NOT NULL
@@ -23,7 +23,7 @@ internal static class MailStoreSchema
 
         CREATE TABLE IF NOT EXISTS message_recipients (
             message_id TEXT NOT NULL REFERENCES messages (id) ON DELETE CASCADE,
-            recipient TEXT NOT NULL REFERENCES agents (name),
+            recipient TEXT NOT NULL,
             kind TEXT NOT NULL DEFAULT 'to' CHECK (kind IN ('to', 'cc')),
             ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
             read_at TEXT,

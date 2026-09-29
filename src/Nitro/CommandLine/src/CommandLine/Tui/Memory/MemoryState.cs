@@ -3,123 +3,82 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The selected collection, search text, loaded memory items, selection, and focus.
+/// The loaded curated-memory and journal rows, kind filter, search text, and selection for
+/// the Memory tab.
 /// </summary>
 internal sealed class MemoryState(MemoryDataLoader loader)
 {
     /// <summary>
-    /// The active collection, initially curated memories.
+    /// The active kind filter, initially every entry.
     /// </summary>
-    public MemoryCollectionFilter Collection { get; private set; } = MemoryCollectionFilter.Curated;
+    public MemoryCollectionFilter Filter { get; private set; } = MemoryCollectionFilter.All;
 
     /// <summary>
-    /// The search box text last applied to the loaded list, parsed by
-    /// <see cref="MemoryQueryParser"/>.
+    /// The search box text last applied to the loaded rows, parsed by
+    /// <see cref="MemoryQueryParser"/>. Its <c>tag:</c> and <c>type:</c> terms narrow curated
+    /// rows only; free text narrows both.
     /// </summary>
-    public string SearchText { get; private set; } = "";
+    public string SearchText { get; private set; } = string.Empty;
 
     /// <summary>
-    /// The curated memories currently loaded, populated when
-    /// <see cref="Collection"/> is <see cref="MemoryCollectionFilter.Curated"/>.
+    /// Every row matching <see cref="Filter"/> and <see cref="SearchText"/>, curated and
+    /// journal entries merged, sorted by <see cref="MemoryRow.Time"/> descending then id.
     /// </summary>
-    public IReadOnlyList<MemoryRecord> CuratedRecords { get; private set; } = [];
+    public IReadOnlyList<MemoryRow> Rows { get; private set; } = [];
 
     /// <summary>
-    /// The journal entries currently loaded, populated when
-    /// <see cref="Collection"/> is <see cref="MemoryCollectionFilter.Journal"/>.
-    /// </summary>
-    public IReadOnlyList<MemoryJournalEntry> JournalEntries { get; private set; } = [];
-
-    /// <summary>
-    /// The index of the selected row within whichever list
-    /// <see cref="Collection"/> currently shows.
+    /// The index of the selected row within <see cref="Rows"/>.
     /// </summary>
     public int SelectedRow { get; set; }
 
     /// <summary>
-    /// Which pane currently holds focus.
-    /// </summary>
-    public MemoryFocus Focus { get; set; } = MemoryFocus.List;
-
-    /// <summary>
-    /// The number of rows in whichever list <see cref="Collection"/>
-    /// currently shows.
-    /// </summary>
-    public int ItemCount => Collection == MemoryCollectionFilter.Curated ? CuratedRecords.Count : JournalEntries.Count;
-
-    /// <summary>
-    /// A diagnostic message from the last <see cref="RefreshAsync"/> when the store
-    /// rejected the read with an <see cref="ExitException"/>, or null otherwise.
+    /// A diagnostic message from the last <see cref="RefreshAsync"/> when the store rejected
+    /// the read with an <see cref="ExitException"/>, or null otherwise.
     /// </summary>
     public string? LoadError { get; private set; }
 
     /// <summary>
-    /// The curated memory at <see cref="SelectedRow"/>, or null when
-    /// <see cref="Collection"/> is not <see cref="MemoryCollectionFilter.Curated"/>
-    /// or the row is out of range.
+    /// The row at <see cref="SelectedRow"/>, or null when there is no such row.
     /// </summary>
-    public MemoryRecord? SelectedCuratedRecord
-        => Collection == MemoryCollectionFilter.Curated && SelectedRow >= 0 && SelectedRow < CuratedRecords.Count
-            ? CuratedRecords[SelectedRow]
-            : null;
+    public MemoryRow? SelectedItem
+        => SelectedRow >= 0 && SelectedRow < Rows.Count ? Rows[SelectedRow] : null;
 
     /// <summary>
-    /// The journal entry at <see cref="SelectedRow"/>, or null when
-    /// <see cref="Collection"/> is not <see cref="MemoryCollectionFilter.Journal"/>
-    /// or the row is out of range.
-    /// </summary>
-    public MemoryJournalEntry? SelectedJournalEntry
-        => Collection == MemoryCollectionFilter.Journal && SelectedRow >= 0 && SelectedRow < JournalEntries.Count
-            ? JournalEntries[SelectedRow]
-            : null;
-
-    /// <summary>
-    /// Reloads whichever list <see cref="Collection"/> currently shows for
-    /// <see cref="SearchText"/>. The selected item
-    /// stays selected when it is still present in the reloaded list;
-    /// otherwise the selected row is clamped to the new list's bounds.
+    /// Reloads every row matching <see cref="Filter"/> and <see cref="SearchText"/>. The
+    /// selected row stays selected by id when it is still present; otherwise the selection is
+    /// clamped to the new list's bounds.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
-        var query = MemoryQueryParser.Parse(SearchText);
-        var selectedId = Collection == MemoryCollectionFilter.Curated
-            ? SelectedCuratedRecord?.Id
-            : SelectedJournalEntry?.Id;
+        var selectedId = SelectedItem?.Id;
 
         try
         {
-            if (Collection == MemoryCollectionFilter.Curated)
-            {
-                CuratedRecords = await loader.LoadCuratedAsync(query, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                JournalEntries = await loader.LoadJournalAsync(query, cancellationToken).ConfigureAwait(false);
-            }
-
+            Rows = await LoadRowsAsync(cancellationToken).ConfigureAwait(false);
             LoadError = null;
         }
         catch (ExitException exception)
         {
             LoadError = exception.Message;
-            ClearActiveCollection();
+            Rows = [];
         }
 
         var preservedIndex = selectedId is null ? -1 : IndexOf(selectedId);
-        SelectedRow = preservedIndex >= 0 ? preservedIndex : Math.Clamp(SelectedRow, 0, Math.Max(0, ItemCount - 1));
+        SelectedRow = preservedIndex >= 0 ? preservedIndex : Math.Clamp(SelectedRow, 0, Math.Max(0, Rows.Count - 1));
     }
 
     /// <summary>
-    /// Toggles the collection when <paramref name="delta"/> is nonzero.
-    /// Reloads the active collection even when the delta is zero.
+    /// Cycles <see cref="Filter"/> through All, Curated, and Journal when <paramref name="delta"/>
+    /// is nonzero, reloads, and selects the first row.
     /// </summary>
-    public async Task CycleCollectionAsync(int delta, CancellationToken cancellationToken)
+    public async Task CycleFilterAsync(int delta, CancellationToken cancellationToken)
     {
         if (delta != 0)
         {
-            Collection = Collection == MemoryCollectionFilter.Curated
-                ? MemoryCollectionFilter.Journal
-                : MemoryCollectionFilter.Curated;
+            var values = Enum.GetValues<MemoryCollectionFilter>();
+            var currentIndex = Array.IndexOf(values, Filter);
+            var nextIndex = ((currentIndex + delta) % values.Length + values.Length) % values.Length;
+            Filter = values[nextIndex];
         }
 
         SelectedRow = 0;
@@ -131,43 +90,44 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     /// </summary>
     public async Task ApplySearchAsync(string text, CancellationToken cancellationToken)
     {
-        SearchText = text;
+        SearchText = text.Trim();
         SelectedRow = 0;
         await RefreshAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private void ClearActiveCollection()
+    private async Task<IReadOnlyList<MemoryRow>> LoadRowsAsync(CancellationToken cancellationToken)
     {
-        if (Collection == MemoryCollectionFilter.Curated)
+        var query = MemoryQueryParser.Parse(SearchText);
+        var rows = new List<MemoryRow>();
+
+        if (Filter != MemoryCollectionFilter.Journal)
         {
-            CuratedRecords = [];
+            var curated = await loader.LoadCuratedAsync(query, cancellationToken).ConfigureAwait(false);
+            rows.AddRange(curated.Select(ToRow));
         }
-        else
+
+        if (Filter != MemoryCollectionFilter.Curated)
         {
-            JournalEntries = [];
+            var journal = await loader.LoadJournalAsync(query, cancellationToken).ConfigureAwait(false);
+            rows.AddRange(journal.Select(ToRow));
         }
+
+        return rows.OrderByDescending(r => r.Time).ThenBy(r => r.Id, StringComparer.Ordinal).ToList();
     }
+
+    private static MemoryRow ToRow(MemoryRecord record) =>
+        new(MemoryCollectionFilter.Curated, record.Id, record.Type, record.Tags, record.Body, record.UpdatedAt);
+
+    private static MemoryRow ToRow(MemoryJournalEntry entry) =>
+        new(MemoryCollectionFilter.Journal, entry.Id, Type: null, Tags: [], entry.Body, entry.CreatedAt);
 
     private int IndexOf(string id)
     {
-        if (Collection == MemoryCollectionFilter.Curated)
+        for (var i = 0; i < Rows.Count; i++)
         {
-            for (var i = 0; i < CuratedRecords.Count; i++)
+            if (Rows[i].Id == id)
             {
-                if (CuratedRecords[i].Id == id)
-                {
-                    return i;
-                }
-            }
-        }
-        else
-        {
-            for (var i = 0; i < JournalEntries.Count; i++)
-            {
-                if (JournalEntries[i].Id == id)
-                {
-                    return i;
-                }
+                return i;
             }
         }
 

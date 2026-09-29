@@ -43,7 +43,10 @@ public sealed class BoardModeTests
     public void FocusColumn_Should_ClampAtLastColumn_When_MovingRightPastEnd()
     {
         // arrange
+        // both columns need a task so neither is hidden by the empty-column rule
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
 
@@ -302,6 +305,7 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -311,8 +315,136 @@ public sealed class BoardModeTests
 
         // assert
         Assert.Contains("Open (1)", console.Output);
-        Assert.Contains("Closed (0)", console.Output);
+        Assert.Contains("Closed (1)", console.Output);
         Assert.Contains("a-1", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_HideColumn_When_ColumnHasNoTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(6);
+
+        // act
+        console.Write(mode.Render(80, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open (1)─────────────────────────────────────────────────────────────────────╮
+            │                                                                              │
+            │     TYPE        PRIO    ID            TITLE                                  │
+            │ ──────────────────────────────────────────────────────────────────────────── │
+            │ > ○ task          P2    a-1           a-1                                    │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShareWidthAmongVisibleColumnsOnly_When_SomeColumnsAreEmpty()
+    {
+        // arrange
+        // Ready, In Progress and Closed each get one task; Blocked and Deferred stay empty
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.InProgress));
+        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Closed));
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(90).Height(6);
+
+        // act
+        console.Write(mode.Render(90, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Ready (1)──────────────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
+            │                            ││                            ││                            │
+            │     ID            TITLE    ││     ID            TITLE    ││     ID            TITLE    │
+            │ ────────────────────────── ││ ────────────────────────── ││ ────────────────────────── │
+            │ > ○ a-1           a-1      ││   ● a-2           a-2      ││   ✓ a-3           a-3      │
+            ╰────────────────────────────╯╰────────────────────────────╯╰────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowEmptyBoardPanel_When_EveryColumnHasNoTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(6);
+
+        // act
+        console.Write(mode.Render(80, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Board (0)────────────────────────────────────────────────────────────────────╮
+            │ No tasks yet.                                                                │
+            │                                                                              │
+            │                                                                              │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
+    public void FocusColumn_Should_SkipHiddenColumns_When_MovingRight()
+    {
+        // arrange
+        // Deferred sits between Open and Closed but has no tasks, so it must be skipped
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns =
+            [
+                new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "Deferred", Statuses = [TaskStates.Deferred] },
+                new ColumnDefinition { Name = "Closed", Statuses = [TaskStates.Closed] }
+            ]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Equal(2, mode.State.FocusedColumnIndex);
+        Assert.Equal("a-2", mode.SelectedTaskId);
+    }
+
+    [Fact]
+    public async Task Refresh_Should_MoveFocusToFirstVisibleColumn_When_FocusedColumnBecomesEmpty()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+        Assert.Equal(1, mode.State.FocusedColumnIndex);
+
+        // act
+        // the focused column's only task closes out of it
+        store.Tasks.RemoveAt(1);
+        await mode.State.RefreshAsync(CancellationToken.None);
+
+        // assert
+        Assert.Equal(0, mode.State.FocusedColumnIndex);
     }
 
     [Fact]
@@ -383,6 +515,7 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -401,6 +534,8 @@ public sealed class BoardModeTests
     {
         // arrange
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -420,6 +555,8 @@ public sealed class BoardModeTests
     {
         // arrange
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -430,8 +567,8 @@ public sealed class BoardModeTests
         console.Write(mode.Render(80, 20));
 
         // assert
-        Assert.Contains("Open (0)", console.Output);
-        Assert.Contains("Closed (0)", console.Output);
+        Assert.Contains("Open (1)", console.Output);
+        Assert.Contains("Closed (1)", console.Output);
     }
 
     [Fact]
@@ -452,21 +589,25 @@ public sealed class BoardModeTests
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
         bigConsole.Write(mode.Render(80, 20));
 
-        // act: shrink the frame drastically after scrolling to the bottom
+        // act
+        // shrink the frame drastically after scrolling to the bottom
         mode.OnResize(80, 4);
         var smallConsole = new TestConsole().Width(80).Height(4);
         var exception = Record.Exception(() => smallConsole.Write(mode.Render(80, 4)));
 
         // assert
         Assert.Null(exception);
-        Assert.Contains("t-30", smallConsole.Output);
+        var lines = TrimTrailingNewline(smallConsole.Output.Split('\n'));
+        Assert.Equal(4, lines.Length);
     }
 
     [Fact]
     public void Render_Should_NotThrow_When_WidthIsBelowColumnCount()
     {
         // arrange
+        // one task matching every column's filter keeps all five columns visible
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
         var view = new BoardView
         {
             Name = "Many",
@@ -557,6 +698,8 @@ public sealed class BoardModeTests
     {
         // arrange
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(40).Height(24);
@@ -570,6 +713,195 @@ public sealed class BoardModeTests
         Assert.Contains('╰', lines[11]);
         Assert.Equal(string.Empty, lines[12]);
         Assert.Contains('╰', lines[^1]);
+    }
+
+    [Fact]
+    public void Render_Should_ShowColumnTableHeader_When_ColumnHasTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("TYPE", console.Output);
+        Assert.Contains("PRIO", console.Output);
+        Assert.Contains("ID", console.Output);
+        Assert.Contains("TITLE", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTrimmedHeaderAndMoreBelow_When_InteriorHeightExactlyFitsHeaderBlock()
+    {
+        // arrange
+        // a four-row interior trims the header block to make room for one row
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open, createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", status: TaskStates.Open, createdAt: s_now.AddMinutes(1)));
+        store.Tasks.Add(TaskItemBuilder.Create("c-1", status: TaskStates.Closed));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(80).Height(6);
+
+        // act
+        console.Write(mode.Render(80, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open - 1/2 (2)───────────────────────────────────────────────────────────────╮
+            │                                                                              │
+            │     TYPE        PRIO    ID            TITLE                                  │
+            │ ──────────────────────────────────────────────────────────────────────────── │
+            │   2 more below                                                               │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTask_When_InteriorHeightAddsOneRowPastHeaderBlock()
+    {
+        // arrange
+        // one interior row past the header block fits the column's one task
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(80).Height(7);
+
+        // act
+        console.Write(mode.Render(80, 7));
+
+        // assert
+        Assert.Contains("t-1", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFocusedTaskRow_When_StackedFiveColumnsAt33Rows()
+    {
+        // arrange
+        // one task per remaining column keeps all five columns visible
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("blocked-1", status: TaskStates.Open, createdAt: s_now));
+        store.Blocked["blocked-1"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "blocked-2", status: TaskStates.Open, createdAt: s_now.AddMinutes(1)));
+        store.Blocked["blocked-2"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create("deferred-1", status: TaskStates.Deferred));
+        store.Tasks.Add(TaskItemBuilder.Create("ready-1", status: TaskStates.Open, createdAt: s_now.AddMinutes(2)));
+        store.Tasks.Add(TaskItemBuilder.Create("in-progress-1", status: TaskStates.InProgress));
+        store.Tasks.Add(TaskItemBuilder.Create("closed-1", status: TaskStates.Closed, closedAt: s_now.AddDays(-1)));
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(95).Height(33);
+
+        // act
+        console.Write(mode.Render(95, 33));
+
+        // assert
+        var selectedLine = Array.Find(
+            console.Output.Split('\n'), line => line.Contains("blocked-1", StringComparison.Ordinal));
+        Assert.NotNull(selectedLine);
+        selectedLine.MatchInlineSnapshot(
+            "│ > ○ task          P2    blocked-1     blocked-1                                             │");
+    }
+
+    [Fact]
+    public void Render_Should_ShowTaskTable_When_GridWithThreeTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-1", status: TaskStates.Open, priority: TaskPriorities.Critical, type: TaskTypes.Bug,
+            title: "Fix bug", createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-2", status: TaskStates.InProgress, priority: TaskPriorities.Medium, type: TaskTypes.Feature,
+            title: "Add feature", createdAt: s_now.AddMinutes(1)));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-3", status: TaskStates.Open, priority: TaskPriorities.Low, type: TaskTypes.Docs,
+            title: "Write docs", createdAt: s_now.AddMinutes(2)));
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open, TaskStates.InProgress] }]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+        var console = new TestConsole().Width(60).Height(12);
+
+        // act
+        console.Write(mode.Render(60, 12));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open (3)─────────────────────────────────────────────────╮
+            │                                                          │
+            │     TYPE        PRIO    ID            TITLE              │
+            │ ──────────────────────────────────────────────────────── │
+            │ > ○ bug           P0    a-1           Fix bug            │
+            │   ● feature       P2    a-2           Add feature        │
+            │   ○ docs          P3    a-3           Write docs         │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            ╰──────────────────────────────────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTaskTable_When_MaximizedWithThreeTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-1", status: TaskStates.Open, priority: TaskPriorities.Critical, type: TaskTypes.Bug,
+            title: "Fix bug", createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-2", status: TaskStates.InProgress, priority: TaskPriorities.Medium, type: TaskTypes.Feature,
+            title: "Add feature", createdAt: s_now.AddMinutes(1)));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-3", status: TaskStates.Open, priority: TaskPriorities.Low, type: TaskTypes.Docs,
+            title: "Write docs", createdAt: s_now.AddMinutes(2)));
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open, TaskStates.InProgress] }]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(60).Height(12);
+
+        // act
+        console.Write(mode.Render(60, 12));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open - 1/1 (3)───────────────────────────────────────────╮
+            │                                                          │
+            │     TYPE        PRIO    ID            TITLE              │
+            │ ──────────────────────────────────────────────────────── │
+            │ > ○ bug           P0    a-1           Fix bug            │
+            │   ● feature       P2    a-2           Add feature        │
+            │   ○ docs          P3    a-3           Write docs         │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            ╰──────────────────────────────────────────────────────────╯
+
+            """);
     }
 
     /// <summary>

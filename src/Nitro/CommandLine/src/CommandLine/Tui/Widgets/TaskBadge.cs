@@ -37,7 +37,7 @@ internal static class TaskBadge
         var glyph = TaskGlyphs.Status(status);
         var typeCode = TaskGlyphs.TypeCode(type);
         var priorityText = TaskPriorities.Format(priority);
-        var priorityStyle = ThemeTokens.GetStyle($"badge.priority.p{priority}").ToMarkup();
+        var priorityStyle = PriorityStyle(priority);
 
         // Terminal-cell width of everything but the title.
         var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(glyph) + 1
@@ -64,6 +64,12 @@ internal static class TaskBadge
 
         return line;
     }
+
+    /// <summary>
+    /// The Spectre style markup for <paramref name="priority"/>'s badge, per the
+    /// <c>badge.priority.p&lt;priority&gt;</c> theme token.
+    /// </summary>
+    public static string PriorityStyle(int priority) => ThemeTokens.GetStyle($"badge.priority.p{priority}").ToMarkup();
 
     private static string RenderNarrow(
         string prefix,

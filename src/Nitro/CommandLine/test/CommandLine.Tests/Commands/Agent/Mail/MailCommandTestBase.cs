@@ -47,47 +47,42 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// clock, for seeding data without going through the CLI.
     /// </summary>
     internal MailStore CreateStore()
-        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry());
+        => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateAgentStore());
 
     /// <summary>
-    /// Creates an <see cref="IMailStore"/> like <see cref="CreateStore"/>,
-    /// additionally wired with the instance id and global config directory
-    /// providers <see cref="MailWakePolicy.Enqueue"/> requires, pinned to
-    /// <paramref name="instanceId"/> so a directly-enqueued generation lines
-    /// up with a command run under the matching <see cref="CommandTestBase.SetupInstanceId"/>.
+    /// Creates an <see cref="IAgentStore"/> bound to this test's workspace and clock.
     /// </summary>
-    internal MailStore CreateWakeStore(string instanceId)
-        => new(
-            new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase(), CreateRegistry(),
-            new FixedInstanceIdProvider(instanceId), new FixedGlobalConfigDirectoryProvider(WorkingDirectory));
-
-    /// <summary>
-    /// Creates an <see cref="IAgentRegistry"/> bound to this test's workspace
-    /// and clock, for seeding agents without going through the CLI.
-    /// </summary>
-    internal AgentRegistry CreateRegistry()
+    internal AgentStore CreateAgentStore()
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
 
     /// <summary>
-    /// Creates an <see cref="IAgentSessionRegistry"/> bound to this test's
-    /// workspace, clock, and instance id, for resolving live participants
-    /// directly without going through the CLI: every row it acts on must
-    /// already exist, seeded directly against the database.
+    /// Registers an agent directly against the unified <c>agents</c> table, bypassing
+    /// the store's allocated-name contract so tests can seed a deterministic name.
     /// </summary>
-    internal AgentSessionRegistry CreateSessions(string host)
-        => new(
-            new TestFileSystem(WorkingDirectory),
-            FakeTime,
-            new AgentDatabase(),
-            CreateRegistry(),
-            new FixedInstanceIdProvider(host),
-            new FixedGlobalConfigDirectoryProvider(WorkingDirectory));
+    internal async Task SeedAgentAsync(string name, string role = "")
+    {
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, role, registered_at, started_at, last_seen_at)
+            VALUES ($name, $role, $now, $now, $now)
+            ON CONFLICT (name) DO UPDATE SET role = excluded.role, last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("$name", name);
+        command.Parameters.AddWithValue("$role", role);
+        command.Parameters.AddWithValue("$now", FakeTime.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+    }
 
     /// <summary>
-    /// Registers an agent directly against the registry.
+    /// Marks the named agent as deleted.
     /// </summary>
-    internal Task<AgentRecord> SeedAgentAsync(string name, string role = "")
-        => CreateRegistry().RegisterAsync(name, role, client: "", TestContext.Current.CancellationToken);
+    internal Task MarkAgentDeletedAsync(string name)
+        => ExecuteAsync($"UPDATE agents SET deleted_at = '{FakeTime.GetUtcNow():O}' WHERE name = '{name}'");
 
     /// <summary>
     /// Sends a message directly against the store, starting a new thread.
@@ -111,30 +106,18 @@ public abstract class MailCommandTestBase : CommandTestBase
             TestContext.Current.CancellationToken);
 
     /// <summary>
-    /// Seeds a fresh <c>codex-thread</c> session explicitly bound to <paramref name="agentName"/>
-    /// on <paramref name="host"/>. Configure <see cref="CommandTestBase.SetupInstanceId"/>
-    /// with the same host when the command must discover this session.
-    /// </summary>
-    private protected Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
-        => SeedAliveSessionAsync(
-            "session-1", agentName, role: "", host,
-            endpointKind: AgentSessionEndpointKind.CodexThread, endpointAddr: threadId);
-
-    /// <summary>
     /// Configures successful foreground wake delivery for each named agent.
     /// </summary>
     private protected async Task<FakeCodexQueueClient> SetupSuccessfulWakeAsync(
-        string host,
         params string[] agentNames)
     {
-        SetupInstanceId(host);
         var queueClient = new FakeCodexQueueClient();
         SetupCodexQueueClient(queueClient);
 
         foreach (var agentName in agentNames)
         {
             await SeedAliveSessionAsync(
-                $"session-{agentName}", agentName, role: "", host,
+                $"session-{agentName}", agentName, role: "",
                 endpointKind: AgentSessionEndpointKind.CodexThread,
                 endpointAddr: $"thread-{agentName}");
         }
@@ -142,15 +125,15 @@ public abstract class MailCommandTestBase : CommandTestBase
         return queueClient;
     }
 
-    private protected MailNudge CreateMailNudge(string host, FakeCodexQueueClient queueClient)
+    private protected MailNudge CreateMailNudge(FakeCodexQueueClient queueClient)
     {
         var fileSystem = new TestFileSystem(WorkingDirectory);
         var database = new AgentDatabase();
 
         return new MailNudge(
-            CreateSessions(host),
+            CreateAgentStore(),
             CreateStore(),
-            new SessionDeliveryLedger(fileSystem, database),
+            new AgentDeliveryLedger(fileSystem, database),
             new FakeClaudePeerClient(),
             queueClient,
             FakeTime);
@@ -178,50 +161,38 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Seeds a fresh session on <paramref name="host"/>, explicitly bound to
-    /// <paramref name="agentName"/> or unbound when it is <see langword="null"/>.
-    /// Configure <see cref="CommandTestBase.SetupInstanceId"/> with the same host
-    /// when the command must discover this session.
+    /// Seeds a fresh codex session directly on the unified <c>agents</c> row for
+    /// <paramref name="agentName"/>, mirroring what <c>StartSessionAsync</c> would write.
     /// </summary>
     private protected async Task SeedAliveSessionAsync(
         string sessionId,
-        string? agentName,
+        string agentName,
         string role,
-        string host,
         string endpointKind = AgentSessionEndpointKind.None,
         string endpointAddr = "")
     {
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
 
-        if (agentName is not null)
-        {
-            await using var agentCommand = connection.CreateCommand();
-            agentCommand.CommandText =
-                "INSERT OR IGNORE INTO agents (name, registered_at, last_seen_at) "
-                + "VALUES ($name, $now, $now);";
-            agentCommand.Parameters.AddWithValue("$name", agentName);
-            agentCommand.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
-            await agentCommand.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-        }
-
         await using var command = connection.CreateCommand();
         command.CommandText =
             """
-            INSERT INTO agent_sessions (
-                harness, session_id, agent_name, binding_kind, role, host,
-                cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
-            ) VALUES (
-                'codex', $sessionId, $agentName, $bindingKind, $role, $host,
-                '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now
-            );
+            INSERT INTO agents (
+                name, role, harness, session_id, endpoint_kind, endpoint_addr,
+                registered_at, started_at, last_seen_at
+            )
+            VALUES ($name, $role, 'codex', $sessionId, $endpointKind, $endpointAddr, $now, $now, $now)
+            ON CONFLICT (name) DO UPDATE SET
+                role = excluded.role,
+                harness = excluded.harness,
+                session_id = excluded.session_id,
+                endpoint_kind = excluded.endpoint_kind,
+                endpoint_addr = excluded.endpoint_addr,
+                last_seen_at = excluded.last_seen_at;
             """;
-        command.Parameters.AddWithValue("$sessionId", sessionId);
-        command.Parameters.AddWithValue("$agentName", (object?)agentName ?? DBNull.Value);
-        command.Parameters.AddWithValue(
-            "$bindingKind", agentName is null ? AgentSessionBindingKind.None : AgentSessionBindingKind.Explicit);
+        command.Parameters.AddWithValue("$name", agentName);
         command.Parameters.AddWithValue("$role", role);
-        command.Parameters.AddWithValue("$host", host);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
         command.Parameters.AddWithValue("$endpointKind", endpointKind);
         command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);

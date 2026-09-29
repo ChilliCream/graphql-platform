@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 #endif
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Features;
@@ -25,7 +26,15 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
     private static readonly HttpMethod s_queryMethod = new("QUERY");
+    private static readonly string s_oversizedRequest =
+        $$"""
+        {
+            "query": "{ __typename }",
+            "extensions": { "padding": "{{new string('a', MaxAllowedRequestSize)}}" }
+        }
+        """;
 
+    private const int MaxAllowedRequestSize = 256;
     private const string NotWellFormedRequest = """{ "query": 123 }""";
     private const string EmptyBatchRequest = "[]";
     private const string NonObjectBatchRequest = "[1]";
@@ -812,6 +821,77 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
+    // From the 2026-09-03 revision on, a request body over the maximum request size is answered
+    // 413.
+    [Theory]
+    [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(null, Draft20260903, RequestEntityTooLarge, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Draft20250508, BadRequest, ContentType.Json)]
+    [InlineData(
+        ContentType.Json,
+        Draft20260903,
+        RequestEntityTooLarge,
+        ContentType.GraphQLResponse)]
+    public async Task Post_Should_ReturnContentTooLarge_When_BodyExceedsMaxRequestSize(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetSizeLimitedClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(s_oversizedRequest, Encoding.UTF8, "application/json");
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Request size exceeds maximum allowed size.",
+                  "extensions": {
+                    "code": "HC0010"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Post_Should_ReturnContentTooLarge_When_PersistedBodyExceedsMaxRequestSize(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetSizeLimitedClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql/persisted/abc"));
+        request.Content = new StringContent(s_oversizedRequest, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+    }
+
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
     [InlineData(Draft20260903, UnprocessableContent)]
@@ -1222,29 +1302,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     [Theory]
-    [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData("query($id: String!) { human(id: $id) { name } }", Draft20250508, BadRequest)]
+    [InlineData(
+        "query($id: String!) { human(id: $id) { name } }",
+        Draft20260903,
+        UnprocessableContent)]
+    [InlineData("{ __typename }", Draft20250508, BadRequest)]
+    [InlineData("{ __typename }", Draft20260903, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        string query,
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
     {
         // arrange
-        // with the cost analyzer skipped, the empty batch reaches operation execution
-        var server = CreateStarWarsServer(
-            configureServices: s => s
-                .AddGraphQLServer()
-                .ModifyCostOptions(o => o.SkipAnalyzer = true)
-                .AddHttpResponseFormatter(
-                    new HttpResponseFormatterOptions
-                    {
-                        HttpTransportVersion = transportVersion
-                    }));
-        var client = server.CreateClient();
+        var client = GetClient(transportVersion);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
-            """{ "query": "query($id: String!) { human(id: $id) { name } }", "variables": [] }""",
+            $$"""{ "query": "{{query}}", "variables": [] }""",
             Encoding.UTF8,
             "application/json");
 
@@ -1261,7 +1337,207 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
-                {"errors":[{"message":"A variable batch request must contain at least one variable set."}]}
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    [InlineData(Draft20250508, BadRequest, ContentType.Json)]
+    [InlineData(Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ApplyContentTypeRule_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, ContentType.Json);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={Uri.EscapeDataString("{ __typename }")}&variables=%5B%5D"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_MultipartVariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        const string operations = """{ "query": "{ __typename }", "variables": [] }""";
+        var client = GetClient(transportVersion);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(operations), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_PersistedVariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql/persisted/abc"));
+        request.Content = new StringContent(
+            """{ "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_PersistedVariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri("http://localhost:5000/graphql/persisted/abc?variables=%5B%5D"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnBadRequest_When_RequestBatchContainsEmptyVariableBatch()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """[{ "query": "{ __typename }" }, { "query": "{ __typename }", "variables": [] }]""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
                 """);
     }
 
@@ -1775,6 +2051,41 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, ContentType.GraphQLResponse);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
     [InlineData(Latest)]
     [InlineData(Legacy)]
     public async Task Query_Should_ReturnBareNotAcceptable_When_EveryMediaTypeIsRejected(
@@ -1829,6 +2140,27 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 {"errors":[{"message":"Invalid JSON document.","extensions":{"code":"HC0012"}}]}
                 """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Query_Should_ReturnContentTooLarge_When_BodyExceedsMaxRequestSize(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetSizeLimitedClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(s_oversizedRequest, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
     }
 
     // A document that cannot be parsed in a QUERY request is answered on the same terms as one
@@ -2341,6 +2673,30 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                     HttpTransportVersion = serverTransportVersion
                 }),
             configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+
+        return server.CreateClient();
+    }
+
+    private HttpClient GetSizeLimitedClient(HttpTransportVersion serverTransportVersion)
+    {
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer(maxAllowedRequestSize: MaxAllowedRequestSize)
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = serverTransportVersion
+                    }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(
+                    endpoints =>
+                    {
+                        endpoints.MapGraphQLPersistedOperations();
+                        endpoints.MapGraphQL().WithOptions(o => o.EnableQueryRequests = true);
+                    }));
 
         return server.CreateClient();
     }

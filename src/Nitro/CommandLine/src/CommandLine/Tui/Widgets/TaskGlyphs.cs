@@ -47,6 +47,12 @@ internal static class TaskGlyphs
     };
 
     /// <summary>
+    /// Returns the full type name, exactly as stored: lower case for the well-known types,
+    /// unchanged for a custom type.
+    /// </summary>
+    public static string TypeName(string type) => type;
+
+    /// <summary>
     /// The bracketed type code as a Spectre markup fragment, styled per the
     /// <c>badge.type.*</c> theme token for <paramref name="type"/>.
     /// </summary>

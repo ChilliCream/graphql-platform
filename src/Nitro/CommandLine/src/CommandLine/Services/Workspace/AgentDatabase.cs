@@ -1,4 +1,3 @@
-using System.Data.Common;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
@@ -15,13 +14,21 @@ internal sealed class AgentDatabase
     /// <summary>
     /// The current unified schema version.
     /// </summary>
-    public const int CurrentVersion = 14;
+    public const int CurrentVersion = 18;
+
+    /// <summary>
+    /// The schema version at which <c>messages.sender</c> and
+    /// <c>message_recipients.recipient</c> stopped referencing <c>agents (name)</c>
+    /// as a foreign key. A database below this version has its mail tables
+    /// rebuilt without that constraint before the rest of the upgrade runs.
+    /// </summary>
+    private const int MailForeignKeysRemovedVersion = 16;
 
     /// <summary>
     /// Schema versions <see cref="InitializeAsync"/> upgrades in place
     /// instead of rejecting.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -62,19 +69,26 @@ internal sealed class AgentDatabase
             throw;
         }
 
-        // The constraint rebuild runs in its own transaction.
-        await RebuildAgentSessionsCheckConstraintIfStaleAsync(connection, cancellationToken);
+        if (version > 0 && version < MailForeignKeysRemovedVersion)
+        {
+            await RemoveMailAgentForeignKeysAsync(connection, cancellationToken);
+        }
+
+        if (version < CurrentVersion)
+        {
+            await ResetAgentDomainTablesAsync(connection, cancellationToken);
+        }
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         await connection.ExecuteAsync(TaskStoreSchema.Create, transaction: transaction);
         await connection.ExecuteAsync(AgentRegistrySchema.Create, transaction: transaction);
         await connection.ExecuteAsync(MailStoreSchema.Create, transaction: transaction);
-        await connection.ExecuteAsync(AgentSessionSchema.Create, transaction: transaction);
-        await connection.ExecuteAsync(AgentSessionIdentitySchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(PingLeaseSchema.Create, transaction: transaction);
 
         await connection.ExecuteAsync(MailWakeSchema.Create, transaction: transaction);
-        await connection.ExecuteAsync(SessionPingGateSchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(AgentDeliverySchema.Create, transaction: transaction);
+        await connection.ExecuteAsync(AgentPingGateSchema.Create, transaction: transaction);
 
         await connection.ExecuteAsync(MemoryStoreSchema.Create, transaction: transaction);
 
@@ -84,250 +98,45 @@ internal sealed class AgentDatabase
         await MemoryMarkdownImport.ImportAsync(
             connection, transaction, workspaceDirectory, cancellationToken);
 
-        await RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync(connection, transaction);
-        await RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync(connection, transaction);
-        await RebuildAgentSessionIdentitiesHarnessCheckConstraintIfStaleAsync(connection, transaction);
-
-        await UpgradeAgentsTableAsync(connection, transaction);
-
-        await UpgradeAgentSessionsMetadataColumnsAsync(connection, transaction);
-
-        if (version == 8)
-        {
-            await ResetLegacyAgentStateAsync(connection, transaction);
-        }
-
         await connection.ExecuteAsync(
             $"""PRAGMA user_version = {CurrentVersion};""", transaction: transaction);
 
         await transaction.CommitAsync(cancellationToken);
 
-        // The constraint rebuild runs after the schema transaction commits.
-        await RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync(connection, cancellationToken);
-
         return connection;
     }
 
-    private static Task ResetLegacyAgentStateAsync(
-        SqliteConnection connection,
-        DbTransaction transaction)
-        => connection.ExecuteAsync(
-            """
-            DELETE FROM mail_wake_targets;
-            DELETE FROM mail_wake_batches;
-            DELETE FROM mail_wake_outbox;
-            DELETE FROM mail_wake_daemons;
-            DELETE FROM session_ping_gates;
-            DELETE FROM session_deliveries;
-            DELETE FROM ping_leases;
-            DELETE FROM message_recipients;
-            DELETE FROM messages;
-            DELETE FROM agent_sessions;
-            DELETE FROM agent_session_identities;
-            DELETE FROM agents;
-            """,
-            transaction: transaction);
-
     /// <summary>
-    /// Adds any missing role, implicit, and client columns to the agents table.
-    /// </summary>
-    private static async Task UpgradeAgentsTableAsync(
-        SqliteConnection connection,
-        DbTransaction transaction)
-    {
-        var columns = (await connection.QueryAsync<string>(
-                "SELECT name FROM pragma_table_info('agents');", transaction: transaction))
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (!columns.Contains("role"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agents ADD COLUMN role TEXT NOT NULL DEFAULT '';",
-                transaction: transaction);
-        }
-
-        if (!columns.Contains("implicit"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agents ADD COLUMN implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1));",
-                transaction: transaction);
-        }
-
-        if (!columns.Contains("client"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agents ADD COLUMN client TEXT NOT NULL DEFAULT '';",
-                transaction: transaction);
-        }
-    }
-
-    /// <summary>
-    /// Adds missing session metadata and delivery-state columns.
-    /// </summary>
-    private static async Task UpgradeAgentSessionsMetadataColumnsAsync(
-        SqliteConnection connection,
-        DbTransaction transaction)
-    {
-        var columns = (await connection.QueryAsync<string>(
-                "SELECT name FROM pragma_table_info('agent_sessions');", transaction: transaction))
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (!columns.Contains("role"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agent_sessions ADD COLUMN role TEXT NOT NULL DEFAULT '';",
-                transaction: transaction);
-        }
-
-        if (!columns.Contains("harness_version"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agent_sessions ADD COLUMN harness_version TEXT NOT NULL DEFAULT '';",
-                transaction: transaction);
-        }
-
-        if (!columns.Contains("endpoint_secret"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agent_sessions ADD COLUMN endpoint_secret TEXT NULL;",
-                transaction: transaction);
-        }
-
-        if (!columns.Contains("announcement_pending"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agent_sessions ADD COLUMN announcement_pending INTEGER NOT NULL DEFAULT 0 "
-                + "CHECK (announcement_pending IN (0, 1));",
-                transaction: transaction);
-        }
-
-        if (!columns.Contains("idle_push_armed"))
-        {
-            await connection.ExecuteAsync(
-                "ALTER TABLE agent_sessions ADD COLUMN idle_push_armed INTEGER NOT NULL DEFAULT 0 "
-                + "CHECK (idle_push_armed IN (0, 1));",
-                transaction: transaction);
-        }
-    }
-
-    /// <summary>
-    /// Rebuilds <c>agent_sessions</c> in place when its stamped CHECK
-    /// constraint on <c>last_ping_result</c> predates <c>unsupported</c>. A
-    /// no-op when the constraint already lists <c>unsupported</c> or when
-    /// the table does not exist yet.
-    /// </summary>
-    private static async Task RebuildAgentSessionsCheckConstraintIfStaleAsync(
-        SqliteConnection connection,
-        CancellationToken cancellationToken)
-    {
-        var createTableSql = await connection.ExecuteScalarAsync<string?>(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions';");
-
-        if (createTableSql is null || createTableSql.Contains("'unsupported'", StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
-
-        try
-        {
-            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-            const string rebuildTableName = "agent_sessions_check_rebuild";
-
-            await connection.ExecuteAsync(
-                $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
-            await connection.ExecuteAsync(
-                AgentSessionSchema.CreateAgentSessionsTable(rebuildTableName), transaction: transaction);
-            await connection.ExecuteAsync(
-                $"""
-                INSERT INTO "{rebuildTableName}" (
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail
-                )
-                SELECT
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail
-                FROM agent_sessions;
-                """,
-                transaction: transaction);
-            await connection.ExecuteAsync("DROP TABLE agent_sessions;", transaction: transaction);
-            await connection.ExecuteAsync(
-                $"""ALTER TABLE "{rebuildTableName}" RENAME TO agent_sessions;""", transaction: transaction);
-
-            await connection.ExecuteAsync(
-                "CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);",
-                transaction: transaction);
-
-            await transaction.CommitAsync(cancellationToken);
-        }
-        finally
-        {
-            await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
-        }
-    }
-
-    /// <summary>
-    /// Rebuilds <c>agent_sessions</c> in place when its stamped CHECK
-    /// constraints on <c>harness</c> or <c>endpoint_kind</c> predate the
-    /// current accepted values, or when it still carries the retired
-    /// <c>pid</c> column. A no-op when the table is already current or does
+    /// Drops every agent-domain table (identity, session, wake, and ping
+    /// state) so the schema creation that follows lays them down fresh. Mail,
+    /// task, and memory tables are left untouched. A no-op for tables that do
     /// not exist yet.
     /// </summary>
-    private static async Task RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync(
+    private static async Task ResetAgentDomainTablesAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken)
     {
-        var createTableSql = await connection.ExecuteScalarAsync<string?>(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions';");
-
-        if (createTableSql is null
-            || (createTableSql.Contains("'opencode'", StringComparison.Ordinal)
-                && createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
-                && createTableSql.Contains("'opencode-server'", StringComparison.Ordinal)
-                && createTableSql.Contains("endpoint_secret", StringComparison.Ordinal)
-                && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
-        {
-            return;
-        }
-
         await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
 
         try
         {
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-            const string rebuildTableName = "agent_sessions_harness_rebuild";
-
             await connection.ExecuteAsync(
-                $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
-            await connection.ExecuteAsync(
-                AgentSessionSchema.CreateAgentSessionsTable(rebuildTableName), transaction: transaction);
-            await connection.ExecuteAsync(
-                $"""
-                INSERT INTO "{rebuildTableName}" (
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    role, harness_version
-                )
-                SELECT
-                    harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
-                    block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    role, harness_version
-                FROM agent_sessions;
+                """
+                DROP TABLE IF EXISTS agent_sessions;
+                DROP TABLE IF EXISTS agent_session_identities;
+                DROP TABLE IF EXISTS session_deliveries;
+                DROP TABLE IF EXISTS session_ping_gates;
+                DROP TABLE IF EXISTS ping_leases;
+                DROP TABLE IF EXISTS mail_wake_outbox;
+                DROP TABLE IF EXISTS mail_wake_batches;
+                DROP TABLE IF EXISTS mail_wake_targets;
+                DROP TABLE IF EXISTS mail_wake_daemons;
+                DROP TABLE IF EXISTS agent_deliveries;
+                DROP TABLE IF EXISTS agent_ping_gates;
+                DROP TABLE IF EXISTS agents;
                 """,
-                transaction: transaction);
-            await connection.ExecuteAsync("DROP TABLE agent_sessions;", transaction: transaction);
-            await connection.ExecuteAsync(
-                $"""ALTER TABLE "{rebuildTableName}" RENAME TO agent_sessions;""", transaction: transaction);
-
-            await connection.ExecuteAsync(
-                "CREATE INDEX IF NOT EXISTS idx_agent_sessions_name ON agent_sessions (agent_name);",
                 transaction: transaction);
 
             await transaction.CommitAsync(cancellationToken);
@@ -339,137 +148,78 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
-    /// Rebuilds <c>agent_session_identities</c> when its harness CHECK
-    /// constraint predates the <c>opencode</c> harness value.
+    /// Rebuilds <c>messages</c> and <c>message_recipients</c> so neither
+    /// column carries a foreign key to <c>agents</c>, preserving every row.
+    /// A no-op when the mail tables do not exist yet.
     /// </summary>
-    private static async Task RebuildAgentSessionIdentitiesHarnessCheckConstraintIfStaleAsync(
+    private static async Task RemoveMailAgentForeignKeysAsync(
         SqliteConnection connection,
-        DbTransaction transaction)
+        CancellationToken cancellationToken)
     {
-        var createTableSql = await connection.ExecuteScalarAsync<string?>(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_session_identities';",
-            transaction: transaction);
+        var mailTablesExist = await connection.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'messages';") > 0;
 
-        if (createTableSql is null || createTableSql.Contains("'opencode'", StringComparison.Ordinal))
+        if (!mailTablesExist)
         {
             return;
         }
 
-        const string rebuildTableName = "agent_session_identities_harness_rebuild";
+        await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
 
-        await connection.ExecuteAsync(
-            $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
-        await connection.ExecuteAsync(
-            AgentSessionIdentitySchema.CreateAgentSessionIdentitiesTable(rebuildTableName), transaction: transaction);
-        await connection.ExecuteAsync(
-            $"""
-            INSERT INTO "{rebuildTableName}" (
-                harness, session_id, actor, role, actor_revision, created_at, last_seen_at
-            )
-            SELECT
-                harness, session_id, actor, role, actor_revision, created_at, last_seen_at
-            FROM agent_session_identities;
-            """,
-            transaction: transaction);
-        await connection.ExecuteAsync("DROP TABLE agent_session_identities;", transaction: transaction);
-        await connection.ExecuteAsync(
-            $"""ALTER TABLE "{rebuildTableName}" RENAME TO agent_session_identities;""", transaction: transaction);
-        await connection.ExecuteAsync(
-            "CREATE INDEX IF NOT EXISTS idx_agent_session_identities_actor "
-            + "ON agent_session_identities (actor);",
-            transaction: transaction);
-    }
-
-    /// <summary>
-    /// Rebuilds <c>mail_wake_targets</c> in place when its stamped
-    /// <c>harness</c> CHECK constraint predates the current accepted values,
-    /// or when it still carries the retired <c>pid</c> column. A no-op when
-    /// the table is already current, or when it does not exist yet.
-    /// </summary>
-    private static async Task RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync(
-        SqliteConnection connection,
-        DbTransaction transaction)
-    {
-        var createTableSql = await connection.ExecuteScalarAsync<string?>(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'mail_wake_targets';",
-            transaction: transaction);
-
-        if (createTableSql is null
-            || (createTableSql.Contains("'opencode'", StringComparison.Ordinal)
-                && createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
-                && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
+        try
         {
-            return;
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            await connection.ExecuteAsync(
+                """
+                CREATE TABLE messages_new (
+                    id TEXT PRIMARY KEY,
+                    thread_id TEXT NOT NULL,
+                    in_reply_to TEXT REFERENCES messages (id),
+                    sender TEXT NOT NULL,
+                    subject TEXT NOT NULL CHECK (length(subject) BETWEEN 1 AND 500),
+                    body TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+
+                INSERT INTO messages_new (id, thread_id, in_reply_to, sender, subject, body, created_at)
+                SELECT id, thread_id, in_reply_to, sender, subject, body, created_at FROM messages;
+
+                CREATE TABLE message_recipients_new (
+                    message_id TEXT NOT NULL REFERENCES messages (id) ON DELETE CASCADE,
+                    recipient TEXT NOT NULL,
+                    kind TEXT NOT NULL DEFAULT 'to' CHECK (kind IN ('to', 'cc')),
+                    ordinal INTEGER NOT NULL CHECK (ordinal >= 0),
+                    read_at TEXT,
+                    archived_at TEXT,
+                    PRIMARY KEY (message_id, recipient),
+                    UNIQUE (message_id, ordinal)
+                );
+
+                INSERT INTO message_recipients_new (message_id, recipient, kind, ordinal, read_at, archived_at)
+                SELECT message_id, recipient, kind, ordinal, read_at, archived_at FROM message_recipients;
+
+                DROP TABLE message_recipients;
+                DROP TABLE messages;
+
+                ALTER TABLE messages_new RENAME TO messages;
+                ALTER TABLE message_recipients_new RENAME TO message_recipients;
+
+                CREATE INDEX idx_messages_thread_id ON messages (thread_id);
+                CREATE INDEX idx_messages_created_at ON messages (created_at);
+                CREATE INDEX idx_messages_sender ON messages (sender);
+
+                CREATE INDEX idx_message_recipients_recipient
+                    ON message_recipients (recipient);
+                """,
+                transaction: transaction);
+
+            await transaction.CommitAsync(cancellationToken);
         }
-
-        const string rebuildTableName = "mail_wake_targets_harness_rebuild";
-
-        await connection.ExecuteAsync(
-            $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
-        await connection.ExecuteAsync(
-            MailWakeSchema.CreateMailWakeTargetsTable(rebuildTableName), transaction: transaction);
-        await connection.ExecuteAsync(
-            $"""
-            INSERT INTO "{rebuildTableName}" (
-                batch_id, harness, session_id, host,
-                status, offered_generation, accepted_generation, last_error, updated_at
-            )
-            SELECT
-                batch_id, harness, session_id, host,
-                status, offered_generation, accepted_generation, last_error, updated_at
-            FROM mail_wake_targets;
-            """,
-            transaction: transaction);
-        await connection.ExecuteAsync("DROP TABLE mail_wake_targets;", transaction: transaction);
-        await connection.ExecuteAsync(
-            $"""ALTER TABLE "{rebuildTableName}" RENAME TO mail_wake_targets;""", transaction: transaction);
-    }
-
-    /// <summary>
-    /// Rebuilds <c>session_ping_gates</c> in place when its stamped
-    /// <c>harness</c> CHECK constraint predates the current accepted values,
-    /// or when it still carries the retired <c>pid</c> column. A no-op when
-    /// the table is already current, or when it does not exist yet.
-    /// </summary>
-    private static async Task RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync(
-        SqliteConnection connection,
-        DbTransaction transaction)
-    {
-        var createTableSql = await connection.ExecuteScalarAsync<string?>(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'session_ping_gates';",
-            transaction: transaction);
-
-        if (createTableSql is null
-            || (createTableSql.Contains("'opencode'", StringComparison.Ordinal)
-                && createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
-                && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
+        finally
         {
-            return;
+            await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
         }
-
-        const string rebuildTableName = "session_ping_gates_harness_rebuild";
-
-        await connection.ExecuteAsync(
-            $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
-        await connection.ExecuteAsync(
-            SessionPingGateSchema.CreateSessionPingGatesTable(rebuildTableName), transaction: transaction);
-        await connection.ExecuteAsync(
-            $"""
-            INSERT INTO "{rebuildTableName}" (
-                harness, session_id, host, attempt_id, acquired_at, expires_at
-            )
-            SELECT
-                harness, session_id, host, attempt_id, acquired_at, expires_at
-            FROM session_ping_gates;
-            """,
-            transaction: transaction);
-        await connection.ExecuteAsync("DROP TABLE session_ping_gates;", transaction: transaction);
-        await connection.ExecuteAsync(
-            $"""ALTER TABLE "{rebuildTableName}" RENAME TO session_ping_gates;""", transaction: transaction);
-
-        await connection.ExecuteAsync(
-            "CREATE INDEX IF NOT EXISTS idx_session_ping_gates_expires ON session_ping_gates (expires_at);",
-            transaction: transaction);
     }
 
     /// <summary>
@@ -563,11 +313,13 @@ internal sealed class AgentDatabase
         return connection;
     }
 
-    private static Task ConfigureAcceptedConnectionAsync(
+    private static async Task ConfigureAcceptedConnectionAsync(
         SqliteConnection connection,
         CancellationToken cancellationToken)
-        => connection.ExecuteAsync(
-            new CommandDefinition(
-                "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;",
-                cancellationToken: cancellationToken));
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;";
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }

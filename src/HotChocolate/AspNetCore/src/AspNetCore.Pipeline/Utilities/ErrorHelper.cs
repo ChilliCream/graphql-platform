@@ -31,6 +31,14 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
+    public static GraphQLRequestException EmptyVariableBatch()
+        => new(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_EmptyVariableBatch)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            new InvalidGraphQLRequestException(ErrorHelper_EmptyVariableBatch));
+
     public static IError NoSupportedAcceptMediaType()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_NoSupportedAcceptMediaType)

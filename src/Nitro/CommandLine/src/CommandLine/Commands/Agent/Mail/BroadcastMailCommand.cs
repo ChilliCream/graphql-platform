@@ -39,8 +39,7 @@ internal sealed class BroadcastMailCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<IMailStore>();
-        var registry = services.GetRequiredService<IAgentRegistry>();
-        var sessions = services.GetRequiredService<IAgentSessionRegistry>();
+        var agents = services.GetRequiredService<IAgentStore>();
         var nudge = services.GetRequiredService<IMailNudge>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
@@ -53,15 +52,15 @@ internal sealed class BroadcastMailCommand : Command
             parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
 
         var to = role is null
-            ? await ResolveEveryRegisteredAgentAsync(registry, actor, cancellationToken)
-            : await MailRoleRecipients.ResolveAsync(sessions, role, actor, cancellationToken);
+            ? await ResolveEveryRegisteredAgentAsync(agents, actor, cancellationToken)
+            : await MailRoleRecipients.ResolveAsync(agents, role, actor, cancellationToken);
 
         if (to.Count is 0)
         {
             throw new ExitException(
                 role is null
                     ? "No other registered agent to broadcast to."
-                    : $"No live agent with role '{role}' to broadcast to (older sessions must re-register).");
+                    : $"No agent with role '{role}' to broadcast to.");
         }
 
         var body = await MailBody.ResolveAsync(parseResult, fileSystem, cancellationToken);
@@ -96,18 +95,18 @@ internal sealed class BroadcastMailCommand : Command
     }
 
     /// <summary>
-    /// Returns the normalized names of every non-implicit registered agent
-    /// except <paramref name="excludingActor"/>.
+    /// Returns the normalized names, ordered by name, of every non-deleted
+    /// registered agent except <paramref name="excludingActor"/>.
     /// </summary>
     private static async Task<IReadOnlyList<string>> ResolveEveryRegisteredAgentAsync(
-        IAgentRegistry registry, string excludingActor, CancellationToken cancellationToken)
+        IAgentStore agents, string excludingActor, CancellationToken cancellationToken)
     {
-        var agents = await registry.ListAsync(role: null, staleBefore: null, cancellationToken);
+        var rows = await agents.ListAsync(cancellationToken);
 
-        return agents
-            .Where(agent => !agent.Implicit)
+        return rows
             .Select(agent => agent.Name)
             .Where(name => name != excludingActor)
+            .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray();
     }
 }

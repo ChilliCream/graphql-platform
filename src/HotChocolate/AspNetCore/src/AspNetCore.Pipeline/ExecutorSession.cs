@@ -1,5 +1,6 @@
 using System.IO.Pipelines;
 using System.Net;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
@@ -189,7 +190,7 @@ public sealed class ExecutorSession
         CancellationToken cancellationToken)
     {
         var requests = await _requestParser.ParseRequestAsync(requestBody, _skipDocumentBody, cancellationToken);
-        ThrowIfDocumentBodyNotAllowed(requests);
+        ValidateParsedRequests(requests);
         return requests;
     }
 
@@ -201,14 +202,14 @@ public sealed class ExecutorSession
     {
         var request = await _requestParser.ParsePersistedOperationRequestAsync(
             documentId, operationName, requestBody, _skipDocumentBody, cancellationToken);
-        ThrowIfDocumentBodyNotAllowed(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
     public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
         var request = _requestParser.ParseRequestFromParams(parameters, _skipDocumentBody);
-        ThrowIfDocumentBodyNotAllowed(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
@@ -216,13 +217,52 @@ public sealed class ExecutorSession
         string operationId,
         string? operationName,
         IQueryCollection parameters)
-        => _requestParser.ParsePersistedOperationRequestFromParams(operationId, operationName, parameters);
+    {
+        var request = _requestParser.ParsePersistedOperationRequestFromParams(
+            operationId,
+            operationName,
+            parameters);
+        ValidateParsedRequest(request);
+        return request;
+    }
 
     public GraphQLRequest[] ParseRequest(string sourceText)
     {
         var requests = _requestParser.ParseRequest(sourceText, _skipDocumentBody);
-        ThrowIfDocumentBodyNotAllowed(requests);
+        ValidateParsedRequests(requests);
         return requests;
+    }
+
+    private void ValidateParsedRequest(GraphQLRequest request)
+    {
+        try
+        {
+            ThrowIfDocumentBodyNotAllowed(request);
+            ThrowIfVariableBatchIsEmpty(request);
+        }
+        catch
+        {
+            request.Dispose();
+            throw;
+        }
+    }
+
+    private void ValidateParsedRequests(GraphQLRequest[] requests)
+    {
+        try
+        {
+            ThrowIfDocumentBodyNotAllowed(requests);
+            ThrowIfVariableBatchIsEmpty(requests);
+        }
+        catch
+        {
+            foreach (var request in requests)
+            {
+                request.Dispose();
+            }
+
+            throw;
+        }
     }
 
     private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest request)
@@ -238,6 +278,23 @@ public sealed class ExecutorSession
         foreach (var request in requests)
         {
             ThrowIfDocumentBodyNotAllowed(request);
+        }
+    }
+
+    private static void ThrowIfVariableBatchIsEmpty(GraphQLRequest request)
+    {
+        if (request.Variables is { RootElement: { ValueKind: JsonValueKind.Array } variableSets }
+            && variableSets.GetArrayLength() == 0)
+        {
+            throw ErrorHelper.EmptyVariableBatch();
+        }
+    }
+
+    private static void ThrowIfVariableBatchIsEmpty(GraphQLRequest[] requests)
+    {
+        foreach (var request in requests)
+        {
+            ThrowIfVariableBatchIsEmpty(request);
         }
     }
 

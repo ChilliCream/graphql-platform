@@ -35,7 +35,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
@@ -67,7 +67,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
@@ -102,7 +102,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
@@ -137,7 +137,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);

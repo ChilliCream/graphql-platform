@@ -6,10 +6,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 internal sealed class PingSessionExecutor(
     IMailStore mailStore,
-    ISessionDeliveryLedger ledger,
+    IAgentDeliveryLedger ledger,
     ICodexQueueClient queueClient,
     IClaudePeerClient claudePeerClient,
-    IAgentSessionRegistry sessionRegistry,
+    IAgentStore agentStore,
     IPingLeaseStore leaseStore,
     TimeProvider timeProvider,
     IOpencodeServerClient opencodeServerClient) : IPingSessionExecutor
@@ -20,8 +20,6 @@ internal sealed class PingSessionExecutor(
     internal const string HealthOnlyDetail = "health-only";
 
     public Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
-        string harness,
-        string sessionId,
         string actorName,
         string endpointAddr,
         string attemptId,
@@ -29,8 +27,6 @@ internal sealed class PingSessionExecutor(
         DateTimeOffset deadline,
         CancellationToken cancellationToken)
         => ExecuteAsync(
-            harness,
-            sessionId,
             actorName,
             attemptId,
             slot,
@@ -41,16 +37,13 @@ internal sealed class PingSessionExecutor(
             cancellationToken);
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
-        string harness,
-        string sessionId,
         string actorName,
+        string sessionId,
         string attemptId,
         int slot,
         DateTimeOffset deadline,
         CancellationToken cancellationToken)
         => ExecuteAsync(
-            harness,
-            sessionId,
             actorName,
             attemptId,
             slot,
@@ -61,9 +54,8 @@ internal sealed class PingSessionExecutor(
             cancellationToken);
 
     public Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
-        string harness,
-        string sessionId,
         string actorName,
+        string sessionId,
         string endpointAddr,
         string? endpointSecret,
         string attemptId,
@@ -71,8 +63,6 @@ internal sealed class PingSessionExecutor(
         DateTimeOffset deadline,
         CancellationToken cancellationToken)
         => ExecuteAsync(
-            harness,
-            sessionId,
             actorName,
             attemptId,
             slot,
@@ -99,12 +89,10 @@ internal sealed class PingSessionExecutor(
 
     /// <summary>
     /// Builds a digest and invokes <paramref name="sendAsync"/> within the attempt budget,
-    /// passing null when no unread mail or matching claimed session remains.
-    /// Outcome recording and lease release are best effort.
+    /// passing null when no unread mail remains. Outcome recording and lease release
+    /// are best effort.
     /// </summary>
     private async Task<PingAttemptOutcome> ExecuteAsync(
-        string harness,
-        string sessionId,
         string actorName,
         string attemptId,
         int slot,
@@ -119,8 +107,7 @@ internal sealed class PingSessionExecutor(
             // An expired deadline produces a timeout without digest or transport work.
             try
             {
-                return await WriteResultAsync(
-                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
+                return await WriteResultAsync(actorName, attemptId, PingAttemptReason.Timeout, null);
             }
             finally
             {
@@ -138,13 +125,11 @@ internal sealed class PingSessionExecutor(
 
             try
             {
-                digest = await BuildDigestAsync(
-                    harness, sessionId, actorName, linkedSource.Token);
+                digest = await BuildDigestAsync(actorName, linkedSource.Token);
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
-                return await WriteResultAsync(
-                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
+                return await WriteResultAsync(actorName, attemptId, PingAttemptReason.Timeout, null);
             }
 
             TransportOutcome transportOutcome;
@@ -155,18 +140,17 @@ internal sealed class PingSessionExecutor(
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
-                return await WriteResultAsync(
-                    harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
+                return await WriteResultAsync(actorName, attemptId, PingAttemptReason.Timeout, null);
             }
 
             return await WriteResultAsync(
-                harness, sessionId, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
+                actorName, attemptId, transportOutcome.Reason, Truncate(transportOutcome.Detail));
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             // Non-cancellation failures produce a transport-error outcome.
             return await WriteResultAsync(
-                harness, sessionId, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
+                actorName, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
         }
         finally
         {
@@ -174,11 +158,7 @@ internal sealed class PingSessionExecutor(
         }
     }
 
-    private async Task<string?> BuildDigestAsync(
-        string harness,
-        string sessionId,
-        string actorName,
-        CancellationToken cancellationToken)
+    private async Task<string?> BuildDigestAsync(string actorName, CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
             new MailInboxFilter { Actor = actorName, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
@@ -189,27 +169,10 @@ internal sealed class PingSessionExecutor(
             return null;
         }
 
-        var session = (await sessionRegistry.FindLiveClaimedByAgentNameAsync(actorName, cancellationToken))
-            .FirstOrDefault(candidate =>
-                candidate.Harness == harness && candidate.SessionId == sessionId);
-
-        if (session is null)
-        {
-            return null;
-        }
-
-        var generation = new AgentSessionGeneration(
-            session.Harness, session.SessionId, session.Host);
         var messageIds = unread.Select(message => message.Id).ToList();
-        var delivered = await ledger.FindDeliveredAsync(
-            generation, messageIds, cancellationToken);
+        var delivered = await ledger.FindDeliveredAsync(actorName, messageIds, cancellationToken);
         var reserved = await ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
-            messageIds,
-            AgentSessionChannel.Ping,
-            timeProvider.GetUtcNow(),
-            cancellationToken);
+            actorName, messageIds, AgentSessionChannel.Ping, timeProvider.GetUtcNow(), cancellationToken);
         var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
         var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
         var messages = unread
@@ -225,14 +188,13 @@ internal sealed class PingSessionExecutor(
     /// even if recording fails.
     /// </summary>
     private async Task<PingAttemptOutcome> WriteResultAsync(
-        string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail)
+        string actorName, string attemptId, PingAttemptReason reason, string? detail)
     {
         var result = ToResult(reason);
 
         try
         {
-            await sessionRegistry.WritePingResultAsync(
-                harness, sessionId, attemptId, result, detail, CancellationToken.None);
+            await agentStore.WritePingResultAsync(actorName, attemptId, result, detail, CancellationToken.None);
         }
         catch
         {
@@ -244,8 +206,7 @@ internal sealed class PingSessionExecutor(
             reason,
             IsRetryable(reason),
             detail,
-            harness,
-            sessionId,
+            actorName,
             attemptId,
             timeProvider.GetUtcNow());
     }

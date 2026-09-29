@@ -1,42 +1,35 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Manages shared mail-wake leadership leases, one per Nitro instance.
+/// Manages the single shared mail-wake leadership lease for this workspace.
 /// </summary>
 internal interface IMailWakeDaemonLeaderStore
 {
     /// <summary>
-    /// Claims absent or expired leadership and returns its new epoch, starting at 1.
-    /// Returns null while any unexpired lease exists, including one held by the same owner.
+    /// Claims the lease when no row exists yet or the existing lease has expired,
+    /// stamping <paramref name="token"/> as the new holder. Returns false, claiming
+    /// nothing, while any unexpired lease exists, including one held by
+    /// <paramref name="token"/> itself.
     /// </summary>
-    Task<long?> TryAcquireAsync(
-        string nitroInstanceId,
-        string ownerId,
+    Task<bool> TryAcquireAsync(
+        string token,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Sets the matching leader lease's expiry and last error; null clears the error.
-    /// Returns false when the owner or epoch differs or the lease has expired.
+    /// Extends the lease's expiry for its current holder. Returns false, changing
+    /// nothing, when <paramref name="token"/> does not hold an unexpired lease.
     /// </summary>
     Task<bool> TryRenewAsync(
-        string nitroInstanceId,
-        string ownerId,
-        long epoch,
+        string token,
         DateTimeOffset now,
         TimeSpan leaseDuration,
-        string? lastError,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Sets the matching owner and epoch's lease expiry to <paramref name="now"/>.
-    /// Returns false when no matching leadership row exists.
+    /// Expires the lease immediately for its current holder. Returns false, changing
+    /// nothing, when <paramref name="token"/> does not hold the lease.
     /// </summary>
-    Task<bool> TryReleaseAsync(
-        string nitroInstanceId,
-        string ownerId,
-        long epoch,
-        DateTimeOffset now,
-        CancellationToken cancellationToken);
+    Task<bool> TryReleaseAsync(string token, DateTimeOffset now, CancellationToken cancellationToken);
 }

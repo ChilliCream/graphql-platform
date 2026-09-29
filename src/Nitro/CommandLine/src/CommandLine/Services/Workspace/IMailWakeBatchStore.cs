@@ -3,27 +3,27 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// <summary>
 /// Atomic conditional primitives over <c>mail_wake_batches</c>,
 /// <c>mail_wake_targets</c>, and the claim/settle side of
-/// <c>mail_wake_outbox</c>. Every mutation is owner/attempt/expiry fenced:
-/// it only applies when the caller still holds the exact claim it is acting
-/// on, so a renewal or completion lost to a fresher claimant becomes a
-/// silent no-op rather than corrupting state a new owner has since taken
-/// over. Does not decide which actor to claim next, which sessions belong in
-/// a batch, or how to react to a target's outcome; those policies belong to
-/// the caller (the direct-first wake dispatcher).
+/// <c>mail_wake_outbox</c>. Every mutation is owner/attempt/expiry fenced
+/// and additionally requires the caller's owner id to be the current
+/// <c>mail_wake_daemons</c> leader lease holder, so a stale or demoted
+/// leader's writes become a silent no-op. Does not decide which actor to
+/// claim next, which agents belong in a batch, or how to react to a
+/// target's outcome; those policies belong to the caller (the direct-first
+/// wake dispatcher).
 /// </summary>
 internal interface IMailWakeBatchStore
 {
     /// <summary>
-    /// Claims due, unsettled work for the instance and actor, replacing any expired
+    /// Claims due, unsettled work for the actor, replacing any expired
     /// batch and recording the current requested generation and supplied targets.
-    /// Returns null when no work is due or an unexpired active batch exists.
+    /// Returns null when no work is due, an unexpired active batch exists,
+    /// or the caller does not hold the current leader lease.
     /// </summary>
     Task<MailWakeBatchClaim?> TryClaimAsync(
-        string nitroInstanceId,
         string actor,
         string ownerId,
         string attemptId,
-        IReadOnlyList<AgentSessionGeneration> targets,
+        IReadOnlyList<string> targets,
         DateTimeOffset now,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken);
@@ -77,7 +77,7 @@ internal interface IMailWakeBatchStore
     /// </summary>
     Task<bool> TryRecordTargetOutcomeAsync(
         string batchId,
-        AgentSessionGeneration target,
+        string target,
         string ownerId,
         string attemptId,
         string status,

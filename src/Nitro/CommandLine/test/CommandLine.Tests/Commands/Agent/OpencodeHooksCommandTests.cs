@@ -1,17 +1,11 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
-public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
+public sealed class OpencodeHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
-    private const string FixedHost = "host-opencode-hooks-tests";
-
-    public OpencodeHooksCommandTests(NitroCommandFixture fixture) : base(fixture)
-    {
-        SetupInstanceId(FixedHost);
-    }
-
     [Fact]
     public async Task ExecuteCommandAsync_Should_ExplainFailOpenLocalOnlySetup_When_OpencodeHelpIsRequested()
     {
@@ -109,11 +103,9 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-reachable",
+        await InsertAgentRowAsync(
             "maya",
-            harness: AgentSessionHarness.Opencode,
+            "session-reachable",
             endpointKind: AgentSessionEndpointKind.OpencodeServer,
             endpointAddr: "http://127.0.0.1:51000",
             lastPingResult: AgentPingResult.Ok);
@@ -136,11 +128,9 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-bound-ping-failed",
+        await InsertAgentRowAsync(
             "maya",
-            harness: AgentSessionHarness.Opencode,
+            "session-bound-ping-failed",
             endpointKind: AgentSessionEndpointKind.OpencodeServer,
             endpointAddr: "http://127.0.0.1:51000",
             lastPingResult: AgentPingResult.Error,
@@ -163,12 +153,7 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-unreachable",
-            "maya",
-            harness: AgentSessionHarness.Opencode,
-            endpointKind: AgentSessionEndpointKind.None);
+        await InsertAgentRowAsync("maya", "session-unreachable");
 
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
@@ -193,11 +178,9 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-endpoint-gone",
+        await InsertAgentRowAsync(
             "maya",
-            harness: AgentSessionHarness.Opencode,
+            "session-endpoint-gone",
             endpointKind: AgentSessionEndpointKind.OpencodeServer,
             endpointAddr: "http://127.0.0.1:51000",
             lastPingResult: AgentPingResult.EndpointGone);
@@ -251,11 +234,9 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
-        await InsertAliveSessionRowAsync(
-            FixedHost,
-            "session-json",
+        await InsertAgentRowAsync(
             "maya",
-            harness: AgentSessionHarness.Opencode,
+            "session-json",
             endpointKind: AgentSessionEndpointKind.OpencodeServer,
             endpointAddr: "http://127.0.0.1:51000",
             lastPingResult: AgentPingResult.Ok,
@@ -272,5 +253,70 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         Assert.Equal("reachable at last ping", session.GetProperty("reachability").GetString());
         Assert.Equal(AgentPingResult.Ok, session.GetProperty("lastPingResult").GetString());
         Assert.Equal("healthy", session.GetProperty("lastPingDetail").GetString());
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_OmitTheSession_When_TheSessionHasEnded()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+        await InsertAgentRowAsync(
+            "maya",
+            "session-ended",
+            endpointKind: AgentSessionEndpointKind.OpencodeServer,
+            endpointAddr: "http://127.0.0.1:51000",
+            lastPingResult: AgentPingResult.Ok,
+            endedAt: FakeTime.GetUtcNow());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        document.RootElement.GetProperty("sessions").GetRawText().MatchInlineSnapshot("[]");
+    }
+
+    /// <summary>
+    /// Inserts one opencode agent row directly into the unified <c>agents</c> table with
+    /// fresh timestamps and the supplied endpoint and ping state.
+    /// </summary>
+    private async Task InsertAgentRowAsync(
+        string name,
+        string sessionId,
+        string endpointKind = AgentSessionEndpointKind.None,
+        string endpointAddr = "",
+        string? lastPingResult = null,
+        string? lastPingDetail = null,
+        DateTimeOffset? endedAt = null)
+    {
+        var now = FakeTime.GetUtcNow();
+
+        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (
+                name, harness, session_id, endpoint_kind, endpoint_addr,
+                last_ping_result, last_ping_detail, registered_at, started_at, last_seen_at, ended_at
+            ) VALUES (
+                $name, $harness, $sessionId, $endpointKind, $endpointAddr,
+                $lastPingResult, $lastPingDetail, $now, $now, $now, $endedAt
+            );
+            """;
+        command.Parameters.AddWithValue("$name", name);
+        command.Parameters.AddWithValue("$harness", AgentSessionHarness.Opencode);
+        command.Parameters.AddWithValue("$sessionId", sessionId);
+        command.Parameters.AddWithValue("$endpointKind", endpointKind);
+        command.Parameters.AddWithValue("$endpointAddr", endpointAddr);
+        command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
+        command.Parameters.AddWithValue("$lastPingDetail", (object?)lastPingDetail ?? DBNull.Value);
+        command.Parameters.AddWithValue("$now", now);
+        command.Parameters.AddWithValue("$endedAt", (object?)endedAt ?? DBNull.Value);
+
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 }
