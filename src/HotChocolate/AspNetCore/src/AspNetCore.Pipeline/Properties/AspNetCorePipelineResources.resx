@@ -27,6 +27,9 @@
   <data name="ThrowHelper_DefaultHttpRequestParser_MaxRequestSizeExceeded" xml:space="preserve">
     <value>Request size exceeds maximum allowed size.</value>
   </data>
+  <data name="ThrowHelper_RequestBodyTooLarge" xml:space="preserve">
+    <value>The request body exceeds the maximum size the server accepts.</value>
+  </data>
   <data name="ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
   </data>

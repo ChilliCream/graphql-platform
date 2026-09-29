@@ -44,6 +44,12 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
+    public static GraphQLRequestException RequestBodyTooLarge() =>
+        new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_RequestBodyTooLarge)
+            .SetCode(ErrorCodes.Server.RequestBodyTooLarge)
+            .Build());
+
     public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(Exception ex) =>
         new GraphQLRequestException(
             ErrorBuilder.New()

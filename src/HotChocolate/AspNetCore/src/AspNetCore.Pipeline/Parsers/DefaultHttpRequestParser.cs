@@ -160,7 +160,17 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         while (true)
         {
-            var result = await requestBody.ReadAsync(cancellationToken);
+            ReadResult result;
+
+            try
+            {
+                result = await requestBody.ReadAsync(cancellationToken);
+            }
+            catch (BadHttpRequestException exception)
+                when (exception.StatusCode == StatusCodes.Status413PayloadTooLarge)
+            {
+                throw RequestBodyTooLarge();
+            }
 
             if (result.Buffer.Length > _maxRequestSize)
             {

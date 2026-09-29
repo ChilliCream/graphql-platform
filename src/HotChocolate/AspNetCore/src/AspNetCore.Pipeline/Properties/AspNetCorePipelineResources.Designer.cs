@@ -255,6 +255,12 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string ThrowHelper_RequestBodyTooLarge {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RequestBodyTooLarge", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_InvalidAcceptMediaType {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidAcceptMediaType", resourceCulture);
