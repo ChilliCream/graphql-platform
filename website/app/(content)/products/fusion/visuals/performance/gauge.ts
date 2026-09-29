@@ -36,6 +36,11 @@ export function sweepAngle(
   return startAngle + fraction * (endAngle - startAngle);
 }
 
+export function logFraction(value: number, min: number, max: number): number {
+  const clamped = Math.min(max, Math.max(min, value));
+  return Math.log(clamped / min) / Math.log(max / min);
+}
+
 export function polarCss(
   angleDeg: number,
   rFraction: number,

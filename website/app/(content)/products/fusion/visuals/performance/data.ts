@@ -1,3 +1,5 @@
+import { logFraction } from "./gauge";
+
 export const CALM_MS = 4000;
 export const RAMP_MS = 1500;
 export const BURST_MS = 5000;
@@ -32,10 +34,16 @@ export const NET_IN_BURST: readonly [number, number] = [75, 90];
 export const NET_OUT_CALM: readonly [number, number] = [8, 15];
 export const NET_OUT_BURST: readonly [number, number] = [65, 80];
 
+export const LATENCY_MIN = 1;
 export const LATENCY_MAX = 40;
+export const LATENCY_MAJOR_TICKS: readonly number[] = [1, 2, 5, 10, 20, 40];
+export const LATENCY_MINOR_TICKS: readonly number[] = [3, 4, 6, 7, 8, 9, 30];
 export const LATENCY_P50 = 7;
 export const LATENCY_BAND: readonly [number, number] = [9, 13];
 export const LATENCY_DOMAIN: readonly [number, number] = [7, 15];
+
+export const latencyFraction = (ms: number): number =>
+  logFraction(ms, LATENCY_MIN, LATENCY_MAX);
 
 export const HISTORY_POINTS = 36;
 export const HISTORY_STEP_MS = 160;
