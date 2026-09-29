@@ -38,6 +38,10 @@ Each area has its own solution file, so you can build or test a subset directly:
 dotnet test src/HotChocolate/Fusion
 ```
 
+## Updating .NET
+
+When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK version in `global.json`, work through [docs/updating-dotnet.md](docs/updating-dotnet.md) before handoff.
+
 ## Code Quality
 
 ### C# / .NET

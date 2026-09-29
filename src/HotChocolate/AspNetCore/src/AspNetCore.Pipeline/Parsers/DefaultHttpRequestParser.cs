@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Parsers;
 
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
-    private const int MinRequestSize = 256;
+    internal const int MinRequestSize = 256;
     internal const string QueryIdKey = "id";
     private const string OperationNameKey = "operationName";
     private const string OnErrorKey = "onError";

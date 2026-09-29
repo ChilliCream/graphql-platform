@@ -9,9 +9,9 @@ using ThrowHelper = HotChocolate.AspNetCore.Utilities.ThrowHelper;
 namespace HotChocolate.AspNetCore.Parsers;
 
 /// <summary>
-/// Reads the form of a <c>multipart/form-data</c> request. The <c>operations</c> field is held
-/// to the maximum request size, and every other section to
-/// <see cref="FormOptions.MultipartBodyLengthLimit"/>.
+/// Reads the form of a <c>multipart/form-data</c> request, applying the maximum request size to
+/// the <c>operations</c> field and <see cref="FormOptions.MultipartBodyLengthLimit"/> to every
+/// other section.
 /// </summary>
 internal static class MultipartFormReader
 {

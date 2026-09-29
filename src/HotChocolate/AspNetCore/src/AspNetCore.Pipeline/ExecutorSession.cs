@@ -24,6 +24,7 @@ public sealed class ExecutorSession
     private readonly IHttpRequestInterceptor _requestInterceptor;
     private readonly ISocketSessionInterceptor _socketSessionInterceptor;
     private readonly IHttpRequestParser _requestParser;
+    private readonly HttpRequestLimits _requestLimits;
     private readonly IHttpResponseFormatter _responseFormatter;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
     private readonly bool _skipDocumentBody;
@@ -39,6 +40,7 @@ public sealed class ExecutorSession
         _socketSessionInterceptor = executor.Schema.Services.GetRequiredService<ISocketSessionInterceptor>();
         _responseFormatter = executor.Schema.Services.GetRequiredService<IHttpResponseFormatter>();
         _requestParser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
+        _requestLimits = executor.Schema.Services.GetRequiredService<HttpRequestLimits>();
         _diagnosticEvents = executor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
         var persistedOps = executor.Schema.Services.GetService<PersistedOperationOptions>();
         _skipDocumentBody = persistedOps is { OnlyAllowPersistedDocuments: true, AllowDocumentBody: false };
@@ -52,6 +54,8 @@ public sealed class ExecutorSession
     internal bool ReportsUnsupportedMethodOrMediaType
         => _responseFormatter is DefaultHttpResponseFormatter formatter
             && formatter.ReportsUnsupportedMethodOrMediaType;
+
+    internal int MaxRequestSize => _requestLimits.MaxRequestSize;
 
     public ulong Version => _executor.Version;
 

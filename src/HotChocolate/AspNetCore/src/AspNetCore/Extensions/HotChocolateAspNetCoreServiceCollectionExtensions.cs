@@ -139,6 +139,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            s.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             s.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {

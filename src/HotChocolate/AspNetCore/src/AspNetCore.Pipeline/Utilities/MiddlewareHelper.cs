@@ -298,7 +298,9 @@ internal static class MiddlewareHelper
                 null);
         }
         else if (exception.Errors is [{ Code: { } code }]
-            && code is ErrorCodes.Server.MaxRequestSize or ErrorCodes.Server.RequestBodyTooLarge)
+            && code is ErrorCodes.Server.MaxRequestSize
+                or ErrorCodes.Server.MultiPartSectionTooLarge
+                or ErrorCodes.Server.RequestBodyTooLarge)
         {
             result.ContextData = result.ContextData.Add(
                 HttpResultContextData.RequestTooLarge,
