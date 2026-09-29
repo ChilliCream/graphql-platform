@@ -49194,9 +49194,17 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError : global::System.IEquatable<OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError>, IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError
     {
-        public OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError()
+        public OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError(global::System.String __typename, global::System.String message)
         {
+            this.__typename = __typename;
+            Message = message;
         }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError? other)
         {
@@ -49215,7 +49223,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return true;
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -49243,6 +49251,8 @@ namespace ChilliCream.Nitro.Client
             unchecked
             {
                 int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
                 return hash;
             }
         }
@@ -49252,9 +49262,17 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError : global::System.IEquatable<OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError>, IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError
     {
-        public OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError()
+        public OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError(global::System.String __typename, global::System.String message)
         {
+            this.__typename = __typename;
+            Message = message;
         }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError? other)
         {
@@ -49273,7 +49291,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return true;
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -49301,6 +49319,8 @@ namespace ChilliCream.Nitro.Client
             unchecked
             {
                 int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
                 return hash;
             }
         }
@@ -58861,13 +58881,24 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError : IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors
+    public partial interface IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError : IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors, IProcessingTimeoutError
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError : IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors
+    public partial interface IReadyTimeoutError
+    {
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError : IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors, IReadyTimeoutError
     {
     }
 
@@ -61936,9 +61967,17 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1
     {
-        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1()
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1(global::System.String __typename, global::System.String message)
         {
+            this.__typename = __typename;
+            Message = message;
         }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1? other)
         {
@@ -61957,7 +61996,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return true;
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -61985,6 +62024,8 @@ namespace ChilliCream.Nitro.Client
             unchecked
             {
                 int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
                 return hash;
             }
         }
@@ -61994,9 +62035,17 @@ namespace ChilliCream.Nitro.Client
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1 : global::System.IEquatable<OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1>, IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1
     {
-        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1()
+        public OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1(global::System.String __typename, global::System.String message)
         {
+            this.__typename = __typename;
+            Message = message;
         }
+
+        /// <summary>
+        /// The name of the current Object type at runtime.
+        /// </summary>
+        public global::System.String __typename { get; }
+        public global::System.String Message { get; }
 
         public virtual global::System.Boolean Equals(OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1? other)
         {
@@ -62015,7 +62064,7 @@ namespace ChilliCream.Nitro.Client
                 return false;
             }
 
-            return true;
+            return (__typename.Equals(other.__typename)) && Message.Equals(other.Message);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -62043,6 +62092,8 @@ namespace ChilliCream.Nitro.Client
             unchecked
             {
                 int hash = 5;
+                hash ^= 397 * __typename.GetHashCode();
+                hash ^= 397 * Message.GetHashCode();
                 return hash;
             }
         }
@@ -76762,13 +76813,13 @@ namespace ChilliCream.Nitro.Client
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ProcessingTimeoutError_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1, IProcessingTimeoutError
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1
+    public partial interface IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_ReadyTimeoutError_1 : IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1, IReadyTimeoutError
     {
     }
 
@@ -182043,6 +182094,8 @@ namespace ChilliCream.Nitro.Client
     ///   errors {
     ///     __typename
     ///     ...UnexpectedProcessingError
+    ///     ...ProcessingTimeoutError
+    ///     ...ReadyTimeoutError
     ///     ...PersistedQueryValidationError
     ///     ...SchemaVersionChangeViolationError
     ///     ...InvalidGraphQLSchemaError
@@ -182052,6 +182105,16 @@ namespace ChilliCream.Nitro.Client
     /// }
     /// 
     /// fragment UnexpectedProcessingError on UnexpectedProcessingError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ProcessingTimeoutError on ProcessingTimeoutError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ReadyTimeoutError on ReadyTimeoutError {
     ///   __typename
     ///   message
     /// }
@@ -182539,7 +182602,7 @@ namespace ChilliCream.Nitro.Client
         public static OnFusionConfigurationValidationUpdatedSubscriptionDocument Instance { get; } = new OnFusionConfigurationValidationUpdatedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "45d096dd79bbed96e8bc3cc4c148fc0d");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "f65239d3a2fcf2ae0171bb8d1e670ba1");
 
         public override global::System.String ToString()
         {
@@ -182570,6 +182633,8 @@ namespace ChilliCream.Nitro.Client
     ///   errors {
     ///     __typename
     ///     ...UnexpectedProcessingError
+    ///     ...ProcessingTimeoutError
+    ///     ...ReadyTimeoutError
     ///     ...PersistedQueryValidationError
     ///     ...SchemaVersionChangeViolationError
     ///     ...InvalidGraphQLSchemaError
@@ -182579,6 +182644,16 @@ namespace ChilliCream.Nitro.Client
     /// }
     /// 
     /// fragment UnexpectedProcessingError on UnexpectedProcessingError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ProcessingTimeoutError on ProcessingTimeoutError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ReadyTimeoutError on ReadyTimeoutError {
     ///   __typename
     ///   message
     /// }
@@ -183122,6 +183197,8 @@ namespace ChilliCream.Nitro.Client
     ///   errors {
     ///     __typename
     ///     ...UnexpectedProcessingError
+    ///     ...ProcessingTimeoutError
+    ///     ...ReadyTimeoutError
     ///     ...PersistedQueryValidationError
     ///     ...SchemaVersionChangeViolationError
     ///     ...InvalidGraphQLSchemaError
@@ -183131,6 +183208,16 @@ namespace ChilliCream.Nitro.Client
     /// }
     /// 
     /// fragment UnexpectedProcessingError on UnexpectedProcessingError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ProcessingTimeoutError on ProcessingTimeoutError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ReadyTimeoutError on ReadyTimeoutError {
     ///   __typename
     ///   message
     /// }
@@ -184298,6 +184385,8 @@ namespace ChilliCream.Nitro.Client
     ///   errors {
     ///     __typename
     ///     ...UnexpectedProcessingError
+    ///     ...ProcessingTimeoutError
+    ///     ...ReadyTimeoutError
     ///     ...PersistedQueryValidationError
     ///     ...SchemaVersionChangeViolationError
     ///     ...InvalidGraphQLSchemaError
@@ -184307,6 +184396,16 @@ namespace ChilliCream.Nitro.Client
     /// }
     /// 
     /// fragment UnexpectedProcessingError on UnexpectedProcessingError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ProcessingTimeoutError on ProcessingTimeoutError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ReadyTimeoutError on ReadyTimeoutError {
     ///   __typename
     ///   message
     /// }
@@ -184551,7 +184650,7 @@ namespace ChilliCream.Nitro.Client
         public static OnFusionConfigurationPublishingTaskChangedSubscriptionDocument Instance { get; } = new OnFusionConfigurationPublishingTaskChangedSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "cb309866a6287dcd9f61510316e5e62c");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "277ea09553dac6ed18f2a0c91f288d5f");
 
         public override global::System.String ToString()
         {
@@ -184936,6 +185035,8 @@ namespace ChilliCream.Nitro.Client
     ///   errors {
     ///     __typename
     ///     ...UnexpectedProcessingError
+    ///     ...ProcessingTimeoutError
+    ///     ...ReadyTimeoutError
     ///     ...PersistedQueryValidationError
     ///     ...SchemaVersionChangeViolationError
     ///     ...InvalidGraphQLSchemaError
@@ -184945,6 +185046,16 @@ namespace ChilliCream.Nitro.Client
     /// }
     /// 
     /// fragment UnexpectedProcessingError on UnexpectedProcessingError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ProcessingTimeoutError on ProcessingTimeoutError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ReadyTimeoutError on ReadyTimeoutError {
     ///   __typename
     ///   message
     /// }
@@ -185599,6 +185710,8 @@ namespace ChilliCream.Nitro.Client
     ///   errors {
     ///     __typename
     ///     ...UnexpectedProcessingError
+    ///     ...ProcessingTimeoutError
+    ///     ...ReadyTimeoutError
     ///     ...PersistedQueryValidationError
     ///     ...SchemaVersionChangeViolationError
     ///     ...InvalidGraphQLSchemaError
@@ -185608,6 +185721,16 @@ namespace ChilliCream.Nitro.Client
     /// }
     /// 
     /// fragment UnexpectedProcessingError on UnexpectedProcessingError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ProcessingTimeoutError on ProcessingTimeoutError {
+    ///   __typename
+    ///   message
+    /// }
+    /// 
+    /// fragment ReadyTimeoutError on ReadyTimeoutError {
     ///   __typename
     ///   message
     /// }
@@ -212212,11 +212335,11 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.ProcessingTimeoutErrorData processingTimeoutError)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError();
+                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError(processingTimeoutError.__typename ?? throw new global::System.ArgumentNullException(), processingTimeoutError.Message ?? throw new global::System.ArgumentNullException());
             }
             else if (data is global::ChilliCream.Nitro.Client.State.ReadyTimeoutErrorData readyTimeoutError)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError();
+                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError(readyTimeoutError.__typename ?? throw new global::System.ArgumentNullException(), readyTimeoutError.Message ?? throw new global::System.ArgumentNullException());
             }
             else if (data is global::ChilliCream.Nitro.Client.State.SchemaVersionChangeViolationErrorData schemaVersionChangeViolationError)
             {
@@ -214027,11 +214150,11 @@ namespace ChilliCream.Nitro.Client.State
             }
             else if (data is global::ChilliCream.Nitro.Client.State.ProcessingTimeoutErrorData processingTimeoutError)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError();
+                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError(processingTimeoutError.__typename ?? throw new global::System.ArgumentNullException(), processingTimeoutError.Message ?? throw new global::System.ArgumentNullException());
             }
             else if (data is global::ChilliCream.Nitro.Client.State.ReadyTimeoutErrorData readyTimeoutError)
             {
-                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError();
+                returnValue = new global::ChilliCream.Nitro.Client.OnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError(readyTimeoutError.__typename ?? throw new global::System.ArgumentNullException(), readyTimeoutError.Message ?? throw new global::System.ArgumentNullException());
             }
             else if (data is global::ChilliCream.Nitro.Client.State.SchemaVersionChangeViolationErrorData schemaVersionChangeViolationError)
             {
@@ -239947,12 +240070,12 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("ProcessingTimeoutError", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.ProcessingTimeoutErrorData(typename);
+                return new global::ChilliCream.Nitro.Client.State.ProcessingTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
             }
 
             if (typename?.Equals("ReadyTimeoutError", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.ReadyTimeoutErrorData(typename);
+                return new global::ChilliCream.Nitro.Client.State.ReadyTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
             }
 
             if (typename?.Equals("SchemaVersionChangeViolationError", global::System.StringComparison.Ordinal) ?? false)
@@ -241830,12 +241953,12 @@ namespace ChilliCream.Nitro.Client.State
 
             if (typename?.Equals("ProcessingTimeoutError", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.ProcessingTimeoutErrorData(typename);
+                return new global::ChilliCream.Nitro.Client.State.ProcessingTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
             }
 
             if (typename?.Equals("ReadyTimeoutError", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::ChilliCream.Nitro.Client.State.ReadyTimeoutErrorData(typename);
+                return new global::ChilliCream.Nitro.Client.State.ReadyTimeoutErrorData(typename, message: Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message")));
             }
 
             if (typename?.Equals("SchemaVersionChangeViolationError", global::System.StringComparison.Ordinal) ?? false)

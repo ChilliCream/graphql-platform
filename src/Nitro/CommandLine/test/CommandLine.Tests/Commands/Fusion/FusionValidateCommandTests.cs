@@ -406,7 +406,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
                 │   └── Tool 'Fail'
                 │       └── The field `person` does not exist on the type `Query`. (1:14)
-                └── An unexpected error occurred.
+                ├── An unexpected error occurred.
+                ├── The validation timed out.
+                └── The request did not become ready in time.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -934,7 +936,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
                 │   └── Tool 'Fail'
                 │       └── The field `person` does not exist on the type `Query`. (1:14)
-                └── An unexpected error occurred.
+                ├── An unexpected error occurred.
+                ├── The validation timed out.
+                └── The request did not become ready in time.
             """);
         Assert.Equal(1, result.ExitCode);
     }

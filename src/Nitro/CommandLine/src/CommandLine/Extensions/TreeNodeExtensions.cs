@@ -216,6 +216,12 @@ internal static class TreeNodeExtensions
                 case IUnexpectedProcessingError e:
                     node.AddErrorMessage(e.Message);
                     break;
+                case IProcessingTimeoutError e:
+                    node.AddErrorMessage(e.Message);
+                    break;
+                case IReadyTimeoutError e:
+                    node.AddErrorMessage(e.Message);
+                    break;
             }
         }
 

@@ -655,6 +655,14 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         var unexpectedError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_UnexpectedProcessingError>(MockBehavior.Strict);
         MockErrorFactory.SetupUnexpectedProcessingError(unexpectedError);
 
+        // 7. ProcessingTimeoutError
+        var processingTimeoutError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError>(MockBehavior.Strict);
+        processingTimeoutError.SetupGet(x => x.Message).Returns("The validation timed out.");
+
+        // 8. ReadyTimeoutError
+        var readyTimeoutError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError>(MockBehavior.Strict);
+        readyTimeoutError.SetupGet(x => x.Message).Returns("The request did not become ready in time.");
+
         return
         [
             schemaViolation.Object,
@@ -662,7 +670,9 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             pqError.Object,
             openApiError.Object,
             mcpError.Object,
-            unexpectedError.Object
+            unexpectedError.Object,
+            processingTimeoutError.Object,
+            readyTimeoutError.Object
         ];
     }
 
