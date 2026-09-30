@@ -164,8 +164,7 @@ export function chartWidthVars(dial: ChartDial): CSSProperties {
 
 export const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
 export const READOUT_LINE_HEIGHT = 1.15;
-const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
-export const CONTENT_OFFSET = `calc(50% + ${READOUT_LINE_HEIGHT / 2} * ${READOUT_FONT} + ${CONTENT_GAP})`;
+export const CONTENT_GAP = "clamp(3px, 3cqw - 4px, 12px)";
 
 export const ELECTRIC = "var(--color-cc-electric)";
 export const DANGER = "var(--color-cc-danger)";

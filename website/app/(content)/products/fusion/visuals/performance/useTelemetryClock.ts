@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useMotionValue, type MotionValue } from "motion/react";
 
-import { ROTATE_MS } from "./data";
 import { STATIC_BURST, telemetryAt, type Telemetry } from "./sim";
 
 export interface TelemetryMotion {
@@ -17,7 +16,6 @@ export interface TelemetryMotion {
   readonly netOutHistory: MotionValue<readonly number[]>;
   readonly latency: MotionValue<number>;
   readonly latencyHistory: MotionValue<readonly number[]>;
-  readonly rotate: MotionValue<number>;
 }
 
 function write(target: TelemetryMotion, snap: Telemetry) {
@@ -54,7 +52,6 @@ export function useTelemetryClock(
   const latencyHistory = useMotionValue<readonly number[]>(
     initial.latencyHistory,
   );
-  const rotate = useMotionValue(0);
 
   const motion = useMemo<TelemetryMotion>(
     () => ({
@@ -68,7 +65,6 @@ export function useTelemetryClock(
       netOutHistory,
       latency,
       latencyHistory,
-      rotate,
     }),
     [
       ops,
@@ -81,7 +77,6 @@ export function useTelemetryClock(
       netOutHistory,
       latency,
       latencyHistory,
-      rotate,
     ],
   );
 
@@ -103,7 +98,6 @@ export function useTelemetryClock(
       elapsedRef.current += ts - lastRef.current;
       lastRef.current = ts;
       write(motion, telemetryAt(elapsedRef.current));
-      motion.rotate.set(((elapsedRef.current % ROTATE_MS) / ROTATE_MS) * 360);
       frame = requestAnimationFrame(tick);
     });
 

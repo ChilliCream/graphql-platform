@@ -10,8 +10,6 @@ export const RAMP_END = CALM_END + RAMP_MS;
 export const BURST_END = RAMP_END + BURST_MS;
 export const CYCLE_MS = BURST_END + COOLDOWN_MS;
 
-export const ROTATE_MS = 5200;
-
 export const MEM_RISE_LAG_MS = 350;
 export const MEM_FALL_LAG_MS = 300;
 

@@ -42,7 +42,7 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
   return (
     <div
       className="flex flex-col items-center"
-      style={{ gap: "clamp(2px, 1.2cqw - 2px, 4px)" }}
+      style={{ gap: "clamp(3px, 1.2cqw - 2px, 4px)" }}
     >
       <span className="uppercase" style={{ ...TEXT, color: LABEL_COLOR }}>
         network
