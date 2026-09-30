@@ -1,6 +1,5 @@
 "use client";
 
-import { useId } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 
 import { token } from "@/src/nitro";
@@ -8,9 +7,9 @@ import { token } from "@/src/nitro";
 import { DialFace } from "./DialFace";
 import { DialNumeral } from "./DialNumeral";
 import { OPS_BURST_LABEL, OPS_MAX, OPS_RED_START, formatOps } from "./data";
-import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
+import { polarPoint, sweepAngle } from "./gauge";
 import {
-  CONTENT_OFFSET,
+  CONTENT_GAP,
   CX,
   CY,
   DANGER,
@@ -39,13 +38,11 @@ const SEGMENT_OUTER = 141;
 const MAJOR_SEGMENT_INNER = 127;
 const SEGMENT_WIDTH = 3;
 const NUMERAL_EDGE = MAJOR_SEGMENT_INNER - SEGMENT_WIDTH / 2;
-const RING_R = (SEGMENT_INNER + SEGMENT_OUTER) / 2;
 const SCALE_STEPS = 7;
 const SEGMENTS_PER_STEP = 8;
 const SEGMENT_STEPS = SCALE_STEPS * SEGMENTS_PER_STEP;
 const ARC_START = 210;
 const ARC_END = -30;
-const SWEEP_SPAN = 16;
 
 function Segment({ index, fraction }: SegmentProps) {
   const threshold = index / SEGMENT_STEPS;
@@ -75,13 +72,6 @@ function Segment({ index, fraction }: SegmentProps) {
   );
 }
 
-const HIGHLIGHT_PATH = gaugeArcPath(
-  CX,
-  CY,
-  RING_R,
-  90 + SWEEP_SPAN / 2,
-  90 - SWEEP_SPAN / 2,
-);
 const SEGMENTS = Array.from({ length: SEGMENT_STEPS + 1 }, (_, i) => i);
 const NUMERALS = Array.from({ length: SCALE_STEPS + 1 }, (_, i) => ({
   angle: sweepAngle(i / SCALE_STEPS, ARC_START, ARC_END),
@@ -89,8 +79,7 @@ const NUMERALS = Array.from({ length: SCALE_STEPS + 1 }, (_, i) => ({
 }));
 
 export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
-  const filterId = useId().replace(/:/g, "");
-  const { ops, rotate } = telemetry;
+  const { ops } = telemetry;
   const fraction = useTransform(ops, (v) => v / OPS_MAX);
   const readout = useTransform(ops, formatOps);
   const phase = useTransform(ops, (v): string =>
@@ -111,41 +100,11 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
           role="img"
           aria-label="Operations per second, about 1K in normal traffic and about 5.5K in a burst, on a 7K scale with a red zone from 5.5K"
         >
-          <defs>
-            <filter
-              id={`glow-${filterId}`}
-              x="-60%"
-              y="-60%"
-              width="220%"
-              height="220%"
-            >
-              <feGaussianBlur stdDeviation="4" />
-            </filter>
-          </defs>
-
           <DialFace faceRadius={FACE_R} />
 
           {SEGMENTS.map((i) => (
             <Segment key={i} index={i} fraction={fraction} />
           ))}
-
-          <motion.g
-            style={{
-              rotate,
-              transformOrigin: `${CX}px ${CY}px`,
-              transformBox: "view-box",
-            }}
-          >
-            <path
-              d={HIGHLIGHT_PATH}
-              fill="none"
-              stroke={ELECTRIC_BRIGHT}
-              strokeWidth={6}
-              strokeLinecap="round"
-              filter={`url(#glow-${filterId})`}
-              opacity={0.85}
-            />
-          </motion.g>
         </svg>
 
         {NUMERALS.map((n) => (
@@ -159,73 +118,66 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
         ))}
 
         <div
-          aria-hidden="true"
           className="absolute flex flex-col items-center"
-          style={{
-            left: "50%",
-            bottom: CONTENT_OFFSET,
-            transform: "translateX(-50%)",
-            gap: 2,
-          }}
-        >
-          <motion.span
-            className="whitespace-nowrap"
-            style={{
-              display: "inline-block",
-              minWidth: "7ch",
-              textAlign: "center",
-              fontSize: 11,
-              lineHeight: 1,
-              letterSpacing: "0.08em",
-              color: phaseColor,
-              fontFamily: token.mono,
-            }}
-          >
-            {phase}
-          </motion.span>
-          <span
-            className="whitespace-nowrap uppercase"
-            style={{
-              fontSize: 11,
-              lineHeight: 1,
-              letterSpacing: "0.08em",
-              color: token.textSecondary,
-              fontFamily: token.mono,
-            }}
-          >
-            ops/s
-          </span>
-        </div>
-
-        <motion.span
-          aria-hidden="true"
-          className="absolute whitespace-nowrap"
           style={{
             left: "50%",
             top: "50%",
             transform: "translate(-50%, -50%)",
-            fontFamily: token.mono,
-            fontSize: READOUT_FONT,
-            lineHeight: READOUT_LINE_HEIGHT,
-            fontWeight: 700,
-            fontStyle: "italic",
-            letterSpacing: "-0.02em",
-            color: token.textStrong,
-            fontVariantNumeric: "tabular-nums",
-            filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+            gap: CONTENT_GAP,
           }}
         >
-          {readout}
-        </motion.span>
+          <div
+            aria-hidden="true"
+            className="flex flex-col items-center"
+            style={{ gap: 3 }}
+          >
+            <motion.span
+              className="whitespace-nowrap"
+              style={{
+                display: "inline-block",
+                minWidth: "7ch",
+                textAlign: "center",
+                fontSize: 11,
+                lineHeight: 1,
+                letterSpacing: "0.08em",
+                color: phaseColor,
+                fontFamily: token.mono,
+              }}
+            >
+              {phase}
+            </motion.span>
+            <span
+              className="whitespace-nowrap uppercase"
+              style={{
+                fontSize: 11,
+                lineHeight: 1,
+                letterSpacing: "0.08em",
+                color: token.textSecondary,
+                fontFamily: token.mono,
+              }}
+            >
+              ops/s
+            </span>
+          </div>
 
-        <div
-          className="absolute"
-          style={{
-            left: "50%",
-            top: CONTENT_OFFSET,
-            transform: "translateX(-50%)",
-          }}
-        >
+          <motion.span
+            aria-hidden="true"
+            className="whitespace-nowrap"
+            style={{
+              fontFamily: token.mono,
+              fontSize: READOUT_FONT,
+              lineHeight: READOUT_LINE_HEIGHT,
+              fontWeight: 700,
+              fontStyle: "italic",
+              letterSpacing: "-0.02em",
+              color: token.textStrong,
+              fontVariantNumeric: "tabular-nums",
+              filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+            }}
+          >
+            {readout}
+          </motion.span>
+
           <OpsScreen telemetry={telemetry} />
         </div>
       </div>

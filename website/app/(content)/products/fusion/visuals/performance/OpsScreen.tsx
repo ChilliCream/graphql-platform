@@ -3,7 +3,7 @@
 import { token } from "@/src/nitro";
 
 import type { TelemetryMotion } from "./useTelemetryClock";
-import { LABEL_COLOR } from "./hud";
+import { CHART_WIDTH_CLASS, LABEL_COLOR, chartWidthVars } from "./hud";
 import { TrendChart, TrendLine } from "./TrendLine";
 
 interface OpsScreenProps {
@@ -41,24 +41,17 @@ function Key({ color, label }: KeyProps) {
 export function OpsScreen({ telemetry }: OpsScreenProps) {
   return (
     <div
-      className="flex flex-col"
-      style={{
-        gap: "clamp(2px, 1.2cqw - 2px, 4px)",
-        width: "clamp(72px, 30cqw, 130px)",
-      }}
+      className="flex flex-col items-center"
+      style={{ gap: "clamp(3px, 1.2cqw - 2px, 4px)" }}
     >
-      <span
-        className="text-center uppercase"
-        style={{ ...TEXT, color: LABEL_COLOR }}
-      >
+      <span className="uppercase" style={{ ...TEXT, color: LABEL_COLOR }}>
         network
       </span>
       <div
+        className={CHART_WIDTH_CLASS}
         style={{
-          width: 0,
-          minWidth: "calc(100% - 16px)",
+          ...chartWidthVars("centre"),
           height: "clamp(16px, 12cqw - 12px, 40px)",
-          margin: "0 8px",
         }}
       >
         <TrendChart label="Network traffic, incoming in red and outgoing in blue, in percent">

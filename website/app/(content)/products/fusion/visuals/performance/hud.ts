@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { token } from "@/src/nitro";
 
 export const VB = 300;
@@ -40,8 +42,11 @@ interface Slot {
   readonly size: string;
 }
 
+export type ChartDial = "latency" | "centre";
+
 interface Layout {
   readonly aspect: string;
+  readonly chart: Readonly<Record<ChartDial, string>>;
   readonly latency: Slot;
   readonly centre: Slot;
   readonly pressure: Slot;
@@ -60,9 +65,19 @@ const ROW_DROP = 0.7;
 const STACK_CENTRE_WIDTH = 0.9;
 const STACK_SIDE_WIDTH = 0.49;
 
+const CHART_MIN_PX = 30;
+const CHART_MAX_PX = 84;
+const CHART_LATENCY_SHARE = 0.3;
+
 const deg = (rad: number) => (rad * 180) / Math.PI;
 const pct = (n: number) => `${Math.round(n * 1e5) / 1e3}%`;
 const ratio = (n: number) => String(Math.round(n * 1e5) / 1e5);
+
+// One chart width for both dials, sized from the latency dial and expressed in each dial's own cqw.
+function chartWidth(latencyPerDial: number): string {
+  const cqw = Math.round(CHART_LATENCY_SHARE * latencyPerDial * 1e5) / 1e3;
+  return `clamp(${CHART_MIN_PX}px, ${cqw}cqw, ${CHART_MAX_PX}px)`;
+}
 
 function slot(c: Circle, width: number, height: number): Slot {
   return {
@@ -97,6 +112,10 @@ function build(
   const mid = (outerStart + outerEnd) / 2;
   return {
     aspect: ratio(width / height),
+    chart: {
+      latency: chartWidth(1),
+      centre: chartWidth(left.r / centre.r),
+    },
     latency: slot(left, width, height),
     centre: slot(centre, width, height),
     pressure: slot(right, width, height),
@@ -133,10 +152,19 @@ function buildStack(): Layout {
 
 export const CLUSTER = { row: buildRow(), stack: buildStack() } as const;
 
+export const CHART_WIDTH_CLASS =
+  "w-(--chart-stack) @min-[504px]/hud:w-(--chart-row)";
+
+export function chartWidthVars(dial: ChartDial): CSSProperties {
+  return {
+    "--chart-stack": CLUSTER.stack.chart[dial],
+    "--chart-row": CLUSTER.row.chart[dial],
+  } as CSSProperties;
+}
+
 export const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
 export const READOUT_LINE_HEIGHT = 1.15;
-const CONTENT_GAP = "clamp(2px, 3cqw - 5px, 12px)";
-export const CONTENT_OFFSET = `calc(50% + ${READOUT_LINE_HEIGHT / 2} * ${READOUT_FONT} + ${CONTENT_GAP})`;
+export const CONTENT_GAP = "clamp(3px, 3cqw - 4px, 12px)";
 
 export const ELECTRIC = "var(--color-cc-electric)";
 export const DANGER = "var(--color-cc-danger)";
