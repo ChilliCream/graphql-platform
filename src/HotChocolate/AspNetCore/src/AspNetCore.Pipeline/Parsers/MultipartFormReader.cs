@@ -9,12 +9,13 @@ using ThrowHelper = HotChocolate.AspNetCore.Utilities.ThrowHelper;
 namespace HotChocolate.AspNetCore.Parsers;
 
 /// <summary>
-/// Reads the form of a <c>multipart/form-data</c> request, applying the maximum request size to
-/// the <c>operations</c> field and <see cref="FormOptions.MultipartBodyLengthLimit"/> to every
-/// other section.
+/// Reads the form of a <c>multipart/form-data</c> request, applying
+/// <see cref="FormOptions.MultipartBodyLengthLimit"/> to every section and the maximum
+/// request size to the <c>operations</c> field as well.
 /// </summary>
 internal static class MultipartFormReader
 {
+    private const string MultipartFormData = "multipart/form-data";
     private const string Operations = "operations";
     private static readonly Func<string> s_tempDirectoryAccessor = GetTempDirectory;
 
@@ -36,6 +37,12 @@ internal static class MultipartFormReader
             throw ThrowHelper.MultipartFormReader_AntiforgeryValidationFailed();
         }
 
+        if (!MediaTypeHeaderValue.TryParse(request.ContentType, out var contentType)
+            || !contentType.MediaType.Equals(MultipartFormData, StringComparison.OrdinalIgnoreCase))
+        {
+            throw ThrowHelper.MultipartFormReader_IncorrectContentType(request.ContentType);
+        }
+
         if (request.ContentLength == 0)
         {
             return FormCollection.Empty;
@@ -51,7 +58,7 @@ internal static class MultipartFormReader
         }
 
         var reader = new MultipartReader(
-            GetBoundary(request.ContentType, options.MultipartBoundaryLengthLimit),
+            GetBoundary(contentType, options.MultipartBoundaryLengthLimit),
             request.Body)
         {
             HeadersCountLimit = options.MultipartHeadersCountLimit,
@@ -96,7 +103,9 @@ internal static class MultipartFormReader
             {
                 var formSection = new FormMultipartSection(section, contentDisposition);
                 var name = formSection.Name;
-                section.Body = name == Operations
+                var limitToMaxRequestSize = name == Operations
+                    && maxRequestSize <= options.MultipartBodyLengthLimit;
+                section.Body = limitToMaxRequestSize
                     ? new LengthLimitedReadStream(
                         section.Body,
                         maxRequestSize,
@@ -128,10 +137,9 @@ internal static class MultipartFormReader
         return new FormCollection(fields.GetResults(), files);
     }
 
-    private static string GetBoundary(string? contentType, int lengthLimit)
+    private static string GetBoundary(MediaTypeHeaderValue contentType, int lengthLimit)
     {
-        _ = MediaTypeHeaderValue.TryParse(contentType, out var mediaType);
-        var boundary = HeaderUtilities.RemoveQuotes(mediaType?.Boundary ?? StringSegment.Empty);
+        var boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary);
 
         if (StringSegment.IsNullOrEmpty(boundary))
         {

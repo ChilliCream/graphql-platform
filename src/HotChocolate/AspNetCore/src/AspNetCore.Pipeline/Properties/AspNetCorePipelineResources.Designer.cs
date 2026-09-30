@@ -267,6 +267,12 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string ThrowHelper_MultipartFormReader_IncorrectContentType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MultipartFormReader_IncorrectContentType", resourceCulture);
+            }
+        }
+        
         internal static string ThrowHelper_MultipartFormReader_InvalidContentDisposition {
             get {
                 return ResourceManager.GetString("ThrowHelper_MultipartFormReader_InvalidContentDisposition", resourceCulture);

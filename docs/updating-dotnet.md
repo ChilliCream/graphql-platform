@@ -26,7 +26,8 @@ Apply a change to the section loop, its limits, the file buffering, or the antif
 
 The reader differs from `FormFeature` in these ways:
 
-- Each limit has its own error code: `maxAllowedRequestSize` applies to the `operations` field (`HC0010`), `MultipartBodyLengthLimit` to every other section (`HC0135`), and `BufferBodyLengthLimit`, when `BufferBody` is set, to the whole body (`HC0136`). `FormFeature` throws `InvalidDataException` or `IOException` for all of them.
+- Each limit has its own error code. `MultipartBodyLengthLimit` applies to every section (`HC0135`), and `maxAllowedRequestSize` also applies to the `operations` field (`HC0010`); whichever of the two is smaller limits `operations` and gives its code. `BufferBodyLengthLimit`, when `BufferBody` is set, applies to the whole body (`HC0136`). `FormFeature` does not apply `maxAllowedRequestSize`; it throws `InvalidDataException` for `MultipartBodyLengthLimit` and `IOException` for `BufferBodyLengthLimit`.
+- With `BufferBody` set, it buffers the body even when an earlier component already buffered it, so `BufferBodyLengthLimit` applies in that case too.
 - It refuses a request whose `IAntiforgeryValidationFeature` has `IsValid` set to `false`, without the `HttpContext.Items` keys that `FormFeature` checks first.
 - It does not read URL-encoded forms, which never reach the multipart middleware.
 - It does not apply endpoint `IFormOptionsMetadata`, which the public `FormFeature` constructor does not apply either.

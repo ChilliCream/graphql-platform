@@ -103,8 +103,8 @@ Send mutations over POST, or set `AllowedGetOperations` to `AllowedGetOperations
 
 ## Multipart and request body size limits
 
-- A multipart request whose `operations` field exceeds the [maximum request size](../request-limits.md) is rejected with the error code `HC0010`. 16.6 executed such a request whenever the web server accepted its body. Raise `maxAllowedRequestSize` if clients send larger operations.
-- A multipart section over `FormOptions.MultipartBodyLengthLimit` is rejected with the error code `HC0135`, which replaces `HC0033`.
+- A multipart request whose `operations` field exceeds the [maximum request size](../request-limits.md) is rejected with the error code `HC0010`. 16.6 applied only `FormOptions.MultipartBodyLengthLimit` to that field. Raise `maxAllowedRequestSize` if clients send larger operations.
+- A multipart section over `FormOptions.MultipartBodyLengthLimit` is rejected with the error code `HC0135`, which replaces `HC0033`. This includes the `operations` field when `MultipartBodyLengthLimit` is smaller than the maximum request size.
 - A request body over the web server's limit, or over `FormOptions.BufferBodyLengthLimit` when `FormOptions.BufferBody` is set, is rejected with the error code `HC0136`, which replaces `HC0012` for a JSON body and `HC0033` for a multipart body.
 
 These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.

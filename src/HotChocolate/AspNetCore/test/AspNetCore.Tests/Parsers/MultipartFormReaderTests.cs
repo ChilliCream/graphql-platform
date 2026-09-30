@@ -139,7 +139,7 @@ public class MultipartFormReaderTests
     }
 
     [Fact]
-    public async Task ReadAsync_Should_BufferFileOnDisk_When_FileExceedsMemoryBufferThreshold()
+    public async Task ReadAsync_Should_ReturnFileContent_When_FileExceedsMemoryBufferThreshold()
     {
         // arrange
         var content = new string('x', 1024);
@@ -193,20 +193,20 @@ public class MultipartFormReaderTests
         using var form = new MultipartFormDataContent
         {
             { new StringContent(Operations.PadRight(MaxRequestSize)), "operations" },
-            { CreateFile(new string('x', 32)), "1", "file.txt" }
+            { CreateFile(new string('x', MaxRequestSize)), "1", "file.txt" }
         };
         var request = await CreateRequestAsync(form);
 
         // act
         var result = await MultipartFormReader.ReadAsync(
             request,
-            new FormOptions { MultipartBodyLengthLimit = 32 },
+            new FormOptions { MultipartBodyLengthLimit = MaxRequestSize },
             MaxRequestSize,
             TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(MaxRequestSize, result["operations"].ToString().Length);
-        Assert.Equal(32, Assert.Single(result.Files).Length);
+        Assert.Equal(MaxRequestSize, Assert.Single(result.Files).Length);
     }
 
     [Fact]
@@ -273,6 +273,57 @@ public class MultipartFormReaderTests
         async Task Action() => await MultipartFormReader.ReadAsync(
             request,
             new FormOptions { MultipartBodyLengthLimit = 32 },
+            MaxRequestSize,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<GraphQLRequestException>(Action);
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal("HC0135", error.Code);
+        Assert.Equal("The multipart section '1' exceeds the maximum allowed size.", error.Message);
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_ThrowSectionTooLarge_When_OperationsExceedsSectionLimit()
+    {
+        // arrange
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(Operations.PadRight(33)), "operations" }
+        };
+        var request = await CreateRequestAsync(form);
+
+        // act
+        async Task Action() => await MultipartFormReader.ReadAsync(
+            request,
+            new FormOptions { MultipartBodyLengthLimit = 32 },
+            MaxRequestSize,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<GraphQLRequestException>(Action);
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal("HC0135", error.Code);
+        Assert.Equal(
+            "The multipart section 'operations' exceeds the maximum allowed size.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_ThrowSectionTooLarge_When_BufferedFileExceedsSectionLimit()
+    {
+        // arrange
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(Operations), "operations" },
+            { CreateFile(new string('x', 33)), "1", "file.txt" }
+        };
+        var request = await CreateRequestAsync(form);
+
+        // act
+        async Task Action() => await MultipartFormReader.ReadAsync(
+            request,
+            new FormOptions { BufferBody = true, MultipartBodyLengthLimit = 32 },
             MaxRequestSize,
             TestContext.Current.CancellationToken);
 
@@ -386,6 +437,73 @@ public class MultipartFormReaderTests
         // assert
         var exception = await Assert.ThrowsAsync<InvalidDataException>(Action);
         Assert.Equal("Missing content-type boundary.", exception.Message);
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_Throw_When_ContentTypeIsNotMultipart()
+    {
+        // arrange
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(Operations), "operations" }
+        };
+        var request = await CreateRequestAsync(form);
+        request.ContentType = "text/plain";
+
+        // act
+        async Task Action() => await MultipartFormReader.ReadAsync(
+            request,
+            new FormOptions(),
+            MaxRequestSize,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(Action);
+        Assert.Equal("Incorrect Content-Type: text/plain", exception.Message);
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_Throw_When_SectionHeadersExceedHeadersCountLimit()
+    {
+        // arrange
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(Operations), "operations" }
+        };
+        var request = await CreateRequestAsync(form);
+
+        // act
+        async Task Action() => await MultipartFormReader.ReadAsync(
+            request,
+            new FormOptions { MultipartHeadersCountLimit = 1 },
+            MaxRequestSize,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(Action);
+        Assert.Equal("Multipart headers count limit 1 exceeded.", exception.Message);
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_Throw_When_SectionHeaderExceedsHeadersLengthLimit()
+    {
+        // arrange
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(Operations), "operations" }
+        };
+        var request = await CreateRequestAsync(form);
+
+        // act
+        async Task Action() => await MultipartFormReader.ReadAsync(
+            request,
+            new FormOptions { MultipartHeadersLengthLimit = 16 },
+            MaxRequestSize,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(Action);
+        Assert.Equal("Line length limit 16 exceeded.", exception.Message);
     }
 
     [Fact]

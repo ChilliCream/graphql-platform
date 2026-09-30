@@ -78,6 +78,9 @@
   <data name="ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded" xml:space="preserve">
     <value>Multipart boundary length limit {0} exceeded.</value>
   </data>
+  <data name="ThrowHelper_MultipartFormReader_IncorrectContentType" xml:space="preserve">
+    <value>Incorrect Content-Type: {0}</value>
+  </data>
   <data name="ThrowHelper_MultipartFormReader_InvalidContentDisposition" xml:space="preserve">
     <value>Form section has invalid Content-Disposition value: {0}</value>
   </data>

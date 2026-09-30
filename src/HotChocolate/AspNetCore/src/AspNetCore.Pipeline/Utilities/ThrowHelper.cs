@@ -135,6 +135,10 @@ internal static class ThrowHelper
     public static InvalidDataException MultipartFormReader_BoundaryLengthLimitExceeded(int limit) =>
         new(string.Format(ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded, limit));
 
+    public static InvalidOperationException MultipartFormReader_IncorrectContentType(
+        string? contentType) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_IncorrectContentType, contentType));
+
     public static InvalidDataException MultipartFormReader_InvalidContentDisposition(
         string? contentDisposition) =>
         new(string.Format(

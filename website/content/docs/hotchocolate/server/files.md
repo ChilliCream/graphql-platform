@@ -215,7 +215,7 @@ builder.Services.Configure<FormOptions>(options =>
 });
 ```
 
-`MultipartBodyLengthLimit` applies to every section except `operations`, to which the [maximum request size](./endpoints.md#maxallowedrequestsize) applies. A section over its limit is rejected with the error code `HC0135`, or `HC0010` for `operations`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code, and under `Draft20250508`, a `400` status code.
+`MultipartBodyLengthLimit` applies to every section, and a section over it is rejected with the error code `HC0135`. The `operations` field is also limited by the [maximum request size](./endpoints.md#maxallowedrequestsize), and when that is the smaller of the two limits, an `operations` field over it is rejected with the error code `HC0010`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code.
 
 Depending on your web server, you might need to configure these limits elsewhere as well. [Kestrel](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#kestrel-maximum-request-body-size) and [IIS](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#iis) are covered in the ASP.NET Core documentation.
 
