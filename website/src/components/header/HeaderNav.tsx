@@ -125,6 +125,7 @@ function NavWithSubmenu({
   onExpandedChange,
 }: NavWithSubmenuProps) {
   const panelId = useId();
+  const pressRef = useRef<boolean | null>(null);
 
   const handleNavigate: NavigateHandler = (e) => {
     if (navigatesInCurrentTab(e)) {
@@ -163,8 +164,24 @@ function NavWithSubmenu({
         aria-label={`Show ${item.label} menu`}
         aria-expanded={expanded}
         aria-controls={panelId}
-        // A pointer click (detail > 0) follows the hover-open and must not toggle it shut.
-        onClick={(e) => onExpandedChange(e.detail === 0 ? !expanded : true)}
+        // A mouse or pen press follows the hover-open and keeps it open; touch fires a
+        // compat mouseenter before the click, so it toggles from the state at pointerdown.
+        onPointerDown={(e) => {
+          pressRef.current = e.pointerType === "touch" ? !expanded : true;
+        }}
+        onPointerCancel={() => {
+          pressRef.current = null;
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType !== "touch") {
+            pressRef.current = null;
+          }
+        }}
+        onClick={() => {
+          const next = pressRef.current ?? !expanded;
+          pressRef.current = null;
+          onExpandedChange(next);
+        }}
         className="text-cc-heading focus-visible:ring-cc-accent/50 mr-2.5 cursor-pointer self-center rounded-md p-1.5 focus-visible:ring-2 focus-visible:outline-none max-[1200px]:mr-1"
       >
         <ChevronDownIcon className="h-3 w-3 fill-current" />
