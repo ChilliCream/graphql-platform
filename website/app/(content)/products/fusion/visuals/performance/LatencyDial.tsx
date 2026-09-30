@@ -17,7 +17,6 @@ import {
 } from "./data";
 import { gaugeArcPath, polarPoint, sweepAngle } from "./gauge";
 import {
-  CHART_WIDTH_CLASS,
   CLUSTER,
   CX,
   CY,
@@ -25,9 +24,9 @@ import {
   ELECTRIC_BRIGHT,
   ELECTRIC_DIM,
   LABEL_COLOR,
+  LATENCY_CHART_WIDTH,
   LATENCY_NUMERAL_COLOR,
   VB,
-  chartWidthVars,
   type Arc,
 } from "./hud";
 import type { TelemetryMotion } from "./useTelemetryClock";
@@ -247,9 +246,9 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
             ms p95
           </span>
           <div
-            className={`relative ${CHART_WIDTH_CLASS}`}
+            className="relative"
             style={{
-              ...chartWidthVars("latency"),
+              width: LATENCY_CHART_WIDTH,
               height: "clamp(8px, 12cqw - 8px, 26px)",
             }}
           >

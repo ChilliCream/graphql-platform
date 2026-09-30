@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 import { token } from "@/src/nitro";
 
 export const VB = 300;
@@ -42,11 +40,8 @@ interface Slot {
   readonly size: string;
 }
 
-export type ChartDial = "latency";
-
 interface Layout {
   readonly aspect: string;
-  readonly chart: Readonly<Record<ChartDial, string>>;
   readonly latency: Slot;
   readonly centre: Slot;
   readonly pressure: Slot;
@@ -77,12 +72,12 @@ const pct = (n: number) => `${Math.round(n * 1e5) / 1e3}%`;
 const ratio = (n: number) => String(Math.round(n * 1e5) / 1e5);
 
 // The widest chord the latency face holds under its readout.
-function latencyChartWidth(): string {
+export const LATENCY_CHART_WIDTH = (() => {
   const [low, high] = CHART_CHORDS.map(
     ({ share, offset }) => `${Math.round(share * 1e5) / 1e3}cqw - ${offset}px`,
   );
   return `clamp(${CHART_MIN_PX}px, max(${low}, ${high}), ${CHART_MAX_PX}px)`;
-}
+})();
 
 function slot(c: Circle, width: number, height: number): Slot {
   return {
@@ -117,7 +112,6 @@ function build(
   const mid = (outerStart + outerEnd) / 2;
   return {
     aspect: ratio(width / height),
-    chart: { latency: latencyChartWidth() },
     latency: slot(left, width, height),
     centre: slot(centre, width, height),
     pressure: slot(right, width, height),
@@ -153,16 +147,6 @@ function buildStack(): Layout {
 }
 
 export const CLUSTER = { row: buildRow(), stack: buildStack() } as const;
-
-export const CHART_WIDTH_CLASS =
-  "w-(--chart-stack) @min-[504px]/hud:w-(--chart-row)";
-
-export function chartWidthVars(dial: ChartDial): CSSProperties {
-  return {
-    "--chart-stack": CLUSTER.stack.chart[dial],
-    "--chart-row": CLUSTER.row.chart[dial],
-  } as CSSProperties;
-}
 
 export const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
 // Four mono glyphs at 0.6em advance with the readout's -0.02em letter-spacing, so the chart is 110% of the number.

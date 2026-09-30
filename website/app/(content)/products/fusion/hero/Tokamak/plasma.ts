@@ -256,7 +256,7 @@ export function occludeHelixBehindColumn(
  */
 /**
  * hc-0-540: cheap deterministic pseudo-random in [0, 1) from an integer
- * seed -- a sine-hash, not a stored RNG stream, because surge/reseed/spark
+ * seed -- a sine-hash, not a stored RNG stream, because surge/spark
  * timing has to be a pure function of `timeSec` re-derived fresh every
  * frame (so the schedule is identical however many frames were skipped,
  * and identical between the implementer's and the reviewer's own runs),
@@ -351,51 +351,20 @@ export function surgeWeight(theta: number, surge: SurgeState): number {
   return surge.envelope * t * t;
 }
 
-/** hc-0-540 fix direction 4: the twisting filament's current wind and, right at a reseed, its brief forking second thread. */
-export interface FilamentState {
-  readonly twistPhase: number;
-  readonly windCount: number;
-  readonly fork: {
-    readonly twistPhase: number;
-    readonly windCount: number;
-    /** 0..1, fading out over the fork window. */
-    readonly alpha: number;
-  } | null;
-}
-
-const RESEED_PERIOD_S = 4.5;
-const RESEED_FORK_S = 0.6;
+/** Winds per filament; both threads share it so the double helix never changes shape. */
+export const FILAMENT_WIND_COUNT = 3;
 
 /**
- * The filament's twist keeps advancing continuously (`twistPhase`), but
- * every `RESEED_PERIOD_S` its own wind count reseeds to a new value (fix
- * direction 4's "faster twist and reseed"). Right at that moment, a second
- * thread -- the PREVIOUS wind count, phase-offset -- fades out over
- * `RESEED_FORK_S` (`fork`, non-null only in that brief window and only when
- * the reseed actually changed the wind count) so the jump reads as the
- * filament briefly forking and one branch dying out, not a hard cut.
+ * The two permanent filaments' twist phases: one continuous twist, the
+ * second half a wind (PI) behind so they interleave around the pillar and
+ * never coincide.
  */
-export function computeFilamentState(
+export function computeFilamentPhases(
   timeSec: number,
   twistPeriodS: number,
-): FilamentState {
+): readonly [number, number] {
   const twistPhase = (timeSec / twistPeriodS) * Math.PI * 2;
-  const reseedIndex = Math.floor(timeSec / RESEED_PERIOD_S);
-  const tSinceReseed = timeSec - reseedIndex * RESEED_PERIOD_S;
-  const windCountFor = (i: number) => 2 + Math.floor(hashUnit(i) * 3); // 2, 3 or 4 winds
-  const windCount = windCountFor(reseedIndex);
-  let fork: FilamentState["fork"] = null;
-  if (tSinceReseed < RESEED_FORK_S && reseedIndex > 0) {
-    const prevWindCount = windCountFor(reseedIndex - 1);
-    if (prevWindCount !== windCount) {
-      fork = {
-        twistPhase: twistPhase + Math.PI * 0.2,
-        windCount: prevWindCount,
-        alpha: 1 - tSinceReseed / RESEED_FORK_S,
-      };
-    }
-  }
-  return { twistPhase, windCount, fork };
+  return [twistPhase, twistPhase + Math.PI];
 }
 
 /** hc-0-540 fix direction 6: one short-lived spark's own schedule (never re-drawn from `rand` at runtime, only its fixed def). */
