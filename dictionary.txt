@@ -10,6 +10,7 @@ ALPN
 Andi
 annotatable
 anthropics
+Antiforgery
 apphost
 appsettings
 ASPDEPR004
@@ -186,6 +187,7 @@ ntouches
 NUGETAPIKEY
 nwithin
 oncall
+oneline
 openclaw
 opencode
 opencover
@@ -248,6 +250,7 @@ runbooks
 sandboxed
 SASL
 Satisfiability
+seekable
 Senn
 servicebus
 shoooe

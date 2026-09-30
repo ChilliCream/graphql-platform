@@ -275,7 +275,7 @@ internal static class MiddlewareHelper
     /// Creates the result for a request the parser rejected. The result of a document the
     /// parser could not read carries a <c>400</c>, the result of a request the parser read
     /// but could not accept as a GraphQL over HTTP request is marked as not well-formed, and
-    /// the result of a request body over the maximum request size is marked as too large. The
+    /// the result of a request refused for its size is marked as too large. The
     /// exception the parser threw decides the kind, since an error filter may have rewritten
     /// the errors that are written to the response.
     /// </summary>
@@ -297,7 +297,10 @@ internal static class MiddlewareHelper
                 HttpResultContextData.RequestNotWellFormed,
                 null);
         }
-        else if (exception.Errors is [{ Code: ErrorCodes.Server.MaxRequestSize }])
+        else if (exception.Errors is [{ Code: { } code }]
+            && code is ErrorCodes.Server.MaxRequestSize
+                or ErrorCodes.Server.MultiPartSectionTooLarge
+                or ErrorCodes.Server.RequestBodyTooLarge)
         {
             result.ContextData = result.ContextData.Add(
                 HttpResultContextData.RequestTooLarge,

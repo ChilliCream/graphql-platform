@@ -11,6 +11,8 @@ using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using static System.Net.Http.HttpCompletionOption;
@@ -890,6 +892,316 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // From the 2026-09-03 revision on, a request body over the web server's limit is answered
+    // 413.
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Post_Should_ReturnContentTooLarge_When_BodyExceedsServerLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetServerBodyLimitedClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The request body exceeds the maximum size the server accepts.",
+                  "extensions": {
+                    "code": "HC0136"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    // The maximum request size applies to the operations field of a multipart request.
+    [Theory]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    [InlineData(Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, RequestEntityTooLarge, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ReturnContentTooLarge_When_MultipartOperationsExceedsLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetSizeLimitedClient(transportVersion);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(s_oversizedRequest), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Request size exceeds maximum allowed size.",
+                  "extensions": {
+                    "code": "HC0010"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Post_Should_ReturnContentTooLarge_When_MultipartFileExceedsSectionLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetFormLimitedClient(
+            transportVersion,
+            o => o.MultipartBodyLengthLimit = 1024);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ __typename }" }"""), "operations" },
+            { new StringContent("""{ "1": ["variables.file"] }"""), "map" },
+            { new ByteArrayContent(new byte[2048]), "1", "file.bin" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The multipart section '1' exceeds the maximum allowed size.",
+                  "extensions": {
+                    "code": "HC0135"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Post_Should_ReturnContentTooLarge_When_MultipartMapExceedsSectionLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetFormLimitedClient(
+            transportVersion,
+            o => o.MultipartBodyLengthLimit = 1024);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ __typename }" }"""), "operations" },
+            { new StringContent("{}" + new string(' ', 2048)), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The multipart section 'map' exceeds the maximum allowed size.",
+                  "extensions": {
+                    "code": "HC0135"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Post_Should_ReturnContentTooLarge_When_MultipartBodyExceedsBufferLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetFormLimitedClient(
+            transportVersion,
+            o =>
+            {
+                o.BufferBody = true;
+                o.BufferBodyLengthLimit = 1024;
+            });
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ __typename }" }"""), "operations" },
+            { new StringContent("""{ "1": ["variables.file"] }"""), "map" },
+            { new ByteArrayContent(new byte[2048]), "1", "file.bin" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The request body exceeds the maximum size the server accepts.",
+                  "extensions": {
+                    "code": "HC0136"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Post_Should_ReturnContentTooLarge_When_MultipartBodyExceedsServerLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetServerBodyLimitedClient(transportVersion);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ __typename }" }"""), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The request body exceeds the maximum size the server accepts.",
+                  "extensions": {
+                    "code": "HC0136"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    // A multipart limit on the form's structure is answered 400 under every revision.
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnBadRequest_When_MultipartSectionCountExceedsLimit(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetFormLimitedClient(transportVersion, o => o.ValueCountLimit = 1);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ __typename }" }"""), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(BadRequest, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The multipart form could not be read.",
+                  "extensions": {
+                    "code": "HC0033",
+                    "underlyingError": "Form value count limit 1 exceeded."
+                  }
+                }
+              ]
+            }
+            """);
     }
 
     [Theory]
@@ -2163,6 +2475,44 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
     }
 
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    public async Task Query_Should_ReturnContentTooLarge_When_BodyExceedsServerLimit(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetServerBodyLimitedClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "{ __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The request body exceeds the maximum size the server accepts.",
+                  "extensions": {
+                    "code": "HC0136"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
     // A document that cannot be parsed in a QUERY request is answered on the same terms as one
     // in a POST request.
     [Theory]
@@ -2701,12 +3051,105 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         return server.CreateClient();
     }
 
-    private void AddAcceptHeader(HttpRequestMessage request, string? acceptHeader)
+    private HttpClient GetServerBodyLimitedClient(HttpTransportVersion serverTransportVersion)
+    {
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = serverTransportVersion
+                    }),
+            app => app
+                .Use(
+                    next => context =>
+                    {
+                        context.Request.Body = new BodyTooLargeStream();
+                        return next(context);
+                    })
+                .UseRouting()
+                .UseEndpoints(
+                    endpoints => endpoints
+                        .MapGraphQL()
+                        .WithOptions(o => o.EnableQueryRequests = true)));
+
+        return server.CreateClient();
+    }
+
+    private HttpClient GetFormLimitedClient(
+        HttpTransportVersion serverTransportVersion,
+        Action<FormOptions> configureFormOptions)
+    {
+        var server = ServerFactory.Create(
+            services =>
+            {
+                services.Configure(configureFormOptions);
+                services
+                    .AddRouting()
+                    .AddGraphQLServer()
+                    .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello"))
+                    .AddHttpResponseFormatter(
+                        new HttpResponseFormatterOptions
+                        {
+                            HttpTransportVersion = serverTransportVersion
+                        });
+            },
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+
+        return server.CreateClient();
+    }
+
+    private static void AddAcceptHeader(HttpRequestMessage request, string? acceptHeader)
     {
         if (acceptHeader != null)
         {
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
         }
+    }
+
+    private sealed class BodyTooLargeStream : Stream
+    {
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+            => throw CreateException();
+
+        public override ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+            => ValueTask.FromException<int>(CreateException());
+
+        public override long Seek(long offset, SeekOrigin origin)
+            => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count)
+            => throw new NotSupportedException();
+
+        private static BadHttpRequestException CreateException()
+            => new("Request body too large.", StatusCodes.Status413PayloadTooLarge);
     }
 
     private sealed class MethodNotAllowedResponseFormatter : DefaultHttpResponseFormatter

@@ -370,7 +370,7 @@ builder.AddGraphQL(
 
 ## maxAllowedRequestSize
 
-Controls the maximum allowed size (in bytes) of an incoming GraphQL JSON request body. The default is `20 * 1000 * 1024` (approximately 20 MB). If a JSON request exceeds this limit, it is rejected before parsing with the error code `HC0010`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), the response has a `413` status code.
+Controls the maximum allowed size (in bytes) of an incoming GraphQL request: a JSON request body, or the `operations` field of a multipart request. The default is `20 * 1000 * 1024` (approximately 20 MB). A request over this limit is rejected before parsing with the error code `HC0010`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), the response has a `413` status code.
 
 Reduce this value if you expect only small queries and want to protect against excessively large payloads:
 

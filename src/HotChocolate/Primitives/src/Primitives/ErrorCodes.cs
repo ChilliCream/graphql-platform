@@ -267,6 +267,16 @@ public static class ErrorCodes
         /// The requested GraphQL specification edition is not supported.
         /// </summary>
         public const string InvalidSpecVersion = "HC0134";
+
+        /// <summary>
+        /// A section of a multipart request exceeds its maximum size.
+        /// </summary>
+        public const string MultiPartSectionTooLarge = "HC0135";
+
+        /// <summary>
+        /// The request body exceeds the maximum size the server accepts.
+        /// </summary>
+        public const string RequestBodyTooLarge = "HC0136";
     }
 
     public static class Schema

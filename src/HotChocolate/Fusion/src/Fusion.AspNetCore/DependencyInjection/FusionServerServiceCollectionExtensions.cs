@@ -72,6 +72,7 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            sc.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {

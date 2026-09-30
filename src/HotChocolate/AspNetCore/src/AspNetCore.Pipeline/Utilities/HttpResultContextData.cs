@@ -14,7 +14,7 @@ internal static class HttpResultContextData
     public const string RequestNotWellFormed = "HotChocolate.AspNetCore.RequestNotWellFormed";
 
     /// <summary>
-    /// Marks the result of a request whose body exceeds the maximum request size.
+    /// Marks the result of a request refused for its size.
     /// </summary>
     public const string RequestTooLarge = "HotChocolate.AspNetCore.RequestTooLarge";
 }
