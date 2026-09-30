@@ -65,18 +65,24 @@ const ROW_DROP = 0.7;
 const STACK_CENTRE_WIDTH = 0.9;
 const STACK_SIDE_WIDTH = 0.49;
 
-const CHART_MIN_PX = 30;
-const CHART_MAX_PX = 84;
-const CHART_LATENCY_SHARE = 0.3;
+const CHART_MIN_PX = 40;
+const CHART_MAX_PX = 114;
+const CHART_CHORDS = [
+  { share: 0.46, offset: 21.8 },
+  { share: 0.64, offset: 61.2 },
+] as const;
 
 const deg = (rad: number) => (rad * 180) / Math.PI;
 const pct = (n: number) => `${Math.round(n * 1e5) / 1e3}%`;
 const ratio = (n: number) => String(Math.round(n * 1e5) / 1e5);
 
-// One chart width for both dials, sized from the latency dial and expressed in each dial's own cqw.
+// One chart width for both dials: the widest chord the latency face holds under its readout, in each dial's own cqw.
 function chartWidth(latencyPerDial: number): string {
-  const cqw = Math.round(CHART_LATENCY_SHARE * latencyPerDial * 1e5) / 1e3;
-  return `clamp(${CHART_MIN_PX}px, ${cqw}cqw, ${CHART_MAX_PX}px)`;
+  const [low, high] = CHART_CHORDS.map(
+    ({ share, offset }) =>
+      `${Math.round(share * latencyPerDial * 1e5) / 1e3}cqw - ${offset}px`,
+  );
+  return `clamp(${CHART_MIN_PX}px, max(${low}, ${high}), ${CHART_MAX_PX}px)`;
 }
 
 function slot(c: Circle, width: number, height: number): Slot {
