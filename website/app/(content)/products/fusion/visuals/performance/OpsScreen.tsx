@@ -3,7 +3,7 @@
 import { token } from "@/src/nitro";
 
 import type { TelemetryMotion } from "./useTelemetryClock";
-import { CHART_WIDTH_CLASS, LABEL_COLOR, chartWidthVars } from "./hud";
+import { LABEL_COLOR, NETWORK_CHART_WIDTH } from "./hud";
 import { TrendChart, TrendLine } from "./TrendLine";
 
 interface OpsScreenProps {
@@ -48,9 +48,8 @@ export function OpsScreen({ telemetry }: OpsScreenProps) {
         network
       </span>
       <div
-        className={CHART_WIDTH_CLASS}
         style={{
-          ...chartWidthVars("centre"),
+          width: NETWORK_CHART_WIDTH,
           height: "clamp(16px, 12cqw - 12px, 40px)",
         }}
       >

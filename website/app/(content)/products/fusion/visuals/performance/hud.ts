@@ -42,7 +42,7 @@ interface Slot {
   readonly size: string;
 }
 
-export type ChartDial = "latency" | "centre";
+export type ChartDial = "latency";
 
 interface Layout {
   readonly aspect: string;
@@ -76,11 +76,10 @@ const deg = (rad: number) => (rad * 180) / Math.PI;
 const pct = (n: number) => `${Math.round(n * 1e5) / 1e3}%`;
 const ratio = (n: number) => String(Math.round(n * 1e5) / 1e5);
 
-// One chart width for both dials: the widest chord the latency face holds under its readout, in each dial's own cqw.
-function chartWidth(latencyPerDial: number): string {
+// The widest chord the latency face holds under its readout.
+function latencyChartWidth(): string {
   const [low, high] = CHART_CHORDS.map(
-    ({ share, offset }) =>
-      `${Math.round(share * latencyPerDial * 1e5) / 1e3}cqw - ${offset}px`,
+    ({ share, offset }) => `${Math.round(share * 1e5) / 1e3}cqw - ${offset}px`,
   );
   return `clamp(${CHART_MIN_PX}px, max(${low}, ${high}), ${CHART_MAX_PX}px)`;
 }
@@ -118,10 +117,7 @@ function build(
   const mid = (outerStart + outerEnd) / 2;
   return {
     aspect: ratio(width / height),
-    chart: {
-      latency: chartWidth(1),
-      centre: chartWidth(left.r / centre.r),
-    },
+    chart: { latency: latencyChartWidth() },
     latency: slot(left, width, height),
     centre: slot(centre, width, height),
     pressure: slot(right, width, height),
@@ -169,6 +165,9 @@ export function chartWidthVars(dial: ChartDial): CSSProperties {
 }
 
 export const READOUT_FONT = "clamp(22px, 19.8cqw - 26px, 48px)";
+// Four mono glyphs at 0.6em advance with the readout's -0.02em letter-spacing, so the chart is 110% of the number.
+const NETWORK_CHART_EM = Math.round(4 * (0.6 - 0.02) * 1.1 * 1e3) / 1e3;
+export const NETWORK_CHART_WIDTH = `calc(${READOUT_FONT} * ${NETWORK_CHART_EM})`;
 export const READOUT_LINE_HEIGHT = 1.15;
 export const CONTENT_GAP = "clamp(3px, 3cqw - 4px, 12px)";
 
