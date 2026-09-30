@@ -46,12 +46,6 @@ internal static class HttpContextExtensions
 
     public static RequestContentType ParseContentType(this HttpContext context)
     {
-        if (context.Items.TryGetValue(nameof(RequestContentType), out var value)
-            && value is RequestContentType contentType)
-        {
-            return contentType;
-        }
-
         var span = context.Request.ContentType.AsSpan();
 
         if (IsMediaType(span, ContentType.JsonSpan()))
