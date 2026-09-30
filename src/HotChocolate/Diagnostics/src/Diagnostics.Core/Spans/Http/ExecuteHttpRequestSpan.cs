@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Diagnostics.SemanticConventions;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
 
@@ -20,6 +19,7 @@ internal sealed class ExecuteHttpRequestSpan(
         ActivitySource source,
         HttpContext httpContext,
         HttpRequestKind kind,
+        string schemaName,
         ActivityEnricherBase enricher,
         InstrumentationOptionsBase options)
     {
@@ -50,13 +50,6 @@ internal sealed class ExecuteHttpRequestSpan(
         }
 
         activity.SetTag(GraphQL.Http.Kind, kind.ToString());
-
-        if (!(httpContext.Items.TryGetValue(SchemaName, out var value)
-            && value is string schemaName))
-        {
-            schemaName = ISchemaDefinition.DefaultName;
-        }
-
         activity.SetTag(GraphQL.Schema.Name, schemaName);
 
         return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);

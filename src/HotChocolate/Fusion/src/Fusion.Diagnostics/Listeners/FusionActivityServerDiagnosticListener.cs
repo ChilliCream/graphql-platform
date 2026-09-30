@@ -8,6 +8,7 @@ using static HotChocolate.Fusion.Diagnostics.HotChocolateFusionActivitySource;
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
 
 internal sealed class FusionActivityServerDiagnosticListener(
+    string schemaName,
     FusionActivityEnricher enricher,
     InstrumentationOptions options)
     : ServerDiagnosticEventListener
@@ -19,7 +20,13 @@ internal sealed class FusionActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, enricher, options);
+        var span = ExecuteHttpRequestSpan.Start(
+            Source,
+            context,
+            kind,
+            schemaName,
+            enricher,
+            options);
 
         if (span is null)
         {

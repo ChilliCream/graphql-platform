@@ -473,6 +473,33 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     [Fact]
+    public async Task ExecuteHttpRequest_Should_TagSchemaName_When_SchemaIsNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateStarWarsServer(
+                configureServices: services => services
+                    .AddGraphQLServer("StarWars")
+                    .AddInstrumentation());
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+
+            // act
+            using var result = await client.PostAsync(
+                new OperationRequest("{ __typename }"),
+                new Uri("http://localhost:5000/starwars"),
+                TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            var span = Assert.Single(
+                activities.Settled,
+                a => a.OperationName == "ExecuteHttpRequest");
+            Assert.Equal("StarWars", span.GetTagItem("graphql.schema.name"));
+        }
+    }
+
+    [Fact]
     public async Task Http_Request_Should_Be_Unset_When_Client_Disconnects()
     {
         using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));

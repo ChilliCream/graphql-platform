@@ -7,6 +7,7 @@ using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 namespace HotChocolate.Diagnostics.Listeners;
 
 internal sealed class ActivityServerDiagnosticListener(
+    string schemaName,
     ActivityEnricher enricher,
     InstrumentationOptions options)
     : ServerDiagnosticEventListener
@@ -18,7 +19,13 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, enricher, options);
+        var span = ExecuteHttpRequestSpan.Start(
+            Source,
+            context,
+            kind,
+            schemaName,
+            enricher,
+            options);
 
         if (span is null)
         {

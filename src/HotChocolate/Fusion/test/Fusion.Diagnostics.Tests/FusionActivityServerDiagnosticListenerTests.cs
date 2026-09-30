@@ -496,6 +496,38 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ExecuteHttpRequest_Should_TagSchemaName_When_GatewayIsNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(),
+                gatewayName: "b");
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            // act
+            using var result = await client.PostAsync(
+                new OperationRequest("{ sayHello }"),
+                s_url,
+                TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            var span = Assert.Single(
+                activities.Settled,
+                a => a.OperationName == "ExecuteHttpRequest");
+            Assert.Equal("b", span.GetTagItem("graphql.schema.name"));
+        }
+    }
+
+    [Fact]
     public async Task Http_Request_Should_Be_Unset_When_Client_Disconnects()
     {
         using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
