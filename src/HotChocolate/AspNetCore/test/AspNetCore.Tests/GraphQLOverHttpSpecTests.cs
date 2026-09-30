@@ -155,6 +155,43 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     [Theory]
+    [InlineData("text/event-stream")]
+    [InlineData("text/*")]
+    public async Task SingleResult_Should_WriteOneNextEvent_When_EventStreamIsAccepted(
+        string acceptHeader)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        request.Headers.Add("Accept", acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {"data":{"__typename":"Query"}}
+
+                event: complete
+
+
+                """);
+    }
+
+    [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
     [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
@@ -2639,6 +2676,111 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Null(response.Content.Headers.ContentType);
         Assert.Empty(
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // For a single result, */* covers the two JSON media types only, so a client that rejects
+    // both and names no other media type has no format to be written in.
+    [Theory]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, */*;q=1",
+        Legacy)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, */*;q=1",
+        Draft20250508)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, */*;q=1",
+        Draft20260903)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, multipart/mixed;q=0, */*",
+        Legacy)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, multipart/mixed;q=0, */*",
+        Draft20250508)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, multipart/mixed;q=0, */*",
+        Draft20260903)]
+    [InlineData("application/*;q=0, */*", Legacy)]
+    [InlineData("application/*;q=0, */*", Draft20250508)]
+    [InlineData("application/*;q=0, */*", Draft20260903)]
+    public async Task SingleResult_Should_ReturnBareNotAcceptable_When_OnlyWildcardAcceptsEnvelopes(
+        string acceptHeader,
+        HttpTransportVersion serverTransportVersion)
+    {
+        // arrange
+        var client = GetClient(serverTransportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Null(response.Content.Headers.ContentType);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // For a single result, */* does not rate multipart/mixed or text/event-stream, so a JSON
+    // media type the client accepts is selected at any quality.
+    [Theory]
+    [InlineData(Legacy)]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task SingleResult_Should_SelectGraphQLResponse_When_WildcardRatesEnvelopesHigher(
+        HttpTransportVersion serverTransportVersion)
+    {
+        // arrange
+        var client = GetClient(serverTransportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(
+            request,
+            "application/graphql-response+json;q=0.1, application/json;q=0.1, */*");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // Naming multipart/mixed or text/event-stream, or its type/* range, makes it a format for a
+    // single result at the quality the client gave it.
+    [Theory]
+    [InlineData("application/json;q=0.5, multipart/mixed", ContentType.MultiPartMixed)]
+    [InlineData("application/json;q=0.5, multipart/*", ContentType.MultiPartMixed)]
+    [InlineData("application/json;q=0.5, text/event-stream", ContentType.EventStream)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, multipart/mixed, */*",
+        ContentType.MultiPartMixed)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, multipart/*, */*",
+        ContentType.MultiPartMixed)]
+    [InlineData(
+        "application/graphql-response+json;q=0, application/json;q=0, text/event-stream, */*",
+        ContentType.EventStream)]
+    public async Task SingleResult_Should_SelectNamedEnvelope_When_ItOutranksJson(
+        string acceptHeader,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
     [Fact]

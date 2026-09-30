@@ -888,6 +888,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 continue;
             }
 
+            // For a single result, */* covers the two JSON media types only, so multipart/mixed
+            // and text/event-stream are candidates only when named or covered by a type/* range.
+            if (result.Kind is SingleResult
+                && candidate.Kind is ResponseContentType.MultiPartMixed
+                    or ResponseContentType.EventStream
+                && acceptMediaTypes[match.RangeIndex].Kind is All)
+            {
+                continue;
+            }
+
             var named = match.NamedPosition >= 0 && Contains(preferred, candidate);
             var byWildcard =
                 match.WildcardPosition >= 0 && ReferenceEquals(candidate, wildcardDefault);
