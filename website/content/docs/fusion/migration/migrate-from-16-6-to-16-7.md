@@ -1,6 +1,6 @@
 ---
 title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
-description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header, and override cost limits per request with FusionRequestCostOptions."
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header, review the multipart and request body size limits, and override cost limits per request with FusionRequestCostOptions."
 ---
 
 Update every Hot Chocolate Fusion package in the application to version 16.7 before applying these changes.
@@ -100,6 +100,14 @@ The gateway now applies the same request checks as a Hot Chocolate server before
 - When `EnableQueryRequests` is `true`, a mutation or subscription sent over HTTP QUERY has a `422 Unprocessable Content` status code.
 
 Send mutations over POST, or set `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation` to keep accepting them over GET. Send an `Accept` header that includes `multipart/mixed` or `text/event-stream` with operations that use incremental delivery.
+
+## Multipart and request body size limits
+
+- A multipart request whose `operations` field exceeds the [maximum request size](../request-limits.md) is rejected with the error code `HC0010`. 16.6 executed such a request whenever the web server accepted its body. Raise `maxAllowedRequestSize` if clients send larger operations.
+- A multipart section over `FormOptions.MultipartBodyLengthLimit` is rejected with the error code `HC0135`, which replaces `HC0033`.
+- A request body over the web server's limit, or over `FormOptions.BufferBodyLengthLimit` when `FormOptions.BufferBody` is set, is rejected with the error code `HC0136`, which replaces `HC0012` for a JSON body and `HC0033` for a multipart body.
+
+These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
 
 # Deprecations
 

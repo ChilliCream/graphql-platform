@@ -1,7 +1,7 @@
 ---
 title: Migrate Hot Chocolate from 16.6 to 16.7
 metaTitle: "Hot Chocolate 16.7 Migration Guide"
-description: "Migration guide for Hot Chocolate v16.6 to v16.7: update cost analysis, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, and configure wide operation limits."
+description: "Migration guide for Hot Chocolate v16.6 to v16.7: update cost analysis, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, and review the multipart and request body size limits."
 ---
 
 Update every `HotChocolate.*` package in the application to version 16.7 before applying these changes.
@@ -236,6 +236,14 @@ On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.De
 ## Empty variable batches are refused
 
 A request whose `variables` field is an empty array is refused before execution with the error code `HC0009`, including for an operation that declares no variables, which 16.6 executed once. The response is HTTP 400, or 422 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200. Send `variables` as an object, or omit it, for a request without variables.
+
+## Multipart and request body size limits
+
+- A multipart request whose `operations` field exceeds the [maximum request size](../server/endpoints.md#maxallowedrequestsize) is rejected with the error code `HC0010`. 16.6 executed such a request whenever the web server accepted its body. Raise `maxAllowedRequestSize` if clients send larger operations.
+- A multipart section over `FormOptions.MultipartBodyLengthLimit` is rejected with the error code `HC0135`, which replaces `HC0033`.
+- A request body over the web server's limit, or over `FormOptions.BufferBodyLengthLimit` when `FormOptions.BufferBody` is set, is rejected with the error code `HC0136`, which replaces `HC0012` for a JSON body and `HC0033` for a multipart body.
+
+These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
 
 # Noteworthy changes
 
