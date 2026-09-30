@@ -27,10 +27,11 @@ import {
   strokeShadedPathRgba,
 } from "./paint";
 import {
-  computeFilamentState,
+  computeFilamentPhases,
   computeSurge,
   createSparkDefs,
   createStreak,
+  FILAMENT_WIND_COUNT,
   isFarSide,
   occludeHelixBehindColumn,
   projectHelix,
@@ -284,7 +285,7 @@ export default function Tokamak() {
 
     // hc-0-540: whether this mounted instance renders the ticket's
     // energetic plasma (raised live share, faster orbit/twist/breathe,
-    // flicker, surges, filament reseed/forks, sparks) or the pre-ticket
+    // flicker, surges, sparks) or the pre-ticket
     // scene exactly. Read once, directly from `matchMedia` rather than
     // through `useReducedMotionPreference`'s hook (whose own
     // `useSyncExternalStore`/`useReducedMotion` can still report their
@@ -752,54 +753,28 @@ export default function Tokamak() {
         : LEGACY_BAND_ORBIT_PERIOD_S;
       const orbitPhase = (timeSec / orbitPeriod) * Math.PI * 2;
 
-      // hc-0-540 fix direction 4: `computeFilamentState` only runs in the
-      // energetic build; the legacy build recomputes the starting commit's
-      // own `twistPhase` formula directly (period 20s, default `windCount`
-      // 3, no fork) so `projectHelix`'s output matches it exactly.
-      const filament = energetic
-        ? computeFilamentState(timeSec, TWIST_PERIOD_S)
-        : {
-            twistPhase: (timeSec / LEGACY_TWIST_PERIOD_S) * Math.PI * 2,
-            windCount: 3,
-            fork: null,
-          };
-      const helixPts = occludeHelixBehindColumn(
-        projectHelix(
-          layout.torus,
-          layout.camera,
-          filament.twistPhase,
-          filament.windCount,
-        ),
-        layout.camera,
-        columnHalfWidthPx,
-      );
-      const { far: helixFar, near: helixNear } = splitByPredicate(
-        helixPts,
-        (p: ShadedPoint) => isFarSide(p.theta),
-      );
-      // The filament's brief forking second thread (fix direction 4),
-      // non-null only in the reseed window right after its wind count
-      // actually changes -- see `computeFilamentState`'s own doc. Always
-      // null in the legacy build.
-      let helixForkFar: ShadedPoint[][] = [];
-      let helixForkNear: ShadedPoint[][] = [];
-      if (filament.fork) {
-        const forkPts = occludeHelixBehindColumn(
-          projectHelix(
-            layout.torus,
+      // Two permanent filaments, half a wind apart; the legacy
+      // (reduced-motion) build keeps its own slower twist period.
+      const helixThreads = computeFilamentPhases(
+        timeSec,
+        energetic ? TWIST_PERIOD_S : LEGACY_TWIST_PERIOD_S,
+      ).map((twistPhase) =>
+        splitByPredicate(
+          occludeHelixBehindColumn(
+            projectHelix(
+              layout.torus,
+              layout.camera,
+              twistPhase,
+              FILAMENT_WIND_COUNT,
+            ),
             layout.camera,
-            filament.fork.twistPhase,
-            filament.fork.windCount,
+            columnHalfWidthPx,
           ),
-          layout.camera,
-          columnHalfWidthPx,
-        );
-        const forkSplit = splitByPredicate(forkPts, (p: ShadedPoint) =>
-          isFarSide(p.theta),
-        );
-        helixForkFar = forkSplit.far;
-        helixForkNear = forkSplit.near;
-      }
+          (p: ShadedPoint) => isFarSide(p.theta),
+        ),
+      );
+      const helixFar = helixThreads.flatMap((thread) => thread.far);
+      const helixNear = helixThreads.flatMap((thread) => thread.near);
 
       // Legacy-only: the pre-ticket single "hot" streak, unchanged formula.
       const hotIndex =
@@ -938,38 +913,6 @@ export default function Tokamak() {
         }
       };
 
-      // hc-0-540 fix direction 4: the fork's own brief second thread,
-      // brighter than the primary strand and fading with
-      // `filament.fork.alpha` -- reads as the filament forking at the
-      // reseed moment, one branch dying out. A no-op whenever
-      // `filament.fork` is null (always null in the legacy build).
-      const strokeHelixForkRuns = (
-        runs: readonly ShadedPoint[][],
-        colorHex: string,
-        alphaMul: number,
-      ) => {
-        if (!filament.fork || runs.length === 0) {
-          return;
-        }
-        const forkAlpha = filament.fork.alpha;
-        for (const run of runs) {
-          strokeShadedPath(
-            liveCtx!,
-            run,
-            colorHex,
-            5,
-            0.5 * alphaMul * forkAlpha,
-          );
-          strokeShadedPathRgba(
-            liveCtx!,
-            run,
-            warmWhiteToRgba,
-            1.6,
-            0.7 * alphaMul * forkAlpha,
-          );
-        }
-      };
-
       // hc-0-540 fix direction 6: each spark's own short trailing run and
       // fade envelope for this frame, projected once and reused by both
       // the far and near passes below (same pattern as `liveRuns`). Always
@@ -1034,7 +977,6 @@ export default function Tokamak() {
       const drawGlowGroup = (
         side: "far" | "near",
         helixRuns: readonly ShadedPoint[][],
-        forkRuns: readonly ShadedPoint[][],
         sparkRuns: readonly {
           far: ShadedPoint[][];
           near: ShadedPoint[][];
@@ -1075,21 +1017,10 @@ export default function Tokamak() {
         for (const run of helixRuns) {
           strokeShadedPath(glowCtx!, run, colorHex, 4.5, 0.28 * alphaMul);
         }
-        if (filament.fork) {
-          for (const run of forkRuns) {
-            strokeShadedPath(
-              glowCtx!,
-              run,
-              colorHex,
-              5,
-              0.3 * alphaMul * filament.fork.alpha,
-            );
-          }
-        }
         // hc-0-540 fix (review 1 major 1): spark motes must carry a halo
-        // like every other luminous element on this layer -- mirrors the
-        // fork branch just above, scaled by each spark's own envelope so
-        // the halo fades with the mote instead of a flat alpha.
+        // like every other luminous element on this layer, scaled by each
+        // spark's own envelope so the halo fades with the mote instead of a
+        // flat alpha.
         for (const { far, near, envelope } of sparkRuns) {
           const runs = side === "far" ? far : near;
           for (const run of runs) {
@@ -1119,14 +1050,12 @@ export default function Tokamak() {
         drawGlowGroup(
           "far",
           helixFar,
-          helixForkFar,
           sparkRuns,
           BRAND.coralSoft,
           FAR_ALPHA_MUL,
         );
         strokeGroup("far", BRAND.coralSoft, FAR_ALPHA_MUL);
         strokeHelixRuns(helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
-        strokeHelixForkRuns(helixForkFar, BRAND.coralSoft, FAR_ALPHA_MUL);
         strokeSparks("far", BRAND.coralSoft, FAR_ALPHA_MUL);
       }
 
@@ -1250,14 +1179,12 @@ export default function Tokamak() {
         drawGlowGroup(
           "near",
           helixNear,
-          helixForkNear,
           sparkRuns,
           BRAND.coral,
           NEAR_ALPHA_MUL,
         );
         strokeGroup("near", BRAND.coral, NEAR_ALPHA_MUL);
         strokeHelixRuns(helixNear, BRAND.coral, NEAR_ALPHA_MUL);
-        strokeHelixForkRuns(helixForkNear, BRAND.coral, NEAR_ALPHA_MUL);
         strokeSparks("near", BRAND.coral, NEAR_ALPHA_MUL);
 
         // `torusCenter` sits at the band's near-side point, not the torus'
