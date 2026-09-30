@@ -3104,7 +3104,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         return server.CreateClient();
     }
 
-    private void AddAcceptHeader(HttpRequestMessage request, string? acceptHeader)
+    private static void AddAcceptHeader(HttpRequestMessage request, string? acceptHeader)
     {
         if (acceptHeader != null)
         {
