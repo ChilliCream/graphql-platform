@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import {
-  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -44,9 +44,33 @@ function navigatesInCurrentTab(e: MouseEvent<HTMLAnchorElement>): boolean {
 
 export function HeaderNav({ latestBlog, blogImage }: HeaderNavProps) {
   const [expandedHref, setExpandedHref] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (expandedHref === null) {
+      return;
+    }
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== "Escape") {
+        return;
+      }
+      const button = navRef.current?.querySelector<HTMLButtonElement>(
+        'button[aria-expanded="true"]',
+      );
+      if (button?.parentElement?.contains(document.activeElement)) {
+        button.focus();
+      }
+      setExpandedHref(null);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [expandedHref]);
 
   return (
-    <nav className="relative hidden h-full flex-1 min-[1060px]:block">
+    <nav
+      ref={navRef}
+      className="relative hidden h-full flex-1 min-[1060px]:block"
+    >
       <ol className="m-0 flex h-full list-none items-stretch p-0">
         {NAV_ITEMS.map((item) =>
           item.groups ? (
@@ -100,37 +124,31 @@ function NavWithSubmenu({
   expanded,
   onExpandedChange,
 }: NavWithSubmenuProps) {
-  const [closed, setClosed] = useState(false);
   const panelId = useId();
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleNavigate: NavigateHandler = (e) => {
     if (navigatesInCurrentTab(e)) {
-      setClosed(true);
       onExpandedChange(false);
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLLIElement>) => {
-    if (e.key === "Escape" && expanded) {
-      onExpandedChange(false);
-      buttonRef.current?.focus();
     }
   };
 
   return (
     <li
-      className="group/nav flex items-stretch"
-      onMouseLeave={() => {
-        setClosed(false);
-        onExpandedChange(false);
-      }}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) {
+      className="flex items-stretch"
+      onMouseEnter={() => onExpandedChange(true)}
+      onMouseLeave={(e) => {
+        if (!e.currentTarget.querySelector(":focus-visible")) {
           onExpandedChange(false);
         }
       }}
-      onKeyDown={handleKeyDown}
+      onBlur={(e) => {
+        if (
+          !e.currentTarget.contains(e.relatedTarget) &&
+          !e.currentTarget.matches(":hover")
+        ) {
+          onExpandedChange(false);
+        }
+      }}
     >
       <Link
         href={item.href}
@@ -141,12 +159,12 @@ function NavWithSubmenu({
         {item.label}
       </Link>
       <button
-        ref={buttonRef}
         type="button"
         aria-label={`Show ${item.label} menu`}
         aria-expanded={expanded}
         aria-controls={panelId}
-        onClick={() => onExpandedChange(!expanded)}
+        // A pointer click (detail > 0) follows the hover-open and must not toggle it shut.
+        onClick={(e) => onExpandedChange(e.detail === 0 ? !expanded : true)}
         className="text-cc-heading focus-visible:ring-cc-accent/50 mr-2.5 cursor-pointer self-center rounded-md p-1.5 focus-visible:ring-2 focus-visible:outline-none max-[1200px]:mr-1"
       >
         <ChevronDownIcon className="h-3 w-3 fill-current" />
@@ -157,7 +175,6 @@ function NavWithSubmenu({
         item={item}
         latestBlog={latestBlog}
         blogImage={blogImage}
-        closed={closed}
         expanded={expanded}
         onNavigate={handleNavigate}
       />
@@ -170,7 +187,6 @@ interface SubmenuPanelProps {
   readonly item: NavItem;
   readonly latestBlog: BlogPostSummary | null;
   readonly blogImage: ReactNode;
-  readonly closed: boolean;
   readonly expanded: boolean;
   readonly onNavigate: NavigateHandler;
 }
@@ -180,7 +196,6 @@ function SubmenuPanel({
   item,
   latestBlog,
   blogImage,
-  closed,
   expanded,
   onNavigate,
 }: SubmenuPanelProps) {
@@ -204,9 +219,7 @@ function SubmenuPanel({
         // Visibility must not transition on open, or the links are untabbable for a frame.
         expanded
           ? "pointer-events-auto! visible! opacity-100! transition-[opacity]!"
-          : closed
-            ? ""
-            : "group-hover/nav:pointer-events-auto group-hover/nav:visible group-hover/nav:opacity-100",
+          : "",
       ].join(" ")}
     >
       <div
