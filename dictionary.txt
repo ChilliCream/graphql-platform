@@ -250,6 +250,7 @@ runbooks
 sandboxed
 SASL
 Satisfiability
+seekable
 Senn
 servicebus
 shoooe
