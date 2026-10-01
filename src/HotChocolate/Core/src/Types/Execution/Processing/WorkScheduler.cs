@@ -7,6 +7,10 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal sealed partial class WorkScheduler
 {
+#if DEBUG
+    internal const string LastResolverCompletionHookKey = "WorkScheduler.LastResolverCompletionHook";
+#endif
+
     private readonly Dictionary<int, Branch> _activeBranches = [];
 
     /// <summary>
@@ -108,6 +112,13 @@ internal sealed partial class WorkScheduler
 
                 if (work.Complete())
                 {
+#if DEBUG
+                    if (_requestContext.ContextData.TryGetValue(LastResolverCompletionHookKey, out var value)
+                        && value is Action<WorkScheduler> hook)
+                    {
+                        hook(this);
+                    }
+#endif
                     lock (_sync)
                     {
                         _completed.Add(resolverTask.Id);
