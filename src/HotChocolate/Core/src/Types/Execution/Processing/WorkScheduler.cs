@@ -108,19 +108,19 @@ internal sealed partial class WorkScheduler
         switch (task)
         {
             case Tasks.ResolverTask resolverTask:
-                CompleteBranchTask(task.BranchId);
-
-                if (work.Complete())
+                lock (_sync)
                 {
+                    CompleteBranchTaskUnsafe(task.BranchId);
+
+                    if (work.Complete())
+                    {
 #if DEBUG
-                    if (_requestContext.ContextData.TryGetValue(LastResolverCompletionHookKey, out var value)
-                        && value is Action<WorkScheduler> hook)
-                    {
-                        hook(this);
-                    }
+                        if (_requestContext.ContextData.TryGetValue(LastResolverCompletionHookKey, out var value)
+                            && value is Action<WorkScheduler> hook)
+                        {
+                            hook(this);
+                        }
 #endif
-                    lock (_sync)
-                    {
                         _completed.Add(resolverTask.Id);
                         DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
                     }
@@ -144,11 +144,11 @@ internal sealed partial class WorkScheduler
                 break;
 
             default:
-                CompleteBranchTask(task.BranchId);
-
-                if (work.Complete())
+                lock (_sync)
                 {
-                    lock (_sync)
+                    CompleteBranchTaskUnsafe(task.BranchId);
+
+                    if (work.Complete())
                     {
                         _completed.Add(task.Id);
                     }
@@ -173,24 +173,6 @@ internal sealed partial class WorkScheduler
         }
 
         branch.RegisterTask();
-    }
-
-    private void CompleteBranchTask(int branchId)
-    {
-        if (branchId == BranchTracker.SystemBranchId)
-        {
-            return;
-        }
-
-        lock (_sync)
-        {
-            if (_activeBranches.TryGetValue(branchId, out var branch)
-                && branch.CompleteTask())
-            {
-                _activeBranches.Remove(branchId);
-                branch.Complete();
-            }
-        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
