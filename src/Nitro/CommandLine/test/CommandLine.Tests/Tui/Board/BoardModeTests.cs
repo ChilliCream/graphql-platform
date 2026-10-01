@@ -1017,6 +1017,54 @@ public sealed class BoardModeTests
         console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | stack─────────────────────────────────────────────────────────────────────────────────────────────────────╮");
     }
 
+    [Fact]
+    public void TabBadge_Should_BeNull_When_TheFocusedColumnHeaderNamesTheOrientation()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+
+        // act
+        var badge = mode.TabBadge(100, 12);
+
+        // assert
+        Assert.Null(badge);
+    }
+
+    [Theory]
+    [InlineData("SideBySide", "grid")]
+    [InlineData("Stacked", "stack")]
+    public void TabBadge_Should_NameTheOrientation_When_TheFocusedColumnHeaderIsTooNarrow(
+        string orientationName, string expectedBadge)
+    {
+        // arrange
+        var mode = CreateMode(
+            StoreWithOneTaskPerColumn(), TwoColumnView(), Enum.Parse<BoardOrientation>(orientationName));
+        mode.OnEnter();
+
+        // act
+        var badge = mode.TabBadge(16, 12);
+
+        // assert
+        Assert.Equal(expectedBadge, badge);
+    }
+
+    [Fact]
+    public void TabBadge_Should_NameTheOrientation_When_TheEmptyBoardHeaderIsTooNarrow()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+
+        // act
+        var narrow = mode.TabBadge(12, 12);
+        var wide = mode.TabBadge(60, 12);
+
+        // assert
+        Assert.Equal("grid", narrow);
+        Assert.Null(wide);
+    }
+
     [Theory]
     [InlineData(8)]
     [InlineData(3)]

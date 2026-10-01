@@ -103,6 +103,44 @@ public sealed class BoardOrientationWriterTests : IDisposable
         Assert.Equal([BoardOrientation.SideBySide, BoardOrientation.Stacked], store.Writes);
     }
 
+    [Fact]
+    public async Task Enqueue_Should_NotFaultTheDrainAndStillWriteTheNextValue_When_TheStoreThrows()
+    {
+        // arrange
+        var store = new RecordingStore { ThrowFirstWrite = true };
+        var writer = new BoardOrientationWriter(store);
+
+        // act
+        writer.Enqueue(BoardOrientation.SideBySide);
+        var drainedAfterThrow = await writer.DrainAsync(s_generous);
+        writer.Enqueue(BoardOrientation.Stacked);
+        var drainedAfterRecovery = await writer.DrainAsync(s_generous);
+
+        // assert
+        Assert.True(drainedAfterThrow);
+        Assert.True(drainedAfterRecovery);
+        Assert.Equal([BoardOrientation.SideBySide, BoardOrientation.Stacked], store.Writes);
+    }
+
+    [Fact]
+    public async Task DrainAsync_Should_ReturnTrueWithoutThrowing_When_TheStoreThrowsWhileDraining()
+    {
+        // arrange
+        var store = new RecordingStore { BlockFirstWrite = true, ThrowFirstWrite = true };
+        var writer = new BoardOrientationWriter(store);
+        writer.Enqueue(BoardOrientation.Stacked);
+        await store.FirstWriteStarted.Task.WaitAsync(s_generous, TestContext.Current.CancellationToken);
+
+        // act
+        var drain = writer.DrainAsync(s_generous);
+        store.ReleaseFirstWrite.SetResult();
+        var drained = await drain;
+
+        // assert
+        Assert.True(drained);
+        Assert.Equal([BoardOrientation.Stacked], store.Writes);
+    }
+
     private sealed class RecordingStore : IBoardPreferencesStore
     {
         private readonly object _gate = new();
@@ -111,6 +149,8 @@ public sealed class BoardOrientationWriterTests : IDisposable
         public bool BlockFirstWrite { get; init; }
 
         public bool FailFirstWrite { get; init; }
+
+        public bool ThrowFirstWrite { get; init; }
 
         public TaskCompletionSource FirstWriteStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -145,6 +185,11 @@ public sealed class BoardOrientationWriterTests : IDisposable
                     {
                         await ReleaseFirstWrite.Task;
                     }
+                }
+
+                if (first && ThrowFirstWrite)
+                {
+                    throw new InvalidOperationException("The store is broken.");
                 }
 
                 return !(first && FailFirstWrite);

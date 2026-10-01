@@ -142,8 +142,7 @@ internal sealed class BoardMode : ITuiMode
         }
 
         var focusedPosition = Math.Max(0, IndexOf(visibleIndices, _state.FocusedColumnIndex));
-        var decision = BoardLayout.Decide(
-            width, height, visibleIndices.Count, focusedPosition, _maximized, _orientation);
+        var decision = DecideLayout(width, height, visibleIndices.Count, focusedPosition);
 
         return decision.Kind switch
         {
@@ -151,6 +150,62 @@ internal sealed class BoardMode : ITuiMode
             BoardLayoutKind.Stacked => RenderStacked(decision, visibleIndices),
             _ => RenderGrid(decision, visibleIndices)
         };
+    }
+
+    /// <inheritdoc />
+    public string? TabBadge(int width, int height)
+        => HeaderNamesOrientation(width, height) ? null : _orientation.ToLabel();
+
+    private BoardLayoutDecision DecideLayout(int width, int height, int visibleCount, int focusedPosition)
+        => BoardLayout.Decide(width, height, visibleCount, focusedPosition, _maximized, _orientation);
+
+    /// <summary>
+    /// Whether <see cref="Render"/> draws the orientation label in a column header at the
+    /// given size.
+    /// </summary>
+    private bool HeaderNamesOrientation(int width, int height)
+    {
+        if (_state.Columns.Count == 0 || width <= 0 || height <= 0)
+        {
+            return false;
+        }
+
+        var visibleIndices = _state.VisibleColumnIndices;
+
+        if (visibleIndices.Count == 0)
+        {
+            return FitsOrientation(EmptyBoardHeader(), width);
+        }
+
+        var focusedPosition = Math.Max(0, IndexOf(visibleIndices, _state.FocusedColumnIndex));
+        var decision = DecideLayout(width, height, visibleIndices.Count, focusedPosition);
+        var slot = decision.Columns[focusedPosition];
+
+        var maximized = decision.Kind == BoardLayoutKind.Maximized;
+
+        if (!slot.Expanded || (!maximized && visibleIndices[focusedPosition] != _state.FocusedColumnIndex))
+        {
+            return false;
+        }
+
+        var suffix = maximized ? $"{focusedPosition + 1}/{visibleIndices.Count}" : null;
+        var header = ColumnHeader(_state.Columns[visibleIndices[focusedPosition]], suffix);
+
+        return FitsOrientation(header, Math.Max(1, slot.Width));
+    }
+
+    private bool FitsOrientation(string header, int panelWidth)
+        => OrientationHeader(header).Length <= Math.Max(0, panelWidth - PanelChromeWidth);
+
+    private string OrientationHeader(string header) => $"{header} | {_orientation.ToLabel()}";
+
+    private string EmptyBoardHeader() => $"{_state.View.Name} (0)";
+
+    private static string ColumnHeader(BoardColumnState column, string? headerSuffix)
+    {
+        var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
+
+        return $"{name} ({column.Tasks.Count})";
     }
 
     private IRenderable RenderGrid(BoardLayoutDecision decision, IReadOnlyList<int> visibleIndices)
@@ -225,8 +280,11 @@ internal sealed class BoardMode : ITuiMode
             lines.Add(string.Empty);
         }
 
+        var emptyHeader = EmptyBoardHeader();
         var panel = ColumnPane.RenderWithHeader(
-            $"{_state.View.Name} (0) | {_orientation.ToLabel()}", lines, focused: false);
+            FitsOrientation(emptyHeader, safeWidth) ? OrientationHeader(emptyHeader) : emptyHeader,
+            lines,
+            focused: false);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
@@ -238,7 +296,7 @@ internal sealed class BoardMode : ITuiMode
     /// <paramref name="columnWidth"/> and <paramref name="panelHeight"/>, with
     /// <paramref name="headerSuffix"/> appended to the column name when the
     /// column is the only one shown. The focused column's header also names the
-    /// current orientation when the whole label fits.
+    /// current orientation when the whole label fits; otherwise <see cref="TabBadge"/> does.
     /// </summary>
     private Panel RenderColumnPanel(int index, int columnWidth, int panelHeight, bool focused, string? headerSuffix)
     {
@@ -248,11 +306,9 @@ internal sealed class BoardMode : ITuiMode
         var interiorHeight = Math.Max(0, panelHeight - PanelChromeHeight);
 
         var lines = RenderColumnLines(column, _viewports[index], contentWidth, interiorHeight, focused);
-        var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
-        var header = $"{name} ({column.Tasks.Count})";
-        var withOrientation = $"{header} | {_orientation.ToLabel()}";
+        var header = ColumnHeader(column, headerSuffix);
         var panel = ColumnPane.RenderWithHeader(
-            focused && withOrientation.Length <= contentWidth ? withOrientation : header, lines, focused);
+            focused && FitsOrientation(header, safeWidth) ? OrientationHeader(header) : header, lines, focused);
 
         // Panel header title inherits the same accent color as its border, per column.
         var borderStyle = column.Definition.ResolveBorderStyle(focused);

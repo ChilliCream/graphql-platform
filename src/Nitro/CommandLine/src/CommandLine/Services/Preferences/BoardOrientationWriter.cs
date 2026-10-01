@@ -17,7 +17,7 @@ internal sealed class BoardOrientationWriter(IBoardPreferencesStore store)
 
     /// <summary>
     /// Schedules <paramref name="orientation"/> to be saved without blocking the caller.
-    /// A write the store reports as failed is dropped.
+    /// A write that fails, by result or by exception, is dropped.
     /// </summary>
     public void Enqueue(BoardOrientation orientation)
     {
@@ -62,36 +62,35 @@ internal sealed class BoardOrientationWriter(IBoardPreferencesStore store)
 
     private async Task WriteAsync()
     {
-        try
+        while (true)
         {
-            while (true)
-            {
-                BoardOrientation next;
+            BoardOrientation next;
 
-                lock (_gate)
-                {
-                    if (_pending is not { } pending)
-                    {
-                        _running = false;
-                        return;
-                    }
-
-                    next = pending;
-                    _pending = null;
-                }
-
-                // The store reports an unwritable file by returning false, which keeps the in-memory choice.
-                await store.WriteOrientationAsync(next, CancellationToken.None);
-            }
-        }
-        catch
-        {
             lock (_gate)
             {
-                _running = false;
+                if (_pending is not { } pending)
+                {
+                    _running = false;
+                    return;
+                }
+
+                next = pending;
+                _pending = null;
             }
 
-            throw;
+            await TryWriteAsync(next);
+        }
+    }
+
+    private async Task<bool> TryWriteAsync(BoardOrientation orientation)
+    {
+        try
+        {
+            return await store.WriteOrientationAsync(orientation, CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 }

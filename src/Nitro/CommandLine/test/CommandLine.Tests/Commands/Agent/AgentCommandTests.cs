@@ -183,7 +183,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Bare_Interactive_WithWorkspace_Should_LoadTheBoardOrientationFromTheStoreInServices()
+    public async Task Bare_Interactive_Should_LoadTheBoardOrientationFromTheStoreInServices_When_AWorkspaceExists()
     {
         // arrange
         await InitWorkspaceAsync();
