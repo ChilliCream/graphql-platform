@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces;
 
 internal sealed record TraceJson(
     string TraceId,
-    int SpanCount,
+    int? SpanCount,
     bool SpansTruncated,
     double TotalDurationMs,
     IReadOnlyList<TraceJsonSpan> Spans)
@@ -12,7 +12,7 @@ internal sealed record TraceJson(
     public static TraceJson From(string traceId, Trace trace)
         => new(
             traceId,
-            trace.SpanCount ?? trace.Spans.Count,
+            trace.SpanCount,
             trace.SpansTruncated,
             trace.TotalDuration,
             trace.Spans.Select(TraceJsonSpan.From).ToArray());

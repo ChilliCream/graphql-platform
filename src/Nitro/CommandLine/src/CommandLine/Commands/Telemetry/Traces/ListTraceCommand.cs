@@ -21,7 +21,7 @@ internal sealed class ListTraceCommand : Command
         Options.Add(Opt<TelemetryHasErrorOption>.Instance);
         Options.Add(Opt<TelemetryMinDurationOption>.Instance);
         Options.Add(Opt<TelemetrySpanKindOption>.Instance);
-        Options.Add(Opt<TelemetrySearchOption>.Instance);
+        Options.Add(Opt<TelemetryTraceSearchOption>.Instance);
         Options.Add(Opt<TelemetrySinceOption>.Instance);
         Options.Add(Opt<TelemetryUntilOption>.Instance);
         Options.Add(Opt<TelemetryLimitOption>.Instance);
@@ -48,7 +48,7 @@ internal sealed class ListTraceCommand : Command
         }
 
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
-        var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
+        var search = parseResult.GetValue(Opt<TelemetryTraceSearchOption>.Instance);
         var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
         if (!TelemetryListFilter.TryCompile(
             console,

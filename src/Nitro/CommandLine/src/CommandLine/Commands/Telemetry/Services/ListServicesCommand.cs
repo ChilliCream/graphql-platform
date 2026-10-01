@@ -14,7 +14,7 @@ internal sealed class ListServicesCommand : Command
     {
         Description = "List telemetry services in the current workspace.";
 
-        Options.Add(Opt<TelemetrySearchOption>.Instance);
+        Options.Add(Opt<TelemetryServiceSearchOption>.Instance);
         Options.Add(Opt<TelemetryEnvironmentOption>.Instance);
         Options.Add(Opt<TelemetryFilterOption>.Instance);
         Options.Add(Opt<TelemetrySinceOption>.Instance);
@@ -42,7 +42,7 @@ internal sealed class ListServicesCommand : Command
             return ExitCodes.Error;
         }
 
-        var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
+        var search = parseResult.GetValue(Opt<TelemetryServiceSearchOption>.Instance);
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);

@@ -1,10 +1,10 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 
-internal sealed class TelemetrySearchOption : Option<string>
+internal abstract class TelemetrySearchOption : Option<string>
 {
-    public TelemetrySearchOption() : base("--search")
+    protected TelemetrySearchOption(string description) : base("--search")
     {
-        Description = "Search span names or log messages";
+        Description = description;
         Required = false;
         this.NonEmptyStringsOnly();
     }

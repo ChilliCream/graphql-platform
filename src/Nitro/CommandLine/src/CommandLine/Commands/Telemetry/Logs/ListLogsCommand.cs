@@ -22,7 +22,7 @@ internal sealed class ListLogsCommand : Command
         Options.Add(Opt<TelemetryLimitOption>.Instance);
         Options.Add(Opt<TelemetrySeverityOption>.Instance);
         Options.Add(Opt<TelemetryTraceIdOption>.Instance);
-        Options.Add(Opt<TelemetrySearchOption>.Instance);
+        Options.Add(Opt<TelemetryLogSearchOption>.Instance);
 
         TelemetryCommandOptions.AddOptions(this);
 
@@ -51,7 +51,7 @@ internal sealed class ListLogsCommand : Command
         var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
         var severity = parseResult.GetValue(Opt<TelemetrySeverityOption>.Instance);
         var traceId = parseResult.GetValue(Opt<TelemetryTraceIdOption>.Instance);
-        var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
+        var search = parseResult.GetValue(Opt<TelemetryLogSearchOption>.Instance);
         if (!TelemetryListFilter.TryCompile(
             console,
             TelemetryFilterSignal.Logs,

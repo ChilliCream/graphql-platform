@@ -138,7 +138,7 @@ file static class Extensions
         {
             if (!s_severityRanks.TryGetValue(severity, out var start))
             {
-                throw new ArgumentOutOfRangeException(nameof(severity), severity, "Unsupported severity level.");
+                throw ThrowHelper.UnsupportedSeverityLevel(severity);
             }
 
             return OpenTelemetryFilterInput.FromAttribute("severity", new OpenTelemetryAttributeConditionInput

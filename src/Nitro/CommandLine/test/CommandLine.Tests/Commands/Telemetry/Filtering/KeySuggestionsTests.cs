@@ -106,20 +106,21 @@ public sealed class KeySuggestionsTests
     }
 
     [Theory]
-    [InlineData("@span.http.statuscode:1", TelemetryFilterSignal.Traces, OpenTelemetrySignalKind.Traces, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
-    [InlineData("@event.http.statuscode:1", TelemetryFilterSignal.Traces, OpenTelemetrySignalKind.Traces, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
-    [InlineData("@resource.http.statuscode:1", TelemetryFilterSignal.Traces, OpenTelemetrySignalKind.Traces, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
-    [InlineData("@log.http.statuscode:1", TelemetryFilterSignal.Logs, OpenTelemetrySignalKind.Logs, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal logs to list keys.")]
-    [InlineData("@body.http.statuscode:1", TelemetryFilterSignal.Logs, OpenTelemetrySignalKind.Logs, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal logs to list keys.")]
+    [InlineData("@span.http.statuscode:1", "Span", TelemetryFilterSignal.Traces, OpenTelemetrySignalKind.Traces, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
+    [InlineData("@event.http.statuscode:1", "Event", TelemetryFilterSignal.Traces, OpenTelemetrySignalKind.Traces, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
+    [InlineData("@resource.http.statuscode:1", "Resource", TelemetryFilterSignal.Traces, OpenTelemetrySignalKind.Traces, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
+    [InlineData("@log.http.statuscode:1", "Log", TelemetryFilterSignal.Logs, OpenTelemetrySignalKind.Logs, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal logs to list keys.")]
+    [InlineData("@body.http.statuscode:1", "Body", TelemetryFilterSignal.Logs, OpenTelemetrySignalKind.Logs, "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal logs to list keys.")]
     public void CreateHint_Should_StripEveryScopePrefix_When_FieldsAreScoped(
         string text,
+        string kind,
         TelemetryFilterSignal filterSignal,
         OpenTelemetrySignalKind signal,
         string expected)
     {
         // arrange
         var filter = FilterParser.Parse(text, filterSignal);
-        AttributeKeyRow[] keys = [new("Span", "http.status_code")];
+        AttributeKeyRow[] keys = [new(kind, "http.status_code")];
 
         // act
         var result = KeySuggestions.CreateHint(filter, keys, signal);

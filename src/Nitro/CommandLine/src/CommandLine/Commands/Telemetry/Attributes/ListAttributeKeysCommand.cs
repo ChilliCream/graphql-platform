@@ -15,7 +15,7 @@ internal sealed class ListAttributeKeysCommand : Command
 
         Options.Add(Opt<AttributeSignalOption>.Instance);
         Options.Add(Opt<AttributeKindsOption>.Instance);
-        Options.Add(Opt<TelemetrySearchOption>.Instance);
+        Options.Add(Opt<AttributeKeySearchOption>.Instance);
         Options.Add(Opt<TelemetrySinceOption>.Instance);
         Options.Add(Opt<TelemetryUntilOption>.Instance);
         Options.Add(Opt<TelemetryLimitOption>.Instance);
@@ -43,7 +43,7 @@ internal sealed class ListAttributeKeysCommand : Command
 
         var signal = parseResult.GetRequiredValue(Opt<AttributeSignalOption>.Instance);
         var kinds = parseResult.GetValue(Opt<AttributeKindsOption>.Instance);
-        var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
+        var search = parseResult.GetValue(Opt<AttributeKeySearchOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;

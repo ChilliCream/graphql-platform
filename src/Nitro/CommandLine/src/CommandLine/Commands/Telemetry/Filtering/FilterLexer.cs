@@ -87,7 +87,7 @@ internal static class FilterLexer
                 continue;
             }
 
-            throw FilterParseException.FromPosition($"Unexpected character '{character}'", position);
+            throw ThrowHelper.InvalidFilterSyntax($"Unexpected character '{character}'", position);
         }
 
         tokens.Add(new FilterToken(FilterTokenKind.End, string.Empty, string.Empty, position, position));
@@ -97,12 +97,6 @@ internal static class FilterLexer
 
 file static class Extensions
 {
-    extension(FilterParseException)
-    {
-        public static FilterParseException FromPosition(string message, int position)
-            => new(message, position + 1);
-    }
-
     extension(char character)
     {
         public bool IsWordStart()
@@ -167,7 +161,7 @@ file static class Extensions
                 position++;
             }
 
-            throw FilterParseException.FromPosition("Missing closing quote", start);
+            throw ThrowHelper.InvalidFilterSyntax("Missing closing quote", start);
         }
 
         public FilterToken ReadWord(ref int position)
@@ -227,7 +221,7 @@ file static class Extensions
                     tokensAfterColon(input, start)
                     && repeatedWildcardStart == start
                     && input[start..position].All(static character => character == '*');
-                throw FilterParseException.FromPosition(
+                throw ThrowHelper.InvalidFilterSyntax(
                     isExists
                         ? "A single * after the colon already checks the attribute exists"
                         : "A single * already matches any text",

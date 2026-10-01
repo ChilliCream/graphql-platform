@@ -27,7 +27,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
               nitro telemetry services list [options]
 
             Options:
-              --search <search>        Search span names or log messages
+              --search <search>        Search service names
               --env <env>              Limit results to an environment; can be used multiple times [env: NITRO_ENV]
               --filter <filter>        Filter results using the telemetry filter grammar
               --since <since>          The earliest timestamp to include [env: NITRO_SINCE] [default: 12/31/2025 23:30:00 +00:00]

@@ -268,7 +268,7 @@ public sealed class TelemetryTimestampTests
         command.Options.Add(new TelemetrySpanKindOption());
         command.Options.Add(new TelemetrySeverityOption());
         command.Options.Add(new TelemetryTraceIdOption());
-        command.Options.Add(new TelemetrySearchOption());
+        command.Options.Add(new TelemetryTraceSearchOption());
 
         // act
         var result = command.Parse(

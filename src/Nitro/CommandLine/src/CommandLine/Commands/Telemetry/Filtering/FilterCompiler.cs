@@ -35,9 +35,12 @@ internal static class FilterCompiler
                 Matches = term.Text.ToContainsPattern()
             }),
             FilterPredicateNode predicate => predicate.CompilePredicate(),
-            _ => throw new ArgumentOutOfRangeException(nameof(node))
+            _ => throw ThrowHelper.UnsupportedFilterNode(node)
         };
     }
+
+    internal static (string Key, OpenTelemetryAttributeKind? Kind) SplitScope(string field)
+        => field.LowerKey();
 
     internal static OpenTelemetryFilterInput FreeText(string text, string freeTextKey)
         => OpenTelemetryFilterInput.FromAttribute(freeTextKey, new OpenTelemetryAttributeConditionInput
@@ -192,7 +195,7 @@ file static class Extensions
                 FilterComparisonOperator.LessThan => new OpenTelemetryAttributeConditionInput { Lt = value.ToScalar() },
                 FilterComparisonOperator.LessThanOrEqual => new OpenTelemetryAttributeConditionInput { Lte = value.ToScalar() },
                 FilterComparisonOperator.Exists => new OpenTelemetryAttributeConditionInput { Exists = true },
-                _ => throw new ArgumentOutOfRangeException(nameof(comparison))
+                _ => throw ThrowHelper.UnsupportedFilterComparisonOperator(comparison)
             };
         }
     }

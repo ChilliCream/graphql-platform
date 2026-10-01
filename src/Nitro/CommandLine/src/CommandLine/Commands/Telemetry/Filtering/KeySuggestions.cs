@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using System.Collections.Immutable;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
@@ -28,17 +27,13 @@ internal static class KeySuggestions
     {
         ArgumentNullException.ThrowIfNull(attributeKeys);
 
-        var knownKeys = attributeKeys
-            .Select(static key => key.Path)
+        var suggestions = filter.GetFields()
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        var unknownKeys = filter.GetFields()
-            .Select(static field => field.StripScopePrefix())
-            .Where(static field => !s_virtualFields.Contains(field))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Where(field => !knownKeys.Contains(field, StringComparer.OrdinalIgnoreCase));
-        var suggestions = unknownKeys
-            .Select(key => (Key: key, Candidates: key.FindCandidates(knownKeys)))
+            .Select(FilterCompiler.SplitScope)
+            .Where(static field => !s_virtualFields.Contains(field.Key))
+            .Select(field => (field.Key, KnownKeys: attributeKeys.GetPaths(field.Kind)))
+            .Where(static field => !field.KnownKeys.Contains(field.Key, StringComparer.OrdinalIgnoreCase))
+            .Select(static field => (field.Key, Candidates: field.Key.FindCandidates(field.KnownKeys)))
             .Where(static suggestion => suggestion.Candidates.Length > 0)
             .Select(static suggestion =>
                 $"unknown key '{suggestion.Key}', did you mean {string.Join(", ", suggestion.Candidates)}?")
@@ -56,15 +51,6 @@ internal static class KeySuggestions
 
 file static class Extensions
 {
-    private static readonly ImmutableArray<string> s_scopePrefixes =
-    [
-        "@span.",
-        "@event.",
-        "@resource.",
-        "@log.",
-        "@body."
-    ];
-
     extension(FilterNode? node)
     {
         public IEnumerable<string> GetFields()
@@ -108,21 +94,19 @@ file static class Extensions
         }
     }
 
+    extension(IReadOnlyList<AttributeKeyRow> attributeKeys)
+    {
+        public string[] GetPaths(OpenTelemetryAttributeKind? kind)
+            => attributeKeys
+                .Where(key => kind is null
+                    || string.Equals(key.Kind, kind.Value.ToString(), StringComparison.OrdinalIgnoreCase))
+                .Select(static key => key.Path)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+    }
+
     extension(string value)
     {
-        public string StripScopePrefix()
-        {
-            foreach (var prefix in s_scopePrefixes)
-            {
-                if (value.StartsWith(prefix, StringComparison.Ordinal))
-                {
-                    return value[prefix.Length..];
-                }
-            }
-
-            return value;
-        }
-
         public string[] FindCandidates(IReadOnlyList<string> knownKeys)
         {
             var tiers = new List<KeyCandidate>[]

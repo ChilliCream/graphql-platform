@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces.Tree;
 
@@ -94,8 +95,8 @@ file static class Extensions
             var duration = $"{span.DurationMs.FormatDuration()}ms";
             var parts = new List<string>
             {
-                operation.NormalizeLine(),
-                service.NormalizeLine(),
+                operation.EscapeControlCharacters(),
+                service.EscapeControlCharacters(),
                 duration
             };
 
@@ -109,7 +110,7 @@ file static class Extensions
             var lineNumber = span.SpanAttributes.GetAttribute(WellKnownAttributeNames.CodeLineNumber);
             if (function is not null)
             {
-                parts.Add(function.NormalizeLine());
+                parts.Add(function.EscapeControlCharacters());
             }
 
             if (filePath is not null)
@@ -117,11 +118,11 @@ file static class Extensions
                 var source = lineNumber is null
                     ? filePath
                     : $"{filePath}:{lineNumber}";
-                parts.Add(source.NormalizeLine());
+                parts.Add(source.EscapeControlCharacters());
             }
 
-            parts.Add(span.SpanId.NormalizeLine());
-            return $"{span.SpanName.NormalizeLine()} [{string.Join(" · ", parts)}]";
+            parts.Add(span.SpanId.EscapeControlCharacters());
+            return $"{span.SpanName.EscapeControlCharacters()} [{string.Join(" · ", parts)}]";
         }
 
         public string GetOperationLabel()
@@ -174,7 +175,8 @@ file static class Extensions
                     ?? string.Empty;
                 var message = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionMessage)
                     ?? string.Empty;
-                lines.Add($"{prefix}exception: {type}: {message.NormalizeLine()}");
+                lines.Add(
+                    $"{prefix}exception: {type.EscapeControlCharacters()}: {message.EscapeControlCharacters()}");
 
                 var stackTrace = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionStackTrace);
                 if (stackTrace is null)
@@ -185,7 +187,7 @@ file static class Extensions
                 var stackPrefix = prefix + "   ";
                 foreach (var stackLine in stackTrace.SplitLines())
                 {
-                    lines.Add(stackPrefix + stackLine);
+                    lines.Add(stackPrefix + stackLine.EscapeControlCharacters());
                 }
             }
         }
@@ -199,11 +201,6 @@ file static class Extensions
 
     extension(string value)
     {
-        public string NormalizeLine()
-            => value.Replace("\r\n", "\\n", StringComparison.Ordinal)
-                .Replace('\r', '\n')
-                .Replace("\n", "\\n", StringComparison.Ordinal);
-
         public IEnumerable<string> SplitLines()
             => value.Replace("\r\n", "\n", StringComparison.Ordinal)
                 .Replace('\r', '\n')

@@ -144,7 +144,7 @@ file static class Extensions
                 foreach (var operation in operations)
                 {
                     console.WriteRawLine(
-                        $"  {operation.Name}: {operation.Count} spans, "
+                        $"  {operation.Name.EscapeControlCharacters()}: {operation.Count} spans, "
                         + $"avg {operation.AverageDurationMs.FormatDuration()} ms, "
                         + $"p95 {operation.P95DurationMs.FormatDuration()} ms");
                 }
