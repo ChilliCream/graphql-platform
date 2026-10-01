@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -24,29 +23,14 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 internal static class AgentTuiLauncher
 {
     /// <summary>
-    /// Runs the TUI and owns its mail wake daemon, keeping board preferences in the
-    /// current user's global configuration directory. The board is an observer: it
-    /// takes no actor and refuses every write.
+    /// The longest the TUI waits on exit for the last board orientation change to be saved.
     /// </summary>
-    public static Task<int> RunAsync(
-        INitroConsole console,
-        ITaskStore taskStore,
-        IMailStore mailStore,
-        IMemoryStore memoryStore,
-        IAgentStore agentStore,
-        TimeProvider timeProvider,
-        string workspaceDirectory,
-        IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
-        CancellationToken cancellationToken)
-        => RunAsync(
-            console, taskStore, mailStore, memoryStore, agentStore,
-            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator,
-            new BoardPreferencesStore(new FileSystem(), new GlobalConfigDirectoryProvider()),
-            cancellationToken);
+    private static readonly TimeSpan s_orientationSaveTimeout = TimeSpan.FromSeconds(2);
 
     /// <summary>
-    /// Runs the TUI the same way as the overload without board preferences, loading and saving
-    /// the board's column orientation through <paramref name="boardPreferences"/>.
+    /// Runs the TUI and owns its mail wake daemon, loading and saving the board's column
+    /// orientation through <paramref name="boardPreferences"/>. The board is an observer:
+    /// it takes no actor and refuses every write.
     /// </summary>
     public static Task<int> RunAsync(
         INitroConsole console,
@@ -82,8 +66,9 @@ internal static class AgentTuiLauncher
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
+        var orientationWriter = new BoardOrientationWriter(boardPreferences);
         var tabs = BuildTabs(
-            taskStore, mailStore, memoryStore, agentStore, timeProvider, boardPreferences, orientation);
+            taskStore, mailStore, memoryStore, agentStore, timeProvider, orientationWriter, orientation);
 
         var shell = new TuiShell(
             tabs,
@@ -114,6 +99,9 @@ internal static class AgentTuiLauncher
         {
             // Stop background delivery even when the event loop fails.
             await mailWakeDaemonCoordinator.StopAsync(CancellationToken.None);
+
+            // Persist the last orientation change before exit, bounded so a stuck disk cannot hang it.
+            await orientationWriter.DrainAsync(s_orientationSaveTimeout);
         }
 
         return ExitCodes.Success;
@@ -122,8 +110,8 @@ internal static class AgentTuiLauncher
     /// <summary>
     /// Builds the Tasks, Mail, Agents, and Memory tabs in the order the
     /// shell's tab strip renders them. The board starts in
-    /// <paramref name="boardOrientation"/> and saves each change through
-    /// <paramref name="boardPreferences"/>.
+    /// <paramref name="boardOrientation"/> and hands each change to
+    /// <paramref name="orientationWriter"/>.
     /// </summary>
     internal static TuiTab[] BuildTabs(
         ITaskStore taskStore,
@@ -131,15 +119,14 @@ internal static class AgentTuiLauncher
         IMemoryStore memoryStore,
         IAgentStore agentStore,
         TimeProvider timeProvider,
-        IBoardPreferencesStore boardPreferences,
+        BoardOrientationWriter orientationWriter,
         BoardOrientation boardOrientation)
     {
         var loader = new BoardDataLoader(taskStore, timeProvider);
         var boardMode = new BoardMode(loader, orientation: boardOrientation);
 
-        // A failed save keeps the in-memory choice, and it never runs on the render loop.
-        boardMode.OrientationChanged += changed =>
-            _ = Task.Run(() => boardPreferences.WriteOrientationAsync(changed, CancellationToken.None));
+        // A failed save keeps the in-memory choice, and saving never runs on the render loop.
+        boardMode.OrientationChanged += orientationWriter.Enqueue;
 
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 

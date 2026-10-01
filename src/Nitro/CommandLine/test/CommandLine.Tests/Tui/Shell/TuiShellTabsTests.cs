@@ -132,6 +132,25 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public void Render_Should_ShowEveryTasksTabFooterHint_When_TheTerminalIsOneHundredColumnsWide()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var board = new BoardMode(new BoardDataLoader(new FakeTaskStore(), time));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", board), CreateMailTab("Mail", new FakeTuiMode())],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+
+        // act
+        var lines = RenderToText(shell, 100).TrimEnd().Split('\n');
+
+        // assert
+        lines[^1].TrimEnd().MatchInlineSnapshot("hjkl move  enter open  r refresh  y copy id  z zoom  o cols  esc back  q quit  [ ] shift+letter tab");
+    }
+
+    [Fact]
     public void Render_Should_BracketEachTabsMnemonic_When_TabsAreActiveOrInactive()
     {
         // arrange

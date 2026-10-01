@@ -349,7 +349,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open (1)─────────────────────────────────────────────────────────────────────╮
+            ╭─Open (1) | auto──────────────────────────────────────────────────────────────╮
             │                                                                              │
             │     TYPE        PRIO    ID            TITLE                                  │
             │ ──────────────────────────────────────────────────────────────────────────── │
@@ -377,7 +377,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Ready (1)──────────────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
+            ╭─Ready (1) | auto───────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
             │                            ││                            ││                            │
             │     ID            TITLE    ││     ID            TITLE    ││     ID            TITLE    │
             │ ────────────────────────── ││ ────────────────────────── ││ ────────────────────────── │
@@ -401,7 +401,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Board (0)────────────────────────────────────────────────────────────────────╮
+            ╭─Board (0) | auto─────────────────────────────────────────────────────────────╮
             │ No tasks yet.                                                                │
             │                                                                              │
             │                                                                              │
@@ -769,7 +769,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open - 1/2 (2)───────────────────────────────────────────────────────────────╮
+            ╭─Open - 1/2 (2) | auto────────────────────────────────────────────────────────╮
             │                                                                              │
             │     TYPE        PRIO    ID            TITLE                                  │
             │ ──────────────────────────────────────────────────────────────────────────── │
@@ -857,7 +857,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open (3)─────────────────────────────────────────────────╮
+            ╭─Open (3) | auto──────────────────────────────────────────╮
             │                                                          │
             │     TYPE        PRIO    ID            TITLE              │
             │ ──────────────────────────────────────────────────────── │
@@ -902,7 +902,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open - 1/1 (3)───────────────────────────────────────────╮
+            ╭─Open - 1/1 (3) | auto────────────────────────────────────╮
             │                                                          │
             │     TYPE        PRIO    ID            TITLE              │
             │ ──────────────────────────────────────────────────────── │
@@ -952,33 +952,39 @@ public sealed class BoardModeTests
         Assert.Equal([BoardOrientation.Auto, BoardOrientation.SideBySide], raised);
     }
 
-    [Fact]
-    public void KeyMap_Should_HintTheCurrentOrientation_When_OrientationChanges()
+    [Theory]
+    [InlineData("Auto", "Open (1) | auto")]
+    [InlineData("SideBySide", "Open (1) | grid")]
+    [InlineData("Stacked", "Open (1) | stack")]
+    public void Render_Should_NameTheOrientationInTheFocusedColumnHeader_When_TheBoardHasTasks(
+        string orientationName, string expectedHeader)
     {
         // arrange
-        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
-        var initial = mode.KeyMap!.Hints.ToList();
+        var mode = CreateMode(
+            StoreWithOneTaskPerColumn(), TwoColumnView(), Enum.Parse<BoardOrientation>(orientationName));
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(12);
 
         // act
-        mode.Handle(new TuiMessage.CycleBoardOrientation());
+        console.Write(mode.Render(100, 12));
 
         // assert
-        Assert.Equal([new KeyHint("o", "layout: auto")], initial);
-        Assert.Equal([new KeyHint("o", "layout: side by side")], mode.KeyMap!.Hints);
+        Assert.Contains(expectedHeader, console.Output);
     }
 
     [Fact]
-    public void KeyMap_Should_ResolveO_ToCycleBoardOrientation()
+    public void Render_Should_NameTheOrientationOnlyOnTheFocusedColumn_When_ColumnsSitSideBySide()
     {
         // arrange
-        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(12);
 
         // act
-        var resolved = mode.KeyMap!.TryResolve(new KeyChord(ConsoleKey.O, ConsoleModifiers.None, 'o'), out var message);
+        console.Write(mode.Render(100, 12));
 
         // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.CycleBoardOrientation>(message);
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | grid────────────────────────────────╮╭─Closed (1)─────────────────────────────────────╮");
     }
 
     [Fact]
@@ -1008,7 +1014,7 @@ public sealed class BoardModeTests
         console.Write(mode.Render(120, 30));
 
         // assert
-        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1)─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮");
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | stack─────────────────────────────────────────────────────────────────────────────────────────────────────╮");
     }
 
     [Theory]

@@ -1156,7 +1156,7 @@ public sealed class TuiShellTests
         Assert.Contains("refresh", text);
         Assert.Contains("copy id", text);
         Assert.Contains("zoom", text);
-        Assert.Contains("layout", text);
+        Assert.Contains("cols", text);
         Assert.Contains("edit", text);
         Assert.Contains("back", text);
         Assert.Contains("quit", text);

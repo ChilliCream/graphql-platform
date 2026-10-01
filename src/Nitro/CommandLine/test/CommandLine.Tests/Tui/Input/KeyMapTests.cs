@@ -239,7 +239,7 @@ public sealed class KeyMapTests
         // assert
         Assert.True(resolved);
         Assert.IsType<TuiMessage.CycleBoardOrientation>(message);
-        Assert.Contains(new KeyHint("o", "layout"), keyMap.Hints);
+        Assert.Contains(new KeyHint("o", "cols"), keyMap.Hints);
     }
 
     [Fact]

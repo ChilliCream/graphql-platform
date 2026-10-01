@@ -1,4 +1,7 @@
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 
@@ -177,5 +180,32 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("Initialized agent workspace", result.StdOut);
+    }
+
+    [Fact]
+    public async Task Bare_Interactive_WithWorkspace_Should_LoadTheBoardOrientationFromTheStoreInServices()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var read = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var preferences = new Mock<IBoardPreferencesStore>();
+        preferences
+            .Setup(x => x.ReadOrientationAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => read.TrySetResult())
+            .ReturnsAsync(BoardOrientation.Stacked);
+        SetupBoardPreferencesStore(preferences.Object);
+        SetupInteractionMode(InteractionMode.Interactive);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var run = StartInteractiveCommand("agent").RunToCompletionAsync(runCts.Token);
+
+        // act
+        await read.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+        await runCts.CancelAsync();
+        var result = await run.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        preferences.Verify(x => x.ReadOrientationAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

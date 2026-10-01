@@ -37,7 +37,6 @@ internal sealed class BoardMode : ITuiMode
     private int _viewIndex;
     private bool _maximized;
     private BoardOrientation _orientation;
-    private KeyMap _keyMap;
 
     /// <summary>
     /// Creates a board using the first supplied view, starting in
@@ -53,7 +52,6 @@ internal sealed class BoardMode : ITuiMode
 
         _loader = loader;
         _orientation = orientation;
-        _keyMap = CreateKeyMap(orientation);
         _views = views is { Count: > 0 } ? views : [BoardView.Default];
         _state = new BoardState(_views[0], _loader);
         _viewports = CreateViewports(_state.Columns.Count);
@@ -74,15 +72,8 @@ internal sealed class BoardMode : ITuiMode
     /// </summary>
     public event Action<BoardOrientation>? OrientationChanged;
 
-    /// <summary>
-    /// Binds the orientation key with a hint naming the current orientation.
-    /// </summary>
-    public KeyMap? KeyMap => _keyMap;
-
-    /// <summary>
-    /// Hides the global orientation hint in favor of the one in <see cref="KeyMap"/>.
-    /// </summary>
-    public IReadOnlyCollection<KeyHint> SuppressedGlobalHints { get; } = [Input.KeyMap.BoardOrientationHint];
+    /// <inheritdoc />
+    public KeyMap? KeyMap => null;
 
     /// <inheritdoc />
     public string? SelectedTaskId => FocusedColumn()?.SelectedTaskId;
@@ -234,7 +225,8 @@ internal sealed class BoardMode : ITuiMode
             lines.Add(string.Empty);
         }
 
-        var panel = ColumnPane.RenderWithHeader($"{_state.View.Name} (0)", lines, focused: false);
+        var panel = ColumnPane.RenderWithHeader(
+            $"{_state.View.Name} (0) | {_orientation.ToLabel()}", lines, focused: false);
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, height);
 
@@ -245,7 +237,8 @@ internal sealed class BoardMode : ITuiMode
     /// Builds one column's bordered panel: its visible task lines, sized to
     /// <paramref name="columnWidth"/> and <paramref name="panelHeight"/>, with
     /// <paramref name="headerSuffix"/> appended to the column name when the
-    /// column is the only one shown.
+    /// column is the only one shown. The focused column's header also names the
+    /// current orientation when the whole label fits.
     /// </summary>
     private Panel RenderColumnPanel(int index, int columnWidth, int panelHeight, bool focused, string? headerSuffix)
     {
@@ -256,7 +249,10 @@ internal sealed class BoardMode : ITuiMode
 
         var lines = RenderColumnLines(column, _viewports[index], contentWidth, interiorHeight, focused);
         var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
-        var panel = ColumnPane.Render(name, column.Tasks.Count, lines, focused);
+        var header = $"{name} ({column.Tasks.Count})";
+        var withOrientation = $"{header} | {_orientation.ToLabel()}";
+        var panel = ColumnPane.RenderWithHeader(
+            focused && withOrientation.Length <= contentWidth ? withOrientation : header, lines, focused);
 
         // Panel header title inherits the same accent color as its border, per column.
         var borderStyle = column.Definition.ResolveBorderStyle(focused);
@@ -278,13 +274,9 @@ internal sealed class BoardMode : ITuiMode
     private IReadOnlyList<TuiMessage> CycleOrientation()
     {
         _orientation = _orientation.Next();
-        _keyMap = CreateKeyMap(_orientation);
         OrientationChanged?.Invoke(_orientation);
         return [];
     }
-
-    private static KeyMap CreateKeyMap(BoardOrientation orientation)
-        => new([Input.KeyMap.CreateBoardOrientationBinding(new KeyHint("o", $"layout: {orientation.ToLabel()}"))]);
 
     private IReadOnlyList<TuiMessage> FocusColumn(int delta)
     {

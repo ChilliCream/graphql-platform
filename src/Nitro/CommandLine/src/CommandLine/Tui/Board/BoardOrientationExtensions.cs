@@ -17,12 +17,13 @@ internal static class BoardOrientationExtensions
     };
 
     /// <summary>
-    /// The lowercase label shown to the user for <paramref name="orientation"/>.
+    /// The short lowercase label (<c>auto</c>, <c>grid</c>, or <c>stack</c>) shown to the user
+    /// for <paramref name="orientation"/>.
     /// </summary>
     public static string ToLabel(this BoardOrientation orientation) => orientation switch
     {
-        BoardOrientation.SideBySide => "side by side",
-        BoardOrientation.Stacked => "stacked",
+        BoardOrientation.SideBySide => "grid",
+        BoardOrientation.Stacked => "stack",
         _ => "auto"
     };
 }
