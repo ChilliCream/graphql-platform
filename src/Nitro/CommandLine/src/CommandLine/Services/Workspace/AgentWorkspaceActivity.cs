@@ -5,15 +5,23 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
 /// What is currently using one or more agent workspace databases: the agents that are online or
-/// idle, and the expiry of an unexpired mail wake daemon lease, or null when none holds one.
+/// idle, the unexpired mail wake daemon lease with the longest expiry (or null when none holds
+/// one), and the databases that could not be read, whose activity is unknown.
 /// </summary>
 internal sealed record AgentWorkspaceActivity(
     IReadOnlyList<string> ActiveAgents,
-    DateTimeOffset? MailWakeLeaseExpiresAt)
+    AgentWorkspaceActivity.MailWakeLease? ActiveMailWakeLease,
+    IReadOnlyList<string> UnreadableDatabases)
 {
     /// <summary>
+    /// An unexpired mail wake daemon lease and the workspace directory whose database holds it.
+    /// </summary>
+    public sealed record MailWakeLease(string WorkspaceDirectory, DateTimeOffset ExpiresAt);
+
+    /// <summary>
     /// Reads the given workspace directories' databases without modifying them. A directory without
-    /// a database, or with one whose registry cannot be read, contributes no activity.
+    /// a database contributes no activity, and a database that cannot be read as a current registry
+    /// is listed in <see cref="UnreadableDatabases"/>.
     /// </summary>
     public static async Task<AgentWorkspaceActivity> InspectAsync(
         IEnumerable<string> workspaceDirectories,
@@ -21,7 +29,8 @@ internal sealed record AgentWorkspaceActivity(
         CancellationToken cancellationToken)
     {
         var agents = new SortedSet<string>(StringComparer.Ordinal);
-        DateTimeOffset? leaseExpiresAt = null;
+        var unreadable = new List<string>();
+        MailWakeLease? activeLease = null;
 
         foreach (var workspaceDirectory in workspaceDirectories)
         {
@@ -56,19 +65,18 @@ internal sealed record AgentWorkspaceActivity(
 
                 if (expiresAt is { } lease
                     && lease > now
-                    && (leaseExpiresAt is null || lease > leaseExpiresAt))
+                    && (activeLease is null || lease > activeLease.ExpiresAt))
                 {
-                    leaseExpiresAt = lease;
+                    activeLease = new MailWakeLease(workspaceDirectory, lease);
                 }
             }
-            catch (SqliteException)
+            catch (Exception ex) when (ex is SqliteException or FormatException or InvalidCastException)
             {
-                // A database that is not a readable current registry, for example a corrupt or
-                // older one, has no agents to protect.
+                unreadable.Add(databasePath);
             }
         }
 
-        return new AgentWorkspaceActivity(agents.ToArray(), leaseExpiresAt);
+        return new AgentWorkspaceActivity(agents.ToArray(), activeLease, unreadable);
     }
 
     private static async Task<List<AgentRow>> ReadAgentsAsync(

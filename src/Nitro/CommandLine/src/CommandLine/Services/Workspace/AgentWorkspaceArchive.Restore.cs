@@ -23,7 +23,8 @@ internal static partial class AgentWorkspaceArchive
     /// Checks that the archive can be restored into the given directories without modifying
     /// anything: a known format version, no archive inside a directory that restore deletes, only
     /// entries under the manifest roots without absolute or <c>..</c> paths, and no
-    /// <c>agents.db</c> with a schema newer than <see cref="AgentDatabase.CurrentVersion"/>.
+    /// <c>agents.db</c> (matched case-insensitively) with a schema newer than
+    /// <see cref="AgentDatabase.CurrentVersion"/>.
     /// </summary>
     public static AgentWorkspaceArchiveManifest Validate(
         string archivePath,
@@ -77,9 +78,10 @@ internal static partial class AgentWorkspaceArchive
                 fileCount += await ExtractRootAsync(archive, target, cancellationToken);
             }
 
-            SwapIntoPlace(targets, manifest.Roots);
+            var leftoverDirectories = SwapIntoPlace(targets, manifest.Roots);
 
-            return new AgentWorkspaceRestoreSummary(archivePath, manifest.Roots, fileCount);
+            return new AgentWorkspaceRestoreSummary(
+                archivePath, manifest.Roots, fileCount, leftoverDirectories);
         }
         finally
         {
@@ -157,7 +159,8 @@ internal static partial class AgentWorkspaceArchive
                 throw ThrowHelper.ArchiveEntryInvalid(entry.FullName);
             }
 
-            if (entry.FullName == s_projectDatabaseEntryName || entry.FullName == s_gitDatabaseEntryName)
+            if (string.Equals(entry.FullName, s_projectDatabaseEntryName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(entry.FullName, s_gitDatabaseEntryName, StringComparison.OrdinalIgnoreCase))
             {
                 ValidateDatabase(entry);
             }
@@ -237,8 +240,8 @@ internal static partial class AgentWorkspaceArchive
     }
 
     /// <summary>
-    /// Reads <c>user_version</c> from the SQLite file header of an archived <c>agents.db</c>, so
-    /// the check needs no database connection and leaves no side files behind.
+    /// Throws when the archived <c>agents.db</c> is not a SQLite database or its
+    /// <c>user_version</c> is newer than <see cref="AgentDatabase.CurrentVersion"/>.
     /// </summary>
     private static void ValidateDatabase(ZipArchiveEntry entry)
     {
@@ -329,10 +332,11 @@ internal static partial class AgentWorkspaceArchive
 
     /// <summary>
     /// Moves each existing target aside, moves the staged directories of the restored roots into
-    /// place, and only then deletes the moved-aside directories. A failure puts the original
-    /// directories back.
+    /// place, and only then deletes the moved-aside directories. A failure before the swap completes
+    /// puts the original directories back. Returns the moved-aside directories that could not be
+    /// deleted afterwards.
     /// </summary>
-    private static void SwapIntoPlace(List<RestoreTarget> targets, IReadOnlyList<string> restoredRoots)
+    private static List<string> SwapIntoPlace(List<RestoreTarget> targets, IReadOnlyList<string> restoredRoots)
     {
         var replaced = new List<RestoreTarget>();
         var placed = new List<RestoreTarget>();
@@ -366,10 +370,21 @@ internal static partial class AgentWorkspaceArchive
             throw;
         }
 
+        var leftover = new List<string>();
+
         foreach (var target in replaced)
         {
-            Directory.Delete(target.ReplacedDirectory, recursive: true);
+            try
+            {
+                Directory.Delete(target.ReplacedDirectory, recursive: true);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                leftover.Add(target.ReplacedDirectory);
+            }
         }
+
+        return leftover;
     }
 
     private static void DeleteDirectoryIfExists(string path)

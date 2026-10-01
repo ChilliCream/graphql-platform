@@ -4,7 +4,7 @@ internal sealed class ForceRestoreAgentOption : Option<bool>
 {
     public ForceRestoreAgentOption() : base("--force")
     {
-        Description = "Restore without confirmation, even while other agents or a mail wake daemon use the workspace";
+        Description = "Restore without confirmation, even while other agents use the workspace or their activity cannot be checked";
         Required = false;
     }
 }

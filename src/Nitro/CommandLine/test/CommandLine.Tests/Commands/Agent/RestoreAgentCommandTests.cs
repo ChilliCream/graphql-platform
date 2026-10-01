@@ -43,12 +43,14 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
 
             Options:
               --archive <archive> (REQUIRED)  The path of the workspace archive (.zip), relative to the current directory
-              --force                         Restore without confirmation, even while other agents or a mail wake daemon use the workspace
+              --actor <actor>                 The acting agent, which does not block the restore; allocate one with `nitro agent login`
+              --force                         Restore without confirmation, even while other agents use the workspace or their activity cannot be checked
               --output <json>                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                  Show help and usage information
 
             Example:
               nitro agent restore --archive "./nitro-backup.zip"
+              nitro agent restore --archive "./nitro-backup.zip" --actor "maya"
               nitro agent restore --archive "./nitro-backup.zip" --force
             """);
     }
@@ -424,12 +426,15 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
             await ScalarAsync(GitWorkspaceDirectory, "SELECT COUNT(*) FROM agents WHERE name = 'nova';"));
     }
 
-    [Fact]
-    public async Task Execute_Should_Refuse_When_AMailWakeDaemonHoldsTheLease()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Execute_Should_Refuse_When_AMailWakeDaemonHoldsTheLease(bool force)
     {
         // arrange
         await SeedWorkspaceAsync("Seeded task", "Seeded mail");
         await BackupAsync();
+        WriteFile(Path.Combine(ProjectNitroDirectory, "stray.txt"), "stray");
 
         var expiresAt = FakeTime.GetUtcNow().AddSeconds(10);
         await ExecuteAsync(
@@ -437,14 +442,278 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
             "INSERT INTO mail_wake_daemons (id, owner_token, acquired_at, heartbeat_at, expires_at) "
             + $"VALUES (1, 'daemon-x', '{expiresAt:O}', '{expiresAt:O}', '{expiresAt:O}');");
 
+        string[] arguments = force
+            ? ["agent", "restore", "--archive", "../backup.zip", "--force"]
+            : ["agent", "restore", "--archive", "../backup.zip"];
+
+        // act
+        var result = await ExecuteCommandAsync(arguments);
+
+        // assert
+        AssertNormalizedError(
+            result,
+            """
+            A mail wake daemon holds the database in '<temp>/acme/.git/nitro' (lease until 2026-01-01 00:00:10Z). Close the `nitro agent` board or the process running it, then restore again.
+            """);
+        Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "stray.txt")));
+    }
+
+    [Fact]
+    public async Task Execute_Should_RestoreAfterConfirmation_When_TheActorIsTheOnlyActiveAgent()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        await SeedGitAgentAsync("nova");
+        WriteFile(Path.Combine(ProjectNitroDirectory, "stray.txt"), "stray");
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "agent", "restore", "--archive", "../backup.zip", "--actor", "nova");
+
+        // act
+        command.Confirm(true);
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.False(File.Exists(Path.Combine(ProjectNitroDirectory, "stray.txt")));
+    }
+
+    [Fact]
+    public async Task Execute_Should_RefuseAndListOnlyOtherAgents_When_TheActorAndOthersAreActive()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        await SeedGitAgentAsync("nova");
+        await SeedGitAgentAsync("mira");
+        WriteFile(Path.Combine(ProjectNitroDirectory, "stray.txt"), "stray");
+
         // act
         var result = await ExecuteCommandAsync(
-            "agent", "restore", "--archive", "../backup.zip");
+            "agent", "restore", "--archive", "../backup.zip", "--actor", "nova");
 
         // assert
         result.AssertError(
-            "A mail wake daemon holds this workspace's database (lease until 2026-01-01 00:00:10Z). "
-            + "Stop the running Nitro agent board, or use --force to restore anyway.");
+            "Agents are active in this workspace and hold its database open: mira. "
+            + "Use --force to restore anyway.");
+        Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "stray.txt")));
+    }
+
+    [Fact]
+    public async Task Execute_Should_RefuseWithoutForce_When_ADatabaseCannotBeRead()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        CorruptGitDatabase();
+        WriteFile(Path.Combine(ProjectNitroDirectory, "stray.txt"), "stray");
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand("agent", "restore", "--archive", "../backup.zip");
+
+        // act
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        result.StdErr.Replace(Directory.GetParent(WorkingDirectory)!.FullName, "<temp>").MatchInlineSnapshot(
+            """
+            Could not check whether agents are using the workspace database: <temp>/acme/.git/nitro/agents.db. Use --force to restore anyway.
+            """);
+        Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "stray.txt")));
+    }
+
+    [Fact]
+    public async Task Execute_Should_RestoreTheDatabase_When_ItCannotBeReadAndForceIsGiven()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        CorruptGitDatabase();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "restore", "--archive", "../backup.zip", "--force");
+
+        // assert
+        result.AssertSuccess();
+        Assert.Equal("2", await ScalarAsync(GitWorkspaceDirectory, "SELECT COUNT(*) FROM agents;"));
+    }
+
+    [Fact]
+    public async Task Execute_Should_RefuseWithoutForce_When_TheRegistryTableIsMissing()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        await ExecuteAsync(GitWorkspaceDirectory, "ALTER TABLE agents RENAME TO agents_old;");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "restore", "--archive", "../backup.zip");
+
+        // assert
+        AssertNormalizedError(
+            result,
+            """
+            Could not check whether agents are using the workspace database: <temp>/acme/.git/nitro/agents.db. Use --force to restore anyway.
+            """);
+    }
+
+    [Theory]
+    [InlineData("repo/.nitro/agents/AGENTS.DB")]
+    [InlineData("repo/.nitro/Agents/agents.db")]
+    [InlineData("git/nitro/AGENTS.DB")]
+    public async Task Execute_Should_RejectTheArchive_When_ADatabaseEntryWithADifferentCaseHasANewerSchema(
+        string entryName)
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        CreateArchive(
+            Manifest(1, "repo/.nitro", "git/nitro"),
+            (entryName, DatabaseHeader(AgentDatabase.CurrentVersion + 1)));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "restore", "--archive", "../backup.zip", "--force");
+
+        // assert
+        result.AssertError(
+            $"The agent database '{entryName}' in the archive has schema version 19, which is newer "
+            + "than the version 18 this version of Nitro supports. Update Nitro to restore it.");
+        Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "research", "epic-1-topic", "notes.md")));
+    }
+
+    [Fact]
+    public async Task Execute_Should_SucceedAndWarn_When_TheReplacedFolderCannotBeDeleted()
+    {
+        // arrange
+        SkipUnlessPermissionsAreEnforced();
+
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        LockProjectFolderAgainstDeletion();
+
+        try
+        {
+            // act
+            var result = await ExecuteCommandAsync(
+                "agent", "restore", "--archive", "../backup.zip", "--force");
+
+            // assert
+            Assert.Equal(0, result.ExitCode);
+            Assert.Empty(result.StdErr);
+            ReplacedSuffix().Replace(
+                result.StdOut.Replace(Directory.GetParent(WorkingDirectory)!.FullName, "<temp>"),
+                "<id>")
+                .MatchInlineSnapshot(
+                    """
+                    ✓ Restored 2 files from '<temp>/backup.zip'.
+                    Could not delete the replaced folder '<temp>/acme/.nitro-replaced-<id>'. Remove it manually.
+                    """);
+            Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "research", "epic-1-topic", "notes.md")));
+        }
+        finally
+        {
+            UnlockLeftoverFolders();
+        }
+    }
+
+    [Fact]
+    public async Task JsonOutput_Should_ListTheLeftoverFolder_When_TheReplacedFolderCannotBeDeleted()
+    {
+        // arrange
+        SkipUnlessPermissionsAreEnforced();
+
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        LockProjectFolderAgainstDeletion();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        try
+        {
+            // act
+            var result = await ExecuteCommandAsync(
+                "agent", "restore", "--archive", "../backup.zip", "--force");
+
+            // assert
+            result.AssertSuccess();
+            ReplacedSuffix().Replace(
+                result.StdOut
+                    .Replace(ArchivePath, "<archive>")
+                    .Replace(WorkingDirectory, "<work>"),
+                "<id>")
+                .MatchInlineSnapshot(
+                    """
+                    {
+                      "archive": "<archive>",
+                      "roots": [
+                        "repo/.nitro",
+                        "git/nitro"
+                      ],
+                      "fileCount": 2,
+                      "leftoverDirectories": [
+                        "<work>/.nitro-replaced-<id>"
+                      ]
+                    }
+                    """);
+        }
+        finally
+        {
+            UnlockLeftoverFolders();
+        }
+    }
+
+    [Fact]
+    public async Task Execute_Should_PutTheOriginalFoldersBack_When_TheSwapFails()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        WriteFile(Path.Combine(ProjectNitroDirectory, "stray.txt"), "stray");
+        Directory.Delete(GitWorkspaceDirectory, recursive: true);
+        await File.WriteAllTextAsync(GitWorkspaceDirectory, "blocker", TestContext.Current.CancellationToken);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "restore", "--archive", "../backup.zip", "--force");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        DescribeWorkspace().MatchInlineSnapshot(
+            """
+            . (working directory)
+              .git
+              .nitro
+            .git
+              nitro
+            .nitro/research/epic-1-topic/notes.md
+            .nitro/stray.txt
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_AskBeforeDeletingBothFolders_When_Interactive()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand("agent", "restore", "--archive", "../backup.zip");
+
+        // act
+        command.Confirm(false);
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        result.StdOut.Replace(Directory.GetParent(WorkingDirectory)!.FullName, "<temp>")
+            .MatchInlineSnapshot(
+                """
+                ? Delete '<temp>/acme/.nitro' and '<temp>/acme/.git/nitro' and restore from '<temp>/backup.zip'? [y/n] (y): n
+                Aborted.
+                """);
     }
 
     [Fact]
@@ -495,7 +764,8 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
                 "repo/.nitro",
                 "git/nitro"
               ],
-              "fileCount": 2
+              "fileCount": 2,
+              "leftoverDirectories": []
             }
             """);
     }
@@ -555,6 +825,54 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
         => ExecuteAsync(
             GitWorkspaceDirectory,
             $"UPDATE agents SET last_seen_at = '{lastSeenAt:O}' WHERE name = '{name}';");
+
+    private static void SkipUnlessPermissionsAreEnforced()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Skip("Unix directory-permission denial has no Windows equivalent.");
+        }
+
+        if (Environment.IsPrivilegedProcess)
+        {
+            Assert.Skip("Running as root bypasses the directory permission check.");
+        }
+    }
+
+    private void LockProjectFolderAgainstDeletion()
+    {
+        var lockedDirectory = Path.Combine(ProjectNitroDirectory, "locked");
+        WriteFile(Path.Combine(lockedDirectory, "inner.txt"), "inner");
+
+        if (!OperatingSystem.IsWindows())
+        {
+            File.SetUnixFileMode(lockedDirectory, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        }
+    }
+
+    private void UnlockLeftoverFolders()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        foreach (var leftover in Directory.GetDirectories(WorkingDirectory, ".nitro-replaced-*"))
+        {
+            File.SetUnixFileMode(
+                Path.Combine(leftover, "locked"),
+                UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+    }
+
+    private void CorruptGitDatabase()
+    {
+        var databasePath = AgentWorkspace.GetDatabasePath(GitWorkspaceDirectory);
+
+        File.Delete(databasePath + "-wal");
+        File.Delete(databasePath + "-shm");
+        File.WriteAllBytes(databasePath, new byte[512]);
+    }
 
     private void AssertNormalizedError(CommandResult result, string expected)
     {
@@ -671,4 +989,7 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
 
     [GeneratedRegex("^m-[a-z0-9]+", RegexOptions.Multiline)]
     private static partial Regex MessageId();
+
+    [GeneratedRegex("(?<=-replaced-)[0-9a-f]{32}")]
+    private static partial Regex ReplacedSuffix();
 }

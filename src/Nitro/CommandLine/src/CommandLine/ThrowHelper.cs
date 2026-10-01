@@ -108,9 +108,14 @@ internal static class ThrowHelper
             $"Agents are active in this workspace and hold its database open: {string.Join(", ", agents)}. "
             + "Use --force to restore anyway.");
 
-    public static ExitException MailWakeDaemonBlocksRestore(DateTimeOffset leaseExpiresAt)
+    public static ExitException MailWakeDaemonBlocksRestore(string workspaceDirectory, DateTimeOffset leaseExpiresAt)
         => Exit(
-            "A mail wake daemon holds this workspace's database "
+            $"A mail wake daemon holds the database in '{workspaceDirectory}' "
             + $"(lease until {leaseExpiresAt.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}Z). "
-            + "Stop the running Nitro agent board, or use --force to restore anyway.");
+            + "Close the `nitro agent` board or the process running it, then restore again.");
+
+    public static ExitException RestoreActivityUnknown(IEnumerable<string> databasePaths)
+        => Exit(
+            $"Could not check whether agents are using the workspace database: {string.Join(", ", databasePaths)}. "
+            + "Use --force to restore anyway.");
 }

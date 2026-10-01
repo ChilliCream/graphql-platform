@@ -18,11 +18,13 @@ internal sealed class RestoreAgentCommand : Command
             + "Deletes '.nitro' and '.git/nitro' first.";
 
         Options.Add(Opt<ArchiveAgentOption>.Instance);
+        Options.Add(Opt<RestoreActorOption>.Instance);
         Options.Add(Opt<ForceRestoreAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         this.AddExamples(
             "agent restore --archive \"./nitro-backup.zip\"",
+            "agent restore --archive \"./nitro-backup.zip\" --actor \"maya\"",
             "agent restore --archive \"./nitro-backup.zip\" --force");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
@@ -37,6 +39,7 @@ internal sealed class RestoreAgentCommand : Command
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
 
         var currentDirectory = fileSystem.GetCurrentDirectory();
         var archivePath = Path.GetFullPath(
@@ -49,21 +52,36 @@ internal sealed class RestoreAgentCommand : Command
         // Everything that can reject the archive runs before anything is asked or deleted.
         AgentWorkspaceArchive.Validate(archivePath, projectDirectory, gitWorkspaceDirectory);
 
+        var activity = await AgentWorkspaceActivity.InspectAsync(
+            GetWorkspaceDirectories(projectDirectory, gitWorkspaceDirectory),
+            timeProvider.GetUtcNow(),
+            cancellationToken);
+
+        if (activity.ActiveMailWakeLease is { } lease)
+        {
+            throw ThrowHelper.MailWakeDaemonBlocksRestore(lease.WorkspaceDirectory, lease.ExpiresAt);
+        }
+
         if (!force)
         {
-            var activity = await AgentWorkspaceActivity.InspectAsync(
-                GetWorkspaceDirectories(projectDirectory, gitWorkspaceDirectory),
-                timeProvider.GetUtcNow(),
-                cancellationToken);
-
-            if (activity.ActiveAgents.Count > 0)
+            if (activity.UnreadableDatabases.Count > 0)
             {
-                throw ThrowHelper.ActiveAgentsBlockRestore(activity.ActiveAgents);
+                throw ThrowHelper.RestoreActivityUnknown(activity.UnreadableDatabases);
             }
 
-            if (activity.MailWakeLeaseExpiresAt is { } leaseExpiresAt)
+            var blockingAgents = activity.ActiveAgents;
+
+            if (blockingAgents.Count > 0
+                && parseResult.GetValue(Opt<RestoreActorOption>.Instance) is { } actorOption)
             {
-                throw ThrowHelper.MailWakeDaemonBlocksRestore(leaseExpiresAt);
+                var actor = await actorResolver.ResolveAsync(actorOption, cancellationToken);
+
+                blockingAgents = blockingAgents.Where(agent => agent != actor).ToArray();
+            }
+
+            if (blockingAgents.Count > 0)
+            {
+                throw ThrowHelper.ActiveAgentsBlockRestore(blockingAgents);
             }
 
             if (!console.IsInteractive)
@@ -98,6 +116,13 @@ internal sealed class RestoreAgentCommand : Command
 
             console.OkLine(
                 $"Restored {summary.FileCount} {files} from '{summary.Archive.EscapeMarkup()}'.");
+
+            foreach (var directory in summary.LeftoverDirectories)
+            {
+                console.MarkupLine(
+                    $"Could not delete the replaced folder '{directory}'. Remove it manually."
+                        .AsWarning());
+            }
 
             return ExitCodes.Success;
         }
