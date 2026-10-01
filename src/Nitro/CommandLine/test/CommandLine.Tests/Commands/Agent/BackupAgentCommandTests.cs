@@ -302,6 +302,54 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
             """);
     }
 
+    [Fact]
+    public async Task Execute_Should_ClampEntryTimesToZipRange_When_FileTimesAreOutOfRange()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        WriteFile(Path.Combine(ProjectNitroDirectory, "times", "early.md"), "early");
+        WriteFile(Path.Combine(ProjectNitroDirectory, "times", "late.md"), "late");
+        File.SetLastWriteTime(
+            Path.Combine(ProjectNitroDirectory, "times", "early.md"),
+            new DateTime(1970, 1, 1, 12, 0, 0, DateTimeKind.Local));
+        File.SetLastWriteTime(
+            Path.Combine(ProjectNitroDirectory, "times", "late.md"),
+            new DateTime(2200, 1, 1, 12, 0, 0, DateTimeKind.Local));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "backup", "--archive", "../backup.zip");
+
+        // assert
+        result.AssertSuccess();
+        DescribeEntryTimes(ArchivePath, "repo/.nitro/times/").MatchInlineSnapshot(
+            """
+            repo/.nitro/times/early.md 1980-01-01 00:00:00
+            repo/.nitro/times/late.md 2107-12-31 23:59:58
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_StoreLocalWriteTime_When_FileHasAValidTime()
+    {
+        // arrange
+        // The wall-clock time is stored as is, so a UTC conversion would shift it by the local offset.
+        await InitWorkspaceAsync();
+        WriteFile(Path.Combine(ProjectNitroDirectory, "times", "normal.md"), "normal");
+        File.SetLastWriteTime(
+            Path.Combine(ProjectNitroDirectory, "times", "normal.md"),
+            new DateTime(2024, 6, 15, 13, 45, 30, DateTimeKind.Local));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "backup", "--archive", "../backup.zip");
+
+        // assert
+        result.AssertSuccess();
+        DescribeEntryTimes(ArchivePath, "repo/.nitro/times/").MatchInlineSnapshot(
+            """
+            repo/.nitro/times/normal.md 2024-06-15 13:45:30
+            """);
+    }
+
     private void AssertNormalizedError(CommandResult result, string expected)
     {
         Assert.Empty(result.StdOut);
@@ -330,6 +378,20 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
         using var archive = ZipFile.OpenRead(archivePath);
 
         archive.GetEntry(entryName)!.ExtractToFile(destinationPath);
+    }
+
+    /// <summary>
+    /// Lists the stored wall-clock time of every archive entry under the given prefix.
+    /// </summary>
+    private static string DescribeEntryTimes(string archivePath, string prefix)
+    {
+        using var archive = ZipFile.OpenRead(archivePath);
+
+        return string.Join(
+            '\n',
+            archive.Entries
+                .Where(entry => entry.FullName.StartsWith(prefix, StringComparison.Ordinal))
+                .Select(entry => $"{entry.FullName} {entry.LastWriteTime.DateTime:yyyy-MM-dd HH:mm:ss}"));
     }
 
     /// <summary>

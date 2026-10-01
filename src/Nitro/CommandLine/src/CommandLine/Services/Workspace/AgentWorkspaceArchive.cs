@@ -25,6 +25,9 @@ internal static partial class AgentWorkspaceArchive
     private const string DatabaseWalFileName = AgentWorkspace.DatabaseFileName + "-wal";
     private const string DatabaseSharedMemoryFileName = AgentWorkspace.DatabaseFileName + "-shm";
 
+    private static readonly DateTime s_minEntryTime = new(1980, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+    private static readonly DateTime s_maxEntryTime = new(2107, 12, 31, 23, 59, 58, DateTimeKind.Unspecified);
+
     /// <summary>
     /// Resolves the project <c>.nitro</c> directory and the git workspace directory an archive
     /// covers, whether or not they exist. Outside a git repository the git workspace directory
@@ -286,7 +289,7 @@ internal static partial class AgentWorkspaceArchive
                 var relativePath = Path.GetRelativePath(root.Directory, path).Replace('\\', '/');
                 var entry = archive.CreateEntry(
                     root.EntryName + "/" + relativePath, CompressionLevel.Optimal);
-                entry.LastWriteTime = File.GetLastWriteTimeUtc(path);
+                entry.LastWriteTime = ToEntryTime(File.GetLastWriteTime(path));
 
                 await using var entryStream = entry.Open();
                 await source.CopyToAsync(entryStream, cancellationToken);
@@ -296,6 +299,27 @@ internal static partial class AgentWorkspaceArchive
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// Converts a local file write time into a zip entry time, which stores a wall-clock time
+    /// without a zone and only covers the years 1980 through 2107. Times outside that range
+    /// become the nearest valid time.
+    /// </summary>
+    private static DateTimeOffset ToEntryTime(DateTime localWriteTime)
+    {
+        var wallClock = DateTime.SpecifyKind(localWriteTime, DateTimeKind.Unspecified);
+
+        if (wallClock < s_minEntryTime)
+        {
+            wallClock = s_minEntryTime;
+        }
+        else if (wallClock > s_maxEntryTime)
+        {
+            wallClock = s_maxEntryTime;
+        }
+
+        return new DateTimeOffset(wallClock);
     }
 
     private static bool IsWithin(string directory, string path)
