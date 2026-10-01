@@ -207,8 +207,8 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
         // assert
         AssertNormalizedError(
             result,
-            """
-            The agent database 'repo/.nitro/agents/agents.db' in the archive has schema version 19, which is newer than the version 18 this version of Nitro supports. Update Nitro to restore it.
+            $"""
+            The agent database 'repo/.nitro/agents/agents.db' in the archive has schema version {AgentDatabase.CurrentVersion + 1}, which is newer than the version {AgentDatabase.CurrentVersion} this version of Nitro supports. Update Nitro to restore it.
             """);
         Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "research", "epic-1-topic", "notes.md")));
     }
@@ -231,8 +231,8 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
         // assert
         AssertNormalizedError(
             result,
-            """
-            The agent database 'git/nitro/agents.db' in the archive has schema version 19, which is newer than the version 18 this version of Nitro supports. Update Nitro to restore it.
+            $"""
+            The agent database 'git/nitro/agents.db' in the archive has schema version {AgentDatabase.CurrentVersion + 1}, which is newer than the version {AgentDatabase.CurrentVersion} this version of Nitro supports. Update Nitro to restore it.
             """);
     }
 
@@ -580,8 +580,9 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
 
         // assert
         result.AssertError(
-            $"The agent database '{entryName}' in the archive has schema version 19, which is newer "
-            + "than the version 18 this version of Nitro supports. Update Nitro to restore it.");
+            $"The agent database '{entryName}' in the archive has schema version {AgentDatabase.CurrentVersion + 1}, "
+            + $"which is newer than the version {AgentDatabase.CurrentVersion} this version of Nitro supports. "
+            + "Update Nitro to restore it.");
         Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "research", "epic-1-topic", "notes.md")));
     }
 
@@ -691,6 +692,26 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
             .nitro/research/epic-1-topic/notes.md
             .nitro/stray.txt
             """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_PutTheGitFolderBack_When_TheProjectFolderCannotBePlaced()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        await BackupAsync();
+        Directory.Delete(ProjectNitroDirectory, recursive: true);
+        await File.WriteAllTextAsync(ProjectNitroDirectory, "blocker", TestContext.Current.CancellationToken);
+        var workspaceBefore = DescribeWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "restore", "--archive", "../backup.zip", "--force");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Equal(workspaceBefore, DescribeWorkspace());
+        Assert.Contains(".git/nitro/agents.db", workspaceBefore);
     }
 
     [Fact]

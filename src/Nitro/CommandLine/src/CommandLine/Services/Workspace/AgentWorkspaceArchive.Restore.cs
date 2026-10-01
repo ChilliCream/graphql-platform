@@ -331,10 +331,8 @@ internal static partial class AgentWorkspaceArchive
     }
 
     /// <summary>
-    /// Moves each existing target aside, moves the staged directories of the restored roots into
-    /// place, and only then deletes the moved-aside directories. A failure before the swap completes
-    /// puts the original directories back. Returns the moved-aside directories that could not be
-    /// deleted afterwards.
+    /// Replaces the target directories with the staged directories of the restored roots and puts the
+    /// originals back if the swap fails. Returns the replaced directories that could not be deleted.
     /// </summary>
     private static List<string> SwapIntoPlace(List<RestoreTarget> targets, IReadOnlyList<string> restoredRoots)
     {
