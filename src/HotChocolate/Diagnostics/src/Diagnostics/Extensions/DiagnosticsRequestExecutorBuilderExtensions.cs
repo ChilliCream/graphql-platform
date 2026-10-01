@@ -65,6 +65,7 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
 
         builder.AddDiagnosticEventListener(
             sp => new ActivityServerDiagnosticListener(
+                builder.Name,
                 sp.GetService<ActivityEnricher>() ??
                     sp.GetRequiredService<InternalActivityEnricher>(),
                 sp.GetRequiredService<InstrumentationOptions>()));

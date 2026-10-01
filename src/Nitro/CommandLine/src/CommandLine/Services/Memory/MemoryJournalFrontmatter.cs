@@ -1,10 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The parsed frontmatter and body of a journal entry markdown file. Unlike
-/// <see cref="MemoryFrontmatter"/>, a journal entry has no type, tags, or
-/// updated-at timestamp: it is an immutable capture, not an editable
-/// curated memory.
+/// Parsed journal metadata and its markdown body.
 /// </summary>
 internal sealed record MemoryJournalFrontmatter(
     int Schema,

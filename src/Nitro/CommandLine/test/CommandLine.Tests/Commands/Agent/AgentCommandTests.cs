@@ -3,13 +3,9 @@ using ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 
 /// <summary>
-/// Covers the bare <c>nitro agent</c> entry point: the group command now
-/// carries its own action (launching the unified tabbed TUI) alongside its
-/// subcommands, so this locks in that the group's help and its subcommand
-/// dispatch stay exactly as they were before the action was added, and that
-/// the paths which do not launch the TUI (non-interactive, or interactive
-/// with no workspace) fall back to the same guidance a bare group with no
-/// action prints.
+/// Covers the bare <c>nitro agent</c> entry point: its help output, its
+/// subcommand dispatch, and the guidance it falls back to when the TUI does
+/// not launch (non-interactive, or interactive with no workspace).
 /// </summary>
 public sealed class AgentCommandTests(NitroCommandFixture fixture)
     : TasksCommandTestBase(fixture)
@@ -39,7 +35,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
@@ -71,7 +67,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
@@ -106,7 +102,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
@@ -141,7 +137,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);

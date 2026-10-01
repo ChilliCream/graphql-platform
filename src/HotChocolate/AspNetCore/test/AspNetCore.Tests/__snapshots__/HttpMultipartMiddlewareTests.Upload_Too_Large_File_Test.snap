@@ -4,10 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The multipart form could not be read.",
+      "message": "The multipart section '1' exceeds the maximum allowed size.",
       "extensions": {
-        "code": "HC0033",
-        "underlyingError": "Multipart body length limit 134217728 exceeded."
+        "code": "HC0135"
       }
     }
   ],

@@ -128,7 +128,7 @@ builder.Services
 
 ## Node Resolver validation
 
-We now enforce that each object type implementing the `Node` interface also defines a resolver, so that the object can be refetched through the `node(id: ID!)` field.
+We now enforce that each object type implementing the `Node` interface also defines a resolver, so that the object can be refetched through the `#!sdl node(id: ID!)` field.
 
 You can opt out of this new behavior by setting the `EnsureAllNodesCanBeResolved` option to `false`.
 

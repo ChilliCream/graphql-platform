@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Resolves the exact running Codex version for a live session from its
-/// rollout file.
+/// Resolves the Codex version recorded in a session's rollout file.
 /// </summary>
 internal interface ICodexHarnessVersionResolver
 {

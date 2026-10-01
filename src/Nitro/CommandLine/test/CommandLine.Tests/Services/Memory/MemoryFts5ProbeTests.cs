@@ -3,11 +3,8 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
 /// <summary>
-/// Verifies that the bundled SQLitePCLRaw <c>e_sqlite3</c> provider this
-/// tool ships supports FTS5: creates a real virtual table and queries it
-/// through the managed/native interop path the memory index will use.
-/// This is a one-time infrastructure guarantee, not a test of memory
-/// search behavior, which is out of scope for this slice.
+/// Verifies that the SQLite provider this tool ships supports FTS5 by
+/// creating a real virtual table and querying it.
 /// </summary>
 public sealed class MemoryFts5ProbeTests
 {

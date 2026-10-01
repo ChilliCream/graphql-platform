@@ -42,7 +42,7 @@ internal static class VariableCoercionHelper
 
             var hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
 
-            if (!hasValue && variableDefinition.DefaultValue is { Kind: not SyntaxKind.NullValue } defaultValue)
+            if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
             {
                 coercedVariableValues[variableName] = new VariableValue(variableName, variableType, defaultValue);
                 continue;
@@ -57,36 +57,25 @@ internal static class VariableCoercionHelper
 
                 // if we do not have any value, we will not create an entry to the
                 // coerced variables.
-                if (!hasValue)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                coercedVariableValues[variableName] =
-                    new VariableValue(
-                        variableName,
-                        variableType,
-                        NullValueNode.Default);
+            if (TryCoerceVariableValue(
+                context,
+                variableDefinition,
+                variableType,
+                propertyValue,
+                ignoreAdditionalInputFields,
+                ref memory,
+                out var variableValue,
+                out error))
+            {
+                coercedVariableValues[variableName] = variableValue.Value;
             }
             else
             {
-                if (TryCoerceVariableValue(
-                    context,
-                    variableDefinition,
-                    variableType,
-                    propertyValue,
-                    ignoreAdditionalInputFields,
-                    ref memory,
-                    out var variableValue,
-                    out error))
-                {
-                    coercedVariableValues[variableName] = variableValue.Value;
-                }
-                else
-                {
-                    coercedVariableValues = null;
-                    return false;
-                }
+                coercedVariableValues = null;
+                return false;
             }
         }
 

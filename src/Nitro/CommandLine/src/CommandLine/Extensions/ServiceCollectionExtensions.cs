@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -36,24 +37,22 @@ internal static class ServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<AgentDatabase>();
-        services.TryAddSingleton<IAgentRegistry, AgentRegistry>();
+        services.TryAddSingleton<IAgentStore, AgentStore>();
         services.TryAddSingleton<IGlobalConfigDirectoryProvider, GlobalConfigDirectoryProvider>();
-        services.TryAddSingleton<INitroInstanceIdProvider, NitroInstanceIdProvider>();
         services.TryAddSingleton<IClaudeSessionFileReader, ClaudeSessionFileReader>();
         services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
-        services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
         services.TryAddSingleton<ITakeoverLedger, TakeoverLedger>();
-        services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
+        services.TryAddSingleton<IAgentDeliveryLedger, AgentDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
+        services.TryAddSingleton<IOpencodeServerClient, OpencodeServerClient>();
         services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
         services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
-        services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
+        services.TryAddSingleton<IAgentPingGateStore, AgentPingGateStore>();
         services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
         services.TryAddSingleton<IMailNudge, MailNudge>();
         services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
-        services.TryAddSingleton<INotifier, Notifier>();
         services.TryAddSingleton<IMailWakeDaemonLeaderStore, MailWakeDaemonLeaderStore>();
         services.TryAddSingleton(MailWakeDaemonPolicy.Default);
 
@@ -63,7 +62,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
         services.TryAddSingleton<ICodexHookHandler, CodexHookHandler>();
-        services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
+        services.TryAddSingleton<IOpencodeHookHandler, OpencodeHookHandler>();
         services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
         services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
         services.TryAddSingleton<IClaudeHooksSidecarStore, ClaudeHooksSidecarStore>();
@@ -71,6 +70,10 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexPathResolver, CodexPathResolver>();
         services.TryAddSingleton<ICodexHooksSidecarStore, CodexHooksSidecarStore>();
         services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
+        services.TryAddSingleton<IOpencodePathResolver, OpencodePathResolver>();
+        services.TryAddSingleton<IOpencodeHooksSidecarStore, OpencodeHooksSidecarStore>();
+        services.TryAddSingleton<IOpencodeHooksInstallerService, OpencodeHooksInstallerService>();
+        services.TryAddSingleton<IOpencodeVersionResolver, OpencodeVersionResolver>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IMemoryStore, MemoryStore>();

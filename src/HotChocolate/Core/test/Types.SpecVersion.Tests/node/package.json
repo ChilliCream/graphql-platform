@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "dependencies": {
+    "graphql-october-2021": "npm:graphql@16.8.2",
+    "graphql-september-2025": "npm:graphql@16.13.2"
+  }
+}

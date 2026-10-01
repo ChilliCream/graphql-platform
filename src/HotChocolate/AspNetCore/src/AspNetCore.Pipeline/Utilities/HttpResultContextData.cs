@@ -12,4 +12,9 @@ internal static class HttpResultContextData
     /// JSON, or a request that names neither a document nor a document ID.
     /// </summary>
     public const string RequestNotWellFormed = "HotChocolate.AspNetCore.RequestNotWellFormed";
+
+    /// <summary>
+    /// Marks the result of a request refused for its size.
+    /// </summary>
+    public const string RequestTooLarge = "HotChocolate.AspNetCore.RequestTooLarge";
 }

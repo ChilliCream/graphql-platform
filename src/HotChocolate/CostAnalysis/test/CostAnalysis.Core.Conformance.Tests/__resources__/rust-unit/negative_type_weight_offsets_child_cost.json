@@ -1,0 +1,15 @@
+{
+  "id": "negative_type_weight_offsets_child_cost",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\n\nscalar Text @cost(weight: \"5\")\ntype Query { book: Book }\ntype Book @cost(weight: \"-7\") { title: Text, author: Author }\ntype Author { name: Text }\n",
+  "operation": "{ book { title } }",
+  "operationName": null,
+  "variables": {},
+  "defaultListSize": 10,
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 1,
+    "fieldCost": 1
+  },
+  "notes": "Port of estimator.rs test `negative_type_weight_offsets_child_cost` at line 809, commit fec57fd7a980b5399637fa464a9bdce0781d91dd."
+}

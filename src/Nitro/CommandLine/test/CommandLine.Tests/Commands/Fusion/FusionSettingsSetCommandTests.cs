@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
@@ -24,8 +25,8 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
               nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
             Arguments:
-              <allow-non-resolvable-interface-objects|cache-control-merge-behavior|enum-values-merge-behavior|exclude-by-tag|global-object-identification|include-satisfiability-paths|node-resolution|shareable-field-runtime-type-routing|tag-merge-behavior>  The name of the setting to change
-              <SETTING_VALUE>                                                                                                                                                                                                                                    The value to set
+              <allow-non-resolvable-interface-objects|cache-control-merge-behavior|default-list-size|enum-values-merge-behavior|exclude-by-tag|global-object-identification|include-satisfiability-paths|node-resolution|shareable-field-runtime-type-routing|tag-merge-behavior>  The name of the setting to change
+              <SETTING_VALUE>                                                                                                                                                                                                                                                      The value to set
 
             Options:
               -a, --archive <archive> (REQUIRED)      The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
@@ -91,6 +92,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             Argument 'nonexistent-setting' not recognized. Must be one of:
             'allow-non-resolvable-interface-objects'
             'cache-control-merge-behavior'
+            'default-list-size'
             'enum-values-merge-behavior'
             'exclude-by-tag'
             'global-object-identification'
@@ -225,6 +227,24 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     }
 
     [Theory]
+    [InlineData("not-a-number")]
+    [InlineData("-1")]
+    public async Task Execute_Should_ReturnError_When_DefaultListSizeIsInvalid(string settingValue)
+    {
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "default-list-size",
+            settingValue,
+            "--archive",
+            ArchiveFile);
+
+        result.AssertError(
+            "Expected a non-negative integer or 'null' for setting 'default-list-size'.");
+    }
+
+    [Theory]
     [InlineData(
         "allow-non-resolvable-interface-objects",
         "true",
@@ -243,6 +263,12 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         "merger",
         "cacheControlMergeBehavior",
         "\"Ignore\"")]
+    [InlineData(
+        "default-list-size",
+        "5",
+        "merger",
+        "defaultListSize",
+        "5")]
     [InlineData(
         "enum-values-merge-behavior",
         "union",
@@ -320,6 +346,114 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
                     .GetProperty(sectionName)
                     .GetProperty(propertyName)
                     .GetRawText());
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
+    [Fact]
+    public async Task Execute_Should_SetAndUnset_DefaultListSize()
+    {
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
+        try
+        {
+            var setResult = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                "default-list-size",
+                "5",
+                "--archive",
+                archiveFile);
+
+            Assert.Equal(0, setResult.ExitCode);
+
+            using (var archive = FusionArchive.Open(archiveFile))
+            {
+                using var settings = await archive.GetCompositionSettingsAsync(
+                    TestContext.Current.CancellationToken);
+                Assert.NotNull(settings);
+                Assert.Equal(
+                    "5",
+                    settings.RootElement
+                        .GetProperty("merger")
+                        .GetProperty("defaultListSize")
+                        .GetRawText());
+            }
+
+            var unsetResult = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                "default-list-size",
+                "null",
+                "--archive",
+                archiveFile);
+
+            Assert.Equal(0, unsetResult.ExitCode);
+
+            using (var archive = FusionArchive.Open(archiveFile))
+            {
+                using var settings = await archive.GetCompositionSettingsAsync(
+                    TestContext.Current.CancellationToken);
+                Assert.NotNull(settings);
+                Assert.Equal(
+                    "null",
+                    settings.RootElement
+                        .GetProperty("merger")
+                        .GetProperty("defaultListSize")
+                        .GetRawText());
+            }
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
+    [Theory]
+    [InlineData("9999999999")]
+    [InlineData("-1")]
+    public async Task Execute_Should_ReturnError_When_UnsettingAlreadyInvalidPersistedDefaultListSize(
+        string persistedRawValue)
+    {
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
+        try
+        {
+            using (var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update))
+            {
+                using var invalidCompositionSettings =
+                    JsonDocument.Parse($$"""{ "merger": { "defaultListSize": {{persistedRawValue}} } }""");
+                await archive.SetCompositionSettingsAsync(
+                    invalidCompositionSettings,
+                    TestContext.Current.CancellationToken);
+                await archive.CommitAsync(TestContext.Current.CancellationToken);
+            }
+
+            var result = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                "default-list-size",
+                "null",
+                "--archive",
+                archiveFile);
+
+            result.AssertError(
+                "The 'defaultListSize' composition setting must be a non-negative integer "
+                + $"no larger than 2147483647 ({persistedRawValue}).");
         }
         finally
         {

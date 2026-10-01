@@ -35,8 +35,8 @@ internal sealed class TakeoverAgentCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
-        var agents = services.GetRequiredService<IAgentRegistry>();
-        var sessions = services.GetRequiredService<IAgentSessionRegistry>();
+        var agents = services.GetRequiredService<IAgentStore>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
         var mail = services.GetRequiredService<IMailStore>();
         var tasks = services.GetRequiredService<ITaskStore>();
         var ledger = services.GetRequiredService<ITakeoverLedger>();
@@ -48,27 +48,35 @@ internal sealed class TakeoverAgentCommand : Command
         var force = parseResult.GetValue(Opt<ForceActorTakeoverOption>.Instance);
         var reason = parseResult.GetValue(Opt<TakeoverReasonOption>.Instance);
 
-        var source = await agents.GetAsync(from, cancellationToken)
-            ?? throw UnknownActor(from);
-        var target = await agents.GetAsync(to, cancellationToken)
-            ?? throw UnknownActor(to);
-
         if (from == to)
         {
             throw new ExitException("The source and target actors must be different.");
         }
 
-        if (!force
-            && (await sessions.FindLiveClaimedByAgentNameAsync(from, cancellationToken)).Count > 0)
+        var source = await agents.FindAsync(from, cancellationToken)
+            ?? throw UnknownActor(from);
+        var target = await agents.FindAsync(to, cancellationToken)
+            ?? throw UnknownActor(to);
+
+        if (target.IsDeleted)
+        {
+            throw DeletedActor(target.Name);
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var sourceState = AgentStateResolver.Resolve(source, now);
+
+        if (!force && sourceState == AgentState.Online)
         {
             throw new ExitException(
-                $"Actor '{from}' still has a live session; pass --force to take over anyway.");
+                $"Actor '{from}' is {sourceState}; pass --force to take over anyway.");
         }
 
         var role = target.Role;
         if (role.Length == 0 && source.Role.Length > 0)
         {
-            target = await agents.RegisterAsync(to, source.Role, target.Client, cancellationToken);
+            target = await agents.SetRoleAsync(to, source.Role, cancellationToken)
+                ?? throw DeletedActor(to);
             role = target.Role;
         }
 
@@ -102,7 +110,6 @@ internal sealed class TakeoverAgentCommand : Command
                     to,
                     role,
                     mailTransfer.RecipientsMoved,
-                    mailTransfer.SendersMoved,
                     taskIds)));
 
             return ExitCodes.Success;
@@ -114,7 +121,7 @@ internal sealed class TakeoverAgentCommand : Command
         console.OkLine(
             $"'{to.EscapeMarkup()}' took over from '{from.EscapeMarkup()}': "
             + $"role '{role.EscapeMarkup()}', "
-            + $"{mailTransfer.RecipientsMoved + mailTransfer.SendersMoved} messages, {taskSummary}.");
+            + $"{mailTransfer.RecipientsMoved} messages, {taskSummary}.");
 
         return ExitCodes.Success;
     }
@@ -122,16 +129,16 @@ internal sealed class TakeoverAgentCommand : Command
     private static ExitException UnknownActor(string actor)
         => new($"Unknown actor '{actor}'. Run `nitro agent list` to see the actors this workspace knows.");
 
+    private static ExitException DeletedActor(string actor)
+        => new($"Agent '{actor}' was deleted.");
+
     private static IReadOnlyList<TakeoverItem> CreateItems(
         MailTransferResult mailTransfer,
         IReadOnlyList<string> taskIds)
     {
         var items = new List<TakeoverItem>(
-            mailTransfer.SenderMessageIds.Count
-            + mailTransfer.RecipientMessageIds.Count
+            mailTransfer.RecipientMessageIds.Count
             + taskIds.Count);
-        items.AddRange(mailTransfer.SenderMessageIds.Select(
-            id => new TakeoverItem { Kind = TakeoverItemKinds.MessageSender, ItemId = id }));
         items.AddRange(mailTransfer.RecipientMessageIds.Select(
             id => new TakeoverItem { Kind = TakeoverItemKinds.MessageRecipient, ItemId = id }));
         items.AddRange(taskIds.Select(
@@ -146,6 +153,5 @@ internal sealed class TakeoverAgentCommand : Command
         string To,
         string Role,
         int RecipientsMoved,
-        int SendersMoved,
         IReadOnlyList<string> Tasks);
 }

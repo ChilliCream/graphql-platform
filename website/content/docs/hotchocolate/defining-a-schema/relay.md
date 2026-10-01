@@ -44,7 +44,7 @@ public class OrderItem
 }
 ```
 
-The generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `[ID("Product")]` to specify it as a string.
+The generic `[ID<Product>]` form infers the GraphQL type name from the type argument. You can also use `#!csharp [ID("Product")]` to specify it as a string.
 
 </Implementation>
 <Code>

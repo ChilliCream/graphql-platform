@@ -38,6 +38,17 @@ dotnet run -- schema export --output schema.graphql
 - `--output`: The path to the file where the schema is exported. If no output path is specified, the schema prints to the console.
 - `--schema-name`: The name of the schema to export. If no schema name is specified, the default schema is exported.
 - `--semantic-non-null`: Rewrites the exported schema to strip non-null wrappers from output fields and apply the `@semanticNonNull` directive instead. Useful for clients that still rely on `@semanticNonNull` annotations.
+- `--spec-version`: Downgrades the exported SDL to the grammar of a GraphQL specification edition so older parsers and validators can accept it. Supported values are `october-2021` (also `2021-10`) and `september-2025` (also `2025-09`); values are case-insensitive.
+
+For example, export SDL compatible with the October 2021 edition:
+
+```shell
+dotnet run -- schema export --output schema.graphql --spec-version october-2021
+```
+
+When you select a specification edition, unsupported directive locations, including `DIRECTIVE_DEFINITION`, are removed from directive definitions, as are directives applied to directive definitions. For `october-2021`, `@oneOf` applications are removed, and `@deprecated` on arguments and input fields is removed with its reason folded into the description. Specification scalar and directive definitions are never printed. Custom directives, including `@semanticNonNull`, stay in the exported schema.
+
+Without `--spec-version`, the schema export remains unchanged. The startup warmup export always writes the native schema.
 
 # Next Steps
 

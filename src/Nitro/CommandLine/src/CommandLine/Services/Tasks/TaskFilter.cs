@@ -1,33 +1,27 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// The parameters for <see cref="ITaskStore.QueryTasksAsync"/>. This is the
-/// backend-agnostic shape the TUI's filter query parser targets; its
-/// "TaskQuery" record maps onto this type. Every filter applies
-/// as AND with the others; <see cref="Labels"/> apply as AND across labels.
+/// Filters for task queries, combined with AND; a task must match every supplied label.
 /// </summary>
 internal sealed record TaskFilter
 {
     /// <summary>
-    /// Statuses a task must have one of. Null defers to
-    /// <see cref="IncludeAll"/>. Archived tasks are returned only when this
-    /// explicitly lists "archived"; see <see cref="IncludeAll"/>.
+    /// Allowed normalized statuses, with null or empty deferring to
+    /// <see cref="IncludeAll"/> and <see cref="IncludeArchived"/>.
+    /// <see cref="ExcludeTombstones"/> still applies to explicit statuses.
     /// </summary>
     public string[]? Statuses { get; init; }
 
     /// <summary>
-    /// When <see cref="Statuses"/> is null, true includes closed and
-    /// tombstone tasks and false excludes them. Either way, archived tasks
-    /// are excluded: they come back only when <see cref="Statuses"/>
-    /// explicitly contains "archived".
+    /// Allows closed and tombstoned tasks when no explicit statuses are supplied.
+    /// Archived tasks still require <see cref="IncludeArchived"/>, and
+    /// <see cref="ExcludeTombstones"/> can exclude tombstones.
     /// </summary>
     public bool IncludeAll { get; init; }
 
     /// <summary>
-    /// When <see cref="Statuses"/> is null, true stops archived tasks from
-    /// being excluded by the null-<see cref="Statuses"/> default (regardless
-    /// of <see cref="IncludeAll"/>). Ignored when <see cref="Statuses"/> is
-    /// set; list "archived" there instead.
+    /// Allows archived tasks when <see cref="Statuses"/> is null or empty.
+    /// A nonempty status filter takes precedence.
     /// </summary>
     public bool IncludeArchived { get; init; }
 

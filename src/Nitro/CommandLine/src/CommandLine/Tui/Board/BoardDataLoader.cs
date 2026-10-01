@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// Evaluates a board column against the task store: translates its
-/// declarative filter into a <see cref="TaskFilter"/> query, applies the
-/// computed ready/blocked/deferred semantics the filter cannot express
-/// alone, then sorts and caps the result. Issues no SQL of its own.
+/// Loads tasks matching a column's filters, applies its computed state criteria,
+/// and returns the sorted result up to the column limit.
 /// </summary>
 internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvider)
 {
@@ -63,10 +61,8 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// Whether a task belongs to the Deferred column: its status is deferred,
-    /// or a future defer date hides it while nobody is actively working it.
-    /// The Blocked column defers to this test so a task waiting on both a
-    /// dependency and a date lands in one column, not two.
+    /// Whether a task is deferred by status, or has a future defer date while
+    /// non-terminal and not in progress. Deferred tasks are excluded from the Blocked column.
     /// </summary>
     private static bool IsDeferred(TaskItem task, DateTimeOffset now)
         => task.Status == TaskStates.Deferred

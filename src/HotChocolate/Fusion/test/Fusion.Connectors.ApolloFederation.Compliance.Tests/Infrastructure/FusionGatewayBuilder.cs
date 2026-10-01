@@ -408,6 +408,7 @@ internal static class FusionGatewayBuilder
         }
 
         options.Merger.NodeResolution = nodeResolution;
+        options.Merger.DefaultListSize = 1;
 
         var composer = new SchemaComposer(sourceSchemas, options, compositionLog);
 

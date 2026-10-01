@@ -63,6 +63,39 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Register_Should_KeepTheRole_When_NoRoleIsGiven()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya", "planner");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        // Omitting --role touches the beat only, the stored role survives.
+        result.AssertSuccess("✓ Actor 'maya', role 'planner'.");
+        Assert.Equal("planner", await QueryScalarAsync("SELECT role FROM agents WHERE name = 'maya'"));
+    }
+
+    [Fact]
+    public async Task Register_Should_BumpLastSeenAt_When_NoRoleIsGiven()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        var before = await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'");
+        FakeTime.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        var after = await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'");
+        Assert.NotEqual(before, after);
+    }
+
+    [Fact]
     public async Task Register_Should_ClearTheRole_When_TheRoleIsExplicitlyEmpty()
     {
         // arrange
@@ -95,10 +128,24 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Register_Should_Fail_When_TheActorWasDeleted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await MarkAgentDeletedAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        result.AssertError("Agent 'maya' was deleted.");
+    }
+
+    [Fact]
     public async Task Register_Should_Fail_When_ActorIsOmitted()
     {
-        // arrange: no default actor is supplied for this one, so the parser
-        // sees the command exactly as a caller who omitted it would.
+        // arrange
         await InitWorkspaceAsync();
         DefaultActor = null;
 

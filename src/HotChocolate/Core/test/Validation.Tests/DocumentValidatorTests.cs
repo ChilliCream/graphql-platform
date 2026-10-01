@@ -266,6 +266,55 @@ public class DocumentValidatorTests
     }
 
     [Fact]
+    public void CovariantFields_Should_Merge_WhenEnabled()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddDocumentFromString(
+                    """
+                    interface Item {
+                        label: String
+                    }
+
+                    type OptionalItem implements Item {
+                        label: String
+                    }
+
+                    type RequiredItem implements Item {
+                        label: String!
+                    }
+
+                    type Query {
+                        item: Item
+                    }
+                    """)
+                .Use(_ => _ => default)
+                .Create();
+        var validator =
+            CreateValidator(b => b.ModifyOptions(o => o.EnableCovariantFieldMerging = true));
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                item {
+                    ... on OptionalItem {
+                        label
+                    }
+                    ... on RequiredItem {
+                        label
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = validator.Validate(schema, document);
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
     public void FieldIsNotDefinedOnTypeInFragment()
     {
         ExpectErrors(

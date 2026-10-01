@@ -177,7 +177,7 @@ The PostgreSQL and Azure Service Bus transports handle scheduling natively with 
 
 **1. Add the NuGet packages.**
 
-```bash
+```shell
 dotnet add package Mocha.EntityFrameworkCore
 dotnet add package Mocha.EntityFrameworkCore.Postgres
 ```
@@ -219,7 +219,7 @@ When `UsePostgresScheduling()` is configured, `SchedulePublishAsync` and `Schedu
 
 After adding the model configuration, generate and apply an EF Core migration:
 
-```bash
+```shell
 dotnet ef migrations add AddScheduledMessages
 dotnet ef database update
 ```

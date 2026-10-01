@@ -44,6 +44,10 @@ public static class FusionServerServiceCollectionExtensions
                 });
             builder.AddMaxAllowedFieldCycleDepthRule();
         }
+        else
+        {
+            builder.ModifyCostOptions(o => o.EnforceCostLimits = false);
+        }
 
         return builder;
     }
@@ -68,6 +72,7 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            sc.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {

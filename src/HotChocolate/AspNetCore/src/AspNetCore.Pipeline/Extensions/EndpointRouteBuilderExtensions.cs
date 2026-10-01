@@ -137,6 +137,7 @@ public static class EndpointRouteBuilderExtensions
             .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+            .Use(MiddlewareFactory.CreateHttpQueryMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
                 executor, serverOptions, path, MiddlewareRoutingType.Integrated))
@@ -217,6 +218,7 @@ public static class EndpointRouteBuilderExtensions
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
+            .Use(MiddlewareFactory.CreateHttpQueryMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                 executor,

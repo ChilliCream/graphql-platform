@@ -321,6 +321,7 @@ public class NodeResolverTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddTypeExtension<EntityExtension5>()
                 .AddTypeExtension<Entity2Extension1>()

@@ -163,7 +163,7 @@ operationPlan:
         query($s: String!) {
           formatTitle(title: $s)
         }
-      hash: 577373a9b2c16f480ac5c2645f109b7b
+      hash: 4ee08c715bec3190494d8715fa7b878f
       searchSpace: 1
       expandedNodes: 1
   nodes:

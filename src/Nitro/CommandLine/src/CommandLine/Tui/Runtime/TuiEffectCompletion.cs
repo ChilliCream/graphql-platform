@@ -1,10 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
 /// <summary>
-/// The deterministic outcome of one <see cref="TuiEffectQueue{TResult}"/> effect:
-/// exactly one of a successful result, a thrown exception, or cooperative
-/// cancellation. An effect never completes silently; every submission reaches
-/// exactly one of these before it leaves the queue.
+/// The result, exception, or cancellation of a finished
+/// <see cref="TuiEffectQueue{TResult}"/> effect.
 /// </summary>
 internal abstract record TuiEffectCompletion<TResult>
 {
@@ -28,7 +26,7 @@ internal abstract record TuiEffectCompletion<TResult>
     public sealed record Faulted(TuiOperationId OperationId, Exception Exception) : TuiEffectCompletion<TResult>;
 
     /// <summary>
-    /// The effect observed cancellation before producing a result.
+    /// The effect threw an <see cref="OperationCanceledException"/>.
     /// </summary>
     public sealed record Cancelled(TuiOperationId OperationId) : TuiEffectCompletion<TResult>;
 }

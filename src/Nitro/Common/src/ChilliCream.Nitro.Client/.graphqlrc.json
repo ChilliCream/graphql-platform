@@ -26,6 +26,7 @@
     "FusionConfiguration/Operations/FusionConfigurationPublishCancelCommand.graphql",
     "FusionConfiguration/Operations/FusionConfigurationPublishCommitCommand.graphql",
     "FusionConfiguration/Operations/FusionConfigurationPublishStartCommand.graphql",
+    "FusionConfiguration/Operations/FusionValidateCommand.graphql",
     "FusionConfiguration/Operations/FusionConfigurationPublishBeginCommand.graphql",
     "FusionConfiguration/Operations/FusionUploadCommand.graphql",
     "FusionConfiguration/Operations/FusionStageCompositionSettingsQuery.graphql",

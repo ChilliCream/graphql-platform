@@ -21,11 +21,11 @@ public sealed class StatusPickerTests
     }
 
     [Fact]
-    public async Task ApplyAsync_Should_CallUpdateTaskAsync_WithStatusGiven()
+    public async Task ApplyAsync_Should_ReportSuccess_When_StatusDiffersFromTask()
     {
         // arrange
         var task = TaskItemBuilder.Create("a1", status: TaskStates.Open);
-        var store = new FakeTaskStore { UpdateResult = new TaskUpdateResult { ChangedFields = ["status"] } };
+        var store = new FakeTaskStore();
 
         // act
         var outcome = await StatusPicker.ApplyAsync(
@@ -35,10 +35,24 @@ public sealed class StatusPickerTests
         Assert.Equal("a1", store.UpdatedId);
         Assert.True(store.UpdateReceived!.StatusGiven);
         Assert.Equal(TaskStates.InProgress, store.UpdateReceived.Status);
-        Assert.False(store.UpdateReceived.TitleGiven);
-        Assert.Equal("me", store.Actor);
         var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
-        Assert.Contains("in_progress", succeeded.ToastText);
+        Assert.Equal("Status set to 'in_progress' for task 'a1'.", succeeded.ToastText);
+    }
+
+    [Fact]
+    public async Task ApplyAsync_Should_ReportNoChanges_When_StatusMatchesTask()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", status: TaskStates.Open);
+        var store = new FakeTaskStore();
+
+        // act
+        var outcome = await StatusPicker.ApplyAsync(
+            store, task, TaskStates.Open, "me", CancellationToken.None);
+
+        // assert
+        var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
+        Assert.Equal("No changes to task 'a1'.", succeeded.ToastText);
     }
 
     [Fact]

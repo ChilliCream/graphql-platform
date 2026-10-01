@@ -27,8 +27,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
     private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
 
-    private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<SchemaCacheKey, CachedSchemaOutput> _schemaCache = [];
+    private readonly ConcurrentDictionary<SchemaCacheKey, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = [];
     private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
@@ -44,6 +44,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo[] _streamPreferred;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
     private readonly bool _jsonFollowsGraphQLResponseRules;
+    private readonly bool _reportsContentTooLarge;
     private readonly bool _reportsPartialSuccess;
     private readonly bool _reportsUnprocessableRequest;
 
@@ -140,13 +141,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         // From the 2026-09-03 revision on, a client that accepts application/json is answered as
         // if it had asked for application/graphql-response+json, and only a 2xx response is
-        // written with application/json as its Content-Type. The same revision answers a result
-        // that carries errors beside its data with 294, a request the server read but cannot
-        // execute with 422 rather than 400, and a request whose method or Content-Type the
-        // endpoint does not support with 405 or 415 rather than 404.
+        // written with application/json as its Content-Type. The same revision answers a request
+        // body over the maximum request size with 413 rather than 400, a result that carries
+        // errors beside its data with 294, a request the server read but cannot execute with 422
+        // rather than 400, and a request whose method or Content-Type the endpoint does not
+        // support with 405 or 415 rather than 404.
         var usesRevision20260903 = TransportVersion is not
             (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
         _jsonFollowsGraphQLResponseRules = usesRevision20260903;
+        _reportsContentTooLarge = usesRevision20260903;
         _reportsPartialSuccess = usesRevision20260903;
         _reportsUnprocessableRequest = usesRevision20260903;
         ReportsUnsupportedMethodOrMediaType = usesRevision20260903;
@@ -469,22 +472,31 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return format.ContentType;
     }
 
-    public async ValueTask FormatAsync(
+    public ValueTask FormatAsync(
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
         CancellationToken cancellationToken)
+        => FormatAsync(response, schema, version, specVersion: null, cancellationToken);
+
+    public async ValueTask FormatAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        GraphQLSpecVersion? specVersion,
+        CancellationToken cancellationToken)
     {
-        var output = _schemaCache.GetOrAdd(schema.Name, Update);
+        var key = new SchemaCacheKey(schema.Name, specVersion);
+        var output = _schemaCache.GetOrAdd(key, Update);
 
         if (output.Version < version)
         {
             lock (_schemaCache)
             {
-                if (!_schemaCache.TryGetValue(schema.Name, out output)
+                if (!_schemaCache.TryGetValue(key, out output)
                     || output.Version < version)
                 {
-                    _schemaCache[schema.Name] = output = Update(schema.Name);
+                    _schemaCache[key] = output = Update(key);
                 }
             }
         }
@@ -499,26 +511,35 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSchemaOutput Update(string _)
-            => new(schema, version, _timeProvider.UtcNow);
+        CachedSchemaOutput Update(SchemaCacheKey _)
+            => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
+
+    public ValueTask FormatSemanticNonNullSchemaAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken)
+        => FormatSemanticNonNullSchemaAsync(response, schema, version, specVersion: null, cancellationToken);
 
     public async ValueTask FormatSemanticNonNullSchemaAsync(
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
-        var output = _semanticNonNullSchemaCache.GetOrAdd(schema.Name, Update);
+        var key = new SchemaCacheKey(schema.Name, specVersion);
+        var output = _semanticNonNullSchemaCache.GetOrAdd(key, Update);
 
         if (output.Version < version)
         {
             lock (_semanticNonNullSchemaCache)
             {
-                if (!_semanticNonNullSchemaCache.TryGetValue(schema.Name, out output)
+                if (!_semanticNonNullSchemaCache.TryGetValue(key, out output)
                     || output.Version < version)
                 {
-                    _semanticNonNullSchemaCache[schema.Name] = output = Update(schema.Name);
+                    _semanticNonNullSchemaCache[key] = output = Update(key);
                 }
             }
         }
@@ -533,8 +554,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSemanticNonNullSchemaOutput Update(string _)
-            => new(schema, version, _timeProvider.UtcNow);
+        CachedSemanticNonNullSchemaOutput Update(SchemaCacheKey _)
+            => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
 
     /// <summary>
@@ -602,6 +623,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     && result.ContextData.ContainsKey(HttpResultContextData.RequestNotWellFormed))
                 {
                     return HttpStatusCode.UnprocessableContent;
+                }
+
+                // From the 2026-09-03 revision on, a request body over the maximum request size
+                // is answered 413.
+                if (_reportsContentTooLarge
+                    && proposedStatusCode is HttpStatusCode.BadRequest
+                    && result.ContextData.ContainsKey(HttpResultContextData.RequestTooLarge))
+                {
+                    return HttpStatusCode.RequestEntityTooLarge;
                 }
 
                 return proposedStatusCode.Value;
@@ -858,6 +888,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 continue;
             }
 
+            // For a single result, */* covers the two JSON media types only, so multipart/mixed
+            // and text/event-stream are candidates only when named or covered by a type/* range.
+            if (result.Kind is SingleResult
+                && candidate.Kind is ResponseContentType.MultiPartMixed
+                    or ResponseContentType.EventStream
+                && acceptMediaTypes[match.RangeIndex].Kind is All)
+            {
+                continue;
+            }
+
             var named = match.NamedPosition >= 0 && Contains(preferred, candidate);
             var byWildcard =
                 match.WildcardPosition >= 0 && ReferenceEquals(candidate, wildcardDefault);
@@ -1107,14 +1147,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSchemaOutput(
+            ISchemaDefinition schema,
+            ulong version,
+            GraphQLSpecVersion? specVersion,
+            DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
                     schema,
                     new SchemaFormatterOptions
                     {
-                        IncludeInternalDirectives = false
+                        IncludeInternalDirectives = false,
+                        SpecVersion = specVersion
                     }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
@@ -1150,7 +1195,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSemanticNonNullSchemaOutput(
+            ISchemaDefinition schema,
+            ulong version,
+            GraphQLSpecVersion? specVersion,
+            DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
@@ -1158,6 +1207,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     new SchemaFormatterOptions
                     {
                         IncludeInternalDirectives = false,
+                        SpecVersion = specVersion,
                         RewriteToSemanticNonNull = true
                     }));
             FileName = GetSchemaFileName(schema);
@@ -1189,4 +1239,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 ? "schema.graphql"
                 : schema.Name + ".schema.graphql";
     }
+
+    private readonly record struct SchemaCacheKey(string SchemaName, GraphQLSpecVersion? SpecVersion);
 }

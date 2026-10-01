@@ -41,7 +41,7 @@ The flow has four moving parts:
    The gateway does not open a subscription against any subgraph for this field.
 3. **Your services publish events** to that topic. An event payload is small: it
    carries just the data the gateway needs to resolve the rest of the selection set,
-   typically an entity key such as `{ "id": "1" }`.
+   typically an entity key such as `#!json { "id": "1" }`.
 4. **The gateway resolves each event** by running ordinary stateless fetches against
    the owning subgraphs (the same entity lookups it uses for queries) and emits one
    GraphQL result per event to the client.
@@ -86,7 +86,7 @@ The `@eventStream` directive takes three arguments:
 | `broker`  | `String`             | The name of the registered broker. When omitted, the default (unnamed) broker is used.                                                                    |
 
 The `message` selection set tells the gateway which fields the broker payload
-contains. Here `{ id }` means an event body of `{ "id": "1" }`. The gateway uses that
+contains. Here `#!graphql { id }` means an event body of `#!json { "id": "1" }`. The gateway uses that
 key to resolve everything else the client asked for.
 
 Because `topics` and `broker` are omitted, Fusion infers the topic from the field name
@@ -205,7 +205,7 @@ type ProductPriceChangedEvent {
 ```
 
 Now `oldPrice` and `newPrice` come straight from the broker message, while `product` is
-resolved across your subgraphs from the `{ product { id } }` key, so a client reads both
+resolved across your subgraphs from the `#!graphql { product { id } }` key, so a client reads both
 the event data and live entity fields in one event:
 
 ```graphql
@@ -526,7 +526,7 @@ await subscriber.PublishAsync(
 ## Topics
 
 By default Fusion infers the topic from the field name and its arguments, joined with
-hyphens: `onProductPriceChanged(productId: ID!)` infers `onProductPriceChanged-{$args.productId}`,
+hyphens: `#!sdl onProductPriceChanged(productId: ID!)` infers `onProductPriceChanged-{$args.productId}`,
 and a field with two arguments infers `<fieldName>-{$args.arg1}-{$args.arg2}`, and so on.
 
 Set `topics` explicitly when you need a different name. A topic can contain
@@ -543,7 +543,7 @@ type Subscription {
 }
 ```
 
-A client subscribing with `onProductPriceChanged(productId: "1")` is wired to the
+A client subscribing with `#!graphql onProductPriceChanged(productId: "1")` is wired to the
 topic `product.price-changed.1`, so it only receives the events relevant to that
 product. This keeps fan-out at the broker rather than in the gateway.
 
@@ -741,7 +741,7 @@ caller requests `text/event-stream`, the server streams the result using the
 [graphql-sse](https://github.com/enisdenjo/graphql-sse/blob/master/PROTOCOL.md)
 protocol. You can verify it with curl:
 
-```bash
+```shell
 curl -N \
   -H 'Content-Type: application/json' \
   -H 'Accept: text/event-stream' \

@@ -7,15 +7,46 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class OperationDocumentInfo : RequestFeature
 {
+    private DocumentNode? _document;
+    private OperationDocumentId _id;
+    private int? _operationCount;
+
     /// <summary>
     /// Gets or sets the parsed query document.
     /// </summary>
-    public DocumentNode? Document { get; set; }
+    public DocumentNode? Document
+    {
+        get => _document;
+        set
+        {
+            _document = value;
+            _operationCount = null;
+            OperationId = null;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the normalized operation document, i.e. the executor's internal form of
+    /// the document after validation, with all fragments inlined into the selected operation.
+    /// The normalized document contains exactly one definition, the operation, at
+    /// <c>Definitions[0]</c>, and may carry internal marker directives on that definition.
+    /// The normalized document is an implementation detail of this executor and is not meant
+    /// to be forwarded to another server.
+    /// </summary>
+    public DocumentNode? NormalizedDocument { get; set; }
 
     /// <summary>
     /// Gets or sets a unique identifier for an operation document.
     /// </summary>
-    public OperationDocumentId Id { get; set; }
+    public OperationDocumentId Id
+    {
+        get => _id;
+        set
+        {
+            _id = value;
+            OperationId = null;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the document hash.
@@ -23,9 +54,26 @@ public sealed class OperationDocumentInfo : RequestFeature
     public OperationDocumentHash Hash { get; set; }
 
     /// <summary>
+    /// Gets or sets the identifier of the executed operation within the document.
+    /// </summary>
+    public string? OperationId { get; set; }
+
+    /// <summary>
     /// Gets the number of operation definitions in the document.
     /// </summary>
-    public int OperationCount => Document?.Definitions.Count(d => d.Kind == SyntaxKind.OperationDefinition) ?? 0;
+    public int OperationCount
+    {
+        get
+        {
+            if (_operationCount is not { } count)
+            {
+                count = Document?.Definitions.Count(d => d.Kind == SyntaxKind.OperationDefinition) ?? 0;
+                _operationCount = count;
+            }
+
+            return count;
+        }
+    }
 
     /// <summary>
     /// Defines that the document was retrieved from the cache.
@@ -46,8 +94,10 @@ public sealed class OperationDocumentInfo : RequestFeature
     protected internal override void Reset()
     {
         Document = null;
+        NormalizedDocument = null;
         Id = default;
         Hash = default;
+        OperationId = null;
         IsCached = false;
         IsPersisted = false;
         IsValidated = false;

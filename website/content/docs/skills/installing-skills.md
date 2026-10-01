@@ -5,7 +5,7 @@ description: "Install Agent Skills from GitHub repos, git URLs, or local folders
 
 `dnx skills add` installs skills from a source into the AI coding agents you already have. Point it at a GitHub repository and the CLI discovers every `SKILL.md`, detects your agents, and wires the skill into each one.
 
-```bash
+```shell
 dnx skills add anthropics/skills
 ```
 
@@ -22,25 +22,25 @@ The `source` argument tells the CLI where to fetch skills from. It infers the ki
 
 The most common form is a GitHub `owner/repo` shorthand:
 
-```bash
+```shell
 dnx skills add anthropics/skills
 ```
 
 Every source form below is accepted. The first matching rule wins, and clones are always shallow (the CLI fetches only the latest commit, not the full history).
 
-| Source form            | Example                                                              | What it does                                                              |
-| ---------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| GitHub `owner/repo`    | `dnx skills add anthropics/skills`                                   | Installs from the repository root. The default shorthand.                 |
-| GitHub subpath         | `dnx skills add anthropics/skills/document-skills/pdf`               | Installs only the skill at that path in the repo.                         |
-| GitHub branch or tag   | `dnx skills add owner/repo#main`                                     | Installs from a specific ref (`#branch` or `#tag`).                       |
-| GitHub skill filter    | `dnx skills add owner/repo@my-skill`                                 | Installs only the skill named `my-skill` from the repo.                   |
-| GitHub URL             | `dnx skills add https://github.com/owner/repo`                       | Full URL, with or without a trailing `.git`.                              |
-| GitHub `tree` URL      | `dnx skills add https://github.com/owner/repo/tree/main/skills/foo`  | A `/tree/<ref>/<path>` URL pins the ref and subpath.                      |
-| GitLab shorthand       | `dnx skills add gitlab:group/project`                                | Installs from GitLab. Subgroups are supported (`group/subgroup/project`). |
-| GitLab URL             | `dnx skills add https://gitlab.com/group/project/-/tree/main/skills` | GitLab uses `/-/tree/` (note the `-` segment).                            |
-| Generic git or SSH     | `dnx skills add git@github.com:owner/repo.git`                       | Any `https`, `ssh://`, `git://`, or scp-style git transport.              |
-| Local directory        | `dnx skills add ./my-skills`                                         | A local path: `./`, `../`, an absolute path, or a Windows drive path.     |
-| Well-known HTTP(S) URL | `dnx skills add https://example.com/skills`                          | A non-git site that serves skills via `.well-known` discovery.            |
+| Source form            | Example                                                                      | What it does                                                              |
+| ---------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| GitHub `owner/repo`    | `#!shell dnx skills add anthropics/skills`                                   | Installs from the repository root. The default shorthand.                 |
+| GitHub subpath         | `#!shell dnx skills add anthropics/skills/document-skills/pdf`               | Installs only the skill at that path in the repo.                         |
+| GitHub branch or tag   | `#!shell dnx skills add owner/repo#main`                                     | Installs from a specific ref (`#branch` or `#tag`).                       |
+| GitHub skill filter    | `#!shell dnx skills add owner/repo@my-skill`                                 | Installs only the skill named `my-skill` from the repo.                   |
+| GitHub URL             | `#!shell dnx skills add https://github.com/owner/repo`                       | Full URL, with or without a trailing `.git`.                              |
+| GitHub `tree` URL      | `#!shell dnx skills add https://github.com/owner/repo/tree/main/skills/foo`  | A `/tree/<ref>/<path>` URL pins the ref and subpath.                      |
+| GitLab shorthand       | `#!shell dnx skills add gitlab:group/project`                                | Installs from GitLab. Subgroups are supported (`group/subgroup/project`). |
+| GitLab URL             | `#!shell dnx skills add https://gitlab.com/group/project/-/tree/main/skills` | GitLab uses `/-/tree/` (note the `-` segment).                            |
+| Generic git or SSH     | `#!shell dnx skills add git@github.com:owner/repo.git`                       | Any `https`, `ssh://`, `git://`, or scp-style git transport.              |
+| Local directory        | `#!shell dnx skills add ./my-skills`                                         | A local path: `./`, `../`, an absolute path, or a Windows drive path.     |
+| Well-known HTTP(S) URL | `#!shell dnx skills add https://example.com/skills`                          | A non-git site that serves skills via `.well-known` discovery.            |
 
 A few notes that save time:
 
@@ -56,7 +56,7 @@ A source can contain many skills. By default, when you do not pass any filter, t
 
 To preview the available skills without installing anything, pass `--list` (or `-l`):
 
-```bash
+```shell
 dnx skills add anthropics/skills --list
 ```
 
@@ -75,19 +75,19 @@ Use --skill <name> to install specific skills
 
 To install one or more specific skills by name, pass `--skill` (or `-s`). The option is repeatable:
 
-```bash
+```shell
 dnx skills add anthropics/skills --skill pdf --skill docx
 ```
 
 You can also embed a single skill filter in the source string with `@name`:
 
-```bash
+```shell
 dnx skills add anthropics/skills@pdf
 ```
 
 To install every skill from the source into every detected agent, non-interactively, pass `--all`:
 
-```bash
+```shell
 dnx skills add anthropics/skills --all
 ```
 
@@ -112,7 +112,7 @@ A skill is any folder that contains a `SKILL.md` with both a `name` and a `descr
 
 By default, the CLI detects which agents are installed on your machine and targets them. To choose explicitly, pass `--agent` (or `-a`). The option is repeatable and accepts multiple values per token, and `*` means every supported agent:
 
-```bash
+```shell
 # repeated flags
 dnx skills add anthropics/skills --agent claude-code --agent cursor
 
@@ -171,7 +171,7 @@ The CLI installs into one of two scopes. Understanding the difference tells you 
 
 **Global scope (`--global` or `-g`) installs skills for your user account**, across every project.
 
-```bash
+```shell
 dnx skills add anthropics/skills --global
 ```
 
@@ -195,7 +195,7 @@ Some agents read directly from the shared `.agents/skills` store, so their skill
 
 To copy files instead of symlinking, pass `--copy`. Use it for sandboxed agents that cannot follow symlinks (for example, agents running in containers where symlinks across mounts break):
 
-```bash
+```shell
 dnx skills add anthropics/skills --copy --agent claude-code --agent windsurf
 ```
 
@@ -230,7 +230,7 @@ By default, the CLI installs the skill at the source root if one exists there. I
 
 To find skills in nested and curated directories that the default scan does not reach, pass `--full-depth`:
 
-```bash
+```shell
 dnx skills add owner/curated-skills --full-depth
 ```
 
@@ -244,7 +244,7 @@ The CLI never manages or prompts for credentials. It shells out to `git`, which 
 
 To install from a private repository, make sure your normal git auth already works, then run `add` as usual:
 
-```bash
+```shell
 dnx skills add owner/private-skills --agent claude-code
 ```
 
@@ -252,7 +252,7 @@ This prints the same `Installation Summary` and `Installed N skill(s)` panels sh
 
 Before you install, verify your access with one of:
 
-```bash
+```shell
 ssh -T git@github.com   # confirm your SSH key reaches GitHub
 gh auth login           # or authenticate the GitHub CLI
 ```
@@ -269,7 +269,7 @@ If a clone fails with an authentication error, the CLI prints guidance pointing 
 
 `dnx skills update` checks your installed skills for newer versions. It has the aliases `upgrade` and `check`.
 
-```bash
+```shell
 dnx skills update -g
 ```
 
@@ -311,7 +311,7 @@ The update check calls the GitHub API. If you hit a rate limit, set a `GITHUB_TO
 
 To remove specific skills by name, list them:
 
-```bash
+```shell
 dnx skills remove alpha --yes
 ```
 
@@ -321,7 +321,7 @@ Successfully removed 1 skill(s)
 
 To remove everything, pass `--all`:
 
-```bash
+```shell
 dnx skills remove --all
 ```
 

@@ -60,7 +60,7 @@ operationPlan:
           search(input: $input)
         }
       name: testQuery
-      hash: b9069d121712d12a6e787f1f687c469a
+      hash: a00cad761e368d5eec6c946213280090
       searchSpace: 1
       expandedNodes: 1
   nodes:

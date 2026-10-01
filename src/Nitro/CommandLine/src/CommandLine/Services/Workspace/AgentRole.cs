@@ -12,7 +12,7 @@ internal static class AgentRole
     public const string Reviewer = "reviewer";
     public const string Researcher = "researcher";
 
-    public static IReadOnlyList<string> WellKnown { get; } = Array.AsReadOnly<string>(
+    public static IReadOnlyList<string> WellKnown { get; } = Array.AsReadOnly(
     [
         Orchestrator,
         Planner,
@@ -22,9 +22,8 @@ internal static class AgentRole
     ]);
 
     /// <summary>
-    /// Trims and lowercases the given value. A null or whitespace-only value
-    /// normalizes to the empty string; unlike an agent name, a role may be
-    /// empty and carries no character restriction.
+    /// Trims and lowercases the role without restricting its characters.
+    /// Null or whitespace yields an empty string.
     /// </summary>
     public static string Normalize(string? role) => (role ?? string.Empty).Trim().ToLowerInvariant();
 }

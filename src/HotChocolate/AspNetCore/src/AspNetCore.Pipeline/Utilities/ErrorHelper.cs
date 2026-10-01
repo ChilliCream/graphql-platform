@@ -1,5 +1,6 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Serialization;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Utilities;
@@ -30,6 +31,14 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
+    public static GraphQLRequestException EmptyVariableBatch()
+        => new(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_EmptyVariableBatch)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            new InvalidGraphQLRequestException(ErrorHelper_EmptyVariableBatch));
+
     public static IError NoSupportedAcceptMediaType()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_NoSupportedAcceptMediaType)
@@ -53,6 +62,20 @@ internal static class ErrorHelper
                 Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.InvalidTypeName)
                     .Add(nameof(typeName), typeName)
+            });
+
+    public static OperationResult InvalidSpecVersion(string value)
+        => OperationResult.FromError(
+            new Error
+            {
+                Message = string.Format(
+                    ErrorHelper_InvalidSpecVersion,
+                    value,
+                    string.Join(", ", GraphQLSpecVersions.SupportedValues)),
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.InvalidSpecVersion)
+                    .Add("specVersion", value)
+                    .Add("supportedValues", GraphQLSpecVersions.SupportedValues)
             });
 
     public static OperationResult TypeNotFound(string typeName)
@@ -114,6 +137,24 @@ internal static class ErrorHelper
     public static IError RequestBatchingDisabled()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_RequestBatchingDisabled)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError RequestBatchingNotSupportedForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequestBatchingNotSupportedForQuery)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError VariableBatchingNotSupportedForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_VariableBatchingNotSupportedForQuery)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError RequestBodyHasNoRequestForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequestBodyHasNoRequestForQuery)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 }

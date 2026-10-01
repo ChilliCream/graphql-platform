@@ -60,7 +60,7 @@ operationPlan:
           catName(input: $cat)
         }
       name: testQuery
-      hash: d09585022f7f98654618f228ab881946
+      hash: 7d73b195b25f240cdd6d8e4d36cc947b
       searchSpace: 1
       expandedNodes: 1
   nodes:

@@ -21,10 +21,10 @@ nitro stage edit \
 
 ## Options
 
-| Option                            | Env            | Description                                                                                                                                                                                  |
-| --------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--api-id <api-id>`               | `NITRO_API_ID` | ID of the API whose stages you are editing. Required.                                                                                                                                        |
-| `--configuration <configuration>` |                | Stage configuration as a JSON array. Each entry has `name`, `displayName`, and a `conditions` array (for example `[{"afterStage":"dev"}]`). If omitted, the CLI opens an interactive editor. |
+| Option                            | Env            | Description                                                                                                                                                                                         |
+| --------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--api-id <api-id>`               | `NITRO_API_ID` | ID of the API whose stages you are editing. Required.                                                                                                                                               |
+| `--configuration <configuration>` |                | Stage configuration as a JSON array. Each entry has `name`, `displayName`, and a `conditions` array (for example `#!json [{"afterStage":"dev"}]`). If omitted, the CLI opens an interactive editor. |
 
 ## Examples
 

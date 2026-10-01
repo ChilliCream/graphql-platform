@@ -179,7 +179,7 @@ mutation ($file: Upload!) {
 
 Send this request to your GraphQL server using HTTP multipart:
 
-```bash
+```shell
 curl localhost:5000/graphql \
   -H "GraphQL-preflight: 1" \
   -F operations='{ "query": "mutation ($file: Upload!) { uploadFile(file: $file) { success } }", "variables": { "file": null } }' \
@@ -214,6 +214,8 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 268435456;
 });
 ```
+
+`MultipartBodyLengthLimit` applies to every section, and a section over it is rejected with the error code `HC0135`. The `operations` field is also limited by the [maximum request size](./endpoints.md#maxallowedrequestsize), and when that is the smaller of the two limits, an `operations` field over it is rejected with the error code `HC0010`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code.
 
 Depending on your web server, you might need to configure these limits elsewhere as well. [Kestrel](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#kestrel-maximum-request-body-size) and [IIS](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#iis) are covered in the ASP.NET Core documentation.
 

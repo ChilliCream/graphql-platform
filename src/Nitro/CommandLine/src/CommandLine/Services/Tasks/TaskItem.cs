@@ -1,8 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// A task row. Null <see cref="Assignee"/> means unassigned; null date values
-/// mean the corresponding lifecycle step has not happened.
+/// A task's content, assignment, scheduling, and lifecycle state.
+/// Null assignee means unassigned; null dates mean no current value is recorded.
 /// </summary>
 internal sealed class TaskItem
 {

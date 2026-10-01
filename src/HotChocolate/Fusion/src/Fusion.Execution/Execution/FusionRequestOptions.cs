@@ -228,7 +228,9 @@ public sealed class FusionRequestOptions : ICloneable
     object ICloneable.Clone() => Clone();
 
     internal void MakeReadOnly()
-        => _isReadOnly = true;
+    {
+        _isReadOnly = true;
+    }
 
     private void ExpectMutableOptions()
     {

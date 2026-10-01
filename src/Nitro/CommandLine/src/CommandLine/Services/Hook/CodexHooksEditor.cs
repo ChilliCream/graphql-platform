@@ -4,15 +4,7 @@ using System.Text.Json.Nodes;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Pure JSON-text editing for a Codex CLI <c>hooks.json</c>: no file I/O, no
-/// sidecar persistence, matching <see cref="ClaudeHooksEditor"/>'s
-/// no-side-effects contract. The one structural difference from
-/// <c>settings.json</c>: both files use a top-level <c>"hooks"</c> map.
-/// Foreign structure (other
-/// events, other hook groups under our three managed events, e.g. the
-/// pre-existing <c>herdr</c> <c>SessionStart</c> entry S1 observed
-/// live) round-trips through <see cref="JsonNode"/> untouched; only the
-/// group(s) this installer owns are added, replaced, or removed.
+/// Edits Nitro-owned hook groups in Codex hooks JSON and migrates legacy managed-event arrays into the hooks map.
 /// </summary>
 internal static class CodexHooksEditor
 {
@@ -31,8 +23,9 @@ internal static class CodexHooksEditor
         IReadOnlyList<HookUninstallEventResult> Outcomes);
 
     /// <summary>
-    /// Adds or replaces the single Nitro-owned hook group under each managed
-    /// event.
+    /// Adds a Nitro hook group for each managed event or updates the first existing
+    /// Nitro-owned group. A nonempty group is Nitro-owned when every hook command
+    /// contains the ownership marker.
     /// </summary>
     public static InstallResult Install(
         string? existingHooksJson,
@@ -75,10 +68,9 @@ internal static class CodexHooksEditor
     }
 
     /// <summary>
-    /// Reports, per managed event, whether an installed entry matches the
-    /// current template exactly (Installed), a Nitro-owned entry exists but
-    /// its text differs (Outdated), or no Nitro-owned entry exists
-    /// (Missing). Never mutates.
+    /// Reports Installed when the first hook in the first Nitro-owned group has the
+    /// expected command and timeout, Outdated when either differs, or Missing when
+    /// no owned group exists.
     /// </summary>
     public static IReadOnlyList<HookStatusEventResult> Status(
         string? existingHooksJson, LaunchDescriptor descriptor)
@@ -217,9 +209,8 @@ internal static class CodexHooksEditor
 
     private static JsonObject? GetHooks(JsonObject root) => root[GroupHooksKey] as JsonObject;
 
-    // Nitro versions before the Codex hooks schema was corrected wrote these
-    // events beside the hooks map. Move only Nitro's managed event names so an
-    // upgrade repairs that invalid layout without touching unrelated data.
+    // Moves legacy top-level arrays for managed event names into the hooks map,
+    // preserving every group in those arrays.
     private static void MigrateLegacyManagedEvents(JsonObject root, JsonObject hooks)
     {
         foreach (var codexEvent in CodexHooksTemplate.Events)

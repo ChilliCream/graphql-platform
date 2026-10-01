@@ -111,15 +111,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ErrorHelper_StateInvalidForOperationVariableCoercion_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForOperationVariableCoercion_Message", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_StateInvalidForOperationExecution_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_StateInvalidForOperationExecution_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_EmptyVariableBatch_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptyVariableBatch_Message", resourceCulture);
             }
         }
         

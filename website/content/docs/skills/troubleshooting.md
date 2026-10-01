@@ -23,7 +23,7 @@ Cause: a skill is a directory that contains a `SKILL.md` file with both `name` a
 
 To see exactly what the CLI finds without installing anything, run `--list`:
 
-```bash
+```shell
 dnx skills add owner/repo --list
 ```
 
@@ -42,11 +42,11 @@ Use --skill <name> to install specific skills
 
 If `--list` reports `Found 0 skill(s)`, work through these in order:
 
-| Check                                                     | Fix                                                                                                                    |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Is your path or subpath pointing at the right folder?     | Point at the directory that contains `SKILL.md`, or add the repo subpath: `dnx skills add owner/repo/skills/my-skill`. |
-| Does the `SKILL.md` have both `name:` and `description:`? | Add the missing field. Both must be non-empty. See [Authoring Skills](./authoring-skills.md).                          |
-| Are the skills in nested directories?                     | Add `--full-depth` to scan nested directories: `dnx skills add owner/repo --full-depth --list`.                        |
+| Check                                                     | Fix                                                                                                                            |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Is your path or subpath pointing at the right folder?     | Point at the directory that contains `SKILL.md`, or add the repo subpath: `#!shell dnx skills add owner/repo/skills/my-skill`. |
+| Does the `SKILL.md` have both `name:` and `description:`? | Add the missing field. Both must be non-empty. See [Authoring Skills](./authoring-skills.md).                                  |
+| Are the skills in nested directories?                     | Add `--full-depth` to scan nested directories: `#!shell dnx skills add owner/repo --full-depth --list`.                        |
 
 > `--full-depth` widens discovery so the CLI scans nested directories for skills. It does not change how much of the repository is cloned. Clones are always shallow regardless of this flag.
 
@@ -96,14 +96,14 @@ To fix it, confirm your machine can reach the repository, then retry the same `d
 
 For SSH sources (`git@github.com:owner/repo.git`):
 
-```bash
+```shell
 ssh -T git@github.com
 # Hi <you>! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
 For HTTPS sources, authenticate with the GitHub CLI or configure a git credential helper. These are one-time setup commands whose output varies by environment:
 
-```bash
+```shell
 gh auth login                         # uses the gh credential helper
 # or
 git config --global credential.helper store
@@ -121,7 +121,7 @@ Cause: the CLI caps each clone at 5 minutes (300000 ms). The clone is always sha
 
 To raise the timeout, set `SKILLS_CLONE_TIMEOUT_MS` in milliseconds before running the command:
 
-```bash
+```shell
 SKILLS_CLONE_TIMEOUT_MS=600000 dnx skills add owner/big-repo --agent claude-code   # 10 minutes
 ```
 
@@ -129,7 +129,7 @@ With the longer budget the clone finishes and the install completes with the usu
 
 Alternatively, clone the repository yourself and point `skills` at the local copy. This skips the network step entirely:
 
-```bash
+```shell
 git clone --depth 1 https://github.com/owner/big-repo.git
 dnx skills add ./big-repo --agent claude-code
 ```
@@ -144,11 +144,11 @@ Cause: agents that keep skills in their own directory (for example `.claude/skil
 
 Pick whichever fix matches your intent:
 
-| Goal                                                           | Fix                                                                                                                           |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| You do use that agent in this project                          | Create its directory, then re-run the install: `mkdir -p .claude && dnx skills add owner/repo --agent claude-code`.           |
-| You want a self-contained copy regardless of agent directories | Add `--copy` to write the skill straight into each agent's directory: `dnx skills add owner/repo --agent claude-code --copy`. |
-| You meant a different agent                                    | Re-run with the correct `--agent` value. See [Installing Skills](./installing-skills.md).                                     |
+| Goal                                                           | Fix                                                                                                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| You do use that agent in this project                          | Create its directory, then re-run the install: `#!shell mkdir -p .claude && dnx skills add owner/repo --agent claude-code`.           |
+| You want a self-contained copy regardless of agent directories | Add `--copy` to write the skill straight into each agent's directory: `#!shell dnx skills add owner/repo --agent claude-code --copy`. |
+| You meant a different agent                                    | Re-run with the correct `--agent` value. See [Installing Skills](./installing-skills.md).                                             |
 
 After the directory exists, re-running the install links the skill into `.claude/skills`. The Installation Summary then lists `Symlinked:  Claude Code` instead of skipping that agent.
 
@@ -167,7 +167,7 @@ To get symlinks instead of copies, choose one:
 
 If you prefer copies and want the CLI to copy without attempting a symlink first, pass `--copy` explicitly:
 
-```bash
+```shell
 dnx skills add owner/repo --agent claude-code --copy
 ```
 
@@ -192,7 +192,7 @@ Cause: `update` checks for newer versions by calling the GitHub API, and unauthe
 
 To raise the rate limit, give `skills` a GitHub token and re-run. The CLI reads `GITHUB_TOKEN`, then `GH_TOKEN`, then falls back to `gh auth token`:
 
-```bash
+```shell
 export GITHUB_TOKEN=ghp_...   # or: gh auth login
 dnx skills update
 ```
@@ -207,7 +207,7 @@ All skills are up to date.
 
 For sources that can never be checked automatically, re-install with `dnx skills add` to refresh them. The `update` output prints the exact command to run for each one:
 
-```bash
+```shell
 dnx skills add owner/repo/skills/my-skill -y
 ```
 
@@ -223,7 +223,7 @@ Cause: the lock file (`skills-lock.json` in your project, or the global `.skill-
 
 To fix it, update `skills` to the latest release:
 
-```bash
+```shell
 dotnet tool update -g skills
 ```
 
@@ -267,7 +267,7 @@ Cause: the CLI removes a skill by the sanitized, lowercase, hyphenated name it u
 
 To fix it, delete the folder yourself from the skills directory. For a project install that is `./.agents/skills/<folder>`; for the corresponding agent directory it is, for example, `./.claude/skills/<folder>`. For a global install the canonical store is `~/.agents/skills/<folder>`.
 
-```bash
+```shell
 rm -rf "./.agents/skills/My Skill"
 ```
 

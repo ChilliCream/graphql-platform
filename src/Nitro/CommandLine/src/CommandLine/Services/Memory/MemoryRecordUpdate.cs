@@ -1,9 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// A partial update to a curated memory's fields. A <c>*Given</c> flag
-/// distinguishes an omitted field from one explicitly cleared, mirroring
-/// <c>TaskUpdate</c>.
+/// A partial curated-memory update, with flags identifying supplied text and type values.
+/// An empty supplied text clears the body; null text leaves it unchanged, and an
+/// empty or null supplied type is invalid.
 /// </summary>
 internal sealed record MemoryRecordUpdate
 {

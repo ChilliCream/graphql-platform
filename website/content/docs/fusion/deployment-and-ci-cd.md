@@ -47,7 +47,7 @@ With the runtime in place, every successful `nitro fusion publish` becomes the n
 
 The build job exports the subgraph's GraphQL SDL and uploads it to Nitro. The export step uses the standard Hot Chocolate schema export command:
 
-```bash
+```shell
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
 ```
 
@@ -84,7 +84,7 @@ After the export, upload the file. The `tag` you pass here is the handle the pub
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 nitro fusion upload \
   --tag "${{ github.sha }}" \
   --api-id "${{ secrets.NITRO_API_ID }}" \
@@ -186,7 +186,7 @@ The deploy job publishes a new Fusion configuration that references the source s
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 nitro fusion publish \
   --tag "${{ github.sha }}" \
   --stage "production" \
@@ -200,7 +200,7 @@ nitro fusion publish \
 
 The `--source-schema` value uses the `name@version` syntax. The `name` is the source schema name from the subgraph's `schema-settings.json` (the `name` field), and the `version` is the tag you passed to `nitro fusion upload` in the build job. To publish a configuration that combines this subgraph with sibling subgraphs at fixed versions, repeat the option:
 
-```bash
+```shell
 nitro fusion publish \
   --tag "${{ github.sha }}" \
   --stage "production" \
@@ -247,7 +247,7 @@ Before merging a change to a subgraph schema, the PR validation workflow asks Ni
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 nitro fusion validate \
   --stage "production" \
   --api-id "${{ secrets.NITRO_API_ID }}" \
@@ -298,7 +298,7 @@ Nitro is the supported path. It handles the schema registry, server-side composi
 
 If you can't, you compose locally, ship the resulting archive to durable storage yourself, and load it on the gateway. The local compose step produces a `gateway.far`:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./src/SubgraphA/schema.graphqls \
   --source-schema-file ./src/SubgraphB/schema.graphqls \

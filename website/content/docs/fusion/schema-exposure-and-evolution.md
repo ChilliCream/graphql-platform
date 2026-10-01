@@ -415,7 +415,7 @@ If a shareable field is marked `@requiresOptIn` in at least one subgraph, it req
 
 The full lifecycle of an opt-in feature across a Fusion deployment is:
 
-1. A subgraph marks a field (or enum value, or argument) with `@requiresOptIn(feature: "featureName")` and enables opt-in support with `ModifyOptions(o => o.EnableOptInFeatures = true)`.
+1. A subgraph marks a field (or enum value, or argument) with `@requiresOptIn(feature: "featureName")` and enables opt-in support with `#!csharp ModifyOptions(o => o.EnableOptInFeatures = true)`.
 2. Composition merges `@requiresOptIn` by union: if a shareable member is opt-in in any source schema, it is opt-in in the execution schema.
 3. The gateway, configured with `EnableOptInFeatures` enabled, hides opt-in members from introspection by default. Clients that pass `includeOptIn: ["featureName"]` in their introspection query see those members.
 4. Opt-in members are fully executable regardless of whether the client opted in at the introspection level. The gateway does not reject execution-time requests for opt-in fields.
@@ -428,7 +428,7 @@ When multiple subgraphs declare stability for the same opt-in feature, they must
 
 As your system evolves, you may need to move a field from one subgraph to another. A team might split a subgraph, or a field might belong more naturally in a different domain. The `@override` directive migrates field ownership without breaking existing queries.
 
-When you apply `[Override(from: "source-subgraph")]`, the gateway routes requests for that field to the new subgraph instead of the original. The old subgraph's resolver is no longer called. No client-facing changes are needed.
+When you apply `#!csharp [Override(from: "source-subgraph")]`, the gateway routes requests for that field to the new subgraph instead of the original. The old subgraph's resolver is no longer called. No client-facing changes are needed.
 
 **Before: Products subgraph owns the reviews field**
 
@@ -476,7 +476,7 @@ The `from` argument is the subgraph name (from `schema-settings.json`) that orig
 
 ## Migration Workflow
 
-1. Add the field to the new subgraph with `[Override(from: "old-subgraph")]`.
+1. Add the field to the new subgraph with `#!csharp [Override(from: "old-subgraph")]`.
 2. Export schemas and compose. Composition validates that the override is valid.
 3. Deploy the new subgraph. The gateway routes the field to it.
 4. Remove the old resolver from the original subgraph when ready.

@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.Serialization;
 using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.Utilities.ErrorHelper;
@@ -99,7 +100,25 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         }
         else
         {
-            await session.WriteSchemaAsync(context);
+            if (!context.Request.Query.TryGetValue("spec-version", out var specVersionValue))
+            {
+                await session.WriteSchemaAsync(context);
+                return;
+            }
+
+            var requestedSpecVersion = specVersionValue.ToString();
+
+            if (!GraphQLSpecVersions.TryParse(requestedSpecVersion, out var specVersion))
+            {
+                await session.WriteResultAsync(
+                    context,
+                    InvalidSpecVersion(requestedSpecVersion),
+                    s_mediaTypes,
+                    BadRequest);
+                return;
+            }
+
+            await session.WriteSchemaAsync(context, specVersion);
         }
     }
 

@@ -1,22 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Command wiring (help text) for <c>agent hooks claude install/status/uninstall</c>,
-/// plus one full functional round trip run with <c>--scope project</c>
-/// through each surface: the deep
-/// install/status/uninstall behavior (golden fixtures: missing,
-/// foreign-only, mixed, already-installed, outdated, manually-edited,
-/// concurrently-edited) is exercised directly against
-/// <c>ClaudeHooksEditor</c>/<c>ClaudeHooksInstallerService</c> in
-/// <c>ClaudeHooksEditorTests</c>/<c>ClaudeHooksInstallerServiceTests</c>.
-/// <c>--scope user</c> is never exercised at this layer: its path resolves
-/// through the REAL OS home directory
-/// (<see cref="Environment.SpecialFolder.UserProfile"/>), which this test
-/// process must never write to - only <c>--scope project</c>, which resolves
-/// under this test's own temp workspace, is safe to run for real here. The
-/// sidecar's global config directory is also redirected into the temp
-/// workspace, so no run in this class ever touches the real platform
-/// application-data directory either.
+/// Tests Claude hook command help and a project-scoped install, status,
+/// and uninstall round trip in a temporary workspace.
 /// </summary>
 public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
@@ -140,46 +126,42 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
     [Fact]
     public async Task InstallStatusUninstall_ClaudeGroup_ProjectScope_RoundTripsThroughTheRealCommandPipeline()
     {
-        // arrange: redirect the sidecar's global config directory into this
-        // test's own temp tree - the only override this scope needs, since
-        // --scope project already resolves its settings path under
-        // AgentCommandTestBase's own TestFileSystem-rooted WorkingDirectory.
+        // arrange
+        // Redirect the sidecar directory into the temporary test tree.
         var sidecarDirectory = Path.Combine(WorkingDirectory, "..", "app-data");
         SetupGlobalConfigDirectory(sidecarDirectory);
         await InitWorkspaceAsync();
 
-        // act: install
+        // act
         var install = await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "project");
 
-        // assert: install
+        // assert
         Assert.Equal(0, install.ExitCode);
         Assert.Empty(install.StdErr);
         var settingsPath = Path.Combine(WorkingDirectory, ".claude", "settings.json");
         Assert.True(File.Exists(settingsPath));
 
-        // act: status after install
+        // act
         var statusAfterInstall =
             await ExecuteCommandAsync("agent", "hooks", "claude", "status", "--scope", "project");
 
-        // assert: status after install
+        // assert
         Assert.Equal(0, statusAfterInstall.ExitCode);
         Assert.Contains("SessionStart", statusAfterInstall.StdOut);
         Assert.DoesNotContain("missing", statusAfterInstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("outdated", statusAfterInstall.StdOut, StringComparison.Ordinal);
 
-        // act: uninstall
+        // act
         var uninstall = await ExecuteCommandAsync("agent", "hooks", "claude", "uninstall", "--scope", "project");
 
-        // assert: uninstall
+        // assert
         Assert.Equal(0, uninstall.ExitCode);
 
-        // act: status after uninstall
+        // act
         var statusAfterUninstall =
             await ExecuteCommandAsync("agent", "hooks", "claude", "status", "--scope", "project");
 
-        // assert: status after uninstall - back to missing for every event,
-        // which is why this exits non-zero (mirrors `doctor`'s "unhealthy"
-        // exit code): status is a check, not just a report.
+        // assert
         Assert.Equal(1, statusAfterUninstall.ExitCode);
         Assert.DoesNotContain("outdated", statusAfterUninstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("installed", statusAfterUninstall.StdOut, StringComparison.Ordinal);

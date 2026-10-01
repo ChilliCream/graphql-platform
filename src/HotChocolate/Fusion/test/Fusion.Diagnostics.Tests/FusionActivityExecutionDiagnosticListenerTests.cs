@@ -127,6 +127,80 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task AnalyzeComplexity_Should_RecordCostTags_When_ScopeIsEnabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(
+                o => o.Scopes = FusionActivityScopes.AnalyzeComplexity));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task AnalyzeComplexity_Should_NotRecordSpan_When_ScopeIsDisabled()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(
+                o => o.Scopes = FusionActivityScopes.ExecuteRequest));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+            // assert
+            activities.Exported
+                .Select(a => a.OperationName)
+                .OrderBy(n => n, StringComparer.Ordinal)
+                .MatchInlineSnapshot(
+                    """
+                    [
+                      "GraphQL Operation",
+                      "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+                      "System.Net.Http.HttpRequestOut"
+                    ]
+                    """);
+        }
+    }
+
+    [Fact]
     public async Task Cause_A_Resolver_Error_That_Deletes_The_Whole_Result()
     {
         using (CaptureActivities(out var activities))

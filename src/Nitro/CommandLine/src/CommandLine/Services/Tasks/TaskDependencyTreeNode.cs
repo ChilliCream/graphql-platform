@@ -1,11 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// One node of a task's outgoing dependency tree, as returned by the
-/// structured (JSON) output of <c>agent tasks dep tree</c>. Null <see cref="Status"/>
-/// and <see cref="Title"/> mean the task no longer exists. A node whose
-/// <see cref="Repeated"/> is <c>true</c> was already printed elsewhere in the
-/// tree and is not expanded further.
+/// A dependency-tree node; null status and title mean the task is missing.
+/// A repeated node has already appeared in the tree and has no expanded children.
 /// </summary>
 internal sealed record TaskDependencyTreeNode
 {

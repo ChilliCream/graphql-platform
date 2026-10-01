@@ -94,9 +94,10 @@ internal static class PersistedOperationMiddleware
                         return;
                     }
 
-                    await ExecutePostRequestAsync(
+                    await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        HttpRequestKind.HttpPost,
                         operationId,
                         operationName: null,
                         requireOperationName);
@@ -124,13 +125,77 @@ internal static class PersistedOperationMiddleware
                         return;
                     }
 
-                    await ExecutePostRequestAsync(
+                    await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        HttpRequestKind.HttpPost,
                         operationId,
                         operationName,
                         requireOperationName);
                 });
+
+        if (serverOptions.EnableQueryRequests)
+        {
+            groupBuilder.MapMethods(
+                "/{operationId}",
+                [HttpMethods.Query],
+                async context =>
+                {
+                    var operationId = context.Request.RouteValues["operationId"] as string;
+
+                    if (string.IsNullOrEmpty(operationId))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync(
+                            "Missing operationId",
+                            context.RequestAborted);
+                        return;
+                    }
+
+                    await ExecuteBodyRequestAsync(
+                        context,
+                        executorProxy,
+                        HttpRequestKind.HttpQuery,
+                        operationId,
+                        operationName: null,
+                        requireOperationName);
+                });
+
+            groupBuilder.MapMethods(
+                "/{operationId}/{operationName}",
+                [HttpMethods.Query],
+                async context =>
+                {
+                    var operationId = context.Request.RouteValues["operationId"] as string;
+                    var operationName = context.Request.RouteValues["operationName"] as string;
+
+                    if (string.IsNullOrEmpty(operationId))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync(
+                            "Missing operationId",
+                            context.RequestAborted);
+                        return;
+                    }
+
+                    if (string.IsNullOrEmpty(operationName))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync(
+                            "Missing operationName",
+                            context.RequestAborted);
+                        return;
+                    }
+
+                    await ExecuteBodyRequestAsync(
+                        context,
+                        executorProxy,
+                        HttpRequestKind.HttpQuery,
+                        operationId,
+                        operationName,
+                        requireOperationName);
+                });
+        }
     }
 
     private static async Task ExecuteGetRequestAsync(
@@ -209,9 +274,10 @@ HANDLE_RESULT:
         }
     }
 
-    private static async Task ExecutePostRequestAsync(
+    private static async Task ExecuteBodyRequestAsync(
         HttpContext context,
         HttpRequestExecutorProxy executorProxy,
+        HttpRequestKind kind,
         string operationId,
         string? operationName,
         bool requireOperationName)
@@ -221,7 +287,7 @@ HANDLE_RESULT:
         var ct = context.RequestAborted;
         var executorSession = await executorProxy.GetOrCreateSessionAsync(ct);
 
-        using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
+        using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, kind))
         {
             // first, we validate the accept-headers.
             var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
@@ -258,14 +324,37 @@ HANDLE_RESULT:
                 goto HANDLE_RESULT;
             }
 
+            var request = parserResult.Request!;
+            var requestFlags = validationResult.RequestFlags;
+
+            if (kind is HttpRequestKind.HttpQuery)
+            {
+                // a QUERY request carries exactly one variable set, so a variable batch is
+                // refused.
+                if (MiddlewareHelper.IsVariableBatch(request))
+                {
+                    var refused = MiddlewareHelper.CreateBatchingRefusedResult(
+                        ErrorHelper.VariableBatchingNotSupportedForQuery(),
+                        context,
+                        executorSession);
+                    statusCode = refused.StatusCode;
+                    result = refused.Error;
+                    goto HANDLE_RESULT;
+                }
+
+                requestFlags = MiddlewareHelper.DetermineHttpQueryRequestFlags(requestFlags);
+            }
+
             // after successfully parsing the request, we now will attempt to execute the request.
             var executionResult =
                 await MiddlewareHelper.ExecuteRequestAsync(
-                    parserResult.Request!,
-                    validationResult.RequestFlags,
+                    request,
+                    requestFlags,
                     context,
                     executorSession);
-            statusCode = executionResult.StatusCode;
+            statusCode = kind is HttpRequestKind.HttpQuery
+                ? MiddlewareHelper.DetermineHttpQueryStatusCode(executionResult)
+                : executionResult.StatusCode;
             result = executionResult.Result;
 
 HANDLE_RESULT:

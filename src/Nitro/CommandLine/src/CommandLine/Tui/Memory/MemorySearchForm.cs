@@ -7,13 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
 /// The memory tab's search box: one text field pre-filled with
-/// <see cref="MemoryState.SearchText"/>, parsed by <see cref="MemoryQueryParser"/>
-/// once applied. Free text is passed to the store's own literal lexical
-/// search; recognized <c>tag:</c> and <c>type:</c> words narrow the same way
-/// the CLI's <c>--tag</c> and <c>--type</c> options do, so no second query
-/// path is introduced. The host is expected to feed it raw key input via
-/// <see cref="HandleKey"/> and read <see cref="Text"/> once it returns
-/// <see cref="FormResult.Submitted"/> on the primary button.
+/// <see cref="MemoryState.SearchText"/>, parsed by <see cref="MemoryQueryParser"/> once applied.
 /// </summary>
 internal sealed class MemorySearchForm
 {
@@ -23,8 +17,7 @@ internal sealed class MemorySearchForm
     public const string CancelButtonId = "cancel";
 
     /// <summary>
-    /// The footer hints for the search form: its keys are consumed entirely
-    /// while it is active, so no global hints follow.
+    /// The footer hints displayed while the search form captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [

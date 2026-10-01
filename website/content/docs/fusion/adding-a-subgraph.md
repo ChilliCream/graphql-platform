@@ -12,7 +12,7 @@ This page walks you through adding a Shipping subgraph to an existing project th
 Before you begin, you need:
 
 - An existing Fusion project with at least one subgraph and a gateway
-- The [Nitro CLI](./cli.md) installed (`dotnet tool install -g ChilliCream.Nitro.CommandLine`)
+- The [Nitro CLI](./cli.md) installed (`#!shell dotnet tool install -g ChilliCream.Nitro.CommandLine`)
 - The .NET 10 SDK or later
 
 You should be able to compose and run your existing project successfully. If composition is currently broken, fix that first.
@@ -43,7 +43,7 @@ Your folder structure may differ, but the Fusion components are always the same:
 
 Create a new GraphQL server project from the template:
 
-```bash
+```shell
 dotnet new graphql -n Shipping
 ```
 
@@ -214,13 +214,13 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-`AddGraphQL("Shipping")` sets the subgraph name used during schema export. `AddTypes()` is source-generated and registers all types discovered by the analyzer. `RunWithGraphQLCommands(args)` enables CLI commands like schema export.
+`#!csharp AddGraphQL("Shipping")` sets the subgraph name used during schema export. `AddTypes()` is source-generated and registers all types discovered by the analyzer. `RunWithGraphQLCommands(args)` enables CLI commands like schema export.
 
 # Export the Schema
 
 From the project root, export the schema:
 
-```bash
+```shell
 dotnet run --project ./Shipping -- schema export
 ```
 
@@ -229,7 +229,7 @@ This generates two files in the Shipping directory:
 - **`schema.graphqls`** contains the subgraph's GraphQL schema.
 - **`schema-settings.json`** contains the subgraph settings.
 
-Because `Program.cs` uses `AddGraphQL("Shipping")`, the generated `schema-settings.json` already contains `"name": "Shipping"`. The transport URL defaults to `http://localhost:5000/graphql`, so update it to match port 5003:
+Because `Program.cs` uses `#!csharp AddGraphQL("Shipping")`, the generated `schema-settings.json` already contains `"name": "Shipping"`. The transport URL defaults to `http://localhost:5000/graphql`, so update it to match port 5003:
 
 ```json
 {
@@ -248,7 +248,7 @@ The `name` field identifies this subgraph within the composite schema and must b
 
 Run composition with all subgraph schemas, including your new one:
 
-```bash
+```shell
 nitro fusion compose \
   -s Products/schema.graphqls \
   -s Reviews/schema.graphqls \
@@ -258,13 +258,13 @@ nitro fusion compose \
 
 If composition succeeds, copy the updated `gateway.far` to your gateway project directory:
 
-```bash
+```shell
 cp gateway.far Gateway/gateway.far
 ```
 
 If you already have a composed `gateway.far` with the Products and Reviews subgraphs, you can add the new subgraph to the existing archive:
 
-```bash
+```shell
 nitro fusion compose \
   -s Shipping/schema.graphqls \
   -a gateway.far
