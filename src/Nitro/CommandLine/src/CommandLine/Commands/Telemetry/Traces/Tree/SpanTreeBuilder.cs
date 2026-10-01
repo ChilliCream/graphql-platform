@@ -37,29 +37,3 @@ internal static class SpanTreeBuilder
         return new SpanTree(roots, nodes, byId);
     }
 }
-
-internal sealed class SpanTree(
-    IReadOnlyList<SpanTreeNode> roots,
-    IReadOnlyList<SpanTreeNode> nodes,
-    IReadOnlyDictionary<string, SpanTreeNode> byId)
-{
-    public IReadOnlyList<SpanTreeNode> Roots { get; } = roots;
-
-    public IReadOnlyList<SpanTreeNode> Nodes { get; } = nodes;
-
-    public int Count => Nodes.Count;
-
-    public SpanTreeNode? Find(string spanId)
-        => byId.TryGetValue(spanId, out var node) ? node : null;
-}
-
-internal sealed class SpanTreeNode(TraceSpan span)
-{
-    public TraceSpan Span { get; } = span;
-
-    public SpanTreeNode? Parent { get; internal set; }
-
-    public IReadOnlyList<SpanTreeNode> Children => MutableChildren;
-
-    internal List<SpanTreeNode> MutableChildren { get; } = [];
-}

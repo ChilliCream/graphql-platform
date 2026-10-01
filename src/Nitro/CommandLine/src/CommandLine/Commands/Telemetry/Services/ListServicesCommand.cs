@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
@@ -94,7 +93,8 @@ internal sealed class ListServicesCommand : Command
             total: null,
             page.HasNextPage,
             ServiceListJsonContext.Default.ServiceListItem,
-            emptyResultHint);
+            emptyResultHint,
+            [Opt<TelemetrySinceOption>.Instance, Opt<TelemetryFilterOption>.Instance]);
 
         return ExitCodes.Success;
     }
@@ -108,7 +108,3 @@ internal sealed class ListServicesCommand : Command
                 service.VersionMarkers.MaxBy(static marker => marker.FirstSeenAt)?.Version);
     }
 }
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ListServicesCommand.ServiceListItem))]
-internal partial class ServiceListJsonContext : JsonSerializerContext;

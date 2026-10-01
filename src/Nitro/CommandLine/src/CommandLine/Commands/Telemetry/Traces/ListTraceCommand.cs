@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
@@ -12,12 +11,6 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces;
 
 internal sealed class ListTraceCommand : Command
 {
-    private static readonly OpenTelemetrySpanKind[] s_defaultSpanKinds =
-    [
-        OpenTelemetrySpanKind.Server,
-        OpenTelemetrySpanKind.Consumer
-    ];
-
     public ListTraceCommand() : base("list")
     {
         Description = "List telemetry traces in the current workspace.";
@@ -74,10 +67,7 @@ internal sealed class ListTraceCommand : Command
         }
 
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
-        var requestedSpanKinds = parseResult.GetValue(Opt<TelemetrySpanKindOption>.Instance);
-        var spanKinds = requestedSpanKinds is { Length: > 0 }
-            ? requestedSpanKinds.Select(MapSpanKind).ToArray()
-            : s_defaultSpanKinds;
+        var spanKinds = parseResult.GetValue(Opt<TelemetrySpanKindOption>.Instance).ToOpenTelemetrySpanKinds();
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 20;
@@ -113,21 +103,15 @@ internal sealed class ListTraceCommand : Command
             total: null,
             page.HasNextPage,
             TraceListJsonContext.Default.TraceListItem,
-            emptyResultHint);
+            emptyResultHint,
+            [
+                Opt<TelemetrySinceOption>.Instance,
+                Opt<TelemetryServiceOption>.Instance,
+                Opt<TelemetryFilterOption>.Instance
+            ]);
 
         return ExitCodes.Success;
     }
-
-    private static OpenTelemetrySpanKind MapSpanKind(TelemetrySpanKind spanKind)
-        => spanKind switch
-        {
-            TelemetrySpanKind.Server => OpenTelemetrySpanKind.Server,
-            TelemetrySpanKind.Client => OpenTelemetrySpanKind.Client,
-            TelemetrySpanKind.Producer => OpenTelemetrySpanKind.Producer,
-            TelemetrySpanKind.Consumer => OpenTelemetrySpanKind.Consumer,
-            TelemetrySpanKind.Internal => OpenTelemetrySpanKind.Internal,
-            _ => OpenTelemetrySpanKind.Unspecified
-        };
 
     internal sealed record TraceListItem(
         DateTimeOffset Start,
@@ -152,6 +136,33 @@ internal sealed class ListTraceCommand : Command
     }
 }
 
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ListTraceCommand.TraceListItem))]
-internal partial class TraceListJsonContext : JsonSerializerContext;
+file static class Extensions
+{
+    private static readonly OpenTelemetrySpanKind[] s_defaultSpanKinds =
+    [
+        OpenTelemetrySpanKind.Server,
+        OpenTelemetrySpanKind.Consumer
+    ];
+
+    extension(TelemetrySpanKind[]? requestedSpanKinds)
+    {
+        public OpenTelemetrySpanKind[] ToOpenTelemetrySpanKinds()
+            => requestedSpanKinds is { Length: > 0 }
+                ? requestedSpanKinds.Select(static spanKind => spanKind.ToOpenTelemetrySpanKind()).ToArray()
+                : s_defaultSpanKinds;
+    }
+
+    extension(TelemetrySpanKind spanKind)
+    {
+        public OpenTelemetrySpanKind ToOpenTelemetrySpanKind()
+            => spanKind switch
+            {
+                TelemetrySpanKind.Server => OpenTelemetrySpanKind.Server,
+                TelemetrySpanKind.Client => OpenTelemetrySpanKind.Client,
+                TelemetrySpanKind.Producer => OpenTelemetrySpanKind.Producer,
+                TelemetrySpanKind.Consumer => OpenTelemetrySpanKind.Consumer,
+                TelemetrySpanKind.Internal => OpenTelemetrySpanKind.Internal,
+                _ => OpenTelemetrySpanKind.Unspecified
+            };
+    }
+}

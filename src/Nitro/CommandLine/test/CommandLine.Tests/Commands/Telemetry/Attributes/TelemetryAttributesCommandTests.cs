@@ -91,9 +91,18 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[
-            {"key":"service.name","kind":"Resource"}
-            ],"returned":1,"total":null,"hasMore":true,"hint":"showing 1 (more), narrow with --since, --service or --filter, or raise --limit"}
+            {
+              "items": [
+                {
+                  "key": "service.name",
+                  "kind": "Resource"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": true,
+              "hint": "showing 1 (more), narrow with --since, or raise --limit"
+            }
             """);
     }
 
@@ -117,7 +126,12 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 }

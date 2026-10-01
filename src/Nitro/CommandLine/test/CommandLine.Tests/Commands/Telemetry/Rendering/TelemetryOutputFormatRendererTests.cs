@@ -5,7 +5,6 @@ using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Spectre.Console;
 using Spectre.Console.Testing;
-using System.Text.Json.Serialization;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Rendering;
 
@@ -29,7 +28,8 @@ public sealed class TelemetryOutputFormatRendererTests
                 total: 1,
                 hasMore: false,
                 TelemetryOutputFormatRendererJsonContext.Default.Sample,
-                emptyResultHint: null);
+                emptyResultHint: null,
+                []);
 
             return Task.FromResult(ExitCodes.Success);
         });
@@ -48,9 +48,17 @@ public sealed class TelemetryOutputFormatRendererTests
         Assert.Equal(OutputFormat.Json, receivedOutputFormat);
         output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            {"items":[
-            {"id":"first","name":"First"}
-            ],"returned":1,"total":1,"hasMore":false}
+            {
+              "items": [
+                {
+                  "id": "first",
+                  "name": "First"
+                }
+              ],
+              "returned": 1,
+              "total": 1,
+              "hasMore": false
+            }
             """);
     }
 
@@ -70,7 +78,3 @@ public sealed class TelemetryOutputFormatRendererTests
 
     internal sealed record Sample(string Id, string Name);
 }
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(TelemetryOutputFormatRendererTests.Sample))]
-internal partial class TelemetryOutputFormatRendererJsonContext : JsonSerializerContext;

@@ -10,40 +10,45 @@ internal sealed class TelemetrySinceOption : Option<DateTimeOffset>
     {
         Description = "The earliest timestamp to include [env: NITRO_SINCE]";
         Required = false;
-        DefaultValueFactory = result => GetDefaultTimestamp(result);
-        CustomParser = result => ParseTimestamp(
-            result.Tokens.Single().Value,
+        DefaultValueFactory = result => result.GetDefaultTimestamp();
+        CustomParser = result => result.Tokens.Single().Value.ParseTimestamp(
             result,
             TelemetryOptionDefaults.GetUtcNow());
     }
+}
 
-    private static DateTimeOffset GetDefaultTimestamp(ArgumentResult result)
+file static class Extensions
+{
+    extension(ArgumentResult result)
     {
-        var now = TelemetryOptionDefaults.GetUtcNow();
-        var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Since);
+        public DateTimeOffset GetDefaultTimestamp()
+        {
+            var now = TelemetryOptionDefaults.GetUtcNow();
+            var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Since);
 
-        return value is null
-            ? now - TelemetryTimestamp.DefaultSince
-            : ParseTimestamp(value, result, now);
+            return value is null
+                ? now - TelemetryTimestamp.DefaultSince
+                : value.ParseTimestamp(result, now);
+        }
     }
 
-    private static DateTimeOffset ParseTimestamp(
-        string value,
-        ArgumentResult result,
-        DateTimeOffset now)
+    extension(string value)
     {
-        if (TelemetryTimestamp.TryParse(
-            value,
-            now,
-            OptionName,
-            enforceMaximumAge: true,
-            out var timestamp,
-            out var error))
+        public DateTimeOffset ParseTimestamp(ArgumentResult result, DateTimeOffset now)
         {
-            return timestamp;
-        }
+            if (TelemetryTimestamp.TryParse(
+                value,
+                now,
+                TelemetrySinceOption.OptionName,
+                enforceMaximumAge: true,
+                out var timestamp,
+                out var error))
+            {
+                return timestamp;
+            }
 
-        result.AddError(error!);
-        return default;
+            result.AddError(error!);
+            return default;
+        }
     }
 }

@@ -4,8 +4,6 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal interface INitroConsole : IAnsiConsole
 {
-    bool IsAgentMode { get; }
-
     bool IsInteractive { get; }
 
     bool IsHumanReadable { get; }

@@ -6,7 +6,6 @@ internal sealed class TelemetryServiceOption : Option<string>
     {
         Description = "Limit results to a service";
         Required = false;
-        this.DefaultFromEnvironmentValue(EnvironmentVariables.Service);
         this.NonEmptyStringsOnly();
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
@@ -28,7 +29,7 @@ internal static class FilterParser
             if (Peek().Kind != FilterTokenKind.End)
             {
                 var token = Peek();
-                throw Error($"Expected whitespace but \"{token.Text}\" found", token.Start);
+                throw FilterParseException.FromPosition($"Expected whitespace but \"{token.Text}\" found", token.Start);
             }
 
             return node;
@@ -47,9 +48,9 @@ internal static class FilterParser
             {
                 var token = Advance();
                 SkipRedundantOperators();
-                if (!CanStartPrimary(Peek().Kind))
+                if (!Peek().Kind.CanStartPrimary())
                 {
-                    throw Error("Missing right side of OR expression", token.Start);
+                    throw FilterParseException.FromPosition("Missing right side of OR expression", token.Start);
                 }
 
                 children.Add(ParseAnd());
@@ -68,16 +69,16 @@ internal static class FilterParser
                 {
                     var token = Advance();
                     SkipRedundantOperators();
-                    if (!CanStartPrimary(Peek().Kind))
+                    if (!Peek().Kind.CanStartPrimary())
                     {
-                        throw Error("Missing right side of AND expression", token.Start);
+                        throw FilterParseException.FromPosition("Missing right side of AND expression", token.Start);
                     }
 
                     children.Add(ParseUnary());
                     continue;
                 }
 
-                if (!CanStartPrimary(kind))
+                if (!kind.CanStartPrimary())
                 {
                     break;
                 }
@@ -85,7 +86,7 @@ internal static class FilterParser
                 var next = Peek();
                 if (next.Start == children[^1].End)
                 {
-                    throw Error($"Expected whitespace but \"{next.Text}\" found", next.Start);
+                    throw FilterParseException.FromPosition($"Expected whitespace but \"{next.Text}\" found", next.Start);
                 }
 
                 children.Add(ParseUnary());
@@ -104,9 +105,9 @@ internal static class FilterParser
             }
 
             var minus = Advance();
-            if (!CanStartPrimary(Peek().Kind))
+            if (!Peek().Kind.CanStartPrimary())
             {
-                throw Error("Missing expression after negation", minus.Start);
+                throw FilterParseException.FromPosition("Missing expression after negation", minus.Start);
             }
 
             var child = ParseUnary();
@@ -130,7 +131,7 @@ internal static class FilterParser
                 return inner with { End = close.End };
             }
 
-            if (CanStartValue(token.Kind))
+            if (token.Kind.CanStartValue())
             {
                 var next = Peek(1);
                 if (next.Kind == FilterTokenKind.Colon && next.Start == token.End)
@@ -145,12 +146,12 @@ internal static class FilterParser
 
             if (token.Kind == FilterTokenKind.Colon)
             {
-                throw Error("Unexpected ':'", token.Start);
+                throw FilterParseException.FromPosition("Unexpected ':'", token.Start);
             }
 
             throw token.Kind is FilterTokenKind.And or FilterTokenKind.Or
-                ? Error($"Missing left side of {token.Text} expression", token.Start)
-                : Error($"Unexpected '{token.TextOrEnd()}'", token.Start);
+                ? FilterParseException.FromPosition($"Missing left side of {token.Text} expression", token.Start)
+                : FilterParseException.FromPosition($"Unexpected '{token.TextOrEnd()}'", token.Start);
         }
 
         private FilterNode ParseClause()
@@ -164,14 +165,14 @@ internal static class FilterParser
         private FilterNode ParseMatcher(FilterToken field, int colonEnd)
         {
             var token = Peek();
-            if (token.Start != colonEnd || !CanStartMatcher(token.Kind))
+            if (token.Start != colonEnd || !token.Kind.CanStartMatcher())
             {
                 if (token.Kind == FilterTokenKind.Colon && token.Start == colonEnd)
                 {
-                    throw Error($"Expected a value but found '{token.Text}'", token.Start);
+                    throw FilterParseException.FromPosition($"Expected a value but found '{token.Text}'", token.Start);
                 }
 
-                throw Error("Missing value in key:value pair", colonEnd - 1);
+                throw FilterParseException.FromPosition("Missing value in key:value pair", colonEnd - 1);
             }
 
             if (token.Kind == FilterTokenKind.Star)
@@ -185,23 +186,23 @@ internal static class FilterParser
                     star.End);
             }
 
-            if (TryGetComparisonOperator(token.Kind, out var comparison))
+            if (token.Kind.TryGetComparisonOperator(out var comparison))
             {
                 var operatorToken = Advance();
-                if (Peek().Start != operatorToken.End || !CanStartScalarValue(Peek().Kind))
+                if (Peek().Start != operatorToken.End || !Peek().Kind.CanStartScalarValue())
                 {
-                    throw Error("Missing value in range expression", colonEnd - 1);
+                    throw FilterParseException.FromPosition("Missing value in range expression", colonEnd - 1);
                 }
 
                 var value = ExpectValue();
                 if (value.Kind == FilterValueKind.Boolean)
                 {
-                    throw Error("Boolean values do not support ordering comparisons", value.Start);
+                    throw FilterParseException.FromPosition("Boolean values do not support ordering comparisons", value.Start);
                 }
 
                 if (value.Kind != FilterValueKind.Number)
                 {
-                    throw Error("Ordering comparisons need a number", value.Start);
+                    throw FilterParseException.FromPosition("Ordering comparisons need a number", value.Start);
                 }
 
                 return new FilterPredicateNode(field.Value, comparison, [value], field.Start, value.End);
@@ -223,16 +224,16 @@ internal static class FilterParser
                 var open = Expect(FilterTokenKind.LeftParenthesis, "Expected '(' after 'RANGE'");
                 var values = ParseSetValues(FilterTokenKind.Comma);
                 ExpectClosing(open);
-                if (values.Count != 2)
+                if (values.Length != 2)
                 {
-                    throw Error("RANGE requires a minimum and maximum value", open.Start);
+                    throw FilterParseException.FromPosition("RANGE requires a minimum and maximum value", open.Start);
                 }
 
                 foreach (var value in values)
                 {
                     if (value.Kind != FilterValueKind.Number)
                     {
-                        throw Error("RANGE bounds must be numbers", value.Start);
+                        throw FilterParseException.FromPosition("RANGE bounds must be numbers", value.Start);
                     }
                 }
 
@@ -257,12 +258,12 @@ internal static class FilterParser
                 equalValue.End);
         }
 
-        private List<FilterValue> ParseSetValues(FilterTokenKind separator)
+        private ImmutableArray<FilterValue> ParseSetValues(FilterTokenKind separator)
         {
-            var values = new List<FilterValue>();
+            var values = ImmutableArray.CreateBuilder<FilterValue>();
             if (Peek().Kind == FilterTokenKind.RightParenthesis)
             {
-                return values;
+                return values.ToImmutable();
             }
 
             values.Add(ExpectValue());
@@ -270,7 +271,7 @@ internal static class FilterParser
             {
                 if (Peek().Kind == FilterTokenKind.End)
                 {
-                    return values;
+                    return values.ToImmutable();
                 }
 
                 var token = Peek();
@@ -279,19 +280,19 @@ internal static class FilterParser
                     var message = separator == FilterTokenKind.Comma
                         ? "Expected ',' or ')'"
                         : "Expected 'OR' or ')'";
-                    throw Error(message, token.Start);
+                    throw FilterParseException.FromPosition(message, token.Start);
                 }
 
                 Advance();
                 if (Peek().Kind is FilterTokenKind.RightParenthesis or FilterTokenKind.End)
                 {
-                    throw Error($"Expected a value but found '{Peek().TextOrEnd()}'", Peek().Start);
+                    throw FilterParseException.FromPosition($"Expected a value but found '{Peek().TextOrEnd()}'", Peek().Start);
                 }
 
                 values.Add(ExpectValue());
             }
 
-            return values;
+            return values.ToImmutable();
         }
 
         private FilterValue ExpectValue()
@@ -302,9 +303,9 @@ internal static class FilterParser
             }
 
             var token = Peek();
-            if (!TryGetValueKind(token.Kind, out var kind))
+            if (!token.Kind.TryGetValueKind(out var kind))
             {
-                throw Error($"Expected a value but found '{token.TextOrEnd()}'", token.Start);
+                throw FilterParseException.FromPosition($"Expected a value but found '{token.TextOrEnd()}'", token.Start);
             }
 
             Advance();
@@ -354,11 +355,11 @@ internal static class FilterParser
             return after.Kind != FilterTokenKind.Colon || after.Start != token.End;
         }
 
-        private void CheckInValues(IReadOnlyList<FilterValue> values)
+        private void CheckInValues(ImmutableArray<FilterValue> values)
         {
-            if (values.Count > 100)
+            if (values.Length > 100)
             {
-                throw Error("IN must not contain more than 100 values", values[100].Start);
+                throw FilterParseException.FromPosition("IN must not contain more than 100 values", values[100].Start);
             }
         }
 
@@ -373,13 +374,13 @@ internal static class FilterParser
                 field.Value == scope || field.Value.StartsWith($"{scope}.", StringComparison.Ordinal));
             if (scope is null)
             {
-                throw Error("Unknown scope prefix", field.Start);
+                throw FilterParseException.FromPosition("Unknown scope prefix", field.Start);
             }
 
             var rest = field.Value[scope.Length..];
             if (rest is "" or ".")
             {
-                throw Error($"Expected an attribute name after the {scope} prefix", field.Start);
+                throw FilterParseException.FromPosition($"Expected an attribute name after the {scope} prefix", field.Start);
             }
         }
 
@@ -400,7 +401,7 @@ internal static class FilterParser
             var message = scopes.Any(scope => scope.StartsWith(prefix, StringComparison.Ordinal))
                 ? "Scope prefixes can only be used in filter expressions"
                 : "Unknown scope prefix";
-            throw Error(message, term.Start);
+            throw FilterParseException.FromPosition(message, term.Start);
         }
 
         private void SkipRedundantOperators()
@@ -408,7 +409,7 @@ internal static class FilterParser
             if (Peek().Kind is FilterTokenKind.And or FilterTokenKind.Or)
             {
                 var token = Advance();
-                throw Error($"Unexpected operator '{token.Text}'", token.Start);
+                throw FilterParseException.FromPosition($"Unexpected operator '{token.Text}'", token.Start);
             }
         }
 
@@ -416,7 +417,7 @@ internal static class FilterParser
         {
             if (Peek().Kind != kind)
             {
-                throw Error(message, Peek().Start);
+                throw FilterParseException.FromPosition(message, Peek().Start);
             }
 
             return Advance();
@@ -426,7 +427,7 @@ internal static class FilterParser
         {
             if (Peek().Kind != FilterTokenKind.RightParenthesis)
             {
-                throw Error("Missing closing parenthesis", open.Start);
+                throw FilterParseException.FromPosition("Missing closing parenthesis", open.Start);
             }
 
             return Advance();
@@ -451,26 +452,42 @@ internal static class FilterParser
 
             return token;
         }
+    }
+}
 
-        private static bool CanStartPrimary(FilterTokenKind kind)
+file static class Extensions
+{
+    extension(FilterParseException)
+    {
+        public static FilterParseException FromPosition(string message, int position)
+            => new(message, position + 1);
+    }
+
+    extension(FilterToken token)
+    {
+        public string TextOrEnd()
+            => token.Text.Length == 0 ? "end of input" : token.Text;
+    }
+
+    extension(FilterTokenKind kind)
+    {
+        public bool CanStartPrimary()
             => kind is FilterTokenKind.Word or FilterTokenKind.String or FilterTokenKind.Number or FilterTokenKind.Boolean or FilterTokenKind.LeftParenthesis or FilterTokenKind.Minus or FilterTokenKind.Colon;
 
-        private static bool CanStartMatcher(FilterTokenKind kind)
+        public bool CanStartMatcher()
             => kind == FilterTokenKind.Star
-                || TryGetComparisonOperator(kind, out _)
+                || kind.TryGetComparisonOperator(out _)
                 || kind is FilterTokenKind.In or FilterTokenKind.Range or FilterTokenKind.LeftParenthesis
                 ||
-                CanStartScalarValue(kind);
+                kind.CanStartScalarValue();
 
-        private static bool CanStartScalarValue(FilterTokenKind kind)
-            => CanStartValue(kind) || kind == FilterTokenKind.Minus;
+        public bool CanStartScalarValue()
+            => kind.CanStartValue() || kind == FilterTokenKind.Minus;
 
-        private static bool CanStartValue(FilterTokenKind kind)
-            => TryGetValueKind(kind, out _);
+        public bool CanStartValue()
+            => kind.TryGetValueKind(out _);
 
-        private static bool TryGetComparisonOperator(
-            FilterTokenKind kind,
-            out FilterComparisonOperator comparison)
+        public bool TryGetComparisonOperator(out FilterComparisonOperator comparison)
         {
             comparison = kind switch
             {
@@ -483,7 +500,7 @@ internal static class FilterParser
             return kind is FilterTokenKind.GreaterThan or FilterTokenKind.GreaterThanOrEqual or FilterTokenKind.LessThan or FilterTokenKind.LessThanOrEqual;
         }
 
-        private static bool TryGetValueKind(FilterTokenKind kind, out FilterValueKind valueKind)
+        public bool TryGetValueKind(out FilterValueKind valueKind)
         {
             valueKind = kind switch
             {
@@ -494,11 +511,5 @@ internal static class FilterParser
             };
             return kind is FilterTokenKind.Word or FilterTokenKind.String or FilterTokenKind.Number or FilterTokenKind.Boolean;
         }
-
-        private static FilterParseException Error(string message, int position)
-            => new(message, position + 1);
     }
-
-    private static string TextOrEnd(this FilterToken token)
-        => token.Text.Length == 0 ? "end of input" : token.Text;
 }

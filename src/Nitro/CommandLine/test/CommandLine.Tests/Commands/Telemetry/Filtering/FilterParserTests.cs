@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 
@@ -526,7 +527,7 @@ public sealed class FilterParserTests
         var orError = ParseErrorDescription(tooManyOrValues, TelemetryFilterSignal.Traces);
 
         // assert
-        Assert.Equal(100, allowed.Values.Count);
+        Assert.Equal(100, allowed.Values.Length);
         Assert.Equal("IN must not contain more than 100 values", error);
         Assert.Equal("IN must not contain more than 100 values", orError);
     }

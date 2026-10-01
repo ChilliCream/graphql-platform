@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -7,99 +8,108 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 
 internal static class TelemetryConsoleExtensions
 {
-    private const string NarrowingHint = "narrow with --since, --service or --filter, or raise --limit";
-    private static readonly JsonWriterOptions s_jsonWriterOptions = new() { Indented = false };
-
     public static void WriteListEnvelope<TItem>(
         this INitroConsole console,
         IReadOnlyList<TItem> items,
         int? total,
         bool hasMore,
         JsonTypeInfo<TItem> jsonTypeInfo,
-        string? emptyResultHint)
+        string? emptyResultHint,
+        ReadOnlySpan<Option> narrowingOptions)
     {
         var hint = items.Count == 0 && emptyResultHint is not null
             ? emptyResultHint
-            : CreateHint(items.Count, total, hasMore);
+            : narrowingOptions.CreateHint(items.Count, total, hasMore);
 
-        var output = new StringBuilder();
+        using var buffer = new PooledArrayWriter();
+        buffer.WriteEnvelope(items, total, hasMore, hint, jsonTypeInfo);
 
-        if (items.Count == 0)
+        console.WriteRawLine(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+}
+
+file static class Extensions
+{
+    private static readonly JsonWriterOptions s_jsonWriterOptions = new() { Indented = true };
+
+    extension(ReadOnlySpan<Option> narrowingOptions)
+    {
+        public string? CreateHint(int returned, int? total, bool hasMore)
         {
-            output.Append("{\"items\":[]");
+            if (!hasMore)
+            {
+                return null;
+            }
+
+            var shown = total is { } value
+                ? $"showing {returned} of {value} (more)"
+                : $"showing {returned} (more)";
+
+            return $"{shown}, {narrowingOptions.CreateNarrowingAdvice()}";
         }
-        else
+
+        private string CreateNarrowingAdvice()
         {
-            output.AppendLine("{\"items\":[");
+            if (narrowingOptions.Length == 0)
+            {
+                return "raise --limit";
+            }
+
+            var names = new string[narrowingOptions.Length];
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                names[i] = narrowingOptions[i].Name;
+            }
+
+            var narrowing = names.Length == 1
+                ? names[0]
+                : $"{string.Join(", ", names, 0, names.Length - 1)} or {names[^1]}";
+
+            return $"narrow with {narrowing}, or raise --limit";
+        }
+    }
+
+    extension(IBufferWriter<byte> buffer)
+    {
+        public void WriteEnvelope<TItem>(
+            IReadOnlyList<TItem> items,
+            int? total,
+            bool hasMore,
+            string? hint,
+            JsonTypeInfo<TItem> jsonTypeInfo)
+        {
+            using var writer = new Utf8JsonWriter(buffer, s_jsonWriterOptions);
+
+            writer.WriteStartObject();
+            writer.WriteStartArray("items");
 
             for (var i = 0; i < items.Count; i++)
             {
-                output.Append(Serialize(items[i], jsonTypeInfo));
-
-                if (i < items.Count - 1)
-                {
-                    output.AppendLine(",");
-                }
-                else
-                {
-                    output.AppendLine();
-                }
+                JsonSerializer.Serialize(writer, items[i], jsonTypeInfo);
             }
 
-            output.Append(']');
+            writer.WriteEndArray();
+            writer.WriteNumber("returned", items.Count);
+
+            if (total is { } totalValue)
+            {
+                writer.WriteNumber("total", totalValue);
+            }
+            else
+            {
+                writer.WriteNull("total");
+            }
+
+            writer.WriteBoolean("hasMore", hasMore);
+
+            if (hint is not null)
+            {
+                writer.WriteString("hint", hint);
+            }
+
+            writer.WriteEndObject();
+            writer.Flush();
         }
-
-        output.Append(",\"returned\":");
-        output.Append(items.Count);
-        output.Append(",\"total\":");
-
-        if (total is { } totalValue)
-        {
-            output.Append(totalValue);
-        }
-        else
-        {
-            output.Append("null");
-        }
-
-        output.Append(",\"hasMore\":");
-        output.Append(hasMore ? "true" : "false");
-
-        if (hint is not null)
-        {
-            output.Append(",\"hint\":");
-            output.Append('"');
-            output.Append(JsonEncodedText.Encode(hint));
-            output.Append('"');
-        }
-
-        output.Append('}');
-        console.WriteRawLine(output.ToString());
-    }
-
-    private static string? CreateHint(int returned, int? total, bool hasMore)
-    {
-        if (!hasMore)
-        {
-            return null;
-        }
-
-        var shown = total is { } value
-            ? $"showing {returned} of {value} (more)"
-            : $"showing {returned} (more)";
-
-        return $"{shown}, {NarrowingHint}";
-    }
-
-    private static string Serialize<TItem>(TItem item, JsonTypeInfo<TItem> jsonTypeInfo)
-    {
-        using var buffer = new PooledArrayWriter();
-
-        using (var writer = new Utf8JsonWriter(buffer, s_jsonWriterOptions))
-        {
-            JsonSerializer.Serialize(writer, item, jsonTypeInfo);
-        }
-
-        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 }

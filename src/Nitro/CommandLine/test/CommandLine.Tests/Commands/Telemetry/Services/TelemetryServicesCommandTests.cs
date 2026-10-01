@@ -87,19 +87,27 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[
-            {"name":"products","environments":"production","lastVersion":"1.1.0"}
-            ],"returned":1,"total":null,"hasMore":false}
+            {
+              "items": [
+                {
+                  "name": "products",
+                  "environments": "production",
+                  "lastVersion": "1.1.0"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
     [Fact]
-    public async Task List_Should_WriteEnvelope_When_AgentModeIsEnabled()
+    public async Task List_Should_NotAdvertiseServiceOption_When_ResultHasMoreItems()
     {
         // arrange
-        SetupAgentMode();
         SetupSessionWithWorkspace();
-        SetupListServices(services: [CreateService()]);
+        SetupListServices(hasNextPage: true, services: [CreateService()]);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -110,9 +118,19 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[
-            {"name":"products","environments":"production","lastVersion":"1.1.0"}
-            ],"returned":1,"total":null,"hasMore":false}
+            {
+              "items": [
+                {
+                  "name": "products",
+                  "environments": "production",
+                  "lastVersion": "1.1.0"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": true,
+              "hint": "showing 1 (more), narrow with --since or --filter, or raise --limit"
+            }
             """);
     }
 
@@ -137,7 +155,12 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -182,7 +205,12 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -211,7 +239,13 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false,"hint":"no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false,
+              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."
+            }
             """);
         TelemetryClientMock.Verify(
             x => x.ListAttributeKeysAsync(
@@ -246,7 +280,12 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -293,7 +332,22 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"name":"products","environments":["production"],"versionMarkers":[{"version":"1.0.0","firstSeenAt":"2025-12-31T22:00:00+00:00"},{"version":"1.1.0","firstSeenAt":"2025-12-31T23:00:00+00:00"}]}
+            {
+              "name": "products",
+              "environments": [
+                "production"
+              ],
+              "versionMarkers": [
+                {
+                  "version": "1.0.0",
+                  "firstSeenAt": "2025-12-31T22:00:00+00:00"
+                },
+                {
+                  "version": "1.1.0",
+                  "firstSeenAt": "2025-12-31T23:00:00+00:00"
+                }
+              ]
+            }
             """);
     }
 }

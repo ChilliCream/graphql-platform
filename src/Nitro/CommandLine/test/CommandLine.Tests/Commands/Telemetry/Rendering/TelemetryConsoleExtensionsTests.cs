@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -5,17 +6,17 @@ using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Spectre.Console;
 using Spectre.Console.Testing;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Rendering;
 
 public sealed class TelemetryConsoleExtensionsTests
 {
     [Fact]
-    public void WriteListEnvelope_Should_WriteEnvelope_When_AgentModeIsEnabled()
+    public void WriteListEnvelope_Should_WriteEnvelope_When_ConsoleIsNonInteractive()
     {
         // arrange
-        var (console, output, _) = CreateConsole(isAgentMode: true);
+        var (console, output, _) = CreateConsole();
+        console.Profile.Capabilities.Interactive = false;
 
         // act
         console.WriteListEnvelope(
@@ -23,15 +24,32 @@ public sealed class TelemetryConsoleExtensionsTests
             total: 3,
             hasMore: true,
             TelemetryConsoleExtensionsJsonContext.Default.Sample,
-            emptyResultHint: null);
+            emptyResultHint: null,
+            [
+                Opt<TelemetrySinceOption>.Instance,
+                Opt<TelemetryServiceOption>.Instance,
+                Opt<TelemetryFilterOption>.Instance
+            ]);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            {"items":[
-            {"id":"first","name":"First"},
-            {"id":"second","name":"Second"}
-            ],"returned":2,"total":3,"hasMore":true,"hint":"showing 2 of 3 (more), narrow with --since, --service or --filter, or raise --limit"}
+            {
+              "items": [
+                {
+                  "id": "first",
+                  "name": "First"
+                },
+                {
+                  "id": "second",
+                  "name": "Second"
+                }
+              ],
+              "returned": 2,
+              "total": 3,
+              "hasMore": true,
+              "hint": "showing 2 of 3 (more), narrow with --since, --service or --filter, or raise --limit"
+            }
             """);
     }
 
@@ -49,7 +67,8 @@ public sealed class TelemetryConsoleExtensionsTests
             total: 1,
             hasMore: false,
             TelemetryConsoleExtensionsJsonContext.Default.Sample,
-            emptyResultHint: null);
+            emptyResultHint: null,
+            []);
 
         // assert
         using var document = JsonDocument.Parse(output.ToString());
@@ -68,22 +87,103 @@ public sealed class TelemetryConsoleExtensionsTests
             total: null,
             hasMore: true,
             TelemetryConsoleExtensionsJsonContext.Default.Sample,
-            emptyResultHint: null);
+            emptyResultHint: null,
+            [
+                Opt<TelemetrySinceOption>.Instance,
+                Opt<TelemetryServiceOption>.Instance,
+                Opt<TelemetryFilterOption>.Instance
+            ]);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            {"items":[
-            {"id":"first","name":"First"}
-            ],"returned":1,"total":null,"hasMore":true,"hint":"showing 1 (more), narrow with --since, --service or --filter, or raise --limit"}
+            {
+              "items": [
+                {
+                  "id": "first",
+                  "name": "First"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": true,
+              "hint": "showing 1 (more), narrow with --since, --service or --filter, or raise --limit"
+            }
             """);
     }
 
     [Fact]
-    public void WriteListEnvelope_Should_WriteEmptyEnvelope_When_AgentModeHasNoItems()
+    public void WriteListEnvelope_Should_AdvertiseOnlyProvidedOptions_When_ResultHasMoreItems()
     {
         // arrange
-        var (console, output, _) = CreateConsole(isAgentMode: true);
+        var (console, output, _) = CreateConsole();
+
+        // act
+        console.WriteListEnvelope(
+            [new Sample("first", "First")],
+            total: null,
+            hasMore: true,
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null,
+            [Opt<TelemetrySinceOption>.Instance, Opt<TelemetryFilterOption>.Instance]);
+
+        // assert
+        output.ToString().TrimEnd().MatchInlineSnapshot(
+            """
+            {
+              "items": [
+                {
+                  "id": "first",
+                  "name": "First"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": true,
+              "hint": "showing 1 (more), narrow with --since or --filter, or raise --limit"
+            }
+            """);
+    }
+
+    [Fact]
+    public void WriteListEnvelope_Should_AdvertiseSingleOption_When_OnlyOneOptionIsProvided()
+    {
+        // arrange
+        var (console, output, _) = CreateConsole();
+
+        // act
+        console.WriteListEnvelope(
+            [new Sample("first", "First")],
+            total: null,
+            hasMore: true,
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null,
+            [Opt<TelemetrySinceOption>.Instance]);
+
+        // assert
+        output.ToString().TrimEnd().MatchInlineSnapshot(
+            """
+            {
+              "items": [
+                {
+                  "id": "first",
+                  "name": "First"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": true,
+              "hint": "showing 1 (more), narrow with --since, or raise --limit"
+            }
+            """);
+    }
+
+    [Fact]
+    public void WriteListEnvelope_Should_WriteEmptyEnvelope_When_NonInteractiveConsoleHasNoItems()
+    {
+        // arrange
+        var (console, output, _) = CreateConsole();
+        console.Profile.Capabilities.Interactive = false;
 
         // act
         console.WriteListEnvelope(
@@ -91,12 +191,18 @@ public sealed class TelemetryConsoleExtensionsTests
             total: 0,
             hasMore: false,
             TelemetryConsoleExtensionsJsonContext.Default.Sample,
-            emptyResultHint: null);
+            emptyResultHint: null,
+            []);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            {"items":[],"returned":0,"total":0,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": 0,
+              "hasMore": false
+            }
             """);
     }
 
@@ -112,12 +218,18 @@ public sealed class TelemetryConsoleExtensionsTests
             total: 0,
             hasMore: false,
             TelemetryConsoleExtensionsJsonContext.Default.Sample,
-            emptyResultHint: null);
+            emptyResultHint: null,
+            []);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
             """
-            {"items":[],"returned":0,"total":0,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": 0,
+              "hasMore": false
+            }
             """);
     }
 
@@ -139,8 +251,7 @@ public sealed class TelemetryConsoleExtensionsTests
         Assert.Equal(ExitCodes.Error, exitCode);
     }
 
-    private static (INitroConsole Console, StringWriter Output, StringWriter Error) CreateConsole(
-        bool isAgentMode = false)
+    private static (INitroConsole Console, StringWriter Output, StringWriter Error) CreateConsole()
     {
         var output = new StringWriter();
         var error = new StringWriter();
@@ -155,15 +266,10 @@ public sealed class TelemetryConsoleExtensionsTests
             new NitroConsole(
                 outConsole,
                 errorConsole,
-                new SnapshotActivitySinkFactory(),
-                isAgentMode),
+                new SnapshotActivitySinkFactory()),
             output,
             error);
     }
 
     internal sealed record Sample(string Id, string Name);
 }
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
-[JsonSerializable(typeof(TelemetryConsoleExtensionsTests.Sample))]
-internal partial class TelemetryConsoleExtensionsJsonContext : JsonSerializerContext;

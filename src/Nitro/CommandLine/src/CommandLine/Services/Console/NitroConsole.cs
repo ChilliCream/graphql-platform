@@ -15,26 +15,14 @@ internal sealed class NitroConsole : INitroConsole
         IAnsiConsole outConsole,
         IAnsiConsole errorConsole,
         IActivitySinkFactory activitySinkFactory)
-        : this(outConsole, errorConsole, activitySinkFactory, false)
-    {
-    }
-
-    public NitroConsole(
-        IAnsiConsole outConsole,
-        IAnsiConsole errorConsole,
-        IActivitySinkFactory activitySinkFactory,
-        bool isAgentMode)
     {
         _outConsole = outConsole;
         _errorConsole = errorConsole;
         _activitySinkFactory = activitySinkFactory;
-        IsAgentMode = isAgentMode;
     }
 
-    public bool IsAgentMode { get; }
-
     public bool IsInteractive =>
-        !IsAgentMode && IsHumanReadable && _outConsole.Profile.Capabilities.Interactive;
+        IsHumanReadable && _outConsole.Profile.Capabilities.Interactive;
 
     public bool IsHumanReadable => _outputFormat is null;
 

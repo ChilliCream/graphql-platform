@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
@@ -68,7 +67,8 @@ internal sealed class ListAttributeValuesCommand : Command
             total: null,
             page.HasNextPage,
             AttributeValueListJsonContext.Default.AttributeValueListItem,
-            emptyResultHint: null);
+            emptyResultHint: null,
+            [Opt<TelemetrySinceOption>.Instance]);
 
         return ExitCodes.Success;
     }
@@ -102,7 +102,3 @@ internal sealed class ListAttributeValuesCommand : Command
         }
     }
 }
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ListAttributeValuesCommand.AttributeValueListItem))]
-internal partial class AttributeValueListJsonContext : JsonSerializerContext;

@@ -8,13 +8,3 @@ internal sealed class TelemetrySeverityOption : Option<TelemetrySeverity?>
         Required = false;
     }
 }
-
-internal enum TelemetrySeverity
-{
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Fatal
-}

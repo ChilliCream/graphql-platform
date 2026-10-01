@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
@@ -103,7 +102,12 @@ internal sealed class ListLogsCommand : Command
             total: null,
             page.HasNextPage,
             LogListJsonContext.Default.LogListItem,
-            emptyResultHint);
+            emptyResultHint,
+            [
+                Opt<TelemetrySinceOption>.Instance,
+                Opt<TelemetryServiceOption>.Instance,
+                Opt<TelemetryFilterOption>.Instance
+            ]);
 
         return ExitCodes.Success;
     }
@@ -130,7 +134,3 @@ internal sealed class ListLogsCommand : Command
                 log.SpanId);
     }
 }
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ListLogsCommand.LogListItem))]
-internal partial class LogListJsonContext : JsonSerializerContext;

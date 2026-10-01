@@ -10,40 +10,45 @@ internal sealed class TelemetryUntilOption : Option<DateTimeOffset>
     {
         Description = "The latest timestamp to include [env: NITRO_UNTIL]";
         Required = false;
-        DefaultValueFactory = result => GetDefaultTimestamp(result);
-        CustomParser = result => ParseTimestamp(
-            result.Tokens.Single().Value,
+        DefaultValueFactory = result => result.GetDefaultTimestamp();
+        CustomParser = result => result.Tokens.Single().Value.ParseTimestamp(
             result,
             TelemetryOptionDefaults.GetUtcNow());
     }
+}
 
-    private static DateTimeOffset GetDefaultTimestamp(ArgumentResult result)
+file static class Extensions
+{
+    extension(ArgumentResult result)
     {
-        var now = TelemetryOptionDefaults.GetUtcNow();
-        var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Until);
+        public DateTimeOffset GetDefaultTimestamp()
+        {
+            var now = TelemetryOptionDefaults.GetUtcNow();
+            var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Until);
 
-        return value is null
-            ? now
-            : ParseTimestamp(value, result, now);
+            return value is null
+                ? now
+                : value.ParseTimestamp(result, now);
+        }
     }
 
-    private static DateTimeOffset ParseTimestamp(
-        string value,
-        ArgumentResult result,
-        DateTimeOffset now)
+    extension(string value)
     {
-        if (TelemetryTimestamp.TryParse(
-            value,
-            now,
-            OptionName,
-            enforceMaximumAge: false,
-            out var timestamp,
-            out var error))
+        public DateTimeOffset ParseTimestamp(ArgumentResult result, DateTimeOffset now)
         {
-            return timestamp;
-        }
+            if (TelemetryTimestamp.TryParse(
+                value,
+                now,
+                TelemetryUntilOption.OptionName,
+                enforceMaximumAge: false,
+                out var timestamp,
+                out var error))
+            {
+                return timestamp;
+            }
 
-        result.AddError(error!);
-        return default;
+            result.AddError(error!);
+            return default;
+        }
     }
 }

@@ -224,7 +224,6 @@ public sealed class TelemetryTimestampTests
         var environmentVariables = new Mock<IEnvironmentVariableProvider>();
         environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_SINCE")).Returns("2h");
         environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_UNTIL")).Returns("2026-01-01T11:30:00Z");
-        environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_SERVICE")).Returns("orders");
         environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_ENV")).Returns("production");
         environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_LIMIT")).Returns("42");
         using var provider = new ServiceCollection()
@@ -232,13 +231,11 @@ public sealed class TelemetryTimestampTests
             .AddSingleton<TimeProvider>(new FakeTimeProvider(now))
             .BuildServiceProvider();
         CommandExecutionContext.Initialize(new CommandServices(provider));
-        var service = new TelemetryServiceOption();
         var environment = new TelemetryEnvironmentOption();
         var since = new TelemetrySinceOption();
         var until = new TelemetryUntilOption();
         var limit = new TelemetryLimitOption();
         var command = new Command("telemetry");
-        command.Options.Add(service);
         command.Options.Add(environment);
         command.Options.Add(since);
         command.Options.Add(until);
@@ -250,7 +247,6 @@ public sealed class TelemetryTimestampTests
         // assert
         Assert.Equal(now - TimeSpan.FromHours(2), result.GetValue(since));
         Assert.Equal(now - TimeSpan.FromMinutes(30), result.GetValue(until));
-        Assert.Equal("orders", result.GetValue(service));
         Assert.Equal(["production"], result.GetValue(environment) ?? []);
         Assert.Equal(42, result.GetValue(limit));
     }

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
@@ -49,7 +48,7 @@ internal sealed class ShowTraceCommand : Command
 
         var traceId = parseResult.GetRequiredValue(Opt<TraceIdArgument>.Instance);
         var spanId = parseResult.GetValue(Opt<TraceSpanOption>.Instance);
-        var seeker = GetSeeker(parseResult);
+        var seeker = parseResult.GetSeeker();
         var trace = await client.GetTraceAsync(
             workspaceId,
             traceId,
@@ -73,7 +72,7 @@ internal sealed class ShowTraceCommand : Command
         }
 
         var tree = SpanTreeBuilder.Build(trace.Spans);
-        RenderSummary(console, traceId, trace);
+        console.RenderSummary(traceId, trace);
         var renderedTree = new SpanTreeRenderer().Render(tree, spanId);
         if (renderedTree.Length > 0)
         {
@@ -85,76 +84,87 @@ internal sealed class ShowTraceCommand : Command
 
         return ExitCodes.Success;
     }
+}
 
-    private static string? GetSeeker(ParseResult parseResult)
+file static class Extensions
+{
+    extension(ParseResult parseResult)
     {
-        if (parseResult.GetResult(Opt<TraceSeekerOption>.Instance) is { Implicit: false })
+        public string? GetSeeker()
         {
-            return parseResult.GetValue(Opt<TraceSeekerOption>.Instance);
-        }
+            if (parseResult.GetResult(Opt<TraceSeekerOption>.Instance) is { Implicit: false })
+            {
+                return parseResult.GetValue(Opt<TraceSeekerOption>.Instance);
+            }
 
-        return null;
+            return null;
+        }
     }
 
-    private static void RenderSummary(
-        INitroConsole console,
-        string traceId,
-        Trace trace)
+    extension(INitroConsole console)
     {
-        var returnedSpanCount = trace.Spans.Count;
-        if (trace.SpansTruncated)
+        public void RenderSummary(
+            string traceId,
+            Trace trace)
         {
-            var totalSpanCount = trace.SpanCount is { } count
-                ? $"total {count} spans"
-                : "total span count unknown";
-            console.WriteRawLine(
-                $"trace {traceId}: {returnedSpanCount} returned spans (errors unknown), "
-                + $"{totalSpanCount}, duration unknown (server-capped)");
-        }
-        else
-        {
-            var errorCount = trace.Spans.Count(SpanTreeRenderer.IsError);
-            console.WriteRawLine(
-                $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
-                + $"total {SpanTreeRenderer.FormatDuration(trace.TotalDuration)} ms");
-        }
-
-        var operations = trace.Spans
-            .GroupBy(static span => span.SpanName, StringComparer.Ordinal)
-            .Select(static group => new OperationSummary(
-                group.Key,
-                group.Count(),
-                group.Average(static span => span.DurationMs),
-                Percentile(group.Select(static span => span.DurationMs), 0.95)))
-            .Where(static operation => operation.AverageDurationMs >= 5)
-            .OrderByDescending(static operation => operation.Count)
-            .ThenBy(static operation => operation.Name, StringComparer.Ordinal)
-            .Take(10)
-            .ToArray();
-
-        if (operations.Length > 0)
-        {
-            console.WriteRawLine("top operations:");
-            foreach (var operation in operations)
+            var returnedSpanCount = trace.Spans.Count;
+            if (trace.SpansTruncated)
             {
+                var totalSpanCount = trace.SpanCount is { } count
+                    ? $"total {count} spans"
+                    : "total span count unknown";
                 console.WriteRawLine(
-                    $"  {operation.Name}: {operation.Count} spans, "
-                    + $"avg {SpanTreeRenderer.FormatDuration(operation.AverageDurationMs)} ms, "
-                    + $"p95 {SpanTreeRenderer.FormatDuration(operation.P95DurationMs)} ms");
+                    $"trace {traceId}: {returnedSpanCount} returned spans (errors unknown), "
+                    + $"{totalSpanCount}, duration unknown (server-capped)");
+            }
+            else
+            {
+                var errorCount = trace.Spans.Count(static span => span.IsError);
+                console.WriteRawLine(
+                    $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
+                    + $"total {trace.TotalDuration.FormatDuration()} ms");
+            }
+
+            var operations = trace.Spans
+                .GroupBy(static span => span.SpanName, StringComparer.Ordinal)
+                .Select(static group => new OperationSummary(
+                    group.Key,
+                    group.Count(),
+                    group.Average(static span => span.DurationMs),
+                    group.Select(static span => span.DurationMs).Percentile(0.95)))
+                .Where(static operation => operation.AverageDurationMs >= 5)
+                .OrderByDescending(static operation => operation.Count)
+                .ThenBy(static operation => operation.Name, StringComparer.Ordinal)
+                .Take(10)
+                .ToArray();
+
+            if (operations.Length > 0)
+            {
+                console.WriteRawLine("top operations:");
+                foreach (var operation in operations)
+                {
+                    console.WriteRawLine(
+                        $"  {operation.Name}: {operation.Count} spans, "
+                        + $"avg {operation.AverageDurationMs.FormatDuration()} ms, "
+                        + $"p95 {operation.P95DurationMs.FormatDuration()} ms");
+                }
             }
         }
     }
 
-    private static double Percentile(IEnumerable<double> values, double percentile)
+    extension(IEnumerable<double> values)
     {
-        var sorted = values.OrderBy(static value => value).ToArray();
-        if (sorted.Length == 0)
+        public double Percentile(double percentile)
         {
-            return 0;
-        }
+            var sorted = values.OrderBy(static value => value).ToArray();
+            if (sorted.Length == 0)
+            {
+                return 0;
+            }
 
-        var index = (int)Math.Ceiling(sorted.Length * percentile) - 1;
-        return sorted[Math.Clamp(index, 0, sorted.Length - 1)];
+            var index = (int)Math.Ceiling(sorted.Length * percentile) - 1;
+            return sorted[Math.Clamp(index, 0, sorted.Length - 1)];
+        }
     }
 
     private sealed record OperationSummary(
@@ -163,151 +173,3 @@ internal sealed class ShowTraceCommand : Command
         double AverageDurationMs,
         double P95DurationMs);
 }
-
-internal sealed record TraceJson(
-    string TraceId,
-    int SpanCount,
-    bool SpansTruncated,
-    double TotalDurationMs,
-    IReadOnlyList<TraceJsonSpan> Spans)
-{
-    public static TraceJson From(string traceId, Trace trace)
-        => new(
-            traceId,
-            trace.SpanCount ?? trace.Spans.Count,
-            trace.SpansTruncated,
-            trace.TotalDuration,
-            trace.Spans.Select(TraceJsonSpan.From).ToArray());
-}
-
-internal sealed record TraceJsonSpan(
-    string SpanId,
-    string ParentSpanId,
-    string SpanName,
-    string SpanKind,
-    double DurationMs,
-    double Start,
-    string StatusCode,
-    string StatusMessage,
-    IReadOnlyList<TelemetryAttribute> ResourceAttributes,
-    IReadOnlyList<TelemetryAttribute> SpanAttributes,
-    IReadOnlyList<TraceEvent> Events,
-    TraceJsonData? Data)
-{
-    public static TraceJsonSpan From(TraceSpan span)
-        => new(
-            span.SpanId,
-            span.ParentSpanId,
-            span.SpanName,
-            span.SpanKind,
-            span.DurationMs,
-            span.Start,
-            span.StatusCode,
-            span.StatusMessage,
-            span.ResourceAttributes,
-            span.SpanAttributes,
-            span.Events,
-            TraceJsonData.From(span.Data));
-}
-
-internal sealed record TraceJsonData(
-    string Kind,
-    string? Flavor,
-    string? Method,
-    string? Scheme,
-    int? StatusCode,
-    string? Url,
-    string? UserAgent,
-    string? ConnectionString,
-    string? Instance,
-    string? Name,
-    string? Operation,
-    string? Statement,
-    string? System,
-    string? User,
-    TraceDocument? Document,
-    TraceOperation? GraphQLOperation,
-    TraceSelection? Selection)
-{
-    public static TraceJsonData? From(TraceSpanData? data)
-        => data switch
-        {
-            HttpTraceSpanData http => new(
-                "http",
-                http.Flavor,
-                http.Method,
-                http.Scheme,
-                http.StatusCode,
-                http.Url,
-                http.UserAgent,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null),
-            DatabaseTraceSpanData database => new(
-                "database",
-                null,
-                null,
-                null,
-                null,
-                database.Url,
-                null,
-                database.ConnectionString,
-                database.Instance,
-                database.Name,
-                database.Operation,
-                database.Statement,
-                database.System,
-                database.User,
-                null,
-                null,
-                null),
-            GraphQLOperationTraceSpanData graphQl => new(
-                "graphql.operation",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                graphQl.Document,
-                graphQl.Operation,
-                null),
-            GraphQLResolverTraceSpanData resolver => new(
-                "graphql.resolver",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                resolver.Selection),
-            _ => null
-        };
-}
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(TraceJson))]
-internal partial class TraceJsonContext : JsonSerializerContext;

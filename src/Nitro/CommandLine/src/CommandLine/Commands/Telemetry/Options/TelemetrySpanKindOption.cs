@@ -9,12 +9,3 @@ internal sealed class TelemetrySpanKindOption : Option<TelemetrySpanKind[]>
         this.OneArgumentPerOccurrence();
     }
 }
-
-internal enum TelemetrySpanKind
-{
-    Server,
-    Client,
-    Producer,
-    Consumer,
-    Internal
-}

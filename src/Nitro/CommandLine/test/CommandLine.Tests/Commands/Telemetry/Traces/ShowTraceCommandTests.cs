@@ -26,14 +26,14 @@ public sealed class ShowTraceCommandTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Execute_Should_RenderSameAsciiTree_When_InteractionModeChanges(bool agentMode)
+    public async Task Execute_Should_RenderSameAsciiTree_When_InteractionModeChanges(bool isInteractive)
     {
         // arrange
         var trace = CreateTrace();
         var client = CreateClient(trace);
 
         // act
-        var result = await ExecuteAsync(client, agentMode: agentMode);
+        var result = await ExecuteAsync(client, isInteractive: isInteractive);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -305,7 +305,7 @@ public sealed class ShowTraceCommandTests
 
     private static async Task<CommandResult> ExecuteAsync(
         Mock<ITelemetryClient> client,
-        bool agentMode = false,
+        bool isInteractive = true,
         params string[] commandArguments)
     {
         var output = new StringWriter();
@@ -313,14 +313,13 @@ public sealed class ShowTraceCommandTests
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(output);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
-        outConsole.Profile.Capabilities.Interactive = !agentMode;
+        outConsole.Profile.Capabilities.Interactive = isInteractive;
         var errorConsole = new TestConsole();
         errorConsole.Profile.Out = new AnsiConsoleOutput(error);
         var console = new NitroConsole(
             outConsole,
             errorConsole,
-            new SnapshotActivitySinkFactory(),
-            agentMode);
+            new SnapshotActivitySinkFactory());
         var environment = new Mock<IEnvironmentVariableProvider>();
         environment
             .Setup(x => x.GetEnvironmentVariable(It.IsAny<string>()))

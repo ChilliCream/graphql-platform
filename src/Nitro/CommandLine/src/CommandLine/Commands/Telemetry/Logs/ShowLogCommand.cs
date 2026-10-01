@@ -1,5 +1,5 @@
+using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
@@ -79,7 +79,7 @@ internal sealed class ShowLogCommand : Command
                 log.Start,
                 log.SeverityText,
                 log.SeverityNumber,
-                LogPresentation.GetServiceName(log.ResourceAttributes),
+                log.ResourceAttributes.GetServiceName(),
                 log.Body,
                 log.TraceId,
                 log.SpanId,
@@ -87,17 +87,17 @@ internal sealed class ShowLogCommand : Command
                 log.LogAttributes.Select(LogAttributeDetail.From).ToArray(),
                 log.ResourceAttributes.Select(LogAttributeDetail.From).ToArray(),
                 log.Scope is null ? null : LogScopeDetail.From(log.Scope),
-                LogPresentation.GetAttributeValue(log.LogAttributes, "code.function"),
-                LogPresentation.GetAttributeValue(log.LogAttributes, "code.filepath"),
+                log.LogAttributes.GetAttributeValue(WellKnownAttributeNames.CodeFunction),
+                log.LogAttributes.GetAttributeValue(WellKnownAttributeNames.CodeFilePath),
                 log.LogAttributes
-                    .FirstOrDefault(static attribute => attribute.Key == "code.lineno")
+                    .FirstOrDefault(static attribute => attribute.Key == WellKnownAttributeNames.CodeLineNumber)
                     ?.Long);
     }
 
     internal sealed record LogAttributeDetail(string Key, string Value)
     {
         public static LogAttributeDetail From(TypedTelemetryAttribute attribute)
-            => new(attribute.Key, LogPresentation.FormatAttributeValue(attribute));
+            => new(attribute.Key, attribute.FormatAttributeValue());
 
         public static LogAttributeDetail From(TelemetryAttribute attribute)
             => new(attribute.Key, attribute.Value);
@@ -118,6 +118,52 @@ internal sealed class ShowLogCommand : Command
     }
 }
 
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ShowLogCommand.LogDetail))]
-internal partial class LogDetailJsonContext : JsonSerializerContext;
+file static class Extensions
+{
+    extension(IReadOnlyList<TelemetryAttribute> resourceAttributes)
+    {
+        public string GetServiceName()
+            => resourceAttributes
+                .FirstOrDefault(static attribute => attribute.Key == WellKnownAttributeNames.ServiceName)
+                ?.Value
+                ?? string.Empty;
+    }
+
+    extension(IReadOnlyList<TypedTelemetryAttribute> attributes)
+    {
+        public string? GetAttributeValue(string key)
+        {
+            return attributes
+                .FirstOrDefault(attribute => attribute.Key == key)
+                ?.FormatAttributeValue();
+        }
+    }
+
+    extension(TypedTelemetryAttribute attribute)
+    {
+        public string FormatAttributeValue()
+        {
+            if (attribute.String is { } stringValue)
+            {
+                return stringValue;
+            }
+
+            if (attribute.Long is { } longValue)
+            {
+                return longValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (attribute.Float is { } floatValue)
+            {
+                return floatValue.ToString(CultureInfo.InvariantCulture);
+            }
+
+            return attribute.Boolean switch
+            {
+                true => "true",
+                false => "false",
+                _ => string.Empty
+            };
+        }
+    }
+}

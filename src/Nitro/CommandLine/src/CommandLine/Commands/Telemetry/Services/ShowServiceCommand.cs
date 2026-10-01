@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
@@ -85,7 +84,3 @@ internal sealed class ShowServiceCommand : Command
 
     internal sealed record ServiceVersionMarkerDetail(string Version, DateTimeOffset FirstSeenAt);
 }
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(ShowServiceCommand.ServiceDetail))]
-internal partial class ServiceDetailJsonContext : JsonSerializerContext;

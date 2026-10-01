@@ -33,7 +33,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             cancellationToken);
 
         var connection = OperationResultHelper.EnsureData(result).WorkspaceById?.Spans;
-        var items = connection?.Edges?.Select(static edge => MapTraceRow(edge.Node)).ToArray() ?? [];
+        var items = connection?.Edges?.Select(static edge => edge.Node.ToTraceRow()).ToArray() ?? [];
 
         return new ConnectionPage<TraceRow>(
             items,
@@ -63,7 +63,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
                 trace.SpanCount,
                 trace.SpansTruncated,
                 trace.TotalDuration,
-                trace.Spans.Select(static span => MapTraceSpan(span)).ToArray());
+                trace.Spans.Select(static span => span.ToTraceSpan()).ToArray());
     }
 
     public async Task<ConnectionPage<LogRow>> ListLogsAsync(
@@ -87,7 +87,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             cancellationToken);
 
         var connection = OperationResultHelper.EnsureData(result).WorkspaceById?.Logs;
-        var items = connection?.Edges?.Select(static edge => MapLogRow(edge.Node)).ToArray() ?? [];
+        var items = connection?.Edges?.Select(static edge => edge.Node.ToLogRow()).ToArray() ?? [];
 
         return new ConnectionPage<LogRow>(
             items,
@@ -103,7 +103,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
         var result = await apiClient.ShowLogCommandQuery.ExecuteAsync(workspaceId, id, cancellationToken);
         var log = OperationResultHelper.EnsureData(result).WorkspaceById?.LogById;
 
-        return log is null ? null : MapLog(log);
+        return log?.ToLog();
     }
 
     public async Task<ConnectionPage<ServiceRow>> ListServicesAsync(
@@ -129,7 +129,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             cancellationToken);
 
         var connection = OperationResultHelper.EnsureData(result).WorkspaceById?.Services;
-        var items = connection?.Edges?.Select(static edge => MapService(edge.Node)).ToArray() ?? [];
+        var items = connection?.Edges?.Select(static edge => edge.Node.ToServiceRow()).ToArray() ?? [];
 
         return new ConnectionPage<ServiceRow>(
             items,
@@ -155,7 +155,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
 
         var service = OperationResultHelper.EnsureData(result).WorkspaceById?.Service;
 
-        return service is null ? null : MapService(service);
+        return service?.ToServiceRow();
     }
 
     public async Task<ConnectionPage<AttributeKeyRow>> ListAttributeKeysAsync(
@@ -229,208 +229,234 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             connection?.PageInfo.EndCursor,
             connection?.PageInfo.HasNextPage ?? false);
     }
+}
 
-    private static TraceRow MapTraceRow(IListTraceCommandQuery_WorkspaceById_Spans_Edges_Node span)
+file static class Extensions
+{
+    extension(IListTraceCommandQuery_WorkspaceById_Spans_Edges_Node span)
     {
-        return new TraceRow(
-            span.TraceId,
-            span.SpanId,
-            span.Seeker,
-            span.SpanName,
-            span.SpanKind,
-            span.Duration,
-            span.Epoch,
-            span.StatusCode,
-            GetServiceName(span.ResourceAttributes));
+        public TraceRow ToTraceRow()
+        {
+            return new TraceRow(
+                span.TraceId,
+                span.SpanId,
+                span.Seeker,
+                span.SpanName,
+                span.SpanKind,
+                span.Duration,
+                span.Epoch,
+                span.StatusCode,
+                span.ResourceAttributes.GetServiceName());
+        }
     }
 
-    private static TraceSpan MapTraceSpan(IShowTraceCommandQuery_WorkspaceById_TraceById_Spans span)
+    extension(IShowTraceCommandQuery_WorkspaceById_TraceById_Spans span)
     {
-        return new TraceSpan(
-            span.SpanId,
-            span.ParentSpanId,
-            span.SpanName,
-            span.SpanKind,
-            span.Duration,
-            span.Epoch,
-            span.StatusCode,
-            span.StatusMessage,
-            span.ResourceAttributes.Select(static attribute => new TelemetryAttribute(
-                attribute.Key,
-                attribute.Value)).ToArray(),
-            span.SpanAttributes.Select(static attribute => new TelemetryAttribute(
-                attribute.Key,
-                attribute.Value)).ToArray(),
-            span.Events.Select(static traceEvent => new TraceEvent(
-                traceEvent.Name,
-                traceEvent.Epoch,
-                traceEvent.Attributes.Select(static attribute => new TelemetryAttribute(
+        public TraceSpan ToTraceSpan()
+        {
+            return new TraceSpan(
+                span.SpanId,
+                span.ParentSpanId,
+                span.SpanName,
+                span.SpanKind,
+                span.Duration,
+                span.Epoch,
+                span.StatusCode,
+                span.StatusMessage,
+                span.ResourceAttributes.Select(static attribute => new TelemetryAttribute(
                     attribute.Key,
-                    attribute.Value)).ToArray())).ToArray(),
-            MapTraceSpanData(span));
-    }
-
-    private static TraceSpanData? MapTraceSpanData(
-        IShowTraceCommandQuery_WorkspaceById_TraceById_Spans span)
-    {
-        return span switch
-        {
-            IShowTraceCommand_Span_OpenTelemetryHttpClientSpan clientSpan => new HttpTraceSpanData(
-                clientSpan.Http?.Flavor,
-                clientSpan.Http?.Method,
-                clientSpan.Http?.Scheme,
-                clientSpan.Http?.StatusCode,
-                clientSpan.Http?.Url,
-                clientSpan.Http?.UserAgent),
-            IShowTraceCommand_Span_OpenTelemetryHttpServerSpan serverSpan => new HttpTraceSpanData(
-                serverSpan.Http?.Flavor,
-                serverSpan.Http?.Method,
-                serverSpan.Http?.Scheme,
-                serverSpan.Http?.StatusCode,
-                serverSpan.Http?.Url,
-                serverSpan.Http?.UserAgent),
-            IShowTraceCommand_Span_OpenTelemetryDbSpan databaseSpan => new DatabaseTraceSpanData(
-                databaseSpan.Db?.ConnectionString,
-                databaseSpan.Db?.Instance,
-                databaseSpan.Db?.Name,
-                databaseSpan.Db?.Operation,
-                databaseSpan.Db?.Statement,
-                databaseSpan.Db?.System,
-                databaseSpan.Db?.Url,
-                databaseSpan.Db?.User),
-            IShowTraceCommand_Span_OpenTelemetryGraphQLOperationSpan operationSpan =>
-                new GraphQLOperationTraceSpanData(
-                    operationSpan.Document is { } document
-                        ? new TraceDocument(document.Body, document.Id)
-                        : null,
-                    operationSpan.Operation is { } operation
-                        ? new TraceOperation(operation.Hash, operation.Kind, operation.Name)
-                        : null),
-            IShowTraceCommand_Span_OpenTelemetryGraphQLResolverSpan resolverSpan =>
-                new GraphQLResolverTraceSpanData(
-                    resolverSpan.Selection is { } selection
-                        ? new TraceSelection(
-                            new TraceField(
-                                selection.Field.Coordinate,
-                                selection.Field.DeclaringType,
-                                selection.Field.Name),
-                            selection.Name,
-                            selection.Path,
-                            selection.Type)
-                        : null),
-            _ => null
-        };
-    }
-
-    private static LogRow MapLogRow(IListLogCommandQuery_WorkspaceById_Logs_Edges_Node log)
-    {
-        return new LogRow(
-            log.Id,
-            log.Epoch,
-            log.SeverityText,
-            log.SeverityNumber,
-            log.Body,
-            log.TraceId,
-            log.SpanId,
-            GetServiceName(log.ResourceAttributes));
-    }
-
-    private static Log MapLog(IShowLogCommandQuery_WorkspaceById_LogById log)
-    {
-        return new Log(
-            log.Id,
-            log.Epoch,
-            log.SeverityText,
-            log.SeverityNumber,
-            log.Body,
-            log.TraceId,
-            log.SpanId,
-            new LogBodyDetail(log.BodyDetail.Json, log.BodyDetail.Kind.ToString(), log.BodyDetail.Message),
-            log.LogAttributes.Select(static attribute => MapTypedAttribute(attribute)).ToArray(),
-            log.ResourceAttributes.Select(static attribute => new TelemetryAttribute(
-                attribute.Key,
-                attribute.Value)).ToArray(),
-            log.Scope is { } scope
-                ? new TelemetryScope(
-                    scope.Name,
-                    scope.SchemaUrl,
-                    scope.Version,
-                    scope.Attributes.Select(static attribute => MapTypedAttribute(attribute)).ToArray())
-                : null);
-    }
-
-    private static TypedTelemetryAttribute MapTypedAttribute(IShowLogCommand_OpenTelemetryAttribute attribute)
-    {
-        return attribute switch
-        {
-            IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryBoolAttribute booleanAttribute =>
-                new TypedTelemetryAttribute(
-                    booleanAttribute.Key,
-                    booleanAttribute.Boolean,
-                    null,
-                    null,
-                    null),
-            IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryFloatAttribute floatAttribute =>
-                new TypedTelemetryAttribute(
-                    floatAttribute.Key,
-                    null,
-                    floatAttribute.Float,
-                    null,
-                    null),
-            IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryLongAttribute longAttribute =>
-                new TypedTelemetryAttribute(longAttribute.Key, null, null, longAttribute.Long, null),
-            IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryStringAttribute stringAttribute =>
-                new TypedTelemetryAttribute(stringAttribute.Key, null, null, null, stringAttribute.String),
-            _ => new TypedTelemetryAttribute(attribute.Key, null, null, null, null)
-        };
-    }
-
-    private static ServiceRow MapService(IListServiceCommandQuery_WorkspaceById_Services_Edges_Node service)
-    {
-        return new ServiceRow(
-            service.Name,
-            service.EnvironmentNames,
-            service.VersionMarkers?.Select(static marker => new ServiceVersionMarker(
-                marker.FirstSeenAt,
-                marker.Version)).ToArray() ?? []);
-    }
-
-    private static ServiceRow MapService(IShowServiceCommandQuery_WorkspaceById_Service service)
-    {
-        return new ServiceRow(
-            service.Name,
-            service.EnvironmentNames,
-            service.VersionMarkers?.Select(static marker => new ServiceVersionMarker(
-                marker.FirstSeenAt,
-                marker.Version)).ToArray() ?? []);
-    }
-
-    private static string GetServiceName(
-        IReadOnlyList<IListTraceCommandQuery_WorkspaceById_Spans_Edges_Node_ResourceAttributes>
-            attributes)
-    {
-        foreach (var attribute in attributes)
-        {
-            if (attribute.Key == "service.name")
-            {
-                return attribute.Value;
-            }
+                    attribute.Value)).ToArray(),
+                span.SpanAttributes.Select(static attribute => new TelemetryAttribute(
+                    attribute.Key,
+                    attribute.Value)).ToArray(),
+                span.Events.Select(static traceEvent => new TraceEvent(
+                    traceEvent.Name,
+                    traceEvent.Epoch,
+                    traceEvent.Attributes.Select(static attribute => new TelemetryAttribute(
+                        attribute.Key,
+                        attribute.Value)).ToArray())).ToArray(),
+                span.ToTraceSpanData());
         }
 
-        return string.Empty;
+        private TraceSpanData? ToTraceSpanData()
+        {
+            return span switch
+            {
+                IShowTraceCommand_Span_OpenTelemetryHttpClientSpan clientSpan => new HttpTraceSpanData(
+                    clientSpan.Http?.Flavor,
+                    clientSpan.Http?.Method,
+                    clientSpan.Http?.Scheme,
+                    clientSpan.Http?.StatusCode,
+                    clientSpan.Http?.Url,
+                    clientSpan.Http?.UserAgent),
+                IShowTraceCommand_Span_OpenTelemetryHttpServerSpan serverSpan => new HttpTraceSpanData(
+                    serverSpan.Http?.Flavor,
+                    serverSpan.Http?.Method,
+                    serverSpan.Http?.Scheme,
+                    serverSpan.Http?.StatusCode,
+                    serverSpan.Http?.Url,
+                    serverSpan.Http?.UserAgent),
+                IShowTraceCommand_Span_OpenTelemetryDbSpan databaseSpan => new DatabaseTraceSpanData(
+                    databaseSpan.Db?.ConnectionString,
+                    databaseSpan.Db?.Instance,
+                    databaseSpan.Db?.Name,
+                    databaseSpan.Db?.Operation,
+                    databaseSpan.Db?.Statement,
+                    databaseSpan.Db?.System,
+                    databaseSpan.Db?.Url,
+                    databaseSpan.Db?.User),
+                IShowTraceCommand_Span_OpenTelemetryGraphQLOperationSpan operationSpan =>
+                    new GraphQLOperationTraceSpanData(
+                        operationSpan.Document is { } document
+                            ? new TraceDocument(document.Body, document.Id)
+                            : null,
+                        operationSpan.Operation is { } operation
+                            ? new TraceOperation(operation.Hash, operation.Kind, operation.Name)
+                            : null),
+                IShowTraceCommand_Span_OpenTelemetryGraphQLResolverSpan resolverSpan =>
+                    new GraphQLResolverTraceSpanData(
+                        resolverSpan.Selection is { } selection
+                            ? new TraceSelection(
+                                new TraceField(
+                                    selection.Field.Coordinate,
+                                    selection.Field.DeclaringType,
+                                    selection.Field.Name),
+                                selection.Name,
+                                selection.Path,
+                                selection.Type)
+                            : null),
+                _ => null
+            };
+        }
     }
 
-    private static string GetServiceName(
-        IReadOnlyList<IListLogCommandQuery_WorkspaceById_Logs_Edges_Node_ResourceAttributes> attributes)
+    extension(IListLogCommandQuery_WorkspaceById_Logs_Edges_Node log)
     {
-        foreach (var attribute in attributes)
+        public LogRow ToLogRow()
         {
-            if (attribute.Key == "service.name")
-            {
-                return attribute.Value;
-            }
+            return new LogRow(
+                log.Id,
+                log.Epoch,
+                log.SeverityText,
+                log.SeverityNumber,
+                log.Body,
+                log.TraceId,
+                log.SpanId,
+                log.ResourceAttributes.GetServiceName());
         }
+    }
 
-        return string.Empty;
+    extension(IShowLogCommandQuery_WorkspaceById_LogById log)
+    {
+        public Log ToLog()
+        {
+            return new Log(
+                log.Id,
+                log.Epoch,
+                log.SeverityText,
+                log.SeverityNumber,
+                log.Body,
+                log.TraceId,
+                log.SpanId,
+                new LogBodyDetail(log.BodyDetail.Json, log.BodyDetail.Kind.ToString(), log.BodyDetail.Message),
+                log.LogAttributes.Select(static attribute => attribute.ToTypedTelemetryAttribute()).ToArray(),
+                log.ResourceAttributes.Select(static attribute => new TelemetryAttribute(
+                    attribute.Key,
+                    attribute.Value)).ToArray(),
+                log.Scope is { } scope
+                    ? new TelemetryScope(
+                        scope.Name,
+                        scope.SchemaUrl,
+                        scope.Version,
+                        scope.Attributes.Select(static attribute => attribute.ToTypedTelemetryAttribute()).ToArray())
+                    : null);
+        }
+    }
+
+    extension(IShowLogCommand_OpenTelemetryAttribute attribute)
+    {
+        public TypedTelemetryAttribute ToTypedTelemetryAttribute()
+        {
+            return attribute switch
+            {
+                IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryBoolAttribute booleanAttribute =>
+                    new TypedTelemetryAttribute(
+                        booleanAttribute.Key,
+                        booleanAttribute.Boolean,
+                        null,
+                        null,
+                        null),
+                IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryFloatAttribute floatAttribute =>
+                    new TypedTelemetryAttribute(
+                        floatAttribute.Key,
+                        null,
+                        floatAttribute.Float,
+                        null,
+                        null),
+                IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryLongAttribute longAttribute =>
+                    new TypedTelemetryAttribute(longAttribute.Key, null, null, longAttribute.Long, null),
+                IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryStringAttribute stringAttribute =>
+                    new TypedTelemetryAttribute(stringAttribute.Key, null, null, null, stringAttribute.String),
+                _ => new TypedTelemetryAttribute(attribute.Key, null, null, null, null)
+            };
+        }
+    }
+
+    extension(IListServiceCommandQuery_WorkspaceById_Services_Edges_Node service)
+    {
+        public ServiceRow ToServiceRow()
+        {
+            return new ServiceRow(
+                service.Name,
+                service.EnvironmentNames,
+                service.VersionMarkers?.Select(static marker => new ServiceVersionMarker(
+                    marker.FirstSeenAt,
+                    marker.Version)).ToArray() ?? []);
+        }
+    }
+
+    extension(IShowServiceCommandQuery_WorkspaceById_Service service)
+    {
+        public ServiceRow ToServiceRow()
+        {
+            return new ServiceRow(
+                service.Name,
+                service.EnvironmentNames,
+                service.VersionMarkers?.Select(static marker => new ServiceVersionMarker(
+                    marker.FirstSeenAt,
+                    marker.Version)).ToArray() ?? []);
+        }
+    }
+
+    extension(IReadOnlyList<IListTraceCommandQuery_WorkspaceById_Spans_Edges_Node_ResourceAttributes> attributes)
+    {
+        public string GetServiceName()
+        {
+            foreach (var attribute in attributes)
+            {
+                if (attribute.Key == "service.name")
+                {
+                    return attribute.Value;
+                }
+            }
+
+            return string.Empty;
+        }
+    }
+
+    extension(IReadOnlyList<IListLogCommandQuery_WorkspaceById_Logs_Edges_Node_ResourceAttributes> attributes)
+    {
+        public string GetServiceName()
+        {
+            foreach (var attribute in attributes)
+            {
+                if (attribute.Key == "service.name")
+                {
+                    return attribute.Value;
+                }
+            }
+
+            return string.Empty;
+        }
     }
 }

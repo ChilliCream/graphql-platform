@@ -96,7 +96,12 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -127,7 +132,12 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -151,9 +161,23 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[
-            {"id":"log-1","epoch":1767225600123,"severityText":"ERROR","severityNumber":17,"serviceName":"products","body":"Request failed","traceId":"trace-1","spanId":"span-1"}
-            ],"returned":1,"total":null,"hasMore":false}
+            {
+              "items": [
+                {
+                  "id": "log-1",
+                  "epoch": 1767225600123,
+                  "severityText": "ERROR",
+                  "severityNumber": 17,
+                  "serviceName": "products",
+                  "body": "Request failed",
+                  "traceId": "trace-1",
+                  "spanId": "span-1"
+                }
+              ],
+              "returned": 1,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -174,7 +198,12 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -203,7 +232,13 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false,"hint":"no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal logs to list keys."}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false,
+              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal logs to list keys."
+            }
             """);
         TelemetryClientMock.Verify(
             x => x.ListAttributeKeysAsync(
@@ -238,7 +273,12 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -272,7 +312,12 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"items":[],"returned":0,"total":null,"hasMore":false}
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
             """);
     }
 
@@ -297,7 +342,71 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            {"id":"log-1","epoch":1767225600123,"severityText":"ERROR","severityNumber":17,"serviceName":"products","body":"Request failed","traceId":"trace-1","spanId":"span-1","bodyDetail":{"json":null,"kind":"String","message":"Request failed"},"attributes":[{"key":"code.function","value":"CheckoutHandler.Handle"},{"key":"code.filepath","value":"src/CheckoutHandler.cs"},{"key":"code.lineno","value":"42"},{"key":"exception.type","value":"System.TimeoutException"},{"key":"exception.message","value":"The operation timed out."},{"key":"exception.stacktrace","value":"at CheckoutHandler.Handle()\n   at Program.Main()"}],"resourceAttributes":[{"key":"service.name","value":"products"},{"key":"deployment.environment","value":"production"}],"scope":{"name":"OpenTelemetry.Instrumentation","schemaUrl":"https://opentelemetry.io/schemas/1.0.0","version":"1.0.0","attributes":[{"key":"scope.attribute","value":"scope-value"}]},"codeFunction":"CheckoutHandler.Handle","codeFilePath":"src/CheckoutHandler.cs","codeLineNumber":42}
+            {
+              "id": "log-1",
+              "epoch": 1767225600123,
+              "severityText": "ERROR",
+              "severityNumber": 17,
+              "serviceName": "products",
+              "body": "Request failed",
+              "traceId": "trace-1",
+              "spanId": "span-1",
+              "bodyDetail": {
+                "json": null,
+                "kind": "String",
+                "message": "Request failed"
+              },
+              "attributes": [
+                {
+                  "key": "code.function",
+                  "value": "CheckoutHandler.Handle"
+                },
+                {
+                  "key": "code.filepath",
+                  "value": "src/CheckoutHandler.cs"
+                },
+                {
+                  "key": "code.lineno",
+                  "value": "42"
+                },
+                {
+                  "key": "exception.type",
+                  "value": "System.TimeoutException"
+                },
+                {
+                  "key": "exception.message",
+                  "value": "The operation timed out."
+                },
+                {
+                  "key": "exception.stacktrace",
+                  "value": "at CheckoutHandler.Handle()\n   at Program.Main()"
+                }
+              ],
+              "resourceAttributes": [
+                {
+                  "key": "service.name",
+                  "value": "products"
+                },
+                {
+                  "key": "deployment.environment",
+                  "value": "production"
+                }
+              ],
+              "scope": {
+                "name": "OpenTelemetry.Instrumentation",
+                "schemaUrl": "https://opentelemetry.io/schemas/1.0.0",
+                "version": "1.0.0",
+                "attributes": [
+                  {
+                    "key": "scope.attribute",
+                    "value": "scope-value"
+                  }
+                ]
+              },
+              "codeFunction": "CheckoutHandler.Handle",
+              "codeFilePath": "src/CheckoutHandler.cs",
+              "codeLineNumber": 42
+            }
             """);
     }
 

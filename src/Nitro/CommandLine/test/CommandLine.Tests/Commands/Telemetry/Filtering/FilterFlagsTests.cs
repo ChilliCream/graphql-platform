@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 
