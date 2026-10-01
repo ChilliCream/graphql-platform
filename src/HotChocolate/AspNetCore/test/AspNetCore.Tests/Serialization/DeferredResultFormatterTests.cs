@@ -83,6 +83,7 @@ public sealed class DeferredResultFormatterTests
                 data: {{Payload2New}}
 
                 event: complete
+                data:
                 """),
             content);
     }
@@ -104,6 +105,7 @@ public sealed class DeferredResultFormatterTests
                 data: {{Payload2Legacy}}
 
                 event: complete
+                data:
                 """),
             content);
     }
