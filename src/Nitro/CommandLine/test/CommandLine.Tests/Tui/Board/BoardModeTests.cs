@@ -21,8 +21,22 @@ public sealed class BoardModeTests
         ]
     };
 
-    private static BoardMode CreateMode(FakeTaskStore store, BoardView? view = null)
-        => new(new BoardDataLoader(store, new FakeTimeProvider(s_now)), view is null ? null : [view]);
+    private static BoardMode CreateMode(
+        FakeTaskStore store,
+        BoardView? view = null,
+        BoardOrientation orientation = BoardOrientation.Auto)
+        => new(
+            new BoardDataLoader(store, new FakeTimeProvider(s_now)),
+            view is null ? null : [view],
+            orientation);
+
+    private static FakeTaskStore StoreWithOneTaskPerColumn()
+    {
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        return store;
+    }
 
     [Fact]
     public void FocusColumn_Should_ClampAtFirstColumn_When_MovingLeftPastStart()
@@ -902,6 +916,116 @@ public sealed class BoardModeTests
             ╰──────────────────────────────────────────────────────────╯
 
             """);
+    }
+
+    [Fact]
+    public void Handle_Should_CycleOrientation_When_CycleBoardOrientationIsHandled()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
+        var seen = new List<BoardOrientation>();
+
+        // act
+        for (var i = 0; i < 3; i++)
+        {
+            mode.Handle(new TuiMessage.CycleBoardOrientation());
+            seen.Add(mode.Orientation);
+        }
+
+        // assert
+        Assert.Equal([BoardOrientation.SideBySide, BoardOrientation.Stacked, BoardOrientation.Auto], seen);
+    }
+
+    [Fact]
+    public void Handle_Should_RaiseOrientationChanged_When_CycleBoardOrientationIsHandled()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView(), BoardOrientation.Stacked);
+        var raised = new List<BoardOrientation>();
+        mode.OrientationChanged += raised.Add;
+
+        // act
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+
+        // assert
+        Assert.Equal([BoardOrientation.Auto, BoardOrientation.SideBySide], raised);
+    }
+
+    [Fact]
+    public void KeyMap_Should_HintTheCurrentOrientation_When_OrientationChanges()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
+        var initial = mode.KeyMap!.Hints.ToList();
+
+        // act
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+
+        // assert
+        Assert.Equal([new KeyHint("o", "layout: auto")], initial);
+        Assert.Equal([new KeyHint("o", "layout: side by side")], mode.KeyMap!.Hints);
+    }
+
+    [Fact]
+    public void KeyMap_Should_ResolveO_ToCycleBoardOrientation()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
+
+        // act
+        var resolved = mode.KeyMap!.TryResolve(new KeyChord(ConsoleKey.O, ConsoleModifiers.None, 'o'), out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.CycleBoardOrientation>(message);
+    }
+
+    [Fact]
+    public void Render_Should_PlaceColumnsOnOneRow_When_SideBySideAtWidthWhereAutoStacks()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(30).Height(12);
+
+        // act
+        console.Write(mode.Render(30, 12));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1)────╮╭─Closed (1)──╮");
+    }
+
+    [Fact]
+    public void Render_Should_StackColumns_When_StackedAtWidthWhereAutoUsesGrid()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.Stacked);
+        mode.OnEnter();
+        var console = new TestConsole().Width(120).Height(30);
+
+        // act
+        console.Write(mode.Render(120, 30));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1)─────────────────────────────────────────────────────────────────────────────────────────────────────────────╮");
+    }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(3)]
+    public void Render_Should_NotThrow_When_SideBySideColumnsAreNarrow(int width)
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(width).Height(12);
+
+        // act
+        var exception = Record.Exception(() => console.Write(mode.Render(width, 12)));
+
+        // assert
+        Assert.Null(exception);
     }
 
     /// <summary>

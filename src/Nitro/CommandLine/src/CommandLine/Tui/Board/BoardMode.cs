@@ -36,16 +36,24 @@ internal sealed class BoardMode : ITuiMode
     private Viewport[] _viewports;
     private int _viewIndex;
     private bool _maximized;
+    private BoardOrientation _orientation;
+    private KeyMap _keyMap;
 
     /// <summary>
-    /// Creates a board using the first supplied view.
+    /// Creates a board using the first supplied view, starting in
+    /// <paramref name="orientation"/>.
     /// A null or empty view list selects <see cref="BoardView.Default"/>.
     /// </summary>
-    public BoardMode(BoardDataLoader loader, IReadOnlyList<BoardView>? views = null)
+    public BoardMode(
+        BoardDataLoader loader,
+        IReadOnlyList<BoardView>? views = null,
+        BoardOrientation orientation = BoardOrientation.Auto)
     {
         ArgumentNullException.ThrowIfNull(loader);
 
         _loader = loader;
+        _orientation = orientation;
+        _keyMap = CreateKeyMap(orientation);
         _views = views is { Count: > 0 } ? views : [BoardView.Default];
         _state = new BoardState(_views[0], _loader);
         _viewports = CreateViewports(_state.Columns.Count);
@@ -56,8 +64,25 @@ internal sealed class BoardMode : ITuiMode
     /// </summary>
     public BoardState State => _state;
 
-    /// <inheritdoc />
-    public KeyMap? KeyMap => null;
+    /// <summary>
+    /// The current column orientation.
+    /// </summary>
+    public BoardOrientation Orientation => _orientation;
+
+    /// <summary>
+    /// Raised with the new value after the user cycles the column orientation.
+    /// </summary>
+    public event Action<BoardOrientation>? OrientationChanged;
+
+    /// <summary>
+    /// Binds the orientation key with a hint naming the current orientation.
+    /// </summary>
+    public KeyMap? KeyMap => _keyMap;
+
+    /// <summary>
+    /// Hides the global orientation hint in favor of the one in <see cref="KeyMap"/>.
+    /// </summary>
+    public IReadOnlyCollection<KeyHint> SuppressedGlobalHints { get; } = [Input.KeyMap.BoardOrientationHint];
 
     /// <inheritdoc />
     public string? SelectedTaskId => FocusedColumn()?.SelectedTaskId;
@@ -103,6 +128,7 @@ internal sealed class BoardMode : ITuiMode
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CycleView(var delta) => CycleView(delta),
         TuiMessage.ToggleMaximize => ToggleMaximize(),
+        TuiMessage.CycleBoardOrientation => CycleOrientation(),
         // OpenSelected is handled by TuiShell before it reaches here: the shell switches to a
         // BoardDetailMode showing the selection.
         TuiMessage.CopySelectedId => CopySelectedId(),
@@ -125,7 +151,8 @@ internal sealed class BoardMode : ITuiMode
         }
 
         var focusedPosition = Math.Max(0, IndexOf(visibleIndices, _state.FocusedColumnIndex));
-        var decision = BoardLayout.Decide(width, height, visibleIndices.Count, focusedPosition, _maximized);
+        var decision = BoardLayout.Decide(
+            width, height, visibleIndices.Count, focusedPosition, _maximized, _orientation);
 
         return decision.Kind switch
         {
@@ -247,6 +274,17 @@ internal sealed class BoardMode : ITuiMode
         _maximized = !_maximized;
         return [];
     }
+
+    private IReadOnlyList<TuiMessage> CycleOrientation()
+    {
+        _orientation = _orientation.Next();
+        _keyMap = CreateKeyMap(_orientation);
+        OrientationChanged?.Invoke(_orientation);
+        return [];
+    }
+
+    private static KeyMap CreateKeyMap(BoardOrientation orientation)
+        => new([Input.KeyMap.CreateBoardOrientationBinding(new KeyHint("o", $"layout: {orientation.ToLabel()}"))]);
 
     private IReadOnlyList<TuiMessage> FocusColumn(int delta)
     {

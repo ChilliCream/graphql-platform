@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
@@ -31,6 +32,90 @@ public sealed class AgentTuiLauncherTests
         var console = new TestConsole().Width(width);
         console.Write(shell.Render());
         return console.Output;
+    }
+
+    private static Mock<IBoardPreferencesStore> CreateBoardPreferences(BoardOrientation saved)
+    {
+        var preferences = new Mock<IBoardPreferencesStore>();
+        preferences
+            .Setup(x => x.ReadOrientationAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(saved);
+        preferences
+            .Setup(x => x.WriteOrientationAsync(It.IsAny<BoardOrientation>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        return preferences;
+    }
+
+    [Fact]
+    public void BuildTabs_Should_StartTheBoardInTheGivenOrientation_When_AnOrientationIsGiven()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider(s_now);
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-orientation-tests");
+
+        try
+        {
+            var memoryStore = new MemoryStore(
+                new Agents.TestFileSystem(tempRoot.FullName), timeProvider, new AgentDatabase());
+
+            // act
+            var tabs = AgentTuiLauncher.BuildTabs(
+                new FakeTaskStore(),
+                new FakeMailStore(),
+                memoryStore,
+                new Tui.Agents.FakeAgentStore(timeProvider),
+                timeProvider,
+                CreateBoardPreferences(BoardOrientation.Auto).Object,
+                BoardOrientation.Stacked);
+
+            // assert
+            Assert.Equal(BoardOrientation.Stacked, Assert.IsType<BoardMode>(tabs[0].RootMode).Orientation);
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task BuildTabs_Should_SaveTheOrientation_When_TheBoardCyclesIt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var timeProvider = new FakeTimeProvider(s_now);
+        var saved = new TaskCompletionSource<BoardOrientation>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var preferences = new Mock<IBoardPreferencesStore>();
+        preferences
+            .Setup(x => x.WriteOrientationAsync(It.IsAny<BoardOrientation>(), It.IsAny<CancellationToken>()))
+            .Callback((BoardOrientation orientation, CancellationToken _) => saved.TrySetResult(orientation))
+            .ReturnsAsync(true);
+        var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-orientation-save-tests");
+
+        try
+        {
+            var memoryStore = new MemoryStore(
+                new Agents.TestFileSystem(tempRoot.FullName), timeProvider, new AgentDatabase());
+            var tabs = AgentTuiLauncher.BuildTabs(
+                new FakeTaskStore(),
+                new FakeMailStore(),
+                memoryStore,
+                new Tui.Agents.FakeAgentStore(timeProvider),
+                timeProvider,
+                preferences.Object,
+                BoardOrientation.Auto);
+
+            // act
+            tabs[0].RootMode.Handle(new TuiMessage.CycleBoardOrientation());
+            var written = await saved.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+
+            // assert
+            Assert.Equal(BoardOrientation.SideBySide, written);
+        }
+        finally
+        {
+            tempRoot.Delete(recursive: true);
+        }
     }
 
     [Fact]
@@ -74,7 +159,9 @@ public sealed class AgentTuiLauncherTests
                 mailStore,
                 memoryStore,
                 agentStore,
-                timeProvider);
+                timeProvider,
+                CreateBoardPreferences(BoardOrientation.Auto).Object,
+                BoardOrientation.Auto);
 
             var shell = new TuiShell(
                 tabs,
@@ -181,6 +268,7 @@ public sealed class AgentTuiLauncherTests
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,
                 coordinator.Object,
+                CreateBoardPreferences(BoardOrientation.Auto).Object,
                 runCts.Token);
 
             await Task.Delay(TimeSpan.FromMilliseconds(150), cancellationToken);
@@ -246,6 +334,7 @@ public sealed class AgentTuiLauncherTests
                 new FakeTimeProvider(s_now),
                 workspaceDirectory,
                 coordinator.Object,
+                CreateBoardPreferences(BoardOrientation.Auto).Object,
                 alreadyCancelled.Token).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
             // assert

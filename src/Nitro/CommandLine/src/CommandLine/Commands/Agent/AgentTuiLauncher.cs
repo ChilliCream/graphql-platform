@@ -1,7 +1,9 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
@@ -22,8 +24,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 internal static class AgentTuiLauncher
 {
     /// <summary>
-    /// Runs the TUI and owns its mail wake daemon. The board is an
-    /// observer: it takes no actor and refuses every write.
+    /// Runs the TUI and owns its mail wake daemon, keeping board preferences in the
+    /// current user's global configuration directory. The board is an observer: it
+    /// takes no actor and refuses every write.
     /// </summary>
     public static Task<int> RunAsync(
         INitroConsole console,
@@ -35,9 +38,30 @@ internal static class AgentTuiLauncher
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
         CancellationToken cancellationToken)
+        => RunAsync(
+            console, taskStore, mailStore, memoryStore, agentStore,
+            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator,
+            new BoardPreferencesStore(new FileSystem(), new GlobalConfigDirectoryProvider()),
+            cancellationToken);
+
+    /// <summary>
+    /// Runs the TUI the same way as the overload without board preferences, loading and saving
+    /// the board's column orientation through <paramref name="boardPreferences"/>.
+    /// </summary>
+    public static Task<int> RunAsync(
+        INitroConsole console,
+        ITaskStore taskStore,
+        IMailStore mailStore,
+        IMemoryStore memoryStore,
+        IAgentStore agentStore,
+        TimeProvider timeProvider,
+        string workspaceDirectory,
+        IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
+        IBoardPreferencesStore boardPreferences,
+        CancellationToken cancellationToken)
         => RunShellAsync(
             console, taskStore, mailStore, memoryStore, agentStore,
-            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator, cancellationToken);
+            timeProvider, workspaceDirectory, mailWakeDaemonCoordinator, boardPreferences, cancellationToken);
 
     private static async Task<int> RunShellAsync(
         INitroConsole console,
@@ -48,14 +72,18 @@ internal static class AgentTuiLauncher
         TimeProvider timeProvider,
         string workspaceDirectory,
         IMailWakeDaemonCoordinator mailWakeDaemonCoordinator,
+        IBoardPreferencesStore boardPreferences,
         CancellationToken cancellationToken)
     {
+        // The saved choice is a small local file, so it is read even when the run is already cancelled.
+        var orientation = await boardPreferences.ReadOrientationAsync(CancellationToken.None);
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
 
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        var tabs = BuildTabs(taskStore, mailStore, memoryStore, agentStore, timeProvider);
+        var tabs = BuildTabs(
+            taskStore, mailStore, memoryStore, agentStore, timeProvider, boardPreferences, orientation);
 
         var shell = new TuiShell(
             tabs,
@@ -93,17 +121,26 @@ internal static class AgentTuiLauncher
 
     /// <summary>
     /// Builds the Tasks, Mail, Agents, and Memory tabs in the order the
-    /// shell's tab strip renders them.
+    /// shell's tab strip renders them. The board starts in
+    /// <paramref name="boardOrientation"/> and saves each change through
+    /// <paramref name="boardPreferences"/>.
     /// </summary>
     internal static TuiTab[] BuildTabs(
         ITaskStore taskStore,
         IMailStore mailStore,
         IMemoryStore memoryStore,
         IAgentStore agentStore,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IBoardPreferencesStore boardPreferences,
+        BoardOrientation boardOrientation)
     {
         var loader = new BoardDataLoader(taskStore, timeProvider);
-        var boardMode = new BoardMode(loader);
+        var boardMode = new BoardMode(loader, orientation: boardOrientation);
+
+        // A failed save keeps the in-memory choice, and it never runs on the render loop.
+        boardMode.OrientationChanged += changed =>
+            _ = Task.Run(() => boardPreferences.WriteOrientationAsync(changed, CancellationToken.None));
+
         var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
         var mailTab = BuildMailTab(mailStore, agentStore, timeProvider);

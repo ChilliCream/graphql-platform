@@ -48,10 +48,15 @@ internal static class BoardLayout
     /// <paramref name="columnCount"/> columns, with
     /// <paramref name="focusedColumnIndex"/> focused and
     /// <paramref name="maximized"/> indicating whether the focused column's
-    /// maximize toggle is on.
+    /// maximize toggle is on. Maximize wins over <paramref name="orientation"/>.
     /// </summary>
     public static BoardLayoutDecision Decide(
-        int width, int height, int columnCount, int focusedColumnIndex, bool maximized)
+        int width,
+        int height,
+        int columnCount,
+        int focusedColumnIndex,
+        bool maximized,
+        BoardOrientation orientation)
     {
         width = Math.Max(0, width);
         height = Math.Max(0, height);
@@ -72,7 +77,14 @@ internal static class BoardLayout
             };
         }
 
-        if (width / columnCount < StackedWidthThreshold)
+        var stacked = orientation switch
+        {
+            BoardOrientation.SideBySide => false,
+            BoardOrientation.Stacked => true,
+            _ => width / columnCount < StackedWidthThreshold
+        };
+
+        if (stacked)
         {
             return new BoardLayoutDecision
             {

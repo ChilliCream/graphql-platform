@@ -63,6 +63,20 @@ internal sealed class KeyMap
         return false;
     }
 
+    /// <summary>
+    /// The footer hint of the global board orientation binding.
+    /// </summary>
+    public static KeyHint BoardOrientationHint { get; } = new("o", "layout");
+
+    /// <summary>
+    /// Creates the <c>o</c> binding that requests a board orientation cycle, labeled with
+    /// <paramref name="hint"/>.
+    /// </summary>
+    public static KeyBinding CreateBoardOrientationBinding(KeyHint hint) => new(
+        new KeyChord(ConsoleKey.O, ConsoleModifiers.None, 'o'),
+        () => new TuiMessage.CycleBoardOrientation(),
+        hint);
+
     private static bool IsPrintable(char keyChar) => keyChar is not '\0' && !char.IsControl(keyChar);
 
     /// <summary>
@@ -127,6 +141,7 @@ internal sealed class KeyMap
             new KeyChord(ConsoleKey.Z, ConsoleModifiers.None, 'z'),
             () => new TuiMessage.ToggleMaximize(),
             new KeyHint("z", "zoom")),
+        CreateBoardOrientationBinding(BoardOrientationHint),
         new KeyBinding(
             new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/'),
             () => new TuiMessage.FocusSearchRequested()),
