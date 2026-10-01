@@ -28,6 +28,7 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new ListAgentCommand());
         Subcommands.Add(new TakeoverAgentCommand());
         Subcommands.Add(new BackupAgentCommand());
+        Subcommands.Add(new RestoreAgentCommand());
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
 

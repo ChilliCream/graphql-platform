@@ -11,7 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// <c>manifest.json</c>, the project's <c>.nitro</c> directory under <c>repo/.nitro</c>, and
 /// the git workspace directory under <c>git/nitro</c>.
 /// </summary>
-internal static class AgentWorkspaceArchive
+internal static partial class AgentWorkspaceArchive
 {
     /// <summary>
     /// The archive format version written to the manifest.
@@ -24,6 +24,24 @@ internal static class AgentWorkspaceArchive
 
     private const string DatabaseWalFileName = AgentWorkspace.DatabaseFileName + "-wal";
     private const string DatabaseSharedMemoryFileName = AgentWorkspace.DatabaseFileName + "-shm";
+
+    /// <summary>
+    /// Resolves the project <c>.nitro</c> directory and the git workspace directory an archive
+    /// covers, whether or not they exist. Outside a git repository the git workspace directory
+    /// is null and the project directory belongs to the nearest workspace.
+    /// </summary>
+    public static (string ProjectDirectory, string? GitWorkspaceDirectory) ResolveDirectories(
+        IFileSystem fileSystem,
+        string currentDirectory)
+    {
+        var gitWorkspace = AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory);
+        var location = gitWorkspace
+            ?? AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
+
+        return (
+            Path.Combine(location.ProjectDirectory, AgentWorkspace.RootDirectoryName),
+            gitWorkspace?.WorkspaceDirectory);
+    }
 
     /// <summary>
     /// Writes the archive for the given directories, where a null directory is not backed up,

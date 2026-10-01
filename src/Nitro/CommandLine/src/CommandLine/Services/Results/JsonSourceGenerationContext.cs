@@ -88,6 +88,7 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(TakeoverAgentCommand.AgentTakeoverResult))]
 [JsonSerializable(typeof(AgentWorkspaceArchiveManifest))]
 [JsonSerializable(typeof(AgentWorkspaceArchiveSummary))]
+[JsonSerializable(typeof(AgentWorkspaceRestoreSummary))]
 [JsonSerializable(typeof(ListResult<TakeoverHistoryAgentCommand.AgentTakeoverHistoryResult>))]
 [JsonSerializable(typeof(TakeoverReferenceResult))]
 [JsonSerializable(typeof(MailMessageResult))]

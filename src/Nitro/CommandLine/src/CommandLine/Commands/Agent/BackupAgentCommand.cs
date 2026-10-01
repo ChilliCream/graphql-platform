@@ -74,19 +74,14 @@ internal sealed class BackupAgentCommand : Command
 
     /// <summary>
     /// Resolves the project <c>.nitro</c> directory and the git workspace directory to back
-    /// up, each null when it does not exist. Outside a git repository only the project
-    /// directory of the nearest workspace is considered.
+    /// up, each null when it does not exist.
     /// </summary>
     private static (string? ProjectDirectory, string? GitWorkspaceDirectory) ResolveDirectories(
         IFileSystem fileSystem,
         string currentDirectory)
     {
-        var gitWorkspace = AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory);
-        var location = gitWorkspace
-            ?? AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
-
-        var projectDirectory = Path.Combine(location.ProjectDirectory, AgentWorkspace.RootDirectoryName);
-        var gitWorkspaceDirectory = gitWorkspace?.WorkspaceDirectory;
+        var (projectDirectory, gitWorkspaceDirectory) =
+            AgentWorkspaceArchive.ResolveDirectories(fileSystem, currentDirectory);
 
         return (
             fileSystem.DirectoryExists(projectDirectory) ? projectDirectory : null,
