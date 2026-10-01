@@ -757,6 +757,7 @@ event: next
 data: {"data":{"onReviewAdded":{"body":"Works as described"}}}
 
 event: complete
+data:
 ```
 
 For details on defining subscriptions in a subgraph (the `[Subscribe]` and `[Topic]`

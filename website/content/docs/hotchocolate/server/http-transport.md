@@ -300,7 +300,7 @@ Results are delivered as SSE events. This transport works well with browser `Eve
 Accept: text/event-stream
 ```
 
-Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message with an empty `data:` field signals the end of the stream.
 
 ## JSON Lines (`application/jsonl`)
 
@@ -451,7 +451,7 @@ event: complete
 data:
 ```
 
-Each result is delivered as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+Each result is delivered as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message with an empty `data:` field signals the end of the stream.
 
 ## SSE for Single Results
 

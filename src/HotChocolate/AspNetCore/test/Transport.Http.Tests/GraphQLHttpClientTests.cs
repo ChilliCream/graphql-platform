@@ -1689,6 +1689,54 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_Complete_With_Empty_Data_Ends_Stream()
+    {
+        // arrange
+        // A complete event with an empty data field ends the stream before the next event.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":0}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write("data:");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":1}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(
+            operationRequest,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var numbers = new List<int>();
+
+        await foreach (var document in stream)
+        {
+            numbers.Add(document.Data.GetProperty("number").GetInt32());
+        }
+
+        Assert.Equal(0, Assert.Single(numbers));
+    }
+
+    [Fact]
     public async Task Post_Variables_Do_Not_Escape_Apostrophe_To_Unicode()
     {
         // arrange

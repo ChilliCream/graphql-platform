@@ -342,6 +342,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 :
 
                 event: complete
+                data:
 
 
                 """);
@@ -392,6 +393,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 :
 
                 event: complete
+                data:
 
 
                 """);
@@ -442,6 +444,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 :
 
                 event: complete
+                data:
 
 
                 """);

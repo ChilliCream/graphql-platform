@@ -236,6 +236,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 data: {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
 
                 event: complete
+                data:
 
 
                 """);
@@ -347,6 +348,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 data: {"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
 
                 event: complete
+                data:
 
 
                 """);
@@ -399,6 +401,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 data: {"incremental":[{"data":{"description":"Abc desc"},"path":["product"],"label":"productDescription"}],"hasNext":false}
 
                 event: complete
+                data:
 
 
                 """);
@@ -453,6 +456,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 data: {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
 
                 event: complete
+                data:
 
 
                 """);
@@ -507,6 +511,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 data: {"incremental":[{"id":"2","data":{"primaryFunction":"Astromech"}}],"completed":[{"id":"2"}],"hasNext":false}
 
                 event: complete
+                data:
 
 
                 """);

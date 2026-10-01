@@ -1619,3 +1619,14 @@ The default is **64**. Operations that arrive while the gate is full queue up an
 Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error. `ExecutionTimeout` is the single setting that controls cancellation for every execution.
 
 Subscriptions participate in the limit like any other operation. The initial subscribe consumes a slot while the subscribe resolver runs, and each emitted event consumes a slot while its result is being produced. Idle subscriptions (waiting on the next event) cost nothing. The slot is released between events.
+
+## SSE complete event carries an empty data field
+
+Hot Chocolate 16.0 through 16.6.7 ended every `text/event-stream` response with an `event: complete` message that had no `data:` field. The browser `EventSource` API does not dispatch such an event, so an `EventSource` client that did not close the connection itself reconnected when the response ended, and the server executed the operation again. The message now carries an empty `data:` field, and `EventSource` receives `complete`. This change lands in **16.6.8**.
+
+Tests that compare SSE response bodies as strings expect the extra line:
+
+```text
+event: complete
+data:
+```
