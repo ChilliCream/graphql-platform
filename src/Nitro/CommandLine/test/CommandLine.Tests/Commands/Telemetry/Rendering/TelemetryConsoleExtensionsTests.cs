@@ -9,21 +9,21 @@ using System.Text.Json.Serialization;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Rendering;
 
-public sealed class TelemetryListRendererTests
+public sealed class TelemetryConsoleExtensionsTests
 {
     [Fact]
-    public void Render_Should_WriteEnvelope_When_AgentModeIsEnabled()
+    public void WriteListEnvelope_Should_WriteEnvelope_When_AgentModeIsEnabled()
     {
         // arrange
         var (console, output, _) = CreateConsole(isAgentMode: true);
-        var renderer = new TelemetryListRenderer(console);
 
         // act
-        renderer.Render(
+        console.WriteListEnvelope(
             [new Sample("first", "First"), new Sample("second", "Second")],
             total: 3,
             hasMore: true,
-            TelemetryListRendererJsonContext.Default.Sample);
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
@@ -36,20 +36,20 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_Should_WriteEnvelope_When_OutputIsJson()
+    public void WriteListEnvelope_Should_WriteEnvelope_When_OutputIsJson()
     {
         // arrange
         var (console, output, _) = CreateConsole();
         console.SetOutputFormat(OutputFormat.Json);
-        var renderer = new TelemetryListRenderer(console);
         var item = new Sample("first", new string('a', 121));
 
         // act
-        renderer.Render(
+        console.WriteListEnvelope(
             [item],
             total: 1,
             hasMore: false,
-            TelemetryListRendererJsonContext.Default.Sample);
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null);
 
         // assert
         using var document = JsonDocument.Parse(output.ToString());
@@ -57,18 +57,18 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_Should_WriteEnvelope_When_InteractiveOutputHasMoreItems()
+    public void WriteListEnvelope_Should_WriteEnvelope_When_InteractiveOutputHasMoreItems()
     {
         // arrange
         var (console, output, _) = CreateConsole();
-        var renderer = new TelemetryListRenderer(console);
 
         // act
-        renderer.Render(
+        console.WriteListEnvelope(
             [new Sample("first", "First")],
             total: null,
             hasMore: true,
-            TelemetryListRendererJsonContext.Default.Sample);
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
@@ -80,18 +80,18 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_Should_WriteEmptyEnvelope_When_AgentModeHasNoItems()
+    public void WriteListEnvelope_Should_WriteEmptyEnvelope_When_AgentModeHasNoItems()
     {
         // arrange
         var (console, output, _) = CreateConsole(isAgentMode: true);
-        var renderer = new TelemetryListRenderer(console);
 
         // act
-        renderer.Render(
+        console.WriteListEnvelope(
             Array.Empty<Sample>(),
             total: 0,
             hasMore: false,
-            TelemetryListRendererJsonContext.Default.Sample);
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
@@ -101,18 +101,18 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_Should_WriteEmptyEnvelope_When_InteractiveModeHasNoItems()
+    public void WriteListEnvelope_Should_WriteEmptyEnvelope_When_InteractiveModeHasNoItems()
     {
         // arrange
         var (console, output, _) = CreateConsole();
-        var renderer = new TelemetryListRenderer(console);
 
         // act
-        renderer.Render(
+        console.WriteListEnvelope(
             Array.Empty<Sample>(),
             total: 0,
             hasMore: false,
-            TelemetryListRendererJsonContext.Default.Sample);
+            TelemetryConsoleExtensionsJsonContext.Default.Sample,
+            emptyResultHint: null);
 
         // assert
         output.ToString().TrimEnd().MatchInlineSnapshot(
@@ -165,5 +165,5 @@ public sealed class TelemetryListRendererTests
 }
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, WriteIndented = true)]
-[JsonSerializable(typeof(TelemetryListRendererTests.Sample))]
-internal partial class TelemetryListRendererJsonContext : JsonSerializerContext;
+[JsonSerializable(typeof(TelemetryConsoleExtensionsTests.Sample))]
+internal partial class TelemetryConsoleExtensionsJsonContext : JsonSerializerContext;

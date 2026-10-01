@@ -161,7 +161,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
             filter: Unexpected character '!' at column 8
             status:!
                    ^
-            hint: status:error http.status_code:>=500; -service.version:"1.0.0" duration:>=1000; @event.exception.type:"TimeoutError"
+            hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`
             """);
     }
 

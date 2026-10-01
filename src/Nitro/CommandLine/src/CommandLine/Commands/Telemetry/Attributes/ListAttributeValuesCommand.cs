@@ -63,12 +63,12 @@ internal sealed class ListAttributeValuesCommand : Command
             cancellationToken);
 
         var items = page.Items.Select(AttributeValueListItem.From).ToArray();
-        var renderer = new TelemetryListRenderer(console);
-        renderer.Render(
+        console.WriteListEnvelope(
             items,
             total: null,
             page.HasNextPage,
-            AttributeValueListJsonContext.Default.AttributeValueListItem);
+            AttributeValueListJsonContext.Default.AttributeValueListItem,
+            emptyResultHint: null);
 
         return ExitCodes.Success;
     }

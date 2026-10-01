@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client.Telemetry;
@@ -43,7 +42,7 @@ internal sealed class ShowTraceCommand : Command
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
-        if (!TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
+        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
             return ExitCodes.Error;
         }
@@ -91,29 +90,6 @@ internal sealed class ShowTraceCommand : Command
         return ExitCodes.Success;
     }
 
-    private static bool TryGetWorkspaceId(
-        INitroConsole console,
-        ParseResult parseResult,
-        ISessionService sessionService,
-        out string workspaceId)
-    {
-        try
-        {
-            parseResult.AssertHasAuthentication(sessionService);
-            workspaceId = parseResult.GetWorkspaceId(sessionService);
-            return true;
-        }
-        catch (ExitException exception)
-        {
-            workspaceId = string.Empty;
-            var hint = sessionService.Session is null
-                ? "run `nitro login`."
-                : "run `nitro workspace set-default`.";
-            TelemetryErrorRenderer.Render(console, exception.Message, hint);
-            return false;
-        }
-    }
-
     private static string? GetSeeker(ParseResult parseResult)
     {
         if (parseResult.GetResult(Opt<TraceSeekerOption>.Instance) is { Implicit: false })
@@ -145,7 +121,7 @@ internal sealed class ShowTraceCommand : Command
             var errorCount = trace.Spans.Count(SpanSelection.IsError);
             console.WriteRawLine(
                 $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
-                + $"total {FormatDuration(trace.TotalDuration)} ms");
+                + $"total {SpanTreeRenderer.FormatDuration(trace.TotalDuration)} ms");
         }
 
         if (selection.Count < returnedSpanCount)
@@ -173,8 +149,8 @@ internal sealed class ShowTraceCommand : Command
             {
                 console.WriteRawLine(
                     $"  {Truncate(operation.Name)}: {operation.Count} spans, "
-                    + $"avg {FormatDuration(operation.AverageDurationMs)} ms, "
-                    + $"p95 {FormatDuration(operation.P95DurationMs)} ms");
+                    + $"avg {SpanTreeRenderer.FormatDuration(operation.AverageDurationMs)} ms, "
+                    + $"p95 {SpanTreeRenderer.FormatDuration(operation.P95DurationMs)} ms");
             }
         }
     }
@@ -190,9 +166,6 @@ internal sealed class ShowTraceCommand : Command
         var index = (int)Math.Ceiling(sorted.Length * percentile) - 1;
         return sorted[Math.Clamp(index, 0, sorted.Length - 1)];
     }
-
-    private static string FormatDuration(double duration)
-        => duration.ToString("0.###", CultureInfo.InvariantCulture);
 
     private static string Truncate(string value)
         => value.Length <= 120

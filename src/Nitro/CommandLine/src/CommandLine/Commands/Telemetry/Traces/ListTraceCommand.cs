@@ -57,11 +57,14 @@ internal sealed class ListTraceCommand : Command
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
         var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
-        if (!TryCompileFilter(
+        if (!TelemetryListFilter.TryCompile(
             console,
+            TelemetryFilterSignal.Traces,
             filterText,
             parseResult.GetValue(Opt<TelemetryHasErrorOption>.Instance),
             parseResult.GetValue(Opt<TelemetryMinDurationOption>.Instance),
+            severity: null,
+            traceId: null,
             search,
             service,
             out var filter,
@@ -94,18 +97,18 @@ internal sealed class ListTraceCommand : Command
             .OrderByDescending(static trace => trace.Start)
             .Select(TraceListItem.From)
             .ToArray();
-        var emptyResultHint = await GetEmptyResultHintAsync(
+        var emptyResultHint = await TelemetryListFilter.GetEmptyResultHintAsync(
             client,
             workspaceId,
-            items,
+            TelemetryFilterSignal.Traces,
+            items.Length,
             filterText,
             search,
             parsedFilter,
             since,
             until,
             cancellationToken);
-        var renderer = new TelemetryListRenderer(console);
-        renderer.Render(
+        console.WriteListEnvelope(
             items,
             total: null,
             page.HasNextPage,
@@ -113,94 +116,6 @@ internal sealed class ListTraceCommand : Command
             emptyResultHint);
 
         return ExitCodes.Success;
-    }
-
-    private static async Task<string?> GetEmptyResultHintAsync(
-        ITelemetryClient client,
-        string workspaceId,
-        IReadOnlyList<TraceListItem> items,
-        string? filterText,
-        string? search,
-        FilterNode? parsedFilter,
-        DateTimeOffset? since,
-        DateTimeOffset? until,
-        CancellationToken cancellationToken)
-    {
-        if (items.Count != 0
-            || (string.IsNullOrWhiteSpace(filterText) && string.IsNullOrWhiteSpace(search)))
-        {
-            return null;
-        }
-
-        try
-        {
-            var attributeKeys = await client.ListAttributeKeysAsync(
-                workspaceId,
-                OpenTelemetrySignalKind.Traces,
-                kinds: null,
-                search: null,
-                since,
-                until,
-                first: 50,
-                after: null,
-                cancellationToken);
-            return KeySuggestions.CreateHint(parsedFilter, attributeKeys.Items, OpenTelemetrySignalKind.Traces);
-        }
-        catch (Exception) when (!cancellationToken.IsCancellationRequested)
-        {
-            return null;
-        }
-    }
-
-    private static bool TryCompileFilter(
-        INitroConsole console,
-        string? filterText,
-        bool hasError,
-        int? minDurationMs,
-        string? search,
-        string? service,
-        out OpenTelemetryFilterInput? filter,
-        out FilterNode? parsedFilter)
-    {
-        try
-        {
-            filter = FilterFlags.Compile(
-                filterText,
-                TelemetryFilterSignal.Traces,
-                hasError,
-                minDurationMs,
-                severity: null,
-                traceId: null,
-                search,
-                service,
-                out parsedFilter);
-            return true;
-        }
-        catch (FilterParseException exception)
-        {
-            RenderFilterParseError(console, filterText!, exception);
-            filter = null;
-            parsedFilter = null;
-            return false;
-        }
-    }
-
-    private static void RenderFilterParseError(
-        INitroConsole console,
-        string filter,
-        FilterParseException exception)
-    {
-        console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
-        console.Error.WriteLine();
-        console.Error.Write(new Text(filter));
-        console.Error.WriteLine();
-        console.Error.Write(new Text($"{new string(' ', exception.Column - 1)}^"));
-        console.Error.WriteLine();
-        console.Error.Write(
-            new Text(
-                "hint: examples: `status:error`, `duration:>=100`, "
-                + "or `@resource.service.name:checkout`"));
-        console.Error.WriteLine();
     }
 
     private static OpenTelemetrySpanKind MapSpanKind(TelemetrySpanKind spanKind)

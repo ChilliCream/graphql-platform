@@ -210,7 +210,7 @@ internal sealed class SpanTreeRenderer
             .Replace('\r', '\n')
             .Replace("\n", "\\n", StringComparison.Ordinal);
 
-    private static string FormatDuration(double value)
+    internal static string FormatDuration(double value)
         => value.ToString("0.###", CultureInfo.InvariantCulture);
 
     private static string Truncate(string? value)

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
@@ -54,10 +53,13 @@ internal sealed class ListLogsCommand : Command
         var severity = parseResult.GetValue(Opt<TelemetrySeverityOption>.Instance);
         var traceId = parseResult.GetValue(Opt<TelemetryTraceIdOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
-        if (!TryCompileFilter(
+        if (!TelemetryListFilter.TryCompile(
             console,
+            TelemetryFilterSignal.Logs,
             filterText,
-            severity,
+            hasError: false,
+            minDurationMs: null,
+            severity?.ToString(),
             traceId,
             search,
             service,
@@ -85,18 +87,18 @@ internal sealed class ListLogsCommand : Command
             .OrderByDescending(static log => log.Start)
             .Select(LogListItem.From)
             .ToArray();
-        var emptyResultHint = await GetEmptyResultHintAsync(
+        var emptyResultHint = await TelemetryListFilter.GetEmptyResultHintAsync(
             client,
             workspaceId,
-            items,
+            TelemetryFilterSignal.Logs,
+            items.Length,
             filterText,
             search,
             parsedFilter,
             since,
             until,
             cancellationToken);
-        var renderer = new TelemetryListRenderer(console);
-        renderer.Render(
+        console.WriteListEnvelope(
             items,
             total: null,
             page.HasNextPage,
@@ -104,94 +106,6 @@ internal sealed class ListLogsCommand : Command
             emptyResultHint);
 
         return ExitCodes.Success;
-    }
-
-    private static async Task<string?> GetEmptyResultHintAsync(
-        ITelemetryClient client,
-        string workspaceId,
-        IReadOnlyList<LogListItem> items,
-        string? filterText,
-        string? search,
-        FilterNode? parsedFilter,
-        DateTimeOffset? since,
-        DateTimeOffset? until,
-        CancellationToken cancellationToken)
-    {
-        if (items.Count != 0
-            || (string.IsNullOrWhiteSpace(filterText) && string.IsNullOrWhiteSpace(search)))
-        {
-            return null;
-        }
-
-        try
-        {
-            var attributeKeys = await client.ListAttributeKeysAsync(
-                workspaceId,
-                OpenTelemetrySignalKind.Logs,
-                kinds: null,
-                search: null,
-                since,
-                until,
-                first: 50,
-                after: null,
-                cancellationToken);
-            return KeySuggestions.CreateHint(parsedFilter, attributeKeys.Items, OpenTelemetrySignalKind.Logs);
-        }
-        catch (Exception) when (!cancellationToken.IsCancellationRequested)
-        {
-            return null;
-        }
-    }
-
-    private static bool TryCompileFilter(
-        INitroConsole console,
-        string? filterText,
-        TelemetrySeverity? severity,
-        string? traceId,
-        string? search,
-        string? service,
-        out OpenTelemetryFilterInput? filter,
-        out FilterNode? parsedFilter)
-    {
-        try
-        {
-            filter = FilterFlags.Compile(
-                filterText,
-                TelemetryFilterSignal.Logs,
-                hasError: false,
-                minDurationMs: null,
-                severity?.ToString(),
-                traceId,
-                search,
-                service,
-                out parsedFilter);
-            return true;
-        }
-        catch (FilterParseException exception)
-        {
-            RenderFilterParseError(console, filterText!, exception);
-            filter = null;
-            parsedFilter = null;
-            return false;
-        }
-    }
-
-    private static void RenderFilterParseError(
-        INitroConsole console,
-        string filter,
-        FilterParseException exception)
-    {
-        console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
-        console.Error.WriteLine();
-        console.Error.Write(new Text(filter));
-        console.Error.WriteLine();
-        console.Error.Write(new Text($"{new string(' ', exception.Column - 1)}^"));
-        console.Error.WriteLine();
-        console.Error.Write(
-            new Text(
-                "hint: examples: `severity:error`, `@resource.service.name:checkout`, "
-                + "or `exception.type:TimeoutException`"));
-        console.Error.WriteLine();
     }
 
     internal sealed record LogListItem(

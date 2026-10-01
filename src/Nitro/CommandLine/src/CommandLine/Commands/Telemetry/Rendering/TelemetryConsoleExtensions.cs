@@ -5,19 +5,13 @@ using HotChocolate.Buffers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 
-internal sealed class TelemetryListRenderer(INitroConsole console)
+internal static class TelemetryConsoleExtensions
 {
     private const string NarrowingHint = "narrow with --since, --service or --filter, or raise --limit";
     private static readonly JsonWriterOptions s_jsonWriterOptions = new() { Indented = false };
 
-    public void Render<TItem>(
-        IReadOnlyList<TItem> items,
-        int? total,
-        bool hasMore,
-        JsonTypeInfo<TItem> jsonTypeInfo)
-        => Render(items, total, hasMore, jsonTypeInfo, emptyResultHint: null);
-
-    public void Render<TItem>(
+    public static void WriteListEnvelope<TItem>(
+        this INitroConsole console,
         IReadOnlyList<TItem> items,
         int? total,
         bool hasMore,
@@ -28,30 +22,6 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
             ? emptyResultHint
             : CreateHint(items.Count, total, hasMore);
 
-        RenderJsonEnvelope(items, total, hasMore, hint, jsonTypeInfo);
-    }
-
-    private static string? CreateHint(int returned, int? total, bool hasMore)
-    {
-        if (!hasMore)
-        {
-            return null;
-        }
-
-        var shown = total is { } value
-            ? $"showing {returned} of {value} (more)"
-            : $"showing {returned} (more)";
-
-        return $"{shown}, {NarrowingHint}";
-    }
-
-    private void RenderJsonEnvelope<TItem>(
-        IReadOnlyList<TItem> items,
-        int? total,
-        bool hasMore,
-        string? hint,
-        JsonTypeInfo<TItem> jsonTypeInfo)
-    {
         var output = new StringBuilder();
 
         if (items.Count == 0)
@@ -105,6 +75,20 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
 
         output.Append('}');
         console.WriteRawLine(output.ToString());
+    }
+
+    private static string? CreateHint(int returned, int? total, bool hasMore)
+    {
+        if (!hasMore)
+        {
+            return null;
+        }
+
+        var shown = total is { } value
+            ? $"showing {returned} of {value} (more)"
+            : $"showing {returned} (more)";
+
+        return $"{shown}, {NarrowingHint}";
     }
 
     private static string Serialize<TItem>(TItem item, JsonTypeInfo<TItem> jsonTypeInfo)

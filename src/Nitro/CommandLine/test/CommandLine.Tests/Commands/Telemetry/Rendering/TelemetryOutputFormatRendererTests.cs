@@ -16,7 +16,6 @@ public sealed class TelemetryOutputFormatRendererTests
     {
         // arrange
         var (console, output) = CreateConsole();
-        var renderer = new TelemetryListRenderer(console);
         var outputFormat = new OptionalOutputFormatOption();
         var command = new Command("telemetry");
         OutputFormat? receivedOutputFormat = null;
@@ -25,11 +24,12 @@ public sealed class TelemetryOutputFormatRendererTests
         {
             receivedOutputFormat = parseResult.GetValue(outputFormat);
             console.SetOutputFormat(receivedOutputFormat!.Value);
-            renderer.Render(
+            console.WriteListEnvelope(
                 [new Sample("first", "First")],
                 total: 1,
                 hasMore: false,
-                TelemetryOutputFormatRendererJsonContext.Default.Sample);
+                TelemetryOutputFormatRendererJsonContext.Default.Sample,
+                emptyResultHint: null);
 
             return Task.FromResult(ExitCodes.Success);
         });

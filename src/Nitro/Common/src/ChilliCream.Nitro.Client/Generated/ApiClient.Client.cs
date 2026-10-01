@@ -198055,7 +198055,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ListTraceCommandQueryQueryDocument Instance { get; } = new ListTraceCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ListTraceCommandQuery($workspaceId: ID!, $filter: OpenTelemetryFilterInput, $environments: [String!], $spanKinds: [OpenTelemetrySpanKind!], $from: DateTime, $to: DateTime, $first: Int, $after: String) { workspaceById(workspaceId: $workspaceId) { __typename spans(filter: $filter, environments: $environments, spanKinds: $spanKinds, from: $from, to: $to, first: $first, after: $after) { __typename edges { __typename cursor node { __typename traceId spanId seeker spanName spanKind duration epoch statusCode resourceAttributes { __typename key value } } } pageInfo { __typename ...PageInfo } } } } fragment PageInfo on PageInfo { hasPreviousPage hasNextPage endCursor startCursor }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "f79284c44a5e990a9ef315ca92ff612a");
 
         public override global::System.String ToString()
@@ -198214,7 +198214,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ListTraceCommandQueryQueryDocument.Instance.Hash.Value, name: "ListTraceCommandQuery", document: ListTraceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ListTraceCommandQueryQueryDocument.Instance.Hash.Value, name: "ListTraceCommandQuery", document: ListTraceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -198534,7 +198534,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ShowTraceCommandQueryQueryDocument Instance { get; } = new ShowTraceCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ShowTraceCommandQuery($workspaceId: ID!, $traceId: String!, $spanId: String, $seeker: String) { workspaceById(workspaceId: $workspaceId) { __typename traceById(traceId: $traceId, spanId: $spanId, seeker: $seeker) { __typename spanCount spansTruncated totalDuration spans { __typename ...ShowTraceCommand_Span } } } } fragment ShowTraceCommand_Span on OpenTelemetrySpan { spanId parentSpanId spanName spanKind duration epoch statusCode statusMessage resourceAttributes { __typename key value } spanAttributes { __typename key value } events { __typename name epoch attributes { __typename key value } } ... on OpenTelemetryHttpClientSpan { http { __typename flavor method scheme statusCode url userAgent } } ... on OpenTelemetryHttpServerSpan { http { __typename flavor method scheme statusCode url userAgent } } ... on OpenTelemetryDbSpan { db { __typename connectionString instance name operation statement system url user } } ... on OpenTelemetryGraphQLOperationSpan { document { __typename body id } operation { __typename hash kind name } } ... on OpenTelemetryGraphQLResolverSpan { selection { __typename field { __typename coordinate declaringType name } name path type } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "0500b65a8a532dcc2229331f32a5a216");
 
         public override global::System.String ToString()
@@ -198734,7 +198734,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ShowTraceCommandQueryQueryDocument.Instance.Hash.Value, name: "ShowTraceCommandQuery", document: ShowTraceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ShowTraceCommandQueryQueryDocument.Instance.Hash.Value, name: "ShowTraceCommandQuery", document: ShowTraceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -198984,7 +198984,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ListLogCommandQueryQueryDocument Instance { get; } = new ListLogCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ListLogCommandQuery($workspaceId: ID!, $filter: OpenTelemetryFilterInput, $environments: [String!], $from: DateTime, $to: DateTime, $first: Int, $after: String) { workspaceById(workspaceId: $workspaceId) { __typename logs(filter: $filter, environments: $environments, from: $from, to: $to, first: $first, after: $after) { __typename edges { __typename cursor node { __typename id epoch severityText severityNumber body traceId spanId resourceAttributes { __typename key value } } } pageInfo { __typename ...PageInfo } } } } fragment PageInfo on PageInfo { hasPreviousPage hasNextPage endCursor startCursor }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "d04d17acff82de195eab983956eed49f");
 
         public override global::System.String ToString()
@@ -199136,7 +199136,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ListLogCommandQueryQueryDocument.Instance.Hash.Value, name: "ListLogCommandQuery", document: ListLogCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ListLogCommandQueryQueryDocument.Instance.Hash.Value, name: "ListLogCommandQuery", document: ListLogCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -199378,7 +199378,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ShowLogCommandQueryQueryDocument Instance { get; } = new ShowLogCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ShowLogCommandQuery($workspaceId: ID!, $id: String!) { workspaceById(workspaceId: $workspaceId) { __typename logById(id: $id) { __typename id epoch severityText severityNumber body traceId spanId bodyDetail { __typename json kind message } logAttributes { __typename ...ShowLogCommand_OpenTelemetryAttribute } resourceAttributes { __typename key value } scope { __typename name schemaUrl version attributes { __typename ...ShowLogCommand_OpenTelemetryAttribute } } } } } fragment ShowLogCommand_OpenTelemetryAttribute on OpenTelemetryAttribute { key ... on OpenTelemetryBoolAttribute { boolean: value } ... on OpenTelemetryFloatAttribute { float: value } ... on OpenTelemetryLongAttribute { long: value } ... on OpenTelemetryStringAttribute { string: value } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "a907dfeb5062aacfdb64023888e69957");
 
         public override global::System.String ToString()
@@ -199519,7 +199519,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ShowLogCommandQueryQueryDocument.Instance.Hash.Value, name: "ShowLogCommandQuery", document: ShowLogCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ShowLogCommandQueryQueryDocument.Instance.Hash.Value, name: "ShowLogCommandQuery", document: ShowLogCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -199685,7 +199685,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ListServiceCommandQueryQueryDocument Instance { get; } = new ListServiceCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ListServiceCommandQuery($workspaceId: ID!, $search: String, $filter: OpenTelemetryFilterInput, $environments: [String!], $from: DateTime!, $to: DateTime!, $first: Int, $after: String) { workspaceById(workspaceId: $workspaceId) { __typename services(search: $search, filter: $filter, environments: $environments, from: $from, to: $to, first: $first, after: $after) { __typename edges { __typename cursor node { __typename name environmentNames versionMarkers(environments: $environments, from: $from, to: $to) { __typename firstSeenAt version } } } pageInfo { __typename ...PageInfo } } } } fragment PageInfo on PageInfo { hasPreviousPage hasNextPage endCursor startCursor }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "ca4ed76bde284cd8c8af2ada9018af38");
 
         public override global::System.String ToString()
@@ -199835,7 +199835,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ListServiceCommandQueryQueryDocument.Instance.Hash.Value, name: "ListServiceCommandQuery", document: ListServiceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ListServiceCommandQueryQueryDocument.Instance.Hash.Value, name: "ListServiceCommandQuery", document: ListServiceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -200037,7 +200037,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ShowServiceCommandQueryQueryDocument Instance { get; } = new ShowServiceCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ShowServiceCommandQuery($workspaceId: ID!, $name: String!, $environments: [String!], $from: DateTime!, $to: DateTime!) { workspaceById(workspaceId: $workspaceId) { __typename service(name: $name, from: $from, to: $to) { __typename name environmentNames versionMarkers(environments: $environments, from: $from, to: $to) { __typename firstSeenAt version } } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "ba0efafc96ff62abdfded59c3d8e062b");
 
         public override global::System.String ToString()
@@ -200149,7 +200149,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ShowServiceCommandQueryQueryDocument.Instance.Hash.Value, name: "ShowServiceCommandQuery", document: ShowServiceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ShowServiceCommandQueryQueryDocument.Instance.Hash.Value, name: "ShowServiceCommandQuery", document: ShowServiceCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -200308,7 +200308,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ListAttributeKeyCommandQueryQueryDocument Instance { get; } = new ListAttributeKeyCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ListAttributeKeyCommandQuery($workspaceId: ID!, $signal: OpenTelemetrySignalKind!, $kinds: [OpenTelemetryAttributeKind!], $search: String, $from: DateTime, $to: DateTime, $first: Int, $after: String) { workspaceById(workspaceId: $workspaceId) { __typename attributeKeys(signal: $signal, kinds: $kinds, search: $search, from: $from, to: $to, first: $first, after: $after) { __typename edges { __typename cursor node { __typename kind path } } pageInfo { __typename ...PageInfo } } } } fragment PageInfo on PageInfo { hasPreviousPage hasNextPage endCursor startCursor }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "516e061f87d61b768826d43e7feb9e7f");
 
         public override global::System.String ToString()
@@ -200456,7 +200456,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ListAttributeKeyCommandQueryQueryDocument.Instance.Hash.Value, name: "ListAttributeKeyCommandQuery", document: ListAttributeKeyCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ListAttributeKeyCommandQueryQueryDocument.Instance.Hash.Value, name: "ListAttributeKeyCommandQuery", document: ListAttributeKeyCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
@@ -200683,7 +200683,7 @@ namespace ChilliCream.Nitro.Client
 
         public static ListAttributeValueCommandQueryQueryDocument Instance { get; } = new ListAttributeValueCommandQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query ListAttributeValueCommandQuery($workspaceId: ID!, $signal: OpenTelemetrySignalKind!, $key: String!, $kind: OpenTelemetryAttributeKind, $search: String, $from: DateTime, $to: DateTime, $first: Int, $after: String) { workspaceById(workspaceId: $workspaceId) { __typename attributeValues(signal: $signal, key: $key, kind: $kind, search: $search, from: $from, to: $to, first: $first, after: $after) { __typename edges { __typename cursor node { __typename boolean float int string } } pageInfo { __typename ...PageInfo } } } } fragment PageInfo on PageInfo { hasPreviousPage hasNextPage endCursor startCursor }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "433605f918a39f6ded1f839dbe430adf");
 
         public override global::System.String ToString()
@@ -200836,7 +200836,7 @@ namespace ChilliCream.Nitro.Client
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-            return new global::StrawberryShake.OperationRequest(id: ListAttributeValueCommandQueryQueryDocument.Instance.Hash.Value, name: "ListAttributeValueCommandQuery", document: ListAttributeValueCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.PersistedOperation, variables: variables);
+            return new global::StrawberryShake.OperationRequest(id: ListAttributeValueCommandQueryQueryDocument.Instance.Hash.Value, name: "ListAttributeValueCommandQuery", document: ListAttributeValueCommandQueryQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatWorkspaceId(global::System.String value)
