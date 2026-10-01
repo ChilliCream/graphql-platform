@@ -37,6 +37,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
               list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -69,6 +70,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
               list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -104,6 +106,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
               list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -139,6 +142,7 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
               list      Lists the agents in the workspace.
               takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }

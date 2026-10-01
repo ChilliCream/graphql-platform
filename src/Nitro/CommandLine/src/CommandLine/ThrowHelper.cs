@@ -45,4 +45,18 @@ internal static class ThrowHelper
 
         return Exit($"No recipients left: {string.Join(", ", reasons)}.");
     }
+
+    public static ExitException NoAgentWorkspaceToBackUp()
+        => Exit(
+            "No agent workspace found to back up. Neither a '.nitro' directory nor a "
+            + "'.git/nitro' directory exists.");
+
+    public static ExitException ArchiveAlreadyExists(string archivePath)
+        => Exit($"The archive '{archivePath}' already exists. Use --force to overwrite it.");
+
+    public static ExitException ArchivePathIsDirectory(string archivePath)
+        => Exit($"The archive path '{archivePath}' is a directory.");
+
+    public static ExitException ArchiveInsideBackedUpDirectory(string archivePath, string directory)
+        => Exit($"The archive '{archivePath}' is inside '{directory}', which is part of the backup.");
 }
