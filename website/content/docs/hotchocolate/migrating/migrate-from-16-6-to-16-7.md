@@ -245,6 +245,26 @@ A request whose `variables` field is an empty array is refused before execution 
 
 These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
 
+## Response format selection follows quality values
+
+The response format is selected by the quality values in the `Accept` header, which 16.6 ignored. The server writes the result in the acceptable format with the highest quality, and never in a media type rated `q=0`, even when a wildcard in the same header covers it. A single result is written as `multipart/mixed` or `text/event-stream` only when the header names that media type or its `multipart/*` or `text/*` range, see [Response Formats and Content Negotiation](../server/http-transport.md#response-formats-and-content-negotiation). The change applies under every transport version, `Legacy` included.
+
+These headers get a different response:
+
+| `Accept` header                                                    | Result                                | 16.6                                | 16.7                |
+| ------------------------------------------------------------------ | ------------------------------------- | ----------------------------------- | ------------------- |
+| `application/json;q=0.5, multipart/mixed`                          | Single result                         | `application/json`                  | `multipart/mixed`   |
+| `text/*`                                                           | Single result, `@defer`, or `@stream` | `406`                               | `text/event-stream` |
+| `application/graphql-response+json;q=0, application/json;q=0, */*` | Single result                         | `application/graphql-response+json` | `406`               |
+| `application/graphql-response+json;q=0, application/json;q=0, */*` | `@defer` or `@stream`                 | `text/event-stream`                 | `multipart/mixed`   |
+| `multipart/mixed, text/event-stream`                               | `@defer` or `@stream`                 | `text/event-stream`                 | `multipart/mixed`   |
+
+When a header names `multipart/mixed` and `text/event-stream` at the same quality, in either order, a `@defer` or `@stream` result is written as `multipart/mixed`.
+
+A `406` has no `Content-Type` and no body when the header also rejects the format the error would be written in, which is `application/graphql-response+json`, or `application/json` under the `Legacy` transport version. 16.6 answered `Accept: text/plain` with an `application/graphql-response+json` error body; 16.7 sends the status alone.
+
+A client that relies on the 16.6 format keeps it by rating that format highest in its `Accept` header.
+
 # Noteworthy changes
 
 ## New cost options
