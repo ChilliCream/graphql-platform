@@ -180,7 +180,7 @@ public sealed class ShowTraceCommandTests
     }
 
     [Fact]
-    public async Task Execute_Should_ReportOverviewDisplayCap()
+    public async Task Execute_Should_RenderEverySpan_When_TraceContainsManyRoots()
     {
         // arrange
         var spans = Enumerable.Range(0, 120)
@@ -192,11 +192,14 @@ public sealed class ShowTraceCommandTests
         var result = await ExecuteAsync(client);
 
         // assert
-        Assert.Contains("shows 96 of 120 spans", result.StdOut, StringComparison.Ordinal);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(spans.Select(static span => span.SpanId), GetRenderedSpanIds(result.StdOut));
+        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
+            "trace trace-id: 120 spans (0 errors), total 120 ms");
     }
 
     [Fact]
-    public async Task Execute_Should_ReportFocusedDisplayCapForReturnedSubtree()
+    public async Task Execute_Should_RenderEntireSubtree_When_SubtreeContainsManySpans()
     {
         // arrange
         var spans = new List<TraceSpan> { CreateSpan("focus") };
@@ -215,7 +218,54 @@ public sealed class ShowTraceCommandTests
         var result = await ExecuteAsync(client, commandArguments: ["--span", "focus"]);
 
         // assert
-        Assert.Contains("shows 40 of 50 spans", result.StdOut, StringComparison.Ordinal);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(
+            new[] { "focus", "child-0", "leaf-0", "leaf-extra" }
+                .Concat(Enumerable.Range(1, 23).SelectMany(i => new[] { $"child-{i}", $"leaf-{i}" })),
+            GetRenderedSpanIds(result.StdOut));
+        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
+            "trace trace-id: 51 spans (0 errors), total 51 ms");
+    }
+
+    [Fact]
+    public async Task Execute_Should_RenderEveryChild_When_ParentHasManyChildren()
+    {
+        // arrange
+        var spans = new[] { CreateSpan("root") }
+            .Concat(Enumerable.Range(0, 120).Select(i => CreateSpan($"child-{i}", "root")))
+            .ToArray();
+        var client = CreateClient(new Trace(spans.Length, false, spans.Length, spans));
+
+        // act
+        var result = await ExecuteAsync(client);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(spans.Select(static span => span.SpanId), GetRenderedSpanIds(result.StdOut));
+        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
+            "trace trace-id: 121 spans (0 errors), total 121 ms");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Execute_Should_RenderEveryDescendant_When_TraceIsDeep(bool focused)
+    {
+        // arrange
+        var spans = Enumerable.Range(0, 128)
+            .Select(i => CreateSpan($"span-{i}", i == 0 ? "" : $"span-{i - 1}"))
+            .ToArray();
+        var client = CreateClient(new Trace(spans.Length, false, spans.Length, spans));
+        var arguments = focused ? new[] { "--span", "span-0" } : [];
+
+        // act
+        var result = await ExecuteAsync(client, commandArguments: arguments);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(spans.Select(static span => span.SpanId), GetRenderedSpanIds(result.StdOut));
+        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
+            "trace trace-id: 128 spans (0 errors), total 128 ms");
     }
 
     [Fact]
@@ -233,6 +283,11 @@ public sealed class ShowTraceCommandTests
             + "duration unknown (server-capped)",
             result.StdOut.Split(Environment.NewLine)[0]);
     }
+
+    private static IEnumerable<string> GetRenderedSpanIds(string output)
+        => output.Split(Environment.NewLine)
+            .Skip(1)
+            .Select(static line => line[(line.LastIndexOf(" · ", StringComparison.Ordinal) + 3)..^1]);
 
     private static Mock<ITelemetryClient> CreateClient(Trace? trace)
     {

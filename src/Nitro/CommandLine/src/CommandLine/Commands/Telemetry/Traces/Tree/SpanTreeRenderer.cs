@@ -5,72 +5,77 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces.Tree;
 
 internal sealed class SpanTreeRenderer
 {
-    private const int MaximumValueLength = 120;
-
-    public string Render(SpanSelectionResult selection)
+    public string Render(SpanTree tree, string? spanId)
     {
-        if (selection.Spans.Count == 0)
+        IReadOnlyList<SpanTreeNode> roots;
+        if (spanId is null)
+        {
+            roots = tree.Roots;
+        }
+        else if (tree.Find(spanId) is { } root)
+        {
+            roots = [root];
+        }
+        else
         {
             return string.Empty;
         }
 
-        var selected = selection.Spans.ToDictionary(static item => item.Node);
-        var roots = selection.Spans
-            .Where(item => item.Node.Parent is not { } parent || !selected.ContainsKey(parent))
-            .OrderBy(static item => item.SelectionIndex)
-            .ToArray();
+        var visited = new HashSet<SpanTreeNode>(ReferenceEqualityComparer.Instance);
         var lines = new List<string>();
+        RenderNodes(roots, visited, lines);
 
-        for (var i = 0; i < roots.Length; i++)
+        if (spanId is null)
         {
-            RenderNode(
-                roots[i],
-                selected,
-                parentPrefix: string.Empty,
-                isRoot: roots.Length == 1,
-                isLast: i == roots.Length - 1,
-                lines);
+            foreach (var node in tree.Nodes)
+            {
+                if (!visited.Contains(node))
+                {
+                    RenderNodes([node], visited, lines);
+                }
+            }
         }
 
         return string.Join(Environment.NewLine, lines);
     }
 
-    private static void RenderNode(
-        SpanSelectionEntry entry,
-        IReadOnlyDictionary<SpanTreeNode, SpanSelectionEntry> selected,
-        string parentPrefix,
-        bool isRoot,
-        bool isLast,
+    private static void RenderNodes(
+        IReadOnlyList<SpanTreeNode> roots,
+        HashSet<SpanTreeNode> visited,
         List<string> lines)
     {
-        var linePrefix = isRoot
-            ? string.Empty
-            : parentPrefix + (isLast ? "└─ " : "├─ ");
-        lines.Add(linePrefix + FormatSpan(entry.Node.Span));
-
-        var exceptionPrefix = isRoot
-            ? "  "
-            : parentPrefix + (isLast ? "   " : "│  ");
-        RenderExceptions(entry.Node.Span, exceptionPrefix, lines);
-
-        var childPrefix = isRoot
-            ? string.Empty
-            : parentPrefix + (isLast ? "   " : "│  ");
-        var children = entry.Node.Children
-            .Where(selected.ContainsKey)
-            .Select(child => selected[child])
-            .OrderBy(static child => child.SelectionIndex)
-            .ToArray();
-
-        for (var i = 0; i < children.Length; i++)
+        var pending = new Stack<(SpanTreeNode Node, string ParentPrefix, bool IsRoot, bool IsLast)>();
+        for (var i = roots.Count - 1; i >= 0; i--)
         {
-            RenderNode(
-                children[i],
-                selected,
-                childPrefix,
-                isRoot: false,
-                isLast: i == children.Length - 1,
-                lines);
+            pending.Push((roots[i], string.Empty, roots.Count == 1, i == roots.Count - 1));
+        }
+
+        while (pending.TryPop(out var entry))
+        {
+            if (!visited.Add(entry.Node))
+            {
+                continue;
+            }
+
+            var linePrefix = entry.IsRoot
+                ? string.Empty
+                : entry.ParentPrefix + (entry.IsLast ? "└─ " : "├─ ");
+            lines.Add(linePrefix + FormatSpan(entry.Node.Span));
+
+            var exceptionPrefix = entry.IsRoot
+                ? "  "
+                : entry.ParentPrefix + (entry.IsLast ? "   " : "│  ");
+            RenderExceptions(entry.Node.Span, exceptionPrefix, lines);
+
+            var childPrefix = entry.IsRoot
+                ? string.Empty
+                : entry.ParentPrefix + (entry.IsLast ? "   " : "│  ");
+            var children = entry.Node.Children.Where(child => !visited.Contains(child)).ToArray();
+
+            for (var i = children.Length - 1; i >= 0; i--)
+            {
+                pending.Push((children[i], childPrefix, false, i == children.Length - 1));
+            }
         }
     }
 
@@ -81,12 +86,12 @@ internal sealed class SpanTreeRenderer
         var duration = $"{FormatDuration(span.DurationMs)}ms";
         var parts = new List<string>
         {
-            Truncate(operation),
-            Truncate(service),
+            NormalizeLine(operation),
+            NormalizeLine(service),
             duration
         };
 
-        if (SpanSelection.IsError(span))
+        if (IsError(span))
         {
             parts.Add("ERROR");
         }
@@ -96,7 +101,7 @@ internal sealed class SpanTreeRenderer
         var lineNumber = GetAttribute(span.SpanAttributes, "code.lineno");
         if (function is not null)
         {
-            parts.Add(Truncate(function));
+            parts.Add(NormalizeLine(function));
         }
 
         if (filePath is not null)
@@ -104,11 +109,11 @@ internal sealed class SpanTreeRenderer
             var source = lineNumber is null
                 ? filePath
                 : $"{filePath}:{lineNumber}";
-            parts.Add(Truncate(source));
+            parts.Add(NormalizeLine(source));
         }
 
-        parts.Add(Truncate(span.SpanId));
-        return $"{Truncate(span.SpanName)} [{string.Join(" · ", parts)}]";
+        parts.Add(NormalizeLine(span.SpanId));
+        return $"{NormalizeLine(span.SpanName)} [{string.Join(" · ", parts)}]";
     }
 
     private static string GetOperationLabel(TraceSpan span)
@@ -213,13 +218,8 @@ internal sealed class SpanTreeRenderer
     internal static string FormatDuration(double value)
         => value.ToString("0.###", CultureInfo.InvariantCulture);
 
-    private static string Truncate(string? value)
-    {
-        if (string.IsNullOrEmpty(value) || value.Length <= MaximumValueLength)
-        {
-            return NormalizeLine(value ?? string.Empty);
-        }
-
-        return NormalizeLine(string.Concat(value.AsSpan(0, MaximumValueLength - 1), "…"));
-    }
+    internal static bool IsError(TraceSpan span)
+        => span.StatusCode.Contains("ERROR", StringComparison.OrdinalIgnoreCase)
+            || span.Events.Any(static traceEvent =>
+                traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase));
 }

@@ -73,12 +73,8 @@ internal sealed class ShowTraceCommand : Command
         }
 
         var tree = SpanTreeBuilder.Build(trace.Spans);
-        var selection = spanId is null
-            ? SpanSelection.SelectOverview(tree)
-            : SpanSelection.SelectFocused(tree, spanId);
-
-        RenderSummary(console, traceId, trace, selection);
-        var renderedTree = new SpanTreeRenderer().Render(selection);
+        RenderSummary(console, traceId, trace);
+        var renderedTree = new SpanTreeRenderer().Render(tree, spanId);
         if (renderedTree.Length > 0)
         {
             foreach (var line in renderedTree.Split(Environment.NewLine, StringSplitOptions.None))
@@ -103,10 +99,9 @@ internal sealed class ShowTraceCommand : Command
     private static void RenderSummary(
         INitroConsole console,
         string traceId,
-        Trace trace,
-        SpanSelectionResult selection)
+        Trace trace)
     {
-        var returnedSpanCount = selection.TotalSpanCount;
+        var returnedSpanCount = trace.Spans.Count;
         if (trace.SpansTruncated)
         {
             var totalSpanCount = trace.SpanCount is { } count
@@ -118,15 +113,10 @@ internal sealed class ShowTraceCommand : Command
         }
         else
         {
-            var errorCount = trace.Spans.Count(SpanSelection.IsError);
+            var errorCount = trace.Spans.Count(SpanTreeRenderer.IsError);
             console.WriteRawLine(
                 $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
                 + $"total {SpanTreeRenderer.FormatDuration(trace.TotalDuration)} ms");
-        }
-
-        if (selection.Count < returnedSpanCount)
-        {
-            console.WriteRawLine($"shows {selection.Count} of {returnedSpanCount} spans");
         }
 
         var operations = trace.Spans
@@ -148,7 +138,7 @@ internal sealed class ShowTraceCommand : Command
             foreach (var operation in operations)
             {
                 console.WriteRawLine(
-                    $"  {Truncate(operation.Name)}: {operation.Count} spans, "
+                    $"  {operation.Name}: {operation.Count} spans, "
                     + $"avg {SpanTreeRenderer.FormatDuration(operation.AverageDurationMs)} ms, "
                     + $"p95 {SpanTreeRenderer.FormatDuration(operation.P95DurationMs)} ms");
             }
@@ -166,11 +156,6 @@ internal sealed class ShowTraceCommand : Command
         var index = (int)Math.Ceiling(sorted.Length * percentile) - 1;
         return sorted[Math.Clamp(index, 0, sorted.Length - 1)];
     }
-
-    private static string Truncate(string value)
-        => value.Length <= 120
-            ? value
-            : string.Concat(value.AsSpan(0, 119), "…");
 
     private sealed record OperationSummary(
         string Name,
