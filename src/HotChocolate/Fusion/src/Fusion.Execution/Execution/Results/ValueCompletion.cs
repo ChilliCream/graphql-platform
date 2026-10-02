@@ -871,6 +871,17 @@ internal sealed class ValueCompletion
             return true;
         }
 
+        // An error on a field that still has a value is forwarded without nulling the value.
+        if (errorTrie?.Error is { } fieldError)
+        {
+            var errorWithPath = ErrorBuilder.FromError(fieldError)
+                .SetPath(target.Path)
+                .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
+
+            _store.AddError(errorWithPath);
+        }
+
         switch (selection.UnwrappedKind)
         {
             case TypeKind.List:
@@ -1014,6 +1025,19 @@ internal sealed class ValueCompletion
             var elementValueKind = elementSnapshot.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
+                // The element might have been nulled due to a down-stream null propagation,
+                // so an error below it is forwarded on the element.
+                if (errorTrieForIndex is { Error: null }
+                    && errorTrieForIndex.FindFirstError() is { } errorFromPath)
+                {
+                    var errorWithPath = ErrorBuilder.FromError(errorFromPath)
+                        .SetPath(target.CompactPath.ToPath(target.Operation, i))
+                        .Build();
+                    errorWithPath = _errorHandler.Handle(errorWithPath);
+
+                    _store.AddError(errorWithPath);
+                }
+
                 if (isNonNull && _propagateNullValues)
                 {
                     return false;

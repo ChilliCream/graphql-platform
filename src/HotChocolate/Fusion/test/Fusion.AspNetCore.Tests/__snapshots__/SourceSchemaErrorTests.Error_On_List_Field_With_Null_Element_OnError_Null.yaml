@@ -1,0 +1,112 @@
+title: Error_On_List_Field_With_Null_Element
+request:
+  onError: Null
+  document: |
+    {
+      job {
+        items {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "job": {
+          "items": [
+            null
+          ]
+        }
+      },
+      "errors": [
+        {
+          "message": "Could not resolve Job.items",
+          "path": [
+            "job",
+            "items"
+          ],
+          "extensions": {
+            "code": "NOT_FOUND"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        job: Job!
+      }
+
+      type Item {
+        name: String!
+      }
+
+      type Job {
+        items: [Item]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_deadf20a_1 {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Job.items",
+                    "path": [
+                      "job",
+                      "items"
+                    ],
+                    "extensions": {
+                      "code": "NOT_FOUND"
+                    }
+                  }
+                ],
+                "data": {
+                  "job": {
+                    "items": [
+                      null
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          job {
+            items {
+              name
+            }
+          }
+        }
+      hash: 88db52e8ab1dfecd0de99cb4a094158b
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_deadf20a_1 {
+          job {
+            items {
+              name
+            }
+          }
+        }
