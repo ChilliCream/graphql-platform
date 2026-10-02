@@ -77,7 +77,7 @@ internal sealed class ListServicesCommand : Command
             cancellationToken);
 
         var items = page.Items.Select(ServiceListItem.From).ToArray();
-        var emptyResultHint = await TelemetryListFilter.GetEmptyResultHintAsync(
+        var emptyResultHint = await TelemetryListFilter.CreateEmptyResultHintAsync(
             client,
             workspaceId,
             TelemetryFilterSignal.Traces,

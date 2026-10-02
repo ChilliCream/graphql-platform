@@ -315,7 +315,7 @@ public sealed class FilterCompilerTests
     public void FreeText_Should_WrapTheSearchInWildcards_When_Called(string text, string expected)
     {
         // act
-        var result = FilterCompiler.FreeText(text, "log.message");
+        var result = FilterCompiler.CreateFreeTextFilter(text, "log.message");
 
         // assert
         Assert.Equal(expected, Describe(result));

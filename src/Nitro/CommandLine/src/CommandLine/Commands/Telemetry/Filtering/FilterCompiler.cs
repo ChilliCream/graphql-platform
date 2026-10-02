@@ -7,11 +7,16 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class FilterCompiler
 {
-    public static OpenTelemetryFilterInput? Compile(string? filter, string freeTextKey, TelemetryFilterSignal signal)
+    public static OpenTelemetryFilterInput? Compile(
+        string? filterText,
+        string freeTextKey,
+        TelemetryFilterSignal signal)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(freeTextKey);
 
-        return string.IsNullOrWhiteSpace(filter) ? null : Compile(FilterParser.Parse(filter, signal), freeTextKey);
+        return string.IsNullOrWhiteSpace(filterText)
+            ? null
+            : Compile(FilterParser.Parse(filterText, signal), freeTextKey);
     }
 
     public static OpenTelemetryFilterInput? Compile(FilterNode? node, string freeTextKey)
@@ -30,10 +35,14 @@ internal static class FilterCompiler
         };
     }
 
-    internal static OpenTelemetryFilterInput FreeText(string text, string freeTextKey)
-        => Attribute(freeTextKey, new OpenTelemetryAttributeConditionInput { Matches = ContainsPattern(text) });
+    internal static OpenTelemetryFilterInput CreateFreeTextFilter(string text, string freeTextKey)
+        => CreateAttributeFilter(
+            freeTextKey,
+            new OpenTelemetryAttributeConditionInput { Matches = CreateContainsPattern(text) });
 
-    internal static OpenTelemetryFilterInput Attribute(string field, OpenTelemetryAttributeConditionInput condition)
+    internal static OpenTelemetryFilterInput CreateAttributeFilter(
+        string field,
+        OpenTelemetryAttributeConditionInput condition)
     {
         var (key, kind) = SplitScope(field);
         var predicate = new OpenTelemetryAttributePredicateInput { Key = key, Condition = condition };
@@ -87,7 +96,7 @@ internal static class FilterCompiler
     {
         if (node.Child is FilterPredicateNode { Operator: FilterComparisonOperator.Exists } predicate)
         {
-            return Attribute(predicate.Field, new OpenTelemetryAttributeConditionInput { Exists = false });
+            return CreateAttributeFilter(predicate.Field, new OpenTelemetryAttributeConditionInput { Exists = false });
         }
 
         var child = Compile(node.Child, freeTextKey);
@@ -95,7 +104,7 @@ internal static class FilterCompiler
     }
 
     private static OpenTelemetryFilterInput? Compile(FilterTermNode node, string freeTextKey)
-        => node.Text.Length == 0 ? null : FreeText(node.Text, freeTextKey);
+        => node.Text.Length == 0 ? null : CreateFreeTextFilter(node.Text, freeTextKey);
 
     private static OpenTelemetryFilterInput Compile(FilterPredicateNode node)
     {
@@ -105,8 +114,12 @@ internal static class FilterCompiler
             {
                 And =
                 [
-                    Attribute(node.Field, new OpenTelemetryAttributeConditionInput { Gte = Scalar(node.Values[0]) }),
-                    Attribute(node.Field, new OpenTelemetryAttributeConditionInput { Lte = Scalar(node.Values[1]) })
+                    CreateAttributeFilter(
+                        node.Field,
+                        new OpenTelemetryAttributeConditionInput { Gte = CreateScalar(node.Values[0]) }),
+                    CreateAttributeFilter(
+                        node.Field,
+                        new OpenTelemetryAttributeConditionInput { Lte = CreateScalar(node.Values[1]) })
                 ]
             };
         }
@@ -116,7 +129,7 @@ internal static class FilterCompiler
             return CompileSet(node);
         }
 
-        return Attribute(node.Field, Condition(node.Operator, node.Values));
+        return CreateAttributeFilter(node.Field, CreateCondition(node.Operator, node.Values));
     }
 
     private static OpenTelemetryFilterInput[] CompileChildren(IReadOnlyList<FilterNode> children, string freeTextKey)
@@ -127,9 +140,9 @@ internal static class FilterCompiler
         var patterns = node.Values.Where(static value => value.HasWildcard).ToArray();
         if (patterns.Length == 0)
         {
-            return Attribute(
+            return CreateAttributeFilter(
                 node.Field,
-                new OpenTelemetryAttributeConditionInput { In = node.Values.Select(Scalar).ToArray() });
+                new OpenTelemetryAttributeConditionInput { In = node.Values.Select(CreateScalar).ToArray() });
         }
 
         var branches = new List<OpenTelemetryFilterInput>();
@@ -137,20 +150,20 @@ internal static class FilterCompiler
         if (literals.Length > 0)
         {
             branches.Add(
-                Attribute(
+                CreateAttributeFilter(
                     node.Field,
-                    new OpenTelemetryAttributeConditionInput { In = literals.Select(Scalar).ToArray() }));
+                    new OpenTelemetryAttributeConditionInput { In = literals.Select(CreateScalar).ToArray() }));
         }
 
         branches.AddRange(
             patterns.Select(value =>
-                Attribute(node.Field, new OpenTelemetryAttributeConditionInput { Matches = value.Text })
+                CreateAttributeFilter(node.Field, new OpenTelemetryAttributeConditionInput { Matches = value.Text })
             ));
 
         return branches.Count == 1 ? branches[0] : new OpenTelemetryFilterInput { Or = branches };
     }
 
-    private static OpenTelemetryAttributeConditionInput Condition(
+    private static OpenTelemetryAttributeConditionInput CreateCondition(
         FilterComparisonOperator comparison,
         ImmutableArray<FilterValue> values)
     {
@@ -161,23 +174,26 @@ internal static class FilterCompiler
             {
                 Matches = value.Text
             },
-            FilterComparisonOperator.Equal => new OpenTelemetryAttributeConditionInput { Eq = Scalar(value) },
-            FilterComparisonOperator.GreaterThan => new OpenTelemetryAttributeConditionInput { Gt = Scalar(value) },
+            FilterComparisonOperator.Equal => new OpenTelemetryAttributeConditionInput { Eq = CreateScalar(value) },
+            FilterComparisonOperator.GreaterThan => new OpenTelemetryAttributeConditionInput
+            {
+                Gt = CreateScalar(value)
+            },
             FilterComparisonOperator.GreaterThanOrEqual => new OpenTelemetryAttributeConditionInput
             {
-                Gte = Scalar(value)
+                Gte = CreateScalar(value)
             },
-            FilterComparisonOperator.LessThan => new OpenTelemetryAttributeConditionInput { Lt = Scalar(value) },
+            FilterComparisonOperator.LessThan => new OpenTelemetryAttributeConditionInput { Lt = CreateScalar(value) },
             FilterComparisonOperator.LessThanOrEqual => new OpenTelemetryAttributeConditionInput
             {
-                Lte = Scalar(value)
+                Lte = CreateScalar(value)
             },
             FilterComparisonOperator.Exists => new OpenTelemetryAttributeConditionInput { Exists = true },
             _ => throw ThrowHelper.UnsupportedFilterComparisonOperator(comparison)
         };
     }
 
-    private static OpenTelemetryAttributeValueInput Scalar(FilterValue value)
+    private static OpenTelemetryAttributeValueInput CreateScalar(FilterValue value)
     {
         return value.Kind switch
         {
@@ -200,7 +216,7 @@ internal static class FilterCompiler
         };
     }
 
-    private static string ContainsPattern(string text)
+    private static string CreateContainsPattern(string text)
     {
         var start = text.StartsWith('*') ? string.Empty : "*";
         var end = text.Length > 1 && text.EndsWith('*') ? string.Empty : "*";

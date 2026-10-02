@@ -86,7 +86,7 @@ internal sealed class ListLogsCommand : Command
             .OrderByDescending(static log => log.Start)
             .Select(LogListItem.From)
             .ToArray();
-        var emptyResultHint = await TelemetryListFilter.GetEmptyResultHintAsync(
+        var emptyResultHint = await TelemetryListFilter.CreateEmptyResultHintAsync(
             client,
             workspaceId,
             TelemetryFilterSignal.Logs,

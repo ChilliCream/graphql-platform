@@ -87,7 +87,7 @@ internal sealed class ListTraceCommand : Command
             .OrderByDescending(static trace => trace.Start)
             .Select(TraceListItem.From)
             .ToArray();
-        var emptyResultHint = await TelemetryListFilter.GetEmptyResultHintAsync(
+        var emptyResultHint = await TelemetryListFilter.CreateEmptyResultHintAsync(
             client,
             workspaceId,
             TelemetryFilterSignal.Traces,

@@ -24,29 +24,29 @@ internal static class FilterLexer
             switch (character)
             {
                 case '(':
-                    tokens.Add(Token(FilterTokenKind.LeftParenthesis, input, position, position + 1));
+                    tokens.Add(CreateToken(FilterTokenKind.LeftParenthesis, input, position, position + 1));
                     position++;
                     continue;
                 case ')':
-                    tokens.Add(Token(FilterTokenKind.RightParenthesis, input, position, position + 1));
+                    tokens.Add(CreateToken(FilterTokenKind.RightParenthesis, input, position, position + 1));
                     position++;
                     continue;
                 case ',':
-                    tokens.Add(Token(FilterTokenKind.Comma, input, position, position + 1));
+                    tokens.Add(CreateToken(FilterTokenKind.Comma, input, position, position + 1));
                     position++;
                     continue;
                 case ':':
-                    tokens.Add(Token(FilterTokenKind.Colon, input, position, position + 1));
+                    tokens.Add(CreateToken(FilterTokenKind.Colon, input, position, position + 1));
                     position++;
                     continue;
                 case '-':
-                    tokens.Add(Token(FilterTokenKind.Minus, input, position, position + 1));
+                    tokens.Add(CreateToken(FilterTokenKind.Minus, input, position, position + 1));
                     position++;
                     continue;
                 case '*':
                     if (!IsWordContinue(input, position + 1))
                     {
-                        tokens.Add(Token(FilterTokenKind.Star, input, position, position + 1));
+                        tokens.Add(CreateToken(FilterTokenKind.Star, input, position, position + 1));
                         position++;
                         continue;
                     }
@@ -55,12 +55,12 @@ internal static class FilterLexer
                 case '>':
                     if (position + 1 < input.Length && input[position + 1] == '=')
                     {
-                        tokens.Add(Token(FilterTokenKind.GreaterThanOrEqual, input, position, position + 2));
+                        tokens.Add(CreateToken(FilterTokenKind.GreaterThanOrEqual, input, position, position + 2));
                         position += 2;
                     }
                     else
                     {
-                        tokens.Add(Token(FilterTokenKind.GreaterThan, input, position, position + 1));
+                        tokens.Add(CreateToken(FilterTokenKind.GreaterThan, input, position, position + 1));
                         position++;
                     }
 
@@ -68,12 +68,12 @@ internal static class FilterLexer
                 case '<':
                     if (position + 1 < input.Length && input[position + 1] == '=')
                     {
-                        tokens.Add(Token(FilterTokenKind.LessThanOrEqual, input, position, position + 2));
+                        tokens.Add(CreateToken(FilterTokenKind.LessThanOrEqual, input, position, position + 2));
                         position += 2;
                     }
                     else
                     {
-                        tokens.Add(Token(FilterTokenKind.LessThan, input, position, position + 1));
+                        tokens.Add(CreateToken(FilterTokenKind.LessThan, input, position, position + 1));
                         position++;
                     }
 
@@ -145,7 +145,7 @@ internal static class FilterLexer
             var character = input[position];
             if (character == '\\')
             {
-                CheckWildcardRun(ref wildcardRunLength, ref repeatedWildcardStart, wildcardRunStart);
+                EndWildcardRun(ref wildcardRunLength, ref repeatedWildcardStart, wildcardRunStart);
                 hadEscape = true;
                 if (position + 1 < input.Length)
                 {
@@ -173,14 +173,14 @@ internal static class FilterLexer
             }
             else
             {
-                CheckWildcardRun(ref wildcardRunLength, ref repeatedWildcardStart, wildcardRunStart);
+                EndWildcardRun(ref wildcardRunLength, ref repeatedWildcardStart, wildcardRunStart);
             }
 
             value.Append(character);
             position++;
         }
 
-        CheckWildcardRun(ref wildcardRunLength, ref repeatedWildcardStart, wildcardRunStart);
+        EndWildcardRun(ref wildcardRunLength, ref repeatedWildcardStart, wildcardRunStart);
         if (repeatedWildcardStart >= 0)
         {
             var isExists =
@@ -206,7 +206,7 @@ internal static class FilterLexer
         static bool tokensAfterColon(string source, int tokenStart) => tokenStart > 0 && source[tokenStart - 1] == ':';
     }
 
-    private static void CheckWildcardRun(ref int length, ref int repeatedStart, int runStart)
+    private static void EndWildcardRun(ref int length, ref int repeatedStart, int runStart)
     {
         if (length > 1 && repeatedStart < 0)
         {
@@ -216,7 +216,7 @@ internal static class FilterLexer
         length = 0;
     }
 
-    private static FilterToken Token(FilterTokenKind kind, string input, int start, int end)
+    private static FilterToken CreateToken(FilterTokenKind kind, string input, int start, int end)
         => new(kind, input[start..end], input[start..end], start, end);
 
     private static FilterTokenKind ClassifyWord(string text, string input, int position)

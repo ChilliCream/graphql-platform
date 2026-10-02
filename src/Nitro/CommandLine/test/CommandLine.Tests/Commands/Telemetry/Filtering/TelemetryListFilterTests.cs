@@ -6,7 +6,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 
-public sealed class FilterFlagsTests
+public sealed class TelemetryListFilterTests
 {
     private static readonly JsonSerializerOptions s_serializerOptions = new()
     {
@@ -41,7 +41,7 @@ public sealed class FilterFlagsTests
         string expected)
     {
         // act
-        var result = FilterFlags.Compile(
+        var result = TelemetryListFilter.Compile(
             filter,
             signal,
             hasError,
@@ -70,7 +70,7 @@ public sealed class FilterFlagsTests
         string expected)
     {
         // act
-        var result = FilterFlags.Compile(
+        var result = TelemetryListFilter.Compile(
             filter,
             signal,
             hasError,
@@ -88,7 +88,7 @@ public sealed class FilterFlagsTests
     public void Compile_Should_AndEveryConvenienceFlagAroundTheParsedTree_When_FlagsAreProvided()
     {
         // act
-        var result = FilterFlags.Compile(
+        var result = TelemetryListFilter.Compile(
             "http.status_code:>=500",
             TelemetryFilterSignal.Logs,
             hasError: true,
@@ -189,7 +189,7 @@ public sealed class FilterFlagsTests
     public void Compile_Should_ReturnTheParsedFilter_When_FilterIsProvided()
     {
         // act
-        _ = FilterFlags.Compile(
+        _ = TelemetryListFilter.Compile(
             "http.statuscode:>=500",
             TelemetryFilterSignal.Traces,
             hasError: false,
@@ -212,7 +212,7 @@ public sealed class FilterFlagsTests
     public void Compile_Should_ReturnNoParsedFilter_When_TheFilterIsNullOrWhitespace(string? filter)
     {
         // act
-        var result = FilterFlags.Compile(
+        var result = TelemetryListFilter.Compile(
             filter,
             TelemetryFilterSignal.Traces,
             hasError: false,
@@ -232,7 +232,7 @@ public sealed class FilterFlagsTests
     public void Compile_Should_Throw_When_TheSeverityIsUnsupported()
     {
         // act
-        var error = Assert.Throws<ArgumentOutOfRangeException>(() => FilterFlags.Compile(
+        var error = Assert.Throws<ArgumentOutOfRangeException>(() => TelemetryListFilter.Compile(
             null,
             TelemetryFilterSignal.Logs,
             hasError: false,
@@ -260,7 +260,7 @@ public sealed class FilterFlagsTests
         string expected)
     {
         // act
-        var result = FilterFlags.Compile(
+        var result = TelemetryListFilter.Compile(
             null,
             TelemetryFilterSignal.Logs,
             hasError: false,
@@ -286,7 +286,7 @@ public sealed class FilterFlagsTests
         int expectedCount)
     {
         // act
-        var result = FilterFlags.Compile(
+        var result = TelemetryListFilter.Compile(
             null,
             TelemetryFilterSignal.Logs,
             hasError: false,

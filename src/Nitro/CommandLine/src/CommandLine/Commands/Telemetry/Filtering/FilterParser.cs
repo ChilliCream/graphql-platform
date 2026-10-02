@@ -209,7 +209,7 @@ internal static class FilterParser
                 var open = Expect(FilterTokenKind.LeftParenthesis, "Expected '(' after 'IN'");
                 var values = ParseSetValues(FilterTokenKind.Comma);
                 ExpectClosing(open);
-                CheckInValues(values);
+                ValidateInValues(values);
                 return new FilterPredicateNode(
                     field.Value,
                     FilterComparisonOperator.In,
@@ -250,7 +250,7 @@ internal static class FilterParser
                 var open = Advance();
                 var values = ParseSetValues(FilterTokenKind.Or);
                 ExpectClosing(open);
-                CheckInValues(values);
+                ValidateInValues(values);
                 return new FilterPredicateNode(
                     field.Value,
                     FilterComparisonOperator.In,
@@ -309,7 +309,7 @@ internal static class FilterParser
         {
             if (Peek().Kind == FilterTokenKind.Minus)
             {
-                return SignedValue(Advance());
+                return ParseSignedValue(Advance());
             }
 
             var token = Peek();
@@ -328,7 +328,7 @@ internal static class FilterParser
                 token.End);
         }
 
-        private FilterValue SignedValue(FilterToken sign)
+        private FilterValue ParseSignedValue(FilterToken sign)
         {
             var run = new List<FilterToken>();
             var end = sign.End;
@@ -370,7 +370,7 @@ internal static class FilterParser
             return after.Kind != FilterTokenKind.Colon || after.Start != token.End;
         }
 
-        private void CheckInValues(ImmutableArray<FilterValue> values)
+        private void ValidateInValues(ImmutableArray<FilterValue> values)
         {
             if (values.Length > 100)
             {
