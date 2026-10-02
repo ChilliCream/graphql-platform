@@ -7,18 +7,17 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class KeySuggestions
 {
-    private static readonly FrozenSet<string> s_virtualFields =
-        new[]
-        {
-            "status",
-            "severity",
-            "duration",
-            "span.name",
-            "log.message",
-            "trace.id",
-            "span.id",
-            "span.kind"
-        }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    private static readonly FrozenSet<string> s_virtualFields = new[]
+    {
+        "status",
+        "severity",
+        "duration",
+        "span.name",
+        "log.message",
+        "trace.id",
+        "span.id",
+        "span.kind"
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static string? CreateHint(
         FilterNode? filter,
@@ -36,7 +35,8 @@ internal static class KeySuggestions
             .Select(static field => (field.Key, Candidates: FindCandidates(field.Key, field.KnownKeys)))
             .Where(static suggestion => suggestion.Candidates.Length > 0)
             .Select(static suggestion =>
-                $"unknown key '{suggestion.Key}', did you mean {string.Join(", ", suggestion.Candidates)}?")
+                $"unknown key '{suggestion.Key}', did you mean {string.Join(", ", suggestion.Candidates)}?"
+            )
             .ToArray();
 
         if (suggestions.Length == 0)
@@ -88,25 +88,18 @@ internal static class KeySuggestions
         }
     }
 
-    private static string[] GetPaths(
-        IReadOnlyList<AttributeKeyRow> attributeKeys,
-        OpenTelemetryAttributeKind? kind)
+    private static string[] GetPaths(IReadOnlyList<AttributeKeyRow> attributeKeys, OpenTelemetryAttributeKind? kind)
         => attributeKeys
-            .Where(key => kind is null
-                || string.Equals(key.Kind, kind.Value.ToString(), StringComparison.OrdinalIgnoreCase))
+            .Where(key =>
+                kind is null || string.Equals(key.Kind, kind.Value.ToString(), StringComparison.OrdinalIgnoreCase)
+            )
             .Select(static key => key.Path)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
     private static string[] FindCandidates(string unknown, IReadOnlyList<string> knownKeys)
     {
-        var tiers = new List<KeyCandidate>[]
-        {
-            [],
-            [],
-            [],
-            []
-        };
+        var tiers = new List<KeyCandidate>[] { [], [], [], [] };
         var unknownParts = PathParts.Parse(unknown);
 
         foreach (var candidate in knownKeys)
@@ -115,20 +108,24 @@ internal static class KeySuggestions
 
             if (candidate.StartsWith(unknown, StringComparison.OrdinalIgnoreCase))
             {
-                tiers[0].Add(new KeyCandidate(
-                    candidate,
-                    candidate.Length - unknown.Length,
-                    candidateParts.SegmentCount,
-                    Distance: 0));
+                tiers[0]
+                    .Add(
+                        new KeyCandidate(
+                            candidate,
+                            candidate.Length - unknown.Length,
+                            candidateParts.SegmentCount,
+                            Distance: 0));
             }
             else if (unknownParts.IsSameRoot(candidateParts)
                 && candidateParts.Leaf.StartsWith(unknownParts.Leaf, StringComparison.OrdinalIgnoreCase))
             {
-                tiers[1].Add(new KeyCandidate(
-                    candidate,
-                    candidateParts.Leaf.Length - unknownParts.Leaf.Length,
-                    candidateParts.SegmentCount,
-                    Distance: 0));
+                tiers[1]
+                    .Add(
+                        new KeyCandidate(
+                            candidate,
+                            candidateParts.Leaf.Length - unknownParts.Leaf.Length,
+                            candidateParts.SegmentCount,
+                            Distance: 0));
             }
             else
             {
@@ -150,23 +147,26 @@ internal static class KeySuggestions
             .ThenBy(static candidate => candidate.SegmentCount)
             .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
             .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal)
-            .Concat(tiers[1]
-                .OrderBy(static candidate => candidate.CompletionLength)
-                .ThenBy(static candidate => candidate.SegmentCount)
-                .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
-            .Concat(tiers[2]
-                .OrderBy(static candidate => candidate.Distance)
-                .ThenBy(static candidate => candidate.SegmentCount)
-                .ThenBy(static candidate => candidate.Path.Length)
-                .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
-            .Concat(tiers[3]
-                .OrderBy(static candidate => candidate.Distance)
-                .ThenBy(static candidate => candidate.SegmentCount)
-                .ThenBy(static candidate => candidate.Path.Length)
-                .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
+            .Concat(
+                tiers[1]
+                    .OrderBy(static candidate => candidate.CompletionLength)
+                    .ThenBy(static candidate => candidate.SegmentCount)
+                    .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
+            .Concat(
+                tiers[2]
+                    .OrderBy(static candidate => candidate.Distance)
+                    .ThenBy(static candidate => candidate.SegmentCount)
+                    .ThenBy(static candidate => candidate.Path.Length)
+                    .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
+            .Concat(
+                tiers[3]
+                    .OrderBy(static candidate => candidate.Distance)
+                    .ThenBy(static candidate => candidate.SegmentCount)
+                    .ThenBy(static candidate => candidate.Path.Length)
+                    .ThenBy(static candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
             .Select(static candidate => candidate.Path)
             .ToArray();
     }

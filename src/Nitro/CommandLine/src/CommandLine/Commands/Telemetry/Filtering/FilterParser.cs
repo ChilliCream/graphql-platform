@@ -92,9 +92,7 @@ internal static class FilterParser
                 children.Add(ParseUnary());
             }
 
-            return children.Count == 1
-                ? children[0]
-                : new FilterAndNode(children, children[0].Start, children[^1].End);
+            return children.Count == 1 ? children[0] : new FilterAndNode(children, children[0].Start, children[^1].End);
         }
 
         private FilterNode ParseUnary()
@@ -178,12 +176,7 @@ internal static class FilterParser
             if (token.Kind == FilterTokenKind.Star)
             {
                 var star = Advance();
-                return new FilterPredicateNode(
-                    field.Value,
-                    FilterComparisonOperator.Exists,
-                    [],
-                    field.Start,
-                    star.End);
+                return new FilterPredicateNode(field.Value, FilterComparisonOperator.Exists, [], field.Start, star.End);
             }
 
             if (token.Kind.TryGetComparisonOperator(out var comparison))
@@ -197,7 +190,9 @@ internal static class FilterParser
                 var value = ExpectValue();
                 if (value.Kind == FilterValueKind.Boolean)
                 {
-                    throw ThrowHelper.InvalidFilterSyntax("Boolean values do not support ordering comparisons", value.Start);
+                    throw ThrowHelper.InvalidFilterSyntax(
+                        "Boolean values do not support ordering comparisons",
+                        value.Start);
                 }
 
                 if (value.Kind != FilterValueKind.Number)
@@ -215,7 +210,12 @@ internal static class FilterParser
                 var values = ParseSetValues(FilterTokenKind.Comma);
                 ExpectClosing(open);
                 CheckInValues(values);
-                return new FilterPredicateNode(field.Value, FilterComparisonOperator.In, values, field.Start, Previous().End);
+                return new FilterPredicateNode(
+                    field.Value,
+                    FilterComparisonOperator.In,
+                    values,
+                    field.Start,
+                    Previous().End);
             }
 
             if (token.Kind == FilterTokenKind.Range)
@@ -237,7 +237,12 @@ internal static class FilterParser
                     }
                 }
 
-                return new FilterPredicateNode(field.Value, FilterComparisonOperator.Range, values, field.Start, Previous().End);
+                return new FilterPredicateNode(
+                    field.Value,
+                    FilterComparisonOperator.Range,
+                    values,
+                    field.Start,
+                    Previous().End);
             }
 
             if (token.Kind == FilterTokenKind.LeftParenthesis)
@@ -246,7 +251,12 @@ internal static class FilterParser
                 var values = ParseSetValues(FilterTokenKind.Or);
                 ExpectClosing(open);
                 CheckInValues(values);
-                return new FilterPredicateNode(field.Value, FilterComparisonOperator.In, values, field.Start, Previous().End);
+                return new FilterPredicateNode(
+                    field.Value,
+                    FilterComparisonOperator.In,
+                    values,
+                    field.Start,
+                    Previous().End);
             }
 
             var equalValue = ExpectValue();
@@ -277,16 +287,16 @@ internal static class FilterParser
                 var token = Peek();
                 if (token.Kind != separator)
                 {
-                    var message = separator == FilterTokenKind.Comma
-                        ? "Expected ',' or ')'"
-                        : "Expected 'OR' or ')'";
+                    var message = separator == FilterTokenKind.Comma ? "Expected ',' or ')'" : "Expected 'OR' or ')'";
                     throw ThrowHelper.InvalidFilterSyntax(message, token.Start);
                 }
 
                 Advance();
                 if (Peek().Kind is FilterTokenKind.RightParenthesis or FilterTokenKind.End)
                 {
-                    throw ThrowHelper.InvalidFilterSyntax($"Expected a value but found '{Peek().TextOrEnd()}'", Peek().Start);
+                    throw ThrowHelper.InvalidFilterSyntax(
+                        $"Expected a value but found '{Peek().TextOrEnd()}'",
+                        Peek().Start);
                 }
 
                 values.Add(ExpectValue());
@@ -345,8 +355,13 @@ internal static class FilterParser
         {
             var token = Peek();
             if (token.Start != end
-                ||
-                token.Kind is not (FilterTokenKind.Word or FilterTokenKind.Number or FilterTokenKind.Boolean or FilterTokenKind.Minus or FilterTokenKind.Star))
+                || token.Kind
+                    is not (
+                        FilterTokenKind.Word
+                        or FilterTokenKind.Number
+                        or FilterTokenKind.Boolean
+                        or FilterTokenKind.Minus
+                        or FilterTokenKind.Star))
             {
                 return false;
             }
@@ -371,7 +386,8 @@ internal static class FilterParser
             }
 
             var scope = scopes.FirstOrDefault(scope =>
-                field.Value == scope || field.Value.StartsWith($"{scope}.", StringComparison.Ordinal));
+                field.Value == scope || field.Value.StartsWith($"{scope}.", StringComparison.Ordinal)
+            );
             if (scope is null)
             {
                 throw ThrowHelper.InvalidFilterSyntax("Unknown scope prefix", field.Start);
@@ -380,7 +396,9 @@ internal static class FilterParser
             var rest = field.Value[scope.Length..];
             if (rest is "" or ".")
             {
-                throw ThrowHelper.InvalidFilterSyntax($"Expected an attribute name after the {scope} prefix", field.Start);
+                throw ThrowHelper.InvalidFilterSyntax(
+                    $"Expected an attribute name after the {scope} prefix",
+                    field.Start);
             }
         }
 
@@ -439,8 +457,7 @@ internal static class FilterParser
             return index < tokens.Count ? tokens[index] : tokens[^1];
         }
 
-        private FilterToken Previous()
-            => _index > 0 ? tokens[_index - 1] : tokens[0];
+        private FilterToken Previous() => _index > 0 ? tokens[_index - 1] : tokens[0];
 
         private FilterToken Advance()
         {
@@ -459,27 +476,30 @@ file static class Extensions
 {
     extension(FilterToken token)
     {
-        public string TextOrEnd()
-            => token.Text.Length == 0 ? "end of input" : token.Text;
+        public string TextOrEnd() => token.Text.Length == 0 ? "end of input" : token.Text;
     }
 
     extension(FilterTokenKind kind)
     {
         public bool CanStartPrimary()
-            => kind is FilterTokenKind.Word or FilterTokenKind.String or FilterTokenKind.Number or FilterTokenKind.Boolean or FilterTokenKind.LeftParenthesis or FilterTokenKind.Minus or FilterTokenKind.Colon;
+            => kind
+                is FilterTokenKind.Word
+                    or FilterTokenKind.String
+                    or FilterTokenKind.Number
+                    or FilterTokenKind.Boolean
+                    or FilterTokenKind.LeftParenthesis
+                    or FilterTokenKind.Minus
+                    or FilterTokenKind.Colon;
 
         public bool CanStartMatcher()
             => kind == FilterTokenKind.Star
-                || kind.TryGetComparisonOperator(out _)
-                || kind is FilterTokenKind.In or FilterTokenKind.Range or FilterTokenKind.LeftParenthesis
-                ||
-                kind.CanStartScalarValue();
+            || kind.TryGetComparisonOperator(out _)
+            || kind is FilterTokenKind.In or FilterTokenKind.Range or FilterTokenKind.LeftParenthesis
+            || kind.CanStartScalarValue();
 
-        public bool CanStartScalarValue()
-            => kind.CanStartValue() || kind == FilterTokenKind.Minus;
+        public bool CanStartScalarValue() => kind.CanStartValue() || kind == FilterTokenKind.Minus;
 
-        public bool CanStartValue()
-            => kind.TryGetValueKind(out _);
+        public bool CanStartValue() => kind.TryGetValueKind(out _);
 
         public bool TryGetComparisonOperator(out FilterComparisonOperator comparison)
         {
@@ -491,7 +511,11 @@ file static class Extensions
                 FilterTokenKind.LessThanOrEqual => FilterComparisonOperator.LessThanOrEqual,
                 _ => default
             };
-            return kind is FilterTokenKind.GreaterThan or FilterTokenKind.GreaterThanOrEqual or FilterTokenKind.LessThan or FilterTokenKind.LessThanOrEqual;
+            return kind
+                is FilterTokenKind.GreaterThan
+                    or FilterTokenKind.GreaterThanOrEqual
+                    or FilterTokenKind.LessThan
+                    or FilterTokenKind.LessThanOrEqual;
         }
 
         public bool TryGetValueKind(out FilterValueKind valueKind)
@@ -503,7 +527,11 @@ file static class Extensions
                 FilterTokenKind.Boolean => FilterValueKind.Boolean,
                 _ => default
             };
-            return kind is FilterTokenKind.Word or FilterTokenKind.String or FilterTokenKind.Number or FilterTokenKind.Boolean;
+            return kind
+                is FilterTokenKind.Word
+                    or FilterTokenKind.String
+                    or FilterTokenKind.Number
+                    or FilterTokenKind.Boolean;
         }
     }
 }

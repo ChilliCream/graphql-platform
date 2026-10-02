@@ -14,7 +14,5 @@ internal readonly record struct PathParts(string Root, string Leaf, int SegmentC
     }
 
     public bool IsSameRoot(PathParts other)
-        => IsDotted
-            && other.IsDotted
-            && string.Equals(Root, other.Root, StringComparison.OrdinalIgnoreCase);
+        => IsDotted && other.IsDotted && string.Equals(Root, other.Root, StringComparison.OrdinalIgnoreCase);
 }

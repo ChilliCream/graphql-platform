@@ -60,9 +60,8 @@ internal static class TelemetryListFilter
             return null;
         }
 
-        var signalKind = signal == TelemetryFilterSignal.Traces
-            ? OpenTelemetrySignalKind.Traces
-            : OpenTelemetrySignalKind.Logs;
+        var signalKind =
+            signal == TelemetryFilterSignal.Traces ? OpenTelemetrySignalKind.Traces : OpenTelemetrySignalKind.Logs;
 
         try
         {
@@ -90,10 +89,11 @@ internal static class TelemetryListFilter
         string filter,
         FilterParseException exception)
     {
-        var examples = signal == TelemetryFilterSignal.Traces
-            ? "hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`"
-            : "hint: examples: `severity:error`, `@resource.service.name:checkout`, "
-                + "or `exception.type:TimeoutException`";
+        var examples =
+            signal == TelemetryFilterSignal.Traces
+                ? "hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`"
+                : "hint: examples: `severity:error`, `@resource.service.name:checkout`, "
+                    + "or `exception.type:TimeoutException`";
 
         console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
         console.Error.WriteLine();

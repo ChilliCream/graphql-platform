@@ -201,8 +201,7 @@ internal static class FilterLexer
             position,
             hasWildcard);
 
-        static bool tokensAfterColon(string source, int tokenStart)
-            => tokenStart > 0 && source[tokenStart - 1] == ':';
+        static bool tokensAfterColon(string source, int tokenStart) => tokenStart > 0 && source[tokenStart - 1] == ':';
     }
 
     private static void CheckWildcardRun(ref int length, ref int repeatedStart, int runStart)
@@ -241,7 +240,9 @@ internal static class FilterLexer
             return text.All(char.IsAsciiDigit);
         }
 
-        if (separator == 0 || separator == text.Length - 1 || separator != text.LastIndexOf('.'))
+        if (separator == 0
+            || separator == text.Length - 1
+            || separator != text.LastIndexOf('.'))
         {
             return false;
         }
@@ -257,13 +258,12 @@ file static class Extensions
 {
     extension(char character)
     {
-        public bool IsWordStart()
-            => character.IsWordContinue() && character is not '-' and not '*';
+        public bool IsWordStart() => character.IsWordContinue() && character is not '-' and not '*';
 
         public bool IsWordContinue()
-            => !character.IsWhitespace() && character is not '(' and not ')' and not ',' and not ':' and not '"' and not '<' and not '>' and not '!';
+            => !character.IsWhitespace()
+            && character is not '(' and not ')' and not ',' and not ':' and not '"' and not '<' and not '>' and not '!';
 
-        public bool IsWhitespace()
-            => character is ' ' or '\t' or '\n' or '\r';
+        public bool IsWhitespace() => character is ' ' or '\t' or '\n' or '\r';
     }
 }

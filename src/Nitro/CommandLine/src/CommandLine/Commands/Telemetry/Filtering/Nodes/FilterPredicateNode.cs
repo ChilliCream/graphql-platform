@@ -7,5 +7,4 @@ internal sealed record FilterPredicateNode(
     FilterComparisonOperator Operator,
     ImmutableArray<FilterValue> Values,
     int Start,
-    int End)
-    : FilterNode(Start, End);
+    int End) : FilterNode(Start, End);
