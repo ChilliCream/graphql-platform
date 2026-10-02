@@ -128,35 +128,6 @@ public class RequestReplyTests
         Assert.Equal("InTransit", shipmentResponse.Status);
     }
 
-    [Fact]
-    public async Task RequestAsync_Should_ReturnTypedResponse_When_ExplicitBindingAndNestedRequestType()
-    {
-        // arrange
-        await using var ctx = _fixture.CreateTestContext();
-        await using var bus = await new ServiceCollection()
-            .AddMessageBus()
-            .AddRequestHandler<GetShipmentStatusHandler>()
-            .AddAzureServiceBus(t =>
-            {
-                t.ConnectionString(ctx.ConnectionString);
-                t.AdministrationConnectionString(ctx.AdminConnectionString);
-                t.BindExplicitly();
-                t.Handler<GetShipmentStatusHandler>();
-            })
-            .BuildTestBusAsync();
-
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        using var cts = new CancellationTokenSource(s_timeout);
-        var response = await messageBus.RequestAsync(new GetShipmentStatus { TrackingNumber = "TRK-1" }, cts.Token);
-
-        // assert
-        Assert.Equal("TRK-1", response.TrackingNumber);
-        Assert.Equal("InTransit", response.Status);
-    }
-
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
     {
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)

@@ -125,7 +125,7 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
     public IMessagingTransportHandlerDescriptor<IAzureServiceBusReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
-        var name = GetHandlerEndpointName(typeof(THandler));
+        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
         var endpoint = Endpoint(name);
         endpoint.Handler<THandler>();
         return new MessagingTransportHandlerDescriptor<IAzureServiceBusReceiveEndpointDescriptor>(endpoint);
