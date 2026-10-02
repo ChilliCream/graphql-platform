@@ -11,6 +11,7 @@ public sealed class HttpResponseExtensionsTests
     [InlineData(new[] { "Accept" }, "x-bar, x-foo", new[] { "Accept", "x-bar, x-foo" })]
     [InlineData(new[] { "Accept" }, "accept, x-foo", new[] { "Accept", "x-foo" })]
     [InlineData(new[] { "Origin, Accept" }, "ACCEPT", new[] { "Origin, Accept" })]
+    [InlineData(new[] { "Origin, , Accept" }, "accept", new[] { "Origin, , Accept" })]
     [InlineData(new[] { "*" }, "Accept", new[] { "*" })]
     [InlineData(new[] { "Origin", "*" }, "Accept, x-foo", new[] { "Origin", "*" })]
     public void AppendVary_Should_AddOnlyNamesNotYetListed_When_NamesAreGiven(
