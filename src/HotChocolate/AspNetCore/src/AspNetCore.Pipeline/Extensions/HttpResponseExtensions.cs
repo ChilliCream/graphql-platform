@@ -12,7 +12,7 @@ internal static class HttpResponseExtensions
 
     /// <summary>
     /// Adds each comma-separated field name in <paramref name="fieldNames"/> to the <c>Vary</c>
-    /// header unless the header already lists it, compared case-insensitively.
+    /// header unless the header already lists it, compared case-insensitively, or lists <c>*</c>.
     /// </summary>
     public static void AppendVary(this IHeaderDictionary headers, string fieldNames)
     {
@@ -73,7 +73,8 @@ internal static class HttpResponseExtensions
 
             while (TryReadFieldName(ref remaining, out var listedFieldName))
             {
-                if (listedFieldName.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+                if (listedFieldName is "*"
+                    || listedFieldName.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }

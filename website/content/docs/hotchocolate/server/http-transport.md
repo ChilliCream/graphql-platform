@@ -22,7 +22,7 @@ A single result is written as `multipart/mixed` or `text/event-stream` only when
 
 When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation or asks for an operation kind the request method does not allow; only a request it cannot read, such as a body that is not valid JSON or a request that is not a well-formed GraphQL over HTTP request, and a batch it does not accept have a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
 
-Every response to a GET, HEAD, POST, or QUERY request on the GraphQL endpoint carries `Vary: Accept`, whatever its status code. A cache that honors `Vary` stores one response per distinct `Accept` value.
+Every response to a GET, HEAD, POST, or QUERY request on the GraphQL endpoint, other than a WebSocket upgrade, carries `Vary: Accept`, whatever its status code. A cache that honors `Vary` stores one response per distinct `Accept` value.
 
 # Types of Requests
 

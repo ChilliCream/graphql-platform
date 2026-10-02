@@ -267,7 +267,7 @@ A client that relies on the 16.6 format keeps it by rating that format highest i
 
 ## Responses carry `Vary: Accept`
 
-Every response to a GET, HEAD, POST, or QUERY request on a GraphQL endpoint lists `Accept` in its `Vary` header, whatever its status code, under every transport version. This covers `MapGraphQL`, `MapGraphQLHttp`, `MapGraphQLPersistedOperations`, and the Azure Functions integration. 16.6 did not list `Accept` in `Vary`.
+Every response to a GET, HEAD, POST, or QUERY request on a GraphQL endpoint, other than a WebSocket upgrade, lists `Accept` in its `Vary` header, whatever its status code, under every transport version. This covers `MapGraphQL`, `MapGraphQLHttp`, `MapGraphQLPersistedOperations`, and the Azure Functions integration. 16.6 did not list `Accept` in `Vary`.
 
 The `vary` names of `@cacheControl` are added beside `Accept`. 16.6 wrote them in place of any `Vary` value that application middleware had set earlier in the request.
 
