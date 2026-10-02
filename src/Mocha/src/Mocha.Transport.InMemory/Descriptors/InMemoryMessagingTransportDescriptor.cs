@@ -123,7 +123,7 @@ public sealed class InMemoryMessagingTransportDescriptor
     public IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
-        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
+        var name = GetHandlerEndpointName(typeof(THandler));
         var endpoint = Endpoint(name);
         endpoint.Handler(typeof(THandler));
         return new MessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);

@@ -72,6 +72,40 @@ public class NestedMessageTypeTests
     }
 
     [Fact]
+    public async Task RequestAsync_Should_ReturnNestedResponse_When_ExplicitBindingAndNestedRequestType()
+    {
+        // arrange
+        await using var provider = await new ServiceCollection()
+            .AddMessageBus()
+            .AddRequestHandler<CreateAccountHandler>()
+            .AddRequestHandler<DeleteAccountHandler>()
+            .AddInMemory(t =>
+            {
+                t.BindExplicitly();
+                t.Handler<CreateAccountHandler>();
+                t.Handler<DeleteAccountHandler>();
+            })
+            .BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        using var cts = new CancellationTokenSource(s_timeout);
+        var createFailed = await bus.RequestAsync(new CreateAccount.Request(Fail: true), cts.Token);
+        var deleteFailed = await bus.RequestAsync(new DeleteAccount.Request(Fail: true), cts.Token);
+
+        // assert
+        new object[] { createFailed, deleteFailed }
+            .Select(Describe)
+            .MatchInlineSnapshots(
+            [
+                "CreateAccountResponse.UnexpectedError (create failed)",
+                "DeleteAccountResponse.UnexpectedError (delete failed)"
+            ]);
+    }
+
+    [Fact]
     public void Topology_Should_UseDistinctTopicsAndQueues_When_NestedTypesShareName()
     {
         // arrange

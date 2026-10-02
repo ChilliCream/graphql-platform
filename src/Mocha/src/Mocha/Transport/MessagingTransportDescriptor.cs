@@ -119,6 +119,39 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
         return this;
     }
 
+    /// <summary>
+    /// Gets the receive endpoint name for a registered handler bound to its own endpoint: the send
+    /// endpoint name of its message when the handler has a single send or request route, otherwise
+    /// the name derived from the handler type.
+    /// </summary>
+    /// <param name="handlerType">The handler type.</param>
+    /// <returns>The receive endpoint name.</returns>
+    protected string GetHandlerEndpointName(Type handlerType)
+    {
+        MessageType? sendMessageType = null;
+
+        foreach (var route in Context.Router.InboundRoutes)
+        {
+            if (route.Consumer?.Identity != handlerType || route.Kind is InboundRouteKind.Reply)
+            {
+                continue;
+            }
+
+            if (route.Kind is not (InboundRouteKind.Send or InboundRouteKind.Request)
+                || route.MessageType is null
+                || sendMessageType is not null)
+            {
+                return Context.Naming.GetReceiveEndpointName(handlerType, ReceiveEndpointKind.Default);
+            }
+
+            sendMessageType = route.MessageType;
+        }
+
+        return sendMessageType is not null
+            ? Context.Naming.GetSendEndpointName(sendMessageType.RuntimeType)
+            : Context.Naming.GetReceiveEndpointName(handlerType, ReceiveEndpointKind.Default);
+    }
+
     /// <inheritdoc />
     public IMessagingTransportDescriptor BindImplicitly()
     {
