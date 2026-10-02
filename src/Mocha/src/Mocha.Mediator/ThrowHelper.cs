@@ -6,10 +6,11 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"No pipeline registered for message type {messageType}");
 
-    public static Exception MissingNotificationPipeline(Type notificationType)
-        => new InvalidOperationException(
-            $"No notification pipeline registered for message type {notificationType}. "
-            + "If this is a command or query, use SendAsync or QueryAsync instead.");
+    public static Exception NotANotification(Type type)
+        => new ArgumentException(
+            $"Type '{type}' does not implement {nameof(INotification)}. "
+            + "If this is a command or query, use SendAsync or QueryAsync instead.",
+            "notification");
 
     public static Exception BeforeAndAfterConflict()
         => new ArgumentException(
