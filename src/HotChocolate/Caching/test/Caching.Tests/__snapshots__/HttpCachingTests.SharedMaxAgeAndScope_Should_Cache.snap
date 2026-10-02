@@ -1,6 +1,12 @@
 ﻿{
   "Headers": [
     {
+      "Key": "Vary",
+      "Value": [
+        "Accept"
+      ]
+    },
+    {
       "Key": "Cache-Control",
       "Value": [
         "s-maxage=2000"

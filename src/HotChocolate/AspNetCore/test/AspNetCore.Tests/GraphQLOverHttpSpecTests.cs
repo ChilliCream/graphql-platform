@@ -109,6 +109,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Add(response)
             .MatchInline(
                 @$"Headers:
+                Vary: Accept
                 Content-Type: {expectedContentType}
                 -------------------------->
                 Status Code: OK
@@ -140,6 +141,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: multipart/mixed; boundary="-"
                 -------------------------->
                 Status Code: OK
@@ -178,6 +180,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
                 Status Code: OK
@@ -235,6 +238,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: {{{expectedContentType}}}
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -276,6 +280,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Add(response)
             .MatchInline(
                 @$"Headers:
+                Vary: Accept
                 Content-Type: {expectedContentType}
                 -------------------------->
                 Status Code: {expectedStatusCode}
@@ -342,6 +347,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -371,9 +377,12 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Add(response)
             .MatchInline(
                 """
+                Headers:
+                Vary: Accept
+                -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                
+
                 """);
     }
 
@@ -406,6 +415,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
@@ -457,6 +467,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
@@ -508,6 +519,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
@@ -691,6 +703,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: {{{expectedContentType}}}
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -732,6 +745,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -1368,6 +1382,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -1447,6 +1462,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: InternalServerError
@@ -1500,6 +1516,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: InternalServerError
@@ -1544,6 +1561,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -1577,6 +1595,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: InternalServerError
@@ -1610,6 +1629,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: InternalServerError
@@ -1646,6 +1666,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: InternalServerError
@@ -1686,6 +1707,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -1745,6 +1767,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -1784,6 +1807,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -1886,6 +1910,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -1920,6 +1945,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
@@ -2034,6 +2060,233 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    // A response the endpoint selects by the Accept header names Accept in Vary (RFC 9110,
+    // section 12.5.5).
+    [Theory]
+    [InlineData(Legacy)]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Get_Should_ReturnVaryAccept_When_QueryIsExecuted(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var response = await client.GetAsync(
+            new Uri($"{s_url}?query={query}"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy)]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Head_Should_ReturnVaryAccept_When_QueryIsExecuted(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Head,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy)]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnVaryAccept_When_QueryIsExecuted(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var response = await client.PostAsync(
+            s_url,
+            JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" }),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy)]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Query_Should_ReturnVaryAccept_When_QueryIsExecuted(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy)]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnVaryAccept_When_AcceptIsNotSupported(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        request.Headers.TryAddWithoutValidation(HeaderNames.Accept, "text/plain");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy, OK)]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, BadRequest)]
+    public async Task Post_Should_ReturnVaryAccept_When_DocumentCannotBeParsed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var response = await client.PostAsync(
+            s_url,
+            JsonContent.Create(new ClientQueryRequest { Query = "{" }),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy, NotFound)]
+    [InlineData(Draft20250508, NotFound)]
+    [InlineData(Draft20260903, MethodNotAllowed)]
+    public async Task Get_Should_ReturnVaryAccept_When_GetRequestsAreDisabled(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = transportVersion
+                }),
+            configureConventions: b => b.WithOptions(o =>
+            {
+                o.EnableGetRequests = false;
+                o.Tool.Enable = false;
+            }));
+        var client = server.CreateClient();
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var response = await client.GetAsync(
+            new Uri($"{s_url}?query={query}"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    [Theory]
+    [InlineData(Legacy, "OPTIONS")]
+    [InlineData(Draft20250508, "OPTIONS")]
+    [InlineData(Draft20260903, "OPTIONS")]
+    [InlineData(Legacy, "PUT")]
+    [InlineData(Draft20250508, "PUT")]
+    [InlineData(Draft20260903, "PUT")]
+    public async Task Request_Should_NotReturnVary_When_MethodDoesNotSelectResponseByAccept(
+        HttpTransportVersion transportVersion,
+        string method)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(new HttpMethod(method), s_url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(response.Headers.Vary);
+    }
+
+    [Fact]
+    public async Task Upgrade_Should_NotReturnVary_When_WebSocketIsAccepted()
+    {
+        // arrange
+        using var server = CreateStarWarsServer();
+        var client = server.CreateWebSocketClient();
+        client.SubProtocols.Add("graphql-transport-ws");
+        HttpContext? serverContext = null;
+        client.ConfigureRequest = request => serverContext = request.HttpContext;
+
+        // act
+        using var webSocket = await client.ConnectAsync(
+            new Uri("ws://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("graphql-transport-ws", webSocket.SubProtocol);
+        Assert.NotNull(serverContext);
+        Assert.Empty(serverContext.Response.Headers.Vary.ToArray());
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnVaryAccept_When_EndpointIsMappedWithMapGraphQLHttp()
+    {
+        // arrange
+        var server = CreateServer(endpoints => endpoints.MapGraphQLHttp());
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            s_url,
+            JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" }),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
     }
 
     // When QUERY requests are enabled the endpoint lists the method in Allow and advertises the
@@ -2430,6 +2683,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 $$$"""
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
@@ -2487,6 +2741,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -2651,9 +2906,12 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Add(response)
             .MatchInline(
                 """
+                Headers:
+                Vary: Accept
+                -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                
+
                 """);
     }
 

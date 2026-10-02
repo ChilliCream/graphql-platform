@@ -265,6 +265,14 @@ A `406` has no `Content-Type` and no body when the header also rejects the forma
 
 A client that relies on the 16.6 format keeps it by rating that format highest in its `Accept` header.
 
+## Responses carry `Vary: Accept`
+
+Every response to a GET, HEAD, POST, or QUERY request on a GraphQL endpoint lists `Accept` in its `Vary` header, whatever its status code, under every transport version. This covers `MapGraphQL`, `MapGraphQLHttp`, `MapGraphQLPersistedOperations`, and the Azure Functions integration. 16.6 did not list `Accept` in `Vary`.
+
+The `vary` names of `@cacheControl` are added beside `Accept`. 16.6 wrote them in place of any `Vary` value that application middleware had set earlier in the request.
+
+A CDN or reverse proxy that honors `Vary` stores one cached response per distinct `Accept` value. Some CDNs do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Akamai behaves this way by default, so cached GET responses stop being cached at the edge after the update. Configure the CDN to cache them anyway, for example with Akamai's [Remove Vary Header](https://techdocs.akamai.com/property-mgr/docs/rm-vary-header) behavior, or remove `Accept` from `Vary` in a [custom formatter](../server/http-transport.md#adding-selecting-headers-to-vary).
+
 # Noteworthy changes
 
 ## New cost options
