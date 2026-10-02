@@ -4,11 +4,9 @@ internal sealed class TelemetryEnvironmentOption : Option<string[]>
 {
     public TelemetryEnvironmentOption() : base("--env")
     {
-        Description = "Limit results to an environment; can be used multiple times [env: NITRO_ENV]";
+        Description = "Limit results to an environment; can be used multiple times";
         Required = false;
         this.OneArgumentPerOccurrence();
-        DefaultValueFactory = _ => TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Environment) is { } value
-            ? [value]
-            : [];
+        DefaultValueFactory = _ => [];
     }
 }

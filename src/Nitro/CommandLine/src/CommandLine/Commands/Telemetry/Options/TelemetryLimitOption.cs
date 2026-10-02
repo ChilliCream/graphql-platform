@@ -6,7 +6,6 @@ internal sealed class TelemetryLimitOption : Option<int?>
     {
         Description = "The maximum number of results to show";
         Required = false;
-        this.DefaultFromEnvironmentValue(EnvironmentVariables.Limit);
         Validators.Add(result =>
         {
             if (result.GetValue(this) is <= 0)

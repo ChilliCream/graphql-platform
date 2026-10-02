@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 
 internal static class TelemetryTimestamp
@@ -37,9 +39,9 @@ internal static class TelemetryTimestamp
         else if (value.Contains('T')
             && DateTimeOffset.TryParse(
                 value,
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.AssumeUniversal
-                    | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal
+                    | DateTimeStyles.AdjustToUniversal,
                 out timestamp))
         {
             timestamp = timestamp.ToUniversalTime();
@@ -83,8 +85,8 @@ internal static class TelemetryTimestamp
         if (maximumValue < 0
             || !long.TryParse(
                 value[..^1],
-                System.Globalization.NumberStyles.None,
-                System.Globalization.CultureInfo.InvariantCulture,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
                 out var valuePart)
             || valuePart > maximumValue)
         {

@@ -8,23 +8,13 @@ internal sealed class TelemetryUntilOption : Option<DateTimeOffset>
 
     public TelemetryUntilOption() : base(OptionName)
     {
-        Description = "The latest timestamp to include [env: NITRO_UNTIL]";
+        Description = "The latest timestamp to include";
         Required = false;
-        DefaultValueFactory = result => GetDefaultTimestamp(result);
+        DefaultValueFactory = _ => TelemetryOptionDefaults.GetUtcNow();
         CustomParser = result => ParseTimestamp(
             result.Tokens.Single().Value,
             result,
             TelemetryOptionDefaults.GetUtcNow());
-    }
-
-    private static DateTimeOffset GetDefaultTimestamp(ArgumentResult result)
-    {
-        var now = TelemetryOptionDefaults.GetUtcNow();
-        var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Until);
-
-        return value is null
-            ? now
-            : ParseTimestamp(value, result, now);
     }
 
     private static DateTimeOffset ParseTimestamp(

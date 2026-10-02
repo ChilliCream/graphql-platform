@@ -35,8 +35,4 @@ internal static class EnvironmentVariables
     public const string OperationsFile = "OPERATIONS_FILE";
     public const string SchemaFile = "SCHEMA_FILE";
     public const string SchemaExtensionFile = "SCHEMA_EXTENSION_FILE";
-    public const string Environment = "ENV";
-    public const string Since = "SINCE";
-    public const string Until = "UNTIL";
-    public const string Limit = "LIMIT";
 }

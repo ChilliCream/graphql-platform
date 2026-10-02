@@ -28,9 +28,9 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
               --signal <logs|traces> (REQUIRED)  The telemetry signal to inspect
               --kind <kind>                      Limit results to an attribute kind; can be used multiple times
               --search <search>                  Search attribute keys
-              --since <since>                    The earliest timestamp to include [env: NITRO_SINCE] [default: 12/31/2025 23:30:00 +00:00]
-              --until <until>                    The latest timestamp to include [env: NITRO_UNTIL] [default: 01/01/2026 00:00:00 +00:00]
-              --limit <limit>                    The maximum number of results to show [env: NITRO_LIMIT]
+              --since <since>                    The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
+              --until <until>                    The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
+              --limit <limit>                    The maximum number of results to show
               --cloud-url <cloud-url>            The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]

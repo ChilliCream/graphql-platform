@@ -192,13 +192,11 @@ public sealed class TelemetryTimestampTests
     }
 
     [Fact]
-    public void Defaults_Should_UseDefaultTimeRange_When_EnvironmentVariablesAreNotSpecified()
+    public void Defaults_Should_UseDefaultTimeRange_When_OptionsAreNotSpecified()
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
-        var environmentVariables = new Mock<IEnvironmentVariableProvider>();
         using var provider = new ServiceCollection()
-            .AddSingleton<IEnvironmentVariableProvider>(environmentVariables.Object)
             .AddSingleton<TimeProvider>(new FakeTimeProvider(now))
             .BuildServiceProvider();
         CommandExecutionContext.Initialize(new CommandServices(provider));
@@ -214,41 +212,6 @@ public sealed class TelemetryTimestampTests
         // assert
         Assert.Equal(now - TimeSpan.FromMinutes(30), result.GetValue(since));
         Assert.Equal(now, result.GetValue(until));
-    }
-
-    [Fact]
-    public void Defaults_Should_ReadEnvironmentVariables_When_OptionsAreNotSpecified()
-    {
-        // arrange
-        var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
-        var environmentVariables = new Mock<IEnvironmentVariableProvider>();
-        environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_SINCE")).Returns("2h");
-        environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_UNTIL")).Returns("2026-01-01T11:30:00Z");
-        environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_ENV")).Returns("production");
-        environmentVariables.Setup(x => x.GetEnvironmentVariable("NITRO_LIMIT")).Returns("42");
-        using var provider = new ServiceCollection()
-            .AddSingleton<IEnvironmentVariableProvider>(environmentVariables.Object)
-            .AddSingleton<TimeProvider>(new FakeTimeProvider(now))
-            .BuildServiceProvider();
-        CommandExecutionContext.Initialize(new CommandServices(provider));
-        var environment = new TelemetryEnvironmentOption();
-        var since = new TelemetrySinceOption();
-        var until = new TelemetryUntilOption();
-        var limit = new TelemetryLimitOption();
-        var command = new Command("telemetry");
-        command.Options.Add(environment);
-        command.Options.Add(since);
-        command.Options.Add(until);
-        command.Options.Add(limit);
-
-        // act
-        var result = command.Parse([]);
-
-        // assert
-        Assert.Equal(now - TimeSpan.FromHours(2), result.GetValue(since));
-        Assert.Equal(now - TimeSpan.FromMinutes(30), result.GetValue(until));
-        Assert.Equal(["production"], result.GetValue(environment) ?? []);
-        Assert.Equal(42, result.GetValue(limit));
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
+using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
@@ -129,13 +130,13 @@ internal static class KeySuggestions
             }
             else
             {
-                var distance = LevenshteinDistance(unknown, candidate);
+                var distance = LevenshteinDistance.Calculate(unknown, candidate);
                 if (distance <= 3)
                 {
                     tiers[2].Add(new KeyCandidate(candidate, 0, candidateParts.SegmentCount, distance));
                 }
                 else if (unknownParts.IsSameRoot(candidateParts)
-                    && (distance = LevenshteinDistance(unknownParts.Leaf, candidateParts.Leaf)) <= 3)
+                    && (distance = LevenshteinDistance.Calculate(unknownParts.Leaf, candidateParts.Leaf)) <= 3)
                 {
                     tiers[3].Add(new KeyCandidate(candidate, 0, candidateParts.SegmentCount, distance));
                 }
@@ -169,38 +170,5 @@ internal static class KeySuggestions
                     .ThenBy(static candidate => candidate.Path, StringComparer.Ordinal))
             .Select(static candidate => candidate.Path)
             .ToArray();
-    }
-
-    private static int LevenshteinDistance(string left, string right)
-    {
-        if (left.Length > right.Length)
-        {
-            (left, right) = (right, left);
-        }
-
-        var previous = new int[left.Length + 1];
-        var current = new int[left.Length + 1];
-        for (var i = 0; i <= left.Length; i++)
-        {
-            previous[i] = i;
-        }
-
-        for (var rightIndex = 1; rightIndex <= right.Length; rightIndex++)
-        {
-            current[0] = rightIndex;
-            var rightCharacter = char.ToUpperInvariant(right[rightIndex - 1]);
-
-            for (var leftIndex = 1; leftIndex <= left.Length; leftIndex++)
-            {
-                var cost = char.ToUpperInvariant(left[leftIndex - 1]) == rightCharacter ? 0 : 1;
-                current[leftIndex] = Math.Min(
-                    Math.Min(current[leftIndex - 1] + 1, previous[leftIndex] + 1),
-                    previous[leftIndex - 1] + cost);
-            }
-
-            (previous, current) = (current, previous);
-        }
-
-        return previous[left.Length];
     }
 }

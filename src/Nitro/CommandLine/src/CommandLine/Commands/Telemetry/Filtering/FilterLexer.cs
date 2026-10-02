@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class FilterLexer
@@ -98,7 +100,7 @@ internal static class FilterLexer
     {
         var start = position;
         position++;
-        var value = new System.Text.StringBuilder();
+        var value = new StringBuilder();
 
         while (position < input.Length)
         {
@@ -131,7 +133,7 @@ internal static class FilterLexer
     private static FilterToken ReadWord(string input, ref int position)
     {
         var start = position;
-        var value = new System.Text.StringBuilder();
+        var value = new StringBuilder();
         var hadEscape = false;
         var hasWildcard = false;
         var wildcardRunStart = -1;
