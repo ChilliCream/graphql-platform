@@ -26,31 +26,199 @@ internal static class FilterCompiler
         return node switch
         {
             null => null,
-            FilterAndNode and => and.Children.Combine(freeTextKey, isAnd: true),
-            FilterOrNode or => or.Children.Combine(freeTextKey, isAnd: false),
-            FilterNotNode not => not.CompileNot(freeTextKey),
-            FilterTermNode term when term.Text.Length == 0 => null,
-            FilterTermNode term => OpenTelemetryFilterInput.FromAttribute(freeTextKey, new OpenTelemetryAttributeConditionInput
-            {
-                Matches = term.Text.ToContainsPattern()
-            }),
-            FilterPredicateNode predicate => predicate.CompilePredicate(),
+            FilterAndNode and => Compile(and, freeTextKey),
+            FilterOrNode or => Compile(or, freeTextKey),
+            FilterNotNode not => Compile(not, freeTextKey),
+            FilterTermNode term => Compile(term, freeTextKey),
+            FilterPredicateNode predicate => Compile(predicate),
             _ => throw ThrowHelper.UnsupportedFilterNode(node)
         };
     }
 
-    internal static (string Key, OpenTelemetryAttributeKind? Kind) SplitScope(string field)
-        => field.LowerKey();
-
     internal static OpenTelemetryFilterInput FreeText(string text, string freeTextKey)
-        => OpenTelemetryFilterInput.FromAttribute(freeTextKey, new OpenTelemetryAttributeConditionInput
+        => Attribute(freeTextKey, new OpenTelemetryAttributeConditionInput
         {
-            Matches = text.ToContainsPattern()
+            Matches = ContainsPattern(text)
         });
-}
 
-file static class Extensions
-{
+    internal static OpenTelemetryFilterInput Attribute(
+        string field,
+        OpenTelemetryAttributeConditionInput condition)
+    {
+        var (key, kind) = SplitScope(field);
+        var predicate = new OpenTelemetryAttributePredicateInput
+        {
+            Key = key,
+            Condition = condition
+        };
+        if (kind is not null)
+        {
+            predicate = predicate with { Kind = kind };
+        }
+
+        return new OpenTelemetryFilterInput
+        {
+            Attribute = predicate
+        };
+    }
+
+    internal static (string Key, OpenTelemetryAttributeKind? Kind) SplitScope(string field)
+    {
+        foreach (var (prefix, kind) in s_scopeKinds)
+        {
+            if (field.StartsWith(prefix, StringComparison.Ordinal) && field.Length > prefix.Length)
+            {
+                return (field[prefix.Length..], kind);
+            }
+        }
+
+        return (field, null);
+    }
+
+    private static OpenTelemetryFilterInput? Compile(FilterAndNode node, string freeTextKey)
+    {
+        var children = CompileChildren(node.Children, freeTextKey);
+
+        return children.Length switch
+        {
+            0 => null,
+            1 => children[0],
+            _ => new OpenTelemetryFilterInput { And = children }
+        };
+    }
+
+    private static OpenTelemetryFilterInput? Compile(FilterOrNode node, string freeTextKey)
+    {
+        var children = CompileChildren(node.Children, freeTextKey);
+
+        return children.Length switch
+        {
+            0 => null,
+            1 => children[0],
+            _ => new OpenTelemetryFilterInput { Or = children }
+        };
+    }
+
+    private static OpenTelemetryFilterInput? Compile(FilterNotNode node, string freeTextKey)
+    {
+        if (node.Child is FilterPredicateNode { Operator: FilterComparisonOperator.Exists } predicate)
+        {
+            return Attribute(predicate.Field, new OpenTelemetryAttributeConditionInput { Exists = false });
+        }
+
+        var child = Compile(node.Child, freeTextKey);
+        return child is null ? null : new OpenTelemetryFilterInput { Not = child };
+    }
+
+    private static OpenTelemetryFilterInput? Compile(FilterTermNode node, string freeTextKey)
+        => node.Text.Length == 0 ? null : FreeText(node.Text, freeTextKey);
+
+    private static OpenTelemetryFilterInput Compile(FilterPredicateNode node)
+    {
+        if (node.Operator == FilterComparisonOperator.Range)
+        {
+            return new OpenTelemetryFilterInput
+            {
+                And =
+                [
+                    Attribute(node.Field, new OpenTelemetryAttributeConditionInput { Gte = Scalar(node.Values[0]) }),
+                    Attribute(node.Field, new OpenTelemetryAttributeConditionInput { Lte = Scalar(node.Values[1]) })
+                ]
+            };
+        }
+
+        if (node.Operator == FilterComparisonOperator.In)
+        {
+            return CompileSet(node);
+        }
+
+        return Attribute(node.Field, Condition(node.Operator, node.Values));
+    }
+
+    private static OpenTelemetryFilterInput[] CompileChildren(
+        IReadOnlyList<FilterNode> children,
+        string freeTextKey)
+        => children
+            .Select(child => Compile(child, freeTextKey))
+            .OfType<OpenTelemetryFilterInput>()
+            .ToArray();
+
+    private static OpenTelemetryFilterInput CompileSet(FilterPredicateNode node)
+    {
+        var patterns = node.Values.Where(static value => value.HasWildcard).ToArray();
+        if (patterns.Length == 0)
+        {
+            return Attribute(node.Field, new OpenTelemetryAttributeConditionInput
+            {
+                In = node.Values.Select(Scalar).ToArray()
+            });
+        }
+
+        var branches = new List<OpenTelemetryFilterInput>();
+        var literals = node.Values.Where(static value => !value.HasWildcard).ToArray();
+        if (literals.Length > 0)
+        {
+            branches.Add(Attribute(node.Field, new OpenTelemetryAttributeConditionInput
+            {
+                In = literals.Select(Scalar).ToArray()
+            }));
+        }
+
+        branches.AddRange(patterns.Select(value => Attribute(
+            node.Field,
+            new OpenTelemetryAttributeConditionInput { Matches = value.Text })));
+
+        return branches.Count == 1
+            ? branches[0]
+            : new OpenTelemetryFilterInput { Or = branches };
+    }
+
+    private static OpenTelemetryAttributeConditionInput Condition(
+        FilterComparisonOperator comparison,
+        ImmutableArray<FilterValue> values)
+    {
+        var value = values.Length > 0 ? values[0] : default;
+        return comparison switch
+        {
+            FilterComparisonOperator.Equal when value.HasWildcard => new OpenTelemetryAttributeConditionInput
+            {
+                Matches = value.Text
+            },
+            FilterComparisonOperator.Equal => new OpenTelemetryAttributeConditionInput { Eq = Scalar(value) },
+            FilterComparisonOperator.GreaterThan => new OpenTelemetryAttributeConditionInput { Gt = Scalar(value) },
+            FilterComparisonOperator.GreaterThanOrEqual => new OpenTelemetryAttributeConditionInput { Gte = Scalar(value) },
+            FilterComparisonOperator.LessThan => new OpenTelemetryAttributeConditionInput { Lt = Scalar(value) },
+            FilterComparisonOperator.LessThanOrEqual => new OpenTelemetryAttributeConditionInput { Lte = Scalar(value) },
+            FilterComparisonOperator.Exists => new OpenTelemetryAttributeConditionInput { Exists = true },
+            _ => throw ThrowHelper.UnsupportedFilterComparisonOperator(comparison)
+        };
+    }
+
+    private static OpenTelemetryAttributeValueInput Scalar(FilterValue value)
+    {
+        return value.Kind switch
+        {
+            FilterValueKind.Number when
+                !value.Text.Contains('.')
+                &&
+                int.TryParse(value.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer) =>
+                new OpenTelemetryAttributeValueInput { Int = integer },
+            FilterValueKind.Number => new OpenTelemetryAttributeValueInput
+            {
+                Float = double.Parse(value.Text, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture)
+            },
+            FilterValueKind.Boolean => new OpenTelemetryAttributeValueInput { Boolean = value.Text == "true" },
+            _ => new OpenTelemetryAttributeValueInput { String = value.Text }
+        };
+    }
+
+    private static string ContainsPattern(string text)
+    {
+        var start = text.StartsWith('*') ? string.Empty : "*";
+        var end = text.Length > 1 && text.EndsWith('*') ? string.Empty : "*";
+        return start + text + end;
+    }
+
     private static readonly (string Prefix, OpenTelemetryAttributeKind Kind)[] s_scopeKinds =
     [
         ("@span.", OpenTelemetryAttributeKind.Span),
@@ -59,188 +227,4 @@ file static class Extensions
         ("@event.", OpenTelemetryAttributeKind.Event),
         ("@body.", OpenTelemetryAttributeKind.Body)
     ];
-
-    extension(OpenTelemetryFilterInput)
-    {
-        public static OpenTelemetryFilterInput FromAttribute(
-            string field,
-            OpenTelemetryAttributeConditionInput condition)
-        {
-            var (key, kind) = field.LowerKey();
-            var predicate = new OpenTelemetryAttributePredicateInput
-            {
-                Key = key,
-                Condition = condition
-            };
-            if (kind is not null)
-            {
-                predicate = predicate with { Kind = kind };
-            }
-
-            return new OpenTelemetryFilterInput
-            {
-                Attribute = predicate
-            };
-        }
-    }
-
-    extension(IReadOnlyList<FilterNode> children)
-    {
-        public OpenTelemetryFilterInput? Combine(string freeTextKey, bool isAnd)
-        {
-            var inputs = children
-                .Select(child => FilterCompiler.Compile(child, freeTextKey))
-                .OfType<OpenTelemetryFilterInput>()
-                .ToArray();
-
-            return inputs.Length switch
-            {
-                0 => null,
-                1 => inputs[0],
-                _ when isAnd => new OpenTelemetryFilterInput { And = inputs },
-                _ => new OpenTelemetryFilterInput { Or = inputs }
-            };
-        }
-    }
-
-    extension(FilterNotNode node)
-    {
-        public OpenTelemetryFilterInput? CompileNot(string freeTextKey)
-        {
-            if (node.Child is FilterPredicateNode { Operator: FilterComparisonOperator.Exists } predicate)
-            {
-                return OpenTelemetryFilterInput.FromAttribute(
-                    predicate.Field,
-                    new OpenTelemetryAttributeConditionInput { Exists = false });
-            }
-
-            var child = FilterCompiler.Compile(node.Child, freeTextKey);
-            return child is null ? null : new OpenTelemetryFilterInput { Not = child };
-        }
-    }
-
-    extension(FilterPredicateNode node)
-    {
-        public OpenTelemetryFilterInput CompilePredicate()
-        {
-            if (node.Operator == FilterComparisonOperator.Range)
-            {
-                return new OpenTelemetryFilterInput
-                {
-                    And =
-                    [
-                        OpenTelemetryFilterInput.FromAttribute(
-                            node.Field,
-                            new OpenTelemetryAttributeConditionInput { Gte = node.Values[0].ToScalar() }),
-                        OpenTelemetryFilterInput.FromAttribute(
-                            node.Field,
-                            new OpenTelemetryAttributeConditionInput { Lte = node.Values[1].ToScalar() })
-                    ]
-                };
-            }
-
-            if (node.Operator == FilterComparisonOperator.In)
-            {
-                return node.CompileSet();
-            }
-
-            return OpenTelemetryFilterInput.FromAttribute(node.Field, node.Operator.ToCondition(node.Values));
-        }
-
-        public OpenTelemetryFilterInput CompileSet()
-        {
-            var patterns = node.Values.Where(static value => value.HasWildcard).ToArray();
-            if (patterns.Length == 0)
-            {
-                return OpenTelemetryFilterInput.FromAttribute(node.Field, new OpenTelemetryAttributeConditionInput
-                {
-                    In = node.Values.Select(static value => value.ToScalar()).ToArray()
-                });
-            }
-
-            var branches = new List<OpenTelemetryFilterInput>();
-            var literals = node.Values.Where(static value => !value.HasWildcard).ToArray();
-            if (literals.Length > 0)
-            {
-                branches.Add(OpenTelemetryFilterInput.FromAttribute(node.Field, new OpenTelemetryAttributeConditionInput
-                {
-                    In = literals.Select(static value => value.ToScalar()).ToArray()
-                }));
-            }
-
-            branches.AddRange(patterns.Select(value => OpenTelemetryFilterInput.FromAttribute(
-                node.Field,
-                new OpenTelemetryAttributeConditionInput { Matches = value.Text })));
-
-            return branches.Count == 1
-                ? branches[0]
-                : new OpenTelemetryFilterInput { Or = branches };
-        }
-    }
-
-    extension(FilterComparisonOperator comparison)
-    {
-        public OpenTelemetryAttributeConditionInput ToCondition(ImmutableArray<FilterValue> values)
-        {
-            var value = values.Length > 0 ? values[0] : default;
-            return comparison switch
-            {
-                FilterComparisonOperator.Equal when value.HasWildcard => new OpenTelemetryAttributeConditionInput
-                {
-                    Matches = value.Text
-                },
-                FilterComparisonOperator.Equal => new OpenTelemetryAttributeConditionInput { Eq = value.ToScalar() },
-                FilterComparisonOperator.GreaterThan => new OpenTelemetryAttributeConditionInput { Gt = value.ToScalar() },
-                FilterComparisonOperator.GreaterThanOrEqual => new OpenTelemetryAttributeConditionInput { Gte = value.ToScalar() },
-                FilterComparisonOperator.LessThan => new OpenTelemetryAttributeConditionInput { Lt = value.ToScalar() },
-                FilterComparisonOperator.LessThanOrEqual => new OpenTelemetryAttributeConditionInput { Lte = value.ToScalar() },
-                FilterComparisonOperator.Exists => new OpenTelemetryAttributeConditionInput { Exists = true },
-                _ => throw ThrowHelper.UnsupportedFilterComparisonOperator(comparison)
-            };
-        }
-    }
-
-    extension(FilterValue value)
-    {
-        public OpenTelemetryAttributeValueInput ToScalar()
-        {
-            return value.Kind switch
-            {
-                FilterValueKind.Number when
-                    !value.Text.Contains('.')
-                    &&
-                    int.TryParse(value.Text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer) =>
-                    new OpenTelemetryAttributeValueInput { Int = integer },
-                FilterValueKind.Number => new OpenTelemetryAttributeValueInput
-                {
-                    Float = double.Parse(value.Text, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture)
-                },
-                FilterValueKind.Boolean => new OpenTelemetryAttributeValueInput { Boolean = value.Text == "true" },
-                _ => new OpenTelemetryAttributeValueInput { String = value.Text }
-            };
-        }
-    }
-
-    extension(string text)
-    {
-        public (string Key, OpenTelemetryAttributeKind? Kind) LowerKey()
-        {
-            foreach (var (prefix, kind) in s_scopeKinds)
-            {
-                if (text.StartsWith(prefix, StringComparison.Ordinal) && text.Length > prefix.Length)
-                {
-                    return (text[prefix.Length..], kind);
-                }
-            }
-
-            return (text, null);
-        }
-
-        public string ToContainsPattern()
-        {
-            var start = text.StartsWith('*') ? string.Empty : "*";
-            var end = text.Length > 1 && text.EndsWith('*') ? string.Empty : "*";
-            return start + text + end;
-        }
-    }
 }

@@ -10,45 +10,40 @@ internal sealed class TelemetrySinceOption : Option<DateTimeOffset>
     {
         Description = "The earliest timestamp to include [env: NITRO_SINCE]";
         Required = false;
-        DefaultValueFactory = result => result.GetDefaultTimestamp();
-        CustomParser = result => result.Tokens.Single().Value.ParseTimestamp(
+        DefaultValueFactory = result => GetDefaultTimestamp(result);
+        CustomParser = result => ParseTimestamp(
+            result.Tokens.Single().Value,
             result,
             TelemetryOptionDefaults.GetUtcNow());
     }
-}
 
-file static class Extensions
-{
-    extension(ArgumentResult result)
+    private static DateTimeOffset GetDefaultTimestamp(ArgumentResult result)
     {
-        public DateTimeOffset GetDefaultTimestamp()
-        {
-            var now = TelemetryOptionDefaults.GetUtcNow();
-            var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Since);
+        var now = TelemetryOptionDefaults.GetUtcNow();
+        var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Since);
 
-            return value is null
-                ? now - TelemetryTimestamp.DefaultSince
-                : value.ParseTimestamp(result, now);
-        }
+        return value is null
+            ? now - TelemetryTimestamp.DefaultSince
+            : ParseTimestamp(value, result, now);
     }
 
-    extension(string value)
+    private static DateTimeOffset ParseTimestamp(
+        string value,
+        ArgumentResult result,
+        DateTimeOffset now)
     {
-        public DateTimeOffset ParseTimestamp(ArgumentResult result, DateTimeOffset now)
+        if (TelemetryTimestamp.TryParse(
+            value,
+            now,
+            OptionName,
+            enforceMaximumAge: true,
+            out var timestamp,
+            out var error))
         {
-            if (TelemetryTimestamp.TryParse(
-                value,
-                now,
-                TelemetrySinceOption.OptionName,
-                enforceMaximumAge: true,
-                out var timestamp,
-                out var error))
-            {
-                return timestamp;
-            }
-
-            result.AddError(error!);
-            return default;
+            return timestamp;
         }
+
+        result.AddError(error!);
+        return default;
     }
 }

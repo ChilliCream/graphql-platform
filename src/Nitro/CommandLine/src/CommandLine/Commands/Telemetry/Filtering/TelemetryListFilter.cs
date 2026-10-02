@@ -35,7 +35,7 @@ internal static class TelemetryListFilter
         }
         catch (FilterParseException exception)
         {
-            console.RenderParseError(signal, filterText!, exception);
+            RenderParseError(console, signal, filterText!, exception);
             filter = null;
             parsedFilter = null;
             return false;
@@ -83,30 +83,25 @@ internal static class TelemetryListFilter
             return null;
         }
     }
-}
 
-file static class Extensions
-{
-    extension(INitroConsole console)
+    private static void RenderParseError(
+        INitroConsole console,
+        TelemetryFilterSignal signal,
+        string filter,
+        FilterParseException exception)
     {
-        public void RenderParseError(
-            TelemetryFilterSignal signal,
-            string filter,
-            FilterParseException exception)
-        {
-            var examples = signal == TelemetryFilterSignal.Traces
-                ? "hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`"
-                : "hint: examples: `severity:error`, `@resource.service.name:checkout`, "
-                    + "or `exception.type:TimeoutException`";
+        var examples = signal == TelemetryFilterSignal.Traces
+            ? "hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`"
+            : "hint: examples: `severity:error`, `@resource.service.name:checkout`, "
+                + "or `exception.type:TimeoutException`";
 
-            console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
-            console.Error.WriteLine();
-            console.Error.Write(new Text(filter));
-            console.Error.WriteLine();
-            console.Error.Write(new Text($"{new string(' ', exception.Column - 1)}^"));
-            console.Error.WriteLine();
-            console.Error.Write(new Text(examples));
-            console.Error.WriteLine();
-        }
+        console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
+        console.Error.WriteLine();
+        console.Error.Write(new Text(filter));
+        console.Error.WriteLine();
+        console.Error.Write(new Text($"{new string(' ', exception.Column - 1)}^"));
+        console.Error.WriteLine();
+        console.Error.Write(new Text(examples));
+        console.Error.WriteLine();
     }
 }

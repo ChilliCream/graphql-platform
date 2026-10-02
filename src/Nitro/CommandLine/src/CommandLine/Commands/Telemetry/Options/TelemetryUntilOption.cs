@@ -10,45 +10,40 @@ internal sealed class TelemetryUntilOption : Option<DateTimeOffset>
     {
         Description = "The latest timestamp to include [env: NITRO_UNTIL]";
         Required = false;
-        DefaultValueFactory = result => result.GetDefaultTimestamp();
-        CustomParser = result => result.Tokens.Single().Value.ParseTimestamp(
+        DefaultValueFactory = result => GetDefaultTimestamp(result);
+        CustomParser = result => ParseTimestamp(
+            result.Tokens.Single().Value,
             result,
             TelemetryOptionDefaults.GetUtcNow());
     }
-}
 
-file static class Extensions
-{
-    extension(ArgumentResult result)
+    private static DateTimeOffset GetDefaultTimestamp(ArgumentResult result)
     {
-        public DateTimeOffset GetDefaultTimestamp()
-        {
-            var now = TelemetryOptionDefaults.GetUtcNow();
-            var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Until);
+        var now = TelemetryOptionDefaults.GetUtcNow();
+        var value = TelemetryOptionDefaults.GetEnvironmentValue(EnvironmentVariables.Until);
 
-            return value is null
-                ? now
-                : value.ParseTimestamp(result, now);
-        }
+        return value is null
+            ? now
+            : ParseTimestamp(value, result, now);
     }
 
-    extension(string value)
+    private static DateTimeOffset ParseTimestamp(
+        string value,
+        ArgumentResult result,
+        DateTimeOffset now)
     {
-        public DateTimeOffset ParseTimestamp(ArgumentResult result, DateTimeOffset now)
+        if (TelemetryTimestamp.TryParse(
+            value,
+            now,
+            OptionName,
+            enforceMaximumAge: false,
+            out var timestamp,
+            out var error))
         {
-            if (TelemetryTimestamp.TryParse(
-                value,
-                now,
-                TelemetryUntilOption.OptionName,
-                enforceMaximumAge: false,
-                out var timestamp,
-                out var error))
-            {
-                return timestamp;
-            }
-
-            result.AddError(error!);
-            return default;
+            return timestamp;
         }
+
+        result.AddError(error!);
+        return default;
     }
 }

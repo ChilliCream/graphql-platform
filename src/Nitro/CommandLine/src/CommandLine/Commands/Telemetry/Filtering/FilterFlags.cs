@@ -7,6 +7,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class FilterFlags
 {
+    private static readonly ImmutableArray<string> s_severityLevels = ["trace", "debug", "info", "warn", "error", "fatal"];
+
+    private static readonly FrozenDictionary<string, int> s_severityRanks = s_severityLevels
+        .Select(static (level, index) => new KeyValuePair<string, int>(level, index))
+        .ToFrozenDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.OrdinalIgnoreCase);
+
     public static OpenTelemetryFilterInput? Compile(
         string? filter,
         TelemetryFilterSignal signal,
@@ -49,7 +55,7 @@ internal static class FilterFlags
 
         if (hasError)
         {
-            clauses.Add(OpenTelemetryFilterInput.FromAttribute("status", new OpenTelemetryAttributeConditionInput
+            clauses.Add(FilterCompiler.Attribute("status", new OpenTelemetryAttributeConditionInput
             {
                 Eq = new OpenTelemetryAttributeValueInput { String = "error" }
             }));
@@ -57,7 +63,7 @@ internal static class FilterFlags
 
         if (minDurationMs is not null)
         {
-            clauses.Add(OpenTelemetryFilterInput.FromAttribute("duration", new OpenTelemetryAttributeConditionInput
+            clauses.Add(FilterCompiler.Attribute("duration", new OpenTelemetryAttributeConditionInput
             {
                 Gte = new OpenTelemetryAttributeValueInput { Int = minDurationMs }
             }));
@@ -65,12 +71,12 @@ internal static class FilterFlags
 
         if (!string.IsNullOrWhiteSpace(severity))
         {
-            clauses.Add(severity.ToSeverityFilter());
+            clauses.Add(Severity(severity));
         }
 
         if (!string.IsNullOrWhiteSpace(traceId))
         {
-            clauses.Add(OpenTelemetryFilterInput.FromAttribute("trace.id", new OpenTelemetryAttributeConditionInput
+            clauses.Add(FilterCompiler.Attribute("trace.id", new OpenTelemetryAttributeConditionInput
             {
                 Eq = new OpenTelemetryAttributeValueInput { String = traceId }
             }));
@@ -83,7 +89,7 @@ internal static class FilterFlags
 
         if (!string.IsNullOrWhiteSpace(service))
         {
-            clauses.Add(OpenTelemetryFilterInput.FromAttribute("@resource.service.name", new OpenTelemetryAttributeConditionInput
+            clauses.Add(FilterCompiler.Attribute("@resource.service.name", new OpenTelemetryAttributeConditionInput
             {
                 Eq = new OpenTelemetryAttributeValueInput { String = service }
             }));
@@ -96,57 +102,19 @@ internal static class FilterFlags
             _ => new OpenTelemetryFilterInput { And = clauses }
         };
     }
-}
 
-file static class Extensions
-{
-    private static readonly ImmutableArray<string> s_severityLevels = ["trace", "debug", "info", "warn", "error", "fatal"];
-
-    private static readonly FrozenDictionary<string, int> s_severityRanks = s_severityLevels
-        .Select(static (level, index) => new KeyValuePair<string, int>(level, index))
-        .ToFrozenDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.OrdinalIgnoreCase);
-
-    extension(OpenTelemetryFilterInput)
+    private static OpenTelemetryFilterInput Severity(string severity)
     {
-        public static OpenTelemetryFilterInput FromAttribute(
-            string field,
-            OpenTelemetryAttributeConditionInput condition)
+        if (!s_severityRanks.TryGetValue(severity, out var start))
         {
-            var (key, kind) = field.StartsWith("@resource.", StringComparison.Ordinal)
-                ? (field[10..], (OpenTelemetryAttributeKind?)OpenTelemetryAttributeKind.Resource)
-                : (field, null);
-            var predicate = new OpenTelemetryAttributePredicateInput
-            {
-                Key = key,
-                Condition = condition
-            };
-            if (kind is not null)
-            {
-                predicate = predicate with { Kind = kind };
-            }
-
-            return new OpenTelemetryFilterInput
-            {
-                Attribute = predicate
-            };
+            throw ThrowHelper.UnsupportedSeverityLevel(severity);
         }
-    }
 
-    extension(string severity)
-    {
-        public OpenTelemetryFilterInput ToSeverityFilter()
+        return FilterCompiler.Attribute("severity", new OpenTelemetryAttributeConditionInput
         {
-            if (!s_severityRanks.TryGetValue(severity, out var start))
-            {
-                throw ThrowHelper.UnsupportedSeverityLevel(severity);
-            }
-
-            return OpenTelemetryFilterInput.FromAttribute("severity", new OpenTelemetryAttributeConditionInput
-            {
-                In = s_severityLevels.Skip(start)
-                    .Select(level => new OpenTelemetryAttributeValueInput { String = level })
-                    .ToArray()
-            });
-        }
+            In = s_severityLevels.Skip(start)
+                .Select(level => new OpenTelemetryAttributeValueInput { String = level })
+                .ToArray()
+        });
     }
 }

@@ -72,7 +72,7 @@ internal sealed class ShowTraceCommand : Command
         }
 
         var tree = SpanTreeBuilder.Build(trace.Spans);
-        console.RenderSummary(traceId, trace);
+        RenderSummary(console, traceId, trace);
         var renderedTree = new SpanTreeRenderer().Render(tree, spanId);
         if (renderedTree.Length > 0)
         {
@@ -84,6 +84,61 @@ internal sealed class ShowTraceCommand : Command
 
         return ExitCodes.Success;
     }
+
+    private static void RenderSummary(
+        INitroConsole console,
+        string traceId,
+        Trace trace)
+    {
+        var returnedSpanCount = trace.Spans.Count;
+        if (trace.SpansTruncated)
+        {
+            var totalSpanCount = trace.SpanCount is { } count
+                ? $"total {count} spans"
+                : "total span count unknown";
+            console.WriteRawLine(
+                $"trace {traceId}: {returnedSpanCount} returned spans (errors unknown), "
+                + $"{totalSpanCount}, duration unknown (server-capped)");
+        }
+        else
+        {
+            var errorCount = trace.Spans.Count(static span => span.IsError);
+            console.WriteRawLine(
+                $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
+                + $"total {trace.TotalDuration.FormatDuration()} ms");
+        }
+
+        var operations = trace.Spans
+            .GroupBy(static span => span.SpanName, StringComparer.Ordinal)
+            .Select(static group => new OperationSummary(
+                group.Key,
+                group.Count(),
+                group.Average(static span => span.DurationMs),
+                group.Select(static span => span.DurationMs).Percentile(0.95)))
+            .Where(static operation => operation.AverageDurationMs >= 5)
+            .OrderByDescending(static operation => operation.Count)
+            .ThenBy(static operation => operation.Name, StringComparer.Ordinal)
+            .Take(10)
+            .ToArray();
+
+        if (operations.Length > 0)
+        {
+            console.WriteRawLine("top operations:");
+            foreach (var operation in operations)
+            {
+                console.WriteRawLine(
+                    $"  {operation.Name.EscapeControlCharacters()}: {operation.Count} spans, "
+                    + $"avg {operation.AverageDurationMs.FormatDuration()} ms, "
+                    + $"p95 {operation.P95DurationMs.FormatDuration()} ms");
+            }
+        }
+    }
+
+    private sealed record OperationSummary(
+        string Name,
+        int Count,
+        double AverageDurationMs,
+        double P95DurationMs);
 }
 
 file static class Extensions
@@ -101,57 +156,6 @@ file static class Extensions
         }
     }
 
-    extension(INitroConsole console)
-    {
-        public void RenderSummary(
-            string traceId,
-            Trace trace)
-        {
-            var returnedSpanCount = trace.Spans.Count;
-            if (trace.SpansTruncated)
-            {
-                var totalSpanCount = trace.SpanCount is { } count
-                    ? $"total {count} spans"
-                    : "total span count unknown";
-                console.WriteRawLine(
-                    $"trace {traceId}: {returnedSpanCount} returned spans (errors unknown), "
-                    + $"{totalSpanCount}, duration unknown (server-capped)");
-            }
-            else
-            {
-                var errorCount = trace.Spans.Count(static span => span.IsError);
-                console.WriteRawLine(
-                    $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
-                    + $"total {trace.TotalDuration.FormatDuration()} ms");
-            }
-
-            var operations = trace.Spans
-                .GroupBy(static span => span.SpanName, StringComparer.Ordinal)
-                .Select(static group => new OperationSummary(
-                    group.Key,
-                    group.Count(),
-                    group.Average(static span => span.DurationMs),
-                    group.Select(static span => span.DurationMs).Percentile(0.95)))
-                .Where(static operation => operation.AverageDurationMs >= 5)
-                .OrderByDescending(static operation => operation.Count)
-                .ThenBy(static operation => operation.Name, StringComparer.Ordinal)
-                .Take(10)
-                .ToArray();
-
-            if (operations.Length > 0)
-            {
-                console.WriteRawLine("top operations:");
-                foreach (var operation in operations)
-                {
-                    console.WriteRawLine(
-                        $"  {operation.Name.EscapeControlCharacters()}: {operation.Count} spans, "
-                        + $"avg {operation.AverageDurationMs.FormatDuration()} ms, "
-                        + $"p95 {operation.P95DurationMs.FormatDuration()} ms");
-                }
-            }
-        }
-    }
-
     extension(IEnumerable<double> values)
     {
         public double Percentile(double percentile)
@@ -166,10 +170,4 @@ file static class Extensions
             return sorted[Math.Clamp(index, 0, sorted.Length - 1)];
         }
     }
-
-    private sealed record OperationSummary(
-        string Name,
-        int Count,
-        double AverageDurationMs,
-        double P95DurationMs);
 }
