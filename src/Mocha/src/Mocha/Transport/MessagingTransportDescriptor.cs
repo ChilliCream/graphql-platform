@@ -128,11 +128,27 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// <returns>The receive endpoint name.</returns>
     protected string GetHandlerEndpointName(Type handlerType)
     {
+        Consumer? consumer = null;
+
+        foreach (var candidate in Context.Consumers)
+        {
+            if (candidate.Identity == handlerType)
+            {
+                consumer = candidate;
+                break;
+            }
+        }
+
+        if (consumer is null)
+        {
+            return Context.Naming.GetReceiveEndpointName(handlerType, ReceiveEndpointKind.Default);
+        }
+
         MessageType? sendMessageType = null;
 
-        foreach (var route in Context.Router.InboundRoutes)
+        foreach (var route in Context.Router.GetInboundByConsumer(consumer))
         {
-            if (route.Consumer?.Identity != handlerType || route.Kind is InboundRouteKind.Reply)
+            if (route.Kind is InboundRouteKind.Reply)
             {
                 continue;
             }
