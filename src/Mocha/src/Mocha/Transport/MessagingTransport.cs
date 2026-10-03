@@ -202,35 +202,59 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     public bool IsStarted { get; private set; }
 
+    private bool _hasStarted;
+
     /// <summary>
-    /// Starts the transport by invoking pre-start hooks and activating all receive endpoints.
+    /// Starts the transport and all receive endpoints, stopping them if startup fails.
+    /// A stopped transport cannot be started again.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the transport is already started or not initialized.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the transport has already been started or is not initialized.</exception>
     public async ValueTask StartAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
     {
         AssertInitialized();
-        if (IsStarted)
+        if (_hasStarted)
         {
             throw ThrowHelper.TransportAlreadyStarted();
         }
 
-        await OnBeforeStartAsync(context, cancellationToken);
+        _hasStarted = true;
 
-        foreach (var endpoint in ReceiveEndpoints)
+        try
         {
-            await endpoint.StartAsync(context, cancellationToken);
+            await OnBeforeStartAsync(context, cancellationToken);
+
+            foreach (var endpoint in ReceiveEndpoints)
+            {
+                await endpoint.StartAsync(context, cancellationToken);
+            }
+        }
+        catch
+        {
+            try
+            {
+                await StopCoreAsync(context, new CancellationToken(canceled: true));
+            }
+            catch
+            {
+                // The start failure is the error that gets reported.
+            }
+
+            throw;
         }
 
         IsStarted = true;
     }
 
     /// <summary>
-    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints.
+    /// Stops the receive endpoints, then the reply endpoint, and then releases transport resources.
+    /// The transport counts as stopped once this method returns, even if it throws.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
-    /// <param name="cancellationToken">A token to cancel the shutdown sequence.</param>
+    /// <param name="cancellationToken">
+    /// A token that cancels the in-flight messages, see <see cref="ReceiveEndpoint.StopAsync"/>.
+    /// </param>
     /// <exception cref="InvalidOperationException">Thrown if the transport is not currently started.</exception>
     public async ValueTask StopAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
     {
@@ -239,14 +263,55 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             throw ThrowHelper.TransportNotStarted();
         }
 
-        await OnBeforeStopAsync(cancellationToken);
+        await StopCoreAsync(context, cancellationToken);
+    }
+
+    private async Task StopCoreAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
+    {
+        var stopReceiveEndpoints = StopReceiveEndpointsAsync(context, cancellationToken);
+        await stopReceiveEndpoints.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+        await TaskHelper.WhenAllAsync([stopReceiveEndpoints, CompleteStopAsync(context, cancellationToken)]);
+    }
+
+    /// <summary>
+    /// Invokes the pre-stop hook and stops all receive endpoints except the reply endpoint.
+    /// </summary>
+    internal async Task StopReceiveEndpointsAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
+    {
+        var beforeStop = BeforeStopAsync(cancellationToken);
+        await beforeStop.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+        var stopTasks = new List<Task>(ReceiveEndpoints.Count + 1) { beforeStop };
         foreach (var endpoint in ReceiveEndpoints)
         {
-            await endpoint.StopAsync(context, cancellationToken);
+            if (endpoint != ReplyReceiveEndpoint)
+            {
+                stopTasks.Add(endpoint.StopAsync(context, cancellationToken).AsTask());
+            }
         }
 
-        IsStarted = false;
+        await TaskHelper.WhenAllAsync(stopTasks);
     }
+
+    /// <summary>
+    /// Stops the reply endpoint and invokes the post-stop hook, which marks the transport as stopped.
+    /// </summary>
+    internal async Task CompleteStopAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
+    {
+        var stopReplyEndpoint = ReplyReceiveEndpoint?.StopAsync(context, cancellationToken).AsTask() ?? Task.CompletedTask;
+        await stopReplyEndpoint.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+        IsStarted = false;
+
+        await TaskHelper.WhenAllAsync([stopReplyEndpoint, AfterStopAsync(cancellationToken)]);
+    }
+
+    private async Task BeforeStopAsync(CancellationToken cancellationToken)
+        => await OnBeforeStopAsync(cancellationToken);
+
+    private async Task AfterStopAsync(CancellationToken cancellationToken)
+        => await OnAfterStopAsync(cancellationToken);
 
     /// <summary>
     /// Called before receive endpoints are started, allowing derived transports to perform
@@ -265,6 +330,15 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the pre-stop operation.</param>
     protected virtual ValueTask OnBeforeStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+
+    /// <summary>
+    /// Called after all receive endpoints have stopped, and after a failed start, to release
+    /// transport-level resources.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The token that was passed to the stop operation. It may already be cancelled.
+    /// </param>
+    protected virtual ValueTask OnAfterStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
     /// <summary>
     /// Creates the transport-specific configuration from the setup context during the bus build phase.
