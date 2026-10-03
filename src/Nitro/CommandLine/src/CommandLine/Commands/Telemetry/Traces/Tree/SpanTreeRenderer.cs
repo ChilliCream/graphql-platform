@@ -111,33 +111,35 @@ internal sealed class SpanTreeRenderer
     private static string GetOperationLabel(TraceSpan span)
     {
         var http = span.Data as HttpTraceSpanData;
-        var method = FirstNonEmpty(
+        var method = string.FirstNonEmpty(
             http?.Method,
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.HttpRequestMethod),
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.HttpMethod));
-        var route = FirstNonEmpty(
+        var route = string.FirstNonEmpty(
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.HttpRoute),
             http?.Url.GetRoute());
+
         if (method is not null || route is not null)
         {
             return method is not null && route is not null ? $"{method} {route}" : method ?? route!;
         }
 
         var database = span.Data as DatabaseTraceSpanData;
-        var system = FirstNonEmpty(
+        var system = string.FirstNonEmpty(
             database?.System,
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.DbSystem));
-        var operation = FirstNonEmpty(
+        var operation = string.FirstNonEmpty(
             database?.Operation,
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.DbOperation),
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.DbOperationName));
+
         if (system is not null || operation is not null)
         {
             return system is not null && operation is not null ? $"{system} {operation}" : system ?? operation!;
         }
 
         var graphQl = span.Data as GraphQLOperationTraceSpanData;
-        var graphQlName = FirstNonEmpty(
+        var graphQlName = string.FirstNonEmpty(
             graphQl?.Operation?.Name,
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.GraphQLOperationName));
         return graphQlName ?? span.SpanKind;
@@ -167,9 +169,6 @@ internal sealed class SpanTreeRenderer
             }
         }
     }
-
-    private static string? FirstNonEmpty(params string?[] values)
-        => values.FirstOrDefault(static candidate => !string.IsNullOrEmpty(candidate));
 }
 
 file static class Extensions
@@ -186,6 +185,9 @@ file static class Extensions
                 .Replace("\r\n", "\n", StringComparison.Ordinal)
                 .Replace('\r', '\n')
                 .Split('\n', StringSplitOptions.None);
+
+        public static string? FirstNonEmpty(params string?[] values)
+            => values.FirstOrDefault(static candidate => !string.IsNullOrEmpty(candidate));
     }
 
     extension(string? url)
