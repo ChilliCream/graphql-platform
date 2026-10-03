@@ -34,6 +34,7 @@ bfnrt
 birthdates
 blazor
 blazorwasm
+Bonnin
 Brontie
 Browsable
 BSON
@@ -274,6 +275,7 @@ Starships
 starwars
 Storeless
 strawberryshake
+Strawman
 streamable
 strikethrough
 Structs
