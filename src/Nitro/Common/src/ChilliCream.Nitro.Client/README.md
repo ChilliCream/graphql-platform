@@ -4,8 +4,6 @@
 
 If you change any `*.graphql` files, regenerate the GraphQL client:
 
-The `documents` order in `.graphqlrc.json` is load-bearing for fragment interface resolution.
-
 ```bash
 dotnet run --framework net10.0 --project ../../../../StrawberryShake/Tooling/src/dotnet-graphql/dotnet-graphql.csproj generate
 ```
