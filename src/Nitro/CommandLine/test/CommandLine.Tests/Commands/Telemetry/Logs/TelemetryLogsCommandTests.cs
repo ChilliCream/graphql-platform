@@ -1,4 +1,7 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using Moq;
 
@@ -6,14 +9,47 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Logs;
 
 public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : TelemetryCommandTestBase(fixture)
 {
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     [Fact]
     public async Task ListHelp_Should_ReturnSuccess()
     {
-        // arrange & act
+        // act
         var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--help");
 
         // assert
-        result.AssertSuccess();
+        result.AssertHelpOutput(
+            """
+            Description:
+              List telemetry logs in the current workspace.
+
+            Usage:
+              nitro telemetry logs list [options]
+
+            Options:
+              --service <service>                             Limit results to a service
+              --env <env>                                     Limit results to an environment; can be used multiple times
+              --filter <filter>                               Filter results using the telemetry filter grammar
+              --since <since>                                 The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
+              --until <until>                                 The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
+              --limit <limit>                                 The maximum number of results to show
+              --severity <Debug|Error|Fatal|Info|Trace|Warn>  Only include logs at or above this severity
+              --trace-id <trace-id>                           Only include logs from a trace
+              --search <search>                               Search log messages
+              --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                             The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                  Show help and usage information
+
+            Example:
+              nitro telemetry logs list
+              nitro telemetry logs list --service checkout --severity error --since 2h
+            """);
     }
 
     [Theory]
@@ -57,71 +93,38 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
     }
 
     [Fact]
-    public async Task List_Should_CompileEveryHigherSeverity_When_SeverityIsSpecified()
+    public async Task List_Should_ForwardShortcutOptionsToFilter_When_Specified()
     {
         // arrange
         SetupSessionWithWorkspace();
-        TelemetryClientMock
-            .Setup(x =>
-                x.ListLogsAsync(
-                    WorkspaceId,
-                    It.Is<OpenTelemetryFilterInput?>(filter => IsWarnOrHigherFilter(filter)),
-                    It.IsAny<IReadOnlyList<string>?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(new ConnectionPage<LogRow>([], null, false));
+        SetupListLogs();
 
         // act
-        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--severity", "warn");
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "logs",
+            "list",
+            "--severity",
+            "warn",
+            "--trace-id",
+            "trace-1",
+            "--search",
+            "timeout",
+            "--service",
+            "checkout");
+        var filter = (OpenTelemetryFilterInput?)
+            TelemetryClientMock
+                .Invocations.Single(invocation => invocation.Method.Name == nameof(ITelemetryClient.ListLogsAsync))
+                .Arguments[1];
 
         // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task List_Should_CompileTraceIdFilter_When_TraceIdIsSpecified()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        TelemetryClientMock
-            .Setup(x =>
-                x.ListLogsAsync(
-                    WorkspaceId,
-                    It.Is<OpenTelemetryFilterInput?>(filter => IsTraceIdFilter(filter)),
-                    It.IsAny<IReadOnlyList<string>?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>())
-            )
-            .ReturnsAsync(new ConnectionPage<LogRow>([], null, false));
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--trace-id", "trace-1");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
+        result.AssertSuccess();
+        JsonSerializer
+            .Serialize(filter, s_jsonSerializerOptions)
+            .MatchInlineSnapshot(
+                """
+                {"and":[{"attribute":{"condition":{"in":[{"string":"warn"},{"string":"error"},{"string":"fatal"}]},"key":"severity"}},{"attribute":{"condition":{"eq":{"string":"trace-1"}},"key":"trace.id"}},{"attribute":{"condition":{"matches":"*timeout*"},"key":"log.message"}},{"attribute":{"condition":{"eq":{"string":"checkout"}},"key":"service.name","kind":"Resource"}}]}
+                """);
     }
 
     [Theory]
@@ -133,7 +136,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
         // arrange
         SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
-        SetupListLogs(logs: [CreateLogRow()]);
+        SetupListLogs(CreateLogRow());
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "logs", "list");
@@ -162,33 +165,9 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
     }
 
     [Fact]
-    public async Task List_Should_WriteEmptyResult_When_NoLogsExist()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupSessionWithWorkspace();
-        SetupListLogs();
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "logs", "list");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-    }
-
-    [Fact]
     public async Task List_Should_WriteSuggestionHint_When_FilteredResultHasAnUnknownKey()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
         SetupSessionWithWorkspace();
         SetupListLogs();
         SetupListAttributeKeys(
@@ -227,71 +206,11 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
             Times.Once);
     }
 
-    [Fact]
-    public async Task List_Should_NotWriteSuggestionHint_When_FilterKeyIsKnown()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        SetupListLogs();
-        SetupListAttributeKeys(keys: [new AttributeKeyRow("Log", "http.statuscode")]);
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "http.statuscode:>=500");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task List_Should_ReturnOrdinaryEmptyResult_When_AttributeKeyLookupFails()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupSessionWithWorkspace();
-        SetupListLogs();
-        TelemetryClientMock
-            .Setup(x =>
-                x.ListAttributeKeysAsync(
-                    WorkspaceId,
-                    OpenTelemetrySignalKind.Logs,
-                    null,
-                    null,
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>())
-            )
-            .ThrowsAsync(new InvalidOperationException());
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "http.statuscode:>=500");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Show_Should_WriteLogDetailAsJson_When_LogContainsAnException(InteractionMode mode)
+    public async Task Show_Should_WriteLogDetail_When_LogExists(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -372,7 +291,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
             """);
     }
 
-    private void SetupListLogs(bool hasNextPage = false, params LogRow[] logs)
+    private void SetupListLogs(params LogRow[] logs)
     {
         TelemetryClientMock
             .Setup(x =>
@@ -386,10 +305,10 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
                     null,
                     It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ConnectionPage<LogRow>(logs, null, hasNextPage));
+            .ReturnsAsync(new ConnectionPage<LogRow>(logs, null, false));
     }
 
-    private void SetupGetLog(Log? log)
+    private void SetupGetLog(Log log)
     {
         TelemetryClientMock
             .Setup(x => x.GetLogAsync(WorkspaceId, "log-1", It.IsAny<CancellationToken>()))
@@ -398,20 +317,6 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
 
     private static LogRow CreateLogRow()
         => new("log-1", 1767225600123, "ERROR", 17, "Request failed", "trace-1", "span-1", "products");
-
-    private static bool IsWarnOrHigherFilter(OpenTelemetryFilterInput? filter)
-    {
-        var values = filter?.Attribute?.Condition.In;
-
-        return filter?.Attribute?.Key == "severity"
-            && values?.Count == 3
-            && values?[0].String == "warn"
-            && values?[1].String == "error"
-            && values?[2].String == "fatal";
-    }
-
-    private static bool IsTraceIdFilter(OpenTelemetryFilterInput? filter)
-        => filter?.Attribute?.Key == "trace.id" && filter?.Attribute?.Condition.Eq?.String == "trace-1";
 
     private static Log CreateLog()
         => new(

@@ -1,4 +1,6 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Attributes;
 
@@ -58,10 +60,9 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Keys_Should_WriteEnvelope_When_JsonOutputIsRequested()
+    public async Task Keys_Should_WriteEnvelopeWithHint_When_ResultHasMoreItems()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
         SetupSessionWithWorkspace();
         SetupListAttributeKeys(hasNextPage: true, keys: [new AttributeKeyRow("Resource", "service.name")]);
 
@@ -87,12 +88,16 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Values_Should_WriteEmptyEnvelope_When_NoValuesExist()
+    public async Task Values_Should_WriteEnvelope_When_ValuesExist()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
         SetupSessionWithWorkspace();
-        SetupListAttributeValues();
+        SetupListAttributeValues(
+            new AttributeValue(null, null, null, "products"),
+            new AttributeValue(null, null, 42, null),
+            new AttributeValue(null, 1.5, null, null),
+            new AttributeValue(true, null, null, null),
+            new AttributeValue(false, null, null, null));
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "attributes", "values", "service.name", "--signal", "logs");
@@ -101,11 +106,46 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
+              "items": [
+                {
+                  "value": "products"
+                },
+                {
+                  "value": "42"
+                },
+                {
+                  "value": "1.5"
+                },
+                {
+                  "value": "true"
+                },
+                {
+                  "value": "false"
+                }
+              ],
+              "returned": 5,
               "total": null,
               "hasMore": false
             }
             """);
+    }
+
+    private void SetupListAttributeValues(params AttributeValue[] values)
+    {
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListAttributeValuesAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetrySignalKind>(),
+                    "service.name",
+                    null,
+                    It.IsAny<string?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<AttributeValue>(values, null, false));
     }
 }

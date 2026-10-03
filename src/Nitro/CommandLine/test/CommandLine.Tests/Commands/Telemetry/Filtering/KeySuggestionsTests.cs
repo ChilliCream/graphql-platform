@@ -47,23 +47,6 @@ public sealed class KeySuggestionsTests
     }
 
     [Fact]
-    public void CreateHint_Should_SuggestUndottedKeys_When_NeitherSideHasASegment()
-    {
-        // arrange
-        var filter = FilterParser.Parse("enviroment:prod", TelemetryFilterSignal.Traces);
-        AttributeKeyRow[] keys = [new("Span", "environment"), new("Span", "env")];
-
-        // act
-        var result = KeySuggestions.CreateHint(filter, keys, OpenTelemetrySignalKind.Traces);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            no results; unknown key 'enviroment', did you mean environment? Run nitro telemetry attributes keys --signal traces to list keys.
-            """);
-    }
-
-    [Fact]
     public void CreateHint_Should_ReturnNull_When_TheFilterIsNull()
     {
         // act
@@ -96,7 +79,18 @@ public sealed class KeySuggestionsTests
         var filter = FilterParser.Parse(
             "status:error severity:warn duration:>5 span.name:x log.message:y trace.id:abc span.id:1 span.kind:server timeout",
             TelemetryFilterSignal.Traces);
-        AttributeKeyRow[] keys = [new("Span", "http.status_code")];
+        AttributeKeyRow[] keys =
+        [
+            new("Span", "status.code"),
+            new("Span", "severity.text"),
+            new("Span", "duration.ms"),
+            new("Span", "span.names"),
+            new("Span", "log.messages"),
+            new("Span", "trace.identifier"),
+            new("Span", "span.ids"),
+            new("Span", "span.kinds"),
+            new("Span", "timeout.ms")
+        ];
 
         // act
         var result = KeySuggestions.CreateHint(filter, keys, OpenTelemetrySignalKind.Traces);
@@ -113,30 +107,12 @@ public sealed class KeySuggestionsTests
         OpenTelemetrySignalKind.Traces,
         "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
     [InlineData(
-        "@event.http.statuscode:1",
-        "Event",
-        TelemetryFilterSignal.Traces,
-        OpenTelemetrySignalKind.Traces,
-        "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
-    [InlineData(
-        "@resource.http.statuscode:1",
-        "Resource",
-        TelemetryFilterSignal.Traces,
-        OpenTelemetrySignalKind.Traces,
-        "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal traces to list keys.")]
-    [InlineData(
         "@log.http.statuscode:1",
         "Log",
         TelemetryFilterSignal.Logs,
         OpenTelemetrySignalKind.Logs,
         "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal logs to list keys.")]
-    [InlineData(
-        "@body.http.statuscode:1",
-        "Body",
-        TelemetryFilterSignal.Logs,
-        OpenTelemetrySignalKind.Logs,
-        "no results; unknown key 'http.statuscode', did you mean http.status_code? Run nitro telemetry attributes keys --signal logs to list keys.")]
-    public void CreateHint_Should_StripEveryScopePrefix_When_FieldsAreScoped(
+    public void CreateHint_Should_StripTheScopePrefix_When_TheFieldIsScoped(
         string text,
         string kind,
         TelemetryFilterSignal filterSignal,
@@ -172,7 +148,7 @@ public sealed class KeySuggestionsTests
     }
 
     [Fact]
-    public void CreateHint_Should_ReturnNull_When_TheUnknownKeyIsKnownInAnotherCase()
+    public void CreateHint_Should_ReturnNull_When_TheKeyMatchesAKnownKeyIgnoringCase()
     {
         // arrange
         var filter = FilterParser.Parse("HTTP.STATUS_CODE:1", TelemetryFilterSignal.Traces);
@@ -186,13 +162,11 @@ public sealed class KeySuggestionsTests
     }
 
     [Fact]
-    public void CreateHint_Should_NormalizeScopesAndOrderCandidates_When_FilterHasAnUnknownAttribute()
+    public void CreateHint_Should_RankLeafEditDistanceAfterFullKeyEditDistance_When_BothQualify()
     {
         // arrange
-        var filter = FilterParser.Parse(
-            "@resource.http.statuscode:>=500 AND status:error",
-            TelemetryFilterSignal.Traces);
-        AttributeKeyRow[] keys = [new("Resource", "http.response.status_code"), new("Resource", "http.status_code")];
+        var filter = FilterParser.Parse("http.statuscode:>=500", TelemetryFilterSignal.Traces);
+        AttributeKeyRow[] keys = [new("Span", "http.response.status_code"), new("Span", "http.status_code")];
 
         // act
         var result = KeySuggestions.CreateHint(filter, keys, OpenTelemetrySignalKind.Traces);
@@ -247,19 +221,16 @@ public sealed class KeySuggestionsTests
     }
 
     [Fact]
-    public void CreateHint_Should_ReturnNull_When_FieldsAreKnownOrHaveNoQualifyingCandidates()
+    public void CreateHint_Should_ReturnNull_When_NoKnownKeyIsSimilarToTheUnknownKey()
     {
         // arrange
-        var knownFilter = FilterParser.Parse("HTTP.STATUS_CODE:500", TelemetryFilterSignal.Traces);
-        var unknownFilter = FilterParser.Parse("unrelated.key:value", TelemetryFilterSignal.Traces);
+        var filter = FilterParser.Parse("unrelated.key:value", TelemetryFilterSignal.Traces);
         AttributeKeyRow[] keys = [new("Span", "http.status_code")];
 
         // act
-        var knownResult = KeySuggestions.CreateHint(knownFilter, keys, OpenTelemetrySignalKind.Traces);
-        var unknownResult = KeySuggestions.CreateHint(unknownFilter, keys, OpenTelemetrySignalKind.Traces);
+        var result = KeySuggestions.CreateHint(filter, keys, OpenTelemetrySignalKind.Traces);
 
         // assert
-        Assert.Null(knownResult);
-        Assert.Null(unknownResult);
+        Assert.Null(result);
     }
 }

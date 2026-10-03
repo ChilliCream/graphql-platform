@@ -10,7 +10,7 @@ public sealed class SpanTreeRendererTests
     {
         // arrange
         var span = CreateSpan(
-            "root-id",
+            "root",
             duration: 123.5,
             status: "ERROR",
             resourceAttributes: [new("service.name", "payments")],
@@ -33,10 +33,8 @@ public sealed class SpanTreeRendererTests
         var rendered = new SpanTreeRenderer().Render(tree, spanId: null);
 
         // assert
-        Assert.Equal(
-            "root-id [GET /orders/1 · payments · 123.5ms · ERROR · HandlePayment · /src/Handler.cs:42 · root-id]",
-            rendered);
-        Assert.EndsWith("· root-id]", rendered, StringComparison.Ordinal);
+        rendered.MatchInlineSnapshot(
+            "root-name [GET /orders/1 · payments · 123.5ms · ERROR · HandlePayment · /src/Handler.cs:42 · root]");
     }
 
     [Fact]
@@ -57,10 +55,14 @@ public sealed class SpanTreeRendererTests
         var rendered = new SpanTreeRenderer().Render(tree, spanId: null);
 
         // assert
-        Assert.Contains("exception: InvalidOperationException: payment failed", rendered, StringComparison.Ordinal);
-        Assert.Contains("at A()", rendered, StringComparison.Ordinal);
-        Assert.Contains("at B()", rendered, StringComparison.Ordinal);
-        Assert.Contains("at C()", rendered, StringComparison.Ordinal);
+        rendered.MatchInlineSnapshot(
+            """
+            root-name [SERVER ·  · 1ms · ERROR · root]
+              exception: InvalidOperationException: payment failed
+                 at A()
+                 at B()
+                 at C()
+            """);
     }
 
     [Fact]
@@ -79,8 +81,11 @@ public sealed class SpanTreeRendererTests
         var rendered = new SpanTreeRenderer().Render(tree, spanId: null);
 
         // assert
-        Assert.Contains("db [postgresql SELECT ·  · 1ms · db]", rendered, StringComparison.Ordinal);
-        Assert.Contains("graphql [GetOrder ·  · 1ms · graphql]", rendered, StringComparison.Ordinal);
+        rendered.MatchInlineSnapshot(
+            """
+            ├─ db-name [postgresql SELECT ·  · 1ms · db]
+            └─ graphql-name [GetOrder ·  · 1ms · graphql]
+            """);
     }
 
     [Theory]
@@ -96,6 +101,32 @@ public sealed class SpanTreeRendererTests
 
         // assert
         rendered.MatchInlineSnapshot("");
+    }
+
+    [Fact]
+    public void Render_Should_WriteOnlyFocusedSubtree_When_SpanIdMatches()
+    {
+        // arrange
+        var tree = SpanTreeBuilder.Build([
+            CreateSpan("root"),
+            CreateSpan("focus", parent: "root"),
+            CreateSpan("sibling", parent: "root"),
+            CreateSpan("child-a", parent: "focus"),
+            CreateSpan("child-b", parent: "focus"),
+            CreateSpan("leaf", parent: "child-a")
+        ]);
+
+        // act
+        var rendered = new SpanTreeRenderer().Render(tree, spanId: "focus");
+
+        // assert
+        rendered.MatchInlineSnapshot(
+            """
+            focus-name [SERVER ·  · 1ms · focus]
+            ├─ child-a-name [SERVER ·  · 1ms · child-a]
+            │  └─ leaf-name [SERVER ·  · 1ms · leaf]
+            └─ child-b-name [SERVER ·  · 1ms · child-b]
+            """);
     }
 
     [Theory]
@@ -115,8 +146,8 @@ public sealed class SpanTreeRendererTests
         // assert
         rendered.MatchInlineSnapshot(
             """
-            first [SERVER ·  · 1ms · first]
-            └─ second [SERVER ·  · 1ms · second]
+            first-name [SERVER ·  · 1ms · first]
+            └─ second-name [SERVER ·  · 1ms · second]
             """);
     }
 
@@ -136,9 +167,9 @@ public sealed class SpanTreeRendererTests
         // assert
         rendered.MatchInlineSnapshot(
             """
-            root [SERVER ·  · 1ms · root]
-            first [SERVER ·  · 1ms · first]
-            └─ second [SERVER ·  · 1ms · second]
+            root-name [SERVER ·  · 1ms · root]
+            first-name [SERVER ·  · 1ms · first]
+            └─ second-name [SERVER ·  · 1ms · second]
             """);
     }
 
@@ -159,7 +190,7 @@ public sealed class SpanTreeRendererTests
         var rendered = new SpanTreeRenderer().Render(tree, spanId: null);
 
         // assert
-        Assert.Equal($"{value} [{value} · {value} · 1ms · {value} · {value}:42 · {value}]", rendered);
+        Assert.Equal($"{value}-name [{value} · {value} · 1ms · {value} · {value}:42 · {value}]", rendered);
     }
 
     private static TraceSpan CreateSpan(
@@ -174,7 +205,7 @@ public sealed class SpanTreeRendererTests
         => new(
             id,
             parent,
-            id,
+            $"{id}-name",
             "SERVER",
             duration,
             0,

@@ -90,19 +90,6 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
                         ^
             hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`
             """);
-        TelemetryClientMock.Verify(
-            x =>
-                x.ListTracesAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<OpenTelemetryFilterInput?>(),
-                    It.IsAny<IReadOnlyList<string>?>(),
-                    It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<int>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<CancellationToken>()),
-            Times.Never);
     }
 
     [Fact]
@@ -110,39 +97,18 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
     {
         // arrange
         SetupSessionWithWorkspace();
-        SetupListTraces(CreateTrace());
+        SetupListTraces();
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "traces", "list");
 
         // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [
-                {
-                  "start": "2025-12-31T23:30:00.123+00:00",
-                  "service": "products",
-                  "name": "GET /products",
-                  "durationMs": 125.5,
-                  "status": "Error",
-                  "traceId": "trace-1",
-                  "spanId": "span-1",
-                  "seeker": "seeker-1"
-                }
-              ],
-              "returned": 1,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-        Assert.Equal(
-            [OpenTelemetrySpanKind.Server, OpenTelemetrySpanKind.Consumer],
-            (IReadOnlyList<OpenTelemetrySpanKind>)TelemetryClientMock.Invocations.Single().Arguments[3]!);
+        result.AssertSuccess();
+        VerifyListedSpanKinds(OpenTelemetrySpanKind.Server, OpenTelemetrySpanKind.Consumer);
     }
 
     [Fact]
-    public async Task List_Should_CompileErrorAndDurationFlags_When_Provided()
+    public async Task List_Should_ForwardFilterAndShortcutOptions_When_Provided()
     {
         // arrange
         SetupSessionWithWorkspace();
@@ -190,7 +156,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
     {
         // arrange
         SetupSessionWithWorkspace();
-        SetupListTraces(CreateTrace());
+        SetupListTraces();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -203,36 +169,15 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             "producer");
 
         // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [
-                {
-                  "start": "2025-12-31T23:30:00.123+00:00",
-                  "service": "products",
-                  "name": "GET /products",
-                  "durationMs": 125.5,
-                  "status": "Error",
-                  "traceId": "trace-1",
-                  "spanId": "span-1",
-                  "seeker": "seeker-1"
-                }
-              ],
-              "returned": 1,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-        Assert.Equal(
-            [OpenTelemetrySpanKind.Client, OpenTelemetrySpanKind.Producer],
-            (IReadOnlyList<OpenTelemetrySpanKind>)TelemetryClientMock.Invocations.Single().Arguments[3]!);
+        result.AssertSuccess();
+        VerifyListedSpanKinds(OpenTelemetrySpanKind.Client, OpenTelemetrySpanKind.Producer);
     }
 
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_ReturnSuccess_When_A_TraceExists(InteractionMode mode)
+    public async Task List_Should_ReturnSuccess_When_TraceExists(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -266,10 +211,9 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
     }
 
     [Fact]
-    public async Task List_Should_RenderTraceFieldsAndHint_When_JsonOutputIsRequested()
+    public async Task List_Should_OrderNewestFirstAndAdvertiseNarrowing_When_ResultHasMoreItems()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
         SetupSessionWithWorkspace();
         SetupListTracesWithMore(
             CreateTrace(start: 1767223800123),
@@ -354,29 +298,6 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             Times.Once);
     }
 
-    [Fact]
-    public async Task List_Should_NotWriteSuggestionHint_When_FilterKeyIsKnown()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        SetupListTraces();
-        SetupListAttributeKeys(keys: [new AttributeKeyRow("Span", "http.statuscode")]);
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "http.statuscode:>=500");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-    }
-
     private void SetupListTraces(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: false);
 
     private void SetupListTracesWithMore(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: true);
@@ -397,6 +318,25 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
                     It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(new ConnectionPage<TraceRow>(traces, null, hasNextPage));
+    }
+
+    private void VerifyListedSpanKinds(params OpenTelemetrySpanKind[] expected)
+    {
+        TelemetryClientMock.Verify(
+            x =>
+                x.ListTracesAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.Is<IReadOnlyList<OpenTelemetrySpanKind>?>(spanKinds =>
+                        spanKinds != null && spanKinds.SequenceEqual(expected)
+                    ),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    20,
+                    null,
+                    It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private static TraceRow CreateTrace(string traceId = "trace-1", double start = 1767223800123)

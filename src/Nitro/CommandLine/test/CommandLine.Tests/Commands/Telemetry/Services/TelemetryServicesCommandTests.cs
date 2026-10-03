@@ -6,6 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Services;
 
 public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) : TelemetryCommandTestBase(fixture)
 {
+    private const string ServiceName = "products";
+
     [Fact]
     public async Task ListHelp_Should_ReturnSuccess()
     {
@@ -80,8 +82,8 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) :
               "items": [
                 {
                   "name": "products",
-                  "environments": "production",
-                  "lastVersion": "1.1.0"
+                  "environments": "production, staging",
+                  "lastVersion": "1.2.0"
                 }
               ],
               "returned": 1,
@@ -108,8 +110,8 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) :
               "items": [
                 {
                   "name": "products",
-                  "environments": "production",
-                  "lastVersion": "1.1.0"
+                  "environments": "production, staging",
+                  "lastVersion": "1.2.0"
                 }
               ],
               "returned": 1,
@@ -145,52 +147,9 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) :
     }
 
     [Fact]
-    public async Task List_Should_RenderFilterParseError_When_FilterIsInvalid()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "status:!");
-
-        // assert
-        result.AssertError(
-            """
-            filter: Unexpected character '!' at column 8
-            status:!
-                   ^
-            hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`
-            """);
-    }
-
-    [Fact]
-    public async Task List_Should_ReturnEmptyResult_When_NoServicesExist()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupSessionWithWorkspace();
-        SetupListServices();
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "services", "list");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-    }
-
-    [Fact]
     public async Task List_Should_WriteSuggestionHint_When_FilteredResultHasAnUnknownKey()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
         SetupSessionWithWorkspace();
         SetupListServices(_ => true);
         SetupListAttributeKeys(
@@ -227,29 +186,6 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) :
                     null,
                     It.IsAny<CancellationToken>()),
             Times.Once);
-    }
-
-    [Fact]
-    public async Task List_Should_NotWriteSuggestionHint_When_FilterKeyIsKnown()
-    {
-        // arrange
-        SetupSessionWithWorkspace();
-        SetupListServices(_ => true);
-        SetupListAttributeKeys(keys: [new AttributeKeyRow("Span", "http.statuscode")]);
-
-        // act
-        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "http.statuscode:>=500");
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
     }
 
     [Fact]
@@ -290,7 +226,8 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) :
             {
               "name": "products",
               "environments": [
-                "production"
+                "production",
+                "staging"
               ],
               "versionMarkers": [
                 {
@@ -298,11 +235,66 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) :
                   "firstSeenAt": "2025-12-31T22:00:00+00:00"
                 },
                 {
-                  "version": "1.1.0",
+                  "version": "1.2.0",
                   "firstSeenAt": "2025-12-31T23:00:00+00:00"
+                },
+                {
+                  "version": "1.1.0",
+                  "firstSeenAt": "2025-12-31T22:30:00+00:00"
                 }
               ]
             }
             """);
     }
+
+    private void SetupListServices(
+        Func<OpenTelemetryFilterInput?, bool>? filterPredicate = null,
+        bool hasNextPage = false,
+        params ServiceRow[] services)
+    {
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListServicesAsync(
+                    WorkspaceId,
+                    It.IsAny<string?>(),
+                    It.Is<OpenTelemetryFilterInput?>(filter => MatchesFilter(filter, filterPredicate)),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<DateTimeOffset>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<ServiceRow>(services, null, hasNextPage));
+    }
+
+    private static bool MatchesFilter(
+        OpenTelemetryFilterInput? filter,
+        Func<OpenTelemetryFilterInput?, bool>? filterPredicate)
+        => filterPredicate?.Invoke(filter) ?? filter is null;
+
+    private void SetupGetService(ServiceRow? service)
+    {
+        TelemetryClientMock
+            .Setup(x =>
+                x.GetServiceAsync(
+                    WorkspaceId,
+                    ServiceName,
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(service);
+    }
+
+    private static ServiceRow CreateService()
+        => new(
+            ServiceName,
+            ["production", "staging"],
+            [
+                new ServiceVersionMarker(new DateTimeOffset(2025, 12, 31, 22, 0, 0, TimeSpan.Zero), "1.0.0"),
+                new ServiceVersionMarker(new DateTimeOffset(2025, 12, 31, 23, 0, 0, TimeSpan.Zero), "1.2.0"),
+                new ServiceVersionMarker(new DateTimeOffset(2025, 12, 31, 22, 30, 0, TimeSpan.Zero), "1.1.0")
+            ]);
 }

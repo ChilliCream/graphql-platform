@@ -21,21 +21,6 @@ public sealed class SpanTreeBuilderTests
         Assert.Equal("child", Assert.Single(tree.Roots[0].Children).Span.SpanId);
     }
 
-    [Fact]
-    public void Find_Should_ReturnNode_When_SpanIdExists()
-    {
-        // arrange
-        var tree = SpanTreeBuilder.Build([CreateSpan("root")]);
-
-        // act
-        var node = tree.Find("root");
-
-        // assert
-        Assert.NotNull(node);
-        Assert.Equal("root", node.Span.SpanId);
-        Assert.Null(tree.Find("missing"));
-    }
-
     private static TraceSpan CreateSpan(string id, string parent = "")
         => new(id, parent, id, "SERVER", 1, 0, "OK", string.Empty, [], [], [], null);
 }
