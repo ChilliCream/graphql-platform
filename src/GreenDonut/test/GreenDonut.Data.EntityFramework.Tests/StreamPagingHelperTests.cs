@@ -99,6 +99,74 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task ToStreamPageAsync_Should_MatchToPageAsyncFlags_When_PlainBeforeCursorHasRelativeCursorsEnabled()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedSequentialAsync(connectionString, 10);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        await using var context = new SequentialContext(connectionString);
+
+        // a plain (non-relative) before cursor into the middle of the set while this call enables relative cursors
+        var forward = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            new PagingArguments(7),
+            cancellationToken);
+        var beforeCursor = forward.CreateEndCursor();
+        var arguments = new PagingArguments(last: 2, before: beforeCursor) { EnableRelativeCursors = true };
+
+        // Act
+        var expected = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            cancellationToken);
+        var page = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
+            arguments,
+            cancellationToken: cancellationToken);
+        var items = await ToArrayAsync(page);
+
+        // Assert
+        Assert.Equal(expected.HasNextPage, await page.HasNextPageAsync(cancellationToken));
+        Assert.Equal(expected.HasPreviousPage, await page.HasPreviousPageAsync(cancellationToken));
+        Assert.Equal(expected.Select(t => t.Name).ToArray(), items);
+    }
+
+    [Fact]
+    public async Task ToStreamPageAsync_Should_MatchToPageAsyncIndexAndCursors_When_PlainBeforeCursorHasRelativeCursorsAndTotalCount()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedSequentialAsync(connectionString, 10);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        await using var context = new SequentialContext(connectionString);
+
+        var forward = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            new PagingArguments(7),
+            cancellationToken);
+        var beforeCursor = forward.CreateEndCursor();
+        var arguments = new PagingArguments(last: 2, before: beforeCursor) { EnableRelativeCursors = true };
+
+        // Act
+        var expected = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            includeTotalCount: true,
+            cancellationToken);
+        var page = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
+            arguments,
+            includeTotalCount: true,
+            cancellationToken: cancellationToken);
+        var entries = await DrainEntriesAndDisposeAsync(page, cancellationToken);
+
+        // Assert
+        Assert.Equal(expected.HasNextPage, await page.HasNextPageAsync(cancellationToken));
+        Assert.Equal(expected.HasPreviousPage, await page.HasPreviousPageAsync(cancellationToken));
+        Assert.Equal(expected.Index, page.Index);
+        Assert.Equal(
+            expected.CreateCursor(expected.Entries[0], 0),
+            page.CreateCursor(entries[0], 0));
+    }
+
+    [Fact]
     public async Task Fetch_Count_Only()
     {
         // Arrange
@@ -1138,15 +1206,43 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
             cancellationToken: cancellationToken);
 
         // Assert
-        // HasPreviousPage is intentionally left out of this snapshot: ToStreamPageAsync and
-        // ToPageAsync disagree on its value for after+last.
-        var entries = await DrainEntriesAndDisposeAsync(page, cancellationToken);
-        new
-        {
-            HasNextPage = await page.HasNextPageAsync(cancellationToken),
-            Items = entries.ConvertAll(e => e.Item),
-            Cursors = entries.ConvertAll(page.CreateCursor)
-        }.MatchMarkdownSnapshot();
+        await page.MatchMarkdownSnapshotAsync(cancellationToken);
+    }
+
+    [Fact]
+    public async Task ToStreamPageAsync_Should_SkipProbe_When_LastAndAfterWithoutBefore()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        // -> get last page
+        var arguments = new PagingArguments(last: 4);
+        await using var context = new CatalogContext(connectionString);
+        var page = await context.Products
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
+            .ToStreamPageAsync(arguments, cancellationToken: cancellationToken);
+        var startCursor = await page.CreateStartCursorAsync(cancellationToken);
+        await page.DisposeAsync();
+
+        // Act
+        using var capture = new CapturePagingQueryInterceptor();
+        arguments = new PagingArguments(after: startCursor, last: 2);
+        page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
+            arguments,
+            cancellationToken: cancellationToken);
+        await DrainEntriesAndDisposeAsync(page, cancellationToken);
+        var expected = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToPageAsync(arguments, cancellationToken);
+
+        // Assert
+        Assert.DoesNotContain(capture.Queries, q => q.QueryText.Contains("EXISTS", StringComparison.OrdinalIgnoreCase));
+        Assert.True(await page.HasPreviousPageAsync(cancellationToken));
+        Assert.False(await page.HasNextPageAsync(cancellationToken));
+        Assert.Equal(expected.HasPreviousPage, await page.HasPreviousPageAsync(cancellationToken));
+        Assert.Equal(expected.HasNextPage, await page.HasNextPageAsync(cancellationToken));
     }
 
     [Fact]

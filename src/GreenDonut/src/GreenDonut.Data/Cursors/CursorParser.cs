@@ -162,6 +162,7 @@ public static class CursorParser
             endStart += endSeparatorIndex + 1;
 
             if (endOffset > 0
+                || endOffset == int.MinValue
                 || endTotalCount < 0
                 || endOffsetConsumed != offsetPart.Length
                 || endTotalCountConsumed != totalCountPart.Length)
@@ -178,6 +179,12 @@ public static class CursorParser
         var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
         ParseNumber(part, out var offset, out _);
+
+        if (offset == int.MinValue)
+        {
+            throw ThrowHelper.CursorParser_PageInfoCouldNotBeParsed();
+        }
+
         var start = separatorIndex + 1;
 
         separatorIndex = ExpectSeparator(span[start..], separator);

@@ -13,12 +13,26 @@ LIMIT @__p_0
 ## SQL 1
 
 ```sql
--- @__Any_4='True' (Nullable = true)
 -- @__value_0='11/04/2017' (DbType = Date)
 -- @__value_1='14:00' (DbType = Time)
 -- @__value_2='62ce9d54-2345-4f01-b304-6e4d56789012'
 -- @__p_3='2'
-SELECT t."Id", t."Date", t."String", t."Time", @__Any_4 AS "HasMore"
+SELECT r."Id", r."Date", r."String", r."Time"
+FROM "Records" AS r
+WHERE r."Date" < @__value_0 OR (r."Date" IS NOT NULL AND r."Date" = @__value_0 AND r."Time" < @__value_1) OR (r."Date" IS NOT NULL AND r."Date" = @__value_0 AND r."Time" IS NOT NULL AND r."Time" = @__value_1 AND r."Id" < @__value_2)
+ORDER BY r."Date" DESC, r."Time" DESC, r."Id" DESC
+OFFSET @__p_3
+```
+
+## SQL 2
+
+```sql
+-- @__8__locals1_hasMoreValue_4='True' (Nullable = true)
+-- @__value_0='11/04/2017' (DbType = Date)
+-- @__value_1='14:00' (DbType = Time)
+-- @__value_2='62ce9d54-2345-4f01-b304-6e4d56789012'
+-- @__p_3='2'
+SELECT t."Id", t."Date", t."String", t."Time", @__8__locals1_hasMoreValue_4 AS "HasMore"
 FROM (
     SELECT r."Id", r."Date", r."String", r."Time"
     FROM "Records" AS r
@@ -29,7 +43,7 @@ FROM (
 ORDER BY t."Date", t."Time", t."Id"
 ```
 
-## Result 3
+## Result 4
 
 ```json
 {

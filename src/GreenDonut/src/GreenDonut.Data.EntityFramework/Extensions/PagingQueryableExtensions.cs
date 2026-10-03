@@ -80,8 +80,8 @@ public static class PagingQueryableExtensions
         var originalQuery = composition.OriginalQuery;
         var keys = composition.Keys;
         var cursor = composition.Cursor;
-        var requestedCount = composition.RequestedCount;
-        var isBackward = composition.IsBackward;
+        var requestedCount = composition.RequestedPageSize;
+        var isBackward = composition.Direction is PagingDirection.Backward;
         var totalCount = composition.TotalCount;
         arguments = composition.Arguments;
         includeTotalCount = composition.IncludeTotalCount;
@@ -91,21 +91,24 @@ public static class PagingQueryableExtensions
         {
             var pagesBeforeLast = -cursor!.Offset!.Value;
 
-            // a stale or otherwise out-of-range end cursor can point before the first page.
-            // that page does not exist, so the row query never runs and an empty page is
-            // returned with a freshly counted total instead.
+            // An end cursor before the first page yields an empty page with a fresh total.
             if (pagesBeforeLast > 0
                 && (int)Math.Ceiling(cursor.TotalCount!.Value / (double)requestedCount) - pagesBeforeLast < 1)
             {
                 TryGetQueryInterceptor()?.OnBeforeExecute(originalQuery);
                 var freshCount = await originalQuery.CountAsync(cancellationToken).ConfigureAwait(false);
-                return CreateEndCursorPage<T>([], keys, false, false, 1, requestedCount, freshCount);
+                return CreateEndCursorPage<T>(
+                    [],
+                    keys,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    1,
+                    requestedCount,
+                    freshCount);
             }
         }
 
-        // an end cursor page is materialized with an exact `Take`, as its `HasNextPage` and
-        // `HasPreviousPage` are already known from the cursor's total count instead of from an
-        // over-fetched row.
+        // An end cursor page takes exactly requestedCount rows; its flags come from the cursor total.
         var slicedQuery = composition.SlicedQuery.Take(isEndCursor ? requestedCount : requestedCount + 1);
         var pageQuery = composition.Selector is null
             ? slicedQuery
@@ -162,10 +165,17 @@ public static class PagingQueryableExtensions
 
             if (isEndCursor)
             {
-                return CreateEndCursorPage<T>([], keys, false, false, 1, requestedCount, totalCount ?? 0);
+                return CreateEndCursorPage<T>(
+                    [],
+                    keys,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    1,
+                    requestedCount,
+                    totalCount ?? 0);
             }
 
-            return Page<T>.Create([], false, false, _ => string.Empty, totalCount);
+            return Page<T>.Create([], hasNextPage: false, hasPreviousPage: false, _ => string.Empty, totalCount);
         }
 
         if (isBackward)
@@ -190,9 +200,7 @@ public static class PagingQueryableExtensions
                 }
             }
 
-            // the last page's index is derived from the fresh total, as it is the page being
-            // materialized. Earlier pages reuse the cursor's cached total instead, so the
-            // reported index stays consistent with the skip that was computed from it.
+            // The last page's index uses the fresh total; earlier pages use the cursor's total.
             var indexTotal = pagesBeforeLast == 0 ? effectiveTotal : cursor.TotalCount!.Value;
             var index = (int)Math.Ceiling(indexTotal / (double)requestedCount) - pagesBeforeLast;
 
@@ -393,7 +401,9 @@ public static class PagingQueryableExtensions
     /// A dictionary mapping each parent key to its page of results.
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// If the queryable does not have any keys specified.
+    /// If the queryable does not have any keys specified, if <c>first</c> or <c>last</c> is
+    /// given and not greater than zero, or if an end cursor in <c>before</c> has a skip that
+    /// does not fit into an <see cref="int"/>.
     /// </exception>
     public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue, TElement>(
         this IQueryable<TElement> source,
@@ -406,12 +416,9 @@ public static class PagingQueryableExtensions
     {
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
 
-        // extract the selector before ensuring group props are selected,
-        // as we need to remove it before grouping and re-apply it after
         var selector = QueryHelpers.ExtractCurrentSelector(source);
 
-        // if we have a selector, remove it before grouping
-        // we'll re-apply it to the grouped items later
+        // The selector is removed before grouping and re-applied afterwards.
         if (selector is not null)
         {
             source = QueryHelpers.RemoveSelector(source);
@@ -433,6 +440,8 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        PagingQueryComposer.ValidateRequestedCount(arguments);
+
         if (valueSelector is null && !typeof(TValue).IsAssignableFrom(typeof(TElement)))
         {
             throw new ArgumentException(
@@ -447,25 +456,30 @@ public static class PagingQueryableExtensions
             includeTotalCount = true;
         }
 
-        // an end cursor page always needs each key's own total, both to trim the last page
-        // and to report an accurate total count on the resulting pages.
-        Cursor? endCursor = null;
+        // An end cursor page always needs each key's own total.
         if (!string.IsNullOrEmpty(arguments.Before))
         {
             var beforeCursor = CursorParser.Parse(arguments.Before, keys);
 
             if (beforeCursor.IsEndCursor)
             {
-                endCursor = beforeCursor;
+                if (arguments.After is not null)
+                {
+                    throw ThrowHelper.PagingArguments_EndCursorBeforeCombinedWithAfter();
+                }
+
+                if (arguments.Last is not null)
+                {
+                    PagingQueryComposer.GetBatchEndCursorSkip(-beforeCursor.Offset!.Value, arguments.Last.Value);
+                }
+
                 includeTotalCount = true;
             }
         }
 
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
-        // we need to move the ordering into the select expression we are constructing
-        // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
-        // and to create a new expression that will not contain it anymore.
+        // The ordering is moved into the select expression so GroupBy keeps it.
         var ordering = ExtractAndRemoveOrder(source.Expression);
 
         Dictionary<TKey, int>? counts = null;
@@ -475,25 +489,6 @@ public static class PagingQueryableExtensions
         }
 
         var map = new Dictionary<TKey, Page<TValue>>();
-
-        if (endCursor is not null && arguments.Last is not null)
-        {
-            var pagesBeforeLast = -endCursor.Offset!.Value;
-
-            // a stale or otherwise out-of-range end cursor can point before the first page for
-            // every key. that page does not exist, so the group query never runs and each key
-            // gets an empty page carrying its own freshly counted total.
-            if (pagesBeforeLast > 0
-                && (int)Math.Ceiling(endCursor.TotalCount!.Value / (double)arguments.Last.Value) - pagesBeforeLast < 1)
-            {
-                foreach (var (key, count) in counts!)
-                {
-                    map.Add(key, CreateEndCursorPage<TValue>([], keys, false, false, 1, arguments.Last.Value, count));
-                }
-
-                return map;
-            }
-        }
 
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
@@ -507,7 +502,6 @@ public static class PagingQueryableExtensions
                 selector,
                 ref requestedCount);
 
-        // we apply our new expression here.
         source = source.Provider.CreateQuery<TElement>(ordering.Expression);
 
         TryGetQueryInterceptor()?.OnBeforeExecute(source.GroupBy(keySelector).Select(batchExpression.SelectExpression));
@@ -521,26 +515,58 @@ public static class PagingQueryableExtensions
         {
             var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
             var isEndCursor = batchExpression.Cursor?.IsEndCursor == true;
+            var pagesBeforeLast = isEndCursor ? -batchExpression.Cursor!.Offset!.Value : 0;
+
+            // An end cursor page aligns to each key's own total, never the cursor's cached one.
+            var pageIndex = isEndCursor
+                ? (int)Math.Ceiling(totalCount!.Value / (double)requestedCount) - pagesBeforeLast
+                : CreateIndex(arguments, batchExpression.Cursor, totalCount);
+
+            if (isEndCursor && pageIndex < 1)
+            {
+                map.Add(
+                    item.Key,
+                    CreateEndCursorPage<TValue>(
+                        [],
+                        keys,
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                        1,
+                        requestedCount,
+                        totalCount!.Value));
+                continue;
+            }
 
             if (item.Items.Count == 0)
             {
                 var page = isEndCursor
-                    ? CreateEndCursorPage<TValue>([], keys, false, false, 1, requestedCount, totalCount ?? 0)
-                    : Page<TValue>.Create([], false, false, static _ => string.Empty, totalCount);
+                    ? CreateEndCursorPage<TValue>(
+                        [],
+                        keys,
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                        1,
+                        requestedCount,
+                        totalCount ?? 0)
+                    : Page<TValue>.Create(
+                        [],
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                        static _ => string.Empty,
+                        totalCount);
                 map.Add(item.Key, page);
                 continue;
             }
 
+            var itemOffset = 0;
             var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
-            var pagesBeforeLast = 0;
 
             if (isEndCursor)
             {
-                pagesBeforeLast = -batchExpression.Cursor!.Offset!.Value;
+                var effectiveTotal = totalCount!.Value;
 
                 if (pagesBeforeLast == 0)
                 {
-                    var effectiveTotal = totalCount!.Value;
                     var remainder = effectiveTotal % requestedCount;
 
                     if (effectiveTotal > requestedCount && remainder != 0)
@@ -548,13 +574,16 @@ public static class PagingQueryableExtensions
                         itemCount -= requestedCount - remainder;
                     }
                 }
+                else
+                {
+                    // This key's exact page sits inside its window at its own remainder, never
+                    // the cursor's cached one.
+                    itemOffset = effectiveTotal % requestedCount == 0
+                        ? requestedCount
+                        : effectiveTotal % requestedCount;
+                    itemCount = requestedCount;
+                }
             }
-
-            var pageIndex = isEndCursor
-                ? (int)Math.Ceiling(
-                    (pagesBeforeLast == 0 ? totalCount!.Value : batchExpression.Cursor!.TotalCount!.Value)
-                        / (double)requestedCount) - pagesBeforeLast
-                : CreateIndex(arguments, batchExpression.Cursor, totalCount);
 
             if (valueSelector is not null)
             {
@@ -565,7 +594,7 @@ public static class PagingQueryableExtensions
                 {
                     for (var i = itemCount - 1; i >= 0; i--)
                     {
-                        var element = item.Items[i];
+                        var element = item.Items[itemOffset + i];
                         entryBuilder.Add(new PageEntry<TValue>(valueSelector(element), entryBuilder.Count));
                         elementBuilder.Add(element);
                     }
@@ -574,7 +603,7 @@ public static class PagingQueryableExtensions
                 {
                     for (var i = 0; i < itemCount; i++)
                     {
-                        var element = item.Items[i];
+                        var element = item.Items[itemOffset + i];
                         entryBuilder.Add(new PageEntry<TValue>(valueSelector(element), entryBuilder.Count));
                         elementBuilder.Add(element);
                     }
@@ -609,14 +638,16 @@ public static class PagingQueryableExtensions
                 {
                     for (var i = itemCount - 1; i >= 0; i--)
                     {
-                        entryBuilder.Add(new PageEntry<TValue>((TValue)(object)item.Items[i]!, entryBuilder.Count));
+                        entryBuilder.Add(
+                            new PageEntry<TValue>((TValue)(object)item.Items[itemOffset + i]!, entryBuilder.Count));
                     }
                 }
                 else
                 {
                     for (var i = 0; i < itemCount; i++)
                     {
-                        entryBuilder.Add(new PageEntry<TValue>((TValue)(object)item.Items[i]!, entryBuilder.Count));
+                        entryBuilder.Add(
+                            new PageEntry<TValue>((TValue)(object)item.Items[itemOffset + i]!, entryBuilder.Count));
                     }
                 }
 
@@ -812,29 +843,25 @@ public static class PagingQueryableExtensions
         var hasPrevious = false;
         var hasNext = false;
 
-        // if we skipped over an item, and we have fetched some items
-        // than we have a previous page as we skipped over at least
-        // one item.
+        // A skip with any fetched items means there is a previous page.
         if (arguments.After is not null && fetchCount > 0)
         {
             hasPrevious = true;
         }
 
-        // if we required the last 5 items of a dataset and over-fetch by 1
-        // than we have a previous page.
+        // Over-fetching beyond `last` means there is a previous page.
         if (arguments.Last is not null && fetchCount > arguments.Last)
         {
             hasPrevious = true;
         }
 
-        // if we request the first 5 items of a dataset with or without cursor
-        // and we over-fetched by 1 item we have a next page.
+        // Over-fetching beyond `first` means there is a next page.
         if (arguments.First is not null && fetchCount > arguments.First)
         {
             hasNext = true;
         }
 
-        // if we fetched anything before an item we know that here is at least one more item.
+        // A `before` cursor means there is at least one more item.
         if (arguments.Before is not null)
         {
             hasNext = true;

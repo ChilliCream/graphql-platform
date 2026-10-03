@@ -23,14 +23,15 @@ public class StreamPagingTotalCountTests
 
         // Assert
         var snapshot = await CreateSnapshotAsync(page, database.CountQueryCount, cancellationToken);
+        const int expectedCountQueryCount = TestEnvironment.TargetFramework == "NET8_0" ? 1 : 2;
         snapshot.MatchInlineSnapshot(
-            """
+            $$"""
             {
               "TotalCount": 0,
               "HasNextPage": false,
               "HasPreviousPage": false,
               "Items": [],
-              "CountQueryCount": 2
+              "CountQueryCount": {{expectedCountQueryCount}}
             }
             """);
     }
@@ -89,14 +90,15 @@ public class StreamPagingTotalCountTests
 
         // Assert
         var snapshot = await CreateSnapshotAsync(page, database.CountQueryCount, cancellationToken);
+        const int expectedCountQueryCount = TestEnvironment.TargetFramework == "NET8_0" ? 1 : 2;
         snapshot.MatchInlineSnapshot(
-            """
+            $$"""
             {
               "TotalCount": 2,
               "HasNextPage": false,
               "HasPreviousPage": false,
               "Items": [],
-              "CountQueryCount": 2
+              "CountQueryCount": {{expectedCountQueryCount}}
             }
             """);
     }
@@ -122,14 +124,15 @@ public class StreamPagingTotalCountTests
 
         // Assert
         var snapshot = await CreateSnapshotAsync(page, database.CountQueryCount, cancellationToken);
+        const int expectedCountQueryCount = TestEnvironment.TargetFramework == "NET8_0" ? 1 : 2;
         snapshot.MatchInlineSnapshot(
-            """
+            $$"""
             {
               "TotalCount": 2,
               "HasNextPage": false,
               "HasPreviousPage": false,
               "Items": [],
-              "CountQueryCount": 2
+              "CountQueryCount": {{expectedCountQueryCount}}
             }
             """);
     }

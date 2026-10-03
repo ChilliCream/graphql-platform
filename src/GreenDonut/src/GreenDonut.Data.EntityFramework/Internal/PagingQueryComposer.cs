@@ -33,9 +33,11 @@ internal static class PagingQueryComposer
     /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified, if both <c>first</c> and
-    /// <c>last</c> are specified, if <c>before</c> is combined with a relative
-    /// <c>after</c> cursor, or if an end cursor is used without <c>before</c> and
-    /// <c>last</c>.
+    /// <c>last</c> are specified, if <c>first</c> or <c>last</c> is given and not greater than
+    /// zero, if <c>before</c> is combined with a relative <c>after</c> cursor, if an end cursor
+    /// is used without <c>before</c> and <c>last</c>, if an end cursor in <c>before</c> is
+    /// combined with <c>after</c>, or if the end cursor's skip or a relative cursor's offset
+    /// does not fit into an <see cref="int"/>.
     /// </exception>
     public static PagingQueryComposition<T> Compose<T>(
         IQueryable<T> source,
@@ -74,13 +76,14 @@ internal static class PagingQueryComposer
                 nameof(arguments));
         }
 
+        ValidateRequestedCount(arguments);
+
         if (arguments.First is null && arguments.Last is null)
         {
             arguments = arguments with { First = 10 };
         }
 
-        // if relative cursors are enabled and no cursor is provided
-        // we must do an initial count of the dataset.
+        // Relative cursors with no incoming cursor require an initial count of the dataset.
         if (arguments.EnableRelativeCursors
             && string.IsNullOrEmpty(arguments.After)
             && string.IsNullOrEmpty(arguments.Before))
@@ -89,16 +92,18 @@ internal static class PagingQueryComposer
         }
 
         var originalQuery = source;
-        var forward = arguments.Last is null;
-        var requestedCount = forward ? arguments.First!.Value : arguments.Last!.Value;
+        var direction = arguments.Last is null
+            ? PagingDirection.Forward
+            : PagingDirection.Backward;
+        var requestedCount = direction is PagingDirection.Forward
+            ? arguments.First!.Value
+            : arguments.Last!.Value;
         var offset = 0;
         int? totalCount = null;
         var usesRelativeCursors = false;
         Cursor? cursor = null;
 
-        // the exact skip count for an end cursor page, or null if the cursor is not an end
-        // cursor. It replaces the generic offset-based skip below because it is derived from
-        // the dataset total rather than from a fixed number of pages.
+        // The exact skip count for an end-cursor page, or null otherwise.
         int? endCursorSkip = null;
 
         if (arguments.After is not null)
@@ -107,9 +112,7 @@ internal static class PagingQueryComposer
 
             if (cursor.IsEndCursor)
             {
-                throw new ArgumentException(
-                    "An end cursor is only valid when used with `before` and `last`.",
-                    nameof(arguments));
+                throw ThrowHelper.PagingArguments_EndCursorRequiresBeforeAndLast();
             }
 
             var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
@@ -146,31 +149,21 @@ internal static class PagingQueryComposer
             {
                 if (arguments.First is not null || arguments.Last is null)
                 {
-                    throw new ArgumentException(
-                        "An end cursor is only valid when used with `before` and `last`.",
-                        nameof(arguments));
+                    throw ThrowHelper.PagingArguments_EndCursorRequiresBeforeAndLast();
+                }
+
+                if (arguments.After is not null)
+                {
+                    throw ThrowHelper.PagingArguments_EndCursorBeforeCombinedWithAfter();
                 }
 
                 offset = cursor.Offset!.Value;
-                var cachedTotal = cursor.TotalCount!.Value;
-                var pagesBeforeLast = -offset;
 
-                // the count is always inlined for an end cursor page, as the cached total on
-                // the cursor may be stale. The cached total is only used to position the skip
-                // for pages before the last one.
+                // The count is always inlined for an end-cursor page; the cached total is only
+                // used to position the skip for pages before the last one.
                 includeTotalCount = true;
 
-                if (pagesBeforeLast == 0)
-                {
-                    endCursorSkip = 0;
-                }
-                else
-                {
-                    var remainder = cachedTotal % requestedCount == 0
-                        ? requestedCount
-                        : cachedTotal % requestedCount;
-                    endCursorSkip = remainder + (pagesBeforeLast - 1) * requestedCount;
-                }
+                endCursorSkip = GetEndCursorSkip(cursor, requestedCount);
             }
             else
             {
@@ -200,9 +193,7 @@ internal static class PagingQueryComposer
             }
         }
 
-        var isBackward = arguments.Last is not null;
-
-        if (isBackward)
+        if (direction is PagingDirection.Backward)
         {
             source = ReverseOrderExpressionRewriter.Rewrite(source);
         }
@@ -216,11 +207,11 @@ internal static class PagingQueryComposer
         }
         else
         {
-            var absOffset = Math.Abs(offset);
+            var absOffset = Math.Abs((long)offset);
 
             if (absOffset > 0)
             {
-                source = source.Skip(absOffset * requestedCount);
+                source = source.Skip(CheckedOffsetSkip(absOffset, requestedCount));
             }
         }
 
@@ -229,8 +220,7 @@ internal static class PagingQueryComposer
             source,
             keys,
             cursor,
-            forward,
-            isBackward,
+            direction,
             requestedCount,
             offset,
             selector,
@@ -257,63 +247,133 @@ internal static class PagingQueryComposer
         parser.Visit(source.Expression);
         return [.. parser.Keys];
     }
-}
 
-/// <summary>
-/// The result of composing the shared paging slicing logic for a queryable.
-/// </summary>
-/// <param name="OriginalQuery">
-/// The query before any cursor predicate, order inversion or skip was applied. Used to
-/// compute the total count of the unsliced dataset.
-/// </param>
-/// <param name="SlicedQuery">
-/// The query with the cursor predicate, order inversion and skip applied, but without the
-/// final <c>Take</c> that limits the page size.
-/// </param>
-/// <param name="Keys">
-/// The cursor keys extracted from the queryable's order expressions.
-/// </param>
-/// <param name="Cursor">
-/// The parsed cursor, or <c>null</c> if neither <c>after</c> nor <c>before</c> was specified.
-/// </param>
-/// <param name="Forward">
-/// <c>true</c> if the page is sliced from the start of the dataset (using <c>first</c>).
-/// </param>
-/// <param name="IsBackward">
-/// <c>true</c> if the page is sliced from the end of the dataset (using <c>last</c>).
-/// </param>
-/// <param name="RequestedCount">
-/// The number of items requested through <c>first</c> or <c>last</c>.
-/// </param>
-/// <param name="Offset">
-/// The signed relative offset extracted from the cursor, or zero if none was specified.
-/// </param>
-/// <param name="Selector">
-/// The selector extracted from the queryable, to be re-applied after paging, or
-/// <c>null</c> if no selector needs to be re-applied.
-/// </param>
-/// <param name="Arguments">
-/// The paging arguments, with defaults applied.
-/// </param>
-/// <param name="IncludeTotalCount">
-/// If set to <c>true</c> the total count must be fetched as part of the page execution.
-/// </param>
-/// <param name="TotalCount">
-/// The total count carried over from a relative cursor, or <c>null</c> if none is known yet.
-/// </param>
-/// <typeparam name="T">
-/// The type of the items in the queryable.
-/// </typeparam>
-internal sealed record PagingQueryComposition<T>(
-    IQueryable<T> OriginalQuery,
-    IQueryable<T> SlicedQuery,
-    CursorKey[] Keys,
-    Cursor? Cursor,
-    bool Forward,
-    bool IsBackward,
-    int RequestedCount,
-    int Offset,
-    Expression<Func<T, T>>? Selector,
-    PagingArguments Arguments,
-    bool IncludeTotalCount,
-    int? TotalCount);
+    /// <summary>
+    /// Validates that <c>first</c> and <c>last</c> are greater than zero when given.
+    /// </summary>
+    /// <param name="arguments">
+    /// The paging arguments.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// If <c>first</c> or <c>last</c> is given and not greater than zero.
+    /// </exception>
+    internal static void ValidateRequestedCount(PagingArguments arguments)
+    {
+        if (arguments.First is <= 0)
+        {
+            throw ThrowHelper.PagingArguments_FirstMustBeGreaterThanZero();
+        }
+
+        if (arguments.Last is <= 0)
+        {
+            throw ThrowHelper.PagingArguments_LastMustBeGreaterThanZero();
+        }
+    }
+
+    /// <summary>
+    /// Multiplies a relative cursor's absolute offset by the requested page size in checked
+    /// long arithmetic, to slice from the start or end of the dataset by whole pages.
+    /// </summary>
+    /// <param name="absOffset">
+    /// The absolute value of the cursor's relative offset.
+    /// </param>
+    /// <param name="requestedCount">
+    /// The number of items requested through <c>first</c> or <c>last</c>.
+    /// </param>
+    /// <returns>
+    /// Returns the number of items to skip.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// If the product does not fit into an <see cref="int"/>.
+    /// </exception>
+    internal static int CheckedOffsetSkip(long absOffset, int requestedCount)
+    {
+        var skip = absOffset * requestedCount;
+
+        if (skip > int.MaxValue)
+        {
+            throw ThrowHelper.PagingArguments_RelativeOffsetOutOfRange();
+        }
+
+        return (int)skip;
+    }
+
+    /// <summary>
+    /// Computes how many items to skip from the end of the dataset for an end-cursor page, from
+    /// the cursor's cached total and the requested page size.
+    /// </summary>
+    /// <param name="cursor">
+    /// The parsed end cursor.
+    /// </param>
+    /// <param name="requestedCount">
+    /// The number of items requested through <c>last</c>.
+    /// </param>
+    /// <returns>
+    /// Returns the number of items to skip, or zero for the last page.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// If the computed skip does not fit into an <see cref="int"/>.
+    /// </exception>
+    internal static int GetEndCursorSkip(Cursor cursor, int requestedCount)
+    {
+        var pagesBeforeLast = -(long)cursor.Offset!.Value;
+
+        if (pagesBeforeLast == 0)
+        {
+            return 0;
+        }
+
+        var cachedTotal = cursor.TotalCount!.Value;
+        var remainder = cachedTotal % requestedCount == 0
+            ? requestedCount
+            : cachedTotal % requestedCount;
+        var skip = remainder + (pagesBeforeLast - 1) * requestedCount;
+
+        if (skip > int.MaxValue)
+        {
+            throw ThrowHelper.PagingArguments_EndCursorOffsetOutOfRange();
+        }
+
+        return (int)skip;
+    }
+
+    /// <summary>
+    /// Computes how many items to skip from the end of each key's own group for a batch
+    /// end-cursor page that is not the last one, positioning a window twice the requested page
+    /// size wide enough to contain the exact page.
+    /// </summary>
+    /// <param name="pagesBeforeLast">
+    /// The number of pages before the last one, or zero for the last page.
+    /// </param>
+    /// <param name="requestedCount">
+    /// The number of items requested through <c>last</c>.
+    /// </param>
+    /// <returns>
+    /// Returns the number of items to skip, or zero for the last page.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// If the computed skip, or twice the requested count, does not fit into an
+    /// <see cref="int"/>.
+    /// </exception>
+    internal static int GetBatchEndCursorSkip(int pagesBeforeLast, int requestedCount)
+    {
+        if (pagesBeforeLast <= 0)
+        {
+            return 0;
+        }
+
+        if ((long)requestedCount * 2 > int.MaxValue)
+        {
+            throw ThrowHelper.PagingArguments_BatchWindowTooLargeForPageSize();
+        }
+
+        var skip = (long)(pagesBeforeLast - 1) * requestedCount;
+
+        if (skip > int.MaxValue)
+        {
+            throw ThrowHelper.PagingArguments_EndCursorOffsetOutOfRange();
+        }
+
+        return (int)skip;
+    }
+}

@@ -2,7 +2,10 @@
 
 ```json
 {
+  "Index": null,
+  "TotalCount": null,
   "HasNextPage": true,
+  "HasPreviousPage": true,
   "Items": [
     {
       "Id": 9998,

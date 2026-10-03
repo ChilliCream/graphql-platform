@@ -181,6 +181,36 @@ public class CursorParserTests
     }
 
     [Fact]
+    public void Parse_Should_ThrowInvalidOperationException_When_EndCursorOffsetIsIntMinValue()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{end|-2147483648|10}"u8);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowInvalidOperationException_When_RelativeCursorOffsetIsIntMinValue()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{-2147483648|1|10}test"u8);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Act);
+        Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
     public void Parse_Parses_Legacy_ThreeNumber_PageInfo()
     {
         // arrange

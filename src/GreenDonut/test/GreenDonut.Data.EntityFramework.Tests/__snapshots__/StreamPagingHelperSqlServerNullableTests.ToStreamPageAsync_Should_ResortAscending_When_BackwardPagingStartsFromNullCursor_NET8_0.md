@@ -13,12 +13,26 @@ ORDER BY [r].[Date], [r].[Time], [r].[Id]
 ## SQL 1
 
 ```sql
-DECLARE @__Any_3 bit = CAST(0 AS bit);
+DECLARE @__value_0 date = '2017-11-03';
+DECLARE @__value_1 uniqueIdentifier = 'd3b7e9f1-4567-4abc-a102-8c2b34567890';
+DECLARE @__p_2 int = 1;
+
+SELECT [r].[Id], [r].[Date], [r].[String], [r].[Time]
+FROM [Records] AS [r]
+WHERE [r].[Date] IS NULL OR [r].[Date] < @__value_0 OR ([r].[Date] = @__value_0 AND [r].[Time] IS NULL AND [r].[Id] < @__value_1)
+ORDER BY [r].[Date] DESC, [r].[Time] DESC, [r].[Id] DESC
+OFFSET @__p_2 ROWS
+```
+
+## SQL 2
+
+```sql
+DECLARE @__8__locals1_hasMoreValue_3 bit = CAST(0 AS bit);
 DECLARE @__p_2 int = 1;
 DECLARE @__value_0 date = '2017-11-03';
 DECLARE @__value_1 uniqueIdentifier = 'd3b7e9f1-4567-4abc-a102-8c2b34567890';
 
-SELECT [t].[Id], [t].[Date], [t].[String], [t].[Time], @__Any_3 AS [HasMore]
+SELECT [t].[Id], [t].[Date], [t].[String], [t].[Time], @__8__locals1_hasMoreValue_3 AS [HasMore]
 FROM (
     SELECT TOP(@__p_2) [r].[Id], [r].[Date], [r].[String], [r].[Time]
     FROM [Records] AS [r]
@@ -28,7 +42,7 @@ FROM (
 ORDER BY [t].[Date], [t].[Time], [t].[Id]
 ```
 
-## Result 3
+## Result 4
 
 ```json
 {
