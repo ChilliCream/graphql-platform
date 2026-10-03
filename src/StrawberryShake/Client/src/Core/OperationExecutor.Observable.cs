@@ -91,12 +91,19 @@ public partial class OperationExecutor<TData, TResult>
                         result = resultBuilder.Build(response);
                     }
 
+                    if (result.IsErrorResult())
+                    {
+                        observer.OnNext(result);
+                        break;
+                    }
+
                     // Emit the result, if it isn't a duplicate
                     if (!Equals(result.Data, lastEmittedResult?.Data))
                     {
                         observer.OnNext(result);
                         lastEmittedResult = result;
                     }
+
                     _operationStore.Set(_request, result);
                 }
 
