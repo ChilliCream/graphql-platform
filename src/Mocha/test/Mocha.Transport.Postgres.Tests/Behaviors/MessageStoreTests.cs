@@ -1,3 +1,5 @@
+using System.Text.Json;
+using CookieCrumble;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.Postgres.Tests.Helpers;
 using Npgsql;
@@ -67,11 +69,13 @@ public class MessageStoreTests
         await connectionManager.DisposeAsync();
     }
 
-    [Fact]
-    public async Task DeleteMessageAsync_Should_RemoveMessage_When_MessageExists()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeleteMessageAsync_Should_RemoveMessage_When_MessageExists(bool guardConsumer)
     {
         // arrange
-        await using var db = await _fixture.CreateDatabaseAsync();
+        await using var db = await _fixture.CreateDatabaseAsync($"delete_message_{guardConsumer}");
         var (connectionManager, messageStore) = await CreateStoreAsync(db);
         await CreateQueueAsync(db, "del-queue");
         var consumerId = Guid.NewGuid();
@@ -82,7 +86,14 @@ public class MessageStoreTests
         var messageId = batch.Messages[0].TransportMessageId;
 
         // act
-        await messageStore.DeleteMessageAsync(messageId, CancellationToken.None);
+        if (guardConsumer)
+        {
+            await messageStore.DeleteMessageAsync(messageId, consumerId, TestContext.Current.CancellationToken);
+        }
+        else
+        {
+            await messageStore.DeleteMessageAsync(messageId, TestContext.Current.CancellationToken);
+        }
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
@@ -125,11 +136,13 @@ public class MessageStoreTests
         await connectionManager.DisposeAsync();
     }
 
-    [Fact]
-    public async Task ReleaseMessageAsync_Should_RecordErrorInfo_When_ErrorInfoProvided()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReleaseMessageAsync_Should_RecordErrorInfo_When_ErrorInfoProvided(bool guardConsumer)
     {
         // arrange
-        await using var db = await _fixture.CreateDatabaseAsync();
+        await using var db = await _fixture.CreateDatabaseAsync($"release_message_{guardConsumer}");
         var (connectionManager, messageStore) = await CreateStoreAsync(db);
         await CreateQueueAsync(db, "error-queue");
         var consumerId = Guid.NewGuid();
@@ -142,18 +155,37 @@ public class MessageStoreTests
         var errorInfo = new ErrorInfo("TestException", "Something went wrong", "at Test.Method()");
 
         // act
-        await messageStore.ReleaseMessageAsync(messageId, errorInfo, CancellationToken.None);
+        if (guardConsumer)
+        {
+            await messageStore.ReleaseMessageAsync(messageId, consumerId, errorInfo, TestContext.Current.CancellationToken);
+        }
+        else
+        {
+            await messageStore.ReleaseMessageAsync(messageId, errorInfo, TestContext.Current.CancellationToken);
+        }
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
         await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT error_reason::text FROM mocha_message WHERE transport_message_id = @id";
+        cmd.CommandText = "SELECT consumer_id, error_reason::text FROM mocha_message WHERE transport_message_id = @id";
         cmd.Parameters.AddWithValue("id", messageId);
-        var errorReasonJson = (string?)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken));
-        Assert.NotNull(errorReasonJson);
-        Assert.Contains("TestException", errorReasonJson);
-        Assert.Contains("Something went wrong", errorReasonJson);
+        await using var reader = await cmd.ExecuteReaderAsync(TestContext.Current.CancellationToken);
+        await reader.ReadAsync(TestContext.Current.CancellationToken);
+        var errors = JsonSerializer.Deserialize<ErrorInfo[]>(reader.GetString(1));
+        new { Leased = !reader.IsDBNull(0), Errors = errors }.MatchInlineSnapshot(
+            """
+            {
+              "Leased": false,
+              "Errors": [
+                {
+                  "ExceptionType": "TestException",
+                  "Message": "Something went wrong",
+                  "StackTrace": "at Test.Method()"
+                }
+              ]
+            }
+            """);
 
         await connectionManager.DisposeAsync();
     }
@@ -438,6 +470,122 @@ public class MessageStoreTests
         Assert.True(result.Value > DateTimeOffset.UtcNow, "Scheduled time should be in the future");
 
         await connectionManager.DisposeAsync();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SettleMessageAsync_Should_PreserveLease_When_PreviousConsumerSettlesAfterRedelivery(bool failed)
+    {
+        // arrange
+        await using var db = await _fixture.CreateDatabaseAsync($"stale_settlement_{failed}");
+        var (connectionManager, store) = await CreateStoreAsync(db);
+        await using var manager = connectionManager;
+        await CreateQueueAsync(db, "settlement-queue");
+        var previousConsumer = Guid.NewGuid();
+        var currentConsumer = Guid.NewGuid();
+        await store.SendAsync("{}"u8.ToArray(), null, "settlement-queue", null, TestContext.Current.CancellationToken);
+        using var first = await store.ReadMessagesAsync(1, "settlement-queue", previousConsumer, TestContext.Current.CancellationToken);
+        var messageId = first.Messages.Single().TransportMessageId;
+        await store.ReturnMessagesAsync([messageId], previousConsumer, TestContext.Current.CancellationToken);
+        using var second = await store.ReadMessagesAsync(1, "settlement-queue", currentConsumer, TestContext.Current.CancellationToken);
+
+        // act
+        if (failed)
+        {
+            await store.ReleaseMessageAsync(
+                messageId,
+                previousConsumer,
+                new ErrorInfo("PreviousAttempt", "Late failure", null),
+                TestContext.Current.CancellationToken);
+        }
+        else
+        {
+            await store.DeleteMessageAsync(messageId, previousConsumer, TestContext.Current.CancellationToken);
+        }
+
+        await store.ReturnMessagesAsync([messageId], previousConsumer, TestContext.Current.CancellationToken);
+
+        // assert
+        await using var connection = new NpgsqlConnection(db.ConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT count(*), count(*) FILTER (WHERE consumer_id = @consumer_id),
+                   COALESCE(sum(delivery_count), 0), count(error_reason)
+            FROM mocha_message WHERE transport_message_id = @id;
+            """;
+        command.Parameters.AddWithValue("id", messageId);
+        command.Parameters.AddWithValue("consumer_id", currentConsumer);
+        await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
+        await reader.ReadAsync(TestContext.Current.CancellationToken);
+        new
+        {
+            Messages = reader.GetInt64(0),
+            CurrentConsumerLeases = reader.GetInt64(1),
+            DeliveryCount = reader.GetInt64(2),
+            MessagesWithErrors = reader.GetInt64(3)
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Messages": 1,
+              "CurrentConsumerLeases": 1,
+              "DeliveryCount": 1,
+              "MessagesWithErrors": 0
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReleaseMessagesAsync_Should_ReleaseOnlyOwnedLeases_When_MultipleConsumersHaveMessages()
+    {
+        // arrange
+        await using var db = await _fixture.CreateDatabaseAsync("release_leased");
+        var (connectionManager, store) = await CreateStoreAsync(db);
+        await using var manager = connectionManager;
+        await CreateQueueAsync(db, "release-queue");
+        var releasingConsumer = Guid.NewGuid();
+        var otherConsumer = Guid.NewGuid();
+        await store.SendAsync("{}"u8.ToArray(), null, "release-queue", null, TestContext.Current.CancellationToken);
+        await store.SendAsync("{}"u8.ToArray(), null, "release-queue", null, TestContext.Current.CancellationToken);
+        await store.SendAsync("{}"u8.ToArray(), null, "release-queue", null, TestContext.Current.CancellationToken);
+        using var released = await store.ReadMessagesAsync(2, "release-queue", releasingConsumer, TestContext.Current.CancellationToken);
+        using var other = await store.ReadMessagesAsync(1, "release-queue", otherConsumer, TestContext.Current.CancellationToken);
+
+        // act
+        await store.ReleaseMessagesAsync(
+            releasingConsumer,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await using var connection = new NpgsqlConnection(db.ConnectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT count(*), count(*) FILTER (WHERE consumer_id = @other_consumer),
+                   sum(delivery_count), count(last_delivered), count(consumer_id)
+            FROM mocha_message;
+            """;
+        command.Parameters.AddWithValue("other_consumer", otherConsumer);
+        await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
+        await reader.ReadAsync(TestContext.Current.CancellationToken);
+        new
+        {
+            Messages = reader.GetInt64(0),
+            OtherConsumerLeases = reader.GetInt64(1),
+            DeliveryCount = reader.GetInt64(2),
+            LastDelivered = reader.GetInt64(3),
+            Leased = reader.GetInt64(4)
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Messages": 3,
+              "OtherConsumerLeases": 1,
+              "DeliveryCount": 3,
+              "LastDelivered": 3,
+              "Leased": 1
+            }
+            """);
     }
 
     private async Task<(PostgresConnectionManager, PostgresMessageStore)> CreateStoreAsync(DatabaseContext db)

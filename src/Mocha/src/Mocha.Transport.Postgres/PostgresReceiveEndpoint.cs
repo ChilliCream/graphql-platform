@@ -10,11 +10,8 @@ namespace Mocha.Transport.Postgres;
 /// and processing each message through the receive middleware pipeline.
 /// </summary>
 /// <remarks>
-/// Message processing uses an <see cref="AsyncAutoResetEvent"/> to coordinate between
-/// LISTEN/NOTIFY signals and a polling loop. When a notification arrives for the queue name,
-/// the signal is set to trigger an immediate read. Messages are read in batches and each
-/// message is processed individually via <see cref="ReceiveEndpoint.ExecuteAsync"/>.
-/// Successfully processed messages are deleted; faulted messages are released back to the queue.
+/// Messages are settled only while leased by this endpoint. Stopping returns unstarted messages
+/// without counting a delivery attempt and releases cancelled messages as counted delivery attempts.
 /// </remarks>
 public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport)
     : ReceiveEndpoint<PostgresReceiveEndpointConfiguration>(transport)
@@ -28,10 +25,11 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
     /// </summary>
     public PostgresQueue Queue { get; private set; } = null!;
 
-    private CancellationTokenSource? _cts;
+    private ILogger _logger = null!;
+    private CancellationTokenSource? _receiveCts;
     private Task? _pollingTask;
     private IDisposable? _notificationSubscription;
-    private AsyncAutoResetEvent? _signal;
+    private AsyncAutoResetEvent _signal = null!;
     private PostgresDelayedTrigger? _delayedTrigger;
 
     protected override void OnInitialize(
@@ -67,10 +65,10 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
 
     protected override ValueTask OnStartAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
     {
-        var logger = context.Services.GetRequiredService<ILogger<PostgresReceiveEndpoint>>();
+        _logger = context.Services.GetRequiredService<ILogger<PostgresReceiveEndpoint>>();
+        _receiveCts = new CancellationTokenSource();
 
         _signal = new AsyncAutoResetEvent();
-        _cts = new CancellationTokenSource();
 
         // Subscribe to LISTEN/NOTIFY for this queue name
         _notificationSubscription = transport.NotificationListener.Subscribe(queueName =>
@@ -83,92 +81,167 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
             }
         });
 
-        _pollingTask = PollMessagesAsync(logger, _cts.Token);
+        _pollingTask = PollMessagesAsync(_logger, _receiveCts.Token);
 
         return ValueTask.CompletedTask;
     }
 
-    private async Task PollMessagesAsync(ILogger logger, CancellationToken cancellationToken)
+    private async Task PollMessagesAsync(ILogger logger, CancellationToken receiveToken)
     {
+        var receiveStopped = Task.Delay(Timeout.InfiniteTimeSpan, receiveToken);
+        var processingToken = ProcessingToken;
+
         // Initial signal to process any pending messages
-        _signal!.Set();
+        _signal.Set();
 
         var consecutiveFailures = 0;
         const int maxBackoffSeconds = 30;
 
-        while (!cancellationToken.IsCancellationRequested)
+        try
         {
-            try
+            while (!receiveToken.IsCancellationRequested)
             {
-                await _signal.WaitAsync(cancellationToken);
-
-                var hasMore = true;
-                while (hasMore && !cancellationToken.IsCancellationRequested)
+                try
                 {
-                    using var batch = await transport.MessageStore.ReadMessagesAsync(
-                        _maxBatchSize,
-                        Queue.Name,
-                        _consumerId,
-                        cancellationToken);
+                    await _signal.WaitAsync(receiveToken);
 
-                    if (batch.Count == 0)
+                    var hasMore = true;
+                    while (hasMore && !receiveToken.IsCancellationRequested)
                     {
-                        hasMore = false;
-                        continue;
+                        using var batch = await transport.MessageStore.ReadMessagesAsync(
+                            _maxBatchSize,
+                            Queue.Name,
+                            _consumerId,
+                            receiveToken);
+
+                        if (batch.Count == 0)
+                        {
+                            hasMore = false;
+                            continue;
+                        }
+
+                        await ProcessBatchAsync(batch, logger, receiveStopped, processingToken);
+
+                        // If we got a full batch, there may be more messages
+                        hasMore = batch.Count >= _maxBatchSize;
                     }
 
-                    await Parallel.ForEachAsync(
-                        batch.Messages,
-                        new ParallelOptions
-                        {
-                            MaxDegreeOfParallelism = _maxConcurrency,
-                            CancellationToken = cancellationToken
-                        },
-                        (message, ct) => new ValueTask(ProcessMessageAsync(message, logger, ct)));
+                    consecutiveFailures = 0;
 
-                    // If we got a full batch, there may be more messages
-                    hasMore = batch.Count >= _maxBatchSize;
+                    if (receiveToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    // After draining all messages, check for future scheduled messages
+                    await UpdateScheduledTriggerAsync(receiveToken);
                 }
+                catch (OperationCanceledException) when (receiveToken.IsCancellationRequested)
+                {
+                    // Graceful shutdown
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    consecutiveFailures++;
+                    var backoffSeconds = Math.Min(
+                        (int)Math.Pow(2, Math.Min(consecutiveFailures, 5)),
+                        maxBackoffSeconds);
 
-                consecutiveFailures = 0;
+                    if (consecutiveFailures >= 10)
+                    {
+                        logger.PersistentPollingError(ex, Queue.Name, consecutiveFailures);
+                    }
+                    else
+                    {
+                        logger.PollingError(ex, Queue.Name, backoffSeconds);
+                    }
 
-                // After draining all messages, check for future scheduled messages
-                await UpdateScheduledTriggerAsync(cancellationToken);
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(backoffSeconds), receiveToken);
+
+                        // Wait for the database to become reachable before resuming the polling loop.
+                        while (!await transport.ConnectionManager.IsHealthyAsync())
+                        {
+                            logger.WaitingForDatabase(Queue.Name);
+                            await Task.Delay(TimeSpan.FromSeconds(maxBackoffSeconds), receiveToken);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                }
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        }
+        finally
+        {
+            if (_delayedTrigger is not null)
             {
-                // Graceful shutdown
-                break;
+                await _delayedTrigger.DisposeAsync();
+            }
+
+            _signal.Dispose();
+        }
+    }
+
+    private async Task ProcessBatchAsync(
+        PostgresMessageBatch batch,
+        ILogger logger,
+        Task receiveStopped,
+        CancellationToken processingToken)
+    {
+        var messages = batch.Messages;
+        var lastClaimed = -1;
+        var processing = Task.CompletedTask;
+
+        if (!receiveStopped.IsCompleted)
+        {
+            var workers = new Task[Math.Min(_maxConcurrency, messages.Count)];
+            for (var i = 0; i < workers.Length; i++)
+            {
+                workers[i] = Task.Run(ProcessNextAsync, CancellationToken.None);
+            }
+
+            processing = Task.WhenAll(workers);
+            await Task.WhenAny(processing, receiveStopped);
+        }
+
+        // Once receiving stops, messages that no worker has claimed go back to the queue right away.
+        var claimed = Interlocked.Exchange(ref lastClaimed, messages.Count);
+        if (claimed + 1 < messages.Count)
+        {
+            var unprocessed = new Guid[messages.Count - claimed - 1];
+            for (var i = 0; i < unprocessed.Length; i++)
+            {
+                unprocessed[i] = messages[claimed + 1 + i].TransportMessageId;
+            }
+
+            try
+            {
+                using var cleanupCts = new CancellationTokenSource(Transport.Options.Shutdown.CleanupTimeout);
+                await transport.MessageStore.ReturnMessagesAsync(unprocessed, _consumerId, cleanupCts.Token);
             }
             catch (Exception ex)
             {
-                consecutiveFailures++;
-                var backoffSeconds = Math.Min((int)Math.Pow(2, Math.Min(consecutiveFailures, 5)), maxBackoffSeconds);
+                logger.MessageReturnFailed(ex, unprocessed.Length, Queue.Name);
+            }
+        }
 
-                if (consecutiveFailures >= 10)
-                {
-                    logger.PersistentPollingError(ex, Queue.Name, consecutiveFailures);
-                }
-                else
-                {
-                    logger.PollingError(ex, Queue.Name, backoffSeconds);
-                }
+        await processing;
 
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(backoffSeconds), cancellationToken);
+        if (processingToken.IsCancellationRequested)
+        {
+            await ReleaseLeasedMessagesAsync(logger);
+        }
 
-                    // Wait for the database to become reachable before resuming the polling loop.
-                    while (!await transport.ConnectionManager.IsHealthyAsync())
-                    {
-                        logger.WaitingForDatabase(Queue.Name);
-                        await Task.Delay(TimeSpan.FromSeconds(maxBackoffSeconds), cancellationToken);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
+        async Task ProcessNextAsync()
+        {
+            int index;
+            while ((index = Interlocked.Increment(ref lastClaimed)) < messages.Count)
+            {
+                await ProcessMessageAsync(messages[index], logger, processingToken);
             }
         }
     }
@@ -176,7 +249,7 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
     private async Task ProcessMessageAsync(
         PostgresMessageItem message,
         ILogger logger,
-        CancellationToken cancellationToken)
+        CancellationToken processingToken)
     {
         try
         {
@@ -188,11 +261,17 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                     feature.TransportMessageId = state.TransportMessageId;
                 },
                 message,
-                cancellationToken);
+                processingToken);
 
+            // Settlement is not cancelled with the receive, because it only applies while the lease is held.
             await transport.MessageStore.DeleteMessageAsync(
                 message.TransportMessageId,
-                cancellationToken);
+                _consumerId,
+                CancellationToken.None);
+        }
+        catch (Exception) when (processingToken.IsCancellationRequested)
+        {
+            // The message stays leased until the endpoint releases it.
         }
         catch (Exception ex)
         {
@@ -203,13 +282,27 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                 var errorInfo = ErrorInfo.From(ex);
                 await transport.MessageStore.ReleaseMessageAsync(
                     message.TransportMessageId,
+                    _consumerId,
                     errorInfo,
-                    cancellationToken);
+                    CancellationToken.None);
             }
             catch (Exception releaseEx)
             {
                 logger.MessageReleaseFailed(releaseEx, message.TransportMessageId);
             }
+        }
+    }
+
+    private async Task ReleaseLeasedMessagesAsync(ILogger logger)
+    {
+        try
+        {
+            using var cleanupCts = new CancellationTokenSource(Transport.Options.Shutdown.CleanupTimeout);
+            await transport.MessageStore.ReleaseMessagesAsync(_consumerId, cleanupCts.Token);
+        }
+        catch (Exception ex)
+        {
+            logger.LeasedMessageReleaseFailed(ex, Queue.Name);
         }
     }
 
@@ -226,7 +319,7 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
 
         if (scheduledAt <= DateTimeOffset.UtcNow)
         {
-            _signal!.Set();
+            _signal.Set();
             return;
         }
 
@@ -240,7 +333,7 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
             await _delayedTrigger.DisposeAsync();
         }
 
-        _delayedTrigger = new PostgresDelayedTrigger(scheduledAt.Value, _signal!);
+        _delayedTrigger = new PostgresDelayedTrigger(scheduledAt.Value, _signal);
     }
 
     protected override async ValueTask OnStopAsync(
@@ -250,40 +343,25 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
         _notificationSubscription?.Dispose();
         _notificationSubscription = null;
 
-        if (_cts is not null)
+        if (_receiveCts is not null)
         {
-            await _cts.CancelAsync();
+            await _receiveCts.CancelAsync();
         }
 
-        if (_pollingTask is not null)
+        if (_pollingTask is { } pollingTask)
         {
-            try
-            {
-                await _pollingTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
-            }
-            catch (TimeoutException)
-            {
-                // Proceed with cleanup
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected during shutdown
-            }
-
             _pollingTask = null;
+
+            if (!await WaitForProcessingAsync(pollingTask, cancellationToken))
+            {
+                // Handlers that outlast the stop can no longer settle their messages once another
+                // consumer leases them.
+                await ReleaseLeasedMessagesAsync(_logger);
+            }
         }
 
-        if (_delayedTrigger is not null)
-        {
-            await _delayedTrigger.DisposeAsync();
-            _delayedTrigger = null;
-        }
-
-        _cts?.Dispose();
-        _cts = null;
-
-        _signal?.Dispose();
-        _signal = null;
+        _receiveCts?.Dispose();
+        _receiveCts = null;
     }
 }
 
@@ -300,6 +378,12 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Error releasing message {TransportMessageId}.")]
     public static partial void MessageReleaseFailed(this ILogger logger, Exception exception, Guid transportMessageId);
+
+    [LoggerMessage(LogLevel.Warning, "Error returning {Count} unprocessed message(s) to queue {QueueName}.")]
+    public static partial void MessageReturnFailed(this ILogger logger, Exception exception, int count, string queueName);
+
+    [LoggerMessage(LogLevel.Warning, "Error releasing leased messages to queue {QueueName}.")]
+    public static partial void LeasedMessageReleaseFailed(this ILogger logger, Exception exception, string queueName);
 
     [LoggerMessage(LogLevel.Warning, "Database is unreachable for queue {QueueName}, waiting for connectivity to resume.")]
     public static partial void WaitingForDatabase(this ILogger logger, string queueName);

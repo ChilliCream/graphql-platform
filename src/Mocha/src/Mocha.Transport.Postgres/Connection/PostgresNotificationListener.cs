@@ -25,7 +25,7 @@ public sealed class PostgresNotificationListener : IAsyncDisposable
     private NpgsqlConnection? _connection;
     private CancellationTokenSource? _cts;
     private Task _listenTask = Task.CompletedTask;
-    private bool _isDisposed;
+    private Task? _stopTask;
 
     public PostgresNotificationListener(
         PostgresConnectionManager connectionManager,
@@ -51,6 +51,11 @@ public sealed class PostgresNotificationListener : IAsyncDisposable
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        if (_stopTask is not null)
+        {
+            throw ThrowHelper.NotificationListenerStopped();
+        }
+
         if (_connection is not null)
         {
             return;
@@ -208,27 +213,32 @@ public sealed class PostgresNotificationListener : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    /// <summary>
+    /// Stops listening and closes the listener connection. The listener cannot be started again.
+    /// </summary>
+    /// <param name="cancellationToken">A token that ends the wait for cleanup to complete.</param>
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_isDisposed)
-        {
-            return;
-        }
+        var stopping = _stopTask ??= StopCoreAsync();
 
+        try
+        {
+            await stopping.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Cleanup continues after the wait ends.
+        }
+    }
+
+    private async Task StopCoreAsync()
+    {
         if (_cts is not null)
         {
             await _cts.CancelAsync();
         }
 
-        try
-        {
-            await _listenTask.WaitAsync(TimeSpan.FromSeconds(5));
-        }
-        catch (TimeoutException)
-        {
-            // Proceed with cleanup
-        }
-
+        await _listenTask.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         _cts?.Dispose();
 
         if (_connection is not null)
@@ -251,8 +261,12 @@ public sealed class PostgresNotificationListener : IAsyncDisposable
                 await _connection.DisposeAsync();
             }
         }
+    }
 
-        _isDisposed = true;
+    public async ValueTask DisposeAsync()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await StopAsync(cts.Token);
     }
 
     private sealed class Subscription(PostgresNotificationListener listener, Action<string> onNotification)

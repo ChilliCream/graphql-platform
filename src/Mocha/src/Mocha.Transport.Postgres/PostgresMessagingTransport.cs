@@ -13,6 +13,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
 {
     private readonly Action<IPostgresMessagingTransportDescriptor> _configure;
     private readonly PostgresBackgroundTaskScheduler _backgroundTasks = new();
+    private bool _isConsumerRegistered;
     private IReadOnlyPostgresSchemaOptions _schemaOptions = null!;
 
     /// <summary>
@@ -125,6 +126,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     {
         await ConnectionManager.EnsureMigratedAsync(cancellationToken);
         await ConsumerManager.RegisterAsync(cancellationToken);
+        _isConsumerRegistered = true;
         await NotificationListener.StartAsync(cancellationToken);
 
         // Provision topology resources
@@ -413,22 +415,36 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         }
     }
 
-    /// <inheritdoc />
-    protected override async ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Stops the background tasks, unregisters the consumer, which also removes its temporary
+    /// queues, and stops the notification listener.
+    /// </summary>
+    /// <param name="cancellationToken">The token that was passed to the stop operation.</param>
+    protected override async ValueTask OnAfterStopAsync(CancellationToken cancellationToken)
     {
         await _backgroundTasks.DisposeAsync();
 
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (ConsumerManager is not null)
+        // Cleanup also runs when the stop token is already cancelled.
+        if (_isConsumerRegistered)
         {
+            _isConsumerRegistered = false;
+
             try
             {
-                await ConsumerManager.UnregisterAsync(cancellationToken);
+                using var unregisterCts = new CancellationTokenSource(Options.Shutdown.CleanupTimeout);
+                await ConsumerManager.UnregisterAsync(unregisterCts.Token);
             }
             catch
             {
                 // Best-effort unregistration during shutdown
             }
+        }
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (NotificationListener is not null)
+        {
+            using var listenerCts = new CancellationTokenSource(Options.Shutdown.CleanupTimeout);
+            await NotificationListener.StopAsync(listenerCts.Token);
         }
     }
 
