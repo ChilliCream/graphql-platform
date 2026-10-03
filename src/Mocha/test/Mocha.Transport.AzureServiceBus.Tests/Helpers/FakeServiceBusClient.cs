@@ -105,18 +105,30 @@ internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
 
     public Action? OnStopProcessing { get; set; }
 
+    /// <summary>
+    /// The task that <see cref="StopProcessingAsync"/> returns. A pending task simulates handlers
+    /// that are still running, a faulted task a failing stop.
+    /// </summary>
+    public Task StopProcessingResult { get; set; } = Task.CompletedTask;
+
+    /// <summary>
+    /// Completes when <see cref="CloseAsync"/> has closed the processor.
+    /// </summary>
+    public TaskCompletionSource Closed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     public int StartProcessingCallCount { get; private set; }
 
     public int StopProcessingCallCount { get; private set; }
 
-    public override Task CloseAsync(CancellationToken cancellationToken = default)
+    public override async Task CloseAsync(CancellationToken cancellationToken = default)
     {
         if (CloseFailure is { } failure)
         {
             throw failure;
         }
 
-        return base.CloseAsync(cancellationToken);
+        await base.CloseAsync(cancellationToken);
+        Closed.TrySetResult();
     }
 
     public override Task StartProcessingAsync(CancellationToken cancellationToken = default)
@@ -129,16 +141,18 @@ internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
     {
         StopProcessingCallCount++;
         OnStopProcessing?.Invoke();
-        return Task.CompletedTask;
+        return StopProcessingResult;
     }
 
     public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
+
+    public Task RaiseProcessMessageAsync(ProcessMessageEventArgs args) => OnProcessMessageAsync(args);
 }
 
 /// <summary>
 /// A <see cref="ServiceBusSessionProcessor"/> test double whose processing loop never runs; start
-/// and stop complete immediately, and <see cref="RaiseProcessErrorAsync"/> lets tests invoke the
-/// handler registered via <see cref="ServiceBusSessionProcessor.ProcessErrorAsync"/> without a live
+/// and stop complete immediately, and <see cref="RaiseProcessErrorAsync"/> and
+/// <see cref="RaiseProcessMessageAsync"/> let tests invoke the registered handlers without a live
 /// namespace.
 /// </summary>
 internal sealed class FakeServiceBusSessionProcessor : ServiceBusSessionProcessor
@@ -159,6 +173,8 @@ internal sealed class FakeServiceBusSessionProcessor : ServiceBusSessionProcesso
     public override Task StopProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
+
+    public Task RaiseProcessMessageAsync(ProcessSessionMessageEventArgs args) => OnProcessSessionMessageAsync(args);
 
     private sealed class FakeInnerProcessor : ServiceBusProcessor
     {

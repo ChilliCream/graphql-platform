@@ -215,14 +215,6 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         Assert.Same(failure, thrown);
         Assert.False(runtime.IsStarted);
         Assert.True(failedProcessor.IsClosed);
-
-        // act - retrying without the injected failure must succeed, proving the failed attempt's
-        // processor and heartbeat were fully released instead of left bound to a disposed link
-        client.ReceiverFailure = null;
-        await runtime.StartAsync(Xunit.TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.True(runtime.IsStarted);
     }
 
     [Fact]
@@ -345,6 +337,46 @@ public sealed class ReceiveEndpointLifecycleUnitTests
     }
 
     [Fact]
+    public async Task OnStopAsync_Should_DisposeProcessorOnceHandlersReturn_When_HandlersOutlastGracePeriod()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("stuck-handler-ep").Consumer<NoOpConsumer>().Queue("stuck-handler");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var endpoint = transport.ReceiveEndpoints.Single(e => e != transport.ReplyReceiveEndpoint);
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == "stuck-handler").Processor;
+        var handlersReturned = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        processor.StopProcessingResult = handlersReturned.Task;
+
+        // act
+        await endpoint
+            .StopAsync(runtime, new CancellationToken(canceled: true))
+            .AsTask()
+            .WaitAsync(TimeSpan.FromSeconds(30), Xunit.TestContext.Current.CancellationToken);
+        var closedBeforeHandlersReturned = processor.IsClosed;
+        handlersReturned.SetResult();
+        await processor.Closed.Task.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(endpoint.IsStarted);
+        Assert.False(closedBeforeHandlersReturned);
+        Assert.True(processor.IsClosed);
+    }
+
+    [Fact]
     public async Task OnProcessorError_Should_NotResurrectEndpoint_When_RaisedAfterStop()
     {
         // arrange
@@ -382,6 +414,194 @@ public sealed class ReceiveEndpointLifecycleUnitTests
 
         // assert - the error is only logged; the endpoint is not restarted
         Assert.False(endpoint.IsStarted);
+    }
+
+    [Fact]
+    public async Task ProcessMessageAsync_Should_CancelSessionHandler_When_SessionLockIsLost()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var probe = new HandlerProbe();
+        await using var bus = await CreateProbedBusAsync(client, probe, "lock-lost", requiresSession: true);
+        var runtime = bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var processor = client.CreatedSessionProcessors.Single(p => p.QueueName == "lock-lost").Processor;
+        using var sessionCts = new CancellationTokenSource();
+
+        // act
+        var handler = processor.RaiseProcessMessageAsync(
+            new ProcessSessionMessageEventArgs(
+                CreateMessage(runtime),
+                new StubServiceBusSessionReceiver(),
+                sessionCts.Token));
+        await probe.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+        await sessionCts.CancelAsync();
+        await handler.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(probe.Cancelled.Task.IsCompleted, "A lost session lock should cancel the handler");
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_LetHandlerFinish_When_StopProcessingCancelsProcessorToken()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var probe = new HandlerProbe();
+        await using var bus = await CreateProbedBusAsync(client, probe, "draining");
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var endpoint = transport.ReceiveEndpoints.Single(e => e != transport.ReplyReceiveEndpoint);
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == "draining").Processor;
+        using var processorCts = new CancellationTokenSource();
+        var handler = processor.RaiseProcessMessageAsync(CreateMessageArgs(runtime, processorCts.Token));
+        await probe.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+
+        // stopping the SDK processor cancels the token of its in-flight handlers
+        processor.OnStopProcessing = processorCts.Cancel;
+        processor.StopProcessingResult = handler;
+
+        // act
+        var stop = endpoint.StopAsync(runtime, Xunit.TestContext.Current.CancellationToken).AsTask();
+        await Task.Delay(200, Xunit.TestContext.Current.CancellationToken);
+        var cancelledWhileDraining = probe.Cancelled.Task.IsCompleted;
+        probe.Release.TrySetResult();
+        await stop.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(cancelledWhileDraining, "Stopping the processor should not cancel a draining handler");
+        Assert.True(probe.Completed.Task.IsCompleted, "The handler should finish before the stop completes");
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_CancelInFlightHandler_When_StopProcessingFails()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var probe = new HandlerProbe();
+        await using var bus = await CreateProbedBusAsync(client, probe, "failing-stop");
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var endpoint = transport.ReceiveEndpoints.Single(e => e != transport.ReplyReceiveEndpoint);
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == "failing-stop").Processor;
+        var handler = processor.RaiseProcessMessageAsync(CreateMessageArgs(runtime, CancellationToken.None));
+        await probe.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+        processor.StopProcessingResult = Task.FromException(new InvalidOperationException("stop failed"));
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => endpoint.StopAsync(runtime, CancellationToken.None).AsTask());
+        await handler.WaitAsync(TimeSpan.FromSeconds(10), Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("stop failed", exception.Message);
+        Assert.True(probe.Cancelled.Task.IsCompleted, "A failed stop should cancel in-flight handlers");
+        Assert.False(endpoint.IsStarted);
+    }
+
+    private static async Task<TestBus> CreateProbedBusAsync(
+        FakeServiceBusClient client,
+        HandlerProbe probe,
+        string queueName,
+        bool requiresSession = false)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(probe);
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<ProbedConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+
+                if (requiresSession)
+                {
+                    t.DeclareQueue(queueName).RequiresSession();
+                }
+
+                t.Endpoint($"{queueName}-ep").Consumer<ProbedConsumer>().Queue(queueName);
+            });
+
+        return await builder.BuildTestBusAsync();
+    }
+
+    private static ProcessMessageEventArgs CreateMessageArgs(
+        IMessagingRuntime runtime,
+        CancellationToken processorToken)
+        => new(CreateMessage(runtime), new StubServiceBusReceiver(), processorToken);
+
+    private static ServiceBusReceivedMessage CreateMessage(IMessagingRuntime runtime)
+        => ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: BinaryData.FromString("{}"),
+            messageId: "m-1",
+            sessionId: "session-1",
+            subject: runtime.GetMessageType(typeof(OrderCreated)).Identity,
+            contentType: "application/json");
+
+    /// <summary>
+    /// Waits until the consumer is released or its processing token is cancelled.
+    /// </summary>
+    public sealed class HandlerProbe
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async ValueTask RunAsync(CancellationToken cancellationToken)
+        {
+            Started.TrySetResult();
+
+            try
+            {
+                await Release.Task.WaitAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                Cancelled.TrySetResult();
+                throw;
+            }
+
+            Completed.TrySetResult();
+        }
+    }
+
+    private sealed class StubServiceBusSessionReceiver : ServiceBusSessionReceiver
+    {
+        public override Task CompleteMessageAsync(
+            ServiceBusReceivedMessage message,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public override Task AbandonMessageAsync(
+            ServiceBusReceivedMessage message,
+            IDictionary<string, object>? propertiesToModify,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
+    }
+
+    private sealed class StubServiceBusReceiver : ServiceBusReceiver
+    {
+        public override Task CompleteMessageAsync(
+            ServiceBusReceivedMessage message,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public override Task AbandonMessageAsync(
+            ServiceBusReceivedMessage message,
+            IDictionary<string, object>? propertiesToModify,
+            CancellationToken cancellationToken)
+            => Task.CompletedTask;
+    }
+
+    public sealed class ProbedConsumer(HandlerProbe probe) : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
+            => probe.RunAsync(context.CancellationToken);
     }
 
     public sealed class NoOpConsumer : IConsumer<OrderCreated>

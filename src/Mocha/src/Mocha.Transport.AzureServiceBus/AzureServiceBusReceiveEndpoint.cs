@@ -20,6 +20,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     private ILogger<AzureServiceBusReceiveEndpoint> _logger = null!;
     private int _maxConcurrentCalls = 1;
     private int _prefetchCount;
+    private volatile bool _isStopping;
 
     /// <summary>
     /// Gets the Azure Service Bus queue this endpoint is consuming from.
@@ -139,6 +140,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
     private ServiceBusProcessor CreateProcessor(AzureServiceBusMessagingTransport asbTransport)
     {
+        var processingToken = ProcessingToken;
         var maxAutoLockRenewal = Configuration.MaxAutoLockRenewalDuration ?? TimeSpan.FromMinutes(5);
 
         var options = new ServiceBusProcessorOptions
@@ -153,17 +155,30 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         _logger.ReceiveEndpointStarted(Queue.Name, _prefetchCount, _maxConcurrentCalls);
 
         var processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
+
+        // The processor cancels args.CancellationToken only when it stops, and stopping lets handlers
+        // drain, so the handler observes the processing token alone.
         processor.ProcessMessageAsync += async args =>
-            await ExecuteAsync(
-                static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetNonSession(state),
-                args,
-                args.CancellationToken);
+        {
+            try
+            {
+                await ExecuteAsync(
+                    static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetNonSession(state),
+                    args,
+                    processingToken);
+            }
+            catch (Exception) when (processingToken.IsCancellationRequested)
+            {
+                // The message was not completed, so the broker redelivers it.
+            }
+        };
         processor.ProcessErrorAsync += OnProcessorError;
         return processor;
     }
 
     private ServiceBusSessionProcessor CreateSessionProcessor(AzureServiceBusMessagingTransport asbTransport)
     {
+        var processingToken = ProcessingToken;
         var maxAutoLockRenewal = Configuration.MaxAutoLockRenewalDuration ?? TimeSpan.FromMinutes(5);
         var maxSessions = Configuration.MaxConcurrentSessions ?? _maxConcurrentCalls;
         var maxCallsPerSession = Configuration.MaxConcurrentCallsPerSession ?? 1;
@@ -188,10 +203,21 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         var sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
         sessionProcessor.ProcessMessageAsync += async args =>
-            await ExecuteAsync(
-                static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetSession(state),
-                args,
-                args.CancellationToken);
+        {
+            using var cancellation = new SessionHandlerCancellation(this, processingToken, args.CancellationToken);
+
+            try
+            {
+                await ExecuteAsync(
+                    static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetSession(state),
+                    args,
+                    cancellation.Token);
+            }
+            catch (Exception) when (cancellation.Token.IsCancellationRequested)
+            {
+                // The message was not completed, so the broker redelivers it.
+            }
+        };
         sessionProcessor.ProcessErrorAsync += OnProcessorError;
         return sessionProcessor;
     }
@@ -217,25 +243,32 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     }
 
     /// <summary>
-    /// Stops when the messaging runtime deactivates this endpoint, then disposes the heartbeat and
-    /// processor resources. Disposal is best-effort: a failure while releasing either resource is
-    /// logged as a warning and does not fail the stop. For a temporary endpoint, also removes the
-    /// Mocha-owned, auto-provisioned forwarding subscriptions that route to this endpoint's queue.
+    /// Stops the processor and the heartbeat. A temporary endpoint also removes the forwarding
+    /// subscriptions that Mocha provisioned for its queue, even when the stop is cancelled.
     /// </summary>
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
+        _isStopping = true;
+
         try
         {
-            if (_processor is not null)
+            if (_processor is { } processor)
             {
-                await _processor.StopProcessingAsync(cancellationToken);
+                var stopping = processor.StopProcessingAsync(CancellationToken.None);
+
+                if (!await WaitForProcessingAsync(stopping, cancellationToken))
+                {
+                    // The processor is disposed once its handlers return.
+                    _processor = null;
+                    _ = DisposeProcessorWhenStoppedAsync(processor, stopping);
+                }
             }
 
             if (Configuration.IsTemporary)
             {
-                await CleanupTemporaryResourcesAsync(cancellationToken);
+                await CleanupTemporaryResourcesAsync();
             }
         }
         finally
@@ -256,27 +289,47 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
             if (_processor is not null)
             {
-                try
-                {
-                    await _processor.DisposeAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.ProcessorDisposeFailed(ex, Queue.Name);
-                }
-
+                await DisposeProcessorAsync(_processor);
                 _processor = null;
             }
         }
     }
 
+    private async Task DisposeProcessorWhenStoppedAsync(MessageProcessor processor, Task stopping)
+    {
+        try
+        {
+            await stopping;
+        }
+        catch
+        {
+            // Disposing the processor stops it as well.
+        }
+
+        await DisposeProcessorAsync(processor);
+    }
+
+    private async ValueTask DisposeProcessorAsync(MessageProcessor processor)
+    {
+        try
+        {
+            await processor.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.ProcessorDisposeFailed(ex, Queue.Name);
+        }
+    }
+
     /// <summary>
-    /// Removes convention forwarding subscriptions for this temporary endpoint. The queue is
-    /// removed when no provisioned declared subscriptions remain and all convention cleanup succeeds.
+    /// Removes convention forwarding subscriptions for this temporary endpoint, each within the cleanup
+    /// timeout. The queue is removed when no provisioned declared subscriptions remain and all convention
+    /// cleanup succeeds.
     /// </summary>
-    private async Task CleanupTemporaryResourcesAsync(CancellationToken cancellationToken)
+    private async Task CleanupTemporaryResourcesAsync()
     {
         var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var cleanupTimeout = Transport.Options.Shutdown.CleanupTimeout;
         var canDeleteQueue = true;
 
         foreach (var subscription in Queue.Subscriptions)
@@ -294,9 +347,10 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
             try
             {
-                await subscription.DeprovisionAsync(transport.ClientManager, cancellationToken);
+                using var cleanupCts = new CancellationTokenSource(cleanupTimeout);
+                await subscription.DeprovisionAsync(transport.ClientManager, cleanupCts.Token);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex)
             {
                 canDeleteQueue = false;
                 _logger.ForwardingSubscriptionCleanupFailed(ex, subscription.Source.Name, subscription.Name);
@@ -310,11 +364,53 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         try
         {
-            await Queue.DeprovisionAsync(transport.ClientManager, cancellationToken);
+            using var cleanupCts = new CancellationTokenSource(cleanupTimeout);
+            await Queue.DeprovisionAsync(transport.ClientManager, cleanupCts.Token);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex)
         {
             _logger.TemporaryQueueCleanupFailed(ex, Queue.Name);
+        }
+    }
+
+    /// <summary>
+    /// The cancellation of a session message handler. It is cancelled when the endpoint cancels
+    /// in-flight messages, or when the session processor cancels the handler, for example because the
+    /// session lock was lost, while the endpoint is not stopping.
+    /// </summary>
+    private sealed class SessionHandlerCancellation : IDisposable
+    {
+        private readonly AzureServiceBusReceiveEndpoint _endpoint;
+        private readonly CancellationTokenSource _source;
+        private readonly CancellationTokenRegistration _sessionRegistration;
+
+        public SessionHandlerCancellation(
+            AzureServiceBusReceiveEndpoint endpoint,
+            CancellationToken processingToken,
+            CancellationToken sessionToken)
+        {
+            _endpoint = endpoint;
+            _source = CancellationTokenSource.CreateLinkedTokenSource(processingToken);
+            _sessionRegistration = sessionToken.UnsafeRegister(
+                static state => ((SessionHandlerCancellation)state!).OnSessionCancelled(),
+                this);
+        }
+
+        public CancellationToken Token => _source.Token;
+
+        private void OnSessionCancelled()
+        {
+            // Stopping the processor cancels its handlers, which drain until the endpoint cancels them.
+            if (!_endpoint._isStopping)
+            {
+                _source.Cancel();
+            }
+        }
+
+        public void Dispose()
+        {
+            _sessionRegistration.Dispose();
+            _source.Dispose();
         }
     }
 
