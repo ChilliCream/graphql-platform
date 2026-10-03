@@ -626,6 +626,52 @@ public static class ExpressionHasherTests
         Assert.NotEqual(hash1, hash3);
     }
 
+    [Fact]
+    public static void PagingArguments_Should_ProduceByteIdenticalHash_When_IncludeItemsIsTrue()
+    {
+        // arrange
+        // IncludeItems defaults to true, so setting it explicitly must not change the hash.
+        var defaultArguments = new PagingArguments(first: 5, after: "abc");
+        var explicitTrueArguments = defaultArguments with { IncludeItems = true };
+
+        // act
+        var hash1 = new ExpressionHasher().Add(defaultArguments).Compute();
+        var hash2 = new ExpressionHasher().Add(explicitTrueArguments).Compute();
+
+        // assert
+        Assert.Equal(hash1, hash2);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_IncludeItemsIsFalse()
+    {
+        // arrange
+        var withItems = new PagingArguments(first: 5);
+        var withoutItems = withItems with { IncludeItems = false };
+
+        // act
+        var hashWithItems = new ExpressionHasher().Add(withItems).Compute();
+        var hashWithoutItems = new ExpressionHasher().Add(withoutItems).Compute();
+
+        // assert
+        Assert.NotEqual(hashWithItems, hashWithoutItems);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_IncludeItemsIsFalse_And_NoOtherArgumentsSet()
+    {
+        // arrange
+        var withItems = new PagingArguments();
+        var withoutItems = withItems with { IncludeItems = false };
+
+        // act
+        var hashWithItems = new ExpressionHasher().Add(withItems).Compute();
+        var hashWithoutItems = new ExpressionHasher().Add(withoutItems).Compute();
+
+        // assert
+        Assert.NotEqual(hashWithItems, hashWithoutItems);
+    }
+
     private static string HashConstant(object value)
         => new ExpressionHasher().Add(Expression.Constant(value)).Compute();
 

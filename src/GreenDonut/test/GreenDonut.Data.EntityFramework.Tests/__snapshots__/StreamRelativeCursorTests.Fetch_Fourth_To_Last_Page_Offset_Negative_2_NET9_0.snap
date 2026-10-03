@@ -1,0 +1,27 @@
+---------------
+{
+  "Page": 7,
+  "TotalCount": 20,
+  "Items": [
+    "Momentumix",
+    "Nebularis"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @__value_0='Synerflux'
+-- @__value_1='19'
+-- @__p_3='2'
+-- @__p_2='4'
+SELECT b0."Id", b0."GroupId", b0."Name"
+FROM (
+    SELECT b."Id", b."GroupId", b."Name"
+    FROM "Brands" AS b
+    WHERE b."Name" < @__value_0 OR (b."Name" = @__value_0 AND b."Id" < @__value_1)
+    ORDER BY b."Name" DESC, b."Id" DESC
+    LIMIT @__p_3 OFFSET @__p_2
+) AS b0
+ORDER BY b0."Name", b0."Id"
+---------------
