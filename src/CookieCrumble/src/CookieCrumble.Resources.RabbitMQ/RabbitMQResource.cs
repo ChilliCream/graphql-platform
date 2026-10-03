@@ -27,7 +27,7 @@ public class RabbitMQResource : ContainerResource<RabbitMqContainer>
 
     protected override RabbitMqContainer Build()
         => Configure(
-            new RabbitMqBuilder("rabbitmq:3.11")
+            new RabbitMqBuilder("rabbitmq:4.3")
                 .WithUsername("guest")
                 .WithPassword("guest"))
             .Build();
