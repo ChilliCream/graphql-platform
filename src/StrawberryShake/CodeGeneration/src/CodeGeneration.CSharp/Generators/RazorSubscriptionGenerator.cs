@@ -34,7 +34,7 @@ public class RazorSubscriptionGenerator : CSharpSyntaxGenerator<OperationDescrip
                     Token(modifier),
                     Token(SyntaxKind.PartialKeyword))
                 .AddGeneratedAttribute()
-                .AddMembers(CreateOperationProperty(descriptor.RuntimeType.ToString()));
+                .AddMembers(CreateOperationProperty(descriptor.InterfaceType.ToString()));
 
         foreach (var argument in descriptor.Arguments)
         {

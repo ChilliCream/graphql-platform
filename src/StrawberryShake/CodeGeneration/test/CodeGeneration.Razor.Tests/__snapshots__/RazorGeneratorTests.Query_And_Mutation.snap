@@ -1317,7 +1317,7 @@ namespace Foo.Bar.Components
     public partial class UseGetBars : global::StrawberryShake.Razor.UseQuery<global::Foo.Bar.IGetBarsResult>
     {
         [global::Microsoft.AspNetCore.Components.InjectAttribute]
-        internal global::Foo.Bar.GetBarsQuery Operation { get; set; } = default !;
+        internal global::Foo.Bar.IGetBarsQuery Operation { get; set; } = default !;
 
         [global::Microsoft.AspNetCore.Components.ParameterAttribute]
         public global::System.String A { get; set; } = default !;
