@@ -4,18 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Logs;
 
-public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
-    : TelemetryCommandTestBase(fixture)
+public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : TelemetryCommandTestBase(fixture)
 {
     [Fact]
     public async Task ListHelp_Should_ReturnSuccess()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--help");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--help");
 
         // assert
         result.AssertSuccess();
@@ -32,10 +27,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupNoAuthentication();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list");
 
         // assert
         result.AssertError(
@@ -52,12 +44,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupSessionWithWorkspace();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--filter",
-            "service.name:");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "service.name:");
 
         // assert
         result.AssertError(
@@ -74,24 +61,22 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         SetupSessionWithWorkspace();
-        TelemetryClientMock.Setup(x => x.ListLogsAsync(
-                WorkspaceId,
-                It.Is<OpenTelemetryFilterInput?>(filter => IsWarnOrHigherFilter(filter)),
-                It.IsAny<IReadOnlyList<string>?>(),
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()))
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListLogsAsync(
+                    WorkspaceId,
+                    It.Is<OpenTelemetryFilterInput?>(filter => IsWarnOrHigherFilter(filter)),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new ConnectionPage<LogRow>([], null, false));
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--severity",
-            "warn");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--severity", "warn");
 
         // assert
         result.AssertSuccess(
@@ -110,24 +95,22 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         SetupSessionWithWorkspace();
-        TelemetryClientMock.Setup(x => x.ListLogsAsync(
-                WorkspaceId,
-                It.Is<OpenTelemetryFilterInput?>(filter => IsTraceIdFilter(filter)),
-                It.IsAny<IReadOnlyList<string>?>(),
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()))
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListLogsAsync(
+                    WorkspaceId,
+                    It.Is<OpenTelemetryFilterInput?>(filter => IsTraceIdFilter(filter)),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new ConnectionPage<LogRow>([], null, false));
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--trace-id",
-            "trace-1");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--trace-id", "trace-1");
 
         // assert
         result.AssertSuccess(
@@ -153,10 +136,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupListLogs(logs: [CreateLogRow()]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list");
 
         // assert
         result.AssertSuccess(
@@ -190,10 +170,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupListLogs();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list");
 
         // assert
         result.AssertSuccess(
@@ -222,12 +199,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
             ]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -241,16 +213,17 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
             }
             """);
         TelemetryClientMock.Verify(
-            x => x.ListAttributeKeysAsync(
-                WorkspaceId,
-                OpenTelemetrySignalKind.Logs,
-                null,
-                null,
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()),
+            x =>
+                x.ListAttributeKeysAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Logs,
+                    null,
+                    null,
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -263,12 +236,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupListAttributeKeys(keys: [new AttributeKeyRow("Log", "http.statuscode")]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -289,25 +257,23 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupInteractionMode(InteractionMode.Interactive);
         SetupSessionWithWorkspace();
         SetupListLogs();
-        TelemetryClientMock.Setup(x => x.ListAttributeKeysAsync(
-                WorkspaceId,
-                OpenTelemetrySignalKind.Logs,
-                null,
-                null,
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()))
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListAttributeKeysAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Logs,
+                    null,
+                    null,
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
             .ThrowsAsync(new InvalidOperationException());
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -333,11 +299,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
         SetupGetLog(CreateLog());
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "logs",
-            "show",
-            "log-1");
+        var result = await ExecuteCommandAsync("telemetry", "logs", "show", "log-1");
 
         // assert
         result.AssertSuccess(
@@ -412,37 +374,30 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
 
     private void SetupListLogs(bool hasNextPage = false, params LogRow[] logs)
     {
-        TelemetryClientMock.Setup(x => x.ListLogsAsync(
-                WorkspaceId,
-                It.IsAny<OpenTelemetryFilterInput?>(),
-                It.IsAny<IReadOnlyList<string>?>(),
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()))
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListLogsAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new ConnectionPage<LogRow>(logs, null, hasNextPage));
     }
 
     private void SetupGetLog(Log? log)
     {
-        TelemetryClientMock.Setup(x => x.GetLogAsync(
-                WorkspaceId,
-                "log-1",
-                It.IsAny<CancellationToken>()))
+        TelemetryClientMock
+            .Setup(x => x.GetLogAsync(WorkspaceId, "log-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(log);
     }
 
     private static LogRow CreateLogRow()
-        => new(
-            "log-1",
-            1767225600123,
-            "ERROR",
-            17,
-            "Request failed",
-            "trace-1",
-            "span-1",
-            "products");
+        => new("log-1", 1767225600123, "ERROR", 17, "Request failed", "trace-1", "span-1", "products");
 
     private static bool IsWarnOrHigherFilter(OpenTelemetryFilterInput? filter)
     {
@@ -456,8 +411,7 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
     }
 
     private static bool IsTraceIdFilter(OpenTelemetryFilterInput? filter)
-        => filter?.Attribute?.Key == "trace.id"
-            && filter?.Attribute?.Condition.Eq?.String == "trace-1";
+        => filter?.Attribute?.Key == "trace.id" && filter?.Attribute?.Condition.Eq?.String == "trace-1";
 
     private static Log CreateLog()
         => new(

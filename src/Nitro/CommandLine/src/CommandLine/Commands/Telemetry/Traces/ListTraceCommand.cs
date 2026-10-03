@@ -51,13 +51,13 @@ internal sealed class ListTraceCommand : Command
         var search = parseResult.GetValue(Opt<TelemetryTraceSearchOption>.Instance);
         var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
         if (!CompiledTelemetryFilter.TryCreate(
-            console,
-            filterText,
-            parseResult.GetValue(Opt<TelemetryHasErrorOption>.Instance),
-            parseResult.GetValue(Opt<TelemetryMinDurationOption>.Instance),
-            search,
-            service,
-            out var filter))
+                console,
+                filterText,
+                parseResult.GetValue(Opt<TelemetryHasErrorOption>.Instance),
+                parseResult.GetValue(Opt<TelemetryMinDurationOption>.Instance),
+                search,
+                service,
+                out var filter))
         {
             return ExitCodes.Error;
         }
@@ -79,13 +79,11 @@ internal sealed class ListTraceCommand : Command
             after: null,
             cancellationToken);
 
-        var items = page.Items
-            .OrderByDescending(static trace => trace.Start)
-            .Select(TraceListItem.From)
-            .ToArray();
-        var emptyResultHint = items.Length == 0
-            ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
-            : null;
+        var items = page.Items.OrderByDescending(static trace => trace.Start).Select(TraceListItem.From).ToArray();
+        var emptyResultHint =
+            items.Length == 0
+                ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
+                : null;
         console.WriteListEnvelope(
             items,
             total: null,

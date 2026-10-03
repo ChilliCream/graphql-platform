@@ -11,24 +11,19 @@ internal sealed class TelemetrySinceOption : Option<DateTimeOffset>
         Description = "The earliest timestamp to include";
         Required = false;
         DefaultValueFactory = _ => TelemetryOptionDefaults.GetUtcNow() - TelemetryTimestamp.DefaultSince;
-        CustomParser = result => ParseTimestamp(
-            result.Tokens.Single().Value,
-            result,
-            TelemetryOptionDefaults.GetUtcNow());
+        CustomParser = result =>
+            ParseTimestamp(result.Tokens.Single().Value, result, TelemetryOptionDefaults.GetUtcNow());
     }
 
-    private static DateTimeOffset ParseTimestamp(
-        string value,
-        ArgumentResult result,
-        DateTimeOffset now)
+    private static DateTimeOffset ParseTimestamp(string value, ArgumentResult result, DateTimeOffset now)
     {
         if (TelemetryTimestamp.TryParse(
-            value,
-            now,
-            OptionName,
-            enforceMaximumAge: true,
-            out var timestamp,
-            out var error))
+                value,
+                now,
+                OptionName,
+                enforceMaximumAge: true,
+                out var timestamp,
+                out var error))
         {
             return timestamp;
         }

@@ -104,8 +104,7 @@ public sealed class SpanTreeRendererTests
     public void Render_Should_WriteEachSpanOnce_When_ParentLinksFormACycle(string? spanId)
     {
         // arrange
-        var tree = SpanTreeBuilder.Build(
-        [
+        var tree = SpanTreeBuilder.Build([
             CreateSpan("first", parent: "second"),
             CreateSpan("second", parent: "first")
         ]);
@@ -125,8 +124,7 @@ public sealed class SpanTreeRendererTests
     public void Render_Should_WriteEveryComponent_When_TraceContainsARootAndACycle()
     {
         // arrange
-        var tree = SpanTreeBuilder.Build(
-        [
+        var tree = SpanTreeBuilder.Build([
             CreateSpan("root"),
             CreateSpan("first", parent: "second"),
             CreateSpan("second", parent: "first")
@@ -149,17 +147,11 @@ public sealed class SpanTreeRendererTests
     {
         // arrange
         var value = new string('a', 150);
-        var tree = SpanTreeBuilder.Build(
-        [
+        var tree = SpanTreeBuilder.Build([
             CreateSpan(
                 value,
                 resourceAttributes: [new("service.name", value)],
-                spanAttributes:
-                [
-                    new("code.function", value),
-                    new("code.filepath", value),
-                    new("code.lineno", "42")
-                ],
+                spanAttributes: [new("code.function", value), new("code.filepath", value), new("code.lineno", "42")],
                 data: new GraphQLOperationTraceSpanData(null, new TraceOperation(null, "query", value)))
         ]);
 

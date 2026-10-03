@@ -41,7 +41,13 @@ public sealed class CompiledTelemetryFilterTests
 
     [Theory]
     [InlineData(null, "error", null, null, null, "attribute(severity,in(string:error,string:fatal))")]
-    [InlineData(null, "TRACE", null, null, null, "attribute(severity,in(string:trace,string:debug,string:info,string:warn,string:error,string:fatal))")]
+    [InlineData(
+        null,
+        "TRACE",
+        null,
+        null,
+        null,
+        "attribute(severity,in(string:trace,string:debug,string:info,string:warn,string:error,string:fatal))")]
     [InlineData(null, null, "abc", null, null, "attribute(trace.id,eq(string:abc))")]
     [InlineData(null, null, null, "timeout", null, "attribute(log.message,matches(*timeout*))")]
     [InlineData(null, null, null, null, "checkout", "attribute(service.name@Resource,eq(string:checkout))")]
@@ -62,8 +68,18 @@ public sealed class CompiledTelemetryFilterTests
     }
 
     [Theory]
-    [InlineData(true, null, null, "checkout", "and(attribute(status,eq(string:error)),attribute(service.name@Resource,eq(string:checkout)))")]
-    [InlineData(false, 250, "timeout", null, "and(attribute(duration,gte(int:250)),attribute(span.name,matches(*timeout*)))")]
+    [InlineData(
+        true,
+        null,
+        null,
+        "checkout",
+        "and(attribute(status,eq(string:error)),attribute(service.name@Resource,eq(string:checkout)))")]
+    [InlineData(
+        false,
+        250,
+        "timeout",
+        null,
+        "and(attribute(duration,gte(int:250)),attribute(span.name,matches(*timeout*)))")]
     public void Create_Should_AndTheClauses_When_TwoTraceFlagsAreSet(
         bool hasError,
         int? minDurationMs,
@@ -90,62 +106,63 @@ public sealed class CompiledTelemetryFilterTests
             service: "checkout");
 
         // assert
-        Serialize(filter.Input).MatchInlineSnapshot(
-            """
-            {
-              "and": [
+        Serialize(filter.Input)
+            .MatchInlineSnapshot(
+                """
                 {
-                  "attribute": {
-                    "condition": {
-                      "gte": {
-                        "int": 500
+                  "and": [
+                    {
+                      "attribute": {
+                        "condition": {
+                          "gte": {
+                            "int": 500
+                          }
+                        },
+                        "key": "http.status_code"
                       }
                     },
-                    "key": "http.status_code"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "eq": {
-                        "string": "error"
+                    {
+                      "attribute": {
+                        "condition": {
+                          "eq": {
+                            "string": "error"
+                          }
+                        },
+                        "key": "status"
                       }
                     },
-                    "key": "status"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "gte": {
-                        "int": 1000
+                    {
+                      "attribute": {
+                        "condition": {
+                          "gte": {
+                            "int": 1000
+                          }
+                        },
+                        "key": "duration"
                       }
                     },
-                    "key": "duration"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "matches": "*timeout*"
-                    },
-                    "key": "span.name"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "eq": {
-                        "string": "checkout"
+                    {
+                      "attribute": {
+                        "condition": {
+                          "matches": "*timeout*"
+                        },
+                        "key": "span.name"
                       }
                     },
-                    "key": "service.name",
-                    "kind": "Resource"
-                  }
+                    {
+                      "attribute": {
+                        "condition": {
+                          "eq": {
+                            "string": "checkout"
+                          }
+                        },
+                        "key": "service.name",
+                        "kind": "Resource"
+                      }
+                    }
+                  ]
                 }
-              ]
-            }
-            """);
+                """);
     }
 
     [Fact]
@@ -160,70 +177,71 @@ public sealed class CompiledTelemetryFilterTests
             service: "checkout");
 
         // assert
-        Serialize(filter.Input).MatchInlineSnapshot(
-            """
-            {
-              "and": [
+        Serialize(filter.Input)
+            .MatchInlineSnapshot(
+                """
                 {
-                  "attribute": {
-                    "condition": {
-                      "gte": {
-                        "int": 500
-                      }
-                    },
-                    "key": "http.status_code"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "in": [
-                        {
-                          "string": "warn"
+                  "and": [
+                    {
+                      "attribute": {
+                        "condition": {
+                          "gte": {
+                            "int": 500
+                          }
                         },
-                        {
-                          "string": "error"
+                        "key": "http.status_code"
+                      }
+                    },
+                    {
+                      "attribute": {
+                        "condition": {
+                          "in": [
+                            {
+                              "string": "warn"
+                            },
+                            {
+                              "string": "error"
+                            },
+                            {
+                              "string": "fatal"
+                            }
+                          ]
                         },
-                        {
-                          "string": "fatal"
-                        }
-                      ]
-                    },
-                    "key": "severity"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "eq": {
-                        "string": "abc"
+                        "key": "severity"
                       }
                     },
-                    "key": "trace.id"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "matches": "*timeout*"
-                    },
-                    "key": "log.message"
-                  }
-                },
-                {
-                  "attribute": {
-                    "condition": {
-                      "eq": {
-                        "string": "checkout"
+                    {
+                      "attribute": {
+                        "condition": {
+                          "eq": {
+                            "string": "abc"
+                          }
+                        },
+                        "key": "trace.id"
                       }
                     },
-                    "key": "service.name",
-                    "kind": "Resource"
-                  }
+                    {
+                      "attribute": {
+                        "condition": {
+                          "matches": "*timeout*"
+                        },
+                        "key": "log.message"
+                      }
+                    },
+                    {
+                      "attribute": {
+                        "condition": {
+                          "eq": {
+                            "string": "checkout"
+                          }
+                        },
+                        "key": "service.name",
+                        "kind": "Resource"
+                      }
+                    }
+                  ]
                 }
-              ]
-            }
-            """);
+                """);
     }
 
     [Fact]
@@ -255,13 +273,15 @@ public sealed class CompiledTelemetryFilterTests
     public void Create_Should_Throw_When_TheSeverityIsUnsupported()
     {
         // act
-        var error = Assert.Throws<ArgumentOutOfRangeException>(
-            () => CompiledTelemetryFilter.Create(
-                filterText: null,
-                severity: "verbose",
-                traceId: null,
-                search: null,
-                service: null));
+        var error =
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                CompiledTelemetryFilter.Create(
+                    filterText: null,
+                    severity: "verbose",
+                    traceId: null,
+                    search: null,
+                    service: null)
+            );
 
         // assert
         Assert.Equal(
@@ -270,7 +290,9 @@ public sealed class CompiledTelemetryFilterTests
     }
 
     [Theory]
-    [InlineData("trace", "attribute(severity,in(string:trace,string:debug,string:info,string:warn,string:error,string:fatal))")]
+    [InlineData(
+        "trace",
+        "attribute(severity,in(string:trace,string:debug,string:info,string:warn,string:error,string:fatal))")]
     [InlineData("debug", "attribute(severity,in(string:debug,string:info,string:warn,string:error,string:fatal))")]
     [InlineData("info", "attribute(severity,in(string:info,string:warn,string:error,string:fatal))")]
     [InlineData("warn", "attribute(severity,in(string:warn,string:error,string:fatal))")]
@@ -315,8 +337,7 @@ public sealed class CompiledTelemetryFilterTests
         Assert.Equal(expectedCount, filter.Input!.Attribute!.Condition.In!.Count);
     }
 
-    private static string Serialize<T>(T value)
-        => JsonSerializer.Serialize(value, s_serializerOptions);
+    private static string Serialize<T>(T value) => JsonSerializer.Serialize(value, s_serializerOptions);
 
     private static string Describe(OpenTelemetryFilterInput? input)
     {

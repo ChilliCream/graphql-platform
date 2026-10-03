@@ -26,9 +26,7 @@ internal sealed class ListLogsCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
-        this.AddExamples(
-            "telemetry logs list",
-            "telemetry logs list --service checkout --severity error --since 2h");
+        this.AddExamples("telemetry logs list", "telemetry logs list --service checkout --severity error --since 2h");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -53,13 +51,13 @@ internal sealed class ListLogsCommand : Command
         var traceId = parseResult.GetValue(Opt<TelemetryTraceIdOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetryLogSearchOption>.Instance);
         if (!CompiledTelemetryFilter.TryCreate(
-            console,
-            filterText,
-            severity?.ToString(),
-            traceId,
-            search,
-            service,
-            out var filter))
+                console,
+                filterText,
+                severity?.ToString(),
+                traceId,
+                search,
+                service,
+                out var filter))
         {
             return ExitCodes.Error;
         }
@@ -78,13 +76,11 @@ internal sealed class ListLogsCommand : Command
             after: null,
             cancellationToken);
 
-        var items = page.Items
-            .OrderByDescending(static log => log.Start)
-            .Select(LogListItem.From)
-            .ToArray();
-        var emptyResultHint = items.Length == 0
-            ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
-            : null;
+        var items = page.Items.OrderByDescending(static log => log.Start).Select(LogListItem.From).ToArray();
+        var emptyResultHint =
+            items.Length == 0
+                ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
+                : null;
         console.WriteListEnvelope(
             items,
             total: null,

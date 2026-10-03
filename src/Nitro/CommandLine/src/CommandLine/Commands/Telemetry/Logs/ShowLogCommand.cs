@@ -89,9 +89,9 @@ internal sealed class ShowLogCommand : Command
                 log.Scope is null ? null : LogScopeDetail.From(log.Scope),
                 log.LogAttributes.GetAttributeValue(WellKnownAttributeNames.CodeFunction),
                 log.LogAttributes.GetAttributeValue(WellKnownAttributeNames.CodeFilePath),
-                log.LogAttributes
-                    .FirstOrDefault(static attribute => attribute.Key == WellKnownAttributeNames.CodeLineNumber)
-                    ?.Long);
+                log.LogAttributes.FirstOrDefault(static attribute =>
+                    attribute.Key == WellKnownAttributeNames.CodeLineNumber
+                )?.Long);
     }
 
     internal sealed record LogAttributeDetail(string Key, string Value)
@@ -99,8 +99,7 @@ internal sealed class ShowLogCommand : Command
         public static LogAttributeDetail From(TypedTelemetryAttribute attribute)
             => new(attribute.Key, attribute.FormatAttributeValue());
 
-        public static LogAttributeDetail From(TelemetryAttribute attribute)
-            => new(attribute.Key, attribute.Value);
+        public static LogAttributeDetail From(TelemetryAttribute attribute) => new(attribute.Key, attribute.Value);
     }
 
     internal sealed record LogScopeDetail(
@@ -126,16 +125,14 @@ file static class Extensions
             => resourceAttributes
                 .FirstOrDefault(static attribute => attribute.Key == WellKnownAttributeNames.ServiceName)
                 ?.Value
-                ?? string.Empty;
+            ?? string.Empty;
     }
 
     extension(IReadOnlyList<TypedTelemetryAttribute> attributes)
     {
         public string? GetAttributeValue(string key)
         {
-            return attributes
-                .FirstOrDefault(attribute => attribute.Key == key)
-                ?.FormatAttributeValue();
+            return attributes.FirstOrDefault(attribute => attribute.Key == key)?.FormatAttributeValue();
         }
     }
 

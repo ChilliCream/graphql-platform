@@ -49,12 +49,7 @@ internal sealed class ShowTraceCommand : Command
         var traceId = parseResult.GetRequiredValue(Opt<TraceIdArgument>.Instance);
         var spanId = parseResult.GetValue(Opt<TraceSpanOption>.Instance);
         var seeker = parseResult.GetSeeker();
-        var trace = await client.GetTraceAsync(
-            workspaceId,
-            traceId,
-            spanId,
-            seeker,
-            cancellationToken);
+        var trace = await client.GetTraceAsync(workspaceId, traceId, spanId, seeker, cancellationToken);
 
         if (trace is null || trace.Spans.Count == 0)
         {
@@ -85,31 +80,26 @@ internal sealed class ShowTraceCommand : Command
         return ExitCodes.Success;
     }
 
-    private static void RenderSummary(
-        INitroConsole console,
-        string traceId,
-        Trace trace)
+    private static void RenderSummary(INitroConsole console, string traceId, Trace trace)
     {
         var returnedSpanCount = trace.Spans.Count;
         if (trace.SpansTruncated)
         {
-            var totalSpanCount = trace.SpanCount is { } count
-                ? $"total {count} spans"
-                : "total span count unknown";
+            var totalSpanCount = trace.SpanCount is { } count ? $"total {count} spans" : "total span count unknown";
             console.WriteRawLine(
                 $"trace {traceId}: {returnedSpanCount} returned spans (errors unknown), "
-                + $"{totalSpanCount}, duration unknown (server-capped)");
+                    + $"{totalSpanCount}, duration unknown (server-capped)");
         }
         else
         {
             var errorCount = trace.Spans.Count(static span => span.IsError);
             console.WriteRawLine(
                 $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
-                + $"total {trace.TotalDuration.FormatDuration()} ms");
+                    + $"total {trace.TotalDuration.FormatDuration()} ms");
         }
 
-        var operations = trace.Spans
-            .GroupBy(static span => span.SpanName, StringComparer.Ordinal)
+        var operations = trace
+            .Spans.GroupBy(static span => span.SpanName, StringComparer.Ordinal)
             .Select(static group => new OperationSummary(
                 group.Key,
                 group.Count(),
@@ -128,17 +118,13 @@ internal sealed class ShowTraceCommand : Command
             {
                 console.WriteRawLine(
                     $"  {operation.Name.EscapeControlCharacters()}: {operation.Count} spans, "
-                    + $"avg {operation.AverageDurationMs.FormatDuration()} ms, "
-                    + $"p95 {operation.P95DurationMs.FormatDuration()} ms");
+                        + $"avg {operation.AverageDurationMs.FormatDuration()} ms, "
+                        + $"p95 {operation.P95DurationMs.FormatDuration()} ms");
             }
         }
     }
 
-    private sealed record OperationSummary(
-        string Name,
-        int Count,
-        double AverageDurationMs,
-        double P95DurationMs);
+    private sealed record OperationSummary(string Name, int Count, double AverageDurationMs, double P95DurationMs);
 }
 
 file static class Extensions

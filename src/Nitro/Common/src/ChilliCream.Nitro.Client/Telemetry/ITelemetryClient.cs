@@ -32,10 +32,7 @@ public interface ITelemetryClient
         string? after,
         CancellationToken cancellationToken);
 
-    Task<Log?> GetLogAsync(
-        string workspaceId,
-        string id,
-        CancellationToken cancellationToken);
+    Task<Log?> GetLogAsync(string workspaceId, string id, CancellationToken cancellationToken);
 
     Task<ConnectionPage<ServiceRow>> ListServicesAsync(
         string workspaceId,

@@ -7,8 +7,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Traces;
 
-public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
-    : TelemetryCommandTestBase(fixture)
+public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : TelemetryCommandTestBase(fixture)
 {
     private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {
@@ -21,11 +20,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
     public async Task List_Should_ReturnSuccess_When_HelpIsRequested()
     {
         // arrange & act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list",
-            "--help");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -68,10 +63,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
         SetupNoAuthentication();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
 
         // assert
         result.AssertError(
@@ -88,12 +80,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
         SetupSessionWithWorkspace();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list",
-            "--filter",
-            "service.name:");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "service.name:");
 
         // assert
         result.AssertError(
@@ -104,16 +91,17 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`
             """);
         TelemetryClientMock.Verify(
-            x => x.ListTracesAsync(
-                It.IsAny<string>(),
-                It.IsAny<OpenTelemetryFilterInput?>(),
-                It.IsAny<IReadOnlyList<string>?>(),
-                It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<int>(),
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()),
+            x =>
+                x.ListTracesAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -125,10 +113,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
         SetupListTraces(CreateTrace());
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
 
         // assert
         result.AssertSuccess(
@@ -177,9 +162,10 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             "timeout",
             "--service",
             "checkout");
-        var filter = (OpenTelemetryFilterInput?)TelemetryClientMock.Invocations
-            .Single(invocation => invocation.Method.Name == nameof(ITelemetryClient.ListTracesAsync))
-            .Arguments[1];
+        var filter = (OpenTelemetryFilterInput?)
+            TelemetryClientMock
+                .Invocations.Single(invocation => invocation.Method.Name == nameof(ITelemetryClient.ListTracesAsync))
+                .Arguments[1];
 
         // assert
         result.AssertSuccess(
@@ -191,10 +177,12 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
               "hasMore": false
             }
             """);
-        JsonSerializer.Serialize(filter, s_jsonSerializerOptions).MatchInlineSnapshot(
-            """
-            {"and":[{"attribute":{"condition":{"gte":{"int":500}},"key":"http.status_code"}},{"attribute":{"condition":{"eq":{"string":"error"}},"key":"status"}},{"attribute":{"condition":{"gte":{"int":100}},"key":"duration"}},{"attribute":{"condition":{"matches":"*timeout*"},"key":"span.name"}},{"attribute":{"condition":{"eq":{"string":"checkout"}},"key":"service.name","kind":"Resource"}}]}
-            """);
+        JsonSerializer
+            .Serialize(filter, s_jsonSerializerOptions)
+            .MatchInlineSnapshot(
+                """
+                {"and":[{"attribute":{"condition":{"gte":{"int":500}},"key":"http.status_code"}},{"attribute":{"condition":{"eq":{"string":"error"}},"key":"status"}},{"attribute":{"condition":{"gte":{"int":100}},"key":"duration"}},{"attribute":{"condition":{"matches":"*timeout*"},"key":"span.name"}},{"attribute":{"condition":{"eq":{"string":"checkout"}},"key":"service.name","kind":"Resource"}}]}
+                """);
     }
 
     [Fact]
@@ -252,10 +240,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
         SetupListTraces(CreateTrace());
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
 
         // assert
         result.AssertSuccess(
@@ -291,10 +276,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             CreateTrace(traceId: "trace-2", start: 1767223801123));
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
 
         // assert
         result.AssertSuccess(
@@ -344,12 +326,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             ]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -363,16 +340,17 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             }
             """);
         TelemetryClientMock.Verify(
-            x => x.ListAttributeKeysAsync(
-                WorkspaceId,
-                OpenTelemetrySignalKind.Traces,
-                null,
-                null,
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()),
+            x =>
+                x.ListAttributeKeysAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Traces,
+                    null,
+                    null,
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -385,12 +363,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
         SetupListAttributeKeys(keys: [new AttributeKeyRow("Span", "http.statuscode")]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -404,41 +377,28 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             """);
     }
 
-    private void SetupListTraces(
-        params TraceRow[] traces)
-        => SetupListTraces(traces, hasNextPage: false);
+    private void SetupListTraces(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: false);
 
-    private void SetupListTracesWithMore(params TraceRow[] traces)
-        => SetupListTraces(traces, hasNextPage: true);
+    private void SetupListTracesWithMore(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: true);
 
-    private void SetupListTraces(
-        TraceRow[] traces,
-        bool hasNextPage)
+    private void SetupListTraces(TraceRow[] traces, bool hasNextPage)
     {
-        TelemetryClientMock.Setup(x => x.ListTracesAsync(
-                WorkspaceId,
-                It.IsAny<OpenTelemetryFilterInput?>(),
-                It.IsAny<IReadOnlyList<string>?>(),
-                It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                20,
-                null,
-                It.IsAny<CancellationToken>()))
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListTracesAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    20,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new ConnectionPage<TraceRow>(traces, null, hasNextPage));
     }
 
-    private static TraceRow CreateTrace(
-        string traceId = "trace-1",
-        double start = 1767223800123)
-        => new(
-            traceId,
-            "span-1",
-            "seeker-1",
-            "GET /products",
-            "SERVER",
-            125.5,
-            start,
-            "Error",
-            "products");
+    private static TraceRow CreateTrace(string traceId = "trace-1", double start = 1767223800123)
+        => new(traceId, "span-1", "seeker-1", "GET /products", "SERVER", 125.5, start, "Error", "products");
 }

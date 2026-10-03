@@ -28,9 +28,7 @@ internal static class TelemetryCommandOptions
         catch (ExitException exception)
         {
             workspaceId = string.Empty;
-            var hint = sessionService.Session is null
-                ? "run `nitro login`."
-                : "run `nitro workspace set-default`.";
+            var hint = sessionService.Session is null ? "run `nitro login`." : "run `nitro workspace set-default`.";
             TelemetryErrorRenderer.Render(console, exception.Message, hint);
             return false;
         }

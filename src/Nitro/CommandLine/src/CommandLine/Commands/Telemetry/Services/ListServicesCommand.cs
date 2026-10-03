@@ -49,11 +49,7 @@ internal sealed class ListServicesCommand : Command
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
 
-        if (!CompiledTelemetryFilter.TryCreate(
-            console,
-            TelemetryFilterSignal.Traces,
-            filterText,
-            out var filter))
+        if (!CompiledTelemetryFilter.TryCreate(console, TelemetryFilterSignal.Traces, filterText, out var filter))
         {
             return ExitCodes.Error;
         }
@@ -70,9 +66,10 @@ internal sealed class ListServicesCommand : Command
             cancellationToken);
 
         var items = page.Items.Select(ServiceListItem.From).ToArray();
-        var emptyResultHint = items.Length == 0
-            ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
-            : null;
+        var emptyResultHint =
+            items.Length == 0
+                ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
+                : null;
         console.WriteListEnvelope(
             items,
             total: null,

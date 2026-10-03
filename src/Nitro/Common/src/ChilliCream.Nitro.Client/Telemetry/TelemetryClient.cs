@@ -95,10 +95,7 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             connection?.PageInfo.HasNextPage ?? false);
     }
 
-    public async Task<Log?> GetLogAsync(
-        string workspaceId,
-        string id,
-        CancellationToken cancellationToken)
+    public async Task<Log?> GetLogAsync(string workspaceId, string id, CancellationToken cancellationToken)
     {
         var result = await apiClient.ShowLogCommandQuery.ExecuteAsync(workspaceId, id, cancellationToken);
         var log = OperationResultHelper.EnsureData(result).WorkspaceById?.LogById;
@@ -181,9 +178,11 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             cancellationToken);
 
         var connection = OperationResultHelper.EnsureData(result).WorkspaceById?.AttributeKeys;
-        var items = connection?.Edges?
-            .Select(static edge => new AttributeKeyRow(edge.Node.Kind.ToString(), edge.Node.Path))
-            .ToArray() ?? [];
+        var items =
+            connection
+                ?.Edges?.Select(static edge => new AttributeKeyRow(edge.Node.Kind.ToString(), edge.Node.Path))
+                .ToArray()
+            ?? [];
 
         return new ConnectionPage<AttributeKeyRow>(
             items,
@@ -216,13 +215,15 @@ internal sealed class TelemetryClient(IApiClient apiClient) : ITelemetryClient
             cancellationToken);
 
         var connection = OperationResultHelper.EnsureData(result).WorkspaceById?.AttributeValues;
-        var items = connection?.Edges?
-            .Select(static edge => new AttributeValue(
-                edge.Node.Boolean,
-                edge.Node.Float,
-                edge.Node.Int,
-                edge.Node.String))
-            .ToArray() ?? [];
+        var items =
+            connection
+                ?.Edges?.Select(static edge => new AttributeValue(
+                    edge.Node.Boolean,
+                    edge.Node.Float,
+                    edge.Node.Int,
+                    edge.Node.String))
+                .ToArray()
+            ?? [];
 
         return new ConnectionPage<AttributeValue>(
             items,
@@ -264,17 +265,20 @@ file static class Extensions
                 span.StatusCode,
                 span.StatusMessage,
                 span.ResourceAttributes.Select(static attribute => new TelemetryAttribute(
-                    attribute.Key,
-                    attribute.Value)).ToArray(),
-                span.SpanAttributes.Select(static attribute => new TelemetryAttribute(
-                    attribute.Key,
-                    attribute.Value)).ToArray(),
-                span.Events.Select(static traceEvent => new TraceEvent(
-                    traceEvent.Name,
-                    traceEvent.Epoch,
-                    traceEvent.Attributes.Select(static attribute => new TelemetryAttribute(
                         attribute.Key,
-                        attribute.Value)).ToArray())).ToArray(),
+                        attribute.Value))
+                    .ToArray(),
+                span.SpanAttributes.Select(static attribute => new TelemetryAttribute(attribute.Key, attribute.Value))
+                    .ToArray(),
+                span.Events.Select(static traceEvent => new TraceEvent(
+                        traceEvent.Name,
+                        traceEvent.Epoch,
+                        traceEvent
+                            .Attributes.Select(static attribute => new TelemetryAttribute(
+                                attribute.Key,
+                                attribute.Value))
+                            .ToArray()))
+                    .ToArray(),
                 span.ToTraceSpanData());
         }
 
@@ -307,9 +311,7 @@ file static class Extensions
                     databaseSpan.Db?.User),
                 IShowTraceCommand_Span_OpenTelemetryGraphQLOperationSpan operationSpan =>
                     new GraphQLOperationTraceSpanData(
-                        operationSpan.Document is { } document
-                            ? new TraceDocument(document.Body, document.Id)
-                            : null,
+                        operationSpan.Document is { } document ? new TraceDocument(document.Body, document.Id) : null,
                         operationSpan.Operation is { } operation
                             ? new TraceOperation(operation.Hash, operation.Kind, operation.Name)
                             : null),
@@ -361,8 +363,9 @@ file static class Extensions
                 new LogBodyDetail(log.BodyDetail.Json, log.BodyDetail.Kind.ToString(), log.BodyDetail.Message),
                 log.LogAttributes.Select(static attribute => attribute.ToTypedTelemetryAttribute()).ToArray(),
                 log.ResourceAttributes.Select(static attribute => new TelemetryAttribute(
-                    attribute.Key,
-                    attribute.Value)).ToArray(),
+                        attribute.Key,
+                        attribute.Value))
+                    .ToArray(),
                 log.Scope is { } scope
                     ? new TelemetryScope(
                         scope.Name,
@@ -380,19 +383,9 @@ file static class Extensions
             return attribute switch
             {
                 IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryBoolAttribute booleanAttribute =>
-                    new TypedTelemetryAttribute(
-                        booleanAttribute.Key,
-                        booleanAttribute.Boolean,
-                        null,
-                        null,
-                        null),
+                    new TypedTelemetryAttribute(booleanAttribute.Key, booleanAttribute.Boolean, null, null, null),
                 IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryFloatAttribute floatAttribute =>
-                    new TypedTelemetryAttribute(
-                        floatAttribute.Key,
-                        null,
-                        floatAttribute.Float,
-                        null,
-                        null),
+                    new TypedTelemetryAttribute(floatAttribute.Key, null, floatAttribute.Float, null, null),
                 IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryLongAttribute longAttribute =>
                     new TypedTelemetryAttribute(longAttribute.Key, null, null, longAttribute.Long, null),
                 IShowLogCommand_OpenTelemetryAttribute_OpenTelemetryStringAttribute stringAttribute =>
@@ -409,9 +402,12 @@ file static class Extensions
             return new ServiceRow(
                 service.Name,
                 service.EnvironmentNames,
-                service.VersionMarkers?.Select(static marker => new ServiceVersionMarker(
-                    marker.FirstSeenAt,
-                    marker.Version)).ToArray() ?? []);
+                service
+                    .VersionMarkers?.Select(static marker => new ServiceVersionMarker(
+                        marker.FirstSeenAt,
+                        marker.Version))
+                    .ToArray()
+                    ?? []);
         }
     }
 
@@ -422,9 +418,12 @@ file static class Extensions
             return new ServiceRow(
                 service.Name,
                 service.EnvironmentNames,
-                service.VersionMarkers?.Select(static marker => new ServiceVersionMarker(
-                    marker.FirstSeenAt,
-                    marker.Version)).ToArray() ?? []);
+                service
+                    .VersionMarkers?.Select(static marker => new ServiceVersionMarker(
+                        marker.FirstSeenAt,
+                        marker.Version))
+                    .ToArray()
+                    ?? []);
         }
     }
 

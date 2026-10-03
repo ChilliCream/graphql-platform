@@ -4,18 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Services;
 
-public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
-    : TelemetryCommandTestBase(fixture)
+public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture) : TelemetryCommandTestBase(fixture)
 {
     [Fact]
     public async Task ListHelp_Should_ReturnSuccess()
     {
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list",
-            "--help");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -54,10 +49,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupNoAuthentication();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list");
 
         // assert
         result.AssertError(
@@ -79,10 +71,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupListServices(services: [CreateService()]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list");
 
         // assert
         result.AssertSuccess(
@@ -110,10 +99,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupListServices(hasNextPage: true, services: [CreateService()]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list");
 
         // assert
         result.AssertSuccess(
@@ -139,18 +125,12 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         SetupSessionWithWorkspace();
-        SetupListServices(
-            filter =>
-                filter?.Attribute?.Key == "status"
-                && filter.Attribute.Condition.Eq?.String == "error");
+        SetupListServices(filter =>
+            filter?.Attribute?.Key == "status" && filter.Attribute.Condition.Eq?.String == "error"
+        );
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list",
-            "--filter",
-            "status:error");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "status:error");
 
         // assert
         result.AssertSuccess(
@@ -171,12 +151,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupSessionWithWorkspace();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list",
-            "--filter",
-            "status:!");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "status:!");
 
         // assert
         result.AssertError(
@@ -197,10 +172,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupListServices();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list");
 
         // assert
         result.AssertSuccess(
@@ -229,12 +201,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
             ]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -248,16 +215,17 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
             }
             """);
         TelemetryClientMock.Verify(
-            x => x.ListAttributeKeysAsync(
-                WorkspaceId,
-                OpenTelemetrySignalKind.Traces,
-                null,
-                null,
-                It.IsAny<DateTimeOffset?>(),
-                It.IsAny<DateTimeOffset?>(),
-                50,
-                null,
-                It.IsAny<CancellationToken>()),
+            x =>
+                x.ListAttributeKeysAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Traces,
+                    null,
+                    null,
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -270,12 +238,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupListAttributeKeys(keys: [new AttributeKeyRow("Span", "http.statuscode")]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "list",
-            "--filter",
-            "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
@@ -297,11 +260,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupGetService(null);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "show",
-            ServiceName);
+        var result = await ExecuteCommandAsync("telemetry", "services", "show", ServiceName);
 
         // assert
         result.AssertError(
@@ -323,11 +282,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         SetupGetService(CreateService());
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "services",
-            "show",
-            ServiceName);
+        var result = await ExecuteCommandAsync("telemetry", "services", "show", ServiceName);
 
         // assert
         result.AssertSuccess(

@@ -32,9 +32,7 @@ public sealed class FilterLexerTests
     [InlineData("a\tAND\nb\rc", "Word(a)|And(AND)|Word(b)|Word(c)")]
     [InlineData("IN(", "In(IN)|LeftParenthesis(()")]
     [InlineData("RANGE(", "Range(RANGE)|LeftParenthesis(()")]
-    public void Tokenize_Should_ProduceEveryTokenKind_When_EachGrammarSymbolAppears(
-        string input,
-        string expected)
+    public void Tokenize_Should_ProduceEveryTokenKind_When_EachGrammarSymbolAppears(string input, string expected)
     {
         // act
         var tokens = FilterLexer.Tokenize(input);
@@ -48,12 +46,12 @@ public sealed class FilterLexerTests
     [InlineData(" a : 1 ", "Word@1-2|Colon@3-4|Number@5-6")]
     [InlineData("x:>=400", "Word@0-1|Colon@1-2|GreaterThanOrEqual@2-4|Number@4-7")]
     [InlineData("msg:\"a b\"", "Word@0-3|Colon@3-4|String@4-9")]
-    [InlineData("s:IN(1, 2)", "Word@0-1|Colon@1-2|In@2-4|LeftParenthesis@4-5|Number@5-6|Comma@6-7|Number@8-9|RightParenthesis@9-10")]
+    [InlineData(
+        "s:IN(1, 2)",
+        "Word@0-1|Colon@1-2|In@2-4|LeftParenthesis@4-5|Number@5-6|Comma@6-7|Number@8-9|RightParenthesis@9-10")]
     [InlineData("-a", "Minus@0-1|Word@1-2")]
     [InlineData("a\\ b:1", "Word@0-4|Colon@4-5|Number@5-6")]
-    public void Tokenize_Should_TrackStartAndEnd_When_TokensAreSeparatedByWhitespace(
-        string input,
-        string expected)
+    public void Tokenize_Should_TrackStartAndEnd_When_TokensAreSeparatedByWhitespace(string input, string expected)
     {
         // act
         var tokens = FilterLexer.Tokenize(input);
@@ -66,9 +64,13 @@ public sealed class FilterLexerTests
     [InlineData("http.status_code: 200", "Word(http.status_code)|Colon(:)|Number(200)")]
     [InlineData("-service:web-store", "Minus(-)|Word(service)|Colon(:)|Word(web-store)")]
     [InlineData("x:>=400", "Word(x)|Colon(:)|GreaterThanOrEqual(>=)|Number(400)")]
-    [InlineData("x:IN(1,2)", "Word(x)|Colon(:)|In(IN)|LeftParenthesis(()|Number(1)|Comma(,)|Number(2)|RightParenthesis())")]
+    [InlineData(
+        "x:IN(1,2)",
+        "Word(x)|Colon(:)|In(IN)|LeftParenthesis(()|Number(1)|Comma(,)|Number(2)|RightParenthesis())")]
     [InlineData("service:IN", "Word(service)|Colon(:)|Word(IN)")]
-    [InlineData("x:RANGE(1, 3)", "Word(x)|Colon(:)|Range(RANGE)|LeftParenthesis(()|Number(1)|Comma(,)|Number(3)|RightParenthesis())")]
+    [InlineData(
+        "x:RANGE(1, 3)",
+        "Word(x)|Colon(:)|Range(RANGE)|LeftParenthesis(()|Number(1)|Comma(,)|Number(3)|RightParenthesis())")]
     [InlineData("service:*", "Word(service)|Colon(:)|Star(*)")]
     [InlineData("service:*-test", "Word(service)|Colon(:)|Word(*-test*)")]
     [InlineData("error:true ValidateWatermark", "Word(error)|Colon(:)|Boolean(true)|Word(ValidateWatermark)")]
@@ -77,9 +79,7 @@ public sealed class FilterLexerTests
     [InlineData("name:foo*", "Word(name)|Colon(:)|Word(foo**)")]
     [InlineData("name:foo\\*", "Word(name)|Colon(:)|Word(foo*)")]
     [InlineData("name:\\\\*", "Word(name)|Colon(:)|Word(\\**)")]
-    public void Tokenize_Should_PortPortalTokenClassification_When_InputUsesGrammarForms(
-        string input,
-        string expected)
+    public void Tokenize_Should_PortPortalTokenClassification_When_InputUsesGrammarForms(string input, string expected)
     {
         // act
         var tokens = FilterLexer.Tokenize(input);
@@ -97,10 +97,7 @@ public sealed class FilterLexerTests
     [InlineData("test:**", "A single * after the colon already checks the attribute exists", 7)]
     [InlineData("test:a***", "A single * already matches any text", 8)]
     [InlineData("test:!", "Unexpected character '!'", 6)]
-    public void Tokenize_Should_ReportPortalLexErrors_When_InputIsMalformed(
-        string input,
-        string message,
-        int column)
+    public void Tokenize_Should_ReportPortalLexErrors_When_InputIsMalformed(string input, string message, int column)
     {
         // act
         var error = Assert.Throws<FilterParseException>(() => FilterLexer.Tokenize(input));
@@ -267,9 +264,7 @@ public sealed class FilterLexerTests
         var error = LexError("msg: \"oops");
 
         // assert
-        Assert.Equal(
-            Expected(FilterTokenKind.String, "\"hello world\"", "hello world", 5, 18),
-            WithoutEnd(tokens)[2]);
+        Assert.Equal(Expected(FilterTokenKind.String, "\"hello world\"", "hello world", 5, 18), WithoutEnd(tokens)[2]);
         Assert.Equal("Missing closing quote|6", error);
     }
 
@@ -312,9 +307,7 @@ public sealed class FilterLexerTests
         };
 
         // act
-        var actual = inputs
-            .Select(static input => WithoutEnd(FilterLexer.Tokenize(input))[2])
-            .ToArray();
+        var actual = inputs.Select(static input => WithoutEnd(FilterLexer.Tokenize(input))[2]).ToArray();
 
         // assert
         Assert.Equal(expected, actual);
@@ -334,9 +327,7 @@ public sealed class FilterLexerTests
         Assert.Equal(
             Expected(FilterTokenKind.Word, "b" + backslash + backslash + "c", "b" + backslash + "c", 2, 6),
             WithoutEnd(escaped)[2]);
-        Assert.Equal(
-            Expected(FilterTokenKind.Word, "b" + backslash, "b" + backslash, 2, 4),
-            WithoutEnd(trailing)[2]);
+        Assert.Equal(Expected(FilterTokenKind.Word, "b" + backslash, "b" + backslash, 2, 4), WithoutEnd(trailing)[2]);
     }
 
     [Fact]
@@ -349,9 +340,7 @@ public sealed class FilterLexerTests
         var tokens = FilterLexer.Tokenize("graphql.name:" + backslash + "\"");
 
         // assert
-        Assert.Equal(
-            Expected(FilterTokenKind.Word, backslash + "\"", "\"", 13, 15),
-            WithoutEnd(tokens)[2]);
+        Assert.Equal(Expected(FilterTokenKind.Word, backslash + "\"", "\"", 13, 15), WithoutEnd(tokens)[2]);
     }
 
     [Fact]
@@ -380,9 +369,7 @@ public sealed class FilterLexerTests
         var tokens = FilterLexer.Tokenize("field:foo\\ bar");
 
         // assert
-        Assert.Equal(
-            Expected(FilterTokenKind.Word, "foo\\ bar", "foo bar", 6, 14),
-            WithoutEnd(tokens)[2]);
+        Assert.Equal(Expected(FilterTokenKind.Word, "foo\\ bar", "foo bar", 6, 14), WithoutEnd(tokens)[2]);
     }
 
     [Fact]
@@ -392,9 +379,7 @@ public sealed class FilterLexerTests
         var tokens = FilterLexer.Tokenize("field\\:x");
 
         // assert
-        Assert.Equal(
-            new[] { Expected(FilterTokenKind.Word, "field\\:x", "field:x", 0, 8) },
-            WithoutEnd(tokens));
+        Assert.Equal(new[] { Expected(FilterTokenKind.Word, "field\\:x", "field:x", 0, 8) }, WithoutEnd(tokens));
     }
 
     [Fact]
@@ -405,12 +390,8 @@ public sealed class FilterLexerTests
         var escaped = FilterLexer.Tokenize("name:foo\\*");
 
         // assert
-        Assert.Equal(
-            Expected(FilterTokenKind.Word, "foo*", "foo*", 5, 9, wildcard: true),
-            WithoutEnd(wildcard)[2]);
-        Assert.Equal(
-            Expected(FilterTokenKind.Word, "foo\\*", "foo*", 5, 10),
-            WithoutEnd(escaped)[2]);
+        Assert.Equal(Expected(FilterTokenKind.Word, "foo*", "foo*", 5, 9, wildcard: true), WithoutEnd(wildcard)[2]);
+        Assert.Equal(Expected(FilterTokenKind.Word, "foo\\*", "foo*", 5, 10), WithoutEnd(escaped)[2]);
     }
 
     [Fact]
@@ -468,15 +449,7 @@ public sealed class FilterLexerTests
     public void Tokenize_Should_LeaveLoneWildcardsAndEscapedRunsWithoutErrors()
     {
         // arrange
-        var inputs = new[]
-        {
-            "test:*",
-            "test:*meow*",
-            "test:*-*",
-            "test:\\*\\*",
-            "test:\"***\"",
-            "test:*\\**"
-        };
+        var inputs = new[] { "test:*", "test:*meow*", "test:*-*", "test:\\*\\*", "test:\"***\"", "test:*\\**" };
         var expected = new[]
         {
             "Word(test)|Colon(:)|Star(*)",
@@ -488,9 +461,7 @@ public sealed class FilterLexerTests
         };
 
         // act
-        var actual = inputs
-            .Select(static input => Describe(FilterLexer.Tokenize(input)))
-            .ToArray();
+        var actual = inputs.Select(static input => Describe(FilterLexer.Tokenize(input))).ToArray();
 
         // assert
         Assert.Equal(expected, actual);
@@ -503,9 +474,7 @@ public sealed class FilterLexerTests
         var tokens = FilterLexer.Tokenize("msg:\"a\\\"b\"");
 
         // assert
-        Assert.Equal(
-            Expected(FilterTokenKind.String, "\"a\\\"b\"", "a\"b", 4, 10),
-            WithoutEnd(tokens)[2]);
+        Assert.Equal(Expected(FilterTokenKind.String, "\"a\\\"b\"", "a\"b", 4, 10), WithoutEnd(tokens)[2]);
     }
 
     private static FilterToken Expected(
@@ -531,8 +500,7 @@ public sealed class FilterLexerTests
             '|',
             tokens
                 .Where(static token => token.Kind != FilterTokenKind.End)
-                .Select(static token =>
-                    $"{token.Kind}({token.Value}{(token.HasWildcard ? "*" : string.Empty)})"));
+                .Select(static token => $"{token.Kind}({token.Value}{(token.HasWildcard ? "*" : string.Empty)})"));
 
     private static string DescribePositions(IReadOnlyList<FilterToken> tokens)
         => string.Join(

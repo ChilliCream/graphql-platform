@@ -2,18 +2,13 @@ using ChilliCream.Nitro.Client.Telemetry.Models;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Attributes;
 
-public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
-    : TelemetryCommandTestBase(fixture)
+public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture) : TelemetryCommandTestBase(fixture)
 {
     [Fact]
     public async Task KeysHelp_Should_ReturnSuccess()
     {
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "attributes",
-            "keys",
-            "--help");
+        var result = await ExecuteCommandAsync("telemetry", "attributes", "keys", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -52,12 +47,7 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         SetupSession();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "attributes",
-            "keys",
-            "--signal",
-            "traces");
+        var result = await ExecuteCommandAsync("telemetry", "attributes", "keys", "--signal", "traces");
 
         // assert
         result.AssertError(
@@ -73,20 +63,10 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         // arrange
         SetupInteractionMode(InteractionMode.JsonOutput);
         SetupSessionWithWorkspace();
-        SetupListAttributeKeys(
-            hasNextPage: true,
-            keys:
-            [
-                new AttributeKeyRow("Resource", "service.name")
-            ]);
+        SetupListAttributeKeys(hasNextPage: true, keys: [new AttributeKeyRow("Resource", "service.name")]);
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "attributes",
-            "keys",
-            "--signal",
-            "traces");
+        var result = await ExecuteCommandAsync("telemetry", "attributes", "keys", "--signal", "traces");
 
         // assert
         result.AssertSuccess(
@@ -115,13 +95,7 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
         SetupListAttributeValues();
 
         // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "attributes",
-            "values",
-            "service.name",
-            "--signal",
-            "logs");
+        var result = await ExecuteCommandAsync("telemetry", "attributes", "values", "service.name", "--signal", "logs");
 
         // assert
         result.AssertSuccess(

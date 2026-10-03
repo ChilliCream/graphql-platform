@@ -45,13 +45,7 @@ internal sealed class ShowServiceCommand : Command
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
-        var service = await client.GetServiceAsync(
-            workspaceId,
-            name,
-            environments,
-            since,
-            until,
-            cancellationToken);
+        var service = await client.GetServiceAsync(workspaceId, name, environments, since, until, cancellationToken);
 
         if (service is null)
         {
@@ -77,8 +71,10 @@ internal sealed class ShowServiceCommand : Command
             => new(
                 service.Name,
                 service.EnvironmentNames,
-                service.VersionMarkers
-                    .Select(static marker => new ServiceVersionMarkerDetail(marker.Version, marker.FirstSeenAt))
+                service
+                    .VersionMarkers.Select(static marker => new ServiceVersionMarkerDetail(
+                        marker.Version,
+                        marker.FirstSeenAt))
                     .ToArray());
     }
 

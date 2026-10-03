@@ -35,8 +35,7 @@ public sealed class FilterParserTests
         int column)
     {
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal(message, error.Message);
@@ -59,14 +58,10 @@ public sealed class FilterParserTests
     [InlineData("x:IN((", "Expected a value but found '('", 6)]
     [InlineData("x:(a OR )", "Expected a value but found ')'", 9)]
     [InlineData("x:RANGE(1,)", "Expected a value but found ')'", 11)]
-    public void Parse_Should_ReportMessageAndColumn_When_TheMatcherIsInvalid(
-        string filter,
-        string message,
-        int column)
+    public void Parse_Should_ReportMessageAndColumn_When_TheMatcherIsInvalid(string filter, string message, int column)
     {
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal(message, error.Message);
@@ -76,9 +71,15 @@ public sealed class FilterParserTests
     [Theory]
     [InlineData("(a:1)", "predicate(a,Equal,number:1)")]
     [InlineData("((a:1 OR b:2))", "or(predicate(a,Equal,number:1),predicate(b,Equal,number:2))")]
-    [InlineData("a:1 OR b:2 OR c:3", "or(predicate(a,Equal,number:1),predicate(b,Equal,number:2),predicate(c,Equal,number:3))")]
-    [InlineData("a:1 AND b:2 AND c:3", "and(predicate(a,Equal,number:1),predicate(b,Equal,number:2),predicate(c,Equal,number:3))")]
-    [InlineData("a:1 b:2 OR c:3 d:4", "or(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)),and(predicate(c,Equal,number:3),predicate(d,Equal,number:4)))")]
+    [InlineData(
+        "a:1 OR b:2 OR c:3",
+        "or(predicate(a,Equal,number:1),predicate(b,Equal,number:2),predicate(c,Equal,number:3))")]
+    [InlineData(
+        "a:1 AND b:2 AND c:3",
+        "and(predicate(a,Equal,number:1),predicate(b,Equal,number:2),predicate(c,Equal,number:3))")]
+    [InlineData(
+        "a:1 b:2 OR c:3 d:4",
+        "or(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)),and(predicate(c,Equal,number:3),predicate(d,Equal,number:4)))")]
     [InlineData("a:1 -b:2", "and(predicate(a,Equal,number:1),not(predicate(b,Equal,number:2)))")]
     [InlineData("--a:1", "not(not(predicate(a,Equal,number:1)))")]
     [InlineData("-(a:1 b:2)", "not(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)))")]
@@ -92,9 +93,7 @@ public sealed class FilterParserTests
     [InlineData("x:IN()", "predicate(x,In,)")]
     [InlineData("x:()", "predicate(x,In,)")]
     [InlineData("a:1\tAND\nb:2\r", "and(predicate(a,Equal,number:1),predicate(b,Equal,number:2))")]
-    public void Parse_Should_BuildTheExpectedTree_When_OperatorsAndGroupsCombine(
-        string filter,
-        string expected)
+    public void Parse_Should_BuildTheExpectedTree_When_OperatorsAndGroupsCombine(string filter, string expected)
     {
         // act
         var result = FilterParser.Parse(filter, TelemetryFilterSignal.Traces);
@@ -117,14 +116,20 @@ public sealed class FilterParserTests
     [InlineData("@span:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @span prefix|1")]
     [InlineData("@span.:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @span prefix|1")]
     [InlineData("@event:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @event prefix|1")]
-    [InlineData("@resource.:1", TelemetryFilterSignal.Traces, "error:Expected an attribute name after the @resource prefix|1")]
+    [InlineData(
+        "@resource.:1",
+        TelemetryFilterSignal.Traces,
+        "error:Expected an attribute name after the @resource prefix|1")]
     [InlineData("@log:1", TelemetryFilterSignal.Logs, "error:Expected an attribute name after the @log prefix|1")]
     [InlineData("@body.:1", TelemetryFilterSignal.Logs, "error:Expected an attribute name after the @body prefix|1")]
     [InlineData("@ev", TelemetryFilterSignal.Traces, "error:Scope prefixes can only be used in filter expressions|1")]
     [InlineData("@body", TelemetryFilterSignal.Traces, "error:Unknown scope prefix|1")]
     [InlineData("@body", TelemetryFilterSignal.Logs, "error:Scope prefixes can only be used in filter expressions|1")]
     [InlineData("@ev", TelemetryFilterSignal.Logs, "error:Unknown scope prefix|1")]
-    [InlineData("@span.x y", TelemetryFilterSignal.Traces, "error:Scope prefixes can only be used in filter expressions|1")]
+    [InlineData(
+        "@span.x y",
+        TelemetryFilterSignal.Traces,
+        "error:Scope prefixes can only be used in filter expressions|1")]
     [InlineData("@span_x", TelemetryFilterSignal.Traces, "error:Unknown scope prefix|1")]
     public void Parse_Should_ValidateScopePrefixesPerSignal_When_AKeyIsScoped(
         string filter,
@@ -154,8 +159,7 @@ public sealed class FilterParserTests
         int column)
     {
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal(message, error.Message);
@@ -170,14 +174,16 @@ public sealed class FilterParserTests
     [InlineData("status:*-test", "predicate(status,Equal,string:*-test*)")]
     [InlineData("service.name:\"api gateway\"", "predicate(service.name,Equal,string:api gateway)")]
     [InlineData("error:false", "predicate(error,Equal,boolean:false)")]
-    [InlineData("a:1 AND b:2 OR c:3", "or(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)),predicate(c,Equal,number:3))")]
-    [InlineData("a:1 and b:2 or c:3", "and(predicate(a,Equal,number:1),term(and),predicate(b,Equal,number:2),term(or),predicate(c,Equal,number:3))")]
+    [InlineData(
+        "a:1 AND b:2 OR c:3",
+        "or(and(predicate(a,Equal,number:1),predicate(b,Equal,number:2)),predicate(c,Equal,number:3))")]
+    [InlineData(
+        "a:1 and b:2 or c:3",
+        "and(predicate(a,Equal,number:1),term(and),predicate(b,Equal,number:2),term(or),predicate(c,Equal,number:3))")]
     [InlineData("   a:1     AND    b:2   ", "and(predicate(a,Equal,number:1),predicate(b,Equal,number:2))")]
     [InlineData("@resource.service.name:api", "predicate(@resource.service.name,Equal,string:api)")]
     [InlineData("@event.exception.type:TimeoutError", "predicate(@event.exception.type,Equal,string:TimeoutError)")]
-    public void Parse_Should_PreservePortalAstShape_When_GrammarFormsAreWellFormed(
-        string filter,
-        string expected)
+    public void Parse_Should_PreservePortalAstShape_When_GrammarFormsAreWellFormed(string filter, string expected)
     {
         // act
         var result = FilterParser.Parse(filter, TelemetryFilterSignal.Traces);
@@ -193,8 +199,7 @@ public sealed class FilterParserTests
         var filter = "s:IN(" + string.Join(',', Enumerable.Range(1, 101)) + ")";
 
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal("IN must not contain more than 100 values", error.Message);
@@ -210,8 +215,7 @@ public sealed class FilterParserTests
         int column)
     {
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal(message, error.Message);
@@ -230,8 +234,7 @@ public sealed class FilterParserTests
         int column)
     {
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal(message, error.Message);
@@ -249,8 +252,7 @@ public sealed class FilterParserTests
         string adjacentToken)
     {
         // act
-        var error = Assert.Throws<FilterParseException>(
-            () => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
+        var error = Assert.Throws<FilterParseException>(() => FilterParser.Parse(filter, TelemetryFilterSignal.Traces));
 
         // assert
         Assert.Equal($"Expected whitespace but \"{adjacentToken}\" found", error.Message);
@@ -294,12 +296,8 @@ public sealed class FilterParserTests
         Assert.Equal(
             "predicate(http.status_code,GreaterThanOrEqual,number:400[quoted=False,wildcard=False])",
             DescribeDetailed(comparison));
-        Assert.Equal(
-            "predicate(http.status_code,Exists,)",
-            DescribeDetailed(existence));
-        Assert.Equal(
-            "predicate(http.url,Equal,string:*/api/*[quoted=False,wildcard=True])",
-            DescribeDetailed(pattern));
+        Assert.Equal("predicate(http.status_code,Exists,)", DescribeDetailed(existence));
+        Assert.Equal("predicate(http.url,Equal,string:*/api/*[quoted=False,wildcard=True])", DescribeDetailed(pattern));
         Assert.Equal(
             "predicate(service.name,Equal,string:*gateway[quoted=True,wildcard=False])",
             DescribeDetailed(quoted));
@@ -313,12 +311,8 @@ public sealed class FilterParserTests
         var escaped = FilterParser.Parse("name:foo\\*", TelemetryFilterSignal.Traces);
 
         // assert
-        Assert.Equal(
-            "predicate(name,Equal,string:foo*[quoted=False,wildcard=True])",
-            DescribeDetailed(wildcard));
-        Assert.Equal(
-            "predicate(name,Equal,string:foo*[quoted=False,wildcard=False])",
-            DescribeDetailed(escaped));
+        Assert.Equal("predicate(name,Equal,string:foo*[quoted=False,wildcard=True])", DescribeDetailed(wildcard));
+        Assert.Equal("predicate(name,Equal,string:foo*[quoted=False,wildcard=False])", DescribeDetailed(escaped));
     }
 
     [Fact]
@@ -339,9 +333,7 @@ public sealed class FilterParserTests
     public void Portal_Parse_Should_PreserveRangeBoundsAsNumbers()
     {
         // act
-        var result = FilterParser.Parse(
-            "http.status_code:RANGE(400, 500)",
-            TelemetryFilterSignal.Traces);
+        var result = FilterParser.Parse("http.status_code:RANGE(400, 500)", TelemetryFilterSignal.Traces);
 
         // assert
         Assert.Equal(
@@ -360,9 +352,7 @@ public sealed class FilterParserTests
         var range = FilterParser.Parse("duration:RANGE(-9,-1)", TelemetryFilterSignal.Traces);
 
         // assert
-        Assert.Equal(
-            "predicate(duration,Equal,number:-5[quoted=False,wildcard=False])",
-            DescribeDetailed(equality));
+        Assert.Equal("predicate(duration,Equal,number:-5[quoted=False,wildcard=False])", DescribeDetailed(equality));
         Assert.Equal(
             "predicate(duration,GreaterThan,number:-5[quoted=False,wildcard=False])",
             DescribeDetailed(greater));
@@ -397,12 +387,8 @@ public sealed class FilterParserTests
         var scoped = FilterParser.Parse("@span.test:-", TelemetryFilterSignal.Traces);
 
         // assert
-        Assert.Equal(
-            "predicate(status,Equal,string:-[quoted=False,wildcard=False])",
-            DescribeDetailed(status));
-        Assert.Equal(
-            "predicate(@span.test,Equal,string:-[quoted=False,wildcard=False])",
-            DescribeDetailed(scoped));
+        Assert.Equal("predicate(status,Equal,string:-[quoted=False,wildcard=False])", DescribeDetailed(status));
+        Assert.Equal("predicate(@span.test,Equal,string:-[quoted=False,wildcard=False])", DescribeDetailed(scoped));
     }
 
     [Fact]
@@ -466,9 +452,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "test:>a", "test:>asdfasdf", "test:>-", "test:<=-x" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
@@ -491,7 +475,9 @@ public sealed class FilterParserTests
 
         // assert
         Assert.Equal("predicate(test,GreaterThan,number:-5[quoted=False,wildcard=False])", DescribeDetailed(greater));
-        Assert.Equal("predicate(test,LessThanOrEqual,number:-9.5[quoted=False,wildcard=False])", DescribeDetailed(less));
+        Assert.Equal(
+            "predicate(test,LessThanOrEqual,number:-9.5[quoted=False,wildcard=False])",
+            DescribeDetailed(less));
     }
 
     [Fact]
@@ -521,8 +507,8 @@ public sealed class FilterParserTests
         var tooManyOrValues = "s:(" + string.Join(" OR ", Enumerable.Range(1, 101)) + ")";
 
         // act
-        var allowed = Assert.IsType<FilterPredicateNode>(
-            FilterParser.Parse(allowedValues, TelemetryFilterSignal.Traces));
+        var allowed =
+            Assert.IsType<FilterPredicateNode>(FilterParser.Parse(allowedValues, TelemetryFilterSignal.Traces));
         var error = ParseErrorDescription(tooManyValues, TelemetryFilterSignal.Traces);
         var orError = ParseErrorDescription(tooManyOrValues, TelemetryFilterSignal.Traces);
 
@@ -539,18 +525,10 @@ public sealed class FilterParserTests
         var inputs = new[] { "http.status_code:RANGE(\"a\", 500)", "http.status_code:RANGE(low, high)" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
-        Assert.Equal(
-            new[]
-            {
-                "RANGE bounds must be numbers",
-                "RANGE bounds must be numbers"
-            },
-            actual);
+        Assert.Equal(new[] { "RANGE bounds must be numbers", "RANGE bounds must be numbers" }, actual);
     }
 
     [Fact]
@@ -560,9 +538,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "x:IN(", "x:RANGE(", "x:(" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
@@ -582,9 +558,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "x:IN(200,", "x:RANGE(400,", "x:(a OR" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
@@ -604,18 +578,11 @@ public sealed class FilterParserTests
         var inputs = new[] { "x:IN(\"a\"", "x:RANGE(400, 600", "x:(a OR b" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
-            new[]
-            {
-                "Missing closing parenthesis",
-                "Missing closing parenthesis",
-                "Missing closing parenthesis"
-            },
+            new[] { "Missing closing parenthesis", "Missing closing parenthesis", "Missing closing parenthesis" },
             actual);
     }
 
@@ -659,9 +626,7 @@ public sealed class FilterParserTests
     public void Portal_Parse_Should_AndAdjacentClausesImplicitly()
     {
         // act
-        var result = FilterParser.Parse(
-            "service.name:\"a\" service.version:\"1\"",
-            TelemetryFilterSignal.Traces);
+        var result = FilterParser.Parse("service.name:\"a\" service.version:\"1\"", TelemetryFilterSignal.Traces);
 
         // assert
         Assert.Equal(
@@ -734,9 +699,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "@span:x", "@resource.:x" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
@@ -755,9 +718,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "@", "@span", "@span.", "@span.test", "@resou" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
@@ -780,12 +741,8 @@ public sealed class FilterParserTests
         var keys = new[] { "@foo.bar:1", "@spanx.name:1", "@resourcex.a:1" };
 
         // act
-        var termErrors = terms
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
-        var keyErrors = keys
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var termErrors = terms.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
+        var keyErrors = keys.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(new[] { "Unknown scope prefix", "Unknown scope prefix", "Unknown scope prefix" }, termErrors);
@@ -830,9 +787,7 @@ public sealed class FilterParserTests
         };
 
         // assert
-        Assert.Equal(
-            new[] { "term(@span)", "term(@)", "term(@span)" },
-            results.Select(DescribeDetailed));
+        Assert.Equal(new[] { "term(@span)", "term(@)", "term(@span)" }, results.Select(DescribeDetailed));
     }
 
     [Fact]
@@ -894,9 +849,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "@", "@lo", "@res", "@log.x" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Logs))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Logs)).ToArray();
 
         // assert
         Assert.Equal(
@@ -919,9 +872,7 @@ public sealed class FilterParserTests
         var missing = ParseErrorDescription("@log:info", TelemetryFilterSignal.Logs);
 
         // assert
-        Assert.Equal(
-            "predicate(@log.message,Equal,string:x[quoted=False,wildcard=False])",
-            DescribeDetailed(log));
+        Assert.Equal("predicate(@log.message,Equal,string:x[quoted=False,wildcard=False])", DescribeDetailed(log));
         Assert.Equal(
             "predicate(@resource.service.name,Equal,number:1[quoted=False,wildcard=False])",
             DescribeDetailed(resource));
@@ -942,9 +893,7 @@ public sealed class FilterParserTests
         };
 
         // act
-        var actual = cases
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = cases.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(
@@ -978,9 +927,7 @@ public sealed class FilterParserTests
         var inputs = new[] { "x:RANGE(400)", "x:RANGE(1, 2, 3)", "x:RANGE()" };
 
         // act
-        var actual = inputs
-            .Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces))
-            .ToArray();
+        var actual = inputs.Select(input => ParseErrorDescription(input, TelemetryFilterSignal.Traces)).ToArray();
 
         // assert
         Assert.Equal(

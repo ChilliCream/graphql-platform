@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry;
@@ -13,15 +14,13 @@ using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Spectre.Console;
 using Spectre.Console.Testing;
-using System.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Traces;
 
 public sealed class ShowTraceCommandTests
 {
     private const string WorkspaceId = "workspace";
-    private static readonly DateTimeOffset s_testNow =
-        new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_testNow = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
     [Theory]
     [InlineData(false)]
@@ -51,23 +50,12 @@ public sealed class ShowTraceCommandTests
         // act
         var result = await ExecuteAsync(
             client,
-            commandArguments: [
-                "--span",
-                "child",
-                "--seeker",
-                "opaque-cursor",
-                "--since",
-                "2h"]);
+            commandArguments: ["--span", "child", "--seeker", "opaque-cursor", "--since", "2h"]);
 
         // assert
         Assert.Equal(0, result.ExitCode);
         client.Verify(
-            x => x.GetTraceAsync(
-                "workspace",
-                "trace-id",
-                "child",
-                "opaque-cursor",
-                It.IsAny<CancellationToken>()),
+            x => x.GetTraceAsync("workspace", "trace-id", "child", "opaque-cursor", It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -95,12 +83,7 @@ public sealed class ShowTraceCommandTests
         // assert
         Assert.Equal(0, result.ExitCode);
         client.Verify(
-            x => x.GetTraceAsync(
-                WorkspaceId,
-                "trace-id",
-                null,
-                null,
-                It.IsAny<CancellationToken>()),
+            x => x.GetTraceAsync(WorkspaceId, "trace-id", null, null, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -109,25 +92,17 @@ public sealed class ShowTraceCommandTests
     {
         // arrange
         var longName = new string('x', 121);
-        var trace = new Trace(
-            1,
-            false,
-            12.5,
-            [CreateSpan("span-id", name: longName)]);
+        var trace = new Trace(1, false, 12.5, [CreateSpan("span-id", name: longName)]);
         var client = CreateClient(trace);
 
         // act
-        var result = await ExecuteAsync(
-            client,
-            commandArguments: ["--output", "json"]);
+        var result = await ExecuteAsync(client, commandArguments: ["--output", "json"]);
 
         // assert
         using var document = JsonDocument.Parse(result.StdOut);
         Assert.Equal("trace-id", document.RootElement.GetProperty("traceId").GetString());
         Assert.Equal(1, document.RootElement.GetProperty("spanCount").GetInt32());
-        Assert.Equal(
-            longName,
-            document.RootElement.GetProperty("spans")[0].GetProperty("spanName").GetString());
+        Assert.Equal(longName, document.RootElement.GetProperty("spans")[0].GetProperty("spanName").GetString());
     }
 
     [Fact]
@@ -151,9 +126,7 @@ public sealed class ShowTraceCommandTests
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task Execute_Should_RenderNotFound_When_TraceHasNoSpans(
-        bool includeSpan,
-        bool json)
+    public async Task Execute_Should_RenderNotFound_When_TraceHasNoSpans(bool includeSpan, bool json)
     {
         // arrange
         var client = CreateClient(new Trace(0, false, 0, []));
@@ -183,9 +156,7 @@ public sealed class ShowTraceCommandTests
     public async Task Execute_Should_RenderEverySpan_When_TraceContainsManyRoots()
     {
         // arrange
-        var spans = Enumerable.Range(0, 120)
-            .Select(i => CreateSpan($"span-{i}"))
-            .ToArray();
+        var spans = Enumerable.Range(0, 120).Select(i => CreateSpan($"span-{i}")).ToArray();
         var client = CreateClient(new Trace(120, false, 120, spans));
 
         // act
@@ -194,8 +165,9 @@ public sealed class ShowTraceCommandTests
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(spans.Select(static span => span.SpanId), GetRenderedSpanIds(result.StdOut));
-        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
-            "trace trace-id: 120 spans (0 errors), total 120 ms");
+        result
+            .StdOut.Split(Environment.NewLine)[0]
+            .MatchInlineSnapshot("trace trace-id: 120 spans (0 errors), total 120 ms");
     }
 
     [Fact]
@@ -220,11 +192,12 @@ public sealed class ShowTraceCommandTests
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(
-            new[] { "focus", "child-0", "leaf-0", "leaf-extra" }
-                .Concat(Enumerable.Range(1, 23).SelectMany(i => new[] { $"child-{i}", $"leaf-{i}" })),
+            new[] { "focus", "child-0", "leaf-0", "leaf-extra" }.Concat(
+                Enumerable.Range(1, 23).SelectMany(i => new[] { $"child-{i}", $"leaf-{i}" })),
             GetRenderedSpanIds(result.StdOut));
-        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
-            "trace trace-id: 51 spans (0 errors), total 51 ms");
+        result
+            .StdOut.Split(Environment.NewLine)[0]
+            .MatchInlineSnapshot("trace trace-id: 51 spans (0 errors), total 51 ms");
     }
 
     [Fact]
@@ -242,8 +215,9 @@ public sealed class ShowTraceCommandTests
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(spans.Select(static span => span.SpanId), GetRenderedSpanIds(result.StdOut));
-        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
-            "trace trace-id: 121 spans (0 errors), total 121 ms");
+        result
+            .StdOut.Split(Environment.NewLine)[0]
+            .MatchInlineSnapshot("trace trace-id: 121 spans (0 errors), total 121 ms");
     }
 
     [Theory]
@@ -252,7 +226,8 @@ public sealed class ShowTraceCommandTests
     public async Task Execute_Should_RenderEveryDescendant_When_TraceIsDeep(bool focused)
     {
         // arrange
-        var spans = Enumerable.Range(0, 128)
+        var spans = Enumerable
+            .Range(0, 128)
             .Select(i => CreateSpan($"span-{i}", i == 0 ? "" : $"span-{i - 1}"))
             .ToArray();
         var client = CreateClient(new Trace(spans.Length, false, spans.Length, spans));
@@ -264,8 +239,9 @@ public sealed class ShowTraceCommandTests
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(spans.Select(static span => span.SpanId), GetRenderedSpanIds(result.StdOut));
-        result.StdOut.Split(Environment.NewLine)[0].MatchInlineSnapshot(
-            "trace trace-id: 128 spans (0 errors), total 128 ms");
+        result
+            .StdOut.Split(Environment.NewLine)[0]
+            .MatchInlineSnapshot("trace trace-id: 128 spans (0 errors), total 128 ms");
     }
 
     [Fact]
@@ -280,12 +256,13 @@ public sealed class ShowTraceCommandTests
         // assert
         Assert.Equal(
             "trace trace-id: 1 returned spans (errors unknown), total span count unknown, "
-            + "duration unknown (server-capped)",
+                + "duration unknown (server-capped)",
             result.StdOut.Split(Environment.NewLine)[0]);
     }
 
     private static IEnumerable<string> GetRenderedSpanIds(string output)
-        => output.Split(Environment.NewLine)
+        => output
+            .Split(Environment.NewLine)
             .Skip(1)
             .Select(static line => line[(line.LastIndexOf(" · ", StringComparison.Ordinal) + 3)..^1]);
 
@@ -293,12 +270,14 @@ public sealed class ShowTraceCommandTests
     {
         var client = new Mock<ITelemetryClient>(MockBehavior.Strict);
         client
-            .Setup(x => x.GetTraceAsync(
-                "workspace",
-                "trace-id",
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.GetTraceAsync(
+                    "workspace",
+                    "trace-id",
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(trace);
         return client;
     }
@@ -316,14 +295,9 @@ public sealed class ShowTraceCommandTests
         outConsole.Profile.Capabilities.Interactive = isInteractive;
         var errorConsole = new TestConsole();
         errorConsole.Profile.Out = new AnsiConsoleOutput(error);
-        var console = new NitroConsole(
-            outConsole,
-            errorConsole,
-            new SnapshotActivitySinkFactory());
+        var console = new NitroConsole(outConsole, errorConsole, new SnapshotActivitySinkFactory());
         var environment = new Mock<IEnvironmentVariableProvider>();
-        environment
-            .Setup(x => x.GetEnvironmentVariable(It.IsAny<string>()))
-            .Returns((string?)null);
+        environment.Setup(x => x.GetEnvironmentVariable(It.IsAny<string>())).Returns((string?)null);
         var session = new Mock<ISessionService>();
         var context = new NitroClientContext();
         context.Configure(null, null);
@@ -342,7 +316,16 @@ public sealed class ShowTraceCommandTests
         var traces = new Command("traces");
         traces.Subcommands.Add(new ShowTraceCommand());
         root.Subcommands.Add(traces);
-        var arguments = new List<string> { "traces", "show", "trace-id", "--api-key", "key", "--workspace-id", "workspace" };
+        var arguments = new List<string>
+        {
+            "traces",
+            "show",
+            "trace-id",
+            "--api-key",
+            "key",
+            "--workspace-id",
+            "workspace"
+        };
         arguments.AddRange(commandArguments);
         var parseResult = root.Parse(arguments.ToArray());
         if (parseResult.GetValue(Opt<OptionalOutputFormatOption>.Instance) is { } outputFormat)
@@ -350,18 +333,9 @@ public sealed class ShowTraceCommandTests
             console.SetOutputFormat(outputFormat);
         }
 
-        var exitCode = await parseResult.InvokeAsync(
-            new InvocationConfiguration
-            {
-                Output = output,
-                Error = error
-            });
+        var exitCode = await parseResult.InvokeAsync(new InvocationConfiguration { Output = output, Error = error });
 
-        return new CommandResult(
-            exitCode,
-            output.ToString().TrimEnd(),
-            error.ToString().TrimEnd(),
-            root.Name);
+        return new CommandResult(exitCode, output.ToString().TrimEnd(), error.ToString().TrimEnd(), root.Name);
     }
 
     private static Trace CreateTrace()
@@ -370,10 +344,7 @@ public sealed class ShowTraceCommandTests
             false,
             25,
             [
-                CreateSpan(
-                    "root",
-                    duration: 20,
-                    resourceAttributes: [new("service.name", "orders")]),
+                CreateSpan("root", duration: 20, resourceAttributes: [new("service.name", "orders")]),
                 CreateSpan(
                     "child",
                     parent: "root",

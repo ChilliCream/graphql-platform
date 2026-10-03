@@ -9,12 +9,7 @@ public sealed class SpanTreeBuilderTests
     public void Build_Should_LinkChildren_When_ParentSpanIdMatches()
     {
         // arrange
-        var spans = new[]
-        {
-            CreateSpan("child", "root"),
-            CreateSpan("root"),
-            CreateSpan("orphan", "missing")
-        };
+        var spans = new[] { CreateSpan("child", "root"), CreateSpan("root"), CreateSpan("orphan", "missing") };
 
         // act
         var tree = SpanTreeBuilder.Build(spans);
@@ -42,17 +37,5 @@ public sealed class SpanTreeBuilderTests
     }
 
     private static TraceSpan CreateSpan(string id, string parent = "")
-        => new(
-            id,
-            parent,
-            id,
-            "SERVER",
-            1,
-            0,
-            "OK",
-            string.Empty,
-            [],
-            [],
-            [],
-            null);
+        => new(id, parent, id, "SERVER", 1, 0, "OK", string.Empty, [], [], [], null);
 }

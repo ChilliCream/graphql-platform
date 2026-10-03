@@ -11,6 +11,5 @@ internal sealed class SpanTree(
 
     public int Count => Nodes.Count;
 
-    public SpanTreeNode? Find(string spanId)
-        => byId.TryGetValue(spanId, out var node) ? node : null;
+    public SpanTreeNode? Find(string spanId) => byId.TryGetValue(spanId, out var node) ? node : null;
 }

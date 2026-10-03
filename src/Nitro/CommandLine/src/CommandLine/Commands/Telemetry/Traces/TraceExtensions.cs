@@ -12,8 +12,9 @@ internal static class TraceExtensions
         /// </summary>
         public bool IsError
             => span.StatusCode.Contains("ERROR", StringComparison.OrdinalIgnoreCase)
-                || span.Events.Any(static traceEvent =>
-                    traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase));
+            || span.Events.Any(static traceEvent =>
+                traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase)
+            );
     }
 
     extension(double durationMs)
@@ -21,7 +22,6 @@ internal static class TraceExtensions
         /// <summary>
         /// Formats a duration in milliseconds with up to three decimal places and the invariant culture.
         /// </summary>
-        public string FormatDuration()
-            => durationMs.ToString("0.###", CultureInfo.InvariantCulture);
+        public string FormatDuration() => durationMs.ToString("0.###", CultureInfo.InvariantCulture);
     }
 }

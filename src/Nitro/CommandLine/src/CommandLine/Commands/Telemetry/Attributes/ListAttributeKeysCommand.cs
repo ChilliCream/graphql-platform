@@ -72,7 +72,6 @@ internal sealed class ListAttributeKeysCommand : Command
 
     internal sealed record AttributeKeyListItem(string Key, string Kind)
     {
-        public static AttributeKeyListItem From(AttributeKeyRow key)
-            => new(key.Path, key.Kind);
+        public static AttributeKeyListItem From(AttributeKeyRow key) => new(key.Path, key.Kind);
     }
 }

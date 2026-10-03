@@ -19,47 +19,49 @@ public sealed class TelemetryOutputFormatRendererTests
         var command = new Command("telemetry");
         OutputFormat? receivedOutputFormat = null;
         command.Options.Add(outputFormat);
-        command.SetAction((parseResult, _) =>
-        {
-            receivedOutputFormat = parseResult.GetValue(outputFormat);
-            console.SetOutputFormat(receivedOutputFormat!.Value);
-            console.WriteListEnvelope(
-                [new Sample("first", "First")],
-                total: 1,
-                hasMore: false,
-                TelemetryOutputFormatRendererJsonContext.Default.Sample,
-                emptyResultHint: null,
-                []);
+        command.SetAction(
+            (parseResult, _) =>
+            {
+                receivedOutputFormat = parseResult.GetValue(outputFormat);
+                console.SetOutputFormat(receivedOutputFormat!.Value);
+                console.WriteListEnvelope(
+                    [new Sample("first", "First")],
+                    total: 1,
+                    hasMore: false,
+                    TelemetryOutputFormatRendererJsonContext.Default.Sample,
+                    emptyResultHint: null,
+                    []);
 
-            return Task.FromResult(ExitCodes.Success);
-        });
+                return Task.FromResult(ExitCodes.Success);
+            });
 
         // act
-        var exitCode = await command.Parse(["--output", "json"]).InvokeAsync(
-            new InvocationConfiguration
-            {
-                Output = TextWriter.Null,
-                Error = TextWriter.Null
-            },
-            CancellationToken.None);
+        var exitCode = await command
+            .Parse(["--output", "json"])
+            .InvokeAsync(
+                new InvocationConfiguration { Output = TextWriter.Null, Error = TextWriter.Null },
+                CancellationToken.None);
 
         // assert
         Assert.Equal(ExitCodes.Success, exitCode);
         Assert.Equal(OutputFormat.Json, receivedOutputFormat);
-        output.ToString().TrimEnd().MatchInlineSnapshot(
-            """
-            {
-              "items": [
+        output
+            .ToString()
+            .TrimEnd()
+            .MatchInlineSnapshot(
+                """
                 {
-                  "id": "first",
-                  "name": "First"
+                  "items": [
+                    {
+                      "id": "first",
+                      "name": "First"
+                    }
+                  ],
+                  "returned": 1,
+                  "total": 1,
+                  "hasMore": false
                 }
-              ],
-              "returned": 1,
-              "total": 1,
-              "hasMore": false
-            }
-            """);
+                """);
     }
 
     private static (INitroConsole Console, StringWriter Output) CreateConsole()
@@ -68,12 +70,7 @@ public sealed class TelemetryOutputFormatRendererTests
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(output);
 
-        return (
-            new NitroConsole(
-                outConsole,
-                new TestConsole(),
-                new SnapshotActivitySinkFactory()),
-            output);
+        return (new NitroConsole(outConsole, new TestConsole(), new SnapshotActivitySinkFactory()), output);
     }
 
     internal sealed record Sample(string Id, string Name);

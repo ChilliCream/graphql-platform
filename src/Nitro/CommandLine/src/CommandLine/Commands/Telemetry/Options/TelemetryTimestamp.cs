@@ -40,8 +40,7 @@ internal static class TelemetryTimestamp
             && DateTimeOffset.TryParse(
                 value,
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal
-                    | DateTimeStyles.AdjustToUniversal,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
                 out timestamp))
         {
             timestamp = timestamp.ToUniversalTime();
@@ -83,11 +82,7 @@ internal static class TelemetryTimestamp
         };
 
         if (maximumValue < 0
-            || !long.TryParse(
-                value[..^1],
-                NumberStyles.None,
-                CultureInfo.InvariantCulture,
-                out var valuePart)
+            || !long.TryParse(value[..^1], NumberStyles.None, CultureInfo.InvariantCulture, out var valuePart)
             || valuePart > maximumValue)
         {
             return false;
@@ -116,11 +111,11 @@ internal static class TelemetryTimestamp
 
     private static string MaximumAgeMessage(string optionName)
         => $"Option '{optionName}' cannot be more than 60 days in the past."
-            + Environment.NewLine
-            + "hint: choose a more recent timestamp or duration.";
+        + Environment.NewLine
+        + "hint: choose a more recent timestamp or duration.";
 
     private static string InvalidValueMessage(string optionName, string value)
         => $"Option '{optionName}' received an invalid value: {value}"
-            + Environment.NewLine
-            + "hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.";
+        + Environment.NewLine
+        + "hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.";
 }

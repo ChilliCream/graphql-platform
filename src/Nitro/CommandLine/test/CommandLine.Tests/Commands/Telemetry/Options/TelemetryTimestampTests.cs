@@ -1,6 +1,6 @@
+using System.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Services;
-using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
@@ -13,9 +13,7 @@ public sealed class TelemetryTimestampTests
     [InlineData("30m", "2026-01-01T11:30:00Z")]
     [InlineData("2h", "2026-01-01T10:00:00Z")]
     [InlineData("7d", "2025-12-25T12:00:00Z")]
-    public void TryParse_Should_ParseDuration_When_ValueUsesSupportedUnit(
-        string value,
-        string expectedTimestamp)
+    public void TryParse_Should_ParseDuration_When_ValueUsesSupportedUnit(string value, string expectedTimestamp)
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
@@ -88,13 +86,7 @@ public sealed class TelemetryTimestampTests
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var success = TelemetryTimestamp.TryParse(
-            "61d",
-            now,
-            "--since",
-            enforceMaximumAge: true,
-            out _,
-            out var error);
+        var success = TelemetryTimestamp.TryParse("61d", now, "--since", enforceMaximumAge: true, out _, out var error);
 
         // assert
         Assert.False(success);
@@ -109,21 +101,13 @@ public sealed class TelemetryTimestampTests
     [Theory]
     [InlineData("--since", true)]
     [InlineData("--until", false)]
-    public void TryParse_Should_ReturnError_When_DurationOversizedUnderflows(
-        string optionName,
-        bool enforceMaximumAge)
+    public void TryParse_Should_ReturnError_When_DurationOversizedUnderflows(string optionName, bool enforceMaximumAge)
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var success = TelemetryTimestamp.TryParse(
-            "999999d",
-            now,
-            optionName,
-            enforceMaximumAge,
-            out _,
-            out var error);
+        var success = TelemetryTimestamp.TryParse("999999d", now, optionName, enforceMaximumAge, out _, out var error);
 
         // assert
         Assert.False(success);
@@ -234,22 +218,34 @@ public sealed class TelemetryTimestampTests
         command.Options.Add(new TelemetryTraceSearchOption());
 
         // act
-        var result = command.Parse(
-        [
-            "--service", "orders",
-            "--env", "production",
-            "--env", "staging",
-            "--since", "30m",
-            "--until", "2026-01-01T12:00:00Z",
-            "--limit", "20",
-            "--filter", "status:error",
+        var result = command.Parse([
+            "--service",
+            "orders",
+            "--env",
+            "production",
+            "--env",
+            "staging",
+            "--since",
+            "30m",
+            "--until",
+            "2026-01-01T12:00:00Z",
+            "--limit",
+            "20",
+            "--filter",
+            "status:error",
             "--has-error",
-            "--min-duration", "10",
-            "--span-kind", "SERVER",
-            "--span-kind", "CLIENT",
-            "--severity", "warn",
-            "--trace-id", "trace-1",
-            "--search", "checkout"
+            "--min-duration",
+            "10",
+            "--span-kind",
+            "SERVER",
+            "--span-kind",
+            "CLIENT",
+            "--severity",
+            "warn",
+            "--trace-id",
+            "trace-1",
+            "--search",
+            "checkout"
         ]);
 
         // assert

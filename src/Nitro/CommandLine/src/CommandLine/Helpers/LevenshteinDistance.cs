@@ -21,9 +21,10 @@ internal static class LevenshteinDistance
         var rowLength = left.Length + 1;
         var bufferLength = rowLength * 2;
         int[]? rented = null;
-        var buffer = bufferLength <= StackallocThreshold
-            ? stackalloc int[bufferLength]
-            : rented = ArrayPool<int>.Shared.Rent(bufferLength);
+        var buffer =
+            bufferLength <= StackallocThreshold
+                ? stackalloc int[bufferLength]
+                : rented = ArrayPool<int>.Shared.Rent(bufferLength);
 
         try
         {

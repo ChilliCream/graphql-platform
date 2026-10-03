@@ -19,9 +19,10 @@ internal static class TelemetryConsoleExtensions
         string? emptyResultHint,
         ReadOnlySpan<Option> narrowingOptions)
     {
-        var hint = items.Count == 0 && emptyResultHint is not null
-            ? emptyResultHint
-            : CreateHint(narrowingOptions, items.Count, total, hasMore);
+        var hint =
+            items.Count == 0 && emptyResultHint is not null
+                ? emptyResultHint
+                : CreateHint(narrowingOptions, items.Count, total, hasMore);
 
         using var buffer = new PooledArrayWriter();
         WriteEnvelope(buffer, items, total, hasMore, hint, jsonTypeInfo);
@@ -29,20 +30,14 @@ internal static class TelemetryConsoleExtensions
         console.WriteRawLine(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
-    private static string? CreateHint(
-        ReadOnlySpan<Option> narrowingOptions,
-        int returned,
-        int? total,
-        bool hasMore)
+    private static string? CreateHint(ReadOnlySpan<Option> narrowingOptions, int returned, int? total, bool hasMore)
     {
         if (!hasMore)
         {
             return null;
         }
 
-        var shown = total is { } value
-            ? $"showing {returned} of {value} (more)"
-            : $"showing {returned} (more)";
+        var shown = total is { } value ? $"showing {returned} of {value} (more)" : $"showing {returned} (more)";
 
         return $"{shown}, {CreateNarrowingAdvice(narrowingOptions)}";
     }
@@ -61,9 +56,8 @@ internal static class TelemetryConsoleExtensions
             names[i] = narrowingOptions[i].Name;
         }
 
-        var narrowing = names.Length == 1
-            ? names[0]
-            : $"{string.Join(", ", names, 0, names.Length - 1)} or {names[^1]}";
+        var narrowing =
+            names.Length == 1 ? names[0] : $"{string.Join(", ", names, 0, names.Length - 1)} or {names[^1]}";
 
         return $"narrow with {narrowing}, or raise --limit";
     }

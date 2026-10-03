@@ -57,19 +57,13 @@ internal sealed class SpanTreeRenderer
                 continue;
             }
 
-            var linePrefix = entry.IsRoot
-                ? string.Empty
-                : entry.ParentPrefix + (entry.IsLast ? "└─ " : "├─ ");
+            var linePrefix = entry.IsRoot ? string.Empty : entry.ParentPrefix + (entry.IsLast ? "└─ " : "├─ ");
             lines.Add(linePrefix + FormatSpan(entry.Node.Span));
 
-            var exceptionPrefix = entry.IsRoot
-                ? "  "
-                : entry.ParentPrefix + (entry.IsLast ? "   " : "│  ");
+            var exceptionPrefix = entry.IsRoot ? "  " : entry.ParentPrefix + (entry.IsLast ? "   " : "│  ");
             RenderExceptions(entry.Node.Span, exceptionPrefix, lines);
 
-            var childPrefix = entry.IsRoot
-                ? string.Empty
-                : entry.ParentPrefix + (entry.IsLast ? "   " : "│  ");
+            var childPrefix = entry.IsRoot ? string.Empty : entry.ParentPrefix + (entry.IsLast ? "   " : "│  ");
             var children = entry.Node.Children.Where(child => !visited.Contains(child)).ToArray();
 
             for (var i = children.Length - 1; i >= 0; i--)
@@ -82,8 +76,7 @@ internal sealed class SpanTreeRenderer
     private static string FormatSpan(TraceSpan span)
     {
         var operation = GetOperationLabel(span);
-        var service = span.ResourceAttributes.GetAttribute(WellKnownAttributeNames.ServiceName)
-            ?? string.Empty;
+        var service = span.ResourceAttributes.GetAttribute(WellKnownAttributeNames.ServiceName) ?? string.Empty;
         var duration = $"{span.DurationMs.FormatDuration()}ms";
         var parts = new List<string>
         {
@@ -107,9 +100,7 @@ internal sealed class SpanTreeRenderer
 
         if (filePath is not null)
         {
-            var source = lineNumber is null
-                ? filePath
-                : $"{filePath}:{lineNumber}";
+            var source = lineNumber is null ? filePath : $"{filePath}:{lineNumber}";
             parts.Add(source.EscapeControlCharacters());
         }
 
@@ -129,9 +120,7 @@ internal sealed class SpanTreeRenderer
             http?.Url.GetRoute());
         if (method is not null || route is not null)
         {
-            return method is not null && route is not null
-                ? $"{method} {route}"
-                : method ?? route!;
+            return method is not null && route is not null ? $"{method} {route}" : method ?? route!;
         }
 
         var database = span.Data as DatabaseTraceSpanData;
@@ -144,9 +133,7 @@ internal sealed class SpanTreeRenderer
             span.SpanAttributes.GetAttribute(WellKnownAttributeNames.DbOperationName));
         if (system is not null || operation is not null)
         {
-            return system is not null && operation is not null
-                ? $"{system} {operation}"
-                : system ?? operation!;
+            return system is not null && operation is not null ? $"{system} {operation}" : system ?? operation!;
         }
 
         var graphQl = span.Data as GraphQLOperationTraceSpanData;
@@ -156,20 +143,16 @@ internal sealed class SpanTreeRenderer
         return graphQlName ?? span.SpanKind;
     }
 
-    private static void RenderExceptions(
-        TraceSpan span,
-        string prefix,
-        List<string> lines)
+    private static void RenderExceptions(TraceSpan span, string prefix, List<string> lines)
     {
-        foreach (var traceEvent in span.Events.Where(static traceEvent =>
-                     traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase)))
+        foreach (
+            var traceEvent in span.Events.Where(static traceEvent =>
+                traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase)
+            ))
         {
-            var type = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionType)
-                ?? string.Empty;
-            var message = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionMessage)
-                ?? string.Empty;
-            lines.Add(
-                $"{prefix}exception: {type.EscapeControlCharacters()}: {message.EscapeControlCharacters()}");
+            var type = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionType) ?? string.Empty;
+            var message = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionMessage) ?? string.Empty;
+            lines.Add($"{prefix}exception: {type.EscapeControlCharacters()}: {message.EscapeControlCharacters()}");
 
             var stackTrace = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionStackTrace);
             if (stackTrace is null)
@@ -193,14 +176,14 @@ file static class Extensions
 {
     extension(IReadOnlyList<TelemetryAttribute> attributes)
     {
-        public string? GetAttribute(string key)
-            => attributes.FirstOrDefault(attribute => attribute.Key == key)?.Value;
+        public string? GetAttribute(string key) => attributes.FirstOrDefault(attribute => attribute.Key == key)?.Value;
     }
 
     extension(string value)
     {
         public IEnumerable<string> SplitLines()
-            => value.Replace("\r\n", "\n", StringComparison.Ordinal)
+            => value
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
                 .Replace('\r', '\n')
                 .Split('\n', StringSplitOptions.None);
     }
