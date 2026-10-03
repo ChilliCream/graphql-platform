@@ -49,6 +49,7 @@ public static class ErrorCodes
         public const string DataLoaderKeyedServiceAttributeIgnored = "HC0131";
         public const string DataLoaderKeyedServiceOnConstructorParameter = "HC0132";
         public const string DataLoaderKeyedServiceKeyNotDeterminable = "HC0133";
+        public const string ObjectTypeInterfaceObjectConflict = "HC0134";
     }
 
     public static class Authentication

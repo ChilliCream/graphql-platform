@@ -224,8 +224,9 @@ public static class LookupTests
             Arguments annotated with the @require directive are removed from the composite schema
             and the value for these will be resolved by the distributed executor.
 
-
             directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+
+            https://graphql.github.io/composite-schemas-spec/draft/#sec--require
             """
             directive @require("The field selection map syntax." field: FieldSelectionMap!) on
               | ARGUMENT_DEFINITION
