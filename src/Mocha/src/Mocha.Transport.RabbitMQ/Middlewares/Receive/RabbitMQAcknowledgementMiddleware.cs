@@ -5,7 +5,8 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 
 /// <summary>
 /// Receive middleware that sends a BasicAck on successful processing and a BasicNack (with requeue) on failure,
-/// ensuring messages are properly acknowledged or returned to the broker.
+/// ensuring messages are properly acknowledged or returned to the broker. Messages are settled even when the
+/// receive is cancelled, as long as the channel is open.
 /// </summary>
 internal sealed class RabbitMQAcknowledgementMiddleware
 {
@@ -19,7 +20,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
@@ -27,14 +27,14 @@ internal sealed class RabbitMQAcknowledgementMiddleware
 
             if (channel.IsOpen)
             {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, cancellationToken);
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
             }
         }
         catch
         {
             if (channel.IsOpen)
             {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, cancellationToken);
+                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
             }
 
             throw;

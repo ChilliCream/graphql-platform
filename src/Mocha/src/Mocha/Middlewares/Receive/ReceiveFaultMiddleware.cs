@@ -11,7 +11,8 @@ namespace Mocha.Middlewares;
 /// </summary>
 /// <remarks>
 /// Faults are sent to the fault address when present, otherwise to the response address. Messages
-/// with neither address are forwarded to the error endpoint with fault metadata in headers.
+/// with neither address are forwarded to the error endpoint with fault metadata in headers. A failure
+/// while the receive is cancelled is not a fault and propagates to the transport.
 /// </remarks>
 internal sealed class ReceiveFaultMiddleware(
     TimeProvider provider,
@@ -26,7 +27,7 @@ internal sealed class ReceiveFaultMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             var fault = FaultInfo.From(Guid.NewGuid(), provider.GetUtcNow(), ex);
 
@@ -62,7 +63,7 @@ internal sealed class ReceiveFaultMiddleware(
         await bus.ReplyAsync(
             notAcknowledged,
             options with { MessageKind = MessageKind.Fault },
-            context.CancellationToken);
+            CancellationToken.None);
     }
 
     private async ValueTask SendToErrorEndpointAsync(
@@ -84,7 +85,7 @@ internal sealed class ReceiveFaultMiddleware(
                 errorEndpoint,
                 context.Runtime,
                 context.MessageType,
-                context.CancellationToken);
+                CancellationToken.None);
 
             dispatchContext.Envelope = envelope;
             envelope?.Headers?.AddFault(fault);

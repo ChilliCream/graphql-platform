@@ -509,6 +509,64 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         Assert.NotNull(configuration.Middleware);
     }
 
+    [Fact]
+    public async Task InvokeAsync_Should_NotDeliverToErrorEndpoint_When_HandlerIsCancelledByStop()
+    {
+        // arrange
+        var state = new CancellationAwaitingState();
+        await using var provider = await CreateBusWithErrorEndpointAsync(b =>
+        {
+            b.Services.AddSingleton(state);
+            b.AddEventHandler<CancellationAwaitingEventHandler>();
+        });
+
+        using (var scope = provider.CreateScope())
+        {
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            await bus.PublishAsync(new FaultTestEvent { Id = "cancelled-1" }, CancellationToken.None);
+        }
+
+        await state.Started.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        // act
+        await runtime.StopAsync(new CancellationToken(canceled: true));
+
+        // assert
+        var faults = await ReadQueuedAsync(GetErrorQueue(provider));
+        Assert.True(state.Cancelled.Task.IsCompleted, "Handler should observe the stop cancellation");
+        Assert.Empty(faults);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_NotDeliverToErrorEndpoint_When_HandlerFailsAfterStopCancellation()
+    {
+        // arrange
+        var state = new CancellationAwaitingState();
+        await using var provider = await CreateBusWithErrorEndpointAsync(b =>
+        {
+            b.Services.AddSingleton(state);
+            b.AddEventHandler<FailingAfterCancellationEventHandler>();
+        });
+
+        using (var scope = provider.CreateScope())
+        {
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            await bus.PublishAsync(new FaultTestEvent { Id = "cancelled-2" }, CancellationToken.None);
+        }
+
+        await state.Started.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        // act
+        await runtime.StopAsync(new CancellationToken(canceled: true));
+
+        // assert
+        var faults = await ReadQueuedAsync(GetErrorQueue(provider));
+        Assert.True(state.Cancelled.Task.IsCompleted, "Handler should observe the stop cancellation");
+        Assert.Empty(faults);
+    }
+
     private static async Task<ServiceProvider> CreateBusWithErrorEndpointAsync(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();
@@ -555,6 +613,27 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         return items;
     }
 
+    private static async Task<List<MessageEnvelope>> ReadQueuedAsync(InMemoryQueue queue)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        var items = new List<MessageEnvelope>();
+
+        try
+        {
+            await foreach (var item in queue.ConsumeAsync(cts.Token))
+            {
+                items.Add(new MessageEnvelope(item.Envelope));
+                item.Dispose();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The queue has no more items.
+        }
+
+        return items;
+    }
+
     private sealed class TestErrorEndpointConvention : IInMemoryReceiveEndpointConfigurationConvention
     {
         public void Configure(
@@ -592,6 +671,51 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         {
             recorder.Record(message);
             return default;
+        }
+    }
+
+    public sealed class CancellationAwaitingState
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    public sealed class CancellationAwaitingEventHandler(CancellationAwaitingState state)
+        : IEventHandler<FaultTestEvent>
+    {
+        public async ValueTask HandleAsync(FaultTestEvent message, CancellationToken cancellationToken)
+        {
+            state.Started.TrySetResult();
+
+            try
+            {
+                await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                state.Cancelled.TrySetResult();
+                throw;
+            }
+        }
+    }
+
+    public sealed class FailingAfterCancellationEventHandler(CancellationAwaitingState state)
+        : IEventHandler<FaultTestEvent>
+    {
+        public async ValueTask HandleAsync(FaultTestEvent message, CancellationToken cancellationToken)
+        {
+            state.Started.TrySetResult();
+
+            try
+            {
+                await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                state.Cancelled.TrySetResult();
+                throw new InvalidOperationException("Handler failed after cancellation.");
+            }
         }
     }
 

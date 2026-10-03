@@ -10,6 +10,7 @@ namespace Mocha.Transport.AzureServiceBus.Middlewares;
 /// Receive middleware that completes messages on successful processing and abandons them on failure,
 /// ensuring messages are properly acknowledged or returned to the broker. Operates uniformly on
 /// session and non-session endpoints by going through <see cref="IAzureServiceBusMessageActions"/>.
+/// Messages are settled even when the receive is cancelled.
 /// </summary>
 internal sealed class AzureServiceBusAcknowledgementMiddleware
 {
@@ -25,19 +26,23 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
             feature.ProcessMessageEventArgs?.EntityPath
             ?? feature.ProcessSessionMessageEventArgs?.EntityPath
             ?? string.Empty;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
             await next(context);
 
-            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
+            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, CancellationToken.None);
         }
         catch
         {
             try
             {
-                await AbandonAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
+                await AbandonAsync(
+                    feature.Actions,
+                    context.Services,
+                    feature.Message,
+                    entityPath,
+                    CancellationToken.None);
             }
             catch
             {

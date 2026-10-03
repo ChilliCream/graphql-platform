@@ -261,24 +261,24 @@ public sealed class ReceiveContext : IReceiveContext, IConsumeContext
     /// </summary>
     /// <remarks>
     /// Sets the <see cref="Services"/>, <see cref="Endpoint"/>, <see cref="Transport"/>,
-    /// and <see cref="Runtime"/> properties and initializes the internal feature collection.
+    /// <see cref="Runtime"/> and <see cref="CancellationToken"/> properties and initializes the internal
+    /// feature collection.
     /// </remarks>
     /// <param name="services">The scoped service provider for this receive operation.</param>
     /// <param name="endpoint">The receive endpoint that owns this operation.</param>
     /// <param name="runtime">The messaging runtime providing host info and global options.</param>
-    /// <param name="cancellationToken">Reserved for future use; not currently consumed by this method.</param>
+    /// <param name="cancellationToken">The token that cancels the receive operation.</param>
     public void Initialize(
         IServiceProvider services,
         ReceiveEndpoint endpoint,
         IMessagingRuntime runtime,
-#pragma warning disable RCS1163 // Unused parameter
         CancellationToken cancellationToken)
-#pragma warning restore RCS1163 // Unused parameter
     {
         Services = services;
         Endpoint = endpoint;
         Transport = endpoint.Transport;
         Runtime = runtime;
+        CancellationToken = cancellationToken;
 
         _features.Initialize();
     }

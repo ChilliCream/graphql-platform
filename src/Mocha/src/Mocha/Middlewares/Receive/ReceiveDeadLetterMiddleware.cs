@@ -10,7 +10,8 @@ namespace Mocha.Middlewares;
 /// </summary>
 /// <remarks>
 /// Exceptions from downstream middleware are swallowed after logging because dead-lettering is the
-/// terminal reliability behavior for this pipeline branch.
+/// terminal reliability behavior for this pipeline branch. A failure while the receive is cancelled
+/// propagates to the transport instead.
 /// Without this middleware, poison/unhandled messages can stay in the normal receive flow and be
 /// repeatedly retried, wasting throughput and making the failure harder to diagnose and recover.
 /// </remarks>
@@ -27,7 +28,7 @@ internal sealed class ReceiveDeadLetterMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             logger.ExceptionOccurred(ex);
         }
@@ -43,7 +44,7 @@ internal sealed class ReceiveDeadLetterMiddleware(
                     deadLetterEndpoint,
                     context.Runtime,
                     context.MessageType,
-                    context.CancellationToken);
+                    CancellationToken.None);
 
                 dispatchContext.Envelope = context.Envelope;
 

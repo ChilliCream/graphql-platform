@@ -12,7 +12,8 @@ namespace Mocha.Transport.InMemory;
 /// from the queue via <see cref="InMemoryQueue.ConsumeAsync"/> and invoke
 /// <see cref="ReceiveEndpoint.ExecuteAsync"/> for each envelope. Faulted messages are logged but do
 /// not stop any consumer loop. When the endpoint stops, it takes no new messages from the queue and
-/// lets in-flight messages finish.
+/// lets in-flight messages finish. Messages whose receive is cancelled are discarded, because the
+/// in-memory transport does not redeliver.
 /// </remarks>
 public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport)
     : ReceiveEndpoint<InMemoryReceiveEndpointConfiguration>(transport)
@@ -101,6 +102,14 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
                 static (context, envelope) => context.SetEnvelope(envelope),
                 item.Envelope,
                 cancellationToken);
+        }
+        catch (Exception ex) when (cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(
+                ex,
+                "Message {MessageId} on queue {QueueName} was cancelled and is discarded.",
+                item.Envelope.MessageId,
+                Queue.Name);
         }
         catch (Exception ex)
         {

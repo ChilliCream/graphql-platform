@@ -95,10 +95,11 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Processes a single incoming message through the receive pipeline.
     /// </summary>
     /// <remarks>
-    /// Allocates a scoped <see cref="IServiceProvider"/>, retrieves a pooled
-    /// <see cref="ReceiveContext"/>, configures it via <paramref name="configure"/>, and
-    /// executes the compiled middleware pipeline. Exceptions that escape the pipeline are
-    /// caught and logged at the Critical level to prevent transport-level crashes.
+    /// Configures a pooled <see cref="ReceiveContext"/> via <paramref name="configure"/> and executes the
+    /// compiled middleware pipeline in a new service scope. <paramref name="cancellationToken"/> becomes
+    /// the cancellation token of the receive. Exceptions that escape the pipeline are logged at the
+    /// Critical level, unless <paramref name="cancellationToken"/> is cancelled, in which case they
+    /// propagate to the caller.
     /// </remarks>
     /// <typeparam name="TState">The type of caller-provided state passed to the configure action.</typeparam>
     /// <param name="configure">
@@ -106,7 +107,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// message data (envelope, body, headers, etc.) before the pipeline runs.
     /// </param>
     /// <param name="state">Caller-provided state forwarded to <paramref name="configure"/>.</param>
-    /// <param name="cancellationToken">Token to signal cancellation of message processing.</param>
+    /// <param name="cancellationToken">The token that cancels the receive operation.</param>
     public async ValueTask ExecuteAsync<TState>(
         Action<ReceiveContext, TState> configure,
         TState state,
@@ -131,7 +132,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
             await _pipeline(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             // exceptions should technically never bubble up here.
             logger.LogCritical(ex, "Error processing message");
