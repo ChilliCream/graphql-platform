@@ -10,6 +10,7 @@ internal sealed class RabbitMQPubSub : DefaultPubSub
     private readonly IRabbitMQConnection _connection;
     private readonly IMessageSerializer _serializer;
     private readonly RabbitMQSubscriptionOptions _rabbitMqSubscriptionOptions;
+    private readonly RabbitMQTopologyHelper _topologyHelper;
     private readonly string _completed;
     private readonly int _topicBufferCapacity;
     private readonly TopicBufferFullMode _topicBufferFullMode;
@@ -20,12 +21,14 @@ internal sealed class RabbitMQPubSub : DefaultPubSub
         IMessageSerializer serializer,
         SubscriptionOptions options,
         RabbitMQSubscriptionOptions rabbitMqSubscriptionOptions,
-        ISubscriptionDiagnosticEvents diagnosticEvents)
+        ISubscriptionDiagnosticEvents diagnosticEvents,
+        RabbitMQTopologyHelper topologyHelper)
         : base(options, diagnosticEvents)
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         _rabbitMqSubscriptionOptions = rabbitMqSubscriptionOptions ?? throw new ArgumentNullException(nameof(rabbitMqSubscriptionOptions));
+        _topologyHelper = topologyHelper;
         _topicBufferCapacity = options.TopicBufferCapacity;
         _topicBufferFullMode = options.TopicBufferFullMode;
         _completed = serializer.CompleteMessage;
@@ -55,12 +58,14 @@ internal sealed class RabbitMQPubSub : DefaultPubSub
             bufferCapacity ?? _topicBufferCapacity,
             bufferFullMode ?? _topicBufferFullMode,
             _rabbitMqSubscriptionOptions,
-            DiagnosticEvents);
+            DiagnosticEvents,
+            _topologyHelper);
 
     private async Task PublishAsync(string formattedTopic, string message, CancellationToken cancellationToken)
     {
         var body = Encoding.UTF8.GetBytes(message);
         var channel = await _connection.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+        await _topologyHelper.ConfigurePublishingAsync(channel, formattedTopic, cancellationToken).ConfigureAwait(false);
 
         await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
