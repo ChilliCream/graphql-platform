@@ -1,7 +1,14 @@
 using System.Buffers;
 using System.Text.Json;
+#if FUSION
+using HotChocolate.Buffers;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 /// <summary>
 /// Represents an abstraction for GraphQL over WebSocket protocols.
@@ -37,6 +44,29 @@ internal interface IProtocolHandler
         JsonElement payload,
         CancellationToken cancellationToken = default);
 
+#if FUSION
+    /// <summary>
+    /// Executes an operation and parses each result with the supplied arena source.
+    /// </summary>
+    /// <param name="context">The WebSocket client context.</param>
+    /// <param name="request">The operation request to execute.</param>
+    /// <param name="arenaSource">
+    /// The source of arenas that back the result documents.
+    /// </param>
+    /// <param name="deferPayloadParsing">
+    /// Specifies whether payloads are parsed when the consumer dequeues them.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token that cancels the operation.
+    /// </param>
+    /// <returns>The result stream for the operation.</returns>
+    ValueTask<SocketResult> ExecuteAsync(
+        SocketClientContext context,
+        IOperationRequest request,
+        IMemoryArenaSource arenaSource,
+        bool deferPayloadParsing,
+        CancellationToken cancellationToken = default);
+#else
     /// <summary>
     /// Executes the specified operation request using the protocol handler.
     /// </summary>
@@ -60,7 +90,27 @@ internal interface IProtocolHandler
         SocketClientContext context,
         IOperationRequest request,
         CancellationToken cancellationToken = default);
+#endif
 
+#if FUSION
+    /// <summary>
+    /// Executes a batch operation and parses each result with the supplied arena source.
+    /// </summary>
+    /// <param name="context">The WebSocket client context.</param>
+    /// <param name="request">The batch request to execute.</param>
+    /// <param name="arenaSource">
+    /// The source of arenas that back the result documents.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token that cancels the operation.
+    /// </param>
+    /// <returns>The result stream for the batch operation.</returns>
+    ValueTask<SocketResult> ExecuteBatchAsync(
+        SocketClientContext context,
+        OperationBatchRequest request,
+        IMemoryArenaSource arenaSource,
+        CancellationToken cancellationToken = default);
+#else
     /// <summary>
     /// Executes the specified batch operation request using the protocol handler.
     /// </summary>
@@ -82,6 +132,7 @@ internal interface IProtocolHandler
         SocketClientContext context,
         OperationBatchRequest request,
         CancellationToken cancellationToken = default);
+#endif
 
     /// <summary>
     /// Called when a message is received from the server.

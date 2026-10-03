@@ -7,6 +7,12 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException ClientScopeAlreadyBorrowed()
+        => new("The operation plan context already has a borrowed source schema client scope.");
+
+    public static InvalidOperationException ClientScopeBorrowNotFound()
+        => new("The borrowed source schema client scope does not belong to this operation plan context.");
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,
