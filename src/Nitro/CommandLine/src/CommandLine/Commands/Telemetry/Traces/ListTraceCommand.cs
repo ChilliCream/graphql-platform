@@ -50,18 +50,14 @@ internal sealed class ListTraceCommand : Command
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetryTraceSearchOption>.Instance);
         var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
-        if (!TelemetryListFilter.TryCompile(
+        if (!CompiledTelemetryFilter.TryCreate(
             console,
-            TelemetryFilterSignal.Traces,
             filterText,
             parseResult.GetValue(Opt<TelemetryHasErrorOption>.Instance),
             parseResult.GetValue(Opt<TelemetryMinDurationOption>.Instance),
-            severity: null,
-            traceId: null,
             search,
             service,
-            out var filter,
-            out var parsedFilter))
+            out var filter))
         {
             return ExitCodes.Error;
         }
@@ -74,7 +70,7 @@ internal sealed class ListTraceCommand : Command
 
         var page = await client.ListTracesAsync(
             workspaceId,
-            filter,
+            filter.Input,
             environments,
             spanKinds,
             since,
@@ -87,17 +83,9 @@ internal sealed class ListTraceCommand : Command
             .OrderByDescending(static trace => trace.Start)
             .Select(TraceListItem.From)
             .ToArray();
-        var emptyResultHint = await TelemetryListFilter.CreateEmptyResultHintAsync(
-            client,
-            workspaceId,
-            TelemetryFilterSignal.Traces,
-            items.Length,
-            filterText,
-            search,
-            parsedFilter,
-            since,
-            until,
-            cancellationToken);
+        var emptyResultHint = items.Length == 0
+            ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
+            : null;
         console.WriteListEnvelope(
             items,
             total: null,

@@ -6,7 +6,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 
-public sealed class TelemetryListFilterTests
+public sealed class CompiledTelemetryFilterTests
 {
     private static readonly JsonSerializerOptions s_serializerOptions = new()
     {
@@ -17,89 +17,80 @@ public sealed class TelemetryListFilterTests
     };
 
     [Theory]
-    [InlineData(null, false, null, null, null, null, null, TelemetryFilterSignal.Traces, "null")]
-    [InlineData("   ", false, null, null, null, null, null, TelemetryFilterSignal.Traces, "null")]
-    [InlineData(null, true, null, null, null, null, null, TelemetryFilterSignal.Traces, "attribute(status,eq(string:error))")]
-    [InlineData(null, false, 250, null, null, null, null, TelemetryFilterSignal.Traces, "attribute(duration,gte(int:250))")]
-    [InlineData(null, false, null, "error", null, null, null, TelemetryFilterSignal.Logs, "attribute(severity,in(string:error,string:fatal))")]
-    [InlineData(null, false, null, "TRACE", null, null, null, TelemetryFilterSignal.Logs, "attribute(severity,in(string:trace,string:debug,string:info,string:warn,string:error,string:fatal))")]
-    [InlineData(null, false, null, null, "abc", null, null, TelemetryFilterSignal.Traces, "attribute(trace.id,eq(string:abc))")]
-    [InlineData(null, false, null, null, null, "timeout", null, TelemetryFilterSignal.Traces, "attribute(span.name,matches(*timeout*))")]
-    [InlineData(null, false, null, null, null, "timeout", null, TelemetryFilterSignal.Logs, "attribute(log.message,matches(*timeout*))")]
-    [InlineData(null, false, null, null, null, null, "checkout", TelemetryFilterSignal.Traces, "attribute(service.name@Resource,eq(string:checkout))")]
-    [InlineData("a:1", false, null, null, null, null, null, TelemetryFilterSignal.Traces, "attribute(a,eq(int:1))")]
-    [InlineData("timeout", false, null, null, null, null, null, TelemetryFilterSignal.Logs, "attribute(log.message,matches(*timeout*))")]
-    public void Compile_Should_EmitOneClause_When_ASingleFlagIsSet(
-        string? filter,
+    [InlineData(null, false, null, null, null, "null")]
+    [InlineData("   ", false, null, null, null, "null")]
+    [InlineData(null, true, null, null, null, "attribute(status,eq(string:error))")]
+    [InlineData(null, false, 250, null, null, "attribute(duration,gte(int:250))")]
+    [InlineData(null, false, null, "timeout", null, "attribute(span.name,matches(*timeout*))")]
+    [InlineData(null, false, null, null, "checkout", "attribute(service.name@Resource,eq(string:checkout))")]
+    [InlineData("a:1", false, null, null, null, "attribute(a,eq(int:1))")]
+    public void Create_Should_EmitOneClause_When_ASingleTraceFlagIsSet(
+        string? filterText,
         bool hasError,
         int? minDurationMs,
-        string? severity,
-        string? traceId,
         string? search,
         string? service,
-        TelemetryFilterSignal signal,
         string expected)
     {
         // act
-        var result = TelemetryListFilter.Compile(
-            filter,
-            signal,
-            hasError,
-            minDurationMs,
-            severity,
-            traceId,
-            search,
-            service);
+        var filter = CompiledTelemetryFilter.Create(filterText, hasError, minDurationMs, search, service);
 
         // assert
-        Assert.Equal(expected, Describe(result));
+        Assert.Equal(expected, Describe(filter.Input));
     }
 
     [Theory]
-    [InlineData(null, true, null, null, null, null, "checkout", TelemetryFilterSignal.Traces, "and(attribute(status,eq(string:error)),attribute(service.name@Resource,eq(string:checkout)))")]
-    [InlineData(null, false, 250, null, null, "timeout", null, TelemetryFilterSignal.Traces, "and(attribute(duration,gte(int:250)),attribute(span.name,matches(*timeout*)))")]
-    public void Compile_Should_AndTheClauses_When_TwoFlagsAreSet(
-        string? filter,
-        bool hasError,
-        int? minDurationMs,
+    [InlineData(null, "error", null, null, null, "attribute(severity,in(string:error,string:fatal))")]
+    [InlineData(null, "TRACE", null, null, null, "attribute(severity,in(string:trace,string:debug,string:info,string:warn,string:error,string:fatal))")]
+    [InlineData(null, null, "abc", null, null, "attribute(trace.id,eq(string:abc))")]
+    [InlineData(null, null, null, "timeout", null, "attribute(log.message,matches(*timeout*))")]
+    [InlineData(null, null, null, null, "checkout", "attribute(service.name@Resource,eq(string:checkout))")]
+    [InlineData("timeout", null, null, null, null, "attribute(log.message,matches(*timeout*))")]
+    public void Create_Should_EmitOneClause_When_ASingleLogFlagIsSet(
+        string? filterText,
         string? severity,
         string? traceId,
         string? search,
         string? service,
-        TelemetryFilterSignal signal,
         string expected)
     {
         // act
-        var result = TelemetryListFilter.Compile(
-            filter,
-            signal,
-            hasError,
-            minDurationMs,
-            severity,
-            traceId,
-            search,
-            service);
+        var filter = CompiledTelemetryFilter.Create(filterText, severity, traceId, search, service);
 
         // assert
-        Assert.Equal(expected, Describe(result));
+        Assert.Equal(expected, Describe(filter.Input));
+    }
+
+    [Theory]
+    [InlineData(true, null, null, "checkout", "and(attribute(status,eq(string:error)),attribute(service.name@Resource,eq(string:checkout)))")]
+    [InlineData(false, 250, "timeout", null, "and(attribute(duration,gte(int:250)),attribute(span.name,matches(*timeout*)))")]
+    public void Create_Should_AndTheClauses_When_TwoTraceFlagsAreSet(
+        bool hasError,
+        int? minDurationMs,
+        string? search,
+        string? service,
+        string expected)
+    {
+        // act
+        var filter = CompiledTelemetryFilter.Create(null, hasError, minDurationMs, search, service);
+
+        // assert
+        Assert.Equal(expected, Describe(filter.Input));
     }
 
     [Fact]
-    public void Compile_Should_AndEveryConvenienceFlagAroundTheParsedTree_When_FlagsAreProvided()
+    public void Create_Should_AndEveryTraceFlagAroundTheParsedTree_When_FlagsAreProvided()
     {
         // act
-        var result = TelemetryListFilter.Compile(
+        var filter = CompiledTelemetryFilter.Create(
             "http.status_code:>=500",
-            TelemetryFilterSignal.Logs,
             hasError: true,
             minDurationMs: 1000,
-            severity: "warn",
-            traceId: "abc",
             search: "timeout",
             service: "checkout");
 
         // assert
-        Serialize(result).MatchInlineSnapshot(
+        Serialize(filter.Input).MatchInlineSnapshot(
             """
             {
               "and": [
@@ -131,6 +122,56 @@ public sealed class TelemetryListFilterTests
                       }
                     },
                     "key": "duration"
+                  }
+                },
+                {
+                  "attribute": {
+                    "condition": {
+                      "matches": "*timeout*"
+                    },
+                    "key": "span.name"
+                  }
+                },
+                {
+                  "attribute": {
+                    "condition": {
+                      "eq": {
+                        "string": "checkout"
+                      }
+                    },
+                    "key": "service.name",
+                    "kind": "Resource"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public void Create_Should_AndEveryLogFlagAroundTheParsedTree_When_FlagsAreProvided()
+    {
+        // act
+        var filter = CompiledTelemetryFilter.Create(
+            "http.status_code:>=500",
+            severity: "warn",
+            traceId: "abc",
+            search: "timeout",
+            service: "checkout");
+
+        // assert
+        Serialize(filter.Input).MatchInlineSnapshot(
+            """
+            {
+              "and": [
+                {
+                  "attribute": {
+                    "condition": {
+                      "gte": {
+                        "int": 500
+                      }
+                    },
+                    "key": "http.status_code"
                   }
                 },
                 {
@@ -186,22 +227,13 @@ public sealed class TelemetryListFilterTests
     }
 
     [Fact]
-    public void Compile_Should_ReturnTheParsedFilter_When_FilterIsProvided()
+    public void Create_Should_ExposeTheParsedFilter_When_FilterTextIsProvided()
     {
         // act
-        _ = TelemetryListFilter.Compile(
-            "http.statuscode:>=500",
-            TelemetryFilterSignal.Traces,
-            hasError: false,
-            minDurationMs: null,
-            severity: null,
-            traceId: null,
-            search: null,
-            service: null,
-            out var parsedFilter);
+        var filter = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, "http.statuscode:>=500");
 
         // assert
-        var predicate = Assert.IsType<FilterPredicateNode>(parsedFilter);
+        var predicate = Assert.IsType<FilterPredicateNode>(filter.ParsedFilter);
         Assert.Equal("http.statuscode", predicate.Field);
     }
 
@@ -209,38 +241,27 @@ public sealed class TelemetryListFilterTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("  ")]
-    public void Compile_Should_ReturnNoParsedFilter_When_TheFilterIsNullOrWhitespace(string? filter)
+    public void Create_Should_HaveNoParsedFilter_When_TheFilterTextIsNullOrWhitespace(string? filterText)
     {
         // act
-        var result = TelemetryListFilter.Compile(
-            filter,
-            TelemetryFilterSignal.Traces,
-            hasError: false,
-            minDurationMs: null,
-            severity: null,
-            traceId: null,
-            search: null,
-            service: null,
-            out var parsedFilter);
+        var filter = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filterText);
 
         // assert
-        Assert.Null(parsedFilter);
-        Assert.Null(result);
+        Assert.Null(filter.ParsedFilter);
+        Assert.Null(filter.Input);
     }
 
     [Fact]
-    public void Compile_Should_Throw_When_TheSeverityIsUnsupported()
+    public void Create_Should_Throw_When_TheSeverityIsUnsupported()
     {
         // act
-        var error = Assert.Throws<ArgumentOutOfRangeException>(() => TelemetryListFilter.Compile(
-            null,
-            TelemetryFilterSignal.Logs,
-            hasError: false,
-            minDurationMs: null,
-            severity: "verbose",
-            traceId: null,
-            search: null,
-            service: null));
+        var error = Assert.Throws<ArgumentOutOfRangeException>(
+            () => CompiledTelemetryFilter.Create(
+                filterText: null,
+                severity: "verbose",
+                traceId: null,
+                search: null,
+                service: null));
 
         // assert
         Assert.Equal(
@@ -255,23 +276,20 @@ public sealed class TelemetryListFilterTests
     [InlineData("warn", "attribute(severity,in(string:warn,string:error,string:fatal))")]
     [InlineData("error", "attribute(severity,in(string:error,string:fatal))")]
     [InlineData("fatal", "attribute(severity,in(string:fatal))")]
-    public void Compile_Should_IncludeTheRequestedLevelAndEveryHigherLevel_When_ASeverityIsGiven(
+    public void Create_Should_IncludeTheRequestedLevelAndEveryHigherLevel_When_ASeverityIsGiven(
         string severity,
         string expected)
     {
         // act
-        var result = TelemetryListFilter.Compile(
-            null,
-            TelemetryFilterSignal.Logs,
-            hasError: false,
-            minDurationMs: null,
+        var filter = CompiledTelemetryFilter.Create(
+            filterText: null,
             severity,
             traceId: null,
             search: null,
             service: null);
 
         // assert
-        Assert.Equal(expected, Describe(result));
+        Assert.Equal(expected, Describe(filter.Input));
     }
 
     [Theory]
@@ -281,23 +299,20 @@ public sealed class TelemetryListFilterTests
     [InlineData("warn", 3)]
     [InlineData("error", 2)]
     [InlineData("fatal", 1)]
-    public void Compile_Should_IncludeEveryHigherSeverity_When_ASeverityFlagIsProvided(
+    public void Create_Should_IncludeEveryHigherSeverity_When_ASeverityFlagIsProvided(
         string severity,
         int expectedCount)
     {
         // act
-        var result = TelemetryListFilter.Compile(
-            null,
-            TelemetryFilterSignal.Logs,
-            hasError: false,
-            minDurationMs: null,
+        var filter = CompiledTelemetryFilter.Create(
+            filterText: null,
             severity,
             traceId: null,
             search: null,
             service: null);
 
         // assert
-        Assert.Equal(expectedCount, result!.Attribute!.Condition.In!.Count);
+        Assert.Equal(expectedCount, filter.Input!.Attribute!.Condition.In!.Count);
     }
 
     private static string Serialize<T>(T value)

@@ -24,7 +24,7 @@ public sealed class FilterCompilerTests
             "(http.status_code:>=500 OR http.status_code:0) AND service.name:(\"a\" OR \"b\")";
 
         // act
-        var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+        var result = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filter).Input;
 
         // assert
         Serialize(result).MatchInlineSnapshot(
@@ -82,7 +82,7 @@ public sealed class FilterCompilerTests
         const string filter = "duration:RANGE(-9, -1) -@event.exception.type:*";
 
         // act
-        var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+        var result = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filter).Input;
 
         // assert
         Serialize(result).MatchInlineSnapshot(
@@ -134,7 +134,7 @@ public sealed class FilterCompilerTests
         const string filter = "@span.db.name:IN(a*, b)";
 
         // act
-        var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+        var result = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filter).Input;
 
         // assert
         Serialize(result).MatchInlineSnapshot(
@@ -173,14 +173,14 @@ public sealed class FilterCompilerTests
     [InlineData("timeout", "log.message", TelemetryFilterSignal.Logs, "*timeout*")]
     [InlineData("\\@span", "span.name", TelemetryFilterSignal.Traces, "*@span*")]
     [InlineData("*HTTP*", "log.message", TelemetryFilterSignal.Logs, "*HTTP*")]
-    public void Compile_Should_UseTheSuppliedFreeTextKey_When_TheInputIsATerm(
+    public void Compile_Should_UseTheSignalFreeTextKey_When_TheInputIsATerm(
         string filter,
         string freeTextKey,
         TelemetryFilterSignal signal,
         string expectedPattern)
     {
         // act
-        var result = FilterCompiler.Compile(filter, freeTextKey, signal);
+        var result = CompiledTelemetryFilter.Create(signal, filter).Input;
 
         // assert
         Assert.Equal(expectedPattern, result!.Attribute!.Condition.Matches);
@@ -195,10 +195,7 @@ public sealed class FilterCompilerTests
         string expected)
     {
         // act
-        var result = FilterCompiler.Compile(
-            filter,
-            signal == TelemetryFilterSignal.Traces ? "span.name" : "log.message",
-            signal);
+        var result = CompiledTelemetryFilter.Create(signal, filter).Input;
 
         // assert
         Assert.Equal(expected, Describe(result));
@@ -237,7 +234,7 @@ public sealed class FilterCompilerTests
         string expected)
     {
         // act
-        var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+        var result = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filter).Input;
 
         // assert
         Assert.Equal(expected, Describe(result));
@@ -279,15 +276,10 @@ public sealed class FilterCompilerTests
         FilterNode? node = null;
 
         // act
-        var textError = Assert.Throws<ArgumentException>(
-            () => FilterCompiler.Compile("timeout", " ", TelemetryFilterSignal.Traces));
         var nodeError = Assert.Throws<ArgumentException>(
             () => FilterCompiler.Compile(node, ""));
 
         // assert
-        Assert.Equal(
-            "The value cannot be an empty string or composed entirely of whitespace. (Parameter 'freeTextKey')",
-            textError.Message);
         Assert.Equal(
             "The value cannot be an empty string or composed entirely of whitespace. (Parameter 'freeTextKey')",
             nodeError.Message);
@@ -300,7 +292,7 @@ public sealed class FilterCompilerTests
     public void Compile_Should_ReturnNull_When_TheFilterIsNullOrWhitespace(string? filter)
     {
         // act
-        var result = FilterCompiler.Compile(filter, "span.name", TelemetryFilterSignal.Traces);
+        var result = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filter).Input;
 
         // assert
         Assert.Equal("null", Describe(result));
@@ -423,10 +415,7 @@ public sealed class FilterCompilerTests
         string expected)
     {
         // act
-        var result = FilterCompiler.Compile(
-            filter,
-            signal == TelemetryFilterSignal.Traces ? "span.name" : "log.message",
-            signal);
+        var result = CompiledTelemetryFilter.Create(signal, filter).Input;
 
         // assert
         Assert.Equal(expected, Describe(result));

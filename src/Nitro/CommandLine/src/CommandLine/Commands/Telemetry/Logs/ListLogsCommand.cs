@@ -52,18 +52,14 @@ internal sealed class ListLogsCommand : Command
         var severity = parseResult.GetValue(Opt<TelemetrySeverityOption>.Instance);
         var traceId = parseResult.GetValue(Opt<TelemetryTraceIdOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetryLogSearchOption>.Instance);
-        if (!TelemetryListFilter.TryCompile(
+        if (!CompiledTelemetryFilter.TryCreate(
             console,
-            TelemetryFilterSignal.Logs,
             filterText,
-            hasError: false,
-            minDurationMs: null,
             severity?.ToString(),
             traceId,
             search,
             service,
-            out var filter,
-            out var parsedFilter))
+            out var filter))
         {
             return ExitCodes.Error;
         }
@@ -74,7 +70,7 @@ internal sealed class ListLogsCommand : Command
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
         var page = await client.ListLogsAsync(
             workspaceId,
-            filter,
+            filter.Input,
             environments,
             since,
             until,
@@ -86,17 +82,9 @@ internal sealed class ListLogsCommand : Command
             .OrderByDescending(static log => log.Start)
             .Select(LogListItem.From)
             .ToArray();
-        var emptyResultHint = await TelemetryListFilter.CreateEmptyResultHintAsync(
-            client,
-            workspaceId,
-            TelemetryFilterSignal.Logs,
-            items.Length,
-            filterText,
-            search,
-            parsedFilter,
-            since,
-            until,
-            cancellationToken);
+        var emptyResultHint = items.Length == 0
+            ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
+            : null;
         console.WriteListEnvelope(
             items,
             total: null,

@@ -7,18 +7,6 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
 internal static class FilterCompiler
 {
-    public static OpenTelemetryFilterInput? Compile(
-        string? filterText,
-        string freeTextKey,
-        TelemetryFilterSignal signal)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(freeTextKey);
-
-        return string.IsNullOrWhiteSpace(filterText)
-            ? null
-            : Compile(FilterParser.Parse(filterText, signal), freeTextKey);
-    }
-
     public static OpenTelemetryFilterInput? Compile(FilterNode? node, string freeTextKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(freeTextKey);
