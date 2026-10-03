@@ -171,7 +171,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                 .SetPrivate()
                 .SetReturnType(TypeNames.Object.MakeNullable())
                 .SetName("Format" + GetPropertyName(argument.Name))
-                .AddParameter(Value, x => x.SetType(argument.Type.ToTypeReference()))
+                .AddParameter(Value, x => x.SetType(argument.Type.ToTypeReference(inputType: true)))
                 .AddCode(GenerateSerializer(argument.Type, Value));
         }
     }
@@ -309,7 +309,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             watchMethod
                 .AddParameter()
                 .SetName(GetParameterName(arg.Name))
-                .SetType(arg.Type.ToTypeReference());
+                .SetType(arg.Type.ToTypeReference(inputType: true));
         }
 
         watchMethod.AddParameter()
@@ -350,7 +350,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             executeMethod
                 .AddParameter()
                 .SetName(GetParameterName(arg.Name))
-                .SetType(arg.Type.ToTypeReference());
+                .SetType(arg.Type.ToTypeReference(inputType: true));
         }
 
         executeMethod
@@ -516,7 +516,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             {
                 var argName = GetParameterName(arg.FieldName);
 
-                method.AddParameter(argName, x => x.SetType(arg.Type.ToTypeReference()));
+                method.AddParameter(argName, x => x.SetType(arg.Type.ToTypeReference(inputType: true)));
 
                 method.AddCode(
                     MethodCallBuilder
@@ -597,7 +597,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             classBuilder
                 .AddMethod("MapFilesFromArgument" + GetPropertyName(argument.Name))
                 .AddParameter("path", p => p.SetType(TypeNames.String))
-                .AddParameter("value", p => p.SetType(argument.Type.ToTypeReference()))
+                .AddParameter("value", p => p.SetType(argument.Type.ToTypeReference(inputType: true)))
                 .AddParameter(Files, p => p.SetType(s_filesType))
                 .AddCode(BuildUploadFileMapper(argument.Type, "path", "value"));
         }
@@ -615,7 +615,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         var methodBuilder = builder
             .AddMethod("MapFilesFromType" + type.Name)
             .AddParameter("path", p => p.SetType(TypeNames.String))
-            .AddParameter("value", p => p.SetType(type.ToTypeReference(nonNull: true)))
+            .AddParameter("value", p => p.SetType(type.ToTypeReference(nonNull: true, inputType: true)))
             .AddParameter(Files, p => p.SetType(s_filesType));
 
         foreach (var field in type.Properties)

@@ -163,7 +163,8 @@ public static class CSharpGenerator
             settings.ClientName,
             settings.HashProvider,
             settings.RequestStrategy,
-            settings.TransportProfiles);
+            settings.TransportProfiles,
+            settings.OptionalEnum);
 
         // First we run all mappers that do not have any dependencies on others.
         EntityIdFactoryDescriptorMapper.Map(clientModel, context);
@@ -307,7 +308,8 @@ public static class CSharpGenerator
             settings.NoStore,
             settings.InputRecords,
             settings.EntityRecords,
-            settings.RazorComponents);
+            settings.RazorComponents,
+            settings.OptionalEnum);
 
         var results = new List<GeneratorResult>();
 
