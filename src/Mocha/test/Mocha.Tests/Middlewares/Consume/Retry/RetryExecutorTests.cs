@@ -643,13 +643,13 @@ public sealed class RetryExecutorTests
     [Fact]
     public async Task ExecuteAsync_Should_ThrowOperationCanceled_When_CancellationRequestedDuringDelay()
     {
-        // arrange - use a short real delay with pre-cancelled token to verify cancellation propagation
-        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(1), RetryBackoffType.Constant));
+        // arrange
+        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(10), RetryBackoffType.Constant));
         using var cts = new CancellationTokenSource();
         var counter = new Counter();
 
-        // Pre-cancel so the delay will throw OperationCanceledException immediately
-        cts.Cancel();
+        // the first attempt fails immediately, so the cancellation lands in the retry delay
+        cts.CancelAfter(TimeSpan.FromMilliseconds(100));
 
         // act & assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
@@ -667,6 +667,100 @@ public sealed class RetryExecutorTests
                 .AsTask()
         );
 
+        Assert.Equal(1, counter.Count);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RethrowWithoutRetryOrDiscard_When_ActionIsCancelled()
+    {
+        // arrange
+        var rules = BuildRules(p =>
+        {
+            p.On<OperationCanceledException>().Discard();
+            p.On<Exception>().Retry(3, TimeSpan.Zero, RetryBackoffType.Constant);
+        });
+        using var cts = new CancellationTokenSource();
+        var counter = new Counter();
+        await cts.CancelAsync();
+
+        // act
+        var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            RetryExecutor
+                .ExecuteAsync(
+                    rules,
+                    counter,
+                    static (s) =>
+                    {
+                        s.Increment();
+                        throw new OperationCanceledException("cancelled by shutdown");
+                    },
+                    onRetry: null,
+                    cts.Token)
+                .AsTask()
+        );
+
+        // assert
+        Assert.Equal("cancelled by shutdown", exception.Message);
+        Assert.Equal(1, counter.Count);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RethrowWithoutRetry_When_ActionFailsAfterCancellation()
+    {
+        // arrange
+        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.Zero, RetryBackoffType.Constant));
+        using var cts = new CancellationTokenSource();
+        var counter = new Counter();
+        await cts.CancelAsync();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            RetryExecutor
+                .ExecuteAsync(
+                    rules,
+                    counter,
+                    static (s) =>
+                    {
+                        s.Increment();
+                        throw new InvalidOperationException("failed after cancellation");
+                    },
+                    onRetry: null,
+                    cts.Token)
+                .AsTask()
+        );
+
+        // assert
+        Assert.Equal("failed after cancellation", exception.Message);
+        Assert.Equal(1, counter.Count);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RethrowWithoutDiscard_When_ActionFailsAfterCancellation()
+    {
+        // arrange
+        var rules = BuildRules(p => p.On<InvalidOperationException>().Discard());
+        using var cts = new CancellationTokenSource();
+        var counter = new Counter();
+        await cts.CancelAsync();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            RetryExecutor
+                .ExecuteAsync(
+                    rules,
+                    counter,
+                    static (s) =>
+                    {
+                        s.Increment();
+                        throw new InvalidOperationException("failed after cancellation");
+                    },
+                    onRetry: null,
+                    cts.Token)
+                .AsTask()
+        );
+
+        // assert
+        Assert.Equal("failed after cancellation", exception.Message);
         Assert.Equal(1, counter.Count);
     }
 

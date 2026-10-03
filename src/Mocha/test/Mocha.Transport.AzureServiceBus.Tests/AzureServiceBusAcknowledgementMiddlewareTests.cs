@@ -26,7 +26,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         // assert
         Assert.Equal(1, settlement.CompleteCallCount);
         Assert.Equal(0, settlement.AbandonCallCount);
-        Assert.Equal(cts.Token, settlement.LastCancellationToken);
+        Assert.Equal(CancellationToken.None, settlement.LastCancellationToken);
         Assert.Equal(entityPath, settlement.ObservedEntityPath);
     }
 
@@ -50,8 +50,57 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         Assert.Same(handlerException, thrown);
         Assert.Equal(0, settlement.CompleteCallCount);
         Assert.Equal(1, settlement.AbandonCallCount);
-        Assert.Equal(cts.Token, settlement.LastCancellationToken);
+        Assert.Equal(CancellationToken.None, settlement.LastCancellationToken);
         Assert.Equal(entityPath, settlement.ObservedEntityPath);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvokeAsync_Should_Complete_When_ReceiveIsCancelledAfterHandlerFinished(bool isSession)
+    {
+        // arrange
+        using var cts = new CancellationTokenSource();
+        var (context, settlement) = CreateContext(isSession, "orders", cts.Token);
+        var middleware = new AzureServiceBusAcknowledgementMiddleware();
+
+        // act
+        await middleware.InvokeAsync(
+            context,
+            _ =>
+            {
+                cts.Cancel();
+                return ValueTask.CompletedTask;
+            });
+
+        // assert
+        Assert.Equal(1, settlement.CompleteCallCount);
+        Assert.Equal(0, settlement.AbandonCallCount);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvokeAsync_Should_Abandon_When_HandlerIsCancelled(bool isSession)
+    {
+        // arrange
+        using var cts = new CancellationTokenSource();
+        var (context, settlement) = CreateContext(isSession, "orders", cts.Token);
+        var middleware = new AzureServiceBusAcknowledgementMiddleware();
+
+        // act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => middleware.InvokeAsync(
+                context,
+                _ =>
+                {
+                    cts.Cancel();
+                    throw new OperationCanceledException(cts.Token);
+                }).AsTask());
+
+        // assert
+        Assert.Equal(0, settlement.CompleteCallCount);
+        Assert.Equal(1, settlement.AbandonCallCount);
     }
 
     [Fact]
@@ -222,7 +271,8 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
     /// <summary>
     /// Tracks settlement calls made through a <see cref="RecordingServiceBusReceiver"/> or
     /// <see cref="RecordingServiceBusSessionReceiver"/> so tests can assert on call counts,
-    /// the propagated cancellation token, and the entity path the middleware selected.
+    /// the propagated cancellation token, and the entity path the middleware selected. Like the
+    /// Azure Service Bus SDK, a settlement with a cancelled token fails and is not counted.
     /// </summary>
     private sealed class RecordingSettlement
     {
@@ -240,6 +290,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
 
         public Task CompleteAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             CompleteCallCount++;
             LastCancellationToken = cancellationToken;
             return Task.CompletedTask;
@@ -247,6 +298,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
 
         public Task AbandonAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             AbandonCallCount++;
             LastCancellationToken = cancellationToken;
             return AbandonException is null ? Task.CompletedTask : Task.FromException(AbandonException);

@@ -44,7 +44,8 @@ internal sealed class RequestConsumer<THandler, TRequest, TResponse> : Consumer
         {
             var dispatcher = context.Services.GetRequiredService<IMessageBus>();
 
-            await dispatcher.ReplyAsync((object)response!, options, context.CancellationToken);
+            // The reply settles the request, so a cancelled receive does not cancel it.
+            await dispatcher.ReplyAsync((object)response!, options, CancellationToken.None);
         }
     }
 }

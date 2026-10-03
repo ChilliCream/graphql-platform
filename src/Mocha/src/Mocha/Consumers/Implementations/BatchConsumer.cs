@@ -12,7 +12,10 @@ namespace Mocha;
 /// <remarks>
 /// Uses a TCS-based pattern to hold each per-message pipeline open until the batch handler
 /// completes. This preserves existing middleware semantics (ACK, fault, circuit breaker)
-/// without any modifications to the middleware chain.
+/// without any modifications to the middleware chain. A message whose receive is cancelled before
+/// its batch is dispatched is removed from the batch. The batch handler's token is cancelled when
+/// the consumer is disposed or the receives of all messages in the batch are cancelled. A batch that
+/// fails while its token is cancelled cancels its messages instead of faulting them.
 /// </remarks>
 internal sealed class BatchConsumer<THandler, TEvent> : Consumer
     where THandler : class, IBatchEventHandler<TEvent>
@@ -83,14 +86,34 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
         // the message can be deserialized before adding to the batch
         _ = batchContext.Message;
 
+        var cancellationToken = context.CancellationToken;
         var entry = await _collector.Add(batchContext);
-        await entry.Task;
+
+        try
+        {
+            await entry.Task.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (_collector.TryRemove(entry))
+            {
+                throw;
+            }
+
+            // The batch was already dispatched, so the entry completes with the batch handler.
+            await entry.Task;
+        }
     }
 
     private async Task ProcessBatchAsync(MessageBatch<TEvent> batch, CancellationToken cancellationToken)
     {
+        using var cancellation = BatchCancellation.Create(batch, cancellationToken);
+        var batchToken = cancellation.Token;
+
         try
         {
+            batchToken.ThrowIfCancellationRequested();
+
             _logger.DispatchingBatch(batch.Count, batch.CompletionMode);
 
             // The batch has no receive scope of its own, so it gets one here, mirroring the scope
@@ -103,7 +126,7 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
                 batch.GetContext(0),
                 Guid.NewGuid().ToString(),
                 _itemMessageType,
-                cancellationToken);
+                batchToken);
 
             await Pipeline(batchContext);
 
@@ -112,10 +135,8 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
                 entry.Complete();
             }
         }
-        catch (OperationCanceledException)
+        catch (Exception) when (batchToken.IsCancellationRequested)
         {
-            // Handler observed cancellation - cancel all entries so per-message pipelines
-            // unblock for NACK/redelivery
             foreach (var entry in batch.Entries)
             {
                 entry.Cancel();

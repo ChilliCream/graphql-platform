@@ -41,7 +41,8 @@ internal sealed class SendConsumer<THandler, TRequest> : Consumer
 
             var response = new AcknowledgedEvent(options.CorrelationId, context.MessageId);
 
-            await dispatcher.ReplyAsync(response, options, context.CancellationToken);
+            // The reply settles the request, so a cancelled receive does not cancel it.
+            await dispatcher.ReplyAsync(response, options, CancellationToken.None);
         }
     }
 }

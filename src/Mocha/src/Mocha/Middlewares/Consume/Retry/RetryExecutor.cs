@@ -4,7 +4,8 @@ namespace Mocha;
 
 /// <summary>
 /// Executes an action with retry logic based on exception policy rules.
-/// Returns normally on success or discard. Throws on dead-letter, no match, or exhausted retries.
+/// Returns normally on success or discard. Throws on dead-letter, no match, exhausted retries, or a
+/// failure while cancellation is requested.
 /// </summary>
 internal static class RetryExecutor
 {
@@ -35,7 +36,7 @@ internal static class RetryExecutor
                 await action(state);
                 return;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 // Match exception against policy rules.
                 var rule = ExceptionPolicyMatcher.Match(rules, ex);

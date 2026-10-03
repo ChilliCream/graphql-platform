@@ -209,6 +209,49 @@ public class CircuitBreakerMiddlewareTests
         Assert.Single(recorder.Messages);
     }
 
+    [Fact]
+    public async Task StopAsync_Should_CancelMessageWaitingForOpenCircuit_When_StopIsCancelled()
+    {
+        // arrange
+        var counter = new InvocationCounter();
+        var services = new ServiceCollection();
+        services
+            .AddSingleton(counter)
+            .AddMessageBus()
+            .AddCircuitBreaker(o =>
+            {
+                o.FailureRatio = 0.5;
+                o.MinimumThroughput = 2;
+                o.SamplingDuration = TimeSpan.FromMinutes(1);
+                o.BreakDuration = TimeSpan.FromMinutes(5);
+            })
+            .AddEventHandler<AlwaysThrowingHandler>()
+            .AddInMemory(t => t.ModifyOptions(o => o.Shutdown.CancellationGracePeriod = TimeSpan.FromMinutes(1)));
+        await using var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestContext.Current.CancellationToken);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await bus.PublishAsync(new TestEvent { Data = "fail-1" }, CancellationToken.None);
+        await bus.PublishAsync(new TestEvent { Data = "fail-2" }, CancellationToken.None);
+        Assert.True(await counter.WaitForCountAsync(2, s_timeout), "Both failures should reach the handler");
+
+        // the circuit is open, so this message waits for the break duration
+        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await bus.PublishAsync(new TestEvent { Data = "waiting" }, CancellationToken.None);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
+
+        // act
+        await runtime.StopAsync(new CancellationToken(canceled: true))
+            .AsTask()
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, counter.Count);
+        Assert.False(runtime.IsStarted);
+    }
+
     private static async Task<ServiceProvider> CreateBusAsync(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();

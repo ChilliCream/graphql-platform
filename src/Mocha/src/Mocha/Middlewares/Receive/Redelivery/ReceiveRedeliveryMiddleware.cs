@@ -14,7 +14,8 @@ namespace Mocha;
 /// This middleware implements Tier 2 (delayed redelivery) of the retry model. On failure it
 /// increments the <c>delayed-retry-count</c> header and dispatches the original envelope back
 /// to the same endpoint with a scheduled delivery time. Request/reply messages are excluded
-/// because the caller would time out waiting for a response.
+/// because the caller would time out waiting for a response. A failure while the receive is
+/// cancelled is not redelivered and propagates to the transport.
 /// </remarks>
 internal sealed class ReceiveRedeliveryMiddleware(
     ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules,
@@ -35,7 +36,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             // Request/reply messages must not be redelivered - the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)
@@ -93,7 +94,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 dispatchEndpoint,
                 context.Runtime,
                 context.MessageType,
-                context.CancellationToken);
+                CancellationToken.None);
 
             dispatchContext.Envelope = envelope;
 
