@@ -49,6 +49,38 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
     }
 
     [Fact]
+    public async Task OnStopAsync_Should_DeleteForwardingSubscription_When_StopIsCancelled()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var admin = new FakeServiceBusAdministrationClient();
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(admin);
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+                t.Endpoint("temp-ep").Consumer<NoOpConsumer>().Queue("temp-q").Temporary());
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var subscription = topology.Subscriptions.Single(s => s.Destination.Name == "temp-q");
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<AzureServiceBusReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "temp-q");
+
+        // act
+        await endpoint.StopAsync(runtime, new CancellationToken(canceled: true));
+
+        // assert
+        Assert.Equal([(subscription.Source.Name, subscription.Name)], admin.DeletedSubscriptions);
+        Assert.Equal(["temp-q"], admin.DeletedQueues);
+    }
+
+    [Fact]
     public async Task OnStopAsync_Should_NotDeleteSubscription_When_EndpointIsNotTemporary()
     {
         // arrange - same implicit convention subscription, but the endpoint never opts into Temporary()
