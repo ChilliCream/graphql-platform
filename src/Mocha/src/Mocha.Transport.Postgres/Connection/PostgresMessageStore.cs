@@ -332,7 +332,8 @@ public sealed class PostgresMessageStore
             }
         }
 
-        await transaction.CommitAsync(cancellationToken);
+        // Once the leases are read, they are committed and returned, so cancellation cannot strand them.
+        await transaction.CommitAsync(CancellationToken.None);
         return batch;
     }
 
@@ -369,6 +370,27 @@ public sealed class PostgresMessageStore
 
         command.CommandText = $"DELETE FROM {_schemaOptions.MessageTable} WHERE transport_message_id = @id";
         command.Parameters.Add(new NpgsqlParameter("id", NpgsqlDbType.Uuid) { Value = transportMessageId });
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Deletes a message if it is still leased by the specified consumer.
+    /// </summary>
+    internal async Task DeleteMessageAsync(
+        Guid transportMessageId,
+        Guid consumerId,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = $"""
+            DELETE FROM {_schemaOptions.MessageTable}
+            WHERE transport_message_id = @id AND consumer_id = @consumer_id
+            """;
+        command.Parameters.Add(new NpgsqlParameter("id", NpgsqlDbType.Uuid) { Value = transportMessageId });
+        command.Parameters.Add(new NpgsqlParameter("consumer_id", NpgsqlDbType.Uuid) { Value = consumerId });
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -414,6 +436,110 @@ public sealed class PostgresMessageStore
     /// </summary>
     public Task ReleaseMessageAsync(Guid transportMessageId, CancellationToken cancellationToken)
         => ReleaseMessageAsync(transportMessageId, errorInfo: null, cancellationToken);
+
+    /// <summary>
+    /// Releases a message still leased by the specified consumer and records its processing error.
+    /// </summary>
+    internal async Task ReleaseMessageAsync(
+        Guid transportMessageId,
+        Guid consumerId,
+        ErrorInfo errorInfo,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = $"""
+            WITH updated_message AS (
+                UPDATE {_schemaOptions.MessageTable}
+                SET consumer_id = NULL,
+                    error_reason = COALESCE(error_reason, '[]'::jsonb) || @error_entry::jsonb
+                WHERE transport_message_id = @id AND consumer_id = @consumer_id
+                RETURNING queue_id
+            )
+            SELECT pg_notify('{_schemaOptions.NotificationChannel}', q.name::text)
+            FROM updated_message
+            JOIN {_schemaOptions.QueueTable} q ON updated_message.queue_id = q.id;
+            """;
+        command.Parameters.Add(new NpgsqlParameter("id", NpgsqlDbType.Uuid) { Value = transportMessageId });
+        command.Parameters.Add(new NpgsqlParameter("consumer_id", NpgsqlDbType.Uuid) { Value = consumerId });
+        command.Parameters.Add(
+            new NpgsqlParameter("error_entry", NpgsqlDbType.Jsonb)
+            {
+                Value = JsonSerializer.Serialize(new[] { errorInfo })
+            });
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns unprocessed messages still leased by the specified consumer for immediate
+    /// redelivery, without counting the returned attempt towards the delivery count.
+    /// Messages that are no longer leased by <paramref name="consumerId"/> are left unchanged.
+    /// </summary>
+    internal Task ReturnMessagesAsync(
+        IReadOnlyCollection<Guid> transportMessageIds,
+        Guid consumerId,
+        CancellationToken cancellationToken)
+        => UnleaseMessagesAsync(transportMessageIds, consumerId, countAttempt: false, cancellationToken);
+
+    /// <summary>
+    /// Releases all messages still leased by the specified consumer for redelivery, retaining their
+    /// delivery count and retry backoff. Messages no longer leased by <paramref name="consumerId"/>
+    /// are left unchanged.
+    /// </summary>
+    internal Task ReleaseMessagesAsync(Guid consumerId, CancellationToken cancellationToken)
+        => UnleaseMessagesAsync(null, consumerId, countAttempt: true, cancellationToken);
+
+    private async Task UnleaseMessagesAsync(
+        IReadOnlyCollection<Guid>? transportMessageIds,
+        Guid consumerId,
+        bool countAttempt,
+        CancellationToken cancellationToken)
+    {
+        if (transportMessageIds is { Count: 0 })
+        {
+            return;
+        }
+
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        // A returned message was not attempted, so its delivery is not counted and has no backoff.
+        var assignments = countAttempt
+            ? "consumer_id = NULL"
+            : "consumer_id = NULL, last_delivered = NULL, "
+                + $"delivery_count = GREATEST({_schemaOptions.MessageTable}.delivery_count - 1, 0)";
+
+        var messageFilter = transportMessageIds is null ? "" : "AND transport_message_id = ANY(@ids)";
+        command.CommandText = $"""
+            WITH unleased_messages AS (
+                UPDATE {_schemaOptions.MessageTable}
+                SET {assignments}
+                WHERE consumer_id = @consumer_id
+                  {messageFilter}
+                RETURNING queue_id
+            )
+            SELECT pg_notify(
+                '{_schemaOptions.NotificationChannel}',
+                q.name::text
+            )
+            FROM (SELECT DISTINCT queue_id FROM unleased_messages) um
+            JOIN {_schemaOptions.QueueTable} q ON um.queue_id = q.id;
+            """;
+
+        if (transportMessageIds is not null)
+        {
+            command.Parameters.Add(
+                new NpgsqlParameter("ids", NpgsqlDbType.Array | NpgsqlDbType.Uuid)
+                {
+                    Value = transportMessageIds.ToArray()
+                });
+        }
+        command.Parameters.Add(new NpgsqlParameter("consumer_id", NpgsqlDbType.Uuid) { Value = consumerId });
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 
     /// <summary>
     /// Appends error information to the <c>error_reason</c> JSONB array on a message.

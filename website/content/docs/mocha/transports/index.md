@@ -230,15 +230,18 @@ Each transport manages its own connections, topology, and middleware pipeline in
 
 Transports stop taking new messages and let active handlers finish until the host's shutdown token is cancelled. They then cancel the receive token and wait for the cancellation grace period. Consumer handlers, consume middleware and receive middleware all observe this token through `CancellationToken`.
 
-| Transport         | Unfinished messages                                          |
-| ----------------- | ------------------------------------------------------------ |
-| InMemory          | Discarded, because the InMemory transport does not redeliver |
-| RabbitMQ          | Requeued by the broker, including prefetched messages        |
-| Azure Service Bus | Abandoned, or redelivered when the message lock expires      |
+| Transport         | Unfinished messages                                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| InMemory          | Discarded, because the InMemory transport does not redeliver                                         |
+| PostgreSQL        | Returned to the queue right away if not started, released as a counted delivery attempt if cancelled |
+| RabbitMQ          | Requeued by the broker, including prefetched messages                                                |
+| Azure Service Bus | Abandoned, or redelivered when the message lock expires                                              |
 
 A message whose processing fails after its receive token is cancelled is not faulted, whatever the exception. Retries, redelivery, fault replies and dead-lettering do not apply to it, and the transport returns it as described above. A handler that completes after the cancellation still settles its message: replies and acknowledgements are not cancelled by the receive token.
 
 A message cancelled before its batch is emitted is removed from the batch. An emitted batch is cancelled when every contributing endpoint cancels processing, or when its consumer is disposed. Reply endpoints stay available until active handlers across transports have drained.
+
+PostgreSQL releases unfinished leases after the cancellation grace period, even if a handler has not returned. A late handler cannot settle a message leased by another consumer.
 
 A stopped or disposed bus cannot be started again. Starting, stopping and disposing the bus run one at a time.
 

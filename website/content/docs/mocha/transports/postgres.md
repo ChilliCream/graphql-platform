@@ -440,6 +440,10 @@ Messages with a `scheduled_time` in the future are not eligible for delivery unt
 
 Messages with an `expiration_time` are automatically skipped during reads when the expiration has passed. A background cleanup task deletes expired messages every 60 seconds.
 
+## Shutdown
+
+When the transport stops, each receive endpoint stops reading batches and returns the messages it leased but did not start to the queue right away. These messages do not count towards `max_delivery_count`, so another instance can receive them immediately. In-flight handlers finish until the drain ends. Messages whose handler is cancelled are released: the interrupted delivery counts towards `max_delivery_count`, and the regular retry backoff applies. The transport then deletes its row in `mocha_consumers`, which also removes its temporary queues.
+
 # Background maintenance tasks
 
 The transport runs several background tasks to maintain system health:
