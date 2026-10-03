@@ -22,6 +22,8 @@ internal sealed class ShowServiceCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
+        TelemetryCommandOptions.AddTimeRangeValidator(this);
+
         this.AddExamples("telemetry services show \"<name>\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);

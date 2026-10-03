@@ -25,6 +25,8 @@ internal sealed class ListAttributeValuesCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
+        TelemetryCommandOptions.AddTimeRangeValidator(this);
+
         this.AddExamples("telemetry attributes values service.name --signal traces");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);

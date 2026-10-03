@@ -79,7 +79,7 @@ public sealed class SpanTreeRendererTests
             data: new DatabaseTraceSpanData(null, null, null, "SELECT", null, "postgresql", null, null));
         var graphQl = CreateSpan(
             "graphql",
-            data: new GraphQLOperationTraceSpanData(null, new TraceOperation(null, "query", "GetOrder")));
+            data: new GraphQLOperationTraceSpanData(null, new GraphQLTraceOperation(null, "query", "GetOrder")));
         var tree = SpanTreeBuilder.Build([database, graphQl]);
 
         // act
@@ -188,7 +188,7 @@ public sealed class SpanTreeRendererTests
                 value,
                 resourceAttributes: [new("service.name", value)],
                 spanAttributes: [new("code.function", value), new("code.filepath", value), new("code.lineno", "42")],
-                data: new GraphQLOperationTraceSpanData(null, new TraceOperation(null, "query", value)))
+                data: new GraphQLOperationTraceSpanData(null, new GraphQLTraceOperation(null, "query", value)))
         ]);
 
         // act

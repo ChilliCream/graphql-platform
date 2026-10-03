@@ -22,6 +22,8 @@ internal sealed class ListAttributeKeysCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
+        TelemetryCommandOptions.AddTimeRangeValidator(this);
+
         this.AddExamples("telemetry attributes keys --signal traces");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);

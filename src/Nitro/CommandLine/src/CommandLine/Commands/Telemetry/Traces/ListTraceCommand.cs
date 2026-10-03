@@ -28,7 +28,9 @@ internal sealed class ListTraceCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
-        this.AddExamples("telemetry traces list");
+        TelemetryCommandOptions.AddTimeRangeValidator(this);
+
+        this.AddExamples("telemetry traces list", "telemetry traces list --filter \"http.response.status_code:>=500\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

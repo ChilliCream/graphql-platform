@@ -8,31 +8,102 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
     private const string TraceId = "trace-id";
 
     [Fact]
-    public async Task Show_Should_RenderSummaryTopOperationsAndTree_When_TraceExists()
+    public async Task Show_Should_ReturnSuccess_When_HelpIsRequested()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Show a telemetry trace.
+
+            Usage:
+              nitro telemetry traces show <trace-id> [options]
+
+            Arguments:
+              <trace-id>  The trace ID
+
+            Options:
+              --span <span>                  Focus on the subtree rooted at a span ID
+              --since <since>                The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
+              --until <until>                The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
+              --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
+              --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>            The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                 Show help and usage information
+
+            Example:
+              nitro telemetry traces show "<trace-id>"
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_ReturnError_When_NoSessionAndNoWorkspaceId(InteractionMode mode)
     {
         // arrange
-        SetupSessionWithWorkspace();
-        SetupGetTrace(CreateTrace());
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
 
         // assert
-        result.AssertSuccess(
+        result.AssertError(
             """
-            trace trace-id: 2 spans (1 errors), total 25 ms
-            top operations:
-              child: 1 spans, avg 5 ms, p95 5 ms
-              root: 1 spans, avg 20 ms, p95 20 ms
-            root [SERVER · orders · 20ms · root]
-            └─ child [SERVER · orders · 5ms · ERROR · child]
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
+            hint: run `nitro login`.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_ReturnError_When_WorkspaceIsUnavailable(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSession();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
+
+        // assert
+        result.AssertError(
+            """
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
+            hint: run `nitro workspace set-default`.
             """);
     }
 
     [Fact]
-    public async Task Show_Should_PassHiddenSeekerAndSpan_When_OptionsAreSpecified()
+    public async Task Show_Should_ReturnError_When_TraceIdIsMissing()
     {
         // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot("Required argument missing for command: 'show'.");
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_PassHiddenSeekerAndSpan_When_OptionsAreSpecified(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupGetTrace(CreateTrace());
 
@@ -56,10 +127,14 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
             Times.Once);
     }
 
-    [Fact]
-    public async Task Show_Should_NotDeriveSeekerFromTimeBounds_When_SinceAndUntilAreSpecified()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_NotDeriveSeekerFromTimeBounds_When_SinceAndUntilAreSpecified(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupGetTrace(CreateTrace());
 
@@ -81,13 +156,38 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
             Times.Once);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    public async Task Show_Should_RenderSummaryTopOperationsAndTree_When_TraceExists(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupGetTrace(CreateTrace());
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
+
+        // assert
+        result.AssertSuccess(
+            """
+            trace trace-id: 2 spans (1 errors), total 25 ms
+            top operations:
+              child: 1 spans, avg 5 ms, p95 5 ms
+              root: 1 spans, avg 20 ms, p95 20 ms
+            root [SERVER · orders · 20ms · root]
+            └─ child [SERVER · orders · 5ms · ERROR · child]
+            """);
+    }
+
     [Fact]
-    public async Task Show_Should_WriteTraceJson_When_OutputIsJson()
+    public async Task Show_Should_WriteTraceJson_When_TraceExistsAndOutputIsJson()
     {
         // arrange
         SetupInteractionMode(InteractionMode.JsonOutput);
         SetupSessionWithWorkspace();
-        SetupGetTrace(new Trace(1, false, 12.5, [CreateSpan("span-id")]));
+        SetupGetTrace(CreateTrace());
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
@@ -97,20 +197,44 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """
             {
               "traceId": "trace-id",
-              "spanCount": 1,
+              "spanCount": 2,
               "spansTruncated": false,
-              "totalDurationMs": 12.5,
+              "totalDurationMs": 25,
               "spans": [
                 {
-                  "spanId": "span-id",
+                  "spanId": "root",
                   "parentSpanId": "",
-                  "spanName": "span-id",
+                  "spanName": "root",
                   "spanKind": "SERVER",
-                  "durationMs": 1,
+                  "durationMs": 20,
                   "start": 0,
                   "statusCode": "OK",
                   "statusMessage": "",
-                  "resourceAttributes": [],
+                  "resourceAttributes": [
+                    {
+                      "key": "service.name",
+                      "value": "orders"
+                    }
+                  ],
+                  "spanAttributes": [],
+                  "events": [],
+                  "data": null
+                },
+                {
+                  "spanId": "child",
+                  "parentSpanId": "root",
+                  "spanName": "child",
+                  "spanKind": "SERVER",
+                  "durationMs": 5,
+                  "start": 0,
+                  "statusCode": "ERROR",
+                  "statusMessage": "",
+                  "resourceAttributes": [
+                    {
+                      "key": "service.name",
+                      "value": "orders"
+                    }
+                  ],
                   "spanAttributes": [],
                   "events": [],
                   "data": null
@@ -155,13 +279,13 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
                     CreateSpan(
                         "operation-span",
                         data: new GraphQLOperationTraceSpanData(
-                            new TraceDocument("query GetOrders { orders { id } }", "document-id"),
-                            new TraceOperation("operation-hash", "query", "GetOrders"))),
+                            new GraphQLTraceDocument("query GetOrders { orders { id } }", "document-id"),
+                            new GraphQLTraceOperation("operation-hash", "query", "GetOrders"))),
                     CreateSpan(
                         "resolver-span",
                         data: new GraphQLResolverTraceSpanData(
-                            new TraceSelection(
-                                new TraceField("Query.orders", "Query", "orders"),
+                            new GraphQLTraceSelection(
+                                new GraphQLTraceField("Query.orders", "Query", "orders"),
                                 "orders",
                                 "orders",
                                 "[Order!]!")))
@@ -329,13 +453,15 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Show_Should_ReturnError_When_TraceIsMissingOrHasNoSpans(bool hasEmptyTrace)
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_ReturnError_When_TraceIsNotFound(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
-        SetupGetTrace(hasEmptyTrace ? new Trace(0, false, 0, []) : null);
+        SetupGetTrace(null);
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
@@ -348,10 +474,36 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
-    [Fact]
-    public async Task Show_Should_LabelSummaryAsServerCapped_When_TraceIsTruncatedAndCountIsUnknown()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_ReturnError_When_TraceHasNoSpans(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupGetTrace(new Trace(0, false, 0, []));
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
+
+        // assert
+        result.AssertError(
+            """
+            The trace 'trace-id' was not found.
+            hint: run nitro telemetry traces list --since 2h
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    public async Task Show_Should_LabelSummaryAsServerCapped_When_TraceIsTruncatedAndCountIsUnknown(
+        InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupGetTrace(new Trace(null, true, 0, [CreateSpan("root", duration: 20)]));
 
@@ -368,6 +520,66 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
+    [Fact]
+    public async Task Show_Should_WriteTruncationInJson_When_TraceIsTruncatedAndOutputIsJson()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupSessionWithWorkspace();
+        SetupGetTrace(new Trace(null, true, 0, [CreateSpan("root", duration: 20)]));
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "traceId": "trace-id",
+              "spanCount": null,
+              "spansTruncated": true,
+              "totalDurationMs": 0,
+              "spans": [
+                {
+                  "spanId": "root",
+                  "parentSpanId": "",
+                  "spanName": "root",
+                  "spanKind": "SERVER",
+                  "durationMs": 20,
+                  "start": 0,
+                  "statusCode": "OK",
+                  "statusMessage": "",
+                  "resourceAttributes": [],
+                  "spanAttributes": [],
+                  "events": [],
+                  "data": null
+                }
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_ReturnError_When_GetTraceThrows(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupGetTraceException();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+    }
+
     private void SetupGetTrace(Trace? trace)
     {
         TelemetryClientMock
@@ -380,6 +592,20 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
                     It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(trace);
+    }
+
+    private void SetupGetTraceException()
+    {
+        TelemetryClientMock
+            .Setup(x =>
+                x.GetTraceAsync(
+                    WorkspaceId,
+                    TraceId,
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
     private static Trace CreateTrace()

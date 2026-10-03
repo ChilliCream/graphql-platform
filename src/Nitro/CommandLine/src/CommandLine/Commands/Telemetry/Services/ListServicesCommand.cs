@@ -23,7 +23,9 @@ internal sealed class ListServicesCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
-        this.AddExamples("telemetry services list");
+        TelemetryCommandOptions.AddTimeRangeValidator(this);
+
+        this.AddExamples("telemetry services list", "telemetry services list --filter \"status:error\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

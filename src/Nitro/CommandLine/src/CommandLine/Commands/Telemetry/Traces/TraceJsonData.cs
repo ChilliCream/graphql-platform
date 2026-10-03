@@ -17,9 +17,9 @@ internal sealed record TraceJsonData(
     string? Statement,
     string? System,
     string? User,
-    TraceDocument? Document,
-    TraceOperation? GraphQLOperation,
-    TraceSelection? Selection)
+    GraphQLTraceDocument? Document,
+    GraphQLTraceOperation? GraphQLOperation,
+    GraphQLTraceSelection? Selection)
 {
     public static TraceJsonData? From(TraceSpanData? data)
         => data switch

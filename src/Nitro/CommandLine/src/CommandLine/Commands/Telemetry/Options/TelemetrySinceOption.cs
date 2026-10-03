@@ -10,7 +10,7 @@ internal sealed class TelemetrySinceOption : Option<DateTimeOffset>
     {
         Description = "The earliest timestamp to include";
         Required = false;
-        DefaultValueFactory = _ => TelemetryOptionDefaults.GetUtcNow() - TelemetryTimestamp.DefaultSince;
+        DefaultValueFactory = _ => TelemetryOptionDefaults.GetDefaultSince();
         CustomParser = result =>
             ParseTimestamp(result.Tokens.Single().Value, result, TelemetryOptionDefaults.GetUtcNow());
     }

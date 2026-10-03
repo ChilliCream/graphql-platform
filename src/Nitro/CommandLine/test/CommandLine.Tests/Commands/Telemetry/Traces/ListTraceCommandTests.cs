@@ -42,6 +42,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
               --since <since>                The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
               --until <until>                The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
               --limit <limit>                The maximum number of results to show
+              --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>            The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
@@ -49,6 +50,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
 
             Example:
               nitro telemetry traces list
+              nitro telemetry traces list --filter "http.response.status_code:>=500"
             """);
     }
 
@@ -56,7 +58,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_ReturnError_When_AuthenticationIsUnavailable(InteractionMode mode)
+    public async Task List_Should_ReturnError_When_NoSessionAndNoWorkspaceId(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -71,6 +73,129 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             hint: run `nitro login`.
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReturnError_When_WorkspaceIsUnavailable(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSession();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
+
+        // assert
+        result.AssertError(
+            """
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
+            hint: run `nitro workspace set-default`.
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnError_When_SinceIsInvalid()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--since", "yesterday");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--since' received an invalid value: yesterday
+            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnError_When_UntilIsInvalid()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--until", "tomorrow");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--until' received an invalid value: tomorrow
+            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnError_When_SinceIsOlderThanSixtyDays()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--since", "61d");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--since' cannot be more than 60 days in the past.
+            hint: choose a more recent timestamp or duration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnError_When_SinceIsNotBeforeUntil()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--since", "1h", "--until", "2h");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot("Option '--since' must be earlier than '--until'.");
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData("--limit", "0", "Option '--limit' must be a positive number.")]
+    [InlineData("--limit", "-1", "Option '--limit' must be a positive number.")]
+    [InlineData("--min-duration", "-1", "Option '--min-duration' must not be negative.")]
+    public async Task List_Should_ReturnError_When_NumericOptionIsOutOfRange(string option, string value, string error)
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", option, value);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(error);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnError_When_SpanKindIsInvalid()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--span-kind", "unknown");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Cannot parse argument 'unknown' for option '--span-kind' as expected type 'ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options.TelemetrySpanKind'.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -92,10 +217,14 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
-    [Fact]
-    public async Task List_Should_DefaultToEntrySpanKinds_When_NoneAreSpecified()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_DefaultToEntrySpanKinds_When_NoneAreSpecified(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupListTraces();
 
@@ -107,54 +236,14 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
         VerifyListedSpanKinds(OpenTelemetrySpanKind.Server, OpenTelemetrySpanKind.Consumer);
     }
 
-    [Fact]
-    public async Task List_Should_ForwardFilterAndShortcutOptions_When_Provided()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReplaceDefaultSpanKinds_When_SpanKindsAreSpecified(InteractionMode mode)
     {
         // arrange
-        SetupSessionWithWorkspace();
-        SetupListTraces();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "telemetry",
-            "traces",
-            "list",
-            "--filter",
-            "http.status_code:>=500",
-            "--has-error",
-            "--min-duration",
-            "100",
-            "--search",
-            "timeout",
-            "--service",
-            "checkout");
-        var filter = (OpenTelemetryFilterInput?)
-            TelemetryClientMock
-                .Invocations.Single(invocation => invocation.Method.Name == nameof(ITelemetryClient.ListTracesAsync))
-                .Arguments[1];
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
-            }
-            """);
-        JsonSerializer
-            .Serialize(filter, s_jsonSerializerOptions)
-            .MatchInlineSnapshot(
-                """
-                {"and":[{"attribute":{"condition":{"gte":{"int":500}},"key":"http.status_code"}},{"attribute":{"condition":{"eq":{"string":"error"}},"key":"status"}},{"attribute":{"condition":{"gte":{"int":100}},"key":"duration"}},{"attribute":{"condition":{"matches":"*timeout*"},"key":"span.name"}},{"attribute":{"condition":{"eq":{"string":"checkout"}},"key":"service.name","kind":"Resource"}}]}
-                """);
-    }
-
-    [Fact]
-    public async Task List_Should_ReplaceDefaultSpanKinds_When_SpanKindsAreSpecified()
-    {
-        // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupListTraces();
 
@@ -185,20 +274,43 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
     }
 
     [Theory]
-    [InlineData("--limit", "0", "Option '--limit' must be a positive number.")]
-    [InlineData("--limit", "-1", "Option '--limit' must be a positive number.")]
-    [InlineData("--min-duration", "-1", "Option '--min-duration' must not be negative.")]
-    public async Task List_Should_ReturnError_When_NumericOptionIsOutOfRange(string option, string value, string error)
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ForwardFilterAndShortcutOptions_When_Provided(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
+        SetupListTraces();
 
         // act
-        var result = await ExecuteCommandAsync("telemetry", "traces", "list", option, value);
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "traces",
+            "list",
+            "--filter",
+            "http.status_code:>=500",
+            "--has-error",
+            "--min-duration",
+            "100",
+            "--search",
+            "timeout",
+            "--service",
+            "checkout");
+        var filter = (OpenTelemetryFilterInput?)
+            TelemetryClientMock
+                .Invocations.Single(invocation => invocation.Method.Name == nameof(ITelemetryClient.ListTracesAsync))
+                .Arguments[1];
 
         // assert
-        result.StdErr.MatchInlineSnapshot(error);
-        Assert.Equal(1, result.ExitCode);
+        result.AssertSuccess();
+        JsonSerializer
+            .Serialize(filter, s_jsonSerializerOptions)
+            .MatchInlineSnapshot(
+                """
+                {"and":[{"attribute":{"condition":{"gte":{"int":500}},"key":"http.status_code"}},{"attribute":{"condition":{"eq":{"string":"error"}},"key":"status"}},{"attribute":{"condition":{"gte":{"int":100}},"key":"duration"}},{"attribute":{"condition":{"matches":"*timeout*"},"key":"span.name"}},{"attribute":{"condition":{"eq":{"string":"checkout"}},"key":"service.name","kind":"Resource"}}]}
+                """);
     }
 
     [Theory]
@@ -238,10 +350,86 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
-    [Fact]
-    public async Task List_Should_OrderNewestFirstAndAdvertiseNarrowing_When_ResultHasMoreItems()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReturnSuccess_When_NoTraceExists(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupListTraces();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_WriteSuggestionHintInEnvelope_When_FilteredResultHasAnUnknownKey(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupListTraces();
+        SetupListAttributeKeys(
+            keys:
+            [
+                new AttributeKeyRow("Span", "http.response.status_code"),
+                new AttributeKeyRow("Span", "http.status_code")
+            ]);
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "items": [],
+              "returned": 0,
+              "total": null,
+              "hasMore": false,
+              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."
+            }
+            """);
+        TelemetryClientMock.Verify(
+            x =>
+                x.ListAttributeKeysAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Traces,
+                    null,
+                    null,
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    null,
+                    It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_OrderNewestFirstAndAdvertiseNarrowing_When_ResultHasMoreItems(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupListTracesWithMore(
             CreateTrace(start: 1767223800123),
@@ -284,46 +472,25 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
-    [Fact]
-    public async Task List_Should_WriteSuggestionHintInEnvelope_When_FilteredResultHasAnUnknownKey()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReturnError_When_ListTracesThrows(InteractionMode mode)
     {
         // arrange
+        SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
-        SetupListTraces();
-        SetupListAttributeKeys(
-            keys:
-            [
-                new AttributeKeyRow("Span", "http.response.status_code"),
-                new AttributeKeyRow("Span", "http.status_code")
-            ]);
+        SetupListTracesException();
 
         // act
-        var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "http.statuscode:>=500");
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list");
 
         // assert
-        result.AssertSuccess(
+        result.AssertError(
             """
-            {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false,
-              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."
-            }
+            There was an unexpected error: Something unexpected happened.
             """);
-        TelemetryClientMock.Verify(
-            x =>
-                x.ListAttributeKeysAsync(
-                    WorkspaceId,
-                    OpenTelemetrySignalKind.Traces,
-                    null,
-                    null,
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     private void SetupListTraces(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: false);
@@ -346,6 +513,24 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
                     It.IsAny<CancellationToken>())
             )
             .ReturnsAsync(new ConnectionPage<TraceRow>(traces, null, hasNextPage));
+    }
+
+    private void SetupListTracesException()
+    {
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListTracesAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    20,
+                    null,
+                    It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
     private void VerifyListedSpanKinds(params OpenTelemetrySpanKind[] expected)

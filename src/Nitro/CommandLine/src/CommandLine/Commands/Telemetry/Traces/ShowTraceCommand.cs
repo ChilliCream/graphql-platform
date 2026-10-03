@@ -22,10 +22,8 @@ internal sealed class ShowTraceCommand : Command
         Options.Add(Opt<TelemetrySinceOption>.Instance);
         Options.Add(Opt<TelemetryUntilOption>.Instance);
         Options.Add(Opt<TraceSeekerOption>.Instance);
-        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
-        Options.Add(Opt<OptionalCloudUrlOption>.Instance);
-        Options.Add(Opt<OptionalApiKeyOption>.Instance);
-        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
+
+        TelemetryCommandOptions.AddOptions(this);
 
         this.AddExamples("telemetry traces show \"<trace-id>\"");
 

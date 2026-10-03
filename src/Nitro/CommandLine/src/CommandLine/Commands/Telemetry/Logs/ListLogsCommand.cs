@@ -26,7 +26,12 @@ internal sealed class ListLogsCommand : Command
 
         TelemetryCommandOptions.AddOptions(this);
 
-        this.AddExamples("telemetry logs list", "telemetry logs list --service checkout --severity error --since 2h");
+        TelemetryCommandOptions.AddTimeRangeValidator(this);
+
+        this.AddExamples(
+            "telemetry logs list",
+            "telemetry logs list --service checkout --severity error --since 2h",
+            "telemetry logs list --filter \"severity:error\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

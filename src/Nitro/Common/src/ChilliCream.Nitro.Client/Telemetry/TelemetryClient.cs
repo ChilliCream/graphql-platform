@@ -311,15 +311,17 @@ file static class Extensions
                     databaseSpan.Db?.User),
                 IShowTraceCommand_Span_OpenTelemetryGraphQLOperationSpan operationSpan =>
                     new GraphQLOperationTraceSpanData(
-                        operationSpan.Document is { } document ? new TraceDocument(document.Body, document.Id) : null,
+                        operationSpan.Document is { } document
+                            ? new GraphQLTraceDocument(document.Body, document.Id)
+                            : null,
                         operationSpan.Operation is { } operation
-                            ? new TraceOperation(operation.Hash, operation.Kind, operation.Name)
+                            ? new GraphQLTraceOperation(operation.Hash, operation.Kind, operation.Name)
                             : null),
                 IShowTraceCommand_Span_OpenTelemetryGraphQLResolverSpan resolverSpan =>
                     new GraphQLResolverTraceSpanData(
                         resolverSpan.Selection is { } selection
-                            ? new TraceSelection(
-                                new TraceField(
+                            ? new GraphQLTraceSelection(
+                                new GraphQLTraceField(
                                     selection.Field.Coordinate,
                                     selection.Field.DeclaringType,
                                     selection.Field.Name),
