@@ -49,7 +49,11 @@ public sealed class SpanTreeRendererTests
                 new("exception.message", "payment failed"),
                 new("exception.stacktrace", "at A()\nat B()\nat C()")
             ]);
-        var tree = SpanTreeBuilder.Build([CreateSpan("root", events: [exception])]);
+        var withoutStackTrace = new TraceEvent(
+            "exception",
+            0,
+            [new("exception.type", "TimeoutException"), new("exception.message", "gateway timed out")]);
+        var tree = SpanTreeBuilder.Build([CreateSpan("root", events: [exception, withoutStackTrace])]);
 
         // act
         var rendered = new SpanTreeRenderer().Render(tree, spanId: null);
@@ -62,6 +66,7 @@ public sealed class SpanTreeRendererTests
                  at A()
                  at B()
                  at C()
+              exception: TimeoutException: gateway timed out
             """);
     }
 

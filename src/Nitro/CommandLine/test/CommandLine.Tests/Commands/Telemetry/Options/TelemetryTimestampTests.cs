@@ -8,6 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Options;
 public sealed class TelemetryTimestampTests
 {
     [Theory]
+    [InlineData("90s", "2026-01-01T11:58:30Z")]
     [InlineData("30m", "2026-01-01T11:30:00Z")]
     [InlineData("2h", "2026-01-01T10:00:00Z")]
     [InlineData("7d", "2025-12-25T12:00:00Z")]
@@ -77,14 +78,16 @@ public sealed class TelemetryTimestampTests
             error);
     }
 
-    [Fact]
-    public void TryParse_Should_ReturnHint_When_SinceIsOlderThanSixtyDays()
+    [Theory]
+    [InlineData("61d")]
+    [InlineData("2025-10-31T12:00:00Z")]
+    public void TryParse_Should_ReturnHint_When_SinceIsOlderThanSixtyDays(string value)
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var success = TelemetryTimestamp.TryParse("61d", now, "--since", enforceMaximumAge: true, out _, out var error);
+        var success = TelemetryTimestamp.TryParse(value, now, "--since", enforceMaximumAge: true, out _, out var error);
 
         // assert
         Assert.False(success);
@@ -121,8 +124,10 @@ public sealed class TelemetryTimestampTests
             error);
     }
 
-    [Fact]
-    public void Parse_Should_ReportError_When_SinceValueIsInvalid()
+    [Theory]
+    [InlineData("--since")]
+    [InlineData("--until")]
+    public void Parse_Should_ReportError_When_TimestampValueIsInvalid(string optionName)
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
@@ -131,15 +136,16 @@ public sealed class TelemetryTimestampTests
             .BuildServiceProvider();
         CommandExecutionContext.Initialize(new CommandServices(provider));
         var command = new Command("telemetry");
-        command.Options.Add(new TelemetrySinceOption());
+        command.Options.Add(
+            optionName == TelemetrySinceOption.OptionName ? new TelemetrySinceOption() : new TelemetryUntilOption());
 
         // act
-        var result = command.Parse(["--since", "yesterday"]);
+        var result = command.Parse([optionName, "yesterday"]);
 
         // assert
         Assert.Equal(
-            """
-            Option '--since' received an invalid value: yesterday
+            $"""
+            Option '{optionName}' received an invalid value: yesterday
             hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """,
             Assert.Single(result.Errors).Message);

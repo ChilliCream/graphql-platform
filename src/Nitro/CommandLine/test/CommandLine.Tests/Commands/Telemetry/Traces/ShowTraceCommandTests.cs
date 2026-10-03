@@ -120,6 +120,214 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
+    [Fact]
+    public async Task Show_Should_WriteTypedSpanData_When_OutputIsJsonAndSpansCarryData()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupSessionWithWorkspace();
+        SetupGetTrace(
+            new Trace(
+                4,
+                false,
+                10,
+                [
+                    CreateSpan(
+                        "http-span",
+                        data: new HttpTraceSpanData(
+                            "1.1",
+                            "GET",
+                            "https",
+                            200,
+                            "https://example.com/products",
+                            "test-agent/1.0")),
+                    CreateSpan(
+                        "database-span",
+                        data: new DatabaseTraceSpanData(
+                            "Host=localhost",
+                            "primary",
+                            "orders",
+                            "SELECT",
+                            "SELECT * FROM orders",
+                            "postgresql",
+                            "postgresql://localhost/orders",
+                            "app")),
+                    CreateSpan(
+                        "operation-span",
+                        data: new GraphQLOperationTraceSpanData(
+                            new TraceDocument("query GetOrders { orders { id } }", "document-id"),
+                            new TraceOperation("operation-hash", "query", "GetOrders"))),
+                    CreateSpan(
+                        "resolver-span",
+                        data: new GraphQLResolverTraceSpanData(
+                            new TraceSelection(
+                                new TraceField("Query.orders", "Query", "orders"),
+                                "orders",
+                                "orders",
+                                "[Order!]!")))
+                ]));
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "show", TraceId);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "traceId": "trace-id",
+              "spanCount": 4,
+              "spansTruncated": false,
+              "totalDurationMs": 10,
+              "spans": [
+                {
+                  "spanId": "http-span",
+                  "parentSpanId": "",
+                  "spanName": "http-span",
+                  "spanKind": "SERVER",
+                  "durationMs": 1,
+                  "start": 0,
+                  "statusCode": "OK",
+                  "statusMessage": "",
+                  "resourceAttributes": [],
+                  "spanAttributes": [],
+                  "events": [],
+                  "data": {
+                    "kind": "http",
+                    "flavor": "1.1",
+                    "method": "GET",
+                    "scheme": "https",
+                    "statusCode": 200,
+                    "url": "https://example.com/products",
+                    "userAgent": "test-agent/1.0",
+                    "connectionString": null,
+                    "instance": null,
+                    "name": null,
+                    "operation": null,
+                    "statement": null,
+                    "system": null,
+                    "user": null,
+                    "document": null,
+                    "graphQLOperation": null,
+                    "selection": null
+                  }
+                },
+                {
+                  "spanId": "database-span",
+                  "parentSpanId": "",
+                  "spanName": "database-span",
+                  "spanKind": "SERVER",
+                  "durationMs": 1,
+                  "start": 0,
+                  "statusCode": "OK",
+                  "statusMessage": "",
+                  "resourceAttributes": [],
+                  "spanAttributes": [],
+                  "events": [],
+                  "data": {
+                    "kind": "database",
+                    "flavor": null,
+                    "method": null,
+                    "scheme": null,
+                    "statusCode": null,
+                    "url": "postgresql://localhost/orders",
+                    "userAgent": null,
+                    "connectionString": "Host=localhost",
+                    "instance": "primary",
+                    "name": "orders",
+                    "operation": "SELECT",
+                    "statement": "SELECT * FROM orders",
+                    "system": "postgresql",
+                    "user": "app",
+                    "document": null,
+                    "graphQLOperation": null,
+                    "selection": null
+                  }
+                },
+                {
+                  "spanId": "operation-span",
+                  "parentSpanId": "",
+                  "spanName": "operation-span",
+                  "spanKind": "SERVER",
+                  "durationMs": 1,
+                  "start": 0,
+                  "statusCode": "OK",
+                  "statusMessage": "",
+                  "resourceAttributes": [],
+                  "spanAttributes": [],
+                  "events": [],
+                  "data": {
+                    "kind": "graphql.operation",
+                    "flavor": null,
+                    "method": null,
+                    "scheme": null,
+                    "statusCode": null,
+                    "url": null,
+                    "userAgent": null,
+                    "connectionString": null,
+                    "instance": null,
+                    "name": null,
+                    "operation": null,
+                    "statement": null,
+                    "system": null,
+                    "user": null,
+                    "document": {
+                      "body": "query GetOrders { orders { id } }",
+                      "id": "document-id"
+                    },
+                    "graphQLOperation": {
+                      "hash": "operation-hash",
+                      "kind": "query",
+                      "name": "GetOrders"
+                    },
+                    "selection": null
+                  }
+                },
+                {
+                  "spanId": "resolver-span",
+                  "parentSpanId": "",
+                  "spanName": "resolver-span",
+                  "spanKind": "SERVER",
+                  "durationMs": 1,
+                  "start": 0,
+                  "statusCode": "OK",
+                  "statusMessage": "",
+                  "resourceAttributes": [],
+                  "spanAttributes": [],
+                  "events": [],
+                  "data": {
+                    "kind": "graphql.resolver",
+                    "flavor": null,
+                    "method": null,
+                    "scheme": null,
+                    "statusCode": null,
+                    "url": null,
+                    "userAgent": null,
+                    "connectionString": null,
+                    "instance": null,
+                    "name": null,
+                    "operation": null,
+                    "statement": null,
+                    "system": null,
+                    "user": null,
+                    "document": null,
+                    "graphQLOperation": null,
+                    "selection": {
+                      "field": {
+                        "coordinate": "Query.orders",
+                        "declaringType": "Query",
+                        "name": "orders"
+                      },
+                      "name": "orders",
+                      "path": "orders",
+                      "type": "[Order!]!"
+                    }
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -194,6 +402,7 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
         string parent = "",
         double duration = 1,
         string status = "OK",
-        IReadOnlyList<TelemetryAttribute>? resourceAttributes = null)
-        => new(id, parent, id, "SERVER", duration, 0, status, string.Empty, resourceAttributes ?? [], [], [], null);
+        IReadOnlyList<TelemetryAttribute>? resourceAttributes = null,
+        TraceSpanData? data = null)
+        => new(id, parent, id, "SERVER", duration, 0, status, string.Empty, resourceAttributes ?? [], [], [], data);
 }

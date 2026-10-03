@@ -251,6 +251,14 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
                   "value": "42"
                 },
                 {
+                  "key": "http.request.duration",
+                  "value": "1234.5"
+                },
+                {
+                  "key": "retry.enabled",
+                  "value": "true"
+                },
+                {
                   "key": "exception.type",
                   "value": "System.TimeoutException"
                 },
@@ -288,6 +296,26 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
               "codeFilePath": "src/CheckoutHandler.cs",
               "codeLineNumber": 42
             }
+            """);
+    }
+
+    [Fact]
+    public async Task Show_Should_ReturnError_When_LogDoesNotExist()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        TelemetryClientMock
+            .Setup(x => x.GetLogAsync(WorkspaceId, "log-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Log?)null);
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "logs", "show", "log-1");
+
+        // assert
+        result.AssertError(
+            """
+            The log 'log-1' was not found.
+            hint: run nitro telemetry logs list
             """);
     }
 
@@ -332,6 +360,8 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture) : Tel
                 new TypedTelemetryAttribute("code.function", null, null, null, "CheckoutHandler.Handle"),
                 new TypedTelemetryAttribute("code.filepath", null, null, null, "src/CheckoutHandler.cs"),
                 new TypedTelemetryAttribute("code.lineno", null, null, 42, null),
+                new TypedTelemetryAttribute("http.request.duration", null, 1234.5, null, null),
+                new TypedTelemetryAttribute("retry.enabled", true, null, null, null),
                 new TypedTelemetryAttribute("exception.type", null, null, null, "System.TimeoutException"),
                 new TypedTelemetryAttribute("exception.message", null, null, null, "The operation timed out."),
                 new TypedTelemetryAttribute(

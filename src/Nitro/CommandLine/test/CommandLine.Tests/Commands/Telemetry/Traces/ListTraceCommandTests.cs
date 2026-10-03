@@ -166,11 +166,39 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             "--span-kind",
             "client",
             "--span-kind",
-            "producer");
+            "producer",
+            "--span-kind",
+            "server",
+            "--span-kind",
+            "consumer",
+            "--span-kind",
+            "internal");
 
         // assert
         result.AssertSuccess();
-        VerifyListedSpanKinds(OpenTelemetrySpanKind.Client, OpenTelemetrySpanKind.Producer);
+        VerifyListedSpanKinds(
+            OpenTelemetrySpanKind.Client,
+            OpenTelemetrySpanKind.Producer,
+            OpenTelemetrySpanKind.Server,
+            OpenTelemetrySpanKind.Consumer,
+            OpenTelemetrySpanKind.Internal);
+    }
+
+    [Theory]
+    [InlineData("--limit", "0", "Option '--limit' must be a positive number.")]
+    [InlineData("--limit", "-1", "Option '--limit' must be a positive number.")]
+    [InlineData("--min-duration", "-1", "Option '--min-duration' must not be negative.")]
+    public async Task List_Should_ReturnError_When_NumericOptionIsOutOfRange(string option, string value, string error)
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "traces", "list", option, value);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(error);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
