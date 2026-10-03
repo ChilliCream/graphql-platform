@@ -317,7 +317,7 @@ public class RabbitMQDispatchProvisioningTests
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         await runtime.StartAsync(CancellationToken.None);
 
-        return new TestBus(provider, runtime);
+        return new TestBus(provider);
     }
 
     private sealed class FakeConnectionProvider(IConnection connection) : IRabbitMQConnectionProvider

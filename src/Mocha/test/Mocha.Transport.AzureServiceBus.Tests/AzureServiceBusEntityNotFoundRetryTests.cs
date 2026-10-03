@@ -191,8 +191,8 @@ public class AzureServiceBusEntityNotFoundRetryTests
             .AddMessageBus()
             .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
         var provider = builder.Services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        _ = provider.GetRequiredService<IMessagingRuntime>();
 
-        return (client, admin, new TestBus(provider, runtime));
+        return (client, admin, new TestBus(provider));
     }
 }

@@ -44,8 +44,23 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         ushort prefetchCount,
         ushort consumerDispatchConcurrency,
         CancellationToken cancellationToken)
+        => await RegisterConsumerCoreAsync(
+            queueName,
+            messageHandler,
+            prefetchCount,
+            consumerDispatchConcurrency,
+            CancellationToken.None,
+            cancellationToken);
+
+    internal async Task<RegisteredConsumer> RegisterConsumerCoreAsync(
+        string queueName,
+        Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
+        ushort prefetchCount,
+        ushort consumerDispatchConcurrency,
+        CancellationToken processingToken,
+        CancellationToken cancellationToken)
     {
-        var registration = new RegisteredConsumer
+        var registration = new RegisteredConsumer(processingToken)
         {
             Manager = this,
             QueueName = queueName,
@@ -56,9 +71,17 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
         AddConsumer(registration);
 
-        if (IsConnected)
+        try
         {
-            await registration.ConnectAsync(CurrentConnection!, cancellationToken);
+            if (IsConnected)
+            {
+                await registration.ConnectAsync(CurrentConnection!, cancellationToken);
+            }
+        }
+        catch
+        {
+            await registration.DisposeAsync();
+            throw;
         }
 
         Logger.RegisteredConsumerForQueue(queueName);
@@ -235,7 +258,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     /// Represents a consumer registration that maintains a dedicated channel to a specific queue,
     /// supporting reconnection and graceful disposal.
     /// </summary>
-    internal sealed class RegisteredConsumer : IAsyncDisposable
+    internal sealed class RegisteredConsumer(CancellationToken processingToken) : IAsyncDisposable
     {
         /// <summary>
         /// Gets the owning consumer manager responsible for connection lifecycle.
@@ -278,7 +301,22 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// </summary>
         public IChannel? Channel { get; set; }
 
-        private readonly CancellationTokenSource _consumerCts = new();
+        private readonly CancellationTokenSource _consumerCts =
+            CancellationTokenSource.CreateLinkedTokenSource(processingToken);
+        private readonly TaskCompletionSource _processingCompleted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _consumerCancelled =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
+        private readonly object _sync = new();
+#endif
+        private int _activeHandlers;
+        private int _stopping;
+        private int _disposed;
+
+        private bool IsStopping => Volatile.Read(ref _stopping) == 1;
 
         /// <summary>
         /// Establishes a new channel on the given connection, configures QoS prefetch, and starts consuming messages from the queue.
@@ -291,6 +329,11 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// <param name="cancellationToken">A token to cancel the connect operation.</param>
         public async Task ConnectAsync(IConnection connection, CancellationToken cancellationToken)
         {
+            if (IsStopping)
+            {
+                return;
+            }
+
             await DisconnectAsync(cancellationToken);
 
             IChannel? channel = null;
@@ -302,8 +345,32 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                     consumerDispatchConcurrency: ConsumerDispatchConcurrency);
                 channel = await connection.CreateChannelAsync(channelOptions, cancellationToken);
                 var consumer = new AsyncEventingBasicConsumer(channel);
+                var consumerToken = _consumerCts.Token;
                 consumer.ReceivedAsync += async (_, eventArgs) =>
-                    await MessageHandler(channel, eventArgs, _consumerCts.Token);
+                {
+                    Interlocked.Increment(ref _activeHandlers);
+
+                    try
+                    {
+                        if (IsStopping)
+                        {
+                            // Prefetched deliveries go back to the queue once the broker no longer
+                            // delivers to this consumer, so they are not redelivered to it.
+                            await _consumerCancelled.Task;
+                            await RequeueAsync(channel, eventArgs.DeliveryTag);
+                            return;
+                        }
+
+                        await MessageHandler(channel, eventArgs, consumerToken);
+                    }
+                    finally
+                    {
+                        if (Interlocked.Decrement(ref _activeHandlers) == 0 && IsStopping)
+                        {
+                            _processingCompleted.TrySetResult();
+                        }
+                    }
+                };
 
                 await channel.BasicQosAsync(
                     prefetchSize: 0,
@@ -317,14 +384,25 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                     consumer: consumer,
                     cancellationToken: cancellationToken);
 
-                ConsumerTag = tag;
-                Channel = channel;
+                lock (_sync)
+                {
+                    if (!IsStopping)
+                    {
+                        ConsumerTag = tag;
+                        Channel = channel;
+                        return;
+                    }
+                }
+
+                using var cleanupCts = new CancellationTokenSource(Manager.CleanupTimeout);
+                await CloseChannelAsync(channel, cleanupCts.Token);
             }
             catch
             {
                 if (channel is not null)
                 {
-                    await channel.DisposeAsync();
+                    using var cleanupCts = new CancellationTokenSource(Manager.CleanupTimeout);
+                    await CloseChannelAsync(channel, cleanupCts.Token);
                 }
 
                 ConsumerTag = null;
@@ -333,39 +411,135 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             }
         }
 
-        private async Task DisconnectAsync(CancellationToken cancellationToken)
+        internal async Task StopReceivingAsync()
         {
-            if (ConsumerTag is not null && Channel is { IsOpen: true })
+            MarkStopping();
+
+            Manager.RemoveConsumer(this);
+
+            try
+            {
+                using var cleanupCts = new CancellationTokenSource(Manager.CleanupTimeout);
+                await CancelConsumerAsync(cleanupCts.Token);
+            }
+            finally
+            {
+                _consumerCancelled.TrySetResult();
+            }
+
+            await _processingCompleted.Task;
+        }
+
+        private void MarkStopping()
+        {
+            // The lock orders the flag with the channel assignment in ConnectAsync.
+            lock (_sync)
+            {
+                Interlocked.Exchange(ref _stopping, 1);
+            }
+
+            if (Volatile.Read(ref _activeHandlers) == 0)
+            {
+                _processingCompleted.TrySetResult();
+            }
+        }
+
+        private static async Task RequeueAsync(IChannel channel, ulong deliveryTag)
+        {
+            try
+            {
+                if (channel.IsOpen)
+                {
+                    await channel.BasicNackAsync(deliveryTag, multiple: false, requeue: true, CancellationToken.None);
+                }
+            }
+            catch
+            {
+                // Closing the channel requeues the delivery as well.
+            }
+        }
+
+        private async Task CancelConsumerAsync(CancellationToken cancellationToken)
+        {
+            var tag = ConsumerTag;
+            ConsumerTag = null;
+            if (tag is not null && Channel is { IsOpen: true } channel)
             {
                 try
                 {
-                    await Channel.BasicCancelAsync(ConsumerTag, cancellationToken: cancellationToken);
+                    await channel.BasicCancelAsync(tag, cancellationToken: cancellationToken)
+                        .WaitAsync(cancellationToken);
                 }
                 catch
                 {
                     // Ignore
                 }
             }
+        }
 
-            ConsumerTag = null;
+        private async Task DisconnectAsync(CancellationToken cancellationToken)
+        {
+            await CancelConsumerAsync(cancellationToken);
 
             if (Channel is not null)
             {
+                var channel = Channel;
+                Channel = null;
+                await CloseChannelAsync(channel, cancellationToken);
+            }
+        }
+
+        private static async Task CloseChannelAsync(IChannel channel, CancellationToken cancellationToken)
+        {
+            Task? closing = null;
+            try
+            {
+                if (channel.IsOpen)
+                {
+                    closing = channel.CloseAsync(cancellationToken: cancellationToken);
+                    await closing.WaitAsync(cancellationToken);
+                }
+            }
+            catch
+            {
+                // Best-effort cleanup.
+            }
+
+            if (closing is { IsCompleted: false })
+            {
+                _ = DisposeChannelWhenClosedAsync(channel, closing);
+            }
+            else
+            {
                 try
                 {
-                    if (Channel.IsOpen)
-                    {
-                        await Channel.CloseAsync(cancellationToken: cancellationToken);
-                    }
-
-                    await Channel.DisposeAsync();
+                    await channel.DisposeAsync().AsTask().WaitAsync(cancellationToken);
                 }
                 catch
                 {
-                    // Ignore
+                    // Best-effort cleanup.
                 }
+            }
+        }
 
-                Channel = null;
+        private static async Task DisposeChannelWhenClosedAsync(IChannel channel, Task closing)
+        {
+            try
+            {
+                await closing;
+            }
+            catch
+            {
+                // A failed close still releases the channel.
+            }
+
+            try
+            {
+                await channel.DisposeAsync();
+            }
+            catch
+            {
+                // Best-effort cleanup.
             }
         }
 
@@ -374,10 +548,25 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            await DisconnectAsync(CancellationToken.None);
+            if (Interlocked.Exchange(ref _disposed, 1) == 1)
+            {
+                return;
+            }
+
+            MarkStopping();
+
             Manager.RemoveConsumer(this);
-            await _consumerCts.CancelAsync();
-            _consumerCts.Dispose();
+            try
+            {
+                await _consumerCts.CancelAsync();
+            }
+            finally
+            {
+                using var cleanupCts = new CancellationTokenSource(Manager.CleanupTimeout);
+                await DisconnectAsync(cleanupCts.Token);
+                _consumerCancelled.TrySetResult();
+                _consumerCts.Dispose();
+            }
         }
     }
 }

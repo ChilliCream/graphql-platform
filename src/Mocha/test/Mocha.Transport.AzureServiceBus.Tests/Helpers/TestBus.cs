@@ -2,24 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
-public sealed class TestBus(ServiceProvider provider, MessagingRuntime runtime) : IAsyncDisposable
+public sealed class TestBus(ServiceProvider provider) : IAsyncDisposable
 {
     public ServiceProvider Provider => provider;
 
-    public async ValueTask DisposeAsync()
-    {
-        foreach (var transport in runtime.Transports)
-        {
-            if (transport.IsStarted)
-            {
-                await transport.StopAsync(runtime, CancellationToken.None);
-            }
-
-            await transport.DisposeAsync();
-        }
-
-        await provider.DisposeAsync();
-    }
+    public ValueTask DisposeAsync() => provider.DisposeAsync();
 }
 
 internal static class MessageBusHostBuilderTestExtensions
@@ -40,7 +27,7 @@ internal static class MessageBusHostBuilderTestExtensions
         var provider = builder.Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         await runtime.StartAsync(CancellationToken.None);
-        return new TestBus(provider, runtime);
+        return new TestBus(provider);
     }
 
     public static MessagingRuntime BuildRuntime(this IMessageBusHostBuilder builder)
