@@ -272,7 +272,14 @@ internal sealed class TuiShell
         for (var i = 0; i < _tabs.Count; i++)
         {
             var style = i == _activeTabIndex ? activeStyle : inactiveStyle;
-            var titleMarkup = FormatMnemonicTitle(_tabs[i].Title, _tabs[i].Mnemonic, keyStyle);
+            var title = _tabs[i].Title;
+
+            if (_tabs[i].RootMode.TabBadge(_width, ContentHeight) is { } badge)
+            {
+                title = $"{title} · {badge}";
+            }
+
+            var titleMarkup = FormatMnemonicTitle(title, _tabs[i].Mnemonic, keyStyle);
             parts[i] = $"[{style}] {titleMarkup} [/]";
         }
 

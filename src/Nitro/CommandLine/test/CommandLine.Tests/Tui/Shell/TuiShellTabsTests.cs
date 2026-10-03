@@ -132,6 +132,84 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
+    public void Render_Should_ShowEveryTasksTabFooterHint_When_TheTerminalIsOneHundredColumnsWide()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var board = new BoardMode(new BoardDataLoader(new FakeTaskStore(), time));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", board), CreateMailTab("Mail", new FakeTuiMode())],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+
+        // act
+        var lines = RenderToText(shell, 100).TrimEnd().Split('\n');
+
+        // assert
+        lines[^1].TrimEnd().MatchInlineSnapshot("hjkl move  enter open  r refresh  y copy id  z zoom  o cols  esc back  q quit  [ ] shift+letter tab");
+    }
+
+    [Fact]
+    public void Render_Should_NameTheForcedOrientationOnTheTasksTab_When_TheColumnHeaderIsTooNarrow()
+    {
+        // arrange
+        var shell = CreateBoardShell(BoardOrientation.SideBySide, width: 80);
+
+        // act
+        var lines = RenderToText(shell, 80).Split('\n');
+
+        // assert
+        lines[0].TrimEnd().MatchInlineSnapshot(" [T]asks · grid   [M]ail");
+        lines[1].MatchInlineSnapshot("╭─Open (5)─────╮╭─In progress…─╮╭─Blocked (5)──╮╭─Deferred (5)─╮╭─Closed (5)───╮");
+    }
+
+    [Fact]
+    public void Render_Should_KeepTheOrientationInTheColumnHeaderOnly_When_TheTerminalIsWide()
+    {
+        // arrange
+        var shell = CreateBoardShell(BoardOrientation.SideBySide, width: 160);
+
+        // act
+        var lines = RenderToText(shell, 160).Split('\n');
+
+        // assert
+        lines[0].TrimEnd().MatchInlineSnapshot(" [T]asks   [M]ail");
+        lines[1].MatchInlineSnapshot("╭─Open (5) | grid──────────────╮╭─In progress (5)──────────────╮╭─Blocked (5)──────────────────╮╭─Deferred (5)─────────────────╮╭─Closed (5)───────────────────╮");
+    }
+
+    private static TuiShell CreateBoardShell(BoardOrientation orientation, int width)
+    {
+        var store = new FakeTaskStore();
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", status: TaskStates.Open);
+        store.Tasks["a-2"] = TaskItemBuilder.Create("a-2", status: TaskStates.InProgress);
+        store.Tasks["a-3"] = TaskItemBuilder.Create("a-3", status: TaskStates.Blocked);
+        store.Tasks["a-4"] = TaskItemBuilder.Create("a-4", status: TaskStates.Deferred);
+        store.Tasks["a-5"] = TaskItemBuilder.Create("a-5", status: TaskStates.Closed);
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns =
+            [
+                new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "In progress", Statuses = [TaskStates.InProgress] },
+                new ColumnDefinition { Name = "Blocked", Statuses = [TaskStates.Blocked] },
+                new ColumnDefinition { Name = "Deferred", Statuses = [TaskStates.Deferred] },
+                new ColumnDefinition { Name = "Closed", Statuses = [TaskStates.Closed] }
+            ]
+        };
+        var time = new FakeTimeProvider(s_now);
+        var board = new BoardMode(new BoardDataLoader(store, time), [view], orientation);
+        board.OnEnter();
+
+        return new TuiShell(
+            [CreateTasksTab("Tasks", board), CreateMailTab("Mail", new FakeTuiMode())],
+            width,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+    }
+
+    [Fact]
     public void Render_Should_BracketEachTabsMnemonic_When_TabsAreActiveOrInactive()
     {
         // arrange
