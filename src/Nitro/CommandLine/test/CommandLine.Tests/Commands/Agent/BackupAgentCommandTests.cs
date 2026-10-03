@@ -114,6 +114,57 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task Execute_Should_SkipSymbolicLinks_When_TheWorkspaceLinksToOutsideFiles()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        await InitWorkspaceAsync();
+        var outsideFile = Path.Combine(Directory.GetParent(WorkingDirectory)!.FullName, "secret.txt");
+        WriteFile(outsideFile, "secret");
+        WriteFile(Path.Combine(ProjectNitroDirectory, "research", "epic-1-topic", "notes.md"), "notes");
+        File.CreateSymbolicLink(Path.Combine(ProjectNitroDirectory, "research", "secret.txt"), outsideFile);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "backup", "--archive", "../backup.zip");
+
+        // assert
+        result.AssertSuccess(
+            "✓ Backed up 2 files from 'repo/.nitro' and 'git/nitro' to '" + ArchivePath + "'.");
+        DescribeArchive(ArchivePath).MatchInlineSnapshot(
+            """
+            manifest.json
+            repo/.nitro/research/epic-1-topic/notes.md
+            git/nitro/agents.db
+
+            {
+              "formatVersion": 1,
+              "cliVersion": "<version>",
+              "createdAt": "2026-01-01T00:00:00+00:00",
+              "databaseVersion": 18,
+              "roots": [
+                "repo/.nitro",
+                "git/nitro"
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_PrintTheArchivePathVerbatim_When_ItContainsMarkupCharacters()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        await InitWorkspaceAsync();
+        var archivePath = Path.Combine(Directory.GetParent(WorkingDirectory)!.FullName, "backup[1].zip");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "backup", "--archive", "../backup[1].zip");
+
+        // assert
+        result.AssertSuccess("✓ Backed up 1 file from 'git/nitro' to '" + archivePath + "'.");
+    }
+
+    [Fact]
     public async Task Execute_Should_ArchiveOnlyProjectDirectory_When_NoGitRepositoryExists()
     {
         // arrange

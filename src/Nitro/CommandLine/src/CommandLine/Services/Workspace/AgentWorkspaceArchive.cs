@@ -250,7 +250,9 @@ internal static partial class AgentWorkspaceArchive
             })
         {
             ShouldIncludePredicate = (ref FileSystemEntry entry)
-                => !entry.IsDirectory && !excludedFiles.Contains(entry.ToFullPath()),
+                => !entry.IsDirectory
+                    && !entry.Attributes.HasFlag(FileAttributes.ReparsePoint)
+                    && !excludedFiles.Contains(entry.ToFullPath()),
             ShouldRecursePredicate = (ref FileSystemEntry entry)
                 => !entry.Attributes.HasFlag(FileAttributes.ReparsePoint)
                     && !PathComparer.Equals(entry.ToFullPath(), excludedDirectory)

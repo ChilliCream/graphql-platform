@@ -62,7 +62,7 @@ internal sealed class BackupAgentCommand : Command
             var roots = string.Join(" and ", summary.Roots.Select(root => $"'{root}'"));
             var files = summary.FileCount == 1 ? "file" : "files";
 
-            console.OkLine($"Backed up {summary.FileCount} {files} from {roots} to '{summary.Archive}'.");
+            console.OkLine($"Backed up {summary.FileCount} {files} from {roots} to '{summary.Archive.EscapeMarkup()}'.");
 
             return ExitCodes.Success;
         }

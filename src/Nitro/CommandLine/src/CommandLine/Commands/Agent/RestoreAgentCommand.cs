@@ -120,7 +120,7 @@ internal sealed class RestoreAgentCommand : Command
             foreach (var directory in summary.LeftoverDirectories)
             {
                 console.MarkupLine(
-                    $"Could not delete the replaced folder '{directory}'. Remove it manually."
+                    $"Could not delete the replaced folder '{directory.EscapeMarkup()}'. Remove it manually."
                         .AsWarning());
             }
 

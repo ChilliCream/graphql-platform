@@ -192,6 +192,27 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
     }
 
     [Fact]
+    public async Task Execute_Should_LeaveLocalFoldersUntouched_When_ManifestListsNoRoots()
+    {
+        // arrange
+        await SeedWorkspaceAsync("Seeded task", "Seeded mail");
+        CreateArchive(Manifest(formatVersion: 1));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "restore", "--archive", "../backup.zip", "--force");
+
+        // assert
+        AssertNormalizedError(
+            result,
+            """
+            The 'manifest.json' in archive '<temp>/backup.zip' is not a valid agent workspace manifest.
+            """);
+        Assert.True(File.Exists(Path.Combine(ProjectNitroDirectory, "research", "epic-1-topic", "notes.md")));
+        Assert.True(File.Exists(Path.Combine(GitWorkspaceDirectory, "agents.db")));
+    }
+
+    [Fact]
     public async Task Execute_Should_LeaveLocalFoldersUntouched_When_ProjectDatabaseSchemaIsNewer()
     {
         // arrange

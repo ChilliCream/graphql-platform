@@ -135,7 +135,7 @@ internal static partial class AgentWorkspaceArchive
             }
         }
 
-        if (manifest.Roots.Distinct().Count() != manifest.Roots.Count)
+        if (manifest.Roots.Count == 0 || manifest.Roots.Distinct().Count() != manifest.Roots.Count)
         {
             throw ThrowHelper.ArchiveManifestInvalid(archivePath);
         }
