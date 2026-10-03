@@ -8,6 +8,8 @@ internal interface INitroConsole : IAnsiConsole
 
     bool IsHumanReadable { get; }
 
+    OutputFormat? OutputFormat { get; }
+
     bool HasWrittenOutput { get; }
 
     IAnsiConsole Out { get; }

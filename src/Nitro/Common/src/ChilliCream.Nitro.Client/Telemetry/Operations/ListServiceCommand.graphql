@@ -1,0 +1,37 @@
+query ListServiceCommandQuery(
+  $workspaceId: ID!
+  $search: String
+  $filter: OpenTelemetryFilterInput
+  $environments: [String!]
+  $from: DateTime!
+  $to: DateTime!
+  $first: Int
+  $after: String
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    services(
+      search: $search
+      filter: $filter
+      environments: $environments
+      from: $from
+      to: $to
+      first: $first
+      after: $after
+    ) {
+      edges {
+        cursor
+        node {
+          name
+          environmentNames
+          versionMarkers(environments: $environments, from: $from, to: $to) {
+            firstSeenAt
+            version
+          }
+        }
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}

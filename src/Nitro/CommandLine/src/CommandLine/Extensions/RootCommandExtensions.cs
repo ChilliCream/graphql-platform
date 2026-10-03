@@ -56,7 +56,7 @@ internal static class RootCommandExtensions
 
             formatter.Format(result);
         }
-        else if (format is OutputFormat.Json && exitCode == 0)
+        else if (format is OutputFormat.Json && exitCode == 0 && !console.HasWrittenOutput)
         {
             console.WriteRawLine("{}");
         }

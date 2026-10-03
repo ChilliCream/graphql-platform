@@ -1,3 +1,6 @@
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
+
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class ThrowHelper
@@ -26,6 +29,19 @@ internal static class ThrowHelper
 
     public static ArgumentOutOfRangeException NegativeLimit(int limit)
         => new(nameof(limit), limit, "Limit must be zero or greater.");
+
+    public static ArgumentOutOfRangeException UnsupportedSeverityLevel(string severity)
+        => new(nameof(severity), severity, "Unsupported severity level.");
+
+    public static ArgumentOutOfRangeException UnsupportedFilterNode(FilterNode? node)
+        => new(nameof(node));
+
+    public static ArgumentOutOfRangeException UnsupportedFilterComparisonOperator(
+        FilterComparisonOperator comparison)
+        => new(nameof(comparison));
+
+    public static FilterParseException InvalidFilterSyntax(string message, int position)
+        => new(message, position + 1);
 
     public static ArgumentException UnknownAgentHarness(string harness)
         => new($"'{harness}' is not an agent harness.", nameof(harness));
