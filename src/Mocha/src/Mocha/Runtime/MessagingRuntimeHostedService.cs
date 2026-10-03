@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 namespace Mocha;
 
 /// <summary>
-/// Hosted service that automatically starts the messaging runtime when the host starts.
+/// Hosted service that starts and stops the messaging runtime with the host.
 /// </summary>
 internal sealed class MessagingRuntimeHostedService(IMessagingRuntime runtime) : IHostedService
 {
@@ -16,6 +16,6 @@ internal sealed class MessagingRuntimeHostedService(IMessagingRuntime runtime) :
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await _runtime.DisposeAsync();
+        await _runtime.StopAsync(cancellationToken);
     }
 }

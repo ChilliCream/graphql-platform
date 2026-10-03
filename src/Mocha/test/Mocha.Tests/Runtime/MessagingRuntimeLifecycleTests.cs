@@ -1,5 +1,6 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.InMemory;
@@ -9,6 +10,70 @@ namespace Mocha.Tests;
 public class MessagingRuntimeLifecycleTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
+    [Fact]
+    public async Task HostedServiceStopAsync_Should_StopTransportsAndEndpoints_When_HostStops()
+    {
+        // arrange
+        await using var provider = CreateProvider();
+        var hostedServices = provider.GetServices<IHostedService>().ToArray();
+        foreach (var hostedService in hostedServices)
+        {
+            await hostedService.StartAsync(TestContext.Current.CancellationToken);
+        }
+
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var started = Describe(runtime);
+
+        // act
+        for (var i = hostedServices.Length - 1; i >= 0; i--)
+        {
+            await hostedServices[i].StopAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        new { Started = started, Stopped = Describe(runtime) }.MatchInlineSnapshot(
+            """
+            {
+              "Started": {
+                "Runtime": true,
+                "Transports": true,
+                "ReceiveEndpoints": true
+              },
+              "Stopped": {
+                "Runtime": false,
+                "Transports": false,
+                "ReceiveEndpoints": false
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_StopTransportsAndEndpoints_When_ProviderDisposedWithoutStop()
+    {
+        // arrange
+        var provider = CreateProvider();
+        foreach (var hostedService in provider.GetServices<IHostedService>())
+        {
+            await hostedService.StartAsync(TestContext.Current.CancellationToken);
+        }
+
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        // act
+        await provider.DisposeAsync();
+
+        // assert
+        Describe(runtime).MatchInlineSnapshot(
+            """
+            {
+              "Runtime": false,
+              "Transports": false,
+              "ReceiveEndpoints": false
+            }
+            """);
+    }
 
     [Fact]
     public async Task DisposeAsync_Should_Complete_When_RuntimeNeverStarted()

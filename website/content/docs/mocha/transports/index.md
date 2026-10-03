@@ -224,6 +224,44 @@ builder.Services
 
 Each transport manages its own connections, topology, and middleware pipeline independently. A handler bound to one transport does not consume from another transport's endpoints.
 
+# Stop the bus
+
+`AddMessageBus()` starts the messaging transports when the host starts and stops their receive endpoints when the host stops. Disposing the service provider also stops the transports and releases consumer and transport resources.
+
+Transports stop taking new messages and let active handlers finish until the host's shutdown token is cancelled. They then cancel the receive token and wait for the cancellation grace period. Consumer handlers, consume middleware and receive middleware all observe this token through `CancellationToken`.
+
+| Transport         | Unfinished messages                                          |
+| ----------------- | ------------------------------------------------------------ |
+| InMemory          | Discarded, because the InMemory transport does not redeliver |
+| RabbitMQ          | Requeued by the broker, including prefetched messages        |
+| Azure Service Bus | Abandoned, or redelivered when the message lock expires      |
+
+A message whose processing fails after its receive token is cancelled is not faulted, whatever the exception. Retries, redelivery, fault replies and dead-lettering do not apply to it, and the transport returns it as described above. A handler that completes after the cancellation still settles its message: replies and acknowledgements are not cancelled by the receive token.
+
+A message cancelled before its batch is emitted is removed from the batch. An emitted batch is cancelled when every contributing endpoint cancels processing, or when its consumer is disposed. Reply endpoints stay available until active handlers across transports have drained.
+
+A stopped or disposed bus cannot be started again. Starting, stopping and disposing the bus run one at a time.
+
+## Configure cancellation and cleanup
+
+`TransportOptions.Shutdown` provides two timeouts:
+
+| Option                    | Default   | Description                                              |
+| ------------------------- | --------- | -------------------------------------------------------- |
+| `CancellationGracePeriod` | 5 seconds | Time cancelled handlers have to return before stop ends. |
+| `CleanupTimeout`          | 5 seconds | Maximum time a transport cleanup operation may take.     |
+
+The host's `HostOptions.ShutdownTimeout` controls the drain deadline. Cancellation grace and cleanup can continue after that deadline.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddInMemory(transport => transport.ModifyOptions(options =>
+    {
+        options.Shutdown.CancellationGracePeriod = TimeSpan.FromSeconds(10);
+    }));
+```
+
 # Next steps
 
 - [InMemory Transport](./in-memory.md) - Set up the InMemory transport for development and testing.

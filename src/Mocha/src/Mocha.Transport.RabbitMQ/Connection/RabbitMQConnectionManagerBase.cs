@@ -55,6 +55,11 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     protected bool IsDisposed => _isDisposed;
 
     /// <summary>
+    /// Gets or sets the maximum time closing a connection or channel may take.
+    /// </summary>
+    internal TimeSpan CleanupTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
     /// Gets the current connection, creating one if necessary.
     /// </summary>
     public async ValueTask<IConnection> GetConnectionAsync(CancellationToken cancellationToken)
@@ -281,29 +286,47 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private async Task DisposeConnectionInternalAsync()
     {
-        if (_currentConnection is null)
+        var connection = _currentConnection;
+        if (connection is null)
         {
             return;
         }
 
+        _currentConnection = null;
+        UnwireConnectionEvents(connection);
+        using var cleanupCts = new CancellationTokenSource(CleanupTimeout);
+        var cleanup = CloseAndDisposeConnectionAsync(connection, cleanupCts.Token);
         try
         {
-            UnwireConnectionEvents(_currentConnection);
-
-            if (_currentConnection.IsOpen)
-            {
-                await _currentConnection.CloseAsync();
-            }
-
-            await _currentConnection.DisposeAsync();
+            await cleanup.WaitAsync(cleanupCts.Token);
         }
         catch (Exception ex)
         {
             Logger.ErrorDisposingConnection(ex);
         }
-        finally
+    }
+
+    private async Task CloseAndDisposeConnectionAsync(IConnection connection, CancellationToken cancellationToken)
+    {
+        try
         {
-            _currentConnection = null;
+            if (connection.IsOpen)
+            {
+                await connection.CloseAsync(cancellationToken: cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorDisposingConnection(ex);
+        }
+
+        try
+        {
+            await connection.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.ErrorDisposingConnection(ex);
         }
     }
 

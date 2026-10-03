@@ -200,7 +200,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
             .AddAzureServiceBus(t => t.AutoProvision(false))
             .Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await using var bus = new TestBus(provider, runtime);
+        await using var bus = new TestBus(provider);
         var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
         var replyQueueName = ((AzureServiceBusReceiveEndpoint)(transport.ReplyReceiveEndpoint
             ?? throw new InvalidOperationException("Expected a reply receive endpoint to be configured."))).Queue.Name;

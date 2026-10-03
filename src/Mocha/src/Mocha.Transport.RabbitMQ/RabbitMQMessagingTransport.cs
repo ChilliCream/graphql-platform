@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     private RabbitMQMessagingTopology _topology = null!;
+    private readonly ConcurrentBag<RabbitMQConsumerManager.RegisteredConsumer> _deferredConsumers = [];
+    private bool _stopping;
 
     /// <inheritdoc />
     public override MessagingTopology Topology => _topology;
@@ -100,14 +103,20 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
 
-        return new RabbitMQConsumerManager(logger, Connection.CreateAsync);
+        return new RabbitMQConsumerManager(logger, Connection.CreateAsync)
+        {
+            CleanupTimeout = Options.Shutdown.CleanupTimeout
+        };
     }
 
     private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
+        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync)
+        {
+            CleanupTimeout = Options.Shutdown.CleanupTimeout
+        };
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
@@ -313,12 +322,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     /// Ensures that both the consumer and dispatcher RabbitMQ connections are established before
     /// the transport's endpoints begin processing messages.
     /// </summary>
-    /// <remarks>
-    /// Both <see cref="ConsumerManager"/> and <see cref="Dispatcher"/> connect concurrently via
-    /// <c>Task.WhenAll</c>. If either connection fails, the start-up will fail and the host will
-    /// not begin consuming or dispatching messages. This is the last opportunity to guarantee
-    /// network connectivity before the messaging pipeline is active.
-    /// </remarks>
     /// <param name="context">The configuration context for the current startup phase.</param>
     /// <param name="cancellationToken">A token to cancel the connection establishment.</param>
     protected override async ValueTask OnBeforeStartAsync(
@@ -329,6 +332,35 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         await Task.WhenAll(
             ConsumerManager.EnsureConnectedAsync(cancellationToken),
             Dispatcher.EnsureConnectedAsync(cancellationToken));
+    }
+
+    protected override ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
+    {
+        _stopping = true;
+        return ValueTask.CompletedTask;
+    }
+
+    internal bool TryDeferConsumerCleanup(RabbitMQConsumerManager.RegisteredConsumer consumer)
+    {
+        if (!_stopping)
+        {
+            return false;
+        }
+
+        _deferredConsumers.Add(consumer);
+        return true;
+    }
+
+    protected override async ValueTask OnAfterStopAsync(CancellationToken cancellationToken)
+    {
+        // Channels of handlers that outlast the stop close after all other endpoints.
+        var cleanup = new List<Task>();
+        while (_deferredConsumers.TryTake(out var consumer))
+        {
+            cleanup.Add(consumer.DisposeAsync().AsTask());
+        }
+
+        await Task.WhenAll(cleanup);
     }
 
     /// <summary>

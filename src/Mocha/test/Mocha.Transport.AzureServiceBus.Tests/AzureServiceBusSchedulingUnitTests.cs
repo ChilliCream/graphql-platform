@@ -310,9 +310,9 @@ public sealed class AzureServiceBusSchedulingUnitTests
             .AddMessageBus()
             .AddAzureServiceBus(t => t.DispatchEndpoint("payments").ToQueue("payments").Send<ProcessPayment>());
         var provider = builder.Services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        _ = provider.GetRequiredService<IMessagingRuntime>();
 
-        return (client, new TestBus(provider, runtime));
+        return (client, new TestBus(provider));
     }
 
     private const string DummyConnectionString =

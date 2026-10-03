@@ -14,8 +14,8 @@ namespace Mocha;
 /// <remarks>
 /// Created once during host startup and shared across all bus operations for the lifetime of the host.
 /// Starting the runtime starts all registered transports and their receive endpoints in sequence.
-/// Stopping the runtime stops all started transports, and disposing it disposes the consumers.
-/// Starting, stopping and disposing run one at a time.
+/// Stopping the runtime stops all started transports, and disposing it also disposes the consumers
+/// and transports. Starting, stopping and disposing run one at a time.
 /// </remarks>
 /// <param name="services">The root service provider for the messaging host.</param>
 /// <param name="options">Read-only messaging configuration options.</param>
@@ -250,8 +250,8 @@ public sealed class MessagingRuntime(
     }
 
     /// <summary>
-    /// Disposes the consumers. Failures are logged, and calling this method more than once has no
-    /// further effect.
+    /// Stops all transports, cancelling their in-flight messages, and disposes the consumers and
+    /// transports. Failures are logged, and calling this method more than once has no further effect.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
@@ -266,6 +266,8 @@ public sealed class MessagingRuntime(
 
             _disposed = true;
 
+            await TryStopCoreAsync();
+
             foreach (var consumer in consumers)
             {
                 try
@@ -275,6 +277,18 @@ public sealed class MessagingRuntime(
                 catch (Exception ex)
                 {
                     _logger.ConsumerDisposeFailed(ex, consumer.Name);
+                }
+            }
+
+            foreach (var transport in transports)
+            {
+                try
+                {
+                    await transport.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.TransportDisposeFailed(ex, transport.Name);
                 }
             }
 
@@ -294,4 +308,7 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Error disposing consumer {ConsumerName}.")]
     public static partial void ConsumerDisposeFailed(this ILogger logger, Exception exception, string consumerName);
+
+    [LoggerMessage(LogLevel.Error, "Error disposing transport {TransportName}.")]
+    public static partial void TransportDisposeFailed(this ILogger logger, Exception exception, string transportName);
 }

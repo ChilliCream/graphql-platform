@@ -1,4 +1,6 @@
 using Mocha.Transport.RabbitMQ.Features;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ;
 
@@ -52,7 +54,7 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
-    private IAsyncDisposable? _consumer;
+    private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
@@ -63,32 +65,60 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             throw new InvalidOperationException("Transport is not a RabbitMQMessagingTransport");
         }
 
-        _consumer = await rabbitMQMessagingTransport.ConsumerManager.RegisterConsumerAsync(
+        _consumer = await rabbitMQMessagingTransport.ConsumerManager.RegisterConsumerCoreAsync(
             Queue.Name,
-            (channel, eventArgs, ct) =>
-                ExecuteAsync(
-                    static (context, state) =>
-                    {
-                        var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
-                        feature.Channel = state.channel;
-                        feature.EventArgs = state.eventArgs;
-                    },
-                    (channel, eventArgs),
-                    ct),
+            ProcessMessageAsync,
             _maxPrefetch,
             _consumerDispatchConcurrency,
+            ProcessingToken,
             cancellationToken);
+    }
+
+    private async ValueTask ProcessMessageAsync(
+        IChannel channel,
+        BasicDeliverEventArgs eventArgs,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ExecuteAsync(
+                static (context, state) =>
+                {
+                    var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
+                    feature.Channel = state.channel;
+                    feature.EventArgs = state.eventArgs;
+                },
+                (channel, eventArgs),
+                cancellationToken);
+        }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // The acknowledgement middleware requeues the message while the channel is open, and
+            // closing the channel requeues it otherwise.
+        }
     }
 
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        if (_consumer is not null)
-        {
-            await _consumer.DisposeAsync();
-        }
-
+        var consumer = _consumer;
         _consumer = null;
+        if (consumer is not null)
+        {
+            var completed = false;
+            try
+            {
+                completed = await WaitForProcessingAsync(consumer.StopReceivingAsync(), cancellationToken);
+            }
+            finally
+            {
+                // Closing the channel requeues the messages of handlers that outlast the stop.
+                if (completed || !transport.TryDeferConsumerCleanup(consumer))
+                {
+                    await consumer.DisposeAsync();
+                }
+            }
+        }
     }
 }
