@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Threading;
 
 namespace Mocha.Transport.InMemory;
 
@@ -9,16 +8,18 @@ namespace Mocha.Transport.InMemory;
 /// through the receive middleware pipeline.
 /// </summary>
 /// <remarks>
-/// Message processing uses a <see cref="ChannelProcessor{T}"/> with N concurrent workers
-/// (where N = MaxConcurrency) that each read directly from the queue via
-/// <see cref="InMemoryQueue.ConsumeAsync"/> and invoke <see cref="ReceiveEndpoint.ExecuteAsync"/>
-/// for each envelope. Faulted messages are logged but do not stop any consumer loop.
+/// Message processing uses N concurrent workers (where N = MaxConcurrency) that each read directly
+/// from the queue via <see cref="InMemoryQueue.ConsumeAsync"/> and invoke
+/// <see cref="ReceiveEndpoint.ExecuteAsync"/> for each envelope. Faulted messages are logged but do
+/// not stop any consumer loop. When the endpoint stops, it takes no new messages from the queue and
+/// lets in-flight messages finish.
 /// </remarks>
 public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport)
     : ReceiveEndpoint<InMemoryReceiveEndpointConfiguration>(transport)
 {
     private int _maxDegreeOfParallelism = Environment.ProcessorCount;
-    private ChannelProcessor<InMemoryQueueItem>? _processor;
+    private CancellationTokenSource? _receiveCts;
+    private Task? _workers;
 
     /// <summary>
     /// Gets the in-memory queue this endpoint is consuming from.
@@ -60,12 +61,35 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
     {
         var logger = context.Services.GetRequiredService<ILogger<InMemoryReceiveEndpoint>>();
 
-        _processor = new ChannelProcessor<InMemoryQueueItem>(
-            Queue.ConsumeAsync,
-            (item, ct) => ProcessMessageAsync(item, logger, ct),
-            _maxDegreeOfParallelism);
+        _receiveCts = new CancellationTokenSource();
+
+        var workers = new Task[_maxDegreeOfParallelism];
+        for (var i = 0; i < workers.Length; i++)
+        {
+            workers[i] = ConsumeAsync(logger, _receiveCts.Token, ProcessingToken);
+        }
+
+        _workers = Task.WhenAll(workers);
 
         return ValueTask.CompletedTask;
+    }
+
+    private async Task ConsumeAsync(ILogger logger, CancellationToken receiveToken, CancellationToken processingToken)
+    {
+        // Messages already in the queue are processed in the background, not during start.
+        await Task.Yield();
+
+        try
+        {
+            await foreach (var item in Queue.ConsumeAsync(receiveToken))
+            {
+                await ProcessMessageAsync(item, logger, processingToken);
+            }
+        }
+        catch (OperationCanceledException) when (receiveToken.IsCancellationRequested)
+        {
+            // The endpoint is stopping.
+        }
     }
 
     private async Task ProcessMessageAsync(InMemoryQueueItem item, ILogger logger, CancellationToken cancellationToken)
@@ -88,10 +112,19 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        if (_processor is not null)
+        if (_receiveCts is not null)
         {
-            await _processor.DisposeAsync();
-            _processor = null;
+            await _receiveCts.CancelAsync();
         }
+
+        if (_workers is not null)
+        {
+            // Workers that outlast the stop end once their message returns.
+            await WaitForProcessingAsync(_workers, cancellationToken);
+            _workers = null;
+        }
+
+        _receiveCts?.Dispose();
+        _receiveCts = null;
     }
 }

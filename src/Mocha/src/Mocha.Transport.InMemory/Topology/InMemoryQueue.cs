@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Mocha.Middlewares;
 
@@ -55,12 +56,22 @@ public sealed class InMemoryQueue : TopologyResource<InMemoryQueueConfiguration>
 
     /// <summary>
     /// Returns an async stream of queued items, blocking until new messages arrive or cancellation is requested.
+    /// Once cancellation is requested, no further items are taken from the queue.
     /// </summary>
     /// <param name="cancellationToken">A token to stop consuming.</param>
     /// <returns>An async enumerable of <see cref="InMemoryQueueItem"/> instances that must be disposed after processing.</returns>
-    public IAsyncEnumerable<InMemoryQueueItem> ConsumeAsync(CancellationToken cancellationToken)
+    public async IAsyncEnumerable<InMemoryQueueItem> ConsumeAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        return _channel.Reader.ReadAllAsync(cancellationToken);
+        var reader = _channel.Reader;
+
+        while (await reader.WaitToReadAsync(cancellationToken))
+        {
+            while (!cancellationToken.IsCancellationRequested && reader.TryRead(out var item))
+            {
+                yield return item;
+            }
+        }
     }
 }
 

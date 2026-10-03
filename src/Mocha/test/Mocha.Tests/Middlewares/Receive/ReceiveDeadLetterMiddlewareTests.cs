@@ -743,6 +743,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     {
         public MessageContentType? DefaultContentType => null;
         public IReadOnlyTransportCircuitBreakerOptions CircuitBreaker => null!;
+        public IReadOnlyTransportShutdownOptions Shutdown { get; } = new TransportShutdownOptions();
     }
 
     private sealed class StubMessagingOptions : IReadOnlyMessagingOptions

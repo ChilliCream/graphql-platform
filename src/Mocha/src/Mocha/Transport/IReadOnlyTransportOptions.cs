@@ -14,4 +14,9 @@ public interface IReadOnlyTransportOptions
     /// Gets the transport-level circuit breaker options.
     /// </summary>
     IReadOnlyTransportCircuitBreakerOptions CircuitBreaker { get; }
+
+    /// <summary>
+    /// Gets the options that bound how long stopping the transport takes.
+    /// </summary>
+    IReadOnlyTransportShutdownOptions Shutdown { get; }
 }

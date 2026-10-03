@@ -25,6 +25,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
     private RuntimeState? _runtimeState;
 
+    private CancellationTokenSource? _processingCts;
+
     /// <summary>
     /// Gets the endpoint configuration that was applied during initialization.
     /// </summary>
@@ -82,6 +84,12 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Gets the feature collection associated with this endpoint for storing extensibility data.
     /// </summary>
     public IFeatureCollection Features { get; } = new FeatureCollection();
+
+    /// <summary>
+    /// Gets the token that cancels the messages this endpoint processes. It is cancelled when the token
+    /// passed to <see cref="StopAsync"/> is cancelled, and when the stop completes.
+    /// </summary>
+    protected CancellationToken ProcessingToken => _processingCts?.Token ?? CancellationToken.None;
 
     /// <summary>
     /// Processes a single incoming message through the receive pipeline.
@@ -253,17 +261,21 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Starts this endpoint, enabling it to begin receiving and processing messages.
     /// </summary>
     /// <remarks>
-    /// Resolves runtime services (logger, context pool, application service provider) and
-    /// delegates to <see cref="OnStartAsync"/> for transport-specific startup.
-    /// This method is idempotent; calling it on an already-started endpoint is a no-op.
+    /// Calling it on an already-started endpoint is a no-op. A stopped endpoint cannot be started again.
     /// </remarks>
     /// <param name="context">The messaging runtime context providing access to runtime services.</param>
     /// <param name="cancellationToken">Token to signal cancellation of the start operation.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the endpoint has been stopped.</exception>
     public async ValueTask StartAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
     {
         if (IsStarted)
         {
             return;
+        }
+
+        if (_processingCts is not null)
+        {
+            throw ThrowHelper.ReceiveEndpointStopped();
         }
 
         var logger = context.Services.GetRequiredService<ILogger<ReceiveEndpoint>>();
@@ -279,21 +291,33 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
             LazyRuntime = lazyRuntime
         };
 
-        await OnStartAsync(context, cancellationToken);
+        _processingCts = new CancellationTokenSource();
+
+        try
+        {
+            await OnStartAsync(context, cancellationToken);
+        }
+        catch
+        {
+            await _processingCts.CancelAsync();
+            throw;
+        }
 
         IsStarted = true;
     }
 
     /// <summary>
-    /// Stops this endpoint, ceasing message consumption and releasing runtime resources.
+    /// Stops this endpoint. It takes no new messages and waits for in-flight messages to complete.
     /// </summary>
     /// <remarks>
-    /// Delegates to <see cref="OnStopAsync"/> for transport-specific shutdown and clears
-    /// the runtime state. This method is idempotent; calling it on an already-stopped
+    /// When <paramref name="cancellationToken"/> is cancelled, the in-flight messages are cancelled
+    /// through <see cref="ProcessingToken"/>, and the stop waits for them at most
+    /// <see cref="IReadOnlyTransportShutdownOptions.CancellationGracePeriod"/> longer. The endpoint
+    /// counts as stopped once this method is called, even if the stop throws. Calling it on a stopped
     /// endpoint is a no-op.
     /// </remarks>
     /// <param name="context">The messaging runtime context.</param>
-    /// <param name="cancellationToken">Token to signal cancellation of the stop operation.</param>
+    /// <param name="cancellationToken">A token that cancels the in-flight messages.</param>
     public async ValueTask StopAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken)
     {
         if (!IsStarted)
@@ -301,10 +325,52 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
             return;
         }
 
-        await OnStopAsync(context, cancellationToken);
-
-        _runtimeState = null;
         IsStarted = false;
+
+        var processing = _processingCts!;
+        using var stop = new StopCancellation(
+            processing,
+            Transport.Options.Shutdown.CancellationGracePeriod,
+            cancellationToken);
+
+        try
+        {
+            await OnStopAsync(context, stop.Deadline);
+        }
+        finally
+        {
+            // Messages that outlive the stop are cancelled.
+            await processing.CancelAsync();
+        }
+    }
+
+    /// <summary>
+    /// Waits for <paramref name="processing"/> to complete.
+    /// </summary>
+    /// <param name="processing">A task that completes when the endpoint has no in-flight messages.</param>
+    /// <param name="cancellationToken">A token that ends the wait.</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="processing"/> completed; <c>false</c> if
+    /// <paramref name="cancellationToken"/> was cancelled first. A failure of
+    /// <paramref name="processing"/> is rethrown.
+    /// </returns>
+    protected static async ValueTask<bool> WaitForProcessingAsync(Task processing, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await processing.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (!processing.IsCompleted)
+            {
+                return false;
+            }
+
+            await processing;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -316,11 +382,15 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     protected abstract ValueTask OnStartAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken);
 
     /// <summary>
-    /// When overridden in a derived class, performs transport-specific shutdown logic
-    /// such as closing connections or unsubscribing from queues.
+    /// When overridden in a derived class, stops taking new messages, waits for in-flight messages and
+    /// releases transport resources.
     /// </summary>
     /// <param name="context">The messaging runtime context.</param>
-    /// <param name="cancellationToken">Token to signal cancellation of the stop operation.</param>
+    /// <param name="cancellationToken">
+    /// A token that is cancelled when the stop no longer waits for in-flight messages, which is
+    /// <see cref="IReadOnlyTransportShutdownOptions.CancellationGracePeriod"/> after their
+    /// <see cref="ProcessingToken"/> is cancelled.
+    /// </param>
     protected abstract ValueTask OnStopAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken);
 
     private void AssertUninitialized()
@@ -374,6 +444,45 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
             {
                 feature.CurrentConsumer = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Cancels processing when the stop token is cancelled, and the deadline one grace period later.
+    /// </summary>
+    private sealed class StopCancellation : IDisposable
+    {
+        private readonly CancellationTokenSource _processing;
+        private readonly CancellationTokenSource _deadline = new();
+        private readonly TimeSpan _gracePeriod;
+        private readonly CancellationTokenRegistration _registration;
+
+        public StopCancellation(
+            CancellationTokenSource processing,
+            TimeSpan gracePeriod,
+            CancellationToken stopToken)
+        {
+            _processing = processing;
+            _gracePeriod = gracePeriod;
+            _registration = stopToken.UnsafeRegister(
+                static state => ((StopCancellation)state!).OnStopCancelled(),
+                this);
+        }
+
+        public CancellationToken Deadline => _deadline.Token;
+
+        private void OnStopCancelled()
+        {
+            _deadline.CancelAfter(_gracePeriod);
+
+            // Handlers continue on the thread pool instead of the thread that cancels the stop.
+            _ = _processing.CancelAsync();
+        }
+
+        public void Dispose()
+        {
+            _registration.Dispose();
+            _deadline.Dispose();
         }
     }
 

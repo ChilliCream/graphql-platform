@@ -105,10 +105,19 @@ internal static class ThrowHelper
         => new InvalidOperationException("Transport routing strategy is required");
 
     public static Exception TransportAlreadyStarted()
-        => new InvalidOperationException("Transport is already started");
+        => new InvalidOperationException("The transport cannot be started more than once.");
 
     public static Exception TransportNotStarted()
         => new InvalidOperationException("Transport is not started");
+
+    public static Exception RuntimeDisposed()
+        => new ObjectDisposedException(nameof(MessagingRuntime), "The messaging runtime has been disposed.");
+
+    public static Exception RuntimeStopped()
+        => new InvalidOperationException("The messaging runtime cannot be started after it has stopped.");
+
+    public static Exception ReceiveEndpointStopped()
+        => new InvalidOperationException("The receive endpoint cannot be started after it has stopped.");
 
     public static Exception EndpointConfigurationFailed()
         => new InvalidOperationException("Failed to create endpoint configuration");
