@@ -147,10 +147,11 @@ internal sealed class SpanTreeRenderer
 
     private static void RenderExceptions(TraceSpan span, string prefix, List<string> lines)
     {
-        foreach (
-            var traceEvent in span.Events.Where(static traceEvent =>
-                traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase)
-            ))
+        var exceptionEvents = span.Events.Where(static traceEvent =>
+            traceEvent.Name.Equals("exception", StringComparison.OrdinalIgnoreCase)
+        );
+
+        foreach (var traceEvent in exceptionEvents)
         {
             var type = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionType) ?? string.Empty;
             var message = traceEvent.Attributes.GetAttribute(WellKnownAttributeNames.ExceptionMessage) ?? string.Empty;
