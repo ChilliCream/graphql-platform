@@ -61,6 +61,23 @@ public sealed class ExtendObjectTypeAnalyzer : DiagnosticAnalyzer
 
                     context.ReportDiagnostic(diagnostic);
                 }
+
+                // Check if it's a non-generic attribute with a typeof() argument
+                if (!namedAttributeType.IsGenericType
+                    && attribute.ArgumentList?.Arguments.Count == 1
+                    && attribute.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax typeofExpr)
+                {
+                    var typeInfo = semanticModel.GetTypeInfo(typeofExpr.Type);
+                    if (typeInfo.Type is INamedTypeSymbol typeSymbol)
+                    {
+                        var diagnostic = Diagnostic.Create(
+                            Errors.ExtendObjectTypeShouldBeUpgraded,
+                            attribute.GetLocation(),
+                            typeSymbol.Name);
+
+                        context.ReportDiagnostic(diagnostic);
+                    }
+                }
             }
         }
     }
