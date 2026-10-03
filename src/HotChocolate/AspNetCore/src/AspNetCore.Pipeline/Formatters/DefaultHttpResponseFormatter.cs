@@ -386,7 +386,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
                     && varyValue is string varyHeaderValue)
                 {
-                    response.Headers.Vary = varyHeaderValue;
+                    response.Headers.AppendVary(varyHeaderValue);
                 }
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);

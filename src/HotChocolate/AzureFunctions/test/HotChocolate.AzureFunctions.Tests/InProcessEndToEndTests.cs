@@ -1,5 +1,6 @@
 using HotChocolate.AzureFunctions.Tests.Helpers;
 using HotChocolate.Types;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
@@ -37,6 +38,52 @@ public class InProcessEndToEndTests
         dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
         Assert.Equal("Luke Skywalker", json.data.person.ToString());
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnVaryAccept_When_QueryIsExecuted()
+    {
+        // arrange
+        var hostBuilder = new MockInProcessFunctionsHostBuilder();
+        hostBuilder
+            .AddGraphQLFunction()
+            .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
+        var requestExecutor = hostBuilder
+            .BuildServiceProvider()
+            .GetRequiredService<IGraphQLRequestExecutor>();
+        var httpContext = TestHttpContextHelper.NewGraphQLHttpContext("{ person }");
+
+        // act
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        // assert
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        Assert.Equal("Accept", httpContext.Response.Headers.Vary.ToString());
+    }
+
+    [Fact]
+    public async Task Get_Should_ReturnVaryAccept_When_QueryIsExecuted()
+    {
+        // arrange
+        var hostBuilder = new MockInProcessFunctionsHostBuilder();
+        hostBuilder
+            .AddGraphQLFunction()
+            .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
+        var requestExecutor = hostBuilder
+            .BuildServiceProvider()
+            .GetRequiredService<IGraphQLRequestExecutor>();
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Method = HttpMethods.Get;
+        httpContext.Request.Path = TestHttpContextHelper.DefaultAzFuncGraphQLUri.AbsolutePath;
+        httpContext.Request.QueryString = new QueryString("?query=%7B%20person%20%7D");
+        httpContext.Response.Body = new MemoryStream();
+
+        // act
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        // assert
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        Assert.Equal("Accept", httpContext.Response.Headers.Vary.ToString());
     }
 
     [Fact]
