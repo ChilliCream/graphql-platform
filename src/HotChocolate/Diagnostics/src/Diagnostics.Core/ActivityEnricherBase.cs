@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -12,6 +14,11 @@ namespace HotChocolate.Diagnostics;
 /// </summary>
 public abstract class ActivityEnricherBase
 {
+    public virtual void OnWebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+    { }
+
     public virtual void EnrichExecuteHttpRequest(
         HttpContext httpContext,
         HttpRequestKind kind,

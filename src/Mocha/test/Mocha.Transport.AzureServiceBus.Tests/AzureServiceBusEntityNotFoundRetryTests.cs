@@ -40,11 +40,15 @@ public class AzureServiceBusEntityNotFoundRetryTests
             client.CreatedSenders.Count,
             Original = new
             {
-                originalSender.EntityPath, originalSender.SendMessageCallCount, originalSender.IsClosed
+                originalSender.EntityPath,
+                originalSender.SendMessageCallCount,
+                originalSender.IsClosed
             },
             Replacement = new
             {
-                replacementSender.EntityPath, replacementSender.SendMessageCallCount, replacementSender.IsClosed
+                replacementSender.EntityPath,
+                replacementSender.SendMessageCallCount,
+                replacementSender.IsClosed
             },
             admin.CreateQueueCallCount
         }.MatchInlineSnapshot(
@@ -120,11 +124,15 @@ public class AzureServiceBusEntityNotFoundRetryTests
             client.CreatedSenders.Count,
             Original = new
             {
-                originalSender.EntityPath, originalSender.ScheduleMessageCallCount, originalSender.IsClosed
+                originalSender.EntityPath,
+                originalSender.ScheduleMessageCallCount,
+                originalSender.IsClosed
             },
             Replacement = new
             {
-                replacementSender.EntityPath, replacementSender.ScheduleMessageCallCount, replacementSender.IsClosed
+                replacementSender.EntityPath,
+                replacementSender.ScheduleMessageCallCount,
+                replacementSender.IsClosed
             },
             admin.CreateQueueCallCount
         }.MatchInlineSnapshot(

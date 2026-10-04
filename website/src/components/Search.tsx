@@ -230,7 +230,6 @@ export function Search({
               transformItems={addProductContext}
               initialScrollY={initialScrollY}
               onClose={onClose}
-              onAskAiToggle={() => {}}
               navigator={{
                 navigate({ itemUrl }) {
                   router.push(itemUrl);

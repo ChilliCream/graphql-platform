@@ -42,6 +42,8 @@ builder
 | `EnableFlagEnums`                         | `bool`                       | `false`             | Treats `[Flags]` enums as flag enums in GraphQL.                                                             |
 | `EnableDefer`                             | `bool`                       | `false`             | Enables the `@defer` directive.                                                                              |
 | `EnableStream`                            | `bool`                       | `false`             | Enables the `@stream` directive.                                                                             |
+| `EnableCovariantFieldMerging`             | `bool`                       | `false`             | Allows fields whose return types differ only in nullability to be merged in a selection set.                 |
+| `EnableEmptySelectionSets`                | `bool`                       | `false`             | Enables empty selection sets (`{ }`) on composite fields and on query and mutation roots.                    |
 | `EnableSemanticNonNull`                   | `bool`                       | `false`             | Enables the semantic non-null feature.                                                                       |
 | `StripLeadingIFromInterface`              | `bool`                       | `false`             | Strips the leading `I` from C# interface names when generating GraphQL interface type names.                 |
 | `EnableTag`                               | `bool`                       | `true`              | Enables the `@tag` directive for schema metadata.                                                            |
@@ -84,11 +86,30 @@ builder
     {
         o.MaxFieldCost = 1000;
         o.MaxTypeCost = 2000;
+        o.DefaultListSize = 100;
+        o.MaxResponseSize = 10_000;
         o.EnforceCostLimits = true;
     });
 ```
 
-Refer to the cost analysis documentation for the full list of configurable properties.
+| Property                           | Type                          | Default   | Description                                                                                                              |
+| ---------------------------------- | ----------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `MaxFieldCost`                     | `double`                      | `1_000`   | Maximum allowed field cost.                                                                                              |
+| `MaxTypeCost`                      | `double`                      | `10_000`  | Maximum allowed type cost.                                                                                               |
+| `EnforceCostLimits`                | `bool`                        | `true`    | Rejects operations that exceed a configured limit.                                                                       |
+| `SkipAnalyzer`                     | `bool`                        | `false`   | Bypasses cost analysis and reporting.                                                                                    |
+| `ApplyCostDefaults`                | `bool`                        | `true`    | Applies Hot Chocolate cost metadata to the schema.                                                                       |
+| `ApplySlicingArgumentDefaultValue` | `bool`                        | `true`    | Writes the paging default size for argument-less evaluated requests.                                                     |
+| `DefaultResolverCost`              | `double?`                     | `10.0`    | Weight for fields without a pure resolver. `null` disables the default.                                                  |
+| `DefaultListSize`                  | `double`                      | `50`      | Size for lists without applicable `@listSize` metadata, sourced from `PagingDefaults.MaxPageSize`.                       |
+| `CostPlanCacheSize`                | `int`                         | `256`     | Maximum compiled cost plans cached per schema.                                                                           |
+| `MaxResponseSize`                  | `double?`                     | `null`    | Maximum response-object-field count. `null` disables the check.                                                          |
+| `CaseBudget`                       | `int?`                        | `null`    | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
+| `CaseBudgetExceededBehavior`       | `CaseBudgetExceededBehavior?` | `null`    | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).             |
+| `Filtering`                        | `FilterCostOptions`           | See below | Default weights for filtering arguments and operations.                                                                  |
+| `Sorting`                          | `SortCostOptions`             | See below | Default weights for sorting arguments and operations.                                                                    |
+
+See [Cost Analysis](../security/cost-analysis.md#options-reference) for filtering and sorting defaults and the reporting contract.
 
 # Server Options (ModifyServerOptions)
 
@@ -107,19 +128,20 @@ builder
     });
 ```
 
-| Property                                  | Type                   | Default   | Description                                                                                                                              |
-| ----------------------------------------- | ---------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`   | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
-| `EnableGetRequests`                       | `bool`                 | `true`    | Allows GraphQL queries over HTTP GET.                                                                                                    |
-| `EnableMultipartRequests`                 | `bool`                 | `true`    | Allows multipart HTTP requests (file uploads).                                                                                           |
-| `EnableSchemaRequests`                    | `bool`                 | `true`    | Allows schema SDL downloads.                                                                                                             |
-| `EnableSchemaFileSupport`                 | `bool`                 | `true`    | Allows the schema SDL to be served as a file download.                                                                                   |
-| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`   | Requires a preflight header on GET requests for CSRF protection.                                                                         |
-| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`    | Requires a preflight header on multipart requests for CSRF protection.                                                                   |
-| `Batching`                                | `AllowedBatching`      | `None`    | Controls which batching modes are allowed. Use `AllowedBatching.All` to enable.                                                          |
-| `MaxBatchSize`                            | `int`                  | `1024`    | Maximum number of operations in a single batch. Set to `0` for unlimited.                                                                |
-| `Sockets`                                 | `GraphQLSocketOptions` | See below | WebSocket transport options. See [WebSocket options](#websocket-options-graphqlsocketoptions) for details.                               |
-| `Tool`                                    | `NitroAppOptions`      | Default   | Nitro IDE tool options.                                                                                                                  |
+| Property                                  | Type                   | Default            | Description                                                                                                                                    |
+| ----------------------------------------- | ---------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`.       |
+| `EnableGetRequests`                       | `bool`                 | `true`             | Allows GraphQL queries over HTTP GET.                                                                                                          |
+| `EnableMultipartRequests`                 | `bool`                 | `true`             | Allows multipart HTTP requests (file uploads).                                                                                                 |
+| `EnableQueryRequests`                     | `bool`                 | `false`            | Allows GraphQL queries over HTTP QUERY.                                                                                                        |
+| `EnableSchemaRequests`                    | `bool`                 | `true`             | Allows schema SDL downloads.                                                                                                                   |
+| `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Allows the schema SDL to be served as a file download.                                                                                         |
+| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | Requires a preflight header on GET requests for CSRF protection.                                                                               |
+| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`             | Requires a preflight header on multipart requests for CSRF protection.                                                                         |
+| `Batching`                                | `AllowedBatching`      | `VariableBatching` | Controls which batching modes are allowed. Variable batching is enabled by default; use `AllowedBatching.All` to also enable request batching. |
+| `MaxBatchSize`                            | `int`                  | `1024`             | Maximum number of operations in a single batch. Set to `0` for unlimited.                                                                      |
+| `Sockets`                                 | `GraphQLSocketOptions` | See below          | WebSocket transport options. See [WebSocket options](#websocket-options-graphqlsocketoptions) for details.                                     |
+| `Tool`                                    | `NitroAppOptions`      | Default            | Nitro IDE tool options.                                                                                                                        |
 
 Per-endpoint overrides are still supported through `WithOptions` on the endpoint builder:
 
@@ -141,10 +163,11 @@ builder
     });
 ```
 
-| Property                          | Type        | Default    | Description                                                                                                    |
-| --------------------------------- | ----------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | 10 seconds | The time a client has to send a `connection_init` message before the server closes the connection.             |
-| `KeepAliveInterval`               | `TimeSpan?` | 5 seconds  | The interval at which the server sends keep-alive ping messages. Set to `null` to disable keep-alive messages. |
+| Property                          | Type        | Default          | Description                                                                                                                                                                                                                         |
+| --------------------------------- | ----------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | 10 seconds       | The time a client has to send a `connection_init` message before the server closes the connection.                                                                                                                                  |
+| `KeepAliveInterval`               | `TimeSpan?` | 5 seconds        | The interval at which the server sends keep-alive ping messages. Set to `null` to disable keep-alive messages.                                                                                                                      |
+| `MaxAllowedMessageSize`           | `int`       | 20,480,000 bytes | The maximum size in bytes of a single incoming WebSocket message. When exceeded, the server closes the connection with close status `1009` (Message Too Big). The default (`20 * 1000 * 1024`) matches the HTTP request size limit. |
 
 # Paging Options (ModifyPagingOptions)
 
@@ -232,12 +255,14 @@ builder
     });
 ```
 
-| Property                      | Type   | Default | Description                                                                                                              |
-| ----------------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `RegisterNodeInterface`       | `bool` | `true`  | Registers the `Node` interface and adds the `node(id: ID!): Node` field to the Query type.                               |
-| `AddNodesField`               | `bool` | `true`  | Adds a `nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                    |
-| `EnsureAllNodesCanBeResolved` | `bool` | `true`  | Validates during schema building that every type implementing `Node` has a corresponding node resolver configured.       |
-| `MaxAllowedNodeBatchSize`     | `int`  | `50`    | The maximum number of IDs a client can pass to the `nodes` field in a single request. Prevents excessive batch fetching. |
+| Property                      | Type   | Default | Description                                                                                                                                         |
+| ----------------------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RegisterNodeInterface`       | `bool` | `true`  | Registers the `Node` interface. When `false`, the `node` and `nodes` fields and `[NodeResolver]` inference are disabled as well.                    |
+| `AddNodeField`                | `bool` | `true`  | Adds the `#!sdl node(id: ID!): Node` field to the Query type.                                                                                       |
+| `AddNodesField`               | `bool` | `true`  | Adds a `#!sdl nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                                         |
+| `EnsureAllNodesCanBeResolved` | `bool` | `true`  | Validates during schema building that every type implementing `Node` has a corresponding node resolver configured.                                  |
+| `MaxAllowedNodeBatchSize`     | `int`  | `50`    | The maximum number of IDs a client can pass to the `nodes` field in a single request. Prevents excessive batch fetching.                            |
+| `MarkNodeFieldAsLookup`       | `bool` | `false` | Annotates the `Query.node` field with the `@lookup` directive for the composite schema spec, so a Fusion gateway can resolve entities by global ID. |
 
 # Cache Control Options (ModifyCacheControlOptions)
 

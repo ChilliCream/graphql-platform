@@ -199,7 +199,17 @@ internal sealed class PostgresQueueDescriptor
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        Configuration.SourceBindings.Add(source);
+        Configuration.SourceBindings.Add(new PostgresQueueSourceBindingConfiguration { Source = source });
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresQueueDescriptor BindFrom(Uri source, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        Configuration.SourceBindings.Add(
+            new PostgresQueueSourceBindingConfiguration { Source = source, AutoProvision = autoProvision });
         return this;
     }
 

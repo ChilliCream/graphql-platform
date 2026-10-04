@@ -233,7 +233,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         const int maxSizeOrLength = int.MaxValue; // 31 bits
         const int maxSourceDocumentId = 0x7FFF; // 15 bits (reduced from 16)
         const int maxParentRow = 0x0FFFFFFF; // 28 bits
-        const int maxSelectionSetId = CompositeResultDocument.DbRow.OperationReferenceIdMask; // 22 bits
+        const int maxSelectionSetId = DbRow.OperationReferenceIdMask; // 22 bits
 
         // Act
         var index = _metaDb.Append(
@@ -261,8 +261,8 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Arrange
         // The widest id, a non-zero reference type and every flag share one int; each
         // field must survive the round trip untouched by its neighbors.
-        const int maxId = CompositeResultDocument.DbRow.OperationReferenceIdMask;
-        const ElementFlags allFlags = (ElementFlags)CompositeResultDocument.DbRow.FlagsMask;
+        const int maxId = DbRow.OperationReferenceIdMask;
+        const ElementFlags allFlags = (ElementFlags)DbRow.FlagsMask;
 
         // Act
         var index = _metaDb.Append(
@@ -277,7 +277,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
             Id: {{row.OperationReferenceId}}
             Type: {{row.OperationReferenceType}}
             Flags: {{row.Flags}}
-            IdBits: {{CompositeResultDocument.DbRow.OperationReferenceIdBitCount}}
+            IdBits: {{DbRow.OperationReferenceIdBitCount}}
             IdMax: {{maxId}}
             """;
 

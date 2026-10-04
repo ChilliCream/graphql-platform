@@ -10,6 +10,9 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionComposeCommand : Command
 {
+    private const int MaxArchiveOpenAttempts = 50;
+    private static readonly TimeSpan s_archiveOpenRetryDelay = TimeSpan.FromMilliseconds(100);
+
     public FusionComposeCommand() : base("compose")
     {
         Description = "Compose multiple source schemas into a single composite schema.";
@@ -279,9 +282,7 @@ internal sealed class FusionComposeCommand : Command
             return initialResult;
         }
 
-        // use a bounded channel to queue composition requests
-        // when already a composition is running we enqueue a new message ...
-        // a single message which will trigger a new composition after the current one has completed.
+        // Queues at most one pending composition request while one is running.
         var compositionChannel = Channel.CreateBounded<string>(
             new BoundedChannelOptions(1)
             {
@@ -599,9 +600,10 @@ internal sealed class FusionComposeCommand : Command
                 }
             }
 
-            using var archive = fileSystem.FileExists(archiveFile) || File.Exists(archiveFile)
-                ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-                : FusionArchive.Create(archiveFile);
+            using var archive = await OpenOrCreateArchiveAsync(
+                fileSystem,
+                archiveFile,
+                cancellationToken);
 
             if (removeSourceSchemas.Count > 0)
             {
@@ -678,6 +680,34 @@ internal sealed class FusionComposeCommand : Command
         }
     }
 
+    /// <summary>
+    /// Opens the archive for update, or creates it when it does not exist. An attempt
+    /// that fails with an <see cref="IOException"/>, such as a sharing violation from a
+    /// concurrent reader, is retried at a fixed delay; after
+    /// <see cref="MaxArchiveOpenAttempts"/> attempts the exception propagates.
+    /// </summary>
+    private static async Task<FusionArchive> OpenOrCreateArchiveAsync(
+        IFileSystem fileSystem,
+        string archiveFile,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return fileSystem.FileExists(archiveFile) || File.Exists(archiveFile)
+                    ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+                    : FusionArchive.Create(archiveFile);
+            }
+            catch (IOException) when (attempt < MaxArchiveOpenAttempts)
+            {
+                // Retry: the archive is briefly locked by a concurrent reader.
+            }
+
+            await Task.Delay(s_archiveOpenRetryDelay, cancellationToken);
+        }
+    }
+
     public static void WriteCompositionLog(
         CompositionLog compositionLog,
         IAnsiConsole output,
@@ -723,8 +753,7 @@ internal sealed class FusionComposeCommand : Command
     }
 
     /// <summary>
-    /// Since we're prefixing the message with an emoji and space before printing,
-    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
+    /// Indents every line after the first by three spaces, preserving the first line.
     /// </summary>
     private static string FormatMultilineMessage(string message)
     {

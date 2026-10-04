@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
 using HotChocolate.Transport.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;

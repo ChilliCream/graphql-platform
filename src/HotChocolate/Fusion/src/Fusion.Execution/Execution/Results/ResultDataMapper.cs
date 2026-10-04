@@ -44,7 +44,7 @@ internal static class ResultDataMapper
                 return VisitObject(objectValue, result, schema, internalAlias, writer);
 
             case PathObjectValueSelectionNode pathObject:
-                return VisitPathObject(pathObject, result, schema, internalAlias, writer);
+                return VisitPathObject(pathObject, result, type, schema, internalAlias, writer);
 
             case PathListValueSelectionNode pathList:
                 return VisitPathList(pathList, result, type, schema, internalAlias, writer);
@@ -210,6 +210,7 @@ internal static class ResultDataMapper
     private static bool VisitPathObject(
         PathObjectValueSelectionNode node,
         CompositeResultElement result,
+        ITypeNode? type,
         ISchemaDefinition schema,
         string? internalAlias,
         JsonWriter writer)
@@ -217,9 +218,20 @@ internal static class ResultDataMapper
         var resolved = ResolvePath(schema, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
 
-        if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        if (valueKind is JsonValueKind.Undefined)
         {
             return false;
+        }
+
+        if (valueKind is JsonValueKind.Null)
+        {
+            if (IsNonNullPosition(type))
+            {
+                return false;
+            }
+
+            writer.WriteNullValue();
+            return true;
         }
 
         if (valueKind is not JsonValueKind.Object)

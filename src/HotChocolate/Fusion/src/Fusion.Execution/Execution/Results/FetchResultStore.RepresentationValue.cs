@@ -332,7 +332,7 @@ internal sealed partial class FetchResultStore
                 ref additionalPaths,
                 nextIndex);
             completed = true;
-            resultPaths = null!;
+            resultPaths = null;
             return value;
         }
         finally

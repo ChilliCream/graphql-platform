@@ -66,6 +66,96 @@ public class DataLoaderTests
         Assert.Equal(new[] { 1, 2, 2 }, DataLoaders.RecordedBatchSizes.OrderBy(x => x));
         Assert.Equal(new[] { "1", "2", "3", "4", "5" }, result);
     }
+
+    [Fact]
+    public async Task GenericDataLoader_Should_Load_BatchValue_When_ClosedBatchInterfaceIsUsedDirectly()
+    {
+        // arrange
+        await using var serviceProvider = new ServiceCollection()
+            .AddIntegrationTestTypesCore()
+            .BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dataLoader = scope.ServiceProvider.GetRequiredService<IBatchDataLoader<int, string>>();
+
+        // act
+        var result = await dataLoader.LoadAsync(1, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("batch-1", result);
+    }
+
+    [Fact]
+    public async Task GenericDataLoader_Should_Load_CacheValue_When_ClosedCacheInterfaceIsUsedDirectly()
+    {
+        // arrange
+        await using var serviceProvider = new ServiceCollection()
+            .AddIntegrationTestTypesCore()
+            .BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dataLoader = scope.ServiceProvider.GetRequiredService<ICacheDataLoader<int, string>>();
+
+        // act
+        var result = await dataLoader.LoadAsync(2, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("cache-2", result);
+    }
+
+    [Fact]
+    public async Task GenericDataLoader_Should_Load_ArrayValue_When_BatchInterfaceUsesAnArrayValue()
+    {
+        // arrange
+        await using var serviceProvider = new ServiceCollection()
+            .AddIntegrationTestTypesCore()
+            .BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dataLoader = scope.ServiceProvider.GetRequiredService<IBatchDataLoader<int, string[]>>();
+
+        // act
+        var result = await dataLoader.LoadAsync(3, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(new[] { "array-3", "array-4" }, result);
+    }
+
+    [Fact]
+    public async Task GenericDataLoader_Should_Resolve_UniqueInterface_When_OnlyOneLoaderUsesIt()
+    {
+        // arrange
+        await using var serviceProvider = new ServiceCollection()
+            .AddIntegrationTestTypesCore()
+            .BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var dataLoader = scope.ServiceProvider.GetRequiredService<IUniqueValueDataLoader>();
+
+        // act
+        var result = await dataLoader.LoadAsync(4, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("unique-4", result);
+    }
+
+    [Fact]
+    public async Task GenericDataLoader_Should_Resolve_ConcreteLoaders_When_MultipleLoadersShareAnInterface()
+    {
+        // arrange
+        await using var serviceProvider = new ServiceCollection()
+            .AddIntegrationTestTypesCore()
+            .BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var first = services.GetRequiredService<FirstSharedValueDataLoader>();
+        var second = services.GetRequiredService<SecondSharedValueDataLoader>();
+
+        // act
+        var results = await Task.WhenAll(
+            first.LoadAsync(5, TestContext.Current.CancellationToken),
+            second.LoadAsync(5, TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Null(services.GetService<ISharedValueDataLoader>());
+        Assert.Equal(new[] { "first-5", "second-5" }, results);
+    }
 }
 
 public static class DataLoaders
@@ -81,4 +171,50 @@ public static class DataLoaders
         IReadOnlyDictionary<int, string> result = keys.ToDictionary(k => k, k => k.ToString());
         return Task.FromResult(result);
     }
+}
+
+public interface IUniqueValueDataLoader : IBatchDataLoader<int, string>;
+
+public interface ISharedValueDataLoader : IBatchDataLoader<int, string>;
+
+public static class GenericDataLoaders
+{
+    [DataLoader<IBatchDataLoader<int, string>>]
+    public static Task<IReadOnlyDictionary<int, string>> GetDirectBatchValueAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(
+            keys.ToDictionary(key => key, key => $"batch-{key}"));
+
+    [DataLoader<ICacheDataLoader<int, string>>]
+    public static Task<string> GetDirectCacheValueAsync(int key, CancellationToken cancellationToken)
+        => Task.FromResult($"cache-{key}");
+
+    [DataLoader<IBatchDataLoader<int, string[]>>]
+    public static Task<IReadOnlyDictionary<int, string[]>> GetArrayValuesAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyDictionary<int, string[]>>(
+            keys.ToDictionary(key => key, key => new[] { $"array-{key}", $"array-{key + 1}" }));
+
+    [DataLoader<IUniqueValueDataLoader>]
+    public static Task<IReadOnlyDictionary<int, string>> GetUniqueValueAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(
+            keys.ToDictionary(key => key, key => $"unique-{key}"));
+
+    [DataLoader<ISharedValueDataLoader>]
+    public static Task<IReadOnlyDictionary<int, string>> GetFirstSharedValueAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(
+            keys.ToDictionary(key => key, key => $"first-{key}"));
+
+    [DataLoader<ISharedValueDataLoader>]
+    public static Task<IReadOnlyDictionary<int, string>> GetSecondSharedValueAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(
+            keys.ToDictionary(key => key, key => $"second-{key}"));
 }

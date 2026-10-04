@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
@@ -208,7 +206,6 @@ public class SelectionTypeShapeBenchmark
             switch (type.Kind)
             {
                 case TypeKind.List:
-                {
                     // TryCompleteList lines 923-930: per-invocation element shape
                     // derivation through the file-local ElementType extension.
                     var elementType = ElementTypeProduct(type);
@@ -225,7 +222,6 @@ public class SelectionTypeShapeBenchmark
                         + (isNonNull ? ElementNonNullMarker : ElementNullableMarker)
                         + RuntimeHelpers.GetHashCode(elementType);
                     break;
-                }
 
                 case TypeKind.Object:
                 {
@@ -319,7 +315,7 @@ public class SelectionTypeShapeBenchmark
                     // The level-0 element shape replaces lines 923-930.
                     checksum += (int)shape.ElementKind
                         + (shape.ElementIsNonNull ? ElementNonNullMarker : ElementNullableMarker)
-                        + RuntimeHelpers.GetHashCode(shape.ElementType!);
+                        + RuntimeHelpers.GetHashCode(shape.ElementType);
                     break;
 
                 case TypeKind.Object:

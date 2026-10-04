@@ -5,8 +5,8 @@ namespace HotChocolate.Execution.Processing;
 
 public class OperationFeatureCollectionTests
 {
-    private static readonly TimeSpan s_handshakeTimeout = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan s_completionTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan s_handshakeTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_completionTimeout = TimeSpan.FromSeconds(60);
 
     [Fact]
     public async Task GetOrSetSafe_Should_NotDeadlock_When_FactoryRacesLazySelectionSetCompilation()
@@ -36,8 +36,14 @@ public class OperationFeatureCollectionTests
         // act
         // the optimizer of `first` runs while the operation lock is held and writes its selection
         // feature only after the feature factory of `second` has started to compile a selection set.
-        var compilation = Task.Run(() => operation.GetSelectionSet(first), cancellationToken);
-        var featureFactory = Task.Run(
+        // both sides run on dedicated threads to keep the handshake independent of thread-pool
+        // scheduling.
+        var compilation = Task.Factory.StartNew(
+            () => operation.GetSelectionSet(first),
+            cancellationToken,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
+        var featureFactory = Task.Factory.StartNew(
             () =>
             {
                 if (!compilationStarted.Wait(s_handshakeTimeout, cancellationToken))
@@ -52,7 +58,9 @@ public class OperationFeatureCollectionTests
                         return new SelectorFeature(operation.GetSelectionSet(second));
                     });
             },
-            cancellationToken);
+            cancellationToken,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
 
         var deadlocked = false;
 

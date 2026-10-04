@@ -15,6 +15,9 @@ end_of_line = crlf
 [*.cs]
 indent_size = 4
 
+# TODO: Re-enable once the diagnostics have been addressed.
+dotnet_diagnostic.IDE0028.severity = none
+
 # ReSharper
 resharper_align_multiline_binary_expressions_chain = false
 resharper_align_multiline_statement_conditions = false

@@ -7,10 +7,10 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Base class for <c>graphql-hive/federation-gateway-audit</c> compliance suites.
 /// Each derived suite builds its gateway (via <see cref="BuildGatewayAsync"/>) and
-/// declares one <c>[Fact]</c> per audit test case that calls <see cref="RunAsync"/>
-/// with the inline query and expected response. The composed
-/// <see cref="FusionGateway"/> (subgraph <c>TestServer</c>s and the gateway service
-/// provider) is disposed automatically at the end of each test.
+/// declares one <c>[Fact]</c> per audit test case that calls
+/// <see cref="RunAsync(string, string?, bool?)"/> with the inline query and expected
+/// response. The composed <see cref="FusionGateway"/> (subgraph <c>TestServer</c>s
+/// and the gateway service provider) is disposed automatically at the end of each test.
 /// </summary>
 public abstract class ComplianceTestBase : IAsyncLifetime
 {
@@ -18,7 +18,7 @@ public abstract class ComplianceTestBase : IAsyncLifetime
 
     /// <summary>
     /// Builds the Fusion gateway for this suite. Called lazily from
-    /// <see cref="RunAsync"/> on the first invocation per test.
+    /// <see cref="RunAsync(string, string?, bool?)"/> on the first invocation per test.
     /// </summary>
     protected abstract Task<FusionGateway> BuildGatewayAsync();
 

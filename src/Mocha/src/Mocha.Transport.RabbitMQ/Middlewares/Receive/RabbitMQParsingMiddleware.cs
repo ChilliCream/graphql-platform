@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
 

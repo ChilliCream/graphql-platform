@@ -1,5 +1,8 @@
 using System.Globalization;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -14,27 +17,35 @@ using EditingConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDi
 namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 
 /// <summary>
-/// The root handler and renderer for <see cref="TuiApplication"/>. Owns the mode
-/// stack and composites the shell-level overlays (the quit confirmation, the task
-/// editor, the close/reopen/delete confirmation, the status and priority quick
-/// pickers, the task create form, and the toast row) over whichever mode is active.
+/// Handles TUI events and renders the active tab, shell overlays, and status row.
 /// </summary>
 internal sealed class TuiShell
 {
     private const string QuitConfirmMessage = "Quit? (y/n)";
     private const int StatusRowHeight = 1;
+    private const int TabStripRowHeight = 1;
     private const string FooterSeparator = "  ";
     private const string FooterEllipsis = "…";
+    private const string TabStripSeparator = " ";
 
-    private readonly KeyDispatcher _dispatcher;
-    private readonly Stack<ITuiMode> _modeStack = new();
+    private static readonly TimeSpan s_quitGateDrainBound = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_quitGateGrace = TimeSpan.FromSeconds(1);
+
+    private readonly IReadOnlyList<TuiTab> _tabs;
+    private readonly TuiTab _tasksTab;
     private readonly Toaster _toaster = new();
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
+    private readonly IAgentStore _agentStore;
     private readonly string? _actor;
 
-    private ITuiMode _activeMode;
+    private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
+    private readonly IReadOnlyList<TuiQuitGate> _quitGates;
+    private readonly TimeSpan _quitGateDrainBound;
+
+    private int _activeTabIndex;
+    private bool _quitGateResolved;
     private BoardDetailMode? _detailMode;
     private ConfirmDialog? _confirmDialog;
     private TaskEditorForm? _editorForm;
@@ -47,6 +58,10 @@ internal sealed class TuiShell
     private TaskCreateForm? _createForm;
     private EditingConfirmDialog? _discardDialog;
     private DiscardTarget _discardTarget;
+    private EditingConfirmDialog? _agentDeleteDialog;
+    private string? _agentDeleteTarget;
+    private EditingConfirmDialog? _agentDeleteOfflineDialog;
+    private IPopover? _popover;
     private int _width;
     private int _height;
 
@@ -55,20 +70,105 @@ internal sealed class TuiShell
         ITuiMode activeMode,
         int initialWidth,
         int initialHeight,
+        IAgentStore agentStore,
         SearchMode? searchMode = null,
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
-        string? actor = null)
+        string? actor = null,
+        Func<MailWakeDaemonState>? mailWakeDaemonState = null,
+        IReadOnlyList<TuiQuitGate>? quitGates = null,
+        TimeSpan? quitGateDrainBound = null)
+        : this(
+            [new TuiTab(
+                string.Empty,
+                mnemonic: '\0',
+                activeMode ?? throw new ArgumentNullException(nameof(activeMode)),
+                dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
+            initialWidth,
+            initialHeight,
+            agentStore,
+            tasksTabIndex: 0,
+            searchMode,
+            treeView,
+            store,
+            actor,
+            mailWakeDaemonState,
+            quitGates,
+            quitGateDrainBound)
     {
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
-        _activeMode = activeMode ?? throw new ArgumentNullException(nameof(activeMode));
+    }
+
+    /// <summary>
+    /// Creates a shell with independent tab navigation and key dispatch, initially
+    /// showing the first tab. Initializes every tab's current mode.
+    /// </summary>
+    /// <param name="tabs">The non-empty list of hosted tabs in display order.</param>
+    /// <param name="initialWidth">The initial frame width.</param>
+    /// <param name="initialHeight">The initial frame height.</param>
+    /// <param name="agentStore">The agent store backing the Agents tab's delete actions.</param>
+    /// <param name="searchMode">The task search mode, or null to disable shell search entry.</param>
+    /// <param name="treeView">The dependency tree mode, or null to disable shell tree entry.</param>
+    /// <param name="store">The task store, or null to disable shell task writes and detail entry.</param>
+    /// <param name="actor">The acting agent for task writes, or null to refuse those writes.</param>
+    /// <param name="tasksTabIndex">The tab that supports shell-level task editing overlays.</param>
+    /// <param name="quitGates">
+    /// Gates run before confirmed quit; unresolved work requires a second confirmation.
+    /// Null registers no gates.
+    /// </param>
+    /// <param name="quitGateDrainBound">The per-gate drain bound, or the default when null.</param>
+    /// <param name="mailWakeDaemonState">
+    /// Supplies the daemon state for the footer when no toast is shown; null omits the badge.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
+    /// </exception>
+    public TuiShell(
+        IReadOnlyList<TuiTab> tabs,
+        int initialWidth,
+        int initialHeight,
+        IAgentStore agentStore,
+        int tasksTabIndex = 0,
+        SearchMode? searchMode = null,
+        DependencyTreeView? treeView = null,
+        ITaskStore? store = null,
+        string? actor = null,
+        Func<MailWakeDaemonState>? mailWakeDaemonState = null,
+        IReadOnlyList<TuiQuitGate>? quitGates = null,
+        TimeSpan? quitGateDrainBound = null)
+    {
+        ArgumentNullException.ThrowIfNull(tabs);
+        ArgumentNullException.ThrowIfNull(agentStore);
+
+        if (tabs.Count == 0)
+        {
+            throw new ArgumentException("A shell needs at least one tab.", nameof(tabs));
+        }
+
+        if (tasksTabIndex < 0 || tasksTabIndex >= tabs.Count)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(tasksTabIndex), tasksTabIndex, "Must be a valid index into tabs.");
+        }
+
+        _tabs = tabs;
+        _activeTabIndex = 0;
+        _tasksTab = tabs[tasksTabIndex];
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
+        _agentStore = agentStore;
         _actor = actor;
+        _mailWakeDaemonState = mailWakeDaemonState;
+        _quitGates = quitGates ?? [];
+        _quitGateDrainBound = quitGateDrainBound ?? s_quitGateDrainBound;
         _width = initialWidth;
         _height = initialHeight;
-        _activeMode.OnEnter();
+
+        // Initialize the current mode of every hosted tab.
+        foreach (var tab in _tabs)
+        {
+            tab.ActiveMode.OnEnter();
+        }
     }
 
     /// <summary>
@@ -77,7 +177,27 @@ internal sealed class TuiShell
     /// </summary>
     public event Action? QuitConfirmed;
 
-    private int ContentHeight => Math.Max(0, _height - StatusRowHeight);
+    /// <summary>
+    /// Raised when a second quit confirmation, shown because a registered
+    /// <see cref="TuiQuitGate"/> reported unresolved work, is itself cancelled. A
+    /// feature that registered a gate is expected to resume its own effect queue's
+    /// submissions in response.
+    /// </summary>
+    public event Action? QuitCancelled;
+
+    private TuiTab ActiveTab => _tabs[_activeTabIndex];
+
+    private ITuiMode ActiveMode => ActiveTab.ActiveMode;
+
+    /// <summary>
+    /// Whether the tab owning the shell-level task overlay machinery is
+    /// currently active.
+    /// </summary>
+    private bool IsTasksTabActive => ReferenceEquals(ActiveTab, _tasksTab);
+
+    private int TabStripHeight => _tabs.Count > 1 ? TabStripRowHeight : 0;
+
+    private int ContentHeight => Math.Max(0, _height - StatusRowHeight - TabStripHeight);
 
     /// <summary>
     /// Handles one <see cref="TuiEvent"/>, returning whether the frame needs to be
@@ -89,21 +209,20 @@ internal sealed class TuiShell
         TuiEvent.KeyEvent keyEvent => HandleKey(keyEvent.Info),
         TuiEvent.ResizeEvent resize => HandleResize(resize.Width, resize.Height),
         TuiEvent.TickEvent tick => HandleTick(tick.Now),
-        TuiEvent.DataChangedEvent => HandleMessage(new TuiMessage.RefreshRequested()),
+        TuiEvent.DataChangedEvent => HandleDataChanged(),
+        TuiEvent.EffectCompletedEvent => HandleEffectCompleted(),
         _ => false
     };
 
     /// <summary>
-    /// Renders the current frame: whichever overlay is active, or the active mode,
-    /// filling the content region, with a reserved bottom row for the current
-    /// toast. Matches the <see cref="TuiFrameRenderer"/> shape expected by
-    /// <see cref="TuiApplication.RunAsync"/>.
+    /// Renders the active overlay or mode, a tab strip when needed, and a bottom row
+    /// showing the current toast or footer hints.
     /// </summary>
     public IRenderable Render()
     {
         var contentHeight = ContentHeight;
 
-        IRenderable content = _confirmDialog is { } quitDialog
+        var content = _confirmDialog is { } quitDialog
             ? quitDialog.Render(_width, contentHeight)
             : _discardDialog is { } discardDialog
                 ? discardDialog.Render(_width, contentHeight)
@@ -111,24 +230,87 @@ internal sealed class TuiShell
                     ? form.Render(_width, contentHeight)
                     : _lifecycleDialog is { } lifecycleDialog
                         ? lifecycleDialog.Render(_width, contentHeight)
-                        : _picker is { } picker
-                            ? picker.Render(_width, contentHeight)
-                            : _createForm is { } createForm
-                                ? createForm.Render(_width, contentHeight)
-                                : _activeMode.Render(_width, contentHeight);
+                        : _agentDeleteDialog is { } agentDeleteDialog
+                            ? agentDeleteDialog.Render(_width, contentHeight)
+                            : _agentDeleteOfflineDialog is { } agentDeleteOfflineDialog
+                                ? agentDeleteOfflineDialog.Render(_width, contentHeight)
+                                : _picker is { } picker
+                                    ? picker.Render(_width, contentHeight)
+                                    : _popover is { } popover
+                                        ? popover.Render(_width, contentHeight)
+                                        : _createForm is { } createForm
+                                            ? createForm.Render(_width, contentHeight)
+                                            : ActiveMode.Render(_width, contentHeight);
 
-        var toastRow = _toaster.Render() ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width));
+        var toastRow = _toaster.Render()
+            ?? new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
+
+        if (_tabs.Count <= 1)
+        {
+            return new Layout("root").SplitRows(
+                new Layout("content", content),
+                new Layout("status", toastRow).Size(StatusRowHeight));
+        }
 
         return new Layout("root").SplitRows(
+            new Layout("tabs", RenderTabStrip()).Size(TabStripRowHeight),
             new Layout("content", content),
             new Layout("status", toastRow).Size(StatusRowHeight));
+    }
+
+    /// <summary>
+    /// Renders tab titles with their mnemonic highlighted and the active tab styled
+    /// with the selection theme.
+    /// </summary>
+    private IRenderable RenderTabStrip()
+    {
+        var activeStyle = ThemeTokens.GetStyle("selection.highlight").ToMarkup();
+        var inactiveStyle = ThemeTokens.GetStyle("footer.action").ToMarkup();
+        var keyStyle = ThemeTokens.GetStyle("footer.key").ToMarkup();
+        var parts = new string[_tabs.Count];
+
+        for (var i = 0; i < _tabs.Count; i++)
+        {
+            var style = i == _activeTabIndex ? activeStyle : inactiveStyle;
+            var title = _tabs[i].Title;
+
+            if (_tabs[i].RootMode.TabBadge(_width, ContentHeight) is { } badge)
+            {
+                title = $"{title} · {badge}";
+            }
+
+            var titleMarkup = FormatMnemonicTitle(title, _tabs[i].Mnemonic, keyStyle);
+            parts[i] = $"[{style}] {titleMarkup} [/]";
+        }
+
+        return new Markup(string.Join(TabStripSeparator, parts));
+    }
+
+    /// <summary>
+    /// Brackets and styles the first case-insensitive mnemonic match, preserving
+    /// the title's original case. Returns the escaped title when no match exists.
+    /// </summary>
+    private static string FormatMnemonicTitle(string title, char mnemonic, string keyStyle)
+    {
+        var index = title.IndexOf(mnemonic.ToString(), StringComparison.OrdinalIgnoreCase);
+
+        if (index < 0)
+        {
+            return Markup.Escape(title);
+        }
+
+        var prefix = Markup.Escape(title[..index]);
+        var letter = Markup.Escape(title[index].ToString());
+        var suffix = Markup.Escape(title[(index + 1)..]);
+
+        return $"{prefix}[{keyStyle}][[{letter}]][/]{suffix}";
     }
 
     private bool HandleResize(int width, int height)
     {
         _width = width;
         _height = height;
-        _activeMode.OnResize(width, ContentHeight);
+        ActiveMode.OnResize(width, ContentHeight);
         return true;
     }
 
@@ -136,19 +318,57 @@ internal sealed class TuiShell
     {
         var toastDirty = _toaster.Tick(now);
         var searchDirty = _searchMode is { } search
-            && ReferenceEquals(_activeMode, search)
+            && ReferenceEquals(ActiveMode, search)
             && search.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
+        var agentsDirty = ActiveMode is AgentsMode agents && agents.Tick();
+        var popoverDirty = _popover?.Tick() ?? false;
 
-        return toastDirty || searchDirty;
+        return toastDirty || searchDirty || agentsDirty || popoverDirty;
+    }
+
+    /// <summary>
+    /// Refreshes every hosted tab's currently active mode, not only the active tab's, and
+    /// reloads the open popover, if any.
+    /// </summary>
+    private bool HandleDataChanged()
+    {
+        var tabsChanged = BroadcastToTabs(new TuiMessage.RefreshRequested());
+        _popover?.Load(CancellationToken.None);
+        return tabsChanged;
+    }
+
+    /// <summary>
+    /// Sends an effect-completion message to every tab's current mode to drain
+    /// its queued outcomes.
+    /// </summary>
+    private bool HandleEffectCompleted() => BroadcastToTabs(new TuiMessage.EffectCompleted());
+
+    /// <summary>
+    /// Sends the message to every tab's current mode. Dispatches all active-tab
+    /// follow-ups, but only toast follow-ups from inactive tabs.
+    /// </summary>
+    private bool BroadcastToTabs(TuiMessage message)
+    {
+        foreach (var tab in _tabs)
+        {
+            var followUps = tab.ActiveMode.Handle(message);
+            var isActiveTab = ReferenceEquals(tab, ActiveTab);
+
+            foreach (var followUp in followUps)
+            {
+                if (isActiveTab || followUp is TuiMessage.ShowToast)
+                {
+                    HandleMessage(followUp);
+                }
+            }
+        }
+
+        return true;
     }
 
     private bool HandleKey(ConsoleKeyInfo info)
     {
-        // The quit confirmation, the task editor, the close/reopen/delete
-        // confirmation, and the task create form are modal: while one is
-        // active it consumes every key itself, and unresolved keys are
-        // swallowed rather than falling through to the active mode or the
-        // global table.
+        // Shell overlays consume input before mode or global dispatch.
         if (_confirmDialog is { } quitDialog)
         {
             var chord = KeyChord.From(info);
@@ -170,9 +390,24 @@ internal sealed class TuiShell
             return HandleLifecycleDialogKey(info);
         }
 
+        if (_agentDeleteDialog is not null)
+        {
+            return HandleAgentDeleteDialogKey(info);
+        }
+
+        if (_agentDeleteOfflineDialog is not null)
+        {
+            return HandleAgentDeleteOfflineDialogKey(info);
+        }
+
         if (_picker is not null)
         {
             return HandlePickerKey(info);
+        }
+
+        if (_popover is not null)
+        {
+            return HandlePopoverKey(info);
         }
 
         if (_createForm is not null)
@@ -181,7 +416,7 @@ internal sealed class TuiShell
         }
 
         if (_searchMode is { } searchMode
-            && ReferenceEquals(_activeMode, searchMode)
+            && ReferenceEquals(ActiveMode, searchMode)
             && searchMode.Focus == SearchFocus.Input
             && info.Key is not (ConsoleKey.Escape or ConsoleKey.Tab or ConsoleKey.Enter))
         {
@@ -189,8 +424,69 @@ internal sealed class TuiShell
             return true;
         }
 
-        var message = _dispatcher.Dispatch(info, _activeMode.KeyMap);
+        // A capturing mode receives raw keys before tab or semantic dispatch.
+        if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
+        {
+            foreach (var followUp in capturingMode.HandleRawKey(info))
+            {
+                HandleMessage(followUp);
+            }
+
+            return true;
+        }
+
+        // Tab switching is checked ahead of the active tab's own dispatch.
+        if (_tabs.Count > 1)
+        {
+            var tabChord = KeyChord.From(info);
+
+            if (TabSwitchKeys.Resolve(tabChord) is { } delta)
+            {
+                return SwitchTab(delta);
+            }
+
+            if (TabSwitchKeys.ResolveMnemonic(tabChord, _tabs) is { } mnemonicIndex)
+            {
+                return SwitchToTab(mnemonicIndex);
+            }
+        }
+
+        var message = ActiveTab.Dispatcher.Dispatch(info, ActiveMode.KeyMap);
         return message is not null && HandleMessage(message);
+    }
+
+    /// <summary>
+    /// Switches the active tab by <paramref name="delta"/> positions,
+    /// wrapping around at either end. Returns <see langword="false"/>
+    /// without effect when only one tab is hosted.
+    /// </summary>
+    private bool SwitchTab(int delta)
+    {
+        if (_tabs.Count <= 1)
+        {
+            return false;
+        }
+
+        var next = ((_activeTabIndex + delta) % _tabs.Count + _tabs.Count) % _tabs.Count;
+        return SwitchToTab(next);
+    }
+
+    /// <summary>
+    /// Switches directly to the tab at <paramref name="index"/>, used by
+    /// the mnemonic jump (Shift+&lt;letter&gt;) as well as <see cref="SwitchTab"/>'s
+    /// delta-relative cycling. Returns <see langword="false"/> without
+    /// effect when <paramref name="index"/> is already the active tab.
+    /// </summary>
+    private bool SwitchToTab(int index)
+    {
+        if (index == _activeTabIndex)
+        {
+            return false;
+        }
+
+        _activeTabIndex = index;
+        ActiveTab.Activate(_width, ContentHeight);
+        return true;
     }
 
     private bool HandleEditorFormKey(ConsoleKeyInfo info)
@@ -235,8 +531,8 @@ internal sealed class TuiShell
         HandleMessage(outcome.ToShowToast());
         HandleMessage(new TuiMessage.RefreshRequested());
 
-        // A failed save leaves the form open with its entered values so the
-        // user can see the error and retry; only a successful save closes it.
+        // A failed save leaves the form open with its entered values; only
+        // a successful save closes it.
         if (outcome is TaskEditorOutcome.Succeeded)
         {
             _editorForm = null;
@@ -284,6 +580,80 @@ internal sealed class TuiShell
         var outcome = outcomeTask.GetAwaiter().GetResult();
 
         HandleMessage(outcome.ToShowToast());
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
+    private bool HandleAgentDeleteDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _agentDeleteDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _agentDeleteDialog = null;
+                _agentDeleteTarget = null;
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                return SubmitAgentDelete();
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitAgentDelete()
+    {
+        var name = _agentDeleteTarget!;
+        _agentDeleteDialog = null;
+        _agentDeleteTarget = null;
+
+        // A confirmed delete from the popover closes it back to the table; the table
+        // shows the same effect through its own refresh below.
+        _popover = null;
+
+        var deleted = _agentStore.DeleteAsync(name, CancellationToken.None).GetAwaiter().GetResult();
+
+        HandleMessage(new TuiMessage.ShowToast(
+            deleted ? $"Deleted agent '{name}'." : $"Agent '{name}' was not found.",
+            deleted ? ToastStyle.Info : ToastStyle.Warn));
+        HandleMessage(new TuiMessage.RefreshRequested());
+        return true;
+    }
+
+    private bool HandleAgentDeleteOfflineDialogKey(ConsoleKeyInfo info)
+    {
+        var result = _agentDeleteOfflineDialog!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case ConfirmDialogResult.Cancelled:
+                _agentDeleteOfflineDialog = null;
+                return true;
+
+            case ConfirmDialogResult.Confirmed:
+                return SubmitAgentDeleteOffline();
+
+            default:
+                return true;
+        }
+    }
+
+    private bool SubmitAgentDeleteOffline()
+    {
+        _agentDeleteOfflineDialog = null;
+
+        var deletedCount = _agentStore.DeleteInactiveAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+        HandleMessage(
+            new TuiMessage.ShowToast($"Deleted {deletedCount} offline or idle agents.", ToastStyle.Info));
         HandleMessage(new TuiMessage.RefreshRequested());
         return true;
     }
@@ -344,6 +714,37 @@ internal sealed class TuiShell
 
             case QuickPickerResult.Applied applied:
                 return SubmitPicker(applied.SelectedId);
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Routes one raw key to the open popover: a close dismisses it, and any other request is
+    /// handed to the active mode's own <see cref="ITuiMode.HandlePopoverRequest"/>, which is
+    /// how the agent delete and copy gestures keep working.
+    /// </summary>
+    private bool HandlePopoverKey(ConsoleKeyInfo info)
+    {
+        var result = _popover!.HandleKey(info);
+
+        switch (result)
+        {
+            case null:
+                return true;
+
+            case PopoverResult.Closed:
+                _popover = null;
+                return true;
+
+            case PopoverResult.Request request:
+                foreach (var followUp in ActiveMode.HandlePopoverRequest(request))
+                {
+                    HandleMessage(followUp);
+                }
+
+                return true;
 
             default:
                 return true;
@@ -423,12 +824,12 @@ internal sealed class TuiShell
         HandleMessage(outcome.ToShowToast());
         HandleMessage(new TuiMessage.RefreshRequested());
 
-        // A failed save leaves the form open with its entered values so the
-        // user can see the error and retry; only a successful save closes it.
+        // A failed save leaves the form open with its entered values; only
+        // a successful save closes it.
         if (outcome is TaskCreateOutcome.Succeeded succeeded)
         {
             _createForm = null;
-            _activeMode.SelectTask(succeeded.TaskId);
+            ActiveMode.SelectTask(succeeded.TaskId);
         }
 
         return true;
@@ -443,12 +844,17 @@ internal sealed class TuiShell
                 return true;
 
             case TuiMessage.ConfirmQuit:
-                _confirmDialog = null;
-                QuitConfirmed?.Invoke();
-                return true;
+                return HandleConfirmQuit();
 
             case TuiMessage.CancelQuit:
                 _confirmDialog = null;
+
+                if (_quitGateResolved)
+                {
+                    _quitGateResolved = false;
+                    QuitCancelled?.Invoke();
+                }
+
                 return true;
 
             case TuiMessage.ShowToast showToast:
@@ -459,11 +865,14 @@ internal sealed class TuiShell
                 PopMode();
                 return true;
 
-            case TuiMessage.OpenSelected when _activeMode is BoardMode:
+            case TuiMessage.OpenSelected when ActiveMode is BoardMode:
                 return TryOpenDetail();
 
+            case TuiMessage.OpenSelected:
+                return TryOpenPopover();
+
             case TuiMessage.FocusSearchRequested:
-                if (_searchMode is not { } search)
+                if (!IsTasksTabActive || _searchMode is not { } search)
                 {
                     return false;
                 }
@@ -484,6 +893,12 @@ internal sealed class TuiShell
             case TuiMessage.DeleteRequested:
                 return TryOpenDeleteDialog();
 
+            case TuiMessage.DeleteAgentRequested deleteAgent:
+                return TryOpenAgentDeleteDialog(deleteAgent.Name);
+
+            case TuiMessage.DeleteOfflineAgentsRequested:
+                return TryOpenAgentDeleteOfflineDialog();
+
             case TuiMessage.StatusPickerRequested:
                 return TryOpenPicker(PickerKind.Status);
 
@@ -497,7 +912,7 @@ internal sealed class TuiShell
                 return TryOpenCreateForm(TaskTypes.Epic);
 
             default:
-                foreach (var followUp in _activeMode.Handle(message))
+                foreach (var followUp in ActiveMode.Handle(message))
                 {
                     HandleMessage(followUp);
                 }
@@ -507,10 +922,79 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Switches to the board's task detail mode, rooted on the board's
-    /// currently selected task. Reuses the same mode-stack semantics as
-    /// <see cref="TryOpenTree"/>: Back returns to the board with its
-    /// selection untouched.
+    /// Runs registered gates on the first quit confirmation and raises
+    /// <see cref="QuitConfirmed"/> if no work remains unresolved. Otherwise,
+    /// requires a second confirmation without rerunning the gates.
+    /// </summary>
+    private bool HandleConfirmQuit()
+    {
+        _confirmDialog = null;
+
+        if (_quitGateResolved || _quitGates.Count == 0)
+        {
+            _quitGateResolved = false;
+            QuitConfirmed?.Invoke();
+            return true;
+        }
+
+        var report = RunQuitGates();
+
+        if (!report.HasUnresolvedWork)
+        {
+            QuitConfirmed?.Invoke();
+            return true;
+        }
+
+        _quitGateResolved = true;
+        _confirmDialog = new ConfirmDialog(FormatQuitGateMessage(report));
+        return true;
+    }
+
+    private TuiQuitGateReport RunQuitGates()
+    {
+        var pendingCount = 0;
+        var outcomeUnknownCount = 0;
+        var operationIds = new List<TuiOperationId>();
+
+        foreach (var gate in _quitGates)
+        {
+            TuiQuitGateReport report;
+
+            try
+            {
+                report = gate(_quitGateDrainBound, CancellationToken.None)
+                    .WaitAsync(_quitGateDrainBound + s_quitGateGrace)
+                    .GetAwaiter().GetResult();
+            }
+            catch (TimeoutException)
+            {
+                // The gate itself failed to answer within its own bound plus a
+                // grace period.
+                outcomeUnknownCount++;
+                continue;
+            }
+            catch (Exception)
+            {
+                // A gate that faults, whether it throws synchronously or returns
+                // a faulted task, is reported as outcome-unknown for that gate.
+                outcomeUnknownCount++;
+                continue;
+            }
+
+            pendingCount += report.PendingCount;
+            outcomeUnknownCount += report.OutcomeUnknownCount;
+            operationIds.AddRange(report.DiscoverableOperationIds);
+        }
+
+        return new TuiQuitGateReport(pendingCount, outcomeUnknownCount, operationIds);
+    }
+
+    private static string FormatQuitGateMessage(TuiQuitGateReport report) =>
+        $"Exit with {report.PendingCount} stored-but-pending, {report.OutcomeUnknownCount} outcome-unknown? (y/n)";
+
+    /// <summary>
+    /// Opens the selected board task in a detail mode on the active tab's
+    /// navigation stack.
     /// </summary>
     private bool TryOpenDetail()
     {
@@ -519,7 +1003,7 @@ internal sealed class TuiShell
             return false;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
@@ -530,6 +1014,30 @@ internal sealed class TuiShell
         return true;
     }
 
+    /// <summary>
+    /// Opens the popover the active mode returns for its currently selected row, hosted as a
+    /// shell overlay rather than switched to on the active tab's navigation stack. Falls back
+    /// to dispatching <see cref="TuiMessage.OpenSelected"/> to the active mode itself when it
+    /// hosts no popover for the current selection, which is how search's open-on-Tab and the
+    /// dependency tree's follow key keep working.
+    /// </summary>
+    private bool TryOpenPopover()
+    {
+        if (ActiveMode.TryCreatePopover() is { } popover)
+        {
+            popover.Load(CancellationToken.None);
+            _popover = popover;
+            return true;
+        }
+
+        foreach (var followUp in ActiveMode.Handle(new TuiMessage.OpenSelected()))
+        {
+            HandleMessage(followUp);
+        }
+
+        return true;
+    }
+
     private bool TryOpenTree()
     {
         if (_treeView is not { } tree)
@@ -537,7 +1045,7 @@ internal sealed class TuiShell
             return false;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
@@ -549,12 +1057,17 @@ internal sealed class TuiShell
 
     private bool TryOpenEditor()
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
+        }
+
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
@@ -573,9 +1086,14 @@ internal sealed class TuiShell
 
     private bool TryOpenCloseOrReopenDialog()
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
+        }
+
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
         }
 
         if (LoadSelectedTask() is not { } task)
@@ -601,9 +1119,14 @@ internal sealed class TuiShell
 
     private bool TryOpenDeleteDialog()
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
+        }
+
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
         }
 
         if (LoadSelectedTask() is not { } task)
@@ -617,11 +1140,65 @@ internal sealed class TuiShell
         return true;
     }
 
-    private bool TryOpenPicker(PickerKind kind)
+    /// <summary>
+    /// Opens the delete confirmation for the named agent. Does nothing outside the Agents
+    /// tab, and shows a toast instead of a dialog when no agent is selected.
+    /// </summary>
+    private bool TryOpenAgentDeleteDialog(string name)
     {
-        if (_store is null)
+        if (ActiveMode is not AgentsMode)
         {
             return false;
+        }
+
+        if (name.Length == 0)
+        {
+            return ShowToastNow("No agent selected.", ToastStyle.Warn);
+        }
+
+        _agentDeleteTarget = name;
+        _agentDeleteDialog = new EditingConfirmDialog(
+            $"Delete agent '{name}'? Its mail and tasks keep the name; this cannot be undone.",
+            "Delete",
+            ButtonKind.Danger);
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the delete-all-offline-or-idle confirmation. Does nothing outside the Agents tab,
+    /// and shows a toast instead of a dialog when there are no offline or idle agents.
+    /// </summary>
+    private bool TryOpenAgentDeleteOfflineDialog()
+    {
+        if (ActiveMode is not AgentsMode agentsMode)
+        {
+            return false;
+        }
+
+        var inactiveCount = agentsMode.CountInactiveAgents();
+
+        if (inactiveCount == 0)
+        {
+            return ShowToastNow("No offline or idle agents to delete.", ToastStyle.Warn);
+        }
+
+        _agentDeleteOfflineDialog = new EditingConfirmDialog(
+            $"Delete {inactiveCount} offline or idle agents? This cannot be undone.",
+            "Delete",
+            ButtonKind.Danger);
+        return true;
+    }
+
+    private bool TryOpenPicker(PickerKind kind)
+    {
+        if (!IsTasksTabActive || _store is null)
+        {
+            return false;
+        }
+
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
         }
 
         if (LoadSelectedTask() is not { } task)
@@ -637,15 +1214,19 @@ internal sealed class TuiShell
 
     private bool TryOpenCreateForm(string typePreset)
     {
-        if (_store is null)
+        if (!IsTasksTabActive || _store is null)
         {
             return false;
         }
 
-        // A selected task becomes the new task's parent: creating unconditionally
-        // requires no selection (unlike edit, lifecycle, and the pickers), so no
-        // "no task selected" toast gates this on the active mode's selection.
-        _createForm = new TaskCreateForm(typePreset, _activeMode.SelectedTaskId);
+        if (_actor is null)
+        {
+            return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
+        }
+
+        // A selected task becomes the new task's parent. Creating requires
+        // no selection, unlike edit, lifecycle, and the pickers.
+        _createForm = new TaskCreateForm(typePreset, ActiveMode.SelectedTaskId);
         return true;
     }
 
@@ -656,7 +1237,7 @@ internal sealed class TuiShell
             return null;
         }
 
-        if (_activeMode.SelectedTaskId is not { } id)
+        if (ActiveMode.SelectedTaskId is not { } id)
         {
             ShowToastNow("No task selected.", ToastStyle.Warn);
             return null;
@@ -678,44 +1259,18 @@ internal sealed class TuiShell
         return true;
     }
 
-    private void SwitchTo(ITuiMode mode)
-    {
-        if (ReferenceEquals(_activeMode, mode))
-        {
-            return;
-        }
-
-        _modeStack.Push(_activeMode);
-        _activeMode = mode;
-        _activeMode.OnResize(_width, ContentHeight);
-        _activeMode.OnEnter();
-    }
-
-    private void PopMode()
-    {
-        if (_modeStack.Count == 0)
-        {
-            return;
-        }
-
-        _activeMode = _modeStack.Pop();
-        _activeMode.OnResize(_width, ContentHeight);
-        _activeMode.OnEnter();
-    }
+    private void SwitchTo(ITuiMode mode) => ActiveTab.SwitchTo(mode, _width, ContentHeight);
 
     /// <summary>
-    /// Builds the footer's hint list for whichever context currently owns
-    /// key input, mirroring <see cref="HandleKey"/>'s own priority order so
-    /// the footer can never show a hint the active input context would not
-    /// actually honor. The fully modal overlays (the quit confirmation, the
-    /// discard confirmation, the task editor, the lifecycle confirmation,
-    /// the quick pickers, and the task create form) show only their own
-    /// hints, since they consume every key themselves; the search mode's
-    /// query input is treated the same way while it has focus, since
-    /// <see cref="SearchMode.HandleQueryKey"/> swallows every key that is
-    /// not one of its own bindings into the query rather than falling
-    /// through to the global table. Every other context's hints are
-    /// followed by the global table's, with quit last.
+    /// Returns to the previous mode on the active tab's navigation stack,
+    /// or does nothing when that stack is empty.
+    /// </summary>
+    private void PopMode() => ActiveTab.PopMode(_width, ContentHeight);
+
+    /// <summary>
+    /// Returns hints for the current input context. Capturing contexts show only
+    /// their own hints; other modes add unsuppressed global hints and, when
+    /// multiple tabs are hosted, the tab-switch hint.
     /// </summary>
     private IReadOnlyList<KeyHint> BuildFooterHints()
     {
@@ -739,9 +1294,19 @@ internal sealed class TuiShell
             return EditingConfirmDialog.Hints;
         }
 
+        if (_agentDeleteDialog is not null || _agentDeleteOfflineDialog is not null)
+        {
+            return EditingConfirmDialog.Hints;
+        }
+
         if (_picker is not null)
         {
             return QuickPicker.Hints;
+        }
+
+        if (_popover is { } popover)
+        {
+            return popover.Hints;
         }
 
         if (_createForm is not null)
@@ -749,65 +1314,135 @@ internal sealed class TuiShell
             return TaskCreateForm.Hints;
         }
 
-        var contextHints = _activeMode.KeyMap?.Hints ?? [];
+        var contextHints = ActiveMode.KeyMap?.Hints ?? [];
 
         if (_searchMode is { } search
-            && ReferenceEquals(_activeMode, search)
+            && ReferenceEquals(ActiveMode, search)
             && search.Focus == SearchFocus.Input)
         {
             return [SearchMode.TypingHint, .. contextHints, SearchMode.EnterHint];
         }
 
-        return Combine(contextHints);
+        // Capturing modes supply their own footer hints.
+        if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
+        {
+            return capturingMode.CapturingHints;
+        }
+
+        // Hide the task-edit hint when no acting identity is available.
+        var suppressed = _actor is null
+            ? [.. ActiveMode.SuppressedGlobalHints, new KeyHint("e", "edit")]
+            : ActiveMode.SuppressedGlobalHints;
+        var hints = ActiveTab.Dispatcher.CombineHints(contextHints, suppressed);
+        return _tabs.Count > 1 ? [.. hints, TabSwitchKeys.Hint] : hints;
     }
 
     /// <summary>
-    /// Appends the global key table's hints after <paramref name="contextHints"/>,
-    /// matching how <see cref="KeyDispatcher.Dispatch"/> falls back to the
-    /// global table for anything a context-specific key table does not bind.
-    /// A global hint already present among <paramref name="contextHints"/>
-    /// (for example a mode's own back-to-global Escape binding) is not
-    /// repeated.
+    /// Formats footer hints on the left and the optional daemon badge and acting
+    /// identity on the right. The badge is shown whole when space remains after
+    /// hints; the identity is truncated with an ellipsis or omitted when it cannot fit.
     /// </summary>
-    private IReadOnlyList<KeyHint> Combine(IReadOnlyList<KeyHint> contextHints)
+    private static string FormatFooter(
+        IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)
     {
-        var globalHints = _dispatcher.GlobalKeyMap.Hints;
+        var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
+        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? DisplayWidth.Measure(FooterSeparator) : 0);
 
-        if (contextHints.Count == 0)
+        if (available <= 0)
         {
-            return globalHints;
+            return hintMarkup;
         }
 
-        if (globalHints.Count == 0)
-        {
-            return contextHints;
-        }
+        var trailingMarkup = string.Empty;
+        var trailingPlainWidth = 0;
 
-        var seen = new HashSet<KeyHint>(contextHints);
-        var combined = new List<KeyHint>(contextHints.Count + globalHints.Count);
-        combined.AddRange(contextHints);
-
-        foreach (var hint in globalHints)
+        if (mailWakeDaemonState is { } state)
         {
-            if (seen.Add(hint))
+            var badgeText = FormatMailWakeDaemonBadge(state);
+
+            if (DisplayWidth.Measure(badgeText) <= available)
             {
-                combined.Add(hint);
+                var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(state)).ToMarkup();
+                trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
+                trailingPlainWidth = DisplayWidth.Measure(badgeText);
+                available -= trailingPlainWidth;
             }
         }
 
-        return combined;
+        if (!string.IsNullOrEmpty(actor))
+        {
+            var separatorNeeded = trailingPlainWidth > 0 ? DisplayWidth.Measure(FooterSeparator) : 0;
+            var identityAvailable = available - separatorNeeded;
+
+            string? identityText = null;
+
+            if (DisplayWidth.Measure(actor) <= identityAvailable)
+            {
+                identityText = actor;
+            }
+            else if (identityAvailable > DisplayWidth.Measure(FooterEllipsis))
+            {
+                identityText = DisplayWidth.Truncate(actor, identityAvailable);
+            }
+
+            if (identityText is not null)
+            {
+                var identityStyle = ThemeTokens.GetStyle("footer.identity").ToMarkup();
+                var identityMarkup = $"[{identityStyle}]{Markup.Escape(identityText)}[/]";
+
+                trailingMarkup = trailingPlainWidth > 0
+                    ? trailingMarkup + FooterSeparator + identityMarkup
+                    : identityMarkup;
+                trailingPlainWidth += separatorNeeded + DisplayWidth.Measure(identityText);
+            }
+        }
+
+        if (trailingPlainWidth == 0)
+        {
+            return hintMarkup;
+        }
+
+        var padding = Math.Max(0, width - hintPlainWidth - trailingPlainWidth);
+
+        return hintMarkup + new string(' ', padding) + trailingMarkup;
     }
 
     /// <summary>
-    /// Formats <paramref name="hints"/> as the footer's single status-row
-    /// line: dimmed key labels, normal-weight action labels, separated hint
-    /// entries, truncated with a trailing ellipsis once <paramref name="width"/>
-    /// cannot fit every hint.
+    /// The daemon state as a short footer badge label.
     /// </summary>
-    private static string FormatFooter(IReadOnlyList<KeyHint> hints, int width)
+    private static string FormatMailWakeDaemonBadge(MailWakeDaemonState state) => state switch
+    {
+        MailWakeDaemonState.Ready => "mail-wake:ready",
+        MailWakeDaemonState.Standby => "mail-wake:standby",
+        MailWakeDaemonState.Degraded => "mail-wake:degraded",
+        MailWakeDaemonState.Stopping => "mail-wake:stopping",
+        _ => "mail-wake:standby"
+    };
+
+    /// <summary>
+    /// The theme token styling <see cref="FormatMailWakeDaemonBadge"/>'s label
+    /// for <paramref name="state"/>.
+    /// </summary>
+    private static string MailWakeDaemonStyleToken(MailWakeDaemonState state) => state switch
+    {
+        MailWakeDaemonState.Ready => "footer.daemon.ready",
+        MailWakeDaemonState.Degraded => "footer.daemon.degraded",
+        _ => "footer.daemon.standby"
+    };
+
+    /// <summary>
+    /// Formats <paramref name="hints"/> as dimmed key labels and
+    /// normal-weight action labels, separated hint entries, truncated with a
+    /// trailing ellipsis once <paramref name="width"/> cannot fit every
+    /// hint. <paramref name="plainWidth"/> reports the unmarked-up column
+    /// width of the returned markup, so callers can lay out further content
+    /// (for example the footer identity) in whatever room is left.
+    /// </summary>
+    internal static string FormatFooterHints(IReadOnlyList<KeyHint> hints, int width, out int plainWidth)
     {
         if (width <= 0 || hints.Count == 0)
         {
+            plainWidth = 0;
             return string.Empty;
         }
 
@@ -824,20 +1459,23 @@ internal sealed class TuiShell
                 $"[{keyStyle}]{Markup.Escape(hints[i].Key)}[/] [{actionStyle}]{Markup.Escape(hints[i].Action)}[/]";
         }
 
-        var fullPlainWidth = plainItems.Sum(item => item.Length) + FooterSeparator.Length * (hints.Count - 1);
+        var separatorWidth = DisplayWidth.Measure(FooterSeparator);
+        var ellipsisWidth = DisplayWidth.Measure(FooterEllipsis);
+        var fullPlainWidth = plainItems.Sum(DisplayWidth.Measure) + separatorWidth * (hints.Count - 1);
 
         if (fullPlainWidth <= width)
         {
+            plainWidth = fullPlainWidth;
             return string.Join(FooterSeparator, markupItems);
         }
 
         var included = 0;
         var usedWidth = 0;
-        var trailerWidth = FooterSeparator.Length + FooterEllipsis.Length;
+        var trailerWidth = separatorWidth + ellipsisWidth;
 
         for (var i = 0; i < hints.Count; i++)
         {
-            var itemWidth = (i == 0 ? 0 : FooterSeparator.Length) + plainItems[i].Length;
+            var itemWidth = (i == 0 ? 0 : separatorWidth) + DisplayWidth.Measure(plainItems[i]);
 
             if (usedWidth + itemWidth + trailerWidth > width)
             {
@@ -850,28 +1488,11 @@ internal sealed class TuiShell
 
         if (included == 0)
         {
-            return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
+            plainWidth = width >= ellipsisWidth ? ellipsisWidth : 0;
+            return width >= ellipsisWidth ? FooterEllipsis : string.Empty;
         }
 
+        plainWidth = usedWidth + trailerWidth;
         return string.Join(FooterSeparator, markupItems.Take(included)) + FooterSeparator + FooterEllipsis;
     }
-}
-
-/// <summary>
-/// Which field a <see cref="TuiShell"/>'s active quick picker is editing.
-/// </summary>
-internal enum PickerKind
-{
-    Status,
-    Priority
-}
-
-/// <summary>
-/// Which form a <see cref="TuiShell"/>'s active discard confirmation applies
-/// to.
-/// </summary>
-internal enum DiscardTarget
-{
-    EditorForm,
-    CreateForm
 }

@@ -20,7 +20,7 @@ internal abstract record TuiEvent
     public sealed record ResizeEvent(int Width, int Height) : TuiEvent;
 
     /// <summary>
-    /// A periodic tick fired with no other event pending.
+    /// A periodic tick with its UTC timestamp.
     /// </summary>
     public sealed record TickEvent(DateTimeOffset Now) : TuiEvent;
 
@@ -28,4 +28,10 @@ internal abstract record TuiEvent
     /// Data outside the terminal changed, so the current frame may be stale.
     /// </summary>
     public sealed record DataChangedEvent : TuiEvent;
+
+    /// <summary>
+    /// An effect queue signaled completion or progress.
+    /// The handler should drain its queued outcomes.
+    /// </summary>
+    public sealed record EffectCompletedEvent : TuiEvent;
 }

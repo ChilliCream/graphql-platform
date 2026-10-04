@@ -37,7 +37,11 @@ public sealed partial class Utf8OperationDocument : IDisposable, IUtf8SyntaxNode
 
         if (MemoryMarshal.TryGetArray(source.Memory, out var array))
         {
+#if NETSTANDARD2_0
+            _sourceBuffer = array.Array;
+#else
             _sourceBuffer = array.Array!;
+#endif
             _sourceStart = array.Offset;
         }
         else

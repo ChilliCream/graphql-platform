@@ -22,12 +22,12 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
               nitro fusion publish commit [options]
 
             Options:
-              --request-id <request-id>                            The ID of a request [env: NITRO_REQUEST_ID]
-              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                  The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                       Show help and usage information
+              --request-id <request-id>           The ID of a request [env: NITRO_REQUEST_ID]
+              -a, --archive <archive> (REQUIRED)  The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
+              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                      Show help and usage information
 
             Example:
               nitro fusion publish commit --archive ./gateway.far

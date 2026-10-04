@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using Squadron;
 
 namespace HotChocolate.Data.Spatial.Filters;
 
@@ -12,7 +11,7 @@ public class SchemaCache
     private readonly ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>> _cache =
         new();
 
-    public SchemaCache(PostgreSqlResource<PostgisConfig> resource) : base(resource)
+    public SchemaCache(PostgisResource resource) : base(resource)
     {
     }
 

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -7,6 +9,7 @@ using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 namespace HotChocolate.Diagnostics.Listeners;
 
 internal sealed class ActivityServerDiagnosticListener(
+    string schemaName,
     ActivityEnricher enricher,
     InstrumentationOptions options)
     : ServerDiagnosticEventListener
@@ -18,7 +21,13 @@ internal sealed class ActivityServerDiagnosticListener(
             return EmptyScope;
         }
 
-        var span = ExecuteHttpRequestSpan.Start(Source, context, kind, enricher, options);
+        var span = ExecuteHttpRequestSpan.Start(
+            Source,
+            context,
+            kind,
+            schemaName,
+            enricher,
+            options);
 
         if (span is null)
         {
@@ -41,8 +50,14 @@ internal sealed class ActivityServerDiagnosticListener(
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
-        if (options.IncludeRequestDetails
-            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is not { } span)
+        {
+            return;
+        }
+
+        span.MarkAsBatch();
+
+        if (options.IncludeRequestDetails)
         {
             span.SetBatchRequestDetails(batch);
         }
@@ -53,8 +68,14 @@ internal sealed class ActivityServerDiagnosticListener(
         GraphQLRequest request,
         IReadOnlyList<string> operations)
     {
-        if (options.IncludeRequestDetails
-            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is not { } span)
+        {
+            return;
+        }
+
+        span.MarkAsBatch();
+
+        if (options.IncludeRequestDetails)
         {
             span.SetOperationBatchRequestDetails(request, operations);
         }
@@ -102,6 +123,11 @@ internal sealed class ActivityServerDiagnosticListener(
             span.RecordErrors(errors);
         }
     }
+
+    public override void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+        => enricher.OnWebSocketConnectionInitialized(session, connectionInitMessage);
 
     public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {

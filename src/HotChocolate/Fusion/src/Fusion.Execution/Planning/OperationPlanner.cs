@@ -56,6 +56,8 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
+    public static Version Version { get; } = new(2, 0, 0);
+
     internal OperationPlannerOptions Options => _options;
 
     /// <summary>
@@ -129,7 +131,7 @@ public sealed partial class OperationPlanner
                 // Path and IfVariable populated). The rewriter consumes the
                 // same instances so its per-set grouping and the compiler's
                 // later Selection._deliveryGroups entries share object identity.
-                var deferConditions = new DeferConditionCollection();
+                var deferConditions = new DeferConditionCollection(_operationCompiler.MaxAllowedDeferConditions);
                 partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
                 var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
@@ -253,6 +255,34 @@ public sealed partial class OperationPlanner
                 // the execution tree builder consume below.
                 planSteps = deferContextGraph.RootSteps;
                 internalOperationDefinition = deferContextGraph.RootInternalOperation;
+
+                // A descriptor whose deferred output turned out to be fully redundant with
+                // data the enclosing scope already fetches is routed without producing an
+                // incremental plan (see TryAbsorbFullyRedundantDefer); its own delivery
+                // group(s) must not surface as a pending entry with nothing to complete it.
+                if (deferRoutingStates.Length < deferSplit.Value.IncrementalPlanDescriptors.Length)
+                {
+                    var usedDeliveryGroupIds = new HashSet<int>();
+                    foreach (var routingState in deferRoutingStates)
+                    {
+                        foreach (var group in routingState.Descriptor.DeliveryGroupSet)
+                        {
+                            usedDeliveryGroupIds.Add(group.Id);
+                        }
+                    }
+
+                    var filteredDeliveryGroups = ImmutableArray.CreateBuilder<DeliveryGroup>(
+                        usedDeliveryGroupIds.Count);
+                    foreach (var group in deliveryGroups)
+                    {
+                        if (usedDeliveryGroupIds.Contains(group.Id))
+                        {
+                            filteredDeliveryGroups.Add(group);
+                        }
+                    }
+
+                    deliveryGroups = filteredDeliveryGroups.ToImmutable();
+                }
             }
 
             // Use the latest root operation definition after deferred planning.
@@ -1097,7 +1127,10 @@ public sealed partial class OperationPlanner
                     workItem.SelectionSet.Node,
                     current.EventStreamDirective!)
                 : null,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            // At a lookup entry root a sourceExternal field can only echo the key the lookup
+            // was entered with; root work items keep today's permissive behavior.
+            EntryKeyCoverage = lookup?.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -1121,10 +1154,13 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        // Steps that depend on this work item's data also depend on the parts that
+        // this step could not resolve, so the child lookups inherit its dependents.
         backlog = backlog.PushUnresolvable(
             unresolvable,
             current.SchemaName,
             stepDepth,
+            dependents: workItem.Dependents,
             allowSourceSchemaReentry: isEventStreamRoot,
             sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy is null
                 ? null
@@ -1328,7 +1364,11 @@ public sealed partial class OperationPlanner
                 SchemaName = schemaName,
                 SelectionSet = workItemSelectionSet with { Node = selectionSet },
                 SelectionSetIndex = index,
-                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
+                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null,
+                EntryKeyCoverage =
+                    step.Lookup is not null && workItemSelectionSet.Id == step.RootSelectionSetId
+                        ? step.Lookup.Requirements
+                        : null
             };
 
             var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
@@ -1663,7 +1703,7 @@ public sealed partial class OperationPlanner
             InlineSelections(
                 currentStep.Definition,
                 index,
-                currentStep.Type,
+                workItem.Selection.Field.DeclaringType,
                 workItem.Selection.SelectionSetId,
                 new SelectionSetNode(
                     [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]));
@@ -1792,9 +1832,9 @@ public sealed partial class OperationPlanner
         var leftoverRequirements =
             TryInlineFieldRequirements(
                 workItem,
-                stepConsumer.StepId,
+                stepId,
                 ref current,
-                currentStep,
+                mergeWithExistingStep ? existingStep : currentStep,
                 indexBuilder,
                 ref backlog,
                 ref steps,
@@ -1824,7 +1864,11 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
+#if NET10_0_OR_GREATER
+            : [];
+#else
             : ImmutableDictionary<string, OperationRequirement>.Empty;
+#endif
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -2082,7 +2126,8 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            EntryKeyCoverage = lookup.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -2787,7 +2832,7 @@ public sealed partial class OperationPlanner
         // inlining performs must happen up front here.
         RegisterRequirementSelectionSets(requirements, index);
 
-        foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
             if (currentStep.Id == step.Id)
             {
@@ -2800,6 +2845,14 @@ public sealed partial class OperationPlanner
             {
                 // we cannot inline the field requirements into
                 // an operation step that depends on the current step.
+                continue;
+            }
+
+            if (schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
+            {
+                // the required data is not natively resolvable in the requiring field's schema
+                // (composition forbids declaring the required leaves there), so a step of that
+                // schema could only carry the path, adding a dead selection and a spurious dependency.
                 continue;
             }
 
@@ -2845,6 +2898,9 @@ public sealed partial class OperationPlanner
                             entry.SelectionSet,
                             FromSchema: current.SchemaName)
                         {
+                            // the requiring step also depends on the lookups that
+                            // resolve the parts this step could not inline.
+                            Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                             ParentDepth = GetOperationStepDepth(current, step.Id),
                             Conditions = entry.Conditions,
                             SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
@@ -2876,7 +2932,8 @@ public sealed partial class OperationPlanner
 
         // Fallback: if no candidate step was found via exact selection set ID match,
         // walk the internal operation AST to find the nearest ancestor step and the
-        // complete connector chain to the target selection set.
+        // complete connector chain to the target selection set. An ancestor step of the
+        // requiring field's schema is skipped for the same reason as in the candidate loop.
         if (requirements is not null
             && TryFindAncestorStepForRequirement(
                 current.InternalOperationDefinition,
@@ -2885,7 +2942,8 @@ public sealed partial class OperationPlanner
                 workItem.Selection.SelectionSetId,
                 workItem.Selection.Path) is { } ancestorMatch
             && currentStep.Id != ancestorMatch.Step.Id
-            && !ancestorMatch.Step.DependsOn(currentStep, steps))
+            && !ancestorMatch.Step.DependsOn(currentStep, steps)
+            && !string.Equals(ancestorMatch.Step.SchemaName, current.SchemaName, StringComparison.Ordinal))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
@@ -2911,6 +2969,7 @@ public sealed partial class OperationPlanner
                                 entry.SelectionSet,
                                 FromSchema: current.SchemaName)
                             {
+                                Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                                 ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
                                 Conditions = entry.Conditions,
                                 SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
@@ -2949,7 +3008,13 @@ public sealed partial class OperationPlanner
                 selectionSetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                step.Lookup is not null && targetSelectionSetId == step.RootSelectionSetId
+                    ? step.Lookup.Requirements
+                    : null
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
@@ -4147,7 +4212,14 @@ public sealed partial class OperationPlanner
                 match.TargetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                match.Step.Lookup is not null
+                    && match.TargetSelectionSetId == match.Step.RootSelectionSetId
+                    ? match.Step.Lookup.Requirements
+                    : null
         };
 
         var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);

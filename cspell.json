@@ -3,6 +3,7 @@
   "version": "0.2",
   "language": "en",
   "dictionaries": ["csharp", "custom"],
+  "words": ["unkeyed"],
   "dictionaryDefinitions": [
     {
       "name": "custom",

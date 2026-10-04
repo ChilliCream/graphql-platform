@@ -9,7 +9,9 @@ public class FieldSelectionMergingRuleTests
 {
     public FieldSelectionMergingRuleTests()
         : base(builder => builder.AddRule(
-            (_, o) => new OverlappingFieldsCanBeMergedRule(o.MaxAllowedFieldMergeComparisons)))
+            (_, o) => new OverlappingFieldsCanBeMergedRule(
+                o.MaxAllowedFieldMergeComparisons,
+                o.EnableCovariantFieldMerging)))
     {
     }
 
@@ -1406,7 +1408,9 @@ public class FieldSelectionMergingRuleTests
     public void Budget_Exceeded_With_Many_Inline_Fragments()
     {
         // arrange - low budget to trigger exhaustion
-        var rule = new OverlappingFieldsCanBeMergedRule(maxAllowedFieldMergeComparisons: 50);
+        var rule = new OverlappingFieldsCanBeMergedRule(
+            maxAllowedFieldMergeComparisons: 50,
+            enableCovariantFieldMerging: false);
         var fragments = string.Concat(Enumerable.Repeat("... on Dog { name }\n", 100));
         var query = $$"""
             {
@@ -1433,7 +1437,9 @@ public class FieldSelectionMergingRuleTests
     public void Budget_Not_Exceeded_With_Higher_Limit()
     {
         // arrange - high budget, same query should pass
-        var rule = new OverlappingFieldsCanBeMergedRule(maxAllowedFieldMergeComparisons: 100_000);
+        var rule = new OverlappingFieldsCanBeMergedRule(
+            maxAllowedFieldMergeComparisons: 100_000,
+            enableCovariantFieldMerging: false);
         var fragments = string.Concat(Enumerable.Repeat("... on Dog { name }\n", 100));
         var query = $$"""
             {
@@ -1457,7 +1463,9 @@ public class FieldSelectionMergingRuleTests
     public void Default_Budget_Allows_Normal_Queries()
     {
         // arrange - default constructor (100,000 budget)
-        var rule = new OverlappingFieldsCanBeMergedRule(100_000);
+        var rule = new OverlappingFieldsCanBeMergedRule(
+            maxAllowedFieldMergeComparisons: 100_000,
+            enableCovariantFieldMerging: false);
         var document = Utf8GraphQLParser.Parse(
             """
             {
@@ -1477,4 +1485,247 @@ public class FieldSelectionMergingRuleTests
         Assert.Empty(context.Errors);
         Assert.False(context.FatalErrorDetected);
     }
+
+    [Fact]
+    public void Validate_Should_MergeSiblingImplementationFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                someBox {
+                    ... on NonNullStringBox1 {
+                        scalar
+                    }
+                    ... on StringBox {
+                        scalar
+                    }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_testSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void Validate_Should_MergeInterfaceAndObjectFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                requiredItem {
+                    ... ItemLabel
+                    label
+                }
+            }
+
+            fragment ItemLabel on Item {
+                label
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_covariantSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void Validate_Should_MergeUnionMemberFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                resource {
+                    ... on OptionalResource {
+                        link
+                    }
+                    ... on RequiredResource {
+                        link
+                    }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_covariantSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void Validate_Should_MergeCovariantListFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                item {
+                    ... on OptionalItem {
+                        tags
+                    }
+                    ... on RequiredItem {
+                        tags
+                    }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_covariantSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void Validate_Should_MergeNestedCovariantFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                item {
+                    ... on OptionalItem {
+                        child {
+                            label
+                        }
+                    }
+                    ... on RequiredItem {
+                        child {
+                            label
+                        }
+                    }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_covariantSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void Validate_Should_RejectListAndNonListFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        box: listStringBox {
+                            scalar
+                        }
+                    }
+                    ... on StringBox {
+                        box: stringBox {
+                            scalar
+                        }
+                    }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_testSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Equal(
+            "Fields `stringBox` conflict because they return conflicting types `[StringBox]` "
+            + "and `StringBox`. Use different aliases on the fields to fetch both if this was "
+            + "intentional.",
+            Assert.Single(context.Errors).Message);
+    }
+
+    [Fact]
+    public void Validate_Should_RejectDifferentNamedTypes_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                someBox {
+                    ... on IntBox {
+                        scalar
+                    }
+                    ... on StringBox {
+                        scalar
+                    }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document, s_testSchema);
+
+        // act
+        s_covariantRule.Validate(context, document);
+
+        // assert
+        Assert.Equal(
+            "Fields `scalar` conflict because they return conflicting types `Int` and `String`. "
+            + "Use different aliases on the fields to fetch both if this was intentional.",
+            Assert.Single(context.Errors).Message);
+    }
+
+    private static readonly OverlappingFieldsCanBeMergedRule s_covariantRule =
+        new(
+            maxAllowedFieldMergeComparisons: 100_000,
+            enableCovariantFieldMerging: true);
+
+    private static readonly ISchemaDefinition s_covariantSchema =
+        SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                interface Item {
+                    label: String
+                    tags: [String]
+                    child: Item
+                }
+
+                type OptionalItem implements Item {
+                    label: String
+                    tags: [String]
+                    child: Item
+                }
+
+                type RequiredItem implements Item {
+                    label: String!
+                    tags: [String!]!
+                    child: RequiredItem!
+                }
+
+                type OptionalResource {
+                    link: String
+                }
+
+                type RequiredResource {
+                    link: String!
+                }
+
+                union Resource = OptionalResource | RequiredResource
+
+                type Query {
+                    item: Item
+                    requiredItem: RequiredItem
+                    resource: Resource
+                }
+                """)
+            .Use(_ => _ => default)
+            .Create();
 }

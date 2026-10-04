@@ -97,7 +97,7 @@ internal static class TaskDetailSidebar
         lines.Add(Field("Created", $"{Markup.Escape(TaskDates.Format(task.CreatedAt))} by {Markup.Escape(task.CreatedBy)}"));
         lines.Add(Field("Updated", Markup.Escape(TaskDates.Format(task.UpdatedAt))));
 
-        if (task.Status == TaskStates.Closed && task.ClosedAt is { } closedAt)
+        if (task.Status is TaskStates.Closed or TaskStates.Archived && task.ClosedAt is { } closedAt)
         {
             var closedValue = Markup.Escape(TaskDates.Format(closedAt));
 

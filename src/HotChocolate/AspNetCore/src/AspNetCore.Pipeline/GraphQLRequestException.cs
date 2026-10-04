@@ -12,6 +12,11 @@ public class GraphQLRequestException : GraphQLException
     {
     }
 
+    public GraphQLRequestException(IError error, Exception innerException)
+        : base(error, innerException)
+    {
+    }
+
     public GraphQLRequestException(params IError[] errors)
         : base(errors)
     {

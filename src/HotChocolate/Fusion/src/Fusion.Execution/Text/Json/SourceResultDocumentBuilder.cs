@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -9,6 +10,8 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 {
     private readonly Operation _operation;
     private readonly IMemoryArena _arena;
+    private readonly ulong _includeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     internal readonly PooledArrayWriter _data = new();
@@ -21,15 +24,33 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
     public SourceResultDocumentBuilder(
         IMemoryArena arena,
         Operation operation,
-        ulong includeFlags,
+        ConditionFlags includeFlags,
         SelectionSet? selectionSet = null)
     {
         _arena = arena ?? throw new ArgumentNullException(nameof(arena));
         _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
         _metaDb = new MetaDb();
 
         selectionSet ??= operation.RootSelectionSet;
-        var rootIndex = CreateObjectValue(selectionSet.Selections, includeFlags);
+        var rootIndex = CreateObjectValue(selectionSet.Selections);
+        Root = new SourceResultElementBuilder(this, rootIndex);
+    }
+
+    public SourceResultDocumentBuilder(
+        IMemoryArena arena,
+        Operation operation,
+        ConditionFlags includeFlags,
+        ReadOnlySpan<Selection> rootSelections)
+    {
+        _arena = arena ?? throw new ArgumentNullException(nameof(arena));
+        _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _metaDb = new MetaDb();
+
+        var rootIndex = CreateObjectValue(rootSelections);
         Root = new SourceResultElementBuilder(this, rootIndex);
     }
 
@@ -54,23 +75,54 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
 
     internal int GetEndIndex(int index) => index + _metaDb.GetNumberOfRows(index) - 1;
 
-    internal int CreateObjectValue(ReadOnlySpan<Selection> selections, ulong includeFlags)
+    internal int GetPropertyCount(int startIndex)
+    {
+        Debug.Assert(_metaDb.GetElementTokenType(startIndex) is ElementTokenType.StartObject);
+
+        return _metaDb.Get(startIndex).SizeOrLength;
+    }
+
+    internal Selection GetPropertySelection(int propertyIndex)
+    {
+        Debug.Assert(_metaDb.GetElementTokenType(propertyIndex) is ElementTokenType.PropertyName);
+
+        return _operation.GetSelectionById(_metaDb.GetLocation(propertyIndex));
+    }
+
+    internal int CreateObjectValue(ReadOnlySpan<Selection> selections)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var propertyCount = 0;
         var start = _metaDb.Append(ElementTokenType.StartObject);
 
-        foreach (var selection in selections)
+        if (_wideIncludeFlags is null)
         {
-            if (!selection.IsIncluded(includeFlags))
+            foreach (var selection in selections)
             {
-                continue;
-            }
+                if (!selection.IsIncludedUnchecked(_includeFlags))
+                {
+                    continue;
+                }
 
-            propertyCount++;
-            _metaDb.Append(ElementTokenType.PropertyName);
-            _metaDb.Append(ElementTokenType.None);
+                propertyCount++;
+                _metaDb.Append(ElementTokenType.PropertyName, location: selection.Id);
+                _metaDb.Append(ElementTokenType.None);
+            }
+        }
+        else
+        {
+            foreach (var selection in selections)
+            {
+                if (!selection.IsIncludedWide(_includeFlags, _wideIncludeFlags))
+                {
+                    continue;
+                }
+
+                propertyCount++;
+                _metaDb.Append(ElementTokenType.PropertyName, location: selection.Id);
+                _metaDb.Append(ElementTokenType.None);
+            }
         }
 
         var rows = (propertyCount * 2) + 2;

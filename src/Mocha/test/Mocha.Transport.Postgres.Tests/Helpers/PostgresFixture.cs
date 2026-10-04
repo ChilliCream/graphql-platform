@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using CookieCrumble.Resources;
 using Npgsql;
-using Squadron;
 
 namespace Mocha.Transport.Postgres.Tests.Helpers;
 

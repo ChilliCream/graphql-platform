@@ -360,6 +360,131 @@ public class AzureServiceBusUnifiedQueueTests
         AzureServiceBusDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
+    [Fact]
+    public void Queue_Should_InheritAutoProvisionOnSubscription_When_QueueOptsIn()
+    {
+        // arrange
+        // With the transport deny-by-default, a queue that opts in to provisioning must carry that
+        // opt-in onto the subscription its BindFrom derives; the foreign source topic stays opted out.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(true).BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+        var topic = topology.Topics.Single(e => e.Name == "incoming-orders");
+
+        // assert
+        Assert.True(subscription.AutoProvision);
+        Assert.Null(topic.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_LeaveSubscriptionAutoProvisionUnset_When_QueueDoesNotOptIn()
+    {
+        // arrange
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.Null(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_KeepExplicitSubscriptionAutoProvision_When_QueueOptsIn()
+    {
+        // arrange
+        // DeclareSubscription is get-or-add, so an explicitly configured subscription must not be
+        // overridden by the inheritance a later BindFrom applies.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.DeclareSubscription("incoming-orders", "orders").AutoProvision(false);
+            t.Queue("orders").AutoProvision(true).BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_KeepSubscriptionOptOut_When_QueueOptsIn()
+    {
+        // arrange
+        // A binding can opt out of provisioning individually even though its queue opts in.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.Queue("orders")
+                .AutoProvision(true)
+                .BindFrom(new Uri("topic:incoming-orders"), autoProvision: false);
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_ProvisionSubscription_When_OnlyBindingOptsIn()
+    {
+        // arrange
+        // A binding can opt in individually even though its queue does not.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.Queue("orders").BindFrom(new Uri("topic:incoming-orders"), autoProvision: true);
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.True(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_InheritQueueOptOut_When_TransportProvisionsByDefault()
+    {
+        // arrange
+        // Inheritance also carries an opt-out: a queue that is managed externally drags its
+        // BindFrom subscription out of provisioning even though the transport provisions by default.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(false).BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.False(subscription.AutoProvision);
+    }
+
     private static (
         AzureServiceBusMessagingTransport Transport,
         AzureServiceBusTransportConfiguration Configuration) CreateTransport(

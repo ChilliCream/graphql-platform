@@ -1,5 +1,4 @@
 using Azure.Messaging.ServiceBus;
-using Mocha;
 using Mocha.Middlewares;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;

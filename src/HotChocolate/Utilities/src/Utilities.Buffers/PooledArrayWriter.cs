@@ -155,7 +155,7 @@ public sealed class PooledArrayWriter : IWritableMemory
 #if NETSTANDARD2_0
         if (_disposed)
         {
-            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName!);
+            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName);
         }
 
         if (count < 0)
@@ -200,7 +200,7 @@ public sealed class PooledArrayWriter : IWritableMemory
 #if NETSTANDARD2_0
         if (_disposed)
         {
-            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName!);
+            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName);
         }
 
         if (sizeHint < 0)
@@ -239,7 +239,7 @@ public sealed class PooledArrayWriter : IWritableMemory
 #if NETSTANDARD2_0
         if (_disposed)
         {
-            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName!);
+            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName);
         }
 
         if (sizeHint < 0)

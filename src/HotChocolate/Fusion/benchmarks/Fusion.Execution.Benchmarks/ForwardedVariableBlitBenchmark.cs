@@ -1,6 +1,4 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,8 +10,6 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
@@ -415,7 +411,7 @@ public class ForwardedVariableBlitBenchmark
                         // (lines 487-523) for a contiguous span: no leading comma
                         // right after '{', and the list separator flag set so the
                         // next property name emits its comma.
-                        jsonWriter.WriteRawValue(prefix!.AsSpan(0, prefixLength));
+                        jsonWriter.WriteRawValue(prefix.AsSpan(0, prefixLength));
                     }
                 }
 

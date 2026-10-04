@@ -83,7 +83,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         {
             var type = context.Schema.Types[i++];
             context.AddRuntimeResult(type);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            element.CreateObjectValue(context.Selection);
         }
     }
 
@@ -110,14 +110,14 @@ internal sealed class __Schema : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(type);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 
     public static void QueryType(FieldContext context)
     {
         context.AddRuntimeResult(context.Schema.QueryType);
-        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+        context.FieldResult.CreateObjectValue(context.Selection);
     }
 
     public static void MutationType(FieldContext context)
@@ -125,7 +125,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         if (context.Schema.MutationType is not null)
         {
             context.AddRuntimeResult(context.Schema.MutationType);
-            context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+            context.FieldResult.CreateObjectValue(context.Selection);
         }
     }
 
@@ -134,7 +134,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         if (context.Schema.SubscriptionType is not null)
         {
             context.AddRuntimeResult(context.Schema.SubscriptionType);
-            context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+            context.FieldResult.CreateObjectValue(context.Selection);
         }
     }
 
@@ -161,7 +161,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(directiveDef);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 
@@ -194,7 +194,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(directiveDef);
-            list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+            list.Current.CreateObjectValue(context.Selection);
         }
     }
 
@@ -237,7 +237,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         foreach (var element in list.EnumerateArray())
         {
             context.AddRuntimeResult(stabilityDirectives[i++]);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            element.CreateObjectValue(context.Selection);
         }
     }
 

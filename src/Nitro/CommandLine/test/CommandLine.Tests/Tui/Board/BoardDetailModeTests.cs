@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
-using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -23,7 +22,7 @@ public sealed class BoardDetailModeTests
         var mode = new BoardDetailMode(store);
 
         // assert
-        Assert.Null(((ITuiMode)mode).SelectedTaskId);
+        Assert.Null(mode.SelectedTaskId);
     }
 
     [Fact]
@@ -38,7 +37,7 @@ public sealed class BoardDetailModeTests
         mode.OpenOnTask("a-1");
 
         // assert
-        Assert.Equal("a-1", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-1", mode.SelectedTaskId);
         Assert.Contains("a-1", RenderToText(mode));
     }
 
@@ -70,14 +69,14 @@ public sealed class BoardDetailModeTests
         mode.OpenOnTask("a-2");
 
         // assert
-        Assert.Equal("a-2", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-2", mode.SelectedTaskId);
     }
 
     [Fact]
     public void Handle_RefreshRequested_Should_ReloadCurrentTaskThroughStore()
     {
-        // arrange: the label is added to the store only after the initial
-        // load, so it only shows up once RefreshRequested re-fetches.
+        // arrange
+        // Add the label after opening the task.
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1"));
         var mode = new BoardDetailMode(store);
@@ -105,7 +104,7 @@ public sealed class BoardDetailModeTests
 
         // assert
         Assert.Null(exception);
-        Assert.Null(((ITuiMode)mode).SelectedTaskId);
+        Assert.Null(mode.SelectedTaskId);
     }
 
     [Fact]

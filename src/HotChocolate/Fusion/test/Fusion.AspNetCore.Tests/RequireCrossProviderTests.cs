@@ -251,7 +251,7 @@ public class RequireCrossProviderTests : FusionTestBase
                     => [new Comment(100), new Comment(101)];
 
                 public Author GetAuthor(
-                    [Require("comments[authorId]")] [ID] IReadOnlyList<int> commentAuthorIds)
+                    [Require("comments[authorId]")][ID] IReadOnlyList<int> commentAuthorIds)
                     => new(string.Join("_", commentAuthorIds));
             }
 

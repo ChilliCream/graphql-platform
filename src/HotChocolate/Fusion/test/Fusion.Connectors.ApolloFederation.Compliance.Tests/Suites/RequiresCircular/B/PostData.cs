@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Suites.RequiresCircular.B;
 /// </summary>
 internal static class PostData
 {
-    private static readonly IReadOnlyDictionary<string, string> PostAuthorMap =
+    private static readonly IReadOnlyDictionary<string, string> s_postAuthorMap =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["p1"] = "a1",
@@ -16,7 +16,7 @@ internal static class PostData
         new HashSet<string>(StringComparer.Ordinal) { "p1", "p2" };
 
     public static Author? GetAuthorForPost(string postId)
-        => PostAuthorMap.TryGetValue(postId, out var authorId)
+        => s_postAuthorMap.TryGetValue(postId, out var authorId)
             ? new Author { Id = authorId }
             : null;
 }

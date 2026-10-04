@@ -47,6 +47,23 @@ public readonly struct CompactPath : IEquatable<CompactPath>
     internal int[]? UnsafeGetBackingArray() => _segments;
 
     /// <summary>
+    /// Returns a copy of this path backed by a freshly allocated array,
+    /// so it stays valid after the original backing buffer is reused.
+    /// </summary>
+    internal CompactPath Detach()
+    {
+        if (_segments is null)
+        {
+            return default;
+        }
+
+        var length = _segments[0];
+        var segments = new int[length + 1];
+        Array.Copy(_segments, segments, length + 1);
+        return new CompactPath(segments);
+    }
+
+    /// <summary>
     /// Converts this compact path into a <see cref="Path"/> by resolving
     /// selection IDs to their response names using the given operation.
     /// </summary>

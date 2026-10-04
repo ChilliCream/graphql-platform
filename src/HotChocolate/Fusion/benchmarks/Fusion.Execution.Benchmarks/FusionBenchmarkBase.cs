@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;

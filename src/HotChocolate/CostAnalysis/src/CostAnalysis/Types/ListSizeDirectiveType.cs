@@ -88,7 +88,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         int? assumedSize = null;
         var slicingArguments = ImmutableArray<string>.Empty;
         var sizedFields = ImmutableArray<string>.Empty;
-        var requireOneSlicingArgument = false;
+        bool? requireOneSlicingArgument = null;
         int? slicingArgumentDefaultValue = null;
 
         foreach (var argument in directiveNode.Arguments)

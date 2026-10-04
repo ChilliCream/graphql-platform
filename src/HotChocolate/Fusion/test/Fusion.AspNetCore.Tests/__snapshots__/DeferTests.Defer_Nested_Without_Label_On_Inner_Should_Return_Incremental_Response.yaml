@@ -114,7 +114,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
                 address
@@ -144,7 +144,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: f58e5f87c8862b9cc4c515a1fb51b598
+      hash: f6075aa413d4eefa27d177c2912714f7
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -178,7 +178,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
                 address

@@ -15,13 +15,13 @@ internal sealed class SelectionCollection : ISelectionCollection
     private readonly Schema _schema;
     private readonly Operation _operation;
     private readonly Selection[] _selections;
-    private readonly ulong _includeFlags;
+    private readonly ConditionFlags _includeFlags;
 
     public SelectionCollection(
         Schema schema,
         Operation operation,
         Selection[] selections,
-        ulong includeFlags)
+        ConditionFlags includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
@@ -133,7 +133,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName)
@@ -208,7 +208,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName1,
@@ -289,7 +289,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName1,
@@ -361,7 +361,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             ISet<string> fieldNames)
@@ -473,7 +473,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
     private static void CollectFields(
         ReadOnlySpan<string> fieldNames,
-        ulong includeFlags,
+        ConditionFlags includeFlags,
         ref Selection[] buffer,
         SelectionSet selectionSet,
         int index,

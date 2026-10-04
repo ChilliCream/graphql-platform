@@ -15,6 +15,12 @@ public static class DataLoaderAttributeHelper
                 "DataLoaderAttribute",
                 StringComparison.Ordinal));
 
+    public static AttributeData GetDataLoaderAttribute(
+        this IMethodSymbol methodSymbol,
+        INamedTypeSymbol attributeType)
+        => methodSymbol.GetAttributes().First(
+            t => SymbolEqualityComparer.Default.Equals(t.AttributeClass, attributeType));
+
     public static ImmutableHashSet<string> GetDataLoaderGroupKeys(this IMethodSymbol methodSymbol)
     {
 #if NET8_0_OR_GREATER
@@ -269,6 +275,30 @@ public static class DataLoaderAttributeHelper
 
                 case 2:
                     return false;
+
+                case 3:
+                    return false;
+            }
+        }
+
+        return null;
+    }
+
+    public static bool? IsPublicForGenericDataLoader(this AttributeData attribute)
+    {
+        var scoped = attribute.NamedArguments.FirstOrDefault(
+            t => t.Key.Equals("AccessModifier", StringComparison.Ordinal));
+
+        if (scoped.Value.Value is not null)
+        {
+            switch ((int)scoped.Value.Value)
+            {
+                case 0:
+                    return null;
+
+                case 1:
+                case 2:
+                    return true;
 
                 case 3:
                     return false;

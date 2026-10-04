@@ -33,9 +33,6 @@
   <data name="ThrowHelper_InvalidExtensionsValue" xml:space="preserve">
     <value>Invalid 'extensions' value. Expected object or null, but got {0}.</value>
   </data>
-  <data name="ThrowHelper_UnknownRequestProperty" xml:space="preserve">
-    <value>Unknown property '{0}' in GraphQL request.</value>
-  </data>
   <data name="ThrowHelper_InvalidQueryValue" xml:space="preserve">
     <value>Invalid 'query' value. Expected string or null, but got {0}.</value>
   </data>

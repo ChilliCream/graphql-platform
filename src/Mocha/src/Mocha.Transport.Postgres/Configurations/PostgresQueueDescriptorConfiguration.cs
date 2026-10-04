@@ -70,5 +70,5 @@ public sealed class PostgresQueueDescriptorConfiguration : MessagingConfiguratio
     /// <summary>
     /// Gets the source topic bindings declared from this queue descriptor.
     /// </summary>
-    public List<Uri> SourceBindings { get; } = [];
+    public List<PostgresQueueSourceBindingConfiguration> SourceBindings { get; } = [];
 }

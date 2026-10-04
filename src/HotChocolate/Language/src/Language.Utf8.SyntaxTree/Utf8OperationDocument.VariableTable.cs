@@ -154,7 +154,7 @@ public sealed partial class Utf8OperationDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ref byte BufferStart()
 #if NETSTANDARD2_0
-            => ref MemoryMarshal.GetReference(_buffer!.AsSpan());
+            => ref MemoryMarshal.GetReference(_buffer.AsSpan());
 #else
             => ref MemoryMarshal.GetArrayDataReference(_buffer!);
 #endif

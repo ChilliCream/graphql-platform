@@ -110,7 +110,11 @@ public static class RedisEventStreamBrokerServiceCollectionExtensions
         services.TryAddKeyedSingleton<IEventStreamBrokerProvider>(
             key,
             static (sp, k) => new RedisEventStreamBrokerProvider(
+#if NET11_0_OR_GREATER
+                (string)k,
+#else
                 (string)k!,
+#endif
                 sp.GetRequiredService<IOptionsMonitor<RedisEventStreamOptions>>()));
 
         return services;

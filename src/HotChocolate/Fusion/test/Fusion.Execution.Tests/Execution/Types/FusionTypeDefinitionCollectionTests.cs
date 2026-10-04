@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Types;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Types;

@@ -14,6 +14,20 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal sealed class DeferOperationRewriter
 {
+    /// <summary>
+    /// A <c>__typename</c> placeholder that keeps a selection set valid when all of its
+    /// fields are deferred. The <c>fusion__empty</c> directive marks it as synthetic,
+    /// as opposed to a <c>__typename</c> the client selected.
+    /// </summary>
+    private static readonly FieldNode s_placeholderTypeNameField =
+        new(
+            null,
+            new NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [new DirectiveNode("fusion__empty")],
+            ImmutableArray<ArgumentNode>.Empty,
+            null);
+
     private readonly bool _inlineUnlabeledNestedDefers;
 
     internal DeferOperationRewriter(bool inlineUnlabeledNestedDefers = true)
@@ -186,7 +200,7 @@ internal sealed class DeferOperationRewriter
         return operation.WithSelectionSet(newRoot);
     }
 
-    private SelectionSetNode StripDeferFromSelectionSet(
+    private static SelectionSetNode StripDeferFromSelectionSet(
         SelectionSetNode selectionSet,
         IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment)
     {
@@ -270,7 +284,7 @@ internal sealed class DeferOperationRewriter
 
         if (selections.Count == 0)
         {
-            selections.Add(new FieldNode("__typename"));
+            selections.Add(s_placeholderTypeNameField);
         }
 
         return new SelectionSetNode(selections);
@@ -303,10 +317,119 @@ internal sealed class DeferOperationRewriter
             rootOperation.SelectionSet,
             parentPath: []);
 
+        var usedVariables = new HashSet<string>(StringComparer.Ordinal);
+        CollectUsedVariables(rootSelectionSet, usedVariables);
+
+        var variableDefinitions = rootOperation.VariableDefinitions;
+
+        if (usedVariables.Count == 0)
+        {
+            variableDefinitions = [];
+        }
+        else
+        {
+            var kept = new List<VariableDefinitionNode>(usedVariables.Count);
+
+            foreach (var variableDefinition in rootOperation.VariableDefinitions)
+            {
+                if (usedVariables.Contains(variableDefinition.Variable.Name.Value))
+                {
+                    kept.Add(variableDefinition);
+                }
+            }
+
+            if (kept.Count != rootOperation.VariableDefinitions.Count)
+            {
+                variableDefinitions = kept;
+            }
+        }
+
+        // The incremental plan operation keeps the root operation's own type (Query,
+        // Mutation, or Subscription); it serves only as a result skeleton for
+        // BuildIncrementalPlans and OperationPlanExecutor.CreateDeliveryPath.
         return rootOperation
-            .WithOperation(OperationType.Query)
             .WithDirectives([])
+            .WithVariableDefinitions(variableDefinitions)
             .WithSelectionSet(rootSelectionSet);
+    }
+
+    /// <summary>
+    /// Collects the names of all variables referenced by field arguments and
+    /// directives within <paramref name="selectionSet"/>.
+    /// </summary>
+    private static void CollectUsedVariables(SelectionSetNode selectionSet, HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            switch (selectionSet.Selections[i])
+            {
+                case FieldNode field:
+                    CollectUsedVariables(field.Arguments, usedVariables);
+                    CollectUsedVariables(field.Directives, usedVariables);
+
+                    if (field.SelectionSet is not null)
+                    {
+                        CollectUsedVariables(field.SelectionSet, usedVariables);
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    CollectUsedVariables(inlineFragment.Directives, usedVariables);
+                    CollectUsedVariables(inlineFragment.SelectionSet, usedVariables);
+                    break;
+
+                case FragmentSpreadNode fragmentSpread:
+                    CollectUsedVariables(fragmentSpread.Directives, usedVariables);
+                    break;
+            }
+        }
+    }
+
+    private static void CollectUsedVariables(
+        IReadOnlyList<DirectiveNode> directives,
+        HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            CollectUsedVariables(directives[i].Arguments, usedVariables);
+        }
+    }
+
+    private static void CollectUsedVariables(
+        IReadOnlyList<ArgumentNode> arguments,
+        HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            CollectUsedVariables(arguments[i].Value, usedVariables);
+        }
+    }
+
+    private static void CollectUsedVariables(IValueNode value, HashSet<string> usedVariables)
+    {
+        switch (value)
+        {
+            case VariableNode variable:
+                usedVariables.Add(variable.Name.Value);
+                break;
+
+            case ListValueNode listValue:
+                for (var i = 0; i < listValue.Items.Count; i++)
+                {
+                    CollectUsedVariables(listValue.Items[i], usedVariables);
+                }
+
+                break;
+
+            case ObjectValueNode objectValue:
+                for (var i = 0; i < objectValue.Fields.Count; i++)
+                {
+                    CollectUsedVariables(objectValue.Fields[i].Value, usedVariables);
+                }
+
+                break;
+        }
     }
 
     private static SelectionSetNode BuildSelectionSetFromPathNode(
@@ -353,10 +476,7 @@ internal sealed class DeferOperationRewriter
                 }
             }
 
-            foreach (var field in unconditional)
-            {
-                selections.Add(field);
-            }
+            selections.AddRange(unconditional);
 
             foreach (var (_, bucketEntry) in byTypeCondition)
             {
@@ -411,7 +531,7 @@ internal sealed class DeferOperationRewriter
 
         if (selections.Count == 0)
         {
-            selections.Add(new FieldNode("__typename"));
+            selections.Add(s_placeholderTypeNameField);
         }
 
         return new SelectionSetNode(selections);

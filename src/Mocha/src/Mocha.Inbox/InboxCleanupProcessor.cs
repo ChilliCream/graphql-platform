@@ -29,7 +29,7 @@ internal sealed class InboxCleanupProcessor(
         {
             try
             {
-                await Task.Delay(inboxOptions.CleanupInterval, cancellationToken);
+                await Task.Delay(inboxOptions.CleanupInterval, _timeProvider, cancellationToken);
                 await using var scope = provider.CreateAsyncScope();
                 using var activity = OpenTelemetry.Source.StartActivity(
                     "Inbox Cleanup",

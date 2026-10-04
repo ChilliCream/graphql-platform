@@ -479,7 +479,7 @@ operationPlan:
           }
         }
       name: TopProducts
-      hash: c6ef3d11d0c88575a305e18635857068
+      hash: 743c9af999a7ed7465af79434ae5e8fe
       searchSpace: 1
       expandedNodes: 3
   nodes:

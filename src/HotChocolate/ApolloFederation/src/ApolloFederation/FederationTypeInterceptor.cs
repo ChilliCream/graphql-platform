@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using GreenDonut.Data;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Configuration;
@@ -17,6 +18,8 @@ namespace HotChocolate.ApolloFederation;
 
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
+    private const string PageCursorTypeName = "PageCursor";
+
     private static readonly MethodInfo s_matches =
         typeof(ReferenceResolverHelper)
             .GetMethod(
@@ -117,23 +120,20 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
 
-        // The page info fields are made shareable in OnAfterCompleteName for any type
-        // named "PageInfo". That match is by name, so it also covers the page info type
-        // that is inferred from PageConnection<T> (runtime type PageInfo) and not just the
-        // built-in PageInfoType. We therefore have to register the shareable directive for
-        // any discovered page info object type, otherwise the directive cannot be resolved
-        // when the fields are completed.
-        if (discoveryContexts.Any(t => IsPageInfoType(t.Type))
+        // PageInfo and PageCursor are marked @shareable in OnBeforeCompleteType, which
+        // requires the directive type to be registered when either of them is discovered.
+        if (discoveryContexts.Any(t => IsPagingType(t.Type))
             && discoveryContexts.All(t => t.Type is not DirectiveType<ShareableDirective>))
         {
             yield return _typeInspector.GetTypeRef(typeof(ShareableDirective));
         }
     }
 
-    private static bool IsPageInfoType(TypeSystemObject type)
+    private static bool IsPagingType(TypeSystemObject type)
         => type is PageInfoType
             || (type is IRuntimeTypeProvider { RuntimeType: { } runtimeType }
-                && typeof(IPageInfo).IsAssignableFrom(runtimeType));
+                && (typeof(IPageInfo).IsAssignableFrom(runtimeType)
+                    || runtimeType == typeof(PageCursor)));
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
@@ -154,20 +154,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             || configuration is not ITypeConfiguration and not DirectiveTypeConfiguration)
         {
             return;
-        }
-
-        // if we find a PagingInfo we will make all fields sharable.
-        if (configuration is ObjectTypeConfiguration typeCfg
-            && typeCfg.Name.Equals(PageInfoType.Names.PageInfo))
-        {
-            foreach (var fieldCfg in typeCfg.Fields)
-            {
-                if (fieldCfg.Directives.All(t => t.Value is not ShareableDirective))
-                {
-                    var typeRef = TypeReference.CreateDirective(_typeInspector.GetType(typeof(ShareableDirective)));
-                    fieldCfg.Directives.Add(new DirectiveConfiguration(ShareableDirective.Default, typeRef));
-                }
-            }
         }
 
         var hasRuntimeType = (IRuntimeTypeProvider)configuration;
@@ -358,6 +344,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         AddServiceTypeToQueryType(
             completionContext,
             configuration);
+
+        ApplyShareableToPagingType(configuration);
     }
 
     public override void OnAfterMakeExecutable(
@@ -495,6 +483,23 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         {
             objectTypeCfg.Fields.Add(ServerFields.CreateEntitiesField(_context));
         }
+    }
+
+    private void ApplyShareableToPagingType(TypeSystemConfiguration configuration)
+    {
+        // PageInfo and PageCursor are shared by every subgraph that exposes a connection,
+        // so they are marked @shareable at the type level.
+        if (_context.GetFederationVersion() == FederationVersion.Federation10
+            || configuration is not ObjectTypeConfiguration typeCfg
+            || typeCfg.Name is not (PageInfoType.Names.PageInfo or PageCursorTypeName)
+            || typeCfg.Directives.Any(t => t.Value is ShareableDirective))
+        {
+            return;
+        }
+
+        var typeRef = TypeReference.CreateDirective(
+            _typeInspector.GetType(typeof(ShareableDirective)));
+        typeCfg.Directives.Add(new DirectiveConfiguration(ShareableDirective.Default, typeRef));
     }
 
     private void ApplyMethodLevelReferenceResolvers(

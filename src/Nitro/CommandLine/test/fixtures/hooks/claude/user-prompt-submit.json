@@ -1,0 +1,7 @@
+{
+  "session_id": "5b1c9a3e-4b2f-4a3c-9e3a-2f6b0c1d9e21",
+  "transcript_path": "/home/agent/.claude/projects/-work-repo/5b1c9a3e-4b2f-4a3c-9e3a-2f6b0c1d9e21.jsonl",
+  "cwd": "/work/repo",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "what is the status of the deploy?"
+}

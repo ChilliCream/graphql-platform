@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -19,6 +19,7 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
         await using var services = new ServiceCollection()
             .AddDbContext<ExpressionPersonContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<ExpressionPersonType>()
             .AddProjections()

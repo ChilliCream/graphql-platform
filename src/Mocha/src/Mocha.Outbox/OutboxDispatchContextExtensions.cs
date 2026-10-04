@@ -1,4 +1,3 @@
-using Mocha.Features;
 using Mocha.Middlewares;
 
 namespace Mocha.Outbox;

@@ -1,17 +1,22 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ExecuteRequestSpan(
-    Activity activity,
-    RequestContext context,
-    InstrumentationOptionsBase options,
-    ActivityEnricherBase enricher,
-    bool shouldDisposeActivity)
-    : ExecuteRequestSpanBase(activity, context, options, enricher, shouldDisposeActivity)
+internal sealed class ExecuteRequestSpan : ExecuteRequestSpanBase
 {
+    public ExecuteRequestSpan(
+        Activity activity,
+        RequestContext context,
+        InstrumentationOptionsBase options,
+        ActivityEnricherBase enricher,
+        bool shouldDisposeActivity)
+        : base(activity, context, options, enricher, shouldDisposeActivity)
+    {
+    }
+
     public static ExecuteRequestSpan? Start(
         ActivitySource source,
         RequestContext context,
@@ -41,6 +46,20 @@ internal sealed class ExecuteRequestSpan(
         {
             operationType = operation.Kind;
             operationName = operation.Name;
+            return true;
+        }
+        else if (Context.OperationDocumentInfo.NormalizedDocument
+            is { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+            return true;
+        }
+        else if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
             return true;
         }
 

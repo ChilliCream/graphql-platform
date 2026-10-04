@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Reflection;
-using Mocha.Features;
 using Mocha.Middlewares;
 
 namespace Mocha.Tests.Middlewares.Receive;

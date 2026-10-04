@@ -1,5 +1,5 @@
-$ nitro agent tasks close acme-a1b --reason "Won't fix, unreproducible"
+$ nitro agent tasks close acme-a1b --reason "Won't fix, unreproducible" --actor e2e-agent
 ✓ Closed task 'acme-a1b'.
-$ nitro agent tasks reopen acme-a1b
+$ nitro agent tasks reopen acme-a1b --actor e2e-agent
 ✓ Reopened task 'acme-a1b'.
 $

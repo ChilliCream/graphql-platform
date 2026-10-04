@@ -31,6 +31,13 @@ internal abstract record TuiMessage
     public sealed record RefreshRequested : TuiMessage;
 
     /// <summary>
+    /// An asynchronous effect completed. A mode that owns no effect queue
+    /// ignores this; one that does is expected to drain it the same way it
+    /// already does on every other message.
+    /// </summary>
+    public sealed record EffectCompleted : TuiMessage;
+
+    /// <summary>
     /// The selection cursor should move one step in <paramref name="Direction"/>.
     /// </summary>
     public sealed record MoveCursor(CursorDirection Direction) : TuiMessage;
@@ -49,6 +56,11 @@ internal abstract record TuiMessage
     /// The active mode should toggle its maximized layout.
     /// </summary>
     public sealed record ToggleMaximize : TuiMessage;
+
+    /// <summary>
+    /// The active mode should advance its column orientation to the next value.
+    /// </summary>
+    public sealed record CycleBoardOrientation : TuiMessage;
 
     /// <summary>
     /// The current selection should be opened.
@@ -143,35 +155,37 @@ internal abstract record TuiMessage
     /// <see cref="CreateTaskRequested"/>, preset to the epic type.
     /// </summary>
     public sealed record CreateEpicRequested : TuiMessage;
-}
 
-/// <summary>
-/// A direction the selection cursor can move in.
-/// </summary>
-internal enum CursorDirection
-{
-    Up,
-    Down,
-    Left,
-    Right
-}
+    /// <summary>
+    /// The active mode's agent filter quick picker should open.
+    /// </summary>
+    public sealed record AgentFilterPickerRequested : TuiMessage;
 
-/// <summary>
-/// An edge of a list the selection cursor can jump to.
-/// </summary>
-internal enum EdgeTarget
-{
-    Top,
-    Bottom
-}
+    /// <summary>
+    /// The active mode's own inline search input should gain focus.
+    /// </summary>
+    public sealed record SearchRequested : TuiMessage;
 
-/// <summary>
-/// The visual style of a toast message.
-/// </summary>
-internal enum ToastStyle
-{
-    Info,
-    Success,
-    Warn,
-    Error
+    /// <summary>
+    /// The promote form should open for the active mode's currently selected
+    /// journal entry.
+    /// </summary>
+    public sealed record PromoteRequested : TuiMessage;
+
+    /// <summary>
+    /// The forget confirmation should open for the active mode's currently
+    /// selected curated memory.
+    /// </summary>
+    public sealed record ForgetRequested : TuiMessage;
+
+    /// <summary>
+    /// The delete confirmation should open for the Agents tab's agent named
+    /// <paramref name="Name"/>, an empty string when nothing is selected.
+    /// </summary>
+    public sealed record DeleteAgentRequested(string Name) : TuiMessage;
+
+    /// <summary>
+    /// The delete-all-offline confirmation should open for the Agents tab.
+    /// </summary>
+    public sealed record DeleteOfflineAgentsRequested : TuiMessage;
 }

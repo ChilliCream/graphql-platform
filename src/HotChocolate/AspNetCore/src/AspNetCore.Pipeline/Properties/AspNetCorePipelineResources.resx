@@ -25,7 +25,10 @@
     <value>Either the parameter query or the parameter id has to be set.</value>
   </data>
   <data name="ThrowHelper_DefaultHttpRequestParser_MaxRequestSizeExceeded" xml:space="preserve">
-    <value>Max GraphQL request size reached.</value>
+    <value>Request size exceeds maximum allowed size.</value>
+  </data>
+  <data name="ThrowHelper_RequestBodyTooLarge" xml:space="preserve">
+    <value>The request body exceeds the maximum size the server accepts.</value>
   </data>
   <data name="ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
@@ -69,14 +72,44 @@
   <data name="ThrowHelper_HttpMultipartMiddleware_MapNotSpecified" xml:space="preserve">
     <value>No `map` specified.</value>
   </data>
+  <data name="ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed" xml:space="preserve">
+    <value>This form is being accessed with a failed antiforgery validation. Validate the `IAntiforgeryValidationFeature` on the request before reading from the form.</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded" xml:space="preserve">
+    <value>Multipart boundary length limit {0} exceeded.</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_IncorrectContentType" xml:space="preserve">
+    <value>Incorrect Content-Type: {0}</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_InvalidContentDisposition" xml:space="preserve">
+    <value>Form section has invalid Content-Disposition value: {0}</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_MissingBoundary" xml:space="preserve">
+    <value>Missing content-type boundary.</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_SectionTooLarge" xml:space="preserve">
+    <value>The multipart section '{0}' exceeds the maximum allowed size.</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_TempDirectoryNotFound" xml:space="preserve">
+    <value>The temporary directory '{0}' does not exist.</value>
+  </data>
+  <data name="ThrowHelper_MultipartFormReader_ValueCountLimitExceeded" xml:space="preserve">
+    <value>Form value count limit {0} exceeded.</value>
+  </data>
   <data name="ErrorHelper_InvalidRequest" xml:space="preserve">
     <value>Invalid GraphQL Request.</value>
   </data>
   <data name="ErrorHelper_RequestHasNoElements" xml:space="preserve">
     <value>The GraphQL batch request has no elements.</value>
   </data>
+  <data name="ErrorHelper_EmptyVariableBatch" xml:space="preserve">
+    <value>A variable batch request must contain at least one variable set.</value>
+  </data>
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
+  </data>
+  <data name="WebSocketConnection_MessageTooBig" xml:space="preserve">
+    <value>The WebSocket message exceeds the maximum allowed message size.</value>
   </data>
   <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
     <value>The specified result object is not a valid subscription result.</value>
@@ -114,8 +147,8 @@
   <data name="ThrowHelper_Formatter_ResponseContentTypeNotSupported" xml:space="preserve">
     <value>The specified response content-type `{0}` is not supported.</value>
   </data>
-  <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
-    <value>Invalid accept media types specified.</value>
+  <data name="ThrowHelper_Formatter_TransportVersionNotSupported" xml:space="preserve">
+    <value>The specified HTTP transport version `{0}` is not supported.</value>
   </data>
   <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
     <value>Unable to parse the accept header value `{0}`.</value>
@@ -126,6 +159,9 @@
   <data name="ErrorHelper_InvalidTypeName" xml:space="preserve">
     <value>The type name is invalid.</value>
   </data>
+  <data name="ErrorHelper_InvalidSpecVersion" xml:space="preserve">
+    <value>The spec version '{0}' is not supported. Supported values: {1}.</value>
+  </data>
   <data name="ErrorHelper_TypeNameIsEmpty" xml:space="preserve">
     <value>The specified types argument is empty.</value>
   </data>
@@ -134,5 +170,20 @@
   </data>
   <data name="ErrorHelper_BatchSizeExceeded" xml:space="preserve">
     <value>The batch size exceeds the maximum allowed batch size of {0}.</value>
+  </data>
+  <data name="ErrorHelper_VariableBatchingDisabled" xml:space="preserve">
+    <value>Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
+  </data>
+  <data name="ErrorHelper_RequestBatchingDisabled" xml:space="preserve">
+    <value>Request batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
+  </data>
+  <data name="ErrorHelper_RequestBatchingNotSupportedForQuery" xml:space="preserve">
+    <value>Request batching is not supported for HTTP QUERY requests.</value>
+  </data>
+  <data name="ErrorHelper_VariableBatchingNotSupportedForQuery" xml:space="preserve">
+    <value>Variable batching is not supported for HTTP QUERY requests.</value>
+  </data>
+  <data name="ErrorHelper_RequestBodyHasNoRequestForQuery" xml:space="preserve">
+    <value>The HTTP QUERY request body contains no GraphQL request.</value>
   </data>
 </root>

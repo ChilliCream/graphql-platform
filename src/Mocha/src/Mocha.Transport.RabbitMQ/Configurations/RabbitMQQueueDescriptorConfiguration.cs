@@ -76,19 +76,3 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
     /// </summary>
     public List<RabbitMQQueueSourceBindingConfiguration> SourceBindings { get; } = [];
 }
-
-/// <summary>
-/// Configuration for a source exchange binding declared from a queue descriptor.
-/// </summary>
-public sealed class RabbitMQQueueSourceBindingConfiguration
-{
-    /// <summary>
-    /// Gets or sets the source address.
-    /// </summary>
-    public Uri Source { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the optional routing key.
-    /// </summary>
-    public string? RoutingKey { get; set; }
-}

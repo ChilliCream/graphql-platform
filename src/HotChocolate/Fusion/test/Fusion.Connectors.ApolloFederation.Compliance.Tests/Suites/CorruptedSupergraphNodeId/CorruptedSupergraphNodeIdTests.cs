@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Suites.CorruptedSupergraphNodeId.A;
 using HotChocolate.Fusion.Suites.CorruptedSupergraphNodeId.B;
 

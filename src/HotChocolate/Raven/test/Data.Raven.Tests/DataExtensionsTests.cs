@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -5,15 +6,14 @@ using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDefaultOptions>>
+public class DataExtensionsTests
 {
-    private readonly RavenDBResource<CustomRavenDBDefaultOptions> _resource;
+    private readonly RavenDBResource _resource;
 
-    public DataExtensionsTests(RavenDBResource<CustomRavenDBDefaultOptions> resource)
+    public DataExtensionsTests(RavenDBResource resource)
     {
         _resource = resource;
     }
@@ -111,6 +111,7 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()
         .AddSingleton(CreateDocumentStore())
         .AddGraphQLServer()
+        .ModifyCostOptions(o => o.DefaultListSize = 1)
         .AddRavenFiltering()
         .AddRavenProjections()
         .AddRavenSorting()

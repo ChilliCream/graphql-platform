@@ -62,7 +62,9 @@ public abstract class QueryableComparableOperationHandler : QueryableOperationHa
     /// <param name="context">The visitor context</param>
     /// <returns>The converted value</returns>
     protected object? ParseValue(
+#pragma warning disable RCS1163 // Unused parameter
         IValueNode node,
+#pragma warning restore RCS1163 // Unused parameter
         object? parsedValue,
         IType type,
         QueryableFilterContext context)
@@ -82,7 +84,7 @@ public abstract class QueryableComparableOperationHandler : QueryableOperationHa
             {
                 var listType = typeof(List<>).MakeGenericType(returnType);
                 parsedValue = TypeConverter.Convert(typeof(object), listType, parsedValue) ??
-                    throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
+                    throw ThrowHelper.FilterConvention_CouldNotConvertValue();
             }
 
             return parsedValue;
@@ -91,7 +93,7 @@ public abstract class QueryableComparableOperationHandler : QueryableOperationHa
         if (!returnType.IsInstanceOfType(parsedValue))
         {
             parsedValue = TypeConverter.Convert(typeof(object), returnType, parsedValue) ??
-                throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
+                throw ThrowHelper.FilterConvention_CouldNotConvertValue();
         }
 
         return parsedValue;

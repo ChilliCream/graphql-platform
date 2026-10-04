@@ -1,7 +1,4 @@
-using System.Net;
-using System.Net.Sockets;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+using CookieCrumble.Resources;
 using StackExchange.Redis;
 
 namespace HotChocolate.Fusion.Subscriptions.Redis;
@@ -11,14 +8,11 @@ namespace HotChocolate.Fusion.Subscriptions.Redis;
 /// </summary>
 /// <remarks>
 /// The default path starts Redis through Testcontainers. Set REDIS_CONNECTION_STRING to use an
-/// existing Redis instance instead.
+/// existing Redis instance instead; tests skip when that instance cannot be reached.
 /// </remarks>
 public sealed class RedisFixture : IAsyncLifetime
 {
-    private const int RedisPort = 6379;
-
-    private readonly IContainer? _container;
-    private readonly int _hostPort;
+    private readonly RedisResource? _resource;
     private readonly bool _usesExistingInstance;
     private ConnectionMultiplexer? _publisher;
 
@@ -33,15 +27,12 @@ public sealed class RedisFixture : IAsyncLifetime
             return;
         }
 
-        _hostPort = GetFreeTcpPort();
-        ConnectionString = "localhost:" + _hostPort;
-        _container = new ContainerBuilder("redis:7")
-            .WithPortBinding(_hostPort, RedisPort)
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(RedisPort))
-            .Build();
+        _resource = new RedisResource();
     }
 
     public string ConnectionString { get; private set; } = null!;
+
+    public string? SkipReason { get; private set; }
 
     public string NextChannel()
         => "events-" + Guid.NewGuid().ToString("N");
@@ -56,15 +47,16 @@ public sealed class RedisFixture : IAsyncLifetime
             }
             catch (Exception ex)
             {
-                Assert.Skip(
+                SkipReason =
                     "REDIS_CONNECTION_STRING did not point to a usable Redis instance: "
-                    + ex.Message);
+                    + ex.Message;
             }
 
             return;
         }
 
-        await _container!.StartAsync();
+        await _resource!.InitializeAsync();
+        ConnectionString = _resource.ConnectionString;
         await GetPublisherAsync().ConfigureAwait(false);
     }
 
@@ -75,9 +67,9 @@ public sealed class RedisFixture : IAsyncLifetime
             await _publisher.DisposeAsync().ConfigureAwait(false);
         }
 
-        if (_container is not null)
+        if (_resource is not null)
         {
-            await _container.DisposeAsync();
+            await _resource.DisposeAsync();
         }
     }
 
@@ -95,6 +87,18 @@ public sealed class RedisFixture : IAsyncLifetime
             .ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Skips the calling test when REDIS_CONNECTION_STRING points at an instance that could not
+    /// be reached.
+    /// </summary>
+    public void SkipWhenUnavailable()
+    {
+        if (SkipReason is not null)
+        {
+            Assert.Skip(SkipReason);
+        }
+    }
+
     private async Task<ConnectionMultiplexer> GetPublisherAsync()
     {
         if (_publisher is not null)
@@ -108,19 +112,4 @@ public sealed class RedisFixture : IAsyncLifetime
 
     private static RedisChannel CreateRedisChannel(string channel)
         => new(channel, RedisChannel.PatternMode.Literal);
-
-    private static int GetFreeTcpPort()
-    {
-        using var listener = new TcpListener(IPAddress.Loopback, port: 0);
-        listener.Start();
-
-        try
-        {
-            return ((IPEndPoint)listener.LocalEndpoint).Port;
-        }
-        finally
-        {
-            listener.Stop();
-        }
-    }
 }

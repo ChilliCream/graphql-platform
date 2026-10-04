@@ -15,6 +15,7 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,6 +38,14 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private IFileSystem? _fileSystemOverride;
+    private IStandardInputReader? _standardInputOverride;
+    private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Preferences.IBoardPreferencesStore? _boardPreferencesStoreOverride;
+    private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
+    private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
+    private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
+    private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
+    private IActingActorResolver? _actingActorResolverOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -74,12 +83,85 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the mocked file system with the given implementation, for
-    /// tests that run commands against real files in a temp directory.
+    /// Replaces the mocked file system with the given implementation.
     /// </summary>
     private protected void SetupFileSystem(IFileSystem fileSystem)
     {
         _fileSystemOverride = fileSystem;
+    }
+
+    /// <summary>
+    /// Configures global configuration lookup to use <paramref name="directory"/>.
+    /// </summary>
+    private protected void SetupGlobalConfigDirectory(string directory)
+    {
+        _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Replaces the board preferences store resolved from services with <paramref name="store"/>.
+    /// </summary>
+    private protected void SetupBoardPreferencesStore(Services.Preferences.IBoardPreferencesStore store)
+    {
+        _boardPreferencesStoreOverride = store;
+    }
+
+    /// <summary>
+    /// Sets standard input to a reader over <paramref name="payload"/>.
+    /// Command invocations share the reader until this method is called again.
+    /// </summary>
+    protected void SetupStandardInput(string payload)
+    {
+        _standardInputOverride = new FixedStandardInputReader(payload);
+    }
+
+    /// <summary>
+    /// Configures Claude Code settings lookup to use the supplied user and project paths.
+    /// </summary>
+    private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
+    {
+        _claudeSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
+    }
+
+    /// <summary>
+    /// Configures Codex CLI hooks and configuration lookup to use the supplied paths.
+    /// </summary>
+    private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
+    {
+        _codexPathResolverOverride = new FixedCodexPathResolver(hooksJsonPath, configTomlPath);
+    }
+
+    /// <summary>
+    /// Configures commands to use the supplied <c>codex queue</c> client.
+    /// </summary>
+    private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
+    {
+        _codexQueueClientOverride = client;
+    }
+
+    /// <summary>
+    /// Configures commands to use the supplied Claude peer client.
+    /// </summary>
+    private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
+    {
+        _claudePeerClientOverride = client;
+    }
+
+    /// <summary>
+    /// Configures actor resolution to return <paramref name="actor"/> when the option value is null.
+    /// Explicit values are normalized without checking whether the actor was allocated.
+    /// </summary>
+    protected void SetupActingActor(string actor)
+    {
+        _actingActorResolverOverride = new FixedActingActorResolver(actor);
+    }
+
+    /// <summary>
+    /// Restores the production <see cref="IActingActorResolver"/> for subsequent command invocations.
+    /// </summary>
+    protected void SetupRealActingActor()
+    {
+        _actingActorResolverOverride = null;
     }
 
     protected void SetupNoAuthentication()
@@ -106,6 +188,13 @@ public abstract class CommandTestBase
         _useSessionWithWorkspace = true;
     }
 
+    /// <summary>
+    /// The actor <see cref="ExecuteCommandAsync"/> supplies to any command
+    /// that declares a required <c>--actor</c> option and was not given one
+    /// explicitly. Null leaves the arguments untouched.
+    /// </summary>
+    private protected string? DefaultActor { get; set; }
+
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
         var arguments = args.ToList();
@@ -115,15 +204,17 @@ public abstract class CommandTestBase
             arguments.AddRange(["--api-key", "default-api-key"]);
         }
 
-        var stdOutWriter = new StringWriter();
-        var stdErrWriter = new StringWriter();
+        AddDefaultActorIfRequired(arguments);
+
+        var stdOut = new SynchronizedOutputCapture();
+        var stdErr = new SynchronizedOutputCapture();
 
         var outConsole = new TestConsole();
-        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOut.Writer);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var errConsole = new TestConsole();
-        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErr.Writer);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         if (_interactionMode is InteractionMode.JsonOutput)
@@ -145,24 +236,58 @@ public abstract class CommandTestBase
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            _environmentVariableProviderMock.Object,
             new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
         var invocationConfig = new InvocationConfiguration
         {
-            Output = stdOutWriter,
-            Error = stdErrWriter
+            Output = stdOut.Writer,
+            Error = stdErr.Writer
         };
 
         var exitCode = await rootCommand.ExecuteAsync(arguments, services, invocationConfig, default);
 
         return new CommandResult(
             exitCode,
-            stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
-            stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+            stdOut.GetOutput().TrimEnd(),
+            stdErr.GetOutput().TrimEnd(),
             rootCommand.Name);
+    }
+
+    /// <summary>
+    /// Appends <c>--actor</c> with <see cref="DefaultActor"/> when the resolved command requires it
+    /// and the arguments omit it. Leaves arguments unchanged when <see cref="DefaultActor"/> is null.
+    /// </summary>
+    private void AddDefaultActorIfRequired(List<string> arguments)
+    {
+        if (DefaultActor is null || arguments.Contains("--actor"))
+        {
+            return;
+        }
+
+        // Resolve the subcommand from leading command-name arguments.
+        Command command = _fixture.RootCommand;
+
+        foreach (var token in arguments)
+        {
+            if (token.StartsWith('-'))
+            {
+                break;
+            }
+
+            if (command.Subcommands.FirstOrDefault(c => c.Name == token) is not { } subcommand)
+            {
+                break;
+            }
+
+            command = subcommand;
+        }
+
+        if (command.Options.Any(o => o.Name == "--actor" && o.Required))
+        {
+            arguments.AddRange(["--actor", DefaultActor]);
+        }
     }
 
     internal InteractiveCommand StartInteractiveCommand(params string[] args)
@@ -174,27 +299,28 @@ public abstract class CommandTestBase
             arguments.AddRange(["--api-key", "default-api-key"]);
         }
 
+        AddDefaultActorIfRequired(arguments);
+
         if (_interactionMode is InteractionMode.JsonOutput)
         {
             arguments.AddRange(["--output", "json"]);
         }
 
-        var stdOutWriter = new StringWriter();
-        var stdErrWriter = new StringWriter();
+        var stdOut = new SynchronizedOutputCapture();
+        var stdErr = new SynchronizedOutputCapture();
 
         var outConsole = new TestConsole();
-        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOut.Writer);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
         outConsole.Profile.Capabilities.Interactive = true;
 
         var errConsole = new TestConsole();
-        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErr.Writer);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            _environmentVariableProviderMock.Object,
             new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
@@ -204,8 +330,8 @@ public abstract class CommandTestBase
             {
                 var invocationConfig = new InvocationConfiguration
                 {
-                    Output = stdOutWriter,
-                    Error = stdErrWriter
+                    Output = stdOut.Writer,
+                    Error = stdErr.Writer
                 };
 
                 var exitCode = await rootCommand.ExecuteAsync(
@@ -213,11 +339,13 @@ public abstract class CommandTestBase
 
                 return new CommandResult(
                     exitCode,
-                    stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
-                    stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+                    stdOut.GetOutput().TrimEnd(),
+                    stdErr.GetOutput().TrimEnd(),
                     rootCommand.Name);
             },
-            outConsole);
+            outConsole,
+            stdOut.GetOutput,
+            stdErr.GetOutput);
     }
 
     private ServiceProvider BuildServices(INitroConsole console)
@@ -248,8 +376,50 @@ public abstract class CommandTestBase
         }
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
+
+        if (_globalConfigDirectoryProviderOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
+        if (_boardPreferencesStoreOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_boardPreferencesStoreOverride));
+        }
+
+        if (_claudeSettingsPathResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
+        }
+
+        if (_codexPathResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_codexPathResolverOverride));
+        }
+
+        if (_codexQueueClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_codexQueueClientOverride));
+        }
+
+        if (_claudePeerClientOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_claudePeerClientOverride));
+        }
+
+        if (_actingActorResolverOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_actingActorResolverOverride));
+        }
+
         services.Replace(ServiceDescriptor.Singleton<TimeProvider>(FakeTime));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
+
+        if (_standardInputOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_standardInputOverride));
+        }
+
         services.Replace(ServiceDescriptor.Singleton(_httpClientFactoryMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_browserLauncherMock.Object));
@@ -342,8 +512,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Sets up the mock to intercept <c>CreateFile</c> for the given path.
-    /// Returns an in-memory stream that receives the written content.
+    /// Configures mocked <c>CreateFile</c> calls for <paramref name="path"/>, resolved against
+    /// the test working directory, to return the same in-memory stream. Returns that stream.
     /// </summary>
     protected MemoryStream SetupCreateFile(string path)
     {
@@ -376,10 +546,21 @@ public abstract class CommandTestBase
             .ReturnsAsync(content);
     }
 
-    protected void SetupEnvironmentVariable(string variableName, string value)
+    protected void SetupEnvironmentVariable(string variableName, string? value)
     {
         _environmentVariableProviderMock
             .Setup(x => x.GetEnvironmentVariable("NITRO_" + variableName))
+            .Returns(value);
+    }
+
+    /// <summary>
+    /// Configures environment lookup for the exact <paramref name="variableName"/>
+    /// to return <paramref name="value"/>.
+    /// </summary>
+    protected void SetupRawEnvironmentVariable(string variableName, string? value)
+    {
+        _environmentVariableProviderMock
+            .Setup(x => x.GetEnvironmentVariable(variableName))
             .Returns(value);
     }
 
@@ -453,11 +634,36 @@ public sealed record CommandResult(
     string StdOut,
     string StdErr,
     string ExecutableName);
+internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
+{
+    public string GetDirectory() => directory;
+}
+
+internal sealed class FixedClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
+    : Services.Hook.IClaudeSettingsPathResolver
+{
+    public string Resolve(string scope)
+        => scope == Services.Hook.HookInstallScopes.Project ? projectScopePath : userScopePath;
+}
+
+internal sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath)
+    : Services.Hook.ICodexPathResolver
+{
+    public string ResolveHooksJson() => hooksJsonPath;
+
+    public string ResolveConfigToml() => configTomlPath;
+}
 
 internal sealed class InteractiveCommand(
     Func<CancellationToken, Task<CommandResult>> executeAsync,
-    TestConsole testConsole)
+    TestConsole testConsole,
+    Func<string> standardOutput,
+    Func<string> standardError)
 {
+    public string StdOut => standardOutput();
+
+    public string StdErr => standardError();
+
     public void Input(string input)
     {
         testConsole.Input.PushTextWithEnter(input);

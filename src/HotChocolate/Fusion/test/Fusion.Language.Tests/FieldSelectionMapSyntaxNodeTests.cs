@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace HotChocolate.Fusion.Language;
 
 public sealed class FieldSelectionMapSyntaxNodeTests
@@ -281,10 +279,7 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     {
         // arrange
         var node = new ListValueNode(
-            ImmutableArray.Create<IValueNode>(
-                new IntValueNode("1"),
-                new IntValueNode("2"),
-                new IntValueNode("3")));
+            [new IntValueNode("1"), new IntValueNode("2"), new IntValueNode("3")]);
 
         // act
         var result = node.ToString();
@@ -298,9 +293,10 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     {
         // arrange
         var node = new ObjectValueNode(
-            ImmutableArray.Create(
+            [
                 new ObjectFieldNode(new NameNode("a"), new IntValueNode("1")),
-                new ObjectFieldNode(new NameNode("b"), new EnumValueNode("B"))));
+                new ObjectFieldNode(new NameNode("b"), new EnumValueNode("B"))
+            ]);
 
         // act
         var result = node.ToString();

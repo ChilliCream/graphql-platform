@@ -14,14 +14,12 @@ public static class StringFieldDefinitionHelper
         out string? resolvedFieldName,
         out IBsonSerializer? resolvedFieldSerializer)
     {
-        BsonSerializationInfo serializationInfo;
-
         resolvedFieldName = fieldName;
         resolvedFieldSerializer = null;
 
         var documentSerializer = serializer as IBsonDocumentSerializer;
         if (serializer is IBsonArraySerializer bsonArraySerializer
-            && bsonArraySerializer.TryGetItemSerializationInfo(out serializationInfo))
+            && bsonArraySerializer.TryGetItemSerializationInfo(out var serializationInfo))
         {
             resolvedFieldSerializer = serializationInfo.Serializer;
             documentSerializer = serializationInfo.Serializer as IBsonDocumentSerializer;

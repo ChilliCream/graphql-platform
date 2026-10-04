@@ -1,4 +1,11 @@
+using System.Net;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
@@ -32,6 +39,28 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Preflight_Should_ReturnBadRequest_When_EveryAcceptMediaTypeIsRejected()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"))
+        {
+            Content = new MultipartFormDataContent()
+        };
+        request.Headers.Add(HeaderNames.Accept, "application/graphql-response+json;q=0");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -782,5 +811,66 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnBadRequest_When_AntiforgeryValidationFailed()
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello")),
+            app => app
+                .Use(
+                    next => context =>
+                    {
+                        context.Features.Set<IAntiforgeryValidationFeature>(
+                            new FailedAntiforgeryValidationFeature());
+                        return next(context);
+                    })
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        var client = server.CreateClient();
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ greeting }" }"""), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            "/graphql",
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The multipart form could not be read.",
+                  "extensions": {
+                    "code": "HC0033",
+                    "underlyingError": "This form is being accessed with a failed antiforgery validation. Validate the `IAntiforgeryValidationFeature` on the request before reading from the form."
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    private sealed class FailedAntiforgeryValidationFeature : IAntiforgeryValidationFeature
+    {
+        public bool IsValid => false;
+
+        public Exception? Error => null;
     }
 }

@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Parsers;
 
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
-    private const int MinRequestSize = 256;
+    internal const int MinRequestSize = 256;
     internal const string QueryIdKey = "id";
     private const string OperationNameKey = "operationName";
     private const string OnErrorKey = "onError";
@@ -160,12 +160,22 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         while (true)
         {
-            var result = await requestBody.ReadAsync(cancellationToken);
+            ReadResult result;
+
+            try
+            {
+                result = await requestBody.ReadAsync(cancellationToken);
+            }
+            catch (BadHttpRequestException exception)
+                when (exception.StatusCode == StatusCodes.Status413PayloadTooLarge)
+            {
+                throw RequestBodyTooLarge();
+            }
 
             if (result.Buffer.Length > _maxRequestSize)
             {
                 requestBody.AdvanceTo(result.Buffer.End);
-                throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+                throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
             }
 
             if (result.IsCompleted || result.IsCanceled)
@@ -209,7 +219,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // query extensions.
             if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
-                extensions = JsonDocument.Parse(se);
+                try
+                {
+                    extensions = JsonDocument.Parse(se);
+                }
+                catch (JsonException ex)
+                {
+                    throw DefaultHttpRequestParser_UnexpectedError(ex);
+                }
             }
 
             // we will use the request parser utils to extract the hash from the extensions.
@@ -396,6 +413,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 _documentHashProvider,
                 skipDocumentBody);
             return requestParser.Parse(span);
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
         }
         catch (InvalidGraphQLRequestException ex)
         {

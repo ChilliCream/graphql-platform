@@ -1,4 +1,4 @@
-$ nitro agent tasks init
-✓ Initialized task workspace at '.nitro/tasks'.
+$ nitro agent init
+✓ Initialized agent workspace at '.nitro/agents'.
 ✓ Task ID prefix set to 'acme'.
 $

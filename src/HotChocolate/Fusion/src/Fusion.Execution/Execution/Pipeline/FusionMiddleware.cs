@@ -14,6 +14,9 @@ public static class FusionMiddleware
     public static RequestMiddlewareConfiguration OperationPlanCache
         => OperationPlanCacheMiddleware.Create();
 
+    public static RequestMiddlewareConfiguration CostAnalysis
+        => CostAnalysisMiddleware.Create();
+
     public static RequestMiddlewareConfiguration OperationPlan
         => OperationPlanMiddleware.Create();
 

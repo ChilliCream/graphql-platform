@@ -3,12 +3,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using CookieCrumble;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Analyzers.Tests;
@@ -87,9 +85,7 @@ internal static class MessagingTestHelper
         foreach (var stepName in stepNames)
         {
             var reasons = runResult.Results
-                .SelectMany(r => r.TrackedSteps.TryGetValue(stepName, out var steps)
-                    ? steps
-                    : ImmutableArray<IncrementalGeneratorRunStep>.Empty)
+                .SelectMany(r => r.TrackedSteps.TryGetValue(stepName, out var steps) ? steps : [])
                 .SelectMany(s => s.Outputs)
                 .Select(o => o.Reason.ToString());
 
@@ -198,6 +194,8 @@ internal static class MessagingTestHelper
             .. Net90.References.All,
 #elif NET10_0
             .. Net100.References.All,
+#elif NET11_0
+            .. Net110.References.All,
 #endif
             // Mocha.Abstractions (IEventHandler, IEventRequestHandler, IEventRequest, MessagingModuleAttribute)
             MetadataReference.CreateFromFile(typeof(IEventHandler).Assembly.Location),
@@ -206,7 +204,7 @@ internal static class MessagingTestHelper
             MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
 
             // Mocha.Utilities (FeatureCollectionExtensions)
-            MetadataReference.CreateFromFile(typeof(Mocha.Features.FeatureCollectionExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Features.FeatureCollectionExtensions).Assembly.Location),
 
 #if NET11_0
             // System.Collections.Immutable

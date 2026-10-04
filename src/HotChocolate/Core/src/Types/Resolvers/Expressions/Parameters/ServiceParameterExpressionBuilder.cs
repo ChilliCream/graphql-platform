@@ -28,9 +28,9 @@ internal sealed class ServiceParameterExpressionBuilder
     {
         var attribute = context.Parameter.GetCustomAttribute<ServiceAttribute>()!;
 
-        if (!string.IsNullOrEmpty(attribute.Key))
+        if (attribute.ServiceKey is not null)
         {
-            return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.Key);
+            return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.ServiceKey);
         }
 
         return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
@@ -53,11 +53,11 @@ internal sealed class ServiceParameterExpressionBuilder
                 }
             }
 
-            Key = service?.Key;
+            ServiceKey = service?.ServiceKey;
             IsRequired = !parameter.IsNullable;
         }
 
-        public string? Key { get; }
+        public object? ServiceKey { get; }
 
         public bool IsRequired { get; }
 
@@ -68,11 +68,11 @@ internal sealed class ServiceParameterExpressionBuilder
 #pragma warning disable CS8633
         public T Execute<T>(IResolverContext context) where T : notnull
         {
-            if (Key is not null)
+            if (ServiceKey is not null)
             {
                 return IsRequired
-                    ? context.Services.GetRequiredKeyedService<T>(Key)
-                    : context.Services.GetKeyedService<T>(Key)!;
+                    ? context.Services.GetRequiredKeyedService<T>(ServiceKey)
+                    : context.Services.GetKeyedService<T>(ServiceKey)!;
             }
 
             return IsRequired

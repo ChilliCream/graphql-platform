@@ -260,7 +260,15 @@ internal sealed class AzureServiceBusQueueDescriptor
     public IAzureServiceBusQueueDescriptor BindFrom(Uri source)
     {
         ArgumentNullException.ThrowIfNull(source);
-        Configuration.SourceTopics.Add(source);
+        Configuration.SourceTopics.Add(new AzureServiceBusQueueSourceTopicConfiguration { Source = source });
+        return this;
+    }
+
+    public IAzureServiceBusQueueDescriptor BindFrom(Uri source, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.SourceTopics.Add(
+            new AzureServiceBusQueueSourceTopicConfiguration { Source = source, AutoProvision = autoProvision });
         return this;
     }
 

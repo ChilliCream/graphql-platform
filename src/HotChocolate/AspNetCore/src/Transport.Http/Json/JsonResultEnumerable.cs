@@ -90,7 +90,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                         var spaceInCurrentChunk = chunkSize - currentChunkPosition;
                         var bytesToCopy = Math.Min(spaceInCurrentChunk, source.Length - segmentOffset);
 
-                        source.Slice(segmentOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+                        source.Slice(segmentOffset, bytesToCopy).CopyTo(current.Span[currentChunkPosition..]);
                         currentChunkPosition += bytesToCopy;
                         segmentOffset += bytesToCopy;
 

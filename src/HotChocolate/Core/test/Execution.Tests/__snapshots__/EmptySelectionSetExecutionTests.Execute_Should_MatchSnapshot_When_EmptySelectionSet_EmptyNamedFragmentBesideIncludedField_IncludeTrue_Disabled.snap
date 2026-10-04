@@ -1,0 +1,17 @@
+{
+  "errors": [
+    {
+      "message": "The fragment on type \"Droid\" has an empty selection set. Fragments without selections are disallowed.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 108
+        }
+      ],
+      "extensions": {
+        "type": "Droid",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+      }
+    }
+  ]
+}

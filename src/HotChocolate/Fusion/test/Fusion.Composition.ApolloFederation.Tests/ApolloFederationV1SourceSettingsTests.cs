@@ -55,7 +55,7 @@ public sealed class ApolloFederationV1SourceSettingsTests
                 internal: true
               ) {
               displayName: String @fusion__field(schema: PRODUCTS)
-              id: ID! @fusion__field(schema: PRODUCTS, sourceExternal: true)
+              id: ID! @fusion__field(schema: PRODUCTS)
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."

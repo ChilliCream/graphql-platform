@@ -18,13 +18,13 @@ You need an Aspire AppHost project with the `HotChocolate.Fusion.Aspire` package
 
 If you do not have an AppHost yet, create it with:
 
-```bash
+```shell
 dotnet new aspire-apphost -n AppHost
 ```
 
 Add the Fusion Aspire package to the AppHost project:
 
-```bash
+```shell
 cd AppHost
 dotnet add package HotChocolate.Fusion.Aspire
 ```
@@ -34,7 +34,7 @@ dotnet add package HotChocolate.Fusion.Aspire
 
 If you do not have an AppHost yet, create it with the Aspire CLI:
 
-```bash
+```shell
 aspire new aspire-ts-empty -n AppHost -o .
 ```
 
@@ -50,7 +50,7 @@ aspire new aspire-ts-empty -n AppHost -o .
 
 Then restore the AppHost, which regenerates the typed SDK under `.aspire/modules`:
 
-```bash
+```shell
 aspire restore
 ```
 
@@ -175,7 +175,7 @@ In an organization where teams own subgraphs in separate repositories, each team
 
 Sign in once with the Nitro CLI ([installation](./cli.md#installation)). The AppHost reads the session that the CLI stores and never signs in on its own:
 
-```bash
+```shell
 nitro login
 ```
 
@@ -261,7 +261,7 @@ When a gateway never acquired a configuration because it failed to start, later 
 
 You do not need to stop the run to restart one subgraph. While `aspire run` keeps the AppHost in the foreground, restart the subgraph from a second terminal with the Aspire CLI:
 
-```bash
+```shell
 aspire resource products-api restart
 ```
 
@@ -269,7 +269,7 @@ The command executes against the running AppHost. The orchestrator sees the rest
 
 The gateway additionally exposes a Recompose command. It downloads a fresh fusion configuration first, so it also picks up what was published to the stage since the run started, without an AppHost restart. Invoke it from the resource submenu of the gateway or from the CLI:
 
-```bash
+```shell
 aspire resource gateway-api recompose
 ```
 

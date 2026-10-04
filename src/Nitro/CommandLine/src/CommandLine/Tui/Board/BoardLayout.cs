@@ -1,64 +1,13 @@
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// The arrangement a <see cref="BoardLayoutDecision"/> resolves to for one frame.
-/// </summary>
-internal enum BoardLayoutKind
-{
-    /// <summary>Every column is rendered side by side at equal width.</summary>
-    Grid,
-
-    /// <summary>Only the focused column is rendered, at the full content width.</summary>
-    Maximized,
-
-    /// <summary>
-    /// Columns are stacked vertically, each sharing an equal slice of the
-    /// available height. On frames too short to give every column a usable
-    /// slice, the focused column expands instead and the rest collapse to a
-    /// single title line.
-    /// </summary>
-    Stacked
-}
-
-/// <summary>
-/// One column's computed slot within a <see cref="BoardLayoutDecision"/>.
-/// </summary>
-/// <param name="Width">The column's width in cells.</param>
-/// <param name="Height">The column's height in cells.</param>
-/// <param name="Expanded">
-/// Whether the column renders its full panel, as opposed to a collapsed
-/// title line.
-/// </param>
-internal readonly record struct BoardColumnLayout(int Width, int Height, bool Expanded);
-
-/// <summary>
-/// The layout chosen for one frame: which <see cref="BoardLayoutKind"/> applies
-/// and the slot each column renders into, indexed the same as the board's
-/// column list.
-/// </summary>
-internal sealed class BoardLayoutDecision
-{
-    /// <summary>
-    /// The arrangement this decision resolved to.
-    /// </summary>
-    public required BoardLayoutKind Kind { get; init; }
-
-    /// <summary>
-    /// Each column's computed slot, indexed the same as the board's column list.
-    /// </summary>
-    public required IReadOnlyList<BoardColumnLayout> Columns { get; init; }
-}
-
-/// <summary>
-/// Computes how a board's columns are arranged for one frame: a pure function
-/// of terminal size, column count, focus, and the maximize toggle, with no
-/// dependency on rendering or a console.
+/// Determines column sizes and visibility from the frame dimensions, column count,
+/// focused column, and maximize state.
 /// </summary>
 internal static class BoardLayout
 {
     /// <summary>
-    /// The minimum per-column content width below which columns switch from
-    /// a side-by-side grid to a vertically stacked layout.
+    /// The minimum per-column frame width for a side-by-side grid.
     /// </summary>
     private const int StackedWidthThreshold = 24;
 
@@ -75,11 +24,11 @@ internal static class BoardLayout
     private const int StackedPanelChromeHeight = 2;
 
     /// <summary>
-    /// The fewest content rows an equally-shared stacked column needs to be
-    /// usable, below which every column sharing the height equally would be
-    /// too cramped to read.
+    /// The minimum interior row count required to give every stacked column equal height:
+    /// the header block plus the three rows the indicator settle needs to keep the
+    /// selection visible.
     /// </summary>
-    private const int MinStackedInteriorHeight = 3;
+    private const int MinStackedInteriorHeight = BoardTaskRow.HeaderLineCount + 3;
 
     /// <summary>
     /// The smallest per-column height <see cref="BuildStacked"/> requires
@@ -99,10 +48,15 @@ internal static class BoardLayout
     /// <paramref name="columnCount"/> columns, with
     /// <paramref name="focusedColumnIndex"/> focused and
     /// <paramref name="maximized"/> indicating whether the focused column's
-    /// maximize toggle is on.
+    /// maximize toggle is on. Maximize wins over <paramref name="orientation"/>.
     /// </summary>
     public static BoardLayoutDecision Decide(
-        int width, int height, int columnCount, int focusedColumnIndex, bool maximized)
+        int width,
+        int height,
+        int columnCount,
+        int focusedColumnIndex,
+        bool maximized,
+        BoardOrientation orientation)
     {
         width = Math.Max(0, width);
         height = Math.Max(0, height);
@@ -123,7 +77,14 @@ internal static class BoardLayout
             };
         }
 
-        if (width / columnCount < StackedWidthThreshold)
+        var stacked = orientation switch
+        {
+            BoardOrientation.SideBySide => false,
+            BoardOrientation.Stacked => true,
+            _ => width / columnCount < StackedWidthThreshold
+        };
+
+        if (stacked)
         {
             return new BoardLayoutDecision
             {
@@ -170,10 +131,9 @@ internal static class BoardLayout
     }
 
     /// <summary>
-    /// Stacks every column vertically, sharing the frame's height equally
-    /// among them so all are visible at once. Falls back to expanding only
-    /// the focused column, with the rest collapsed to a title line, when the
-    /// frame is too short to give every column a usable slice.
+    /// Stacks columns with an equal share of the available height when each meets
+    /// the minimum height. Otherwise, only the focused column is expanded and the
+    /// others receive one title row each.
     /// </summary>
     private static IReadOnlyList<BoardColumnLayout> BuildStacked(
         int width, int height, int columnCount, int focused)

@@ -228,6 +228,22 @@ internal sealed partial class SatisfiabilityValidator
                         excludeSchemaName: schemaName,
                         allowIntermediatesFromExcludedSchema: true);
 
+                // The requirement data is fetched from other schemas, so the schema must be able
+                // to resolve the field afterwards, either without its own data or by re-entering
+                // the type through a lookup.
+                if (requirementErrors.IsEmpty)
+                {
+                    requirementErrors =
+                        _requirementsValidator.ValidateReentry(
+                            requirements,
+                            type,
+                            field,
+                            schemaName,
+                            path?.Item,
+                            SatisfiabilityValidator_NoLookupForRequiringField,
+                            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
+                }
+
                 if (requirementErrors.Length != 0)
                 {
                     errors.Add(

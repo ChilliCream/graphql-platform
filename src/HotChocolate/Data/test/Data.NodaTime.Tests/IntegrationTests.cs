@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.NodaTime.TestContext;
 using HotChocolate.Execution;
@@ -5,7 +6,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Extensions;
-using Squadron;
 
 namespace HotChocolate.Data.NodaTime;
 
@@ -25,6 +25,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new BookContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType()
             .AddTypeExtension(typeof(Query))
             .AddType<Types.NodaTime.LocalDateType>()

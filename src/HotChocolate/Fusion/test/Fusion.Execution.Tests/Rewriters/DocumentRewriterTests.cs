@@ -3568,4 +3568,178 @@ public class DocumentRewriterTests : FusionTestBase
             }
             """);
     }
+
+    [Fact]
+    public void RewriteDocument_Should_Throw_GraphQLException_When_FieldIsNotDefinedOnInterface()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              harvest: Harvest
+            }
+
+            interface Harvest {
+              id: ID!
+            }
+
+            type CoffeeHarvest implements Harvest {
+              id: ID!
+              pendingBonuses: PendingBonus
+            }
+
+            type PendingBonus {
+              amount: Int!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              harvest {
+                pendingBonuses {
+                  amount
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc);
+
+        // assert
+        var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
+        Assert.Equal("The field 'pendingBonuses' does not exist on the type 'Harvest'.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.FieldDoesNotExist, error.Code);
+        var location = Assert.Single(error.Locations!);
+        Assert.Equal(3, location.Line);
+        Assert.Equal(5, location.Column);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_Throw_GraphQLException_When_InlineFragmentTypeConditionIsUnknown()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              harvest: Harvest
+            }
+
+            interface Harvest {
+              id: ID!
+            }
+
+            type CoffeeHarvest implements Harvest {
+              id: ID!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              harvest {
+                ... on TeaHarvest {
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc);
+
+        // assert
+        var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
+        Assert.Equal(
+            "An inline fragment on type 'Harvest' has an invalid type condition. "
+            + "The type 'TeaHarvest' does not exist.",
+            error.Message);
+        Assert.Equal(ErrorCodes.Validation.FragmentTypeConditionUnknown, error.Code);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_Throw_GraphQLException_When_FragmentTypeConditionIsUnknown()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              harvest: Harvest
+            }
+
+            interface Harvest {
+              id: ID!
+            }
+
+            type CoffeeHarvest implements Harvest {
+              id: ID!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              harvest {
+                ... TeaHarvestFields
+              }
+            }
+
+            fragment TeaHarvestFields on TeaHarvest {
+              id
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc);
+
+        // assert
+        var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
+        Assert.Equal(
+            "The fragment 'TeaHarvestFields' has an invalid type condition. "
+            + "The type 'TeaHarvest' does not exist.",
+            error.Message);
+        Assert.Equal(ErrorCodes.Validation.FragmentTypeConditionUnknown, error.Code);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_Throw_GraphQLException_When_FragmentSpreadIsNotDefined()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              harvest: Harvest
+            }
+
+            interface Harvest {
+              id: ID!
+            }
+
+            type CoffeeHarvest implements Harvest {
+              id: ID!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+              harvest {
+                ... HarvestFields
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc);
+
+        // assert
+        var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
+        Assert.Equal("A fragment with the name 'HarvestFields' does not exist.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.FragmentDoesNotExist, error.Code);
+    }
 }

@@ -927,7 +927,7 @@ public class JsonWriterTests
 
         // act - empty span frames to an empty JSON string
         writer.WriteStartArray();
-        writer.WriteStringValue(ReadOnlySpan<byte>.Empty, skipEscaping: true);
+        writer.WriteStringValue([], skipEscaping: true);
         writer.WriteEndArray();
 
         // assert

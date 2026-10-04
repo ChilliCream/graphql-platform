@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 

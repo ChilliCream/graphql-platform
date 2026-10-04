@@ -1,4 +1,3 @@
-using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Features;
 
 namespace Mocha.Transport.RabbitMQ;

@@ -10,6 +10,9 @@ public class NameUtilsTests
     [InlineData("1_Bar")]
     [InlineData("B/ar")]
     [InlineData("B+ar")]
+    [InlineData("Łar")]
+    [InlineData("Bŗar")]
+    [InlineData("Bİar")]
     public void InvalidName(string name)
     {
         var message = Assert.Throws<ArgumentException>(() => name.EnsureGraphQLName()).Message;
@@ -32,5 +35,20 @@ public class NameUtilsTests
     public void ValidName(string name)
     {
         name.EnsureGraphQLName();
+    }
+
+    [Theory]
+    [InlineData("Łar", "_ar")]
+    [InlineData("Bŗar", "B_ar")]
+    [InlineData("Bİar", "B_ar")]
+    public void MakeValidGraphQLName_Should_ReplaceTheCharacter_When_ItIsNotAnAsciiNameCharacter(
+        string name,
+        string expected)
+    {
+        // act
+        var result = NameUtils.MakeValidGraphQLName(name);
+
+        // assert
+        Assert.Equal(expected, result);
     }
 }

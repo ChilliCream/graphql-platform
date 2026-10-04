@@ -96,9 +96,24 @@ internal static class CompositionHelper
                 configuration.Settings);
         }
 
-        var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
+        var (compositionSettingsRead, existingCompositionSettings) =
+            await TryGetCompositionSettingsAsync(archive, compositionLog, cancellationToken);
+
+        if (!compositionSettingsRead)
+        {
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
+
         var mergedCompositionSettings =
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
+
+        // Report invalid settings through the composition log before the options setter can throw.
+        if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
+            && defaultListSize < 0)
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize));
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
@@ -233,14 +248,59 @@ internal static class CompositionHelper
         return result;
     }
 
-    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
+    // Validate the raw setting before deserialization so malformed values become composition errors.
+    internal static async Task<(bool Success, CompositionSettings Settings)> TryGetCompositionSettingsAsync(
         FusionArchive archive,
+        ICompositionLog compositionLog,
         CancellationToken cancellationToken)
     {
-        using var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+        using var rawCompositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
-        return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
+        if (rawCompositionSettings is null)
+        {
+            return (true, new CompositionSettings());
+        }
+
+        var root = rawCompositionSettings.RootElement;
+
+        if (root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("merger", out var merger)
+            && merger.ValueKind == JsonValueKind.Object
+            && merger.TryGetProperty("defaultListSize", out var defaultListSize)
+            && defaultListSize.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined)
+            && (defaultListSize.ValueKind is not JsonValueKind.Number
+                || !defaultListSize.TryGetInt32(out var defaultListSizeInt32)
+                || defaultListSizeInt32 < 0))
+        {
+            // Classify literals without a decimal point as range errors, including exponent notation.
+            // Other values receive a type error.
+            var logEntry = defaultListSize.ValueKind == JsonValueKind.Number
+                && IsWholeNumber(defaultListSize)
+                    ? LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize.GetRawText())
+                    : LogEntryHelper.InvalidDefaultListSizeSettingType(defaultListSize.GetRawText());
+
+            compositionLog.Write(logEntry);
+            return (false, new CompositionSettings());
+        }
+
+        var settings = rawCompositionSettings.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
+        return (true, settings);
+    }
+
+    // Inspect the literal to distinguish unsupported ranges from non-integer syntax.
+    // A value such as 1.0 is not an integer literal even though it has no fractional remainder.
+    private static bool IsWholeNumber(JsonElement numberElement)
+    {
+        if (numberElement.TryGetInt64(out _))
+        {
+            return true;
+        }
+
+        var rawText = numberElement.GetRawText();
+        var exponentIndex = rawText.IndexOfAny(['e', 'E']);
+        var significand = exponentIndex < 0 ? rawText : rawText[..exponentIndex];
+        return !significand.Contains('.');
     }
 
     private static async Task SaveCompositionSettingsAsync(

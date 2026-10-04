@@ -86,7 +86,7 @@ fragment Product on Product {
 
 Install the `HotChocolate.Adapters.OpenApi` NuGet package into your GraphQL server project, or `HotChocolate.Fusion.Adapters.OpenApi` if your server is a Fusion gateway:
 
-```bash
+```shell
 dotnet add package HotChocolate.Adapters.OpenApi
 ```
 
@@ -139,7 +139,7 @@ Endpoint definitions are plain GraphQL files, and Nitro treats them like any oth
 
 Create a collection once with `nitro openapi create`, then upload your documents as a tagged version and publish that tag to a stage:
 
-```bash
+```shell
 nitro openapi upload \
   --openapi-collection-id "<collection-id>" \
   --tag "v1" \

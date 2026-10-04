@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Serialization;
 using HotChocolate.Language;
@@ -25,7 +26,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     private readonly int _itemCount;
     private readonly List<Utf8VariableDefinitionNode> _sharedVariables;
     private readonly string? _operationName;
-    private readonly string _operationShortHash;
+    private readonly string _nameSafeShortHash;
     private readonly ulong _compositionHash;
     private readonly ErrorHandlingMode? _onError;
 
@@ -60,7 +61,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         _itemCount = itemCount;
         _sharedVariables = sharedVariables;
         _operationName = operationName;
-        _operationShortHash = operationShortHash;
+        _nameSafeShortHash = OperationShortHash.ToNameSafe(operationShortHash);
         _compositionHash = compositionHash;
         _onError = onError;
     }
@@ -138,7 +139,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     private int GetOperationNameLength()
         => (_operationName?.Length ?? AnonymousOperationName.Length)
             + 1
-            + _operationShortHash.Length
+            + _nameSafeShortHash.Length
             + Batch.Length
             + CompositionHashLength;
 
@@ -161,7 +162,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         }
 
         buffer[written++] = NameSeparator;
-        written += Encoding.ASCII.GetBytes(_operationShortHash, buffer[written..]);
+        written += Encoding.ASCII.GetBytes(_nameSafeShortHash, buffer[written..]);
         Batch.CopyTo(buffer[written..]);
         written += Batch.Length;
         WriteHexLower(buffer[written..], _compositionHash);

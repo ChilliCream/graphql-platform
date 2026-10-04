@@ -62,10 +62,27 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
+    [Obsolete("Use Select<TKey, TValue>(ISelection, ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         ISelection selection,
         ulong includeFlags)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        var expression = selection.AsSelector<TValue>(includeFlags);
+        return dataLoader.Select(expression);
+    }
+
+    /// <summary>
+    /// Selects the fields included by the GraphQL selection and runtime condition flags.
+    /// </summary>
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        ISelection selection,
+        ConditionFlags includeFlags)
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);
@@ -141,10 +158,28 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
+    [Obsolete("Use Select<TKey, TValue>(ISelection, ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static IDataLoader<TKey, TValue[]> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue[]> dataLoader,
         ISelection selection,
         ulong includeFlags)
+        where TKey : notnull
+        where TValue : notnull
+    {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        var expression = selection.AsSelector<TValue>(includeFlags);
+        return dataLoader.Select(expression);
+    }
+
+    /// <summary>
+    /// Selects the fields included by the GraphQL selection and runtime condition flags.
+    /// </summary>
+    public static IDataLoader<TKey, TValue[]> Select<TKey, TValue>(
+        this IDataLoader<TKey, TValue[]> dataLoader,
+        ISelection selection,
+        ConditionFlags includeFlags)
         where TKey : notnull
         where TValue : notnull
     {
@@ -210,10 +245,28 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
+    [Obsolete("Use Select<TKey, TValue>(ISelection, ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static IDataLoader<TKey, List<TValue>> Select<TKey, TValue>(
         this IDataLoader<TKey, List<TValue>> dataLoader,
         ISelection selection,
         ulong includeFlags)
+        where TKey : notnull
+        where TValue : notnull
+    {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        var expression = selection.AsSelector<TValue>(includeFlags);
+        return dataLoader.Select(expression);
+    }
+
+    /// <summary>
+    /// Selects the fields included by the GraphQL selection and runtime condition flags.
+    /// </summary>
+    public static IDataLoader<TKey, List<TValue>> Select<TKey, TValue>(
+        this IDataLoader<TKey, List<TValue>> dataLoader,
+        ISelection selection,
+        ConditionFlags includeFlags)
         where TKey : notnull
         where TValue : notnull
     {
@@ -277,10 +330,27 @@ public static class HotChocolateExecutionDataLoaderExtensions
     /// <returns>
     /// Returns a new data loader that applies the selection.
     /// </returns>
+    [Obsolete("Use Select<TKey, TValue>(ISelection, ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public static IDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
         this IDataLoader<TKey, Page<TValue>> dataLoader,
         ISelection selection,
         ulong includeFlags)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        var expression = selection.AsSelector<TValue>(includeFlags);
+        return dataLoader.Select(expression);
+    }
+
+    /// <summary>
+    /// Selects the fields included by the GraphQL selection and runtime condition flags.
+    /// </summary>
+    public static IDataLoader<TKey, Page<TValue>> Select<TKey, TValue>(
+        this IDataLoader<TKey, Page<TValue>> dataLoader,
+        ISelection selection,
+        ConditionFlags includeFlags)
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);

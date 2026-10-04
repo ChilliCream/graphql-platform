@@ -221,30 +221,6 @@ internal static class LogEntryHelper
             formattedPath);
     }
 
-    public static LogEntry InputObjectCycle(
-        IInputObjectTypeDefinition inputObjectType,
-        IEnumerable<string> cyclePath)
-    {
-        var cyclePathArray = cyclePath.ToArray();
-        var message = cyclePathArray.Length == 1
-            ? string.Format(
-                LogEntryHelper_InputObjectCycle_Direct,
-                inputObjectType.Name,
-                cyclePathArray[0])
-            : string.Format(
-                LogEntryHelper_InputObjectCycle_Indirect,
-                inputObjectType.Name,
-                string.Join(", ", cyclePathArray.Select(i => $"'{i}'")));
-
-        return LogEntryBuilder.New()
-            .SetMessage(message)
-            .SetCode(LogEntryCodes.InputObjectCycle)
-            .SetSeverity(LogSeverity.Error)
-            .SetTypeSystemMember(inputObjectType)
-            .SetSpecifiedBy(inputObjectType.Kind)
-            .Build();
-    }
-
     public static LogEntry InputObjectDefaultValueCycle(
         IInputValueDefinition inputField,
         IEnumerable<string> cyclePath)
@@ -265,6 +241,22 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(inputField)
             .SetSpecifiedBy(GetTypeSystemMemberKind(inputField.DeclaringMember))
+            .Build();
+    }
+
+    public static LogEntry InputObjectUnbreakableCycle(
+        IInputObjectTypeDefinition inputObjectType,
+        IEnumerable<string> cyclePath)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InputObjectUnbreakableCycle,
+                inputObjectType.Name,
+                string.Join(", ", cyclePath.Select(i => $"'{i}'")))
+            .SetCode(LogEntryCodes.InputObjectUnbreakableCycle)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(inputObjectType)
+            .SetRfc(1211)
             .Build();
     }
 
@@ -694,6 +686,13 @@ internal static class LogEntryHelper
         private LogEntryBuilder SetImplementedType(ITypeDefinition type)
         {
             return builder.SetExtension("implementedType", type);
+        }
+
+        private LogEntryBuilder SetRfc(int pullRequest)
+        {
+            return builder.SetExtension(
+                "rfc",
+                "https://github.com/graphql/graphql-spec/pull/" + pullRequest);
         }
 
         private LogEntryBuilder SetSpecifiedBy(TypeKind typeKind)

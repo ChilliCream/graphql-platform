@@ -1,7 +1,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
@@ -11,7 +10,6 @@ internal static class ErrorHelper
 {
     public static IError CreateNonNullError<T>(
         IFilterField field,
-        IValueNode value,
         IFilterVisitorContext<T> context,
         bool isMemberInvalid = false)
     {
@@ -27,26 +25,23 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", expectedType.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }
 
-    public static IError SortingVisitor_ListValues(ISortField field, ListValueNode node) =>
+    public static IError SortingVisitor_ListValues(ISortField field) =>
         ErrorBuilder.New()
             .SetMessage(
                 DataResources.SortingVisitor_ListInput_AreNotSupported,
                 field.DeclaringType.Name,
                 field.Name)
-            .AddLocation(node)
             .SetCode(ErrorCodes.Data.ListNotSupported)
             .SetExtension(nameof(field), field)
             .Build();
 
     public static IError MaxAllowedFilterOperationsExceeded(
-        IValueNode node,
         int filterOperations,
         int maxAllowedFilterOperations) =>
         ErrorBuilder.New()
@@ -55,7 +50,6 @@ internal static class ErrorHelper
                 + "number of {1}.",
                 filterOperations,
                 maxAllowedFilterOperations)
-            .AddLocation(node)
             .SetCode(ErrorCodes.Data.MaxFilterOperationsExceeded)
             .SetExtension(nameof(filterOperations), filterOperations)
             .SetExtension(nameof(maxAllowedFilterOperations), maxAllowedFilterOperations)
@@ -63,7 +57,6 @@ internal static class ErrorHelper
 
     public static IError CreateNonNullError<T>(
         ISortField field,
-        IValueNode value,
         ISortVisitorContext<T> context)
     {
         var sortType = context.Types.OfType<ISortInputType>().First();
@@ -73,7 +66,6 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())
@@ -91,18 +83,16 @@ internal static class ErrorHelper
             .SetException(exception)
             .Build();
 
-    public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>
+    public static IError ProjectionProvider_CouldNotProjectFiltering() =>
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
-            .AddLocation(node)
             .SetCode(ErrorCodes.Data.FilteringProjectionFailed)
             .Build();
 
-    public static IError ProjectionProvider_CouldNotProjectSorting(IValueNode node) =>
+    public static IError ProjectionProvider_CouldNotProjectSorting() =>
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
             .SetCode(ErrorCodes.Data.SortingProjectionFailed)
-            .AddLocation(node)
             .Build();
 
     public static IError ProjectionVisitor_NodeFieldWasNotFound(IPageType pageType) =>

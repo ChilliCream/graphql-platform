@@ -2,15 +2,16 @@
 
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
+    <NoWarn>HC8002;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\CostAnalysis.Core\HotChocolate.CostAnalysis.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

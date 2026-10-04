@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.Resources.Mongo</AssemblyName>
+    <RootNamespace>CookieCrumble.Resources</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" />
+    <!-- Dependencies of MongoDB.Driver. Pinned to secure versions. -->
+    <PackageReference Include="SharpCompress" VersionOverride="0.48.0" />
+    <PackageReference Include="Snappier" VersionOverride="1.3.1" />
+    <!-- / -->
+    <PackageReference Include="Testcontainers.MongoDb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CookieCrumble.Resources/CookieCrumble.Resources.csproj" />
+  </ItemGroup>
+
+</Project>

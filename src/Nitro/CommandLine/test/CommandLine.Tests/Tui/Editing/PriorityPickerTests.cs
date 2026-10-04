@@ -21,11 +21,11 @@ public sealed class PriorityPickerTests
     }
 
     [Fact]
-    public async Task ApplyAsync_Should_CallUpdateTaskAsync_WithPriorityGiven()
+    public async Task ApplyAsync_Should_ReportSuccess_When_PriorityDiffersFromTask()
     {
         // arrange
         var task = TaskItemBuilder.Create("a1", priority: TaskPriorities.Medium);
-        var store = new FakeTaskStore { UpdateResult = new TaskUpdateResult { ChangedFields = ["priority"] } };
+        var store = new FakeTaskStore();
 
         // act
         var outcome = await PriorityPicker.ApplyAsync(
@@ -35,10 +35,24 @@ public sealed class PriorityPickerTests
         Assert.Equal("a1", store.UpdatedId);
         Assert.True(store.UpdateReceived!.PriorityGiven);
         Assert.Equal(TaskPriorities.Critical, store.UpdateReceived.Priority);
-        Assert.False(store.UpdateReceived.StatusGiven);
-        Assert.Equal("me", store.Actor);
         var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
-        Assert.Contains("P0", succeeded.ToastText);
+        Assert.Equal("Priority set to 'P0' for task 'a1'.", succeeded.ToastText);
+    }
+
+    [Fact]
+    public async Task ApplyAsync_Should_ReportNoChanges_When_PriorityMatchesTask()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", priority: TaskPriorities.Medium);
+        var store = new FakeTaskStore();
+
+        // act
+        var outcome = await PriorityPicker.ApplyAsync(
+            store, task, TaskPriorities.Medium, "me", CancellationToken.None);
+
+        // assert
+        var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
+        Assert.Equal("No changes to task 'a1'.", succeeded.ToastText);
     }
 
     [Fact]

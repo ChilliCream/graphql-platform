@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Suites.ParentEntityCall.C;
 /// SDL exposes no user-facing root fields on <c>c</c>; HotChocolate still
 /// requires a <c>Query</c> type so the Apollo Federation interceptor can
 /// attach <c>_service</c> and <c>_entities</c>.
-/// <see cref="ApolloFederationObjectTypeDescriptorExtensions.ExtendServiceType"/>
+/// <see cref="ExtendServiceTypeDescriptorExtensions.ExtendServiceType(IObjectTypeDescriptor)"/>
 /// marks this type as extending the federated <c>Query</c>.
 /// </summary>
 public sealed class QueryType : ObjectType

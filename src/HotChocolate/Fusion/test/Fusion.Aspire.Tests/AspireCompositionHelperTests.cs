@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Language;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -27,6 +28,84 @@ public sealed class AspireCompositionHelperTests
 
         Assert.True(compositionSettings.Merger.EnableGlobalObjectIdentification);
         Assert.Equal(nodeResolution, compositionSettings.Merger.NodeResolution);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(7)]
+    public void CreateCompositionSettings_Should_MapDefaultListSize(int? defaultListSize)
+    {
+        var settings = new GraphQLCompositionSettings
+        {
+            DefaultListSize = defaultListSize
+        };
+
+        var compositionSettings = AspireCompositionHelper.CreateCompositionSettings(settings);
+
+        Assert.Equal(defaultListSize, compositionSettings.Merger.DefaultListSize);
+    }
+
+    [Fact]
+    public async Task TryComposeAsync_Should_EmitCostOptions_When_DefaultListSizeIsSet()
+    {
+        // arrange
+        var archivePath = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            System.IO.Path.GetRandomFileName());
+        using var settings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var products = CreateSourceSchema(
+            "Products",
+            allocatedHttpEndpointUrl: null,
+            settings,
+            ProductsSchemaText);
+        var compositionSettings = new GraphQLCompositionSettings
+        {
+            DefaultListSize = 7
+        };
+
+        try
+        {
+            // act
+            var success = await AspireCompositionHelper.TryComposeAsync(
+                archivePath,
+                seedArchivePath: null,
+                [products],
+                compositionSettings,
+                environment: null,
+                NullLogger<SchemaComposition>.Instance,
+                TestContext.Current.CancellationToken);
+
+            // assert
+            Assert.True(success);
+            using var archive = FusionArchive.Open(archivePath);
+            using var gatewayConfiguration = await archive.TryGetGatewayConfigurationAsync(
+                WellKnownVersions.LatestGatewayFormatVersion,
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(gatewayConfiguration);
+            using var streamReader = new StreamReader(
+                await gatewayConfiguration.OpenReadSchemaAsync(TestContext.Current.CancellationToken));
+            var schemaText = await streamReader.ReadToEndAsync(TestContext.Current.CancellationToken);
+            var schemaDefinition = Utf8GraphQLParser.Parse(schemaText)
+                .Definitions
+                .OfType<SchemaDefinitionNode>()
+                .Single();
+            var costOptionsApplication = Assert.Single(
+                schemaDefinition.Directives,
+                directive => directive.Name.Value == "fusion__cost_options");
+
+            costOptionsApplication.ToString().MatchInlineSnapshot(
+                """
+                @fusion__cost_options(defaultListSize: 7)
+                """);
+        }
+        finally
+        {
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+        }
     }
 
     [Theory]
@@ -101,6 +180,7 @@ public sealed class AspireCompositionHelperTests
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "IncludePrivate",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": true,
                 "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "SourceSchema",
@@ -127,7 +207,10 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001/",
             settings,
-            ProductsSchemaText) with { GraphQLPath = "/api/graphql" };
+            ProductsSchemaText) with
+        {
+            GraphQLPath = "/api/graphql"
+        };
 
         // act
         var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
@@ -162,7 +245,10 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { GraphQLPath = "/declared/graphql" };
+            ProductsSchemaText) with
+        {
+            GraphQLPath = "/declared/graphql"
+        };
 
         // act
         var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
@@ -249,7 +335,11 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { ResourceName = "products", GraphQLPath = null };
+            ProductsSchemaText) with
+        {
+            ResourceName = "products",
+            GraphQLPath = null
+        };
         var logger = new RecordingLogger<SchemaComposition>();
 
         // act
@@ -275,17 +365,27 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { ResourceName = "products" };
+            ProductsSchemaText) with
+        {
+            ResourceName = "products"
+        };
         var legacy = CreateSourceSchema(
             "Reviews",
             "http://localhost:5002",
             settings,
-            "type Query { review: String }") with { ResourceName = "reviews", GraphQLPath = null };
+            "type Query { review: String }") with
+        {
+            ResourceName = "reviews",
+            GraphQLPath = null
+        };
         var alsoLegacy = CreateSourceSchema(
             "Orders",
             allocatedHttpEndpointUrl: null,
             settings,
-            "type Query { order: String }") with { GraphQLPath = null };
+            "type Query { order: String }") with
+        {
+            GraphQLPath = null
+        };
         var logger = new RecordingLogger<SchemaComposition>();
 
         // act
@@ -319,7 +419,11 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { ResourceName = "products", GraphQLPath = null };
+            ProductsSchemaText) with
+        {
+            ResourceName = "products",
+            GraphQLPath = null
+        };
         var logger = new RecordingLogger<SchemaComposition>();
 
         try

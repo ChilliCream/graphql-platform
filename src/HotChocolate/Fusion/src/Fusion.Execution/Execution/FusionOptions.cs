@@ -202,6 +202,20 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
+    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields and in query and mutation operations.
+    /// </summary>
+    public bool EnableEmptySelectionSets
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
     /// for semantic schema discovery.
     /// </summary>

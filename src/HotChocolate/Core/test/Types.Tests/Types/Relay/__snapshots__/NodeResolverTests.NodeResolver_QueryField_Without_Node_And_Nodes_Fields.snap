@@ -1,0 +1,17 @@
+schema {
+  query: QueryWithoutNodeAndNodesFields
+}
+
+type QueryWithoutNodeAndNodesFields {
+  entity(id: ID!): Entity!
+}
+
+type Entity implements Node {
+  id: ID!
+  name: String!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}

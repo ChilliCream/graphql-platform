@@ -6,16 +6,11 @@ using FusionGraphQLHttpRequest = HotChocolate.Fusion.Transport.Http.GraphQLHttpR
 using TransportClient = HotChocolate.Transport.Http.DefaultGraphQLHttpClient;
 using TransportGraphQLHttpRequest = HotChocolate.Transport.Http.GraphQLHttpRequest;
 using BenchmarkDotNet.Jobs;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Exporters;
 using HotChocolate.Buffers;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
@@ -25,15 +20,15 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 public class GraphQLQueryBenchmark
 {
     private readonly Uri _requestUri = new Uri("http://localhost:5000/graphql");
-    private TestServer _server;
-    private WebApplication _app;
-    private HttpClient _client;
-    private FusionClient _fusionClient;
-    private FusionGraphQLHttpRequest _fusionItemsRequest;
-    private FusionGraphQLHttpRequest _fusionFewItemsRequest;
-    private TransportClient _transportClient;
-    private TransportGraphQLHttpRequest _transportItemsRequest;
-    private TransportGraphQLHttpRequest _transportFewItemsRequest;
+    private TestServer _server = null!;
+    private WebApplication _app = null!;
+    private HttpClient _client = null!;
+    private FusionClient _fusionClient = null!;
+    private FusionGraphQLHttpRequest _fusionItemsRequest = null!;
+    private FusionGraphQLHttpRequest _fusionFewItemsRequest = null!;
+    private TransportClient _transportClient = null!;
+    private TransportGraphQLHttpRequest _transportItemsRequest = null!;
+    private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
 
     private sealed class PercentilesConfig : ManualConfig
     {
@@ -51,14 +46,14 @@ public class GraphQLQueryBenchmark
         (_server, _app) = await GraphQLServerHelper.CreateTestServer();
         _client = _server.CreateClient();
 
-        var fusionItems = new HotChocolate.Fusion.Transport.OperationRequest(
+        var fusionItems = new Transport.OperationRequest(
             "{ items }"u8.ToArray(),
             id: null,
             operationName: null,
             onError: null,
             variables: VariableValues.Empty,
             extensions: JsonSegment.Empty);
-        var fusionFewItems = new HotChocolate.Fusion.Transport.OperationRequest(
+        var fusionFewItems = new Transport.OperationRequest(
             "{ fewItems }"u8.ToArray(),
             id: null,
             operationName: null,
@@ -112,7 +107,6 @@ public class GraphQLQueryBenchmark
         using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("items"u8).GetArrayLength();
     }
-
 
     [Benchmark]
     public async Task<int> Send_Small_Request_With_Transport()

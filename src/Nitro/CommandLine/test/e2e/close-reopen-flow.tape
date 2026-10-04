@@ -23,19 +23,18 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_TASK_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks close acme-a1b --reason "Won't fix, unreproducible"` Enter
+Type `nitro agent tasks close acme-a1b --reason "Won't fix, unreproducible" --actor e2e-agent` Enter
 
 Wait+Screen@30s /Closed task 'acme-a1b'/
 Sleep 500ms
 
-Type `nitro agent tasks reopen acme-a1b` Enter
+Type `nitro agent tasks reopen acme-a1b --actor e2e-agent` Enter
 
 Wait+Screen@30s /Reopened task 'acme-a1b'/
 Sleep 1500ms

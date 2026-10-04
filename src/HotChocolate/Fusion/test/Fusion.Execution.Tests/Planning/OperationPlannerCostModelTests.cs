@@ -109,13 +109,21 @@ public class OperationPlannerCostModelTests : FusionTestBase
         var moderateFanoutCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
             currentMaxDepth: 3,
+#if NET10_0_OR_GREATER
+            [],
+#else
             ImmutableDictionary<int, int>.Empty,
+#endif
             moderateFanout);
 
         var excessiveFanoutCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
             currentMaxDepth: 3,
+#if NET10_0_OR_GREATER
+            [],
+#else
             ImmutableDictionary<int, int>.Empty,
+#endif
             excessiveFanout);
 
         Assert.Equal(100.0, moderateFanoutCost, 6);

@@ -172,17 +172,15 @@ public class Utf8SyntaxFormatterTests
 
         // act
         var documentDirect = new ArrayBufferWriter<byte>();
-        var documentBoxed = new ArrayBufferWriter<byte>();
-        document.Format(documentDirect, indented: true, variables: map);
-        ((IUtf8SyntaxNode)document).Format(documentBoxed, indented: true, variables: map);
         var fieldDirect = new ArrayBufferWriter<byte>();
-        var fieldBoxed = new ArrayBufferWriter<byte>();
+        document.Format(documentDirect, indented: true, variables: map);
         field.Format(fieldDirect, indented: true, variables: map);
-        ((IUtf8SyntaxNode)field).Format(fieldBoxed, indented: true, variables: map);
+        var documentBoxed = FormatThroughInterface(document, map);
+        var fieldBoxed = FormatThroughInterface(field, map);
 
         // assert
-        Assert.Equal(documentDirect.WrittenSpan.ToArray(), documentBoxed.WrittenSpan.ToArray());
-        Assert.Equal(fieldDirect.WrittenSpan.ToArray(), fieldBoxed.WrittenSpan.ToArray());
+        Assert.Equal(documentDirect.WrittenSpan.ToArray(), documentBoxed);
+        Assert.Equal(fieldDirect.WrittenSpan.ToArray(), fieldBoxed);
     }
 
     [Fact]
@@ -758,6 +756,14 @@ public class Utf8SyntaxFormatterTests
         document.Format(writer, indented, formatAsJsonStringValue: true, variables);
         using var json = JsonDocument.Parse(writer.WrittenMemory);
         return json.RootElement.GetString()!;
+    }
+
+    private static byte[] FormatThroughInterface(IUtf8SyntaxNode node, Utf8VariableNameMap map)
+    {
+        var writer = new ArrayBufferWriter<byte>();
+        node.Format(writer, indented: true, variables: map);
+
+        return writer.WrittenSpan.ToArray();
     }
 
     private static Utf8OperationDocument Parse(string source)

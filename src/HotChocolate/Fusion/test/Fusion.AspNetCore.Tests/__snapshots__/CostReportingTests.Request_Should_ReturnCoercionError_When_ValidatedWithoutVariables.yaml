@@ -1,0 +1,62 @@
+title: Request_Should_ReturnCoercionError_When_ValidatedWithoutVariables
+request:
+  document: |
+    query Items($n: Int!) {
+      items(n: $n) {
+        value
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Variable \u0060n\u0060 is required.",
+          "locations": [
+            {
+              "line": 1,
+              "column": 13
+            }
+          ],
+          "extensions": {
+            "code": "HC0018",
+            "variable": "n"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        unannotatedItems: [Item]
+        expensive: Expensive
+      }
+
+      type Expensive @cost(weight: "2000") {
+        value: String
+      }
+
+      type Item {
+        value: Int @cost(weight: "5")
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION
+
+      directive @listSize(
+        assumedSize: Int
+        slicingArguments: [String!]
+        sizedFields: [String!]
+        requireOneSlicingArgument: Boolean = true
+      ) on FIELD_DEFINITION

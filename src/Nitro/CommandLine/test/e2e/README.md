@@ -23,12 +23,74 @@ layer: a handful of representative flows, not exhaustive.
 | Flow | Drives | Validates |
 | --- | --- | --- |
 | `help` | `nitro agent tasks list --help` | the pipeline itself: publish, record, extract, diff, end to end |
+| `init` | `nitro agent init` in a fresh directory | the unified `.nitro/agents` workspace path and prefix output |
+| `agent-root` | bare `nitro agent`, then quit | the tabbed TUI mounts at the bare group command and quits cleanly |
+| `list` / `show` / `create` / `close-reopen` / `dep-tree` / `error` | `nitro agent tasks <cmd>` over the fixture | the non-interactive task commands |
+| `board` | the Tasks tab (bare `nitro agent`) | column/row navigation, and a tab switch to Mail and back |
+| `board-maximize` | the Tasks tab's maximize toggle (`z`) | the single-column maximized layout |
+| `search` | search mode (`/`) in the Tasks tab (bare `nitro agent`) | live query filtering and opening a result's detail pane |
+| `detail` | the Tasks tab's detail pane and dependency tree (`t`, `d`, `u`) | the detail body and tree explorer navigation |
+| `mail-send` | `agent register/list/mail send/inbox/reply/read --thread` over a copy of the fixture | the mail send/inbox/reply/read round trip, one actor registered with a role, and the unified `agent list` shape |
+| `mail-error` | `nitro agent mail send` to an invalid recipient name | the agent-name-normalization rejection and non-zero exit rendering |
+| `mail-board` | the Mail tab's actor-less Workspace mailbox (bare `nitro agent`, `]` to switch) | the read-only thread table, per-agent filtering, and the Enter thread popover |
+| `agents` | the Agents tab (bare `nitro agent`, `A` to switch) | the unified agent table's presence states and header counts, and the Enter detail popover |
+| `memory-board` | the Memory tab (bare `nitro agent`, `E` to switch) | the curated/journal table, the kind filter, and the Enter entry popover |
 
-This is a trivial smoke flow that proves the pipeline itself, independently of
-the fixture-backed `nitro agent tasks` flows. It asks for help on `list`, a
-leaf subcommand, since its help output is the more informative pipeline check
-than the `agent`/`tasks` group commands' own help. Task commands need no
+`help` is a trivial smoke flow that proves the pipeline itself,
+independently of the fixture-backed flows below it. It asks for help on
+`list`, a leaf subcommand, since its help output is the more informative
+pipeline check than the `agent`/`tasks` group commands' own help. Agent
+commands need no auth, they never call the Nitro backend.
+
+`init` and `agent-root` exercise the two ways a bare command opens something:
+`nitro agent init` creates the unified workspace in a fresh directory (no
+fixture); `nitro agent` against an *existing* workspace instead mounts the
+tabbed TUI on the Tasks tab and, driven with no other arguments, is the tape
+that proves that mount end to end.
+
+The task board/detail flows (`board`, `board-maximize`, `detail`) and the
+mail board flow (`mail-board`) all launch via bare `nitro agent`, so the tab
+strip renders throughout;
+`board` and `mail-board` each demonstrate switching tabs with `[`/`]` in one
+direction, together covering the round trip.
+
+The `mail-*` flows are a handful of representative mail flows, not
+exhaustive per-command coverage (that is the unit tier's job): `mail-send`
+runs live against a copy of the shared fixture (register two actors via the
+root `nitro agent register` command
+(one with `--role`), list them with `nitro agent list` to check the unified
+agent table's shape, send with `--cc`, inbox as the recipient, read with
+`--thread` after a reply), so its ids, dates, and one live agent's relative
+age need the `mail-send` SCRUBS entry in [`run.sh`](run.sh); `mail-board`
+runs against the shared
+seeded fixture ([`fixtures/mail-seed.sql`](fixtures/mail-seed.sql)) with
+timestamps fixed far enough in the past that the board's age column always
+renders a fixed date, so it needs no SCRUBS entry. Mail commands need no
 auth, they never call the Nitro backend.
+
+`agents` runs against the same shared fixture, extended by
+[`fixtures/agents-seed.sql`](fixtures/agents-seed.sql) to put its agents
+into the three states `AgentStateResolver` derives from a row (Online,
+Unreachable, Offline) and add a fourth, already soft-deleted agent that
+must never appear. The Online one is a fresh name with no mail or task
+history, not one of `mail-seed.sql`'s three message participants, since
+giving one of those a harness would also change mail-board-flow's own
+committed golden (see `fixtures/agents-seed.sql`'s header). Online is
+also a live, time-windowed state with no way to pin it to a past timestamp
+the way every other fixture value here is, so its last_seen_at is
+refreshed to the real current time at fixture-prepare time instead, and
+the resulting relative age needs its own `agents` SCRUBS entry in
+[`run.sh`](run.sh), the same reason `mail-send` needs one for the agent it
+registers live.
+
+`memory-board` runs against the same shared fixture, extended by
+[`fixtures/memory-seed.sql`](fixtures/memory-seed.sql) with two curated
+memories and one journal entry, at the same fixed-past timestamps as
+`mail-seed.sql`'s messages, so it too needs no SCRUBS entry. The Memory tab
+shows every entry in the workspace, so its rows sit alongside the three
+journal entries `agents-seed.sql` already seeds for `nora`; see
+`memory-seed.sql`'s own header for the resulting combined row counts.
+Memory commands need no auth, they never call the Nitro backend.
 
 Keep `MARKERS`/`ALL_FLOWS` in [`run.sh`](run.sh) in sync with the tape set as
 flows are added.
@@ -73,7 +135,7 @@ diffs under `out/report/` for CI. Exit codes: `0` all PASS, `1` any FAIL/NEW
 (or, under `--update`, any recording failure), `2` usage error, `3` docker
 missing.
 
-Requirements: `docker` + the .NET SDK. Nothing else, `ttyd`, `ffmpeg`, and the
+Requirements: `docker`, `sqlite3`, and the .NET SDK. `ttyd`, `ffmpeg`, and the
 fonts are baked into the pinned container.
 
 ## What makes it deterministic

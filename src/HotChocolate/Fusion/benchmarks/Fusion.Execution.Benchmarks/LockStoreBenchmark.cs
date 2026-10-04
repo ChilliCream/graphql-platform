@@ -1,7 +1,4 @@
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
@@ -21,10 +18,10 @@ public class LockStoreBenchmark
     private readonly ReaderWriterLockSlim _readerWriterLock = new(LockRecursionPolicy.NoRecursion);
     private SpinLock _spinLock = new(enableThreadOwnerTracking: false);
 
-    private int[] _operationKinds;
-    private int[] _operationIndexes;
-    private int[] _data;
-    private ParallelOptions _parallelOptions;
+    private int[] _operationKinds = null!;
+    private int[] _operationIndexes = null!;
+    private int[] _data = null!;
+    private ParallelOptions _parallelOptions = null!;
     private int _sink;
 
     [Params(8, 32)]

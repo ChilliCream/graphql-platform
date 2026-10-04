@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/agent/.dotnet/tools/nitro-v2 agent hook claude session-start",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

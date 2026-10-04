@@ -100,7 +100,7 @@ public class Issue6953Tests
         [UseProjection]
         [GraphQLType(typeof(ListType<UnionTestType>))]
         public IQueryable<Base> GetUnionTest()
-            => Data.AsQueryable();
+            => s_data.AsQueryable();
     }
 
     public class Base
@@ -144,7 +144,7 @@ public class Issue6953Tests
         }
     }
 
-    private static readonly Base[] Data =
+    private static readonly Base[] s_data =
     [
         new ChildA { C = "shared-a", A = "value-a" },
         new ChildB { C = "shared-b", B = "value-b" }

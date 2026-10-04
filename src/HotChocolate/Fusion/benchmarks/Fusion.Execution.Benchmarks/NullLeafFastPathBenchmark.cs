@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -108,7 +105,7 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
     // Never assigned: stands in for BuildResult's errorTrie parameter so the
     // null-conditional at ValueCompletion.cs line 198 stays a real runtime check.
 #pragma warning disable CS0649
-    private ErrorTrie? _errorTrie;
+    private readonly ErrorTrie? _errorTrie;
 #pragma warning restore CS0649
 
     public long Consumed;
@@ -382,7 +379,7 @@ public class NullLeafFastPathBenchmark : FusionBenchmarkBase
             if (baselineStates[i] != fastPathStates[i])
             {
                 throw new InvalidOperationException(
-                    $"Slot state mismatch after the merge round: baseline "
+                    "Slot state mismatch after the merge round: baseline "
                     + $"{baselineStates[i]} vs fast path {fastPathStates[i]}.");
             }
         }

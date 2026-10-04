@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
-using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
@@ -71,7 +70,7 @@ public sealed class ConfirmDialogTests
     [Fact]
     public void HandleKey_Should_ReturnConfirmed_When_EnterActivatesDefaultButtonAfterTab()
     {
-        // arrange: the confirm button is selected by default among the buttons.
+        // arrange
         var dialog = CreateDialog();
         dialog.HandleKey(Key(ConsoleKey.Tab));
 

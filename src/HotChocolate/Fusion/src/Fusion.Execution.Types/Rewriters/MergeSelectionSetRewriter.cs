@@ -1,5 +1,4 @@
 using HotChocolate.Fusion.Rewriters;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 

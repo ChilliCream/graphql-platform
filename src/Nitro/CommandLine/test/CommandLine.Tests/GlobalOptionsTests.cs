@@ -369,7 +369,6 @@ public sealed class GlobalOptionsTests(NitroCommandFixture fixture) : CommandTes
             new NitroConsole(
                 testConsole,
                 errorConsole,
-                environmentVariables ?? new EnvironmentVariableProvider(),
                 new SnapshotActivitySinkFactory()));
 
         var provider = services.BuildServiceProvider();

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Time.Testing;
-using Mocha.Features;
 using Mocha.Middlewares;
 
 namespace Mocha.Tests.Middlewares.Receive;

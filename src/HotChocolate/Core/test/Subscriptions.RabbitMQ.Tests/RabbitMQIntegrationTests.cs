@@ -1,6 +1,6 @@
+using CookieCrumble.Resources;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.RabbitMQ;
 
@@ -53,8 +53,8 @@ public class RabbitMQIntegrationTests : SubscriptionIntegrationTestBase, IClassF
         // register subscription provider
         graphqlBuilder.AddRabbitMQSubscriptions(new()
         {
-            HostName = _rabbitMQResource.Instance.Address,
-            Port = _rabbitMQResource.Instance.HostPort
+            HostName = _rabbitMQResource.Hostname,
+            Port = _rabbitMQResource.Port
         });
     }
 }

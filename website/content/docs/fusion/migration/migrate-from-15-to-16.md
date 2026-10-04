@@ -42,7 +42,7 @@ For each subgraph in your repository, the existing `subgraph-config.json` file n
 
 You can run the following command in the root of your repository and it will find all `subgraph-config.json` files and automatically convert them into `schema-settings.json` files:
 
-```bash
+```shell
 dnx ChilliCream.Nitro.CommandLine fusion migrate subgraph-config
 ```
 
@@ -94,7 +94,7 @@ If your subgraph is using a version older than the latest HotChocolate v15 or yo
 
 Fusion v1 let you set environment-specific values from the pipeline with `fusion subgraph config set`:
 
-```bash
+```shell
 dotnet fusion subgraph config set http \
     --url https://dev.example.com/graphql \
     -c subgraph.fsp
@@ -130,9 +130,9 @@ Composition resolves the placeholders against a chosen environment. Pass `--envi
 
 ### Batch resolvers
 
-The concept of batch resolvers like `productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
+The concept of batch resolvers like `#!sdl productByIds(ids: [ID!]!)` no longer exists in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `#!sdl Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `#!sdl Query.productsById(ids: [ID!]!): [Product!]` field. Check out [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
 
-Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using [`DataLoader`](../../hotchocolate/fetching-data/batching/dataloader.md). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
+Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `#!sdl Query.node(id: ID!): Node` field) are using [`DataLoader`](../../hotchocolate/fetching-data/batching/dataloader.md). This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
 
 If an entity currently only has batch `Query` root fields in your subgraph, you'll also have to add a singular field:
 
@@ -188,7 +188,7 @@ In practice this means three changes to your existing deployment pipeline:
 
 Below is the existing v15 pipeline for reference:
 
-```bash
+```shell
 # BUILD JOB
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
 dotnet fusion subgraph pack -w ./src/SubgraphA
@@ -254,7 +254,7 @@ Add a step to the build job that uploads the exported source schema to Nitro. Th
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet nitro fusion upload \
   --tag "<tag>" \
   --api-id "<api-id>" \
@@ -320,7 +320,7 @@ Replace it with `dotnet nitro fusion publish`, passing the freshly composed `gat
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet nitro fusion publish \
   --tag "<tag>" \
   --stage "<stage>" \
@@ -343,7 +343,7 @@ dotnet nitro fusion publish \
 
 In addition to the deployment pipeline, most subgraph repositories have a PR validation pipeline that downloads the latest archive, runs composition with the proposed change, and verifies that the composed schema introduces no breaking changes. Below are the relevant v15 steps for reference:
 
-```bash
+```shell
 dotnet run --project ./src/SubgraphA -- schema export --output schema.graphql
 dotnet fusion subgraph pack -w ./src/SubgraphA
 dotnet nitro fusion-configuration download \
@@ -405,7 +405,7 @@ As with the deployment pipeline, the v15 download and compose steps stay in plac
 </PipelineChoiceTabs.AzureDevOps>
 <PipelineChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet nitro fusion validate \
   --stage "<stage>" \
   --api-id "<api-id>" \
@@ -454,7 +454,7 @@ Remove `"version": "1.0.0"` from `schema-settings.json`:
 
 Without `"version": "1.0.0"` the composition treats the subgraph as a Fusion v2 subgraph: the full validations are enforced and the Fusion v1 inferences (such as fields ending in `ById` being treated as `@lookup`) are no longer applied. As a result, a few things that used to be inferred now have to be explicit.
 
-Annotate `By<Field>` lookup fields like `productById(id: ID!): Product` with `[Lookup]` (`@lookup`):
+Annotate `By<Field>` lookup fields like `#!sdl productById(id: ID!): Product` with `[Lookup]` (`@lookup`):
 
 ```diff
 [QueryType]
@@ -650,16 +650,16 @@ Per-endpoint overrides are still supported but now use a delegate pattern instea
 app.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
 
-### Batching is now disabled by default
+### Request batching is now disabled by default
 
-In v15, request batching was enabled by default (`EnableBatching = true`). In v16, batching is **disabled by default** as a security measure. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
+In v15, request batching was enabled by default (`EnableBatching = true`). In v16, **variable batching is enabled by default** and **request batching is disabled by default**. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
 
 ```diff
 -options.EnableBatching = true;
 +options.Batching = AllowedBatching.All;
 ```
 
-If you were relying on the previous default, you need to explicitly enable batching:
+If you were relying on request batching, you need to explicitly enable it:
 
 ```csharp
 gatewayBuilder.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
@@ -962,6 +962,32 @@ The v15 gateway forwarded every subgraph error. The v16 gateway only forwards er
 
 Update affected subgraphs as described in [GraphQL errors](#graphql-errors).
 
+### Generated subgraph operation names changed
+
+The gateway names every operation it sends to a source schema, and that name is what a subgraph records in its own logs and traces. In v15 the name was the client operation name followed by a counter that incremented once per subgraph request:
+
+```text
+GetProductReviews_1
+```
+
+In v16 the name carries a short hash of the client operation document, and the trailing number is the planner's step ID rather than a counter:
+
+```text
+GetProductReviews_94a407d5_1
+```
+
+The short hash is the first eight characters of the client operation document hash, which is MD5 in hex by default and therefore changes if you configure a different [document hash provider](#document-hash-provider-configuration). Characters that a GraphQL name cannot hold are rendered as underscores, so a hash in URL-safe Base64 has each `-` replaced in the name while the hash itself is unchanged. One request has one short hash, shared by every step of its main operation. When the client sends the document as source text, the hash is computed over those bytes as received rather than over a normalized form, so whitespace and comments change it. A request that carries a document ID or its own hash, such as a persisted operation, reuses the stored or supplied value instead.
+
+The step ID is assigned by the operation planner and is also the ID of the step in the operation plan, so a subgraph log line points back at the exact plan step that issued it. Because the planner assigns IDs over the plan it selects, a composition change can renumber the steps even when the client document is unchanged.
+
+Three further shapes replace their v15 equivalents:
+
+- An anonymous client operation produces `Op_<shortHash>_<stepId>` instead of v15's `fetch_<rootFieldNames>_<counter>`.
+- An incremental plan produced by `@defer` uses the literal `defer` in place of the short hash, for example `Op_defer_1`.
+- With subgraph alias batching enabled, the merged operation is named `<name>_<shortHash>_Batch_<compositionHash>`, or `Op_<shortHash>_Batch_<compositionHash>` for an anonymous client operation, where the trailing 16 hex digits identify the composition of the batch.
+
+Update any subgraph log parsing, dashboard grouping, or alert that matched the v15 name shape.
+
 ## Noteworthy changes
 
 ### Concurrent execution gate
@@ -995,6 +1021,37 @@ gatewayBuilder
 -await app.RunWithGraphQLCommandsAsync(args);
 +return await app.RunWithGraphQLCommandsAsync(args);
 ```
+
+### OpenTelemetry instrumentation for the gateway
+
+v16 adds a `HotChocolate.Fusion.Diagnostics` package that instruments the gateway itself. It is not pulled in by `HotChocolate.Fusion.AspNetCore`, so add the reference explicitly:
+
+```xml
+<PackageReference Include="HotChocolate.Fusion.Diagnostics" Version="16.x.x" />
+```
+
+Then enable it on the gateway builder and register its activity source with OpenTelemetry:
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .AddInstrumentation();
+
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing.AddHotChocolateFusionInstrumentation());
+```
+
+Spans and attributes follow the same conventions as the Hot Chocolate server. If you instrumented the v15 gateway through the underlying request executor, review [OpenTelemetry span and status changes](../../hotchocolate/migrating/migrate-from-15-to-16.md#opentelemetry-span-and-status-changes) for the renamed spans and attributes before updating dashboards.
+
+Two spans carry the gateway attributes:
+
+| Span                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GraphQL Operation Planning` | Covers planning the operation. Carries `graphql.processing.type=plan`.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `GraphQL Step Execution`     | One span per execution node. Carries `graphql.processing.type=step_execute`, `graphql.operation.step.id`, `graphql.operation.step.kind`, and `graphql.operation.step.plan.id`. A step that sends an operation or an operation batch to a source schema also carries `graphql.source_schema.name` plus either the `graphql.source_schema.operation.*` or the `graphql.source_schema.batch.*` attributes; event stream, introspection, and node steps carry none of them. |
+
+On a step that sends a single operation, `graphql.source_schema.operation.name` carries the generated operation name described in [Generated subgraph operation names changed](#generated-subgraph-operation-names-changed), which makes it the join key between a gateway trace and the matching subgraph log line. A native operation batch step does not carry it: those spans get `graphql.source_schema.batch.operation_count` instead, so join them on `graphql.source_schema.name` and the span timing. Alias batching needs the same treatment for a different reason: it merges the operations as it writes the request, after the span has recorded the plan's name, so the subgraph logs a `_Batch_<compositionHash>` name that the span does not have.
 
 # Aspire
 

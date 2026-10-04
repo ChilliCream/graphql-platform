@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -19,6 +19,7 @@ public sealed class ArrayLengthFilterTests(PostgreSqlResource resource)
         await using var services = new ServiceCollection()
             .AddDbContext<CardReaderContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<CardReaderFilterInputType>()
             .AddFiltering()

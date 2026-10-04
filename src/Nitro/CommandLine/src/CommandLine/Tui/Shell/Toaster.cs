@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// </summary>
 internal sealed class Toaster
 {
-    internal static readonly TimeSpan Duration = TimeSpan.FromSeconds(3);
+    internal static readonly TimeSpan s_duration = TimeSpan.FromSeconds(3);
 
     private readonly Queue<(string Text, ToastStyle Style)> _pending = new();
     private (string Text, ToastStyle Style)? _current;
@@ -31,12 +31,12 @@ internal sealed class Toaster
     }
 
     /// <summary>
-    /// Advances past the current toast once <see cref="Duration"/> has elapsed since it
+    /// Advances past the current toast once <see cref="s_duration"/> has elapsed since it
     /// started showing. Returns whether the visible toast changed.
     /// </summary>
     public bool Tick(DateTimeOffset now)
     {
-        if (_current is null || now - _currentShownAt < Duration)
+        if (_current is null || now - _currentShownAt < s_duration)
         {
             return false;
         }

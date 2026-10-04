@@ -1,9 +1,34 @@
-<!-- Share cards reference the "Inter" and "Josefin Sans" families by name (they
-     are loaded from font files when rendered by Satori), so make them available
-     to the browser-rendered Storybook previews. -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Josefin+Sans:wght@600;700&display=swap"
-  rel="stylesheet"
-/>
+<!-- Inter and Josefin Sans, reached two different ways.
+
+     `app/globals.css` resolves `--font-heading` through `--font-josefin-sans`,
+     which `next/font` defines from `app/layout.tsx`. Storybook renders the
+     stylesheet without that layout, so the preview declares the variable and
+     loads the same variable font the site serves, covering weights 100-700.
+
+     The share cards (`src/og/`) name both families literally: Satori matches
+     `fontFamily` against the fonts it is handed and resolves no custom
+     properties. Their stories render in the browser, so Inter is declared here
+     from the static files Satori itself uses, which `staticDirs` serves at
+     `/og-fonts` (Satori reads TTF, OTF and WOFF, but not WOFF2). Inter is
+     reached only by name, and so needs no variable. -->
+<style>
+  @font-face {
+    font-family: "Josefin Sans";
+    font-style: normal;
+    font-weight: 100 700;
+    font-display: swap;
+    src: url("/fonts/josefin-sans-latin-wght-normal.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/og-fonts/Inter-Bold.ttf") format("truetype");
+  }
+
+  :root {
+    --font-josefin-sans: "Josefin Sans";
+  }
+</style>

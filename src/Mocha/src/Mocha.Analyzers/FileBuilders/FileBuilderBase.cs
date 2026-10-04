@@ -121,10 +121,10 @@ public abstract class FileBuilderBase : IFileBuilder
 
     protected static string RemoveGlobalPrefix(string typeName)
     {
-        const string Prefix = "global::";
+        const string prefix = "global::";
 
-        return typeName.StartsWith(Prefix, StringComparison.Ordinal)
-            ? typeName.Substring(Prefix.Length)
+        return typeName.StartsWith(prefix, StringComparison.Ordinal)
+            ? typeName.Substring(prefix.Length)
             : typeName;
     }
 }

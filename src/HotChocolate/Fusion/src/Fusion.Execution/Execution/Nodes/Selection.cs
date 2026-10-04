@@ -16,8 +16,11 @@ public sealed class Selection : ISelection
 
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
+    private readonly int _wideIncludeFlagsStride;
     private readonly byte[] _utf8ResponseName;
     private readonly ulong _deferMask;
+    private readonly ulong[]? _wideDeferMask;
     private readonly DeliveryGroup[] _deliveryGroups;
     private readonly ITypeDefinition _namedType;
     private readonly IType _type;
@@ -37,6 +40,33 @@ public sealed class Selection : ISelection
         bool isInternal,
         ulong deferMask = 0,
         DeliveryGroup[]? deliveryGroups = null)
+        : this(
+            id,
+            responseName,
+            field,
+            syntaxNodes,
+            includeFlags,
+            isInternal,
+            wideIncludeFlags: null,
+            wideIncludeFlagsStride: 0,
+            deferMask,
+            wideDeferMask: null,
+            deliveryGroups)
+    {
+    }
+
+    internal Selection(
+        int id,
+        string responseName,
+        IOutputFieldDefinition field,
+        FieldSelectionNode[] syntaxNodes,
+        ulong[] includeFlags,
+        bool isInternal,
+        ulong[]? wideIncludeFlags = null,
+        int wideIncludeFlagsStride = 0,
+        ulong deferMask = 0,
+        ulong[]? wideDeferMask = null,
+        DeliveryGroup[]? deliveryGroups = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -52,7 +82,10 @@ public sealed class Selection : ISelection
         Field = field;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _wideIncludeFlags = wideIncludeFlags;
+        _wideIncludeFlagsStride = wideIncludeFlagsStride;
         _deferMask = deferMask;
+        _wideDeferMask = wideDeferMask;
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
@@ -254,7 +287,47 @@ public sealed class Selection : ISelection
     }
 
     /// <inheritdoc />
+    [Obsolete("Use IsIncluded(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsIncluded(ulong includeFlags)
+    {
+        if (_includeFlags.Length == 0)
+        {
+            return true;
+        }
+
+        if ((_flags & Flags.RequiresWideIncludeFlags) != 0)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this check requires "
+                + "the wide include flags. Use IsIncluded(ConditionFlags).");
+        }
+
+        return IsIncludedUnchecked(includeFlags);
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsIncluded(ConditionFlags includeFlags)
+    {
+        var word0 = includeFlags.Word0;
+
+        if ((_flags & Flags.RequiresWideIncludeFlags) == 0)
+        {
+            return IsIncludedUnchecked(word0);
+        }
+
+        return IsIncludedWide(word0, includeFlags.Overflow);
+    }
+
+    internal bool IsIncluded(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
+        => IsIncludedWide(includeFlags, wideIncludeFlags);
+
+    /// <summary>
+    /// Evaluates the include conditions against word 0 of the request flags only.
+    /// This is the narrow fast path; callers must ensure the operation has at most
+    /// 64 include conditions.
+    /// </summary>
+    internal bool IsIncludedUnchecked(ulong includeFlags)
     {
         if (_includeFlags.Length == 0)
         {
@@ -299,6 +372,59 @@ public sealed class Selection : ISelection
         return false;
     }
 
+    /// <summary>
+    /// Evaluates the include conditions against all words of the request flags.
+    /// A path is satisfied when every word of its mask is fully covered by the
+    /// corresponding request word; the selection is included when any path is satisfied.
+    /// </summary>
+    internal bool IsIncludedWide(ulong includeFlags, ReadOnlySpan<ulong> wideIncludeFlags)
+    {
+        if (_includeFlags.Length == 0)
+        {
+            return true;
+        }
+
+        var wide = _wideIncludeFlags;
+        var stride = _wideIncludeFlagsStride;
+
+        for (var i = 0; i < _includeFlags.Length; i++)
+        {
+            var flags = _includeFlags[i];
+
+            if ((flags & includeFlags) != flags)
+            {
+                continue;
+            }
+
+            if (wide is null)
+            {
+                return true;
+            }
+
+            var satisfied = true;
+            var offset = i * stride;
+
+            for (var w = 0; w < stride; w++)
+            {
+                var pathWord = wide[offset + w];
+                var requestWord = w < wideIncludeFlags.Length ? wideIncludeFlags[w] : 0ul;
+
+                if ((pathWord & requestWord) != pathWord)
+                {
+                    satisfied = false;
+                    break;
+                }
+            }
+
+            if (satisfied)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public override string ToString()
     {
         if (SyntaxNodes[0].Node.Alias is not null)
@@ -316,16 +442,87 @@ public sealed class Selection : ISelection
             throw new InvalidOperationException("Selection is already sealed.");
         }
 
+        // Conditional (resp. deferrable) selections of a wide operation must be
+        // evaluated with the wide flag overloads; the narrow checks throw for them.
+        var operation = selectionSet.DeclaringOperation;
+
+        if (operation.HasWideIncludeFlags && _includeFlags.Length > 0)
+        {
+            _flags |= Flags.RequiresWideIncludeFlags;
+        }
+
+        if (operation.HasWideDeferFlags && _deliveryGroups.Length > 0)
+        {
+            _flags |= Flags.RequiresWideDeferFlags;
+        }
+
         _flags |= Flags.Sealed;
         DeclaringSelectionSet = selectionSet;
     }
 
-    public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
+    /// <inheritdoc />
+    [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
+    public bool IsDeferred(ulong deferFlags)
+    {
+        if ((_flags & Flags.RequiresWideDeferFlags) != 0)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 defer conditions; this check requires "
+                + "the wide defer flags. Use IsDeferred(ConditionFlags).");
+        }
+
+        return IsDeferredUnchecked(deferFlags);
+    }
+
+    /// <inheritdoc />
+    public bool IsDeferred(ConditionFlags deferFlags)
+        => IsDeferredWide(deferFlags.Word0, deferFlags.Overflow);
+
+    internal bool IsDeferred(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+        => IsDeferredWide(deferFlags, wideDeferFlags);
+
+    /// <summary>
+    /// Evaluates the defer mask against word 0 of the request flags only.
+    /// This is the narrow fast path; callers must ensure the operation has at most
+    /// 64 defer conditions.
+    /// </summary>
+    internal bool IsDeferredUnchecked(ulong deferFlags) => (_deferMask & deferFlags) != 0;
+
+    /// <summary>
+    /// Evaluates the defer mask against all words of the request flags.
+    /// The selection is deferred when any bit matches in any word.
+    /// </summary>
+    internal bool IsDeferredWide(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
+    {
+        if ((_deferMask & deferFlags) != 0)
+        {
+            return true;
+        }
+
+        var wide = _wideDeferMask;
+
+        if (wide is null)
+        {
+            return false;
+        }
+
+        var length = Math.Min(wide.Length, wideDeferFlags.Length);
+
+        for (var i = 0; i < length; i++)
+        {
+            if ((wide[i] & wideDeferFlags[i]) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Gets a value indicating whether this selection can be deferred for some request.
     /// </summary>
-    internal bool CanBeDeferred => _deferMask != 0;
+    internal bool CanBeDeferred => _deferMask != 0 || _wideDeferMask is not null;
 
     /// <summary>
     /// Returns the active delivery groups for this selection after resolving
@@ -333,7 +530,38 @@ public sealed class Selection : ISelection
     /// whose parent is also active. Returns <c>null</c> when the selection
     /// belongs to the initial result.
     /// </summary>
+    [Obsolete("Use GetActiveDeliveryGroups(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags)
+    {
+        if ((_flags & Flags.RequiresWideDeferFlags) != 0)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 defer conditions; this check requires "
+                + "the wide defer flags. Use GetActiveDeliveryGroups(ConditionFlags).");
+        }
+
+        return GetActiveDeliveryGroups(deferFlags, default);
+    }
+
+    /// <summary>
+    /// Returns the active delivery groups for this selection.
+    /// </summary>
+    public DeliveryGroup[]? GetActiveDeliveryGroups(ConditionFlags deferFlags)
+        => GetActiveDeliveryGroups(deferFlags.Word0, deferFlags.Overflow);
+
+    /// <summary>
+    /// Returns the active delivery groups for this selection, evaluating all words
+    /// of the request defer flags.
+    /// </summary>
+    /// <param name="deferFlags">The defer condition flags for condition indexes 0-63.</param>
+    /// <param name="wideDeferFlags">
+    /// The overflow words for condition indexes 64 and above; empty for narrow operations.
+    /// </param>
+    /// <returns>
+    /// The active delivery groups (pruned), or <c>null</c> when the selection
+    /// belongs to the initial result.
+    /// </returns>
+    internal DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags)
     {
         if (_deliveryGroups.Length == 0)
         {
@@ -342,7 +570,7 @@ public sealed class Selection : ISelection
 
         if (_deliveryGroups.Length == 1)
         {
-            var active = ResolveActiveAncestor(_deliveryGroups[0], deferFlags);
+            var active = ResolveActiveAncestor(_deliveryGroups[0], deferFlags, wideDeferFlags);
             return active is null ? null : [active];
         }
 
@@ -351,7 +579,7 @@ public sealed class Selection : ISelection
 
         for (var i = 0; i < _deliveryGroups.Length; i++)
         {
-            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags, wideDeferFlags);
 
             if (effective is null)
             {
@@ -427,7 +655,40 @@ nextItem:
     /// <paramref name="deferFlags"/>. Returns <c>false</c> if any occurrence
     /// belongs to the initial result.
     /// </summary>
+    [Obsolete("Use HasActiveDeliveryGroup(ConditionFlags, DeliveryGroup) instead. This overload throws for operations with more than 64 conditions.")]
     public bool HasActiveDeliveryGroup(ulong deferFlags, DeliveryGroup target)
+    {
+        if ((_flags & Flags.RequiresWideDeferFlags) != 0)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 defer conditions; this check requires "
+                + "the wide defer flags. Use HasActiveDeliveryGroup(ConditionFlags, DeliveryGroup).");
+        }
+
+        return HasActiveDeliveryGroup(deferFlags, default, target);
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="target"/> is an active delivery group of this selection.
+    /// </summary>
+    public bool HasActiveDeliveryGroup(ConditionFlags deferFlags, DeliveryGroup target)
+        => HasActiveDeliveryGroup(deferFlags.Word0, deferFlags.Overflow, target);
+
+    /// <summary>
+    /// Determines whether <paramref name="target"/> is the nearest active delivery
+    /// group for any occurrence of this selection, evaluating all words of the
+    /// request defer flags. Returns <c>false</c> if any occurrence belongs to the
+    /// initial result.
+    /// </summary>
+    /// <param name="deferFlags">The defer condition flags for condition indexes 0-63.</param>
+    /// <param name="wideDeferFlags">
+    /// The overflow words for condition indexes 64 and above; empty for narrow operations.
+    /// </param>
+    /// <param name="target">The delivery group to look for.</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="target"/> is an active delivery group of this selection.
+    /// </returns>
+    internal bool HasActiveDeliveryGroup(ulong deferFlags, ReadOnlySpan<ulong> wideDeferFlags, DeliveryGroup target)
     {
         if (_deliveryGroups.Length == 0)
         {
@@ -438,7 +699,7 @@ nextItem:
 
         for (var i = 0; i < _deliveryGroups.Length; i++)
         {
-            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags, wideDeferFlags);
 
             if (effective is null)
             {
@@ -458,13 +719,16 @@ nextItem:
     // Returns the nearest active delivery group in the @defer parent chain.
     // If none are active, the field occurrence belongs to the initial result.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static DeliveryGroup? ResolveActiveAncestor(DeliveryGroup start, ulong deferFlags)
+    private static DeliveryGroup? ResolveActiveAncestor(
+        DeliveryGroup start,
+        ulong deferFlags,
+        ReadOnlySpan<ulong> wideDeferFlags)
     {
         var deliveryGroup = start;
 
         while (deliveryGroup is not null)
         {
-            if ((deferFlags & (1UL << deliveryGroup.DeferConditionIndex)) != 0)
+            if (IsConditionBitSet(deferFlags, wideDeferFlags, deliveryGroup.DeferConditionIndex))
             {
                 return deliveryGroup;
             }
@@ -473,6 +737,24 @@ nextItem:
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Tests the request flag bit for a condition index. Word 0 is the
+    /// <paramref name="flags"/> parameter; higher words come from the overflow span.
+    /// </summary>
+    private static bool IsConditionBitSet(ulong flags, ReadOnlySpan<ulong> wideFlags, int index)
+    {
+        var word = index >> 6;
+        var bit = 1ul << (index & 63);
+
+        if (word == 0)
+        {
+            return (flags & bit) != 0;
+        }
+
+        word--;
+        return (uint)word < (uint)wideFlags.Length && (wideFlags[word] & bit) != 0;
     }
 
     [Flags]
@@ -485,6 +767,8 @@ nextItem:
         Sealed = 8,
         NonNull = 16,
         ValueTypeNamedType = 32,
-        NonNullListElement = 64
+        NonNullListElement = 64,
+        RequiresWideIncludeFlags = 128,
+        RequiresWideDeferFlags = 256
     }
 }

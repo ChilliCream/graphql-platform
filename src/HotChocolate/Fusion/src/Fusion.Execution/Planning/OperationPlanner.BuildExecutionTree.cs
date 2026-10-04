@@ -175,12 +175,10 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Finds the execution node in <paramref name="owningNodes"/> whose fetch
-    /// lands on (or inside) the selection set where this defer is anchored.
-    /// The match is the node whose fetch target is the deepest path that is an
-    /// ancestor of (or equal to) <paramref name="deferPath"/>, meaning its
-    /// output contributes to the enclosing object where the deferred
-    /// fragment's fields get merged.
+    /// Finds the execution node in <paramref name="owningNodes"/> that produces the
+    /// result object the defer is anchored in. The match is the node with the deepest
+    /// fetch target that is an ancestor of (or equal to) <paramref name="deferPath"/>
+    /// and that resolves the field the defer path descends into below that target.
     /// </summary>
     private static int? ResolveDeferParentNodeId(
         ImmutableArray<ExecutionNode> owningNodes,
@@ -188,19 +186,24 @@ public sealed partial class OperationPlanner
     {
         int? match = null;
         var bestDepth = -1;
+        int? fallbackMatch = null;
+        var fallbackDepth = -1;
 
         for (var i = 0; i < owningNodes.Length; i++)
         {
             SelectionPath target;
+            ResultSelectionSet resultSelectionSet;
 
             switch (owningNodes[i])
             {
                 case OperationExecutionNode op:
                     target = op.Target;
+                    resultSelectionSet = op.ResultSelectionSet;
                     break;
 
                 case ApolloOperationExecutionNode apolloOp:
                     target = apolloOp.Target;
+                    resultSelectionSet = apolloOp.ResultSelectionSet;
                     break;
 
                 default:
@@ -209,6 +212,22 @@ public sealed partial class OperationPlanner
 
             if (!target.IsParentOfOrSame(deferPath))
             {
+                continue;
+            }
+
+            // Several nodes can share the same target (all root fetch nodes target `$`),
+            // but only the node that actually resolves the field the defer path descends
+            // into produces the enclosing result object the deferred fields merge into.
+            // A node that only shares an ancestor path is kept as a fallback in case no
+            // node resolves the anchor field itself (e.g. it is fetched by a batch node).
+            if (!ResolvesDeferAnchorField(resultSelectionSet, deferPath, target.Length))
+            {
+                if (target.Length > fallbackDepth)
+                {
+                    fallbackMatch = owningNodes[i].Id;
+                    fallbackDepth = target.Length;
+                }
+
                 continue;
             }
 
@@ -222,7 +241,43 @@ public sealed partial class OperationPlanner
             }
         }
 
-        return match;
+        return match ?? fallbackMatch;
+    }
+
+    /// <summary>
+    /// Checks whether the node owning <paramref name="resultSelectionSet"/> resolves
+    /// the field through which <paramref name="deferPath"/> descends below the node's
+    /// fetch target. When the defer path does not descend through a field (it is
+    /// anchored directly in the node's own result object), the node qualifies.
+    /// </summary>
+    private static bool ResolvesDeferAnchorField(
+        ResultSelectionSet resultSelectionSet,
+        SelectionPath deferPath,
+        int targetLength)
+    {
+        for (var i = targetLength; i < deferPath.Length; i++)
+        {
+            var segment = deferPath[i];
+
+            // Inline fragment segments stay on the same result object, so the first
+            // field segment below the target decides which node owns the anchor.
+            if (segment.Kind is not SelectionPathSegmentKind.Field)
+            {
+                continue;
+            }
+
+            foreach (var responseName in resultSelectionSet.ResponseNames)
+            {
+                if (string.Equals(responseName, segment.Name, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
@@ -1029,7 +1084,7 @@ public sealed partial class OperationPlanner
             // Apollo lookup nodes always carry a concrete schema name because
             // the routing in CreateOperationExecutionNode rejects dynamic ones.
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (node.SchemaName!, depth);
+            var key = (node.SchemaName, depth);
 
             if (!batchGroups.TryGetValue(key, out var group))
             {
@@ -2243,7 +2298,7 @@ public sealed partial class OperationPlanner
 
     private static bool DoVariablesContainUploadScalar(
         IReadOnlyList<VariableDefinitionNode> variables,
-        ISchemaDefinition schema)
+        FusionSchemaDefinition schema)
     {
         var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
         var visited = new HashSet<IInputObjectTypeDefinition>(ReferenceEqualityComparer.Instance);
@@ -2251,7 +2306,11 @@ public sealed partial class OperationPlanner
         foreach (var variable in variables)
         {
             var variableTypeName = variable.Type.NamedType().Name.Value;
-            var variableType = schema.Types[variableTypeName];
+
+            if (!schema.Types.TryGetType(variableTypeName, allowInaccessibleFields: true, out var variableType))
+            {
+                continue;
+            }
 
             if (variableType is IScalarTypeDefinition { Name: UploadScalarName })
             {

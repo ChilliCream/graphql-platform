@@ -7,7 +7,6 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -30,7 +29,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
         ?? throw new InvalidOperationException(
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
-    private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
@@ -55,8 +53,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var document = SourceResultDocument.Parse(
@@ -105,8 +103,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var results = new[]
@@ -392,8 +390,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -414,7 +412,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             elementSelectionSet,
-            global::HotChocolate.Path.Root.Append("aliasedFoos").Append(0));
+            HotChocolate.Path.Root.Append("aliasedFoos").Append(0));
 
         // assert
         Assert.True(added);
@@ -471,8 +469,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -493,7 +491,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             fieldSelectionSet,
-            global::HotChocolate.Path.Root.Append("foo"));
+            HotChocolate.Path.Root.Append("foo"));
 
         // assert
         Assert.True(added);
@@ -771,8 +769,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(
@@ -911,8 +909,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -932,7 +930,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             fieldSelectionSet,
-            global::HotChocolate.Path.Root.Append("aliasedFoo"));
+            HotChocolate.Path.Root.Append("aliasedFoo"));
 
         // assert
         Assert.True(added);
@@ -965,8 +963,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         store.AddError(ErrorBuilder.New().SetMessage("event 1").Build());
@@ -2058,8 +2056,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -2089,8 +2087,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
         resultSelectionSet = node.ResultSelectionSet;
         return store;

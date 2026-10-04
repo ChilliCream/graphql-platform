@@ -103,7 +103,7 @@ public class FusionEnumValueCollectionTests
             Value("BLUE"));
 
         // act
-        var result = collection.ContainsName(ReadOnlySpan<byte>.Empty);
+        var result = collection.ContainsName([]);
 
         // assert
         Assert.False(result);

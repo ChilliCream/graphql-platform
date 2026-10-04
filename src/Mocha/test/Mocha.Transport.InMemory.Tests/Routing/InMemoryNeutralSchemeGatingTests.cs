@@ -4,9 +4,11 @@ using Mocha.Transport.InMemory.Tests.Helpers;
 namespace Mocha.Transport.InMemory.Tests.Routing;
 
 /// <summary>
-/// Verifies that <see cref="InMemoryMessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, Uri)"/>
-/// can describe supported neutral-scheme URIs (<c>queue:</c> and <c>topic:</c>). The central
-/// endpoint router applies the cross-transport selection rules.
+/// Verifies that
+/// <see cref="MessagingTransport.CreateEndpointConfiguration(IMessagingConfigurationContext, Uri)"/>
+/// on an <see cref="InMemoryMessagingTransport"/> can describe supported neutral-scheme URIs
+/// (<c>queue:</c> and <c>topic:</c>). The central endpoint router applies the cross-transport
+/// selection rules.
 /// </summary>
 public class InMemoryNeutralSchemeGatingTests
 {

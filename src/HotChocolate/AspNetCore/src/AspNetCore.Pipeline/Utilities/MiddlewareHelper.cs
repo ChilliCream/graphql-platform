@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Text.Json;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 
@@ -36,6 +37,10 @@ internal static class MiddlewareHelper
             var error = ErrorHelper.NoSupportedAcceptMediaType();
             executorSession.DiagnosticEvents.HttpRequestError(context, error);
 
+            // The client's own media types travel with the error so the formatter can tell
+            // whether the response body would be readable. It writes the error in the server's
+            // default format while that format is still acceptable, and sends the status alone
+            // when the client has ruled out everything the server can produce.
             return new ValidateAcceptContentTypeResult(
                 error,
                 HttpStatusCode.NotAcceptable,
@@ -61,12 +66,15 @@ internal static class MiddlewareHelper
             }
             catch (GraphQLRequestException ex)
             {
-                // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case, we will return HTTP status code 400 and return a
-                // GraphQL error result.
+                // A GraphQL request exception is thrown if the request parameters couldn't be
+                // parsed. In this case, we propose HTTP status code 400 and return a GraphQL
+                // error result, except for a document syntax error, which leaves the status
+                // unset so the formatter applies the per-content-type rule.
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
-                return new ParseRequestResult(errors, HttpStatusCode.BadRequest);
+                return new ParseRequestResult(
+                    CreateRequestErrorResult(ex, errors),
+                    IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
             {
@@ -102,7 +110,9 @@ internal static class MiddlewareHelper
                 // GraphQL error result.
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
-                return new ParseRequestResult(errors, HttpStatusCode.BadRequest);
+                return new ParseRequestResult(
+                    CreateRequestErrorResult(ex, errors),
+                    HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
             {
@@ -138,18 +148,23 @@ internal static class MiddlewareHelper
                 // parsed. In this case, we will return HTTP status code 400 and return a
                 // GraphQL error result.
                 IError error = new Error { Message = ex.Message };
-                error = executorSession.Handle(error);
-                executorSession.DiagnosticEvents.ParserErrors(context, [error]);
-                return new ParseRequestResult([error], HttpStatusCode.BadRequest);
+                var handledError = executorSession.Handle(error);
+                executorSession.DiagnosticEvents.ParserErrors(context, [handledError]);
+                return new ParseRequestResult(
+                    CreateRequestErrorResult(ex, handledError),
+                    HttpStatusCode.BadRequest);
             }
             catch (GraphQLRequestException ex)
             {
                 // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case, we will return HTTP status code 400 and return a
-                // GraphQL error result.
+                // parsed. In this case, we propose HTTP status code 400 and return a GraphQL
+                // error result, except for a document syntax error, which leaves the status
+                // unset so the formatter applies the per-content-type rule.
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
-                return new ParseRequestResult(errors, HttpStatusCode.BadRequest);
+                return new ParseRequestResult(
+                    CreateRequestErrorResult(ex, errors),
+                    IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
             {
@@ -161,6 +176,227 @@ internal static class MiddlewareHelper
 
         return new ParseRequestResult(request);
     }
+
+    /// <summary>
+    /// Parses a request body that must carry exactly one GraphQL request. A body without a
+    /// request is answered as not well-formed, and a body with more than one request as a
+    /// refused batch.
+    /// </summary>
+    public static async Task<ParseRequestResult> ParseSingleRequestFromBodyAsync(
+        HttpContext context,
+        ExecutorSession executorSession)
+    {
+        GraphQLRequest[] requests;
+        using (executorSession.DiagnosticEvents.ParseHttpRequest(context))
+        {
+            try
+            {
+                requests = await executorSession.ParseRequestAsync(
+                    context.Request.BodyReader,
+                    context.RequestAborted);
+            }
+            catch (GraphQLRequestException ex)
+            {
+                // A GraphQL request exception is thrown if the HTTP request body couldn't be
+                // parsed. In this case, we propose HTTP status code 400 and return a GraphQL
+                // error result, except for a document syntax error, which leaves the status
+                // unset so the formatter applies the per-content-type rule.
+                var errors = executorSession.Handle(ex.Errors);
+                executorSession.DiagnosticEvents.ParserErrors(context, errors);
+                return new ParseRequestResult(
+                    CreateRequestErrorResult(ex, errors),
+                    IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest);
+            }
+            catch (Exception ex)
+            {
+                var error = ErrorBuilder.FromException(ex).Build();
+                executorSession.DiagnosticEvents.HttpRequestError(context, error);
+                return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        foreach (var request in requests)
+        {
+            context.Response.RegisterForDispose(request);
+        }
+
+        if (requests.Length == 0)
+        {
+            return CreateEmptyRequestArrayResult(context, executorSession);
+        }
+
+        if (requests.Length > 1)
+        {
+            return CreateBatchingRefusedResult(
+                ErrorHelper.RequestBatchingNotSupportedForQuery(),
+                context,
+                executorSession);
+        }
+
+        return new ParseRequestResult(requests[0]);
+    }
+
+    /// <summary>
+    /// Creates the 400 result for a batch the request method does not accept. The response
+    /// carries the generic invalid-request error and the reason is reported to diagnostics.
+    /// </summary>
+    public static ParseRequestResult CreateBatchingRefusedResult(
+        IError reason,
+        HttpContext context,
+        ExecutorSession executorSession)
+    {
+        executorSession.DiagnosticEvents.HttpRequestError(context, executorSession.Handle(reason));
+        var error = executorSession.Handle(ErrorHelper.InvalidRequest());
+
+        return new ParseRequestResult(OperationResult.FromError(error), HttpStatusCode.BadRequest);
+    }
+
+    /// <summary>
+    /// Creates the result for a request array without elements. The response carries the generic
+    /// invalid-request error marked as not well-formed, and the reason is reported to diagnostics.
+    /// </summary>
+    public static ParseRequestResult CreateEmptyRequestArrayResult(
+        HttpContext context,
+        ExecutorSession executorSession)
+    {
+        executorSession.DiagnosticEvents.HttpRequestError(
+            context,
+            executorSession.Handle(ErrorHelper.RequestBodyHasNoRequestForQuery()));
+        var error = executorSession.Handle(ErrorHelper.InvalidRequest());
+        var result = OperationResult.FromError(error);
+        result.ContextData = result.ContextData.Add(
+            HttpResultContextData.RequestNotWellFormed,
+            null);
+
+        return new ParseRequestResult(result, HttpStatusCode.BadRequest);
+    }
+
+    /// <summary>
+    /// Creates the result for a request the parser rejected. The result of a document the
+    /// parser could not read carries a <c>400</c>, the result of a request the parser read
+    /// but could not accept as a GraphQL over HTTP request is marked as not well-formed, and
+    /// the result of a request refused for its size is marked as too large. The
+    /// exception the parser threw decides the kind, since an error filter may have rewritten
+    /// the errors that are written to the response.
+    /// </summary>
+    public static OperationResult CreateRequestErrorResult(
+        GraphQLRequestException exception,
+        IReadOnlyList<IError> handledErrors)
+    {
+        var result = OperationResult.FromError([.. handledErrors]);
+
+        if (IsDocumentSyntaxError(exception.Errors))
+        {
+            result.ContextData = result.ContextData.Add(
+                ExecutionContextData.HttpStatusCode,
+                HttpStatusCode.BadRequest);
+        }
+        else if (IsRequestNotWellFormed(exception))
+        {
+            result.ContextData = result.ContextData.Add(
+                HttpResultContextData.RequestNotWellFormed,
+                null);
+        }
+        else if (exception.Errors is [{ Code: { } code }]
+            && code is ErrorCodes.Server.MaxRequestSize
+                or ErrorCodes.Server.MultiPartSectionTooLarge
+                or ErrorCodes.Server.RequestBodyTooLarge)
+        {
+            result.ContextData = result.ContextData.Add(
+                HttpResultContextData.RequestTooLarge,
+                null);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Creates the result for a request whose structure the parser rejected. The result is
+    /// marked as not well-formed unless the body was not JSON.
+    /// </summary>
+    public static OperationResult CreateRequestErrorResult(
+        InvalidGraphQLRequestException exception,
+        IError handledError)
+    {
+        var result = OperationResult.FromError(handledError);
+
+        if (IsRequestNotWellFormed(exception))
+        {
+            result.ContextData = result.ContextData.Add(
+                HttpResultContextData.RequestNotWellFormed,
+                null);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Whether every error describes a GraphQL document the parser could not read.
+    /// </summary>
+    public static bool IsDocumentSyntaxError(IReadOnlyList<IError> errors)
+    {
+        if (errors.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            if (!string.Equals(
+                errors[i].Code,
+                ErrorCodes.Server.SyntaxError,
+                StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Whether the exception describes a request the parser read but could not accept as a
+    /// GraphQL over HTTP request: a body that is not a request object, a parameter of the
+    /// wrong type, a request parameter that is not valid JSON, or a request that names
+    /// neither a document nor a document ID. A body that is not JSON is not such a request.
+    /// </summary>
+    private static bool IsRequestNotWellFormed(GraphQLRequestException exception)
+    {
+        if (exception.InnerException is InvalidGraphQLRequestException cause)
+        {
+            return IsRequestNotWellFormed(cause);
+        }
+
+        // a bare JsonException is a request parameter that is not valid JSON. the body parsers
+        // wrap the JsonException of a body that is not JSON in an InvalidGraphQLRequestException.
+        if (exception.InnerException is JsonException)
+        {
+            return true;
+        }
+
+        var errors = exception.Errors;
+
+        if (errors.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            if (!string.Equals(
+                errors[i].Code,
+                ErrorCodes.Server.QueryAndIdMissing,
+                StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsRequestNotWellFormed(InvalidGraphQLRequestException exception)
+        => exception.InnerException is not JsonException;
 
     public static RequestFlags DetermineHttpGetRequestFlags(
         RequestFlags requestFlags,
@@ -203,6 +439,37 @@ internal static class MiddlewareHelper
 
         return requestFlags;
     }
+
+    /// <summary>
+    /// Resolves the request flags of a QUERY request: query operations, plus incremental
+    /// delivery when the accepted media types allow it.
+    /// </summary>
+    public static RequestFlags DetermineHttpQueryRequestFlags(RequestFlags requestFlags)
+        => (requestFlags & RequestFlags.AllowStreams) == RequestFlags.AllowStreams
+            ? RequestFlags.AllowQuery | RequestFlags.AllowStreams
+            : RequestFlags.AllowQuery;
+
+    /// <summary>
+    /// Resolves the status code a QUERY request proposes for an execution result. An operation
+    /// kind the method does not serve is answered 422.
+    /// </summary>
+    public static HttpStatusCode? DetermineHttpQueryStatusCode(ExecuteRequestResult executionResult)
+    {
+        if (executionResult.StatusCode is null
+            && executionResult.Result?.ContextData is { } contextData
+            && contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
+        {
+            return HttpStatusCode.UnprocessableContent;
+        }
+
+        return executionResult.StatusCode;
+    }
+
+    /// <summary>
+    /// Whether the request carries a list of variable sets, which makes it a variable batch.
+    /// </summary>
+    public static bool IsVariableBatch(GraphQLRequest request)
+        => request.Variables is { RootElement.ValueKind: JsonValueKind.Array };
 
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
@@ -350,10 +617,10 @@ internal static class MiddlewareHelper
             StatusCode = null;
         }
 
-        public ParseRequestResult(IReadOnlyList<IError> errors, HttpStatusCode statusCode)
+        public ParseRequestResult(OperationResult errorResult, HttpStatusCode? statusCode)
         {
             IsValid = false;
-            Error = OperationResult.FromError([.. errors]);
+            Error = errorResult;
             StatusCode = statusCode;
             Request = null;
         }
@@ -368,7 +635,6 @@ internal static class MiddlewareHelper
 
         [MemberNotNullWhen(true, nameof(Request))]
         [MemberNotNullWhen(false, nameof(Error))]
-        [MemberNotNullWhen(false, nameof(StatusCode))]
         public bool IsValid { get; }
 
         public GraphQLRequest? Request { get; }

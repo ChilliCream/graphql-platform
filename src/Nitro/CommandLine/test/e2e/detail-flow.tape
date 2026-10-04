@@ -1,14 +1,17 @@
-# End-to-end recording of the tasks TUI's task detail view and dependency
-# tree explorer against the fixture workspace.
+# End-to-end recording of the Tasks tab's task detail view and dependency
+# tree explorer against the fixture workspace, launched via bare
+# `nitro agent` so the tab strip is on screen
+# throughout, same as board-flow.tape/search-flow.tape.
 #
-# There is no dedicated interactive "detail" entry command (BoardTaskCommand
-# is the sole TuiShell construction site, see search-flow.tape's header);
-# the detail view and the tree explorer are both reached through search
-# mode, same as search-flow.tape: '/' into search, Tab Tab from the query
-# input to the detail pane. From there this flow exercises what
-# search-flow.tape does not: the detail body's dependency section, entering
-# the dependency tree explorer ('t', TuiMessage.OpenTreeRequested), toggling
-# its direction ('d') to reveal the seeded acme-epic1 children, drilling
+# There is no dedicated interactive "detail" entry command
+# (AgentTuiLauncher is the TuiShell construction site, see
+# agent-root-flow.tape's header); the detail view and tree explorer are both
+# reached through search mode, same as search-flow.tape: '/' into search,
+# Tab Tab from the query input to the detail pane. From there this flow
+# exercises what search-flow.tape does not: the detail body's dependency
+# section, entering the dependency tree explorer ('t',
+# TuiMessage.OpenTreeRequested), toggling its direction ('d') to reveal the
+# seeded acme-epic1 children, drilling
 # into one of them (Enter, DependencyTreeView.Refocus, pushing a
 # breadcrumb), and navigating back up the breadcrumb stack ('u',
 # TuiMessage.NavigateTreeBack) -- the tree explorer's own back gesture, not
@@ -52,17 +55,16 @@ Hide
 Type `export PS1="$ "` Enter
 Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
 Type `export HOME=/tmp/home` Enter
-Type `export NITRO_TASK_ACTOR=e2e-agent` Enter
 Type `mkdir -p "$HOME"` Enter
 Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
 Type `clear` Enter
 Show
 
 # --- the demo ---
-Type `nitro agent tasks board` Enter
+Type `nitro agent` Enter
 
 # Board's initial frame (same sentinel as board-flow.tape).
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # '/' into search mode; the pending empty query resolves to all six fixture
 # tasks on the next tick, ordered by priority then created_at, selection on
@@ -98,17 +100,20 @@ Type "t"
 Type "d"
 Wait+Screen@30s /acme-epic1 · blocking · depended on by/
 
-# Down selects the first child (acme-epic1.1); Enter refocuses the tree on
-# it (DependencyTreeView.Refocus), pushing acme-epic1 onto the breadcrumb
-# stack. Its own Down tree (still Blocking/Down) shows acme-epic1.2, which
-# blocks-depends-on acme-epic1.1 per fixtures/seed.sql, and transitively
-# acme-a1b beneath it. The panel header carries the breadcrumb, but at this
-# fixed geometry the two-id breadcrumb text overflows the header and gets
-# ellipsis-truncated by Spectre's PanelHeader before it reaches " by", so the
-# wait anchors on the unwrapped, untruncated root row instead.
+# Down selects the first child (acme-epic1.1) in the still-rooted tree; the
+# selection cursor moving off the root row is the sync.
 Down
-Enter
 Wait+Screen@30s /> ● \[T\] P2 acme-epic1\.1 Draft new pricing copy/
+
+# Enter refocuses the tree on the selected child (DependencyTreeView.Refocus),
+# pushing acme-epic1 onto the breadcrumb stack. Its own Down tree (still
+# Blocking/Down) shows acme-epic1.2, which blocks-depends-on acme-epic1.1
+# per fixtures/seed.sql, and transitively acme-a1b beneath it. The sync is
+# the breadcrumb header (DependencyTreeView.BuildTitle): its trail now ends
+# in acme-epic1.1 right before the edge-mode suffix, text the tree rooted on
+# acme-epic1 never shows.
+Enter
+Wait+Screen@30s /epic1\.1 · blocking/
 
 # 'u' pops the breadcrumb stack (DependencyTreeView.NavigateBack), back to
 # the tree rooted on acme-epic1 with its two children again -- the tree

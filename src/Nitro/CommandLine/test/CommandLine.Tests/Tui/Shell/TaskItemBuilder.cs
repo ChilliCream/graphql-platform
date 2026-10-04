@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 

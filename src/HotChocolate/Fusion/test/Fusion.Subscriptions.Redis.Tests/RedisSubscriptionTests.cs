@@ -2,7 +2,6 @@ using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Formatters;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion.Subscriptions.Redis;
 
 public sealed class RedisSubscriptionTests
-    : IClassFixture<RedisFixture>
 {
     private readonly RedisFixture _fixture;
 
@@ -23,6 +21,7 @@ public sealed class RedisSubscriptionTests
     public async Task Subscribe_Should_DeliverEventWithCrossSchemaData_When_RedisBrokerPublishes()
     {
         // arrange
+        _fixture.SkipWhenUnavailable();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var channel = _fixture.NextChannel();
         var ready = CreateReadyChannel();

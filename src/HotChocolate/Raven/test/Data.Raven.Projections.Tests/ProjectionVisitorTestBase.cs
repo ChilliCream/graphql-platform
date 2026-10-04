@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Raven.Projections;
 using HotChocolate.Execution;
@@ -8,13 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Raven;
 
 public class ProjectionVisitorTestBase : IAsyncLifetime
 {
-    public RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
+    public RavenDBResource Resource { get; } = new();
 
     public ValueTask InitializeAsync() => Resource.InitializeAsync();
 
@@ -60,6 +60,8 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
         var builder = new ServiceCollection()
             .AddSingleton(documentStore)
             .AddGraphQLServer();
+
+        builder.ModifyCostOptions(o => o.DefaultListSize = 1);
 
         if (objectType is not null)
         {

@@ -27,7 +27,7 @@ public sealed class QueryType : ObjectType
             .Resolve(_ =>
             {
                 var animals = SubgraphAData.BookAnimalIds["m1"]
-                    .Select<string, IAnimal>(id =>
+                    .Select(id =>
                     {
                         var type = SubgraphAData.AnimalTypes.GetValueOrDefault(id, "Dog");
                         return type == "Cat"

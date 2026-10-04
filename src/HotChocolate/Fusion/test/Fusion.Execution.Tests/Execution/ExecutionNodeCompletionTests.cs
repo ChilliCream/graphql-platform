@@ -75,10 +75,10 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
 
         var expected = new[]
         {
-            (ExecutionStatus.Success, (Exception?)null, CancellationToken.None),
-            (ExecutionStatus.Skipped, (Exception?)null, CancellationToken.None),
+            (ExecutionStatus.Success, null, CancellationToken.None),
+            (ExecutionStatus.Skipped, null, CancellationToken.None),
             (ExecutionStatus.Failed, (Exception?)failure, CancellationToken.None),
-            (ExecutionStatus.Failed, (Exception?)null, new CancellationToken(canceled: true))
+            (ExecutionStatus.Failed, null, new CancellationToken(canceled: true))
         };
 
         for (var i = 0; i < nodes.Length; i++)

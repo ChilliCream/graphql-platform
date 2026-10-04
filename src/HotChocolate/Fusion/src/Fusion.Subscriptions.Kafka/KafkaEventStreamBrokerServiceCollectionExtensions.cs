@@ -113,7 +113,11 @@ public static class KafkaEventStreamBrokerServiceCollectionExtensions
             {
                 // The event-stream abstraction has no request/reply surface.
                 return new KafkaEventStreamBrokerProvider(
+#if NET11_0_OR_GREATER
+                    (string)k,
+#else
                     (string)k!,
+#endif
                     sp.GetRequiredService<IOptionsMonitor<KafkaEventStreamOptions>>());
             });
 

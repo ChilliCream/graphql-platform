@@ -20,4 +20,5 @@ internal static class TaskEventTypes
     public const string LabelRemoved = "label_removed";
     public const string Deferred = "deferred";
     public const string Undeferred = "undeferred";
+    public const string Archived = "archived";
 }

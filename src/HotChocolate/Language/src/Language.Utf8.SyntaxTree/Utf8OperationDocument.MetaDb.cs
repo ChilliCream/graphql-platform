@@ -74,7 +74,7 @@ public sealed partial class Utf8OperationDocument
             }
 
 #if NETSTANDARD2_0
-            ref var start = ref MemoryMarshal.GetReference(_buffer!.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 #else
             ref var start = ref MemoryMarshal.GetArrayDataReference(_buffer!);
 #endif

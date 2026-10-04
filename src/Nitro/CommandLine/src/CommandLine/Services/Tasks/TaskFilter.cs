@@ -1,24 +1,29 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// The parameters for <see cref="ITaskStore.QueryTasksAsync"/>. This is the
-/// backend-agnostic shape the TUI's filter query parser targets; its
-/// "TaskQuery" record maps onto this type. Every filter applies
-/// as AND with the others; <see cref="Labels"/> apply as AND across labels.
+/// Filters for task queries, combined with AND; a task must match every supplied label.
 /// </summary>
 internal sealed record TaskFilter
 {
     /// <summary>
-    /// Statuses a task must have one of. Null defers to
-    /// <see cref="IncludeAll"/>.
+    /// Allowed normalized statuses, with null or empty deferring to
+    /// <see cref="IncludeAll"/> and <see cref="IncludeArchived"/>.
+    /// <see cref="ExcludeTombstones"/> still applies to explicit statuses.
     /// </summary>
     public string[]? Statuses { get; init; }
 
     /// <summary>
-    /// When <see cref="Statuses"/> is null, true includes closed and
-    /// tombstone tasks and false excludes them.
+    /// Allows closed and tombstoned tasks when no explicit statuses are supplied.
+    /// Archived tasks still require <see cref="IncludeArchived"/>, and
+    /// <see cref="ExcludeTombstones"/> can exclude tombstones.
     /// </summary>
     public bool IncludeAll { get; init; }
+
+    /// <summary>
+    /// Allows archived tasks when <see cref="Statuses"/> is null or empty.
+    /// A nonempty status filter takes precedence.
+    /// </summary>
+    public bool IncludeArchived { get; init; }
 
     /// <summary>
     /// Excludes tombstone tasks regardless of <see cref="Statuses"/> or

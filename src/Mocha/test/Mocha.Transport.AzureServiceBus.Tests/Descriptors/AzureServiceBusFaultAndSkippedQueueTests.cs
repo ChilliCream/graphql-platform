@@ -1,6 +1,5 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.TestHelpers;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 using Mocha.Transport.AzureServiceBus.Tests.Topology;
 

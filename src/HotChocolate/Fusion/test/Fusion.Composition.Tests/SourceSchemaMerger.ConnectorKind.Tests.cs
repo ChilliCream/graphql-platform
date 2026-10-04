@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Features;
 using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Logging;

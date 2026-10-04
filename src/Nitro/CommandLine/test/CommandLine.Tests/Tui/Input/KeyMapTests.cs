@@ -226,6 +226,23 @@ public sealed class KeyMapTests
     }
 
     [Fact]
+    public void CreateDefaultGlobal_Should_MapO_ToCycleBoardOrientation()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.O, ConsoleModifiers.None, 'o'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.CycleBoardOrientation>(message);
+        Assert.Contains(new KeyHint("o", "cols"), keyMap.Hints);
+    }
+
+    [Fact]
     public void CreateDefaultGlobal_Should_MapS_ToStatusPickerRequested()
     {
         // arrange
@@ -433,16 +450,14 @@ public sealed class KeyMapTests
         // arrange
         var keyMap = KeyMap.CreateDefaultGlobal();
 
-        // assert: j/k/h/l and their arrow-key equivalents collapse into a
-        // single "move" hint rather than one entry per key.
+        // assert
         Assert.Single(keyMap.Hints, h => h.Action == "move");
     }
 
     [Fact]
     public void TryResolve_Should_NotFallBackToKeyChar_When_CharIsControlChar()
     {
-        // arrange: Ctrl+C reports KeyChar '\u0003', which is a control char and must not
-        // fall back onto an unrelated binding that happens to share the char.
+        // arrange
         var chord = new KeyChord(ConsoleKey.C, ConsoleModifiers.Control, '\u0003');
         var keyMap = new KeyMap([new KeyBinding(chord, () => new TuiMessage.QuitRequested())]);
         var differentKeySameControlChar = new KeyChord(ConsoleKey.D3, ConsoleModifiers.Control, '\u0003');

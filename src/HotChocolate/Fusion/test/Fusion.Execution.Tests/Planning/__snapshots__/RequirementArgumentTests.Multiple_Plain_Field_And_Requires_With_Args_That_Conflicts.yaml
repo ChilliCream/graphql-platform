@@ -12,7 +12,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 2
-    expandedNodes: 9
+    expandedNodes: 8
 nodes:
   - id: 1
     type: Operation
@@ -52,9 +52,9 @@ nodes:
         selectionMap: >-
           otherField
     dependencies:
-      - id: 7
+      - id: 6
   - id: 3
-    type: OperationBatch
+    type: Operation
     schema: b
     operation: |
       query Op_123456789101112_3($__fusion_3_id: ID!) {
@@ -63,10 +63,8 @@ nodes:
         }
       }
     source: $.testById
-    targets:
-      - $.test
-      - $.test
-    batchingGroupId: 7
+    target: $.test
+    batchingGroupId: 6
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -84,27 +82,27 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 7
+    batchingGroupId: 6
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
           id
     dependencies:
       - id: 1
-  - id: 6
+  - id: 5
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        testById(id: $__fusion_7_id) {
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        testById(id: $__fusion_6_id) {
           otherField(arg: 1)
         }
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 7
+    batchingGroupId: 6
     requirements:
-      - name: __fusion_7_id
+      - name: __fusion_6_id
         selectionMap: >-
           id
     dependencies:

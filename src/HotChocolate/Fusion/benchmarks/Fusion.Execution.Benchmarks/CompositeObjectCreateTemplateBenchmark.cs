@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
@@ -9,6 +6,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Text.Json;
@@ -75,8 +73,8 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
 
     // The document under test is created with neither @include/@skip variables
     // nor @defer, matching CompositeResultDocument._includeFlags/_deferFlags = 0.
-    private const ulong IncludeFlags = 0;
-    private const ulong DeferFlags = 0;
+    private static readonly ConditionFlags s_includeFlags = new(0);
+    private static readonly ConditionFlags s_deferFlags = new(0);
 
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     private FusionOperation _operation = null!;
@@ -276,7 +274,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
             flags = ElementFlags.IsInternal;
         }
 
-        if (!selection.IsIncluded(IncludeFlags) || selection.IsDeferred(DeferFlags))
+        if (!selection.IsIncluded(s_includeFlags) || selection.IsDeferred(s_deferFlags))
         {
             flags |= ElementFlags.IsExcluded;
         }

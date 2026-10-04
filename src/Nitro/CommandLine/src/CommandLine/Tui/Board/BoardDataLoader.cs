@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// Evaluates a board column against the task store: translates its
-/// declarative filter into a <see cref="TaskFilter"/> query, applies the
-/// computed ready/blocked/deferred semantics the filter cannot express
-/// alone, then sorts and caps the result. Issues no SQL of its own.
+/// Loads tasks matching a column's filters, applies its computed state criteria,
+/// and returns the sorted result up to the column limit.
 /// </summary>
 internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvider)
 {
@@ -38,12 +36,13 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
             var blocked = await store.ComputeBlockedAsync(cancellationToken);
             tasks = tasks.Where(t =>
                 !TaskStates.IsTerminal(t.Status)
+                && t.Status != TaskStates.InProgress
+                && !IsDeferred(t, now)
                 && (t.Status == TaskStates.Blocked || blocked.ContainsKey(t.Id)));
         }
         else if (column.ComputedFilter == ColumnComputedFilter.Deferred)
         {
-            tasks = tasks.Where(t =>
-                t.Status == TaskStates.Deferred || (t.DeferUntil is { } deferUntil && deferUntil > now));
+            tasks = tasks.Where(t => IsDeferred(t, now));
         }
 
         if (column.Types is { Length: > 0 } types)
@@ -60,6 +59,17 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
 
         return column.Limit is { } limit ? sorted.Take(limit).ToList() : sorted.ToList();
     }
+
+    /// <summary>
+    /// Whether a task is deferred by status, or has a future defer date while
+    /// non-terminal and not in progress. Deferred tasks are excluded from the Blocked column.
+    /// </summary>
+    private static bool IsDeferred(TaskItem task, DateTimeOffset now)
+        => task.Status == TaskStates.Deferred
+            || (!TaskStates.IsTerminal(task.Status)
+                && task.Status != TaskStates.InProgress
+                && task.DeferUntil is { } deferUntil
+                && deferUntil > now);
 
     private static bool IsUnassigned(string? assignee)
         => string.Equals(assignee, "unassigned", StringComparison.OrdinalIgnoreCase);

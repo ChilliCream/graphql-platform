@@ -413,7 +413,9 @@ internal sealed class DynamicOpenApiDocumentTransformer
 
                     fieldTypeSchema = ApplyFieldMetadata(fieldTypeSchema, field.Description, field.IsDeprecated);
 
-                    schema.Properties!.Add(field.Name, ApplyNullability(fieldTypeSchema, field.Type));
+                    GetProperties(schema).Add(
+                        field.Name,
+                        ApplyNullability(fieldTypeSchema, field.Type));
                 }
 
                 schema.Description = objectType.Description;
@@ -488,7 +490,7 @@ internal sealed class DynamicOpenApiDocumentTransformer
 
                 if (field.Type.IsNonNullType())
                 {
-                    schema.Required!.Add(field.Name);
+                    GetRequired(schema).Add(field.Name);
                 }
 
                 OpenApiSchemaAbstraction fieldTypeSchema;
@@ -510,7 +512,7 @@ internal sealed class DynamicOpenApiDocumentTransformer
 
                 fieldTypeSchema = ApplyFieldMetadata(fieldTypeSchema, field.Description, field.IsDeprecated);
 
-                schema.Properties!.Add(field.Name, fieldTypeSchema);
+                GetProperties(schema).Add(field.Name, fieldTypeSchema);
             }
 
             schema.Description = inputObject.Description;
@@ -586,12 +588,12 @@ internal sealed class DynamicOpenApiDocumentTransformer
 
                     if (!optional && !isSelectionConditional)
                     {
-                        fieldSchema.Required!.Add(responseName);
+                        GetRequired(fieldSchema).Add(responseName);
                     }
 
                     typeSchema = ApplyNullability(typeSchema, fieldType);
 
-                    fieldSchema.Properties!.TryAdd(responseName, typeSchema);
+                    GetProperties(fieldSchema).TryAdd(responseName, typeSchema);
                 }
                 else if (selection is InlineFragmentNode inlineFragment)
                 {
@@ -903,6 +905,15 @@ internal sealed class DynamicOpenApiDocumentTransformer
 
             return schema;
         }
+
+        // OpenApiSchema declares Properties and Required as nullable; these accessors
+        // return the collections CreateObjectSchema initializes.
+        private static IDictionary<string, OpenApiSchemaAbstraction> GetProperties(
+            OpenApiSchema schema)
+            => schema.Properties ??= new Dictionary<string, OpenApiSchemaAbstraction>();
+
+        private static ISet<string> GetRequired(OpenApiSchema schema)
+            => schema.Required ??= new HashSet<string>();
 
         private static OpenApiSchema CreateArraySchema(OpenApiSchemaAbstraction itemSchema, IValueNode? defaultValue)
         {

@@ -32,6 +32,8 @@ internal static class TestHelper
             .. Net90.References.All,
 #elif NET10_0
             .. Net100.References.All,
+#elif NET11_0
+            .. Net110.References.All,
 #endif
             // Mocha.Mediator
             MetadataReference.CreateFromFile(typeof(Mediator.IMediator).Assembly.Location),
@@ -80,7 +82,7 @@ internal static class TestHelper
         }
 
         var generator = new MediatorGenerator();
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator)
+        var driver = CSharpGeneratorDriver.Create(generator)
             .WithUpdatedAnalyzerConfigOptions(new TestAnalyzerConfigOptionsProvider(globalOptions));
         driver = driver.RunGenerators(compilation);
 

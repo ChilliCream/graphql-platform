@@ -1,5 +1,4 @@
 using Mocha.Features;
-using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.Postgres;

@@ -156,9 +156,104 @@ public class ArgumentCoercionTests
         result.ToJson().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_Pass_Null_When_Omitted_Variable_Has_Null_Default()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync(
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query ($value: Int = null) {
+                      echo(value: $value)
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "echo": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Path_Without_Locations_When_Inline_Input_Object_Literal_Has_Invalid_Leaf()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<Mutation>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    mutation {
+                      updateUser(input: { avatar: "" })
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value is not a valid image data URL.",
+                  "path": [
+                    "updateUser"
+                  ],
+                  "extensions": {
+                    "inputPath": [
+                      "input",
+                      "avatar"
+                    ],
+                    "coordinate": "UpdateUserInput.avatar",
+                    "fieldType": "ImageDataUrl"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
     public class Query
     {
+        public int? Echo(int? value = 5)
+            => value;
+
         public string SayHello(string name = "Michael")
             => $"Hello {name}.";
+    }
+
+    public class Mutation
+    {
+        public string UpdateUser(UpdateUserInput input)
+            => $"{input.Avatar} was updated!";
     }
 }

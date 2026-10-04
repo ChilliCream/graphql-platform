@@ -5,12 +5,11 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising the query surface the
-/// board model consumes (<see cref="QueryTasksAsync"/> and
-/// <see cref="ComputeBlockedAsync(CancellationToken)"/>), plus the task
-/// detail surface <see cref="ChilliCream.Nitro.CommandLine.Tui.Board.BoardDetailMode"/>
-/// consumes (task by id, labels, dependencies, blocks, comments). Every
-/// other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="ITaskStore"/> exercising the query surface the board model consumes
+/// (<see cref="QueryTasksAsync"/> and <see cref="ComputeBlockedAsync(CancellationToken)"/>), plus
+/// the task detail surface <see cref="CommandLine.Tui.Board.BoardDetailMode"/> consumes (task by
+/// id, labels, dependencies, blocks, comments). Every other member throws
+/// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
@@ -91,6 +90,10 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => Task.FromResult(Tasks.FirstOrDefault(t => t.Id == id));
+
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<string>>(Labels.TryGetValue(taskId, out var labels) ? labels : []);
@@ -202,6 +205,9 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<TaskItem> DeleteTaskAsync(string id, string reason, string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
@@ -218,12 +224,6 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task RemoveDependencyAsync(string id, string dependsOnId, string actor, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<TaskImportResult> ImportTasksAsync(IReadOnlyList<TaskSyncRecord> records, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task EnsureWorkspaceAsync(string workspaceDirectory, CancellationToken cancellationToken)

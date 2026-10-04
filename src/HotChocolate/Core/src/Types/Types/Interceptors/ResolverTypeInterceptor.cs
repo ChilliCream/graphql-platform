@@ -348,10 +348,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 initialized = true;
             }
 
-            (object Value, MemberInfo Member) info;
             if (enumValue.Member is null
                 && (enumValue.BindTo is null
-                && context.Values.TryGetValue(enumValue.Name, out info)
+                && context.Values.TryGetValue(enumValue.Name, out (object Value, MemberInfo Member) info)
                 || enumValue.BindTo is { } b
                 && context.ValuesToName.TryGetValue(b, out info)))
             {

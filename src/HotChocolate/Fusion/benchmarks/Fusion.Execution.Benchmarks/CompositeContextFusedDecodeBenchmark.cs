@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
@@ -609,7 +606,7 @@ public class CompositeContextFusedDecodeBenchmark : FusionBenchmarkBase
     /// neither side can be dead-code eliminated.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static long Consume(in CompositeObjectContext objectContext) => 1;
+    private static long Consume(in CompositeObjectContext _) => 1;
 
     /// <summary>
     /// Candidate enumerator shape: mirrors CompositeResultElement.ArrayEnumerator

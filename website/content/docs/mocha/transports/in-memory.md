@@ -9,7 +9,7 @@ The InMemory transport routes messages through in-process topics and queues with
 
 **1.** Install the package:
 
-```bash
+```shell
 dotnet add package Mocha.Transport.InMemory
 ```
 

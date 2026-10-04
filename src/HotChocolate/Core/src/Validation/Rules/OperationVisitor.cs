@@ -21,7 +21,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// AND
 ///
-/// Subscription operations must have exactly one root field.
+/// Subscription operations must have exactly one root field, including an empty selection set.
 ///
 /// https://spec.graphql.org/September2025/#sec-Single-Root-Field
 ///
@@ -113,7 +113,7 @@ public class OperationVisitor : DocumentValidatorVisitor
 
         if (node.Operation == OperationType.Subscription)
         {
-            if (responseNames.Count > 1)
+            if (responseNames.Count != 1)
             {
                 context.ReportError(context.SubscriptionSingleRootField(node));
             }

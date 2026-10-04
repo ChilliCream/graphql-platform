@@ -496,7 +496,7 @@ internal static class TransformRequiresToRequire
                             new List<(string InputFieldName, string SourcePath)>();
 
                         CollectInputFields(
-                            nestedField.SelectionSet!,
+                            nestedField.SelectionSet,
                             innerType,
                             schema,
                             elementInput,
@@ -531,7 +531,7 @@ internal static class TransformRequiresToRequire
                     }
 
                     CollectInputFields(
-                        nestedField.SelectionSet!,
+                        nestedField.SelectionSet,
                         innerType,
                         schema,
                         inputType,
