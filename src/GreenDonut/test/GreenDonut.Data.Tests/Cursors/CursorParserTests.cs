@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Text;
@@ -208,6 +209,25 @@ public class CursorParserTests
         // assert
         var exception = Assert.Throws<InvalidOperationException>(Act);
         Assert.Equal("The cursor page info could not be parsed.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnRentedBuffer_When_StrictEndCursorValidationThrows()
+    {
+        // arrange
+        var keys = CreateKeys();
+        var cursor = Convert.ToBase64String("{end|1|5}"u8);
+        var size = cursor.Length * 4;
+        var warmup = ArrayPool<byte>.Shared.Rent(size);
+        ArrayPool<byte>.Shared.Return(warmup);
+
+        // act
+        void Act() => CursorParser.Parse(cursor, keys);
+        Assert.Throws<InvalidOperationException>(Act);
+        var rented = ArrayPool<byte>.Shared.Rent(size);
+
+        // assert
+        Assert.Same(warmup, rented);
     }
 
     [Fact]

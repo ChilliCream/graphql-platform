@@ -195,14 +195,31 @@ internal sealed class StreamBatchPump<TKey, TElement>
     private void RegisterDrain<TValue>(TKey key, StreamPage<TValue> page)
         => _keys[key].Drain = cancellationToken => DrainAsync(page, cancellationToken);
 
-    // Reads a page to completion over its public surface.
+    // Reads a page to completion over its public surface, disposing it to release its key if the
+    // read fails.
     private static async ValueTask DrainAsync<TValue>(
         StreamPage<TValue> page,
         CancellationToken cancellationToken)
     {
-        await foreach (var _ in page.GetEntriesAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
-            // Only the buffering side effect is needed; entries are discarded.
+            await foreach (var _ in page.GetEntriesAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // Only the buffering side effect is needed; entries are discarded.
+            }
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await page.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception disposeException)
+            {
+                OrderedDisposal.Attach(ex, disposeException);
+            }
+
+            throw;
         }
     }
 
@@ -219,6 +236,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
     // the key's run completes, or the source is exhausted.
     private async ValueTask<StreamRow<TElement>?> ReadNextAsync(TKey key)
     {
+        _fault?.Throw();
+
         var channel = _keys[key];
 
         while (channel.Rows.Count == 0 && !channel.Completed)
@@ -280,7 +299,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
                 }
 
                 each.Completed = true;
-                await each.Drain(CancellationToken.None).ConfigureAwait(false);
+                await DrainKeyAsync(each.Drain).ConfigureAwait(false);
             }
 
             return;
@@ -290,7 +309,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
         if (!_keys.TryGetValue(row.Key, out var channel))
         {
-            throw ThrowHelper.StreamBatchPump_RowForUnrequestedKey(row.Key);
+            throw await FaultAsync(ThrowHelper.StreamBatchPump_RowForUnrequestedKey(row.Key))
+                .ConfigureAwait(false);
         }
 
         if (channel.Completed && !channel.Abandoned)
@@ -298,19 +318,8 @@ internal sealed class StreamBatchPump<TKey, TElement>
             // A row for a key whose run already completed and was not abandoned is a source
             // ordering violation, and faults the pump like a mid-stream exception. A disposal
             // failure while releasing is attached to this fault instead of replacing it.
-            var fault = ThrowHelper.StreamBatchPump_SourceNotGroupedByKey(row.Key);
-            _fault = ExceptionDispatchInfo.Capture(fault);
-
-            try
-            {
-                await ReleaseCoreAsync().ConfigureAwait(false);
-            }
-            catch (Exception releaseException)
-            {
-                OrderedDisposal.Attach(fault, releaseException);
-            }
-
-            throw fault;
+            throw await FaultAsync(ThrowHelper.StreamBatchPump_SourceNotGroupedByKey(row.Key))
+                .ConfigureAwait(false);
         }
 
         if (_hasCurrentKey && !EqualityComparer<TKey>.Default.Equals(_currentKey, row.Key))
@@ -320,7 +329,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
 
             if (previous.Drain is not null)
             {
-                await previous.Drain(CancellationToken.None).ConfigureAwait(false);
+                await DrainKeyAsync(previous.Drain).ConfigureAwait(false);
             }
         }
 
@@ -335,6 +344,20 @@ internal sealed class StreamBatchPump<TKey, TElement>
                 TotalCount = row.TotalCount,
                 HasMore = row.HasMore
             });
+        }
+    }
+
+    // Runs a key's drain, faulting the pump and rethrowing the original failure if it throws.
+    private async ValueTask DrainKeyAsync(Func<CancellationToken, ValueTask> drain)
+    {
+        try
+        {
+            await drain(CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            await FaultAsync(ex).ConfigureAwait(false);
+            throw;
         }
     }
 
@@ -358,6 +381,25 @@ internal sealed class StreamBatchPump<TKey, TElement>
         }
 
         await ReleaseCoreAsync().ConfigureAwait(false);
+    }
+
+    // Records a fresh fault so every later pull rethrows it, releases the source and the lifetime,
+    // and returns the fault for the caller to throw. A disposal failure while releasing is
+    // attached to the fault instead of replacing it.
+    private async ValueTask<Exception> FaultAsync(Exception fault)
+    {
+        _fault = ExceptionDispatchInfo.Capture(fault);
+
+        try
+        {
+            await ReleaseCoreAsync().ConfigureAwait(false);
+        }
+        catch (Exception releaseException)
+        {
+            OrderedDisposal.Attach(fault, releaseException);
+        }
+
+        return fault;
     }
 
     // Disposes the source and then the lifetime exactly once; if both throw, the source's exception

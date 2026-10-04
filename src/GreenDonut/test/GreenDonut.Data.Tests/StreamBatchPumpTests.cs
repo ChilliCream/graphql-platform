@@ -524,6 +524,110 @@ public class StreamBatchPumpTests
     }
 
     [Fact]
+    public async Task ReadNextAsync_Should_RethrowFault_Not_ReturnStagedRow_When_SiblingHasQueuedRowsAfterFault()
+    {
+        // arrange: A accumulates two staged rows while the pump advances for B, then the source faults
+        var exception = new InvalidOperationException("boom");
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"), Row("A", "a2"), Row("A", "a3"));
+        source.ThrowAt(3, exception);
+        var pump = await CreatePump(source, ["A", "B"]);
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 3, forward: true));
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+        var enumeratorA = pageA.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        await enumeratorA.MoveNextAsync();
+
+        // act: B's pull drives the pump into the fault while A still has two rows staged and unread
+        await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageB));
+        var stagedBeforeTheFailedPull = pump.StagedRowCount("A");
+        var thrownForA = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => enumeratorA.MoveNextAsync().AsTask());
+
+        // assert: A rethrows the same fault instead of yielding its staged row
+        Assert.Equal(2, stagedBeforeTheFailedPull);
+        Assert.Same(exception, thrownForA);
+    }
+
+    [Fact]
+    public async Task Rows_Should_ThrowAndReleaseSourceAndLifetime_When_ARowNamesAnUnrequestedKey()
+    {
+        // arrange: "Z" never appears among the requested keys
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"),
+            Row("Z", "z1"));
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+
+        // act: A's own pull hits the unrequested key, then B's next pull observes the same fault
+        var exceptionA = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageA));
+        var exceptionB = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageB));
+
+        // assert: both pages observe the same fault, and the source and lifetime released exactly once
+        Assert.Same(exceptionA, exceptionB);
+        Assert.Equal(
+            "The batch source produced a row for key 'Z', which is not one of the requested keys.",
+            exceptionA.Message);
+        Assert.Equal((1, 1), (source.DisposeCount, lifetime.DisposeCount));
+    }
+
+    [Fact]
+    public async Task DrainAsync_Should_ReleaseTheDrainedKey_And_RethrowTheOriginalFailure_When_TheValueSelectorThrows()
+    {
+        // arrange: A's second row makes its value selector throw during B's sibling-triggered auto-drain
+        var selectorException = new InvalidOperationException("selector boom");
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"),
+            Row("A", "bad"),
+            Row("B", "b1"));
+        var pump = await CreatePump(source, ["A", "B"], lifetime);
+        pump.CreatePage(
+            "A",
+            Definition<string>(requestedCount: 2, forward: true),
+            item => item == "bad" ? throw selectorException : item,
+            static entry => entry.Node!);
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+
+        // act: pulling B alone must drive the pump through A, triggering A's auto-drain
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageB));
+
+        // assert: B observes A's selector failure, and the source and lifetime released exactly once
+        Assert.Same(selectorException, thrown);
+        Assert.Equal((1, 1), (source.DisposeCount, lifetime.DisposeCount));
+    }
+
+    [Fact]
+    public async Task DrainAsync_Should_FaultThePump_When_TheValueSelectorThrows_And_ASiblingPullsLater()
+    {
+        // arrange
+        var selectorException = new InvalidOperationException("selector boom");
+        var lifetime = new ScriptedAsyncDisposable();
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(
+            Row("A", "a1"),
+            Row("A", "bad"),
+            Row("B", "b1"));
+        var pump = await CreatePump(source, ["A", "B", "C"], lifetime);
+        pump.CreatePage(
+            "A",
+            Definition<string>(requestedCount: 2, forward: true),
+            item => item == "bad" ? throw selectorException : item,
+            static entry => entry.Node!);
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+        var pageC = CreatePage(pump, "C", Definition<string>(requestedCount: 1, forward: true));
+
+        // act
+        var thrownForC = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageC));
+        var thrownForB = await Assert.ThrowsAsync<InvalidOperationException>(() => CollectAsync(pageB));
+
+        // assert
+        Assert.Same(selectorException, thrownForC);
+        Assert.Same(selectorException, thrownForB);
+        Assert.Equal((1, 1), (source.DisposeCount, lifetime.DisposeCount));
+    }
+
+    [Fact]
     public async Task Completion_Should_SurfaceLifetimeDisposalFailure_Once_When_BatchKeyDrainedNaturally()
     {
         // arrange

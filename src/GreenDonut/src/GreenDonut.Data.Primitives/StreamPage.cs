@@ -15,9 +15,9 @@ namespace GreenDonut.Data;
 /// </remarks>
 public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
 {
-    private readonly IStreamPageSource<T> _source;
+    private readonly StreamPageSource<T> _source;
 
-    private protected StreamPage(IStreamPageSource<T> source, int? index)
+    private protected StreamPage(StreamPageSource<T> source, int? index)
     {
         _source = source;
         Index = index;

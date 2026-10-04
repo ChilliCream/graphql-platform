@@ -103,12 +103,11 @@ public class StreamPageTests
     [Fact]
     public void StreamPageSources_Should_NotImplementIAsyncEnumerable()
     {
-        // arrange: every non-abstract type that implements IStreamPageSource<T> in this assembly
+        // arrange: every non-abstract subclass of StreamPageSource<T> in this assembly
         var sourceTypes = typeof(StreamPage<>).Assembly
             .GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
-            .Where(t => t.GetInterfaces().Any(
-                i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IStreamPageSource<>)))
+            .Where(IsStreamPageSourceSubclass)
             .ToArray();
 
         // act
@@ -138,11 +137,11 @@ public class StreamPageTests
     }
 
     [Fact]
-    public void IStreamPageSource_Should_NotDeclareDrainAsync()
+    public void StreamPageSource_Should_NotDeclareDrainAsync()
     {
         // arrange
-        var methodNames = typeof(IStreamPageSource<>)
-            .GetMethods()
+        var methodNames = typeof(StreamPageSource<>)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(member => !member.IsSpecialName)
             .Select(member => member.Name)
             .Distinct()
@@ -151,6 +150,7 @@ public class StreamPageTests
         // assert
         Assert.Equal(
             [
+                "DisposeAsync",
                 "GetBufferedEntry",
                 "GetEntriesAsync",
                 "GetValuesAsync",
@@ -245,6 +245,21 @@ public class StreamPageTests
             var candidate = current.IsGenericType ? current.GetGenericTypeDefinition() : current;
 
             if (candidate == typeof(StreamPage<>))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsStreamPageSourceSubclass(Type type)
+    {
+        for (var current = type; current is not null; current = current.BaseType)
+        {
+            var candidate = current.IsGenericType ? current.GetGenericTypeDefinition() : current;
+
+            if (candidate == typeof(StreamPageSource<>))
             {
                 return true;
             }

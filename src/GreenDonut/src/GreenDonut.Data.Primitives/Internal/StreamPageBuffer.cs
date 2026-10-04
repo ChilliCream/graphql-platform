@@ -16,7 +16,7 @@ namespace GreenDonut.Data.Internal;
 /// enumerators may interleave, but this type has no cross-thread safety, the same stance as
 /// <c>DbContext</c>.
 /// </remarks>
-internal sealed class StreamPageBuffer<TElement> : StreamPageSourceBase<TElement>
+internal sealed class StreamPageBuffer<TElement> : StreamPageSource<TElement>
 {
     private readonly List<TElement> _items = [];
     private readonly StreamPagePump<TElement>? _pump;
