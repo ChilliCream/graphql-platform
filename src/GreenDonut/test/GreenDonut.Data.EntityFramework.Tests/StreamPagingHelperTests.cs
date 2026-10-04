@@ -962,7 +962,8 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToStreamPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy()
+    public async Task
+        ToStreamPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();

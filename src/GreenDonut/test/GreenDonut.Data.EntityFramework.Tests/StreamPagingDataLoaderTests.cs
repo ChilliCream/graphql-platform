@@ -1,4 +1,5 @@
 #if NET9_0_OR_GREATER
+using System.Data.Common;
 using CookieCrumble.Resources;
 using GreenDonut.Data.TestContext;
 using Microsoft.EntityFrameworkCore;
@@ -6,8 +7,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenDonut.Data;
 
-// Verifies a DataLoader<int, StreamPage<T>> built on ToBatchStreamPageAsync streams its pages
-// and shares one context lifetime across every key loaded in the same batch.
+// Verifies a DataLoader<int, StreamPage<T>> built on ToBatchStreamPageAsync streams pages from
+// one shared context lifetime.
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
 public class StreamPagingDataLoaderTests(PostgreSqlResource resource)
 {
@@ -25,9 +26,10 @@ public class StreamPagingDataLoaderTests(PostgreSqlResource resource)
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
 
         var interceptor = new RecordingReaderInterceptor();
+        var connectionDisposal = new ConnectionDisposalInterceptor();
         var dataLoader = new ProductsByBrandStreamDataLoader(
             connectionString,
-            [interceptor],
+            [interceptor, connectionDisposal],
             AutoBatchScheduler.Default,
             new DataLoaderOptions());
         var pagingArgs = new PagingArguments(3);
@@ -39,10 +41,11 @@ public class StreamPagingDataLoaderTests(PostgreSqlResource resource)
         var secondBrandItems = await NamesAsync(pages[1]!);
 
         // assert
-        Assert.Equal(3, firstBrandItems.Length);
-        Assert.Equal(3, secondBrandItems.Length);
+        Assert.Equal(["Brand A-Item01", "Brand A-Item02", "Brand A-Item03"], firstBrandItems);
+        Assert.Equal(["Brand B-Item01", "Brand B-Item02", "Brand B-Item03"], secondBrandItems);
         Assert.True(rowsReadAfterFirstBrand < interceptor.Events.Count);
         Assert.Single(interceptor.CommandTexts);
+        Assert.Equal(1, connectionDisposal.DisposedCount);
     }
 
     private static async ValueTask<string[]> NamesAsync(StreamPage<Product> page)
@@ -81,8 +84,22 @@ public class StreamPagingDataLoaderTests(PostgreSqlResource resource)
         return await context.Brands.OrderBy(b => b.Name).Select(b => b.Id).ToArrayAsync();
     }
 
-    // Loads a StreamPage<Product> per brand from one flat batch query, passing the DbContext as
-    // the shared lifetime so it stays open until every requested brand's page has streamed.
+    private sealed class ConnectionDisposalInterceptor : DbConnectionInterceptor
+    {
+        public int DisposedCount { get; private set; }
+
+        public override void ConnectionDisposed(DbConnection connection, ConnectionEndEventData eventData)
+            => DisposedCount++;
+
+        public override Task ConnectionDisposedAsync(DbConnection connection, ConnectionEndEventData eventData)
+        {
+            DisposedCount++;
+            return Task.CompletedTask;
+        }
+    }
+
+    // Loads a StreamPage<Product> per brand from one flat batch query, using the DbContext as
+    // the shared lifetime.
     public class ProductsByBrandStreamDataLoader(
         string connectionString,
         IEnumerable<IInterceptor>? interceptors,

@@ -499,9 +499,10 @@ public class StreamPagingFaultTests(PostgreSqlResource resource)
         var context = new CatalogContext(connectionString);
         var lifetime = new RecordingLifetime(context);
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+        using var capture = new CapturePagingQueryInterceptor();
 
         // act
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => context.Brands
                 .Where(t => new string?[] { "Item0001", null }.Contains(t.DisplayName))
                 .OrderBy(t => t.DisplayName)
@@ -512,8 +513,10 @@ public class StreamPagingFaultTests(PostgreSqlResource resource)
                     lifetime: lifetime,
                     cancellationToken: cancellationToken).AsTask());
 
-        // assert
+        // assert: no command executed
+        Assert.Equal("keySelector", exception.ParamName);
         Assert.Equal(1, lifetime.DisposeCount);
+        Assert.Empty(capture.Queries);
     }
 
     [Fact]
@@ -540,9 +543,10 @@ public class StreamPagingFaultTests(PostgreSqlResource resource)
         var connectionDisposal = new ConnectionDisposalInterceptor();
         var context = new CatalogContext(connectionString, [connectionDisposal]);
         var lifetime = new RecordingLifetime(context);
+        using var capture = new CapturePagingQueryInterceptor();
 
         // act
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => context.Brands
                 .OrderBy(t => t.DisplayName)
                 .ThenBy(t => t.Id)
@@ -552,9 +556,11 @@ public class StreamPagingFaultTests(PostgreSqlResource resource)
                     lifetime: lifetime,
                     cancellationToken: cancellationToken).AsTask());
 
-        // assert
+        // assert: only the distinct-keys probe ran
+        Assert.Equal("keySelector", exception.ParamName);
         Assert.Equal(1, lifetime.DisposeCount);
         Assert.Equal(1, connectionDisposal.DisposedCount);
+        Assert.Single(capture.Queries);
     }
 
     private static IEnumerable<string> GetThrowingKeys()

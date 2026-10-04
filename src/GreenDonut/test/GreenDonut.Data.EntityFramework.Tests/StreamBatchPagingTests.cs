@@ -62,6 +62,108 @@ public class StreamBatchPagingTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task ToBatchStreamPageAsync_Should_UseEachCallsOwnKeys_When_TheSameContainsShapeRunsTwice()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString, ("A", 2), ("B", 2), ("C", 2));
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        // Act
+        var firstPages = await RunWithSkippedKeysAsync(connectionString, ["Z", "A", "B"], cancellationToken);
+        var secondPages = await RunWithSkippedKeysAsync(connectionString, ["Z", "B", "C"], cancellationToken);
+
+        // Assert
+        Assert.Equal(["A", "B"], firstPages.Keys.OrderBy(t => t).ToArray());
+        Assert.Equal(["B", "C"], secondPages.Keys.OrderBy(t => t).ToArray());
+    }
+
+    private static async Task<Dictionary<string, StreamPage<SequentialItem>>> RunWithSkippedKeysAsync(
+        string connectionString,
+        string[] keys,
+        CancellationToken cancellationToken)
+    {
+        await using var context = new SequentialItemContext(connectionString);
+        var arguments = new PagingArguments(2);
+
+        return await context.Items
+            .Where(t => keys.Skip(1).Contains(t.GroupKey))
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
+            .ToBatchStreamPageAsync(t => t.GroupKey, arguments, cancellationToken: cancellationToken);
+    }
+
+    [Fact]
+    public async Task ToBatchStreamPageAsync_Should_UseEachInstancesOwnKeys_When_TheSameContainsShapeCapturesThis()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString, ("A", 2), ("B", 2), ("C", 2));
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+        var first = new KeyHolder(["A", "B"], ["Z", "A", "B"]);
+        var second = new KeyHolder(["B", "C"], ["Z", "B", "C"]);
+
+        // Act
+        var propertyFirst = await RunWithHolderPropertyKeysAsync(connectionString, first, cancellationToken);
+        var propertySecond = await RunWithHolderPropertyKeysAsync(connectionString, second, cancellationToken);
+        var fieldFirst = await RunWithHolderFieldKeysAsync(connectionString, first, cancellationToken);
+        var fieldSecond = await RunWithHolderFieldKeysAsync(connectionString, second, cancellationToken);
+
+        // Assert
+        Assert.Equal(["A", "B"], propertyFirst.Keys.OrderBy(t => t).ToArray());
+        Assert.Equal(["B", "C"], propertySecond.Keys.OrderBy(t => t).ToArray());
+        Assert.Equal(["A", "B"], fieldFirst.Keys.OrderBy(t => t).ToArray());
+        Assert.Equal(["B", "C"], fieldSecond.Keys.OrderBy(t => t).ToArray());
+    }
+
+    private static async Task<Dictionary<string, StreamPage<SequentialItem>>> RunWithHolderPropertyKeysAsync(
+        string connectionString,
+        KeyHolder holder,
+        CancellationToken cancellationToken)
+    {
+        await using var context = new SequentialItemContext(connectionString);
+
+        return await holder.QueryByPropertyAsync(context, new PagingArguments(2), cancellationToken);
+    }
+
+    private static async Task<Dictionary<string, StreamPage<SequentialItem>>> RunWithHolderFieldKeysAsync(
+        string connectionString,
+        KeyHolder holder,
+        CancellationToken cancellationToken)
+    {
+        await using var context = new SequentialItemContext(connectionString);
+
+        return await holder.QueryByFieldAsync(context, new PagingArguments(2), cancellationToken);
+    }
+
+    private sealed class KeyHolder(string[] keys, string[] keysField)
+    {
+        public string[] Keys { get; } = keys;
+
+        private readonly string[] _keysField = keysField;
+
+        public ValueTask<Dictionary<string, StreamPage<SequentialItem>>> QueryByPropertyAsync(
+            SequentialItemContext context,
+            PagingArguments arguments,
+            CancellationToken cancellationToken)
+            => context.Items
+                .Where(t => Keys.Contains(t.GroupKey))
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .ToBatchStreamPageAsync(t => t.GroupKey, arguments, cancellationToken: cancellationToken);
+
+        public ValueTask<Dictionary<string, StreamPage<SequentialItem>>> QueryByFieldAsync(
+            SequentialItemContext context,
+            PagingArguments arguments,
+            CancellationToken cancellationToken)
+            => context.Items
+                .Where(t => _keysField.Skip(1).Contains(t.GroupKey))
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .ToBatchStreamPageAsync(t => t.GroupKey, arguments, cancellationToken: cancellationToken);
+    }
+
+    [Fact]
     public async Task ToBatchStreamPageAsync_Should_ReturnEachKeysLastItemsInAscendingOrder_When_PagingBackward()
     {
         // Arrange
@@ -579,7 +681,7 @@ public class StreamBatchPagingTests(PostgreSqlResource resource)
     [Fact]
     public async Task ToBatchStreamPageAsync_Should_FallBackToDistinctKeysQuery_When_ContainsOperandReferencesTheQueryParameter()
     {
-        // Arrange: the `Contains` receiver reads a member of the query parameter itself.
+        // Arrange: the `Contains` receiver is an IEnumerable<TKey> member of the query parameter itself.
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString, ("A", 2), ("B", 2), ("C", 1));
         var cancellationToken = Xunit.TestContext.Current.CancellationToken;
@@ -590,7 +692,7 @@ public class StreamBatchPagingTests(PostgreSqlResource resource)
         // Act
         using var capture = new CapturePagingQueryInterceptor();
         var pages = await context.Items
-            .Where(t => t.Name.Contains(t.GroupKey))
+            .Where(t => t.Aliases.Contains(t.GroupKey))
             .OrderBy(t => t.Name)
             .ThenBy(t => t.Id)
             .ToBatchStreamPageAsync(t => t.GroupKey, arguments, cancellationToken: cancellationToken);
@@ -1170,7 +1272,12 @@ public class StreamBatchPagingTests(PostgreSqlResource resource)
         {
             for (var i = 1; i <= count; i++)
             {
-                context.Items.Add(new SequentialItem { GroupKey = groupKey, Name = $"{groupKey}-Item{i:D2}" });
+                context.Items.Add(new SequentialItem
+                {
+                    GroupKey = groupKey,
+                    Name = $"{groupKey}-Item{i:D2}",
+                    Aliases = [groupKey]
+                });
             }
         }
 
@@ -1201,6 +1308,8 @@ public class StreamBatchPagingTests(PostgreSqlResource resource)
         [MaxLength(50)] public required string GroupKey { get; set; }
 
         [MaxLength(100)] public required string Name { get; set; }
+
+        public List<string> Aliases { get; set; } = [];
     }
 }
 #endif

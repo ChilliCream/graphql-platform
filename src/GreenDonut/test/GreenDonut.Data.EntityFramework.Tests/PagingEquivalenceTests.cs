@@ -25,6 +25,8 @@ public class PagingEquivalenceTests(PostgreSqlResource resource)
             "LastBefore",
             "RelativeAfter",
             "RelativeAfterOffset",
+            "RelativeBefore",
+            "RelativeBeforeOffset",
             "RelativeBeforeCountsOn",
             "EndCursor",
             "CountsOn",
@@ -132,6 +134,20 @@ public class PagingEquivalenceTests(PostgreSqlResource resource)
                 var relativeArguments = new PagingArguments(3) { EnableRelativeCursors = true };
                 var seedPage = await source.ToPageAsync(relativeArguments, cancellationToken);
                 return relativeArguments with { After = seedPage.CreateCursor(seedPage.Entries[^1], 1) };
+            }
+
+            case "RelativeBefore":
+            {
+                var relativeArguments = new PagingArguments(last: 3) { EnableRelativeCursors = true };
+                var seedPage = await source.ToPageAsync(relativeArguments, cancellationToken);
+                return relativeArguments with { Before = seedPage.CreateCursor(seedPage.Entries[0], 0) };
+            }
+
+            case "RelativeBeforeOffset":
+            {
+                var relativeArguments = new PagingArguments(last: 3) { EnableRelativeCursors = true };
+                var seedPage = await source.ToPageAsync(relativeArguments, cancellationToken);
+                return relativeArguments with { Before = seedPage.CreateCursor(seedPage.Entries[0], -1) };
             }
 
             case "RelativeBeforeCountsOn":

@@ -38,7 +38,9 @@ public static class PagingQueryableExtensions
     /// Returns a page of items.
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// If the queryable does not have any keys specified.
+    /// If the queryable does not have any keys specified, if <c>first</c> or <c>last</c> is
+    /// given and not greater than zero, or if a relative cursor's offset does not fit into an
+    /// <see cref="int"/>.
     /// </exception>
     public static async ValueTask<Page<T>> ToPageAsync<T>(
         this IQueryable<T> source,
@@ -68,7 +70,9 @@ public static class PagingQueryableExtensions
     /// Returns a page of items.
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// If the queryable does not have any keys specified.
+    /// If the queryable does not have any keys specified, if <c>first</c> or <c>last</c> is
+    /// given and not greater than zero, or if a relative cursor's offset does not fit into an
+    /// <see cref="int"/>.
     /// </exception>
     public static async ValueTask<Page<T>> ToPageAsync<T>(
         this IQueryable<T> source,
@@ -482,14 +486,7 @@ public static class PagingQueryableExtensions
         // The ordering is moved into the select expression so GroupBy keeps it.
         var ordering = ExtractAndRemoveOrder(source.Expression);
 
-        Dictionary<TKey, int>? counts = null;
-        if (includeTotalCount)
-        {
-            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
-        }
-
-        var map = new Dictionary<TKey, Page<TValue>>();
-
+        // Validated before the count query runs.
         var forward = arguments.Last is null;
         var requestedCount = int.MaxValue;
         var batchExpression =
@@ -501,6 +498,14 @@ public static class PagingQueryableExtensions
                 forward,
                 selector,
                 ref requestedCount);
+
+        Dictionary<TKey, int>? counts = null;
+        if (includeTotalCount)
+        {
+            counts = await GetBatchCountsAsync(source, keySelector, cancellationToken);
+        }
+
+        var map = new Dictionary<TKey, Page<TValue>>();
 
         source = source.Provider.CreateQuery<TElement>(ordering.Expression);
 
@@ -843,7 +848,7 @@ public static class PagingQueryableExtensions
         var hasPrevious = false;
         var hasNext = false;
 
-        // A skip with any fetched items means there is a previous page.
+        // An after cursor with any fetched items means there is a previous page.
         if (arguments.After is not null && fetchCount > 0)
         {
             hasPrevious = true;

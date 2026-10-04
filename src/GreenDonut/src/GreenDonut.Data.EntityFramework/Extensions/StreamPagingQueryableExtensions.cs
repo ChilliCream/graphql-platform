@@ -39,7 +39,9 @@ public static class StreamPagingQueryableExtensions
     /// Returns a streaming page of items.
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// If the queryable does not have any keys specified.
+    /// If the queryable does not have any keys specified, if <c>first</c> or <c>last</c> is
+    /// given and not greater than zero, or if a relative cursor's offset does not fit into an
+    /// <see cref="int"/>.
     /// </exception>
     public static ValueTask<StreamPage<T>> ToStreamPageAsync<T>(
         this IQueryable<T> source,
@@ -76,9 +78,10 @@ public static class StreamPagingQueryableExtensions
     /// Returns a streaming page of items.
     /// </returns>
     /// <exception cref="ArgumentException">
-    /// If the queryable does not have any keys specified, or if
-    /// <see cref="PagingArguments.IncludeItems"/> is <c>false</c> while
-    /// <paramref name="includeTotalCount"/> is also <c>false</c>.
+    /// If the queryable does not have any keys specified, if <c>first</c> or <c>last</c> is
+    /// given and not greater than zero, if a relative cursor's offset does not fit into an
+    /// <see cref="int"/>, or if <see cref="PagingArguments.IncludeItems"/> is <c>false</c>
+    /// while <paramref name="includeTotalCount"/> is also <c>false</c>.
     /// </exception>
     public static async ValueTask<StreamPage<T>> ToStreamPageAsync<T>(
         this IQueryable<T> source,
@@ -840,9 +843,11 @@ public static class StreamPagingQueryableExtensions
         // flat query applies per key.
         var windowPredicate = CombinePredicates(composition.AfterPredicate, composition.BeforePredicate);
 
-        // True when a relative continuation cursor needs its own per-key empty check. Otherwise an
-        // empty key's page falls back to the cursor's cached total and index.
-        var needsCursorEmptyCheck = relative && cursor is { IsEndCursor: false } && includeTotalCount;
+        // True whenever a relative continuation cursor needs its own per-key empty check: a fresh
+        // count already runs, or a backward page bakes its flags and index before any row streams.
+        var needsCursorEmptyCheck = relative
+            && cursor is { IsEndCursor: false }
+            && (includeTotalCount || (isBackward && usesRelativeBackwardFlags));
 
         // The requested keys are the caller's key set; a key with zero matching rows still gets
         // an empty page.

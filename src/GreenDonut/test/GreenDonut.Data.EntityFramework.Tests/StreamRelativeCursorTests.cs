@@ -661,6 +661,40 @@ public class StreamRelativeCursorTests(PostgreSqlResource resource)
             exception.Message);
     }
 
+    [Fact]
+    public async Task ToStreamPageAsync_Should_ThrowArgumentException_When_NegativeRelativeOffsetOverflowsInt()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(last: 10) { EnableRelativeCursors = true };
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
+            arguments,
+            cancellationToken: cancellationToken);
+        var lastEntries = await DrainEntriesAndDisposeAsync(last, cancellationToken);
+
+        // This offset times the page size overflows an int and must be rejected.
+        arguments = arguments with { Before = last.CreateCursor(lastEntries[0], -(int.MaxValue / 2)) };
+
+        // Act
+
+        async Task Error()
+            => await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
+                arguments,
+                cancellationToken: cancellationToken);
+
+        // Assert
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(Error);
+        Assert.Equal(
+            "The relative cursor offset is too large for the requested page size. (Parameter 'arguments')",
+            exception.Message);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -739,6 +773,41 @@ public class StreamRelativeCursorTests(PostgreSqlResource resource)
 
         // This offset times the page size overflows an int and must be rejected.
         arguments = arguments with { After = first.CreateCursor(firstEntries[^1], int.MaxValue / 2) };
+
+        // Act
+
+        async Task Error()
+            => await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToBatchStreamPageAsync(
+                t => t.GroupId,
+                arguments,
+                cancellationToken: cancellationToken);
+
+        // Assert
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(Error);
+        Assert.Equal(
+            "The relative cursor offset is too large for the requested page size. (Parameter 'arguments')",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task ToBatchStreamPageAsync_Should_ThrowArgumentException_When_NegativeRelativeOffsetOverflowsInt()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(last: 10) { EnableRelativeCursors = true };
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToStreamPageAsync(
+            arguments,
+            cancellationToken: cancellationToken);
+        var lastEntries = await DrainEntriesAndDisposeAsync(last, cancellationToken);
+
+        // This offset times the page size overflows an int and must be rejected.
+        arguments = arguments with { Before = last.CreateCursor(lastEntries[0], -(int.MaxValue / 2)) };
 
         // Act
 
