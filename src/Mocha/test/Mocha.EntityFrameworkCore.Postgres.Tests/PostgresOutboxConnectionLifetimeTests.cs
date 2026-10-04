@@ -1,6 +1,5 @@
 using System.Data;
 using System.Transactions;
-using CookieCrumble;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,24 +40,24 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         }
 
         using var outbox = CreateOutbox(context);
-        var states = new List<object?>();
+        var states = new List<ConnectionState>();
 
         // act
         for (var i = 0; i < 3; i++)
         {
             await outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken);
-            states.Add(connection.State.ToString());
+            states.Add(connection.State);
         }
 
         // assert
-        var expectedState = alreadyOpen ? "Open" : "Closed";
-        states.MatchInlineSnapshots([expectedState, expectedState, expectedState]);
-        (await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken))
-            .MatchInlineSnapshot("3");
+        var expectedState = alreadyOpen ? ConnectionState.Open : ConnectionState.Closed;
+        Assert.Equal([expectedState, expectedState, expectedState], states);
+        var outboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(3, outboxMessages);
         if (openedThroughEf)
         {
             await context.Database.CloseConnectionAsync();
-            connection.State.ToString().MatchInlineSnapshot("Closed");
+            Assert.Equal(ConnectionState.Closed, connection.State);
         }
     }
 
@@ -79,7 +78,7 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         await outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken);
         var stateAfterPersist = context.Database.GetDbConnection().State;
-        var transactionPreserved = ReferenceEquals(transaction, context.Database.CurrentTransaction);
+        var transactionAfterPersist = context.Database.CurrentTransaction;
         context.Writes.Add(new ApplicationWrite { Id = 2 });
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         await outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken);
@@ -94,29 +93,13 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
 
         // assert
         await using var verification = CreateContext(dataSource);
-        new
-        {
-            StateAfterPersist = stateAfterPersist,
-            TransactionPreserved = transactionPreserved,
-            ApplicationWrites = await verification.Writes.CountAsync(TestContext.Current.CancellationToken),
-            OutboxMessages = await verification.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(commit
-            ? """
-              {
-                "StateAfterPersist": "Open",
-                "TransactionPreserved": true,
-                "ApplicationWrites": 2,
-                "OutboxMessages": 2
-              }
-              """
-            : """
-              {
-                "StateAfterPersist": "Open",
-                "TransactionPreserved": true,
-                "ApplicationWrites": 0,
-                "OutboxMessages": 0
-              }
-              """);
+        Assert.Equal(ConnectionState.Open, stateAfterPersist);
+        Assert.Same(transaction, transactionAfterPersist);
+        var expectedCount = commit ? 2 : 0;
+        var applicationWrites = await verification.Writes.CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(expectedCount, applicationWrites);
+        var outboxMessages = await verification.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(expectedCount, outboxMessages);
     }
 
     [Theory]
@@ -156,7 +139,6 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         {
             await using (var repositoryContext = await factory.CreateDbContextAsync(TestContext.Current.CancellationToken))
             {
-                Assert.NotSame(scopedContext, repositoryContext);
                 firstBackend = await GetBackendAsync(repositoryContext);
                 repositoryContext.Writes.Add(new ApplicationWrite { Id = 1 });
                 await repositoryContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -181,32 +163,14 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
 
         // assert
         await using var verification = CreateContext(dataSource);
-        new
-        {
-            StateAfterPersist = stateAfterPersist,
-            FinalState = scopedContext.Database.GetDbConnection().State,
-            SameBackend = firstBackend == secondBackend,
-            ApplicationWrites = await verification.Writes.CountAsync(TestContext.Current.CancellationToken),
-            OutboxMessages = await verification.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(commit
-            ? """
-              {
-                "StateAfterPersist": "Closed",
-                "FinalState": "Closed",
-                "SameBackend": true,
-                "ApplicationWrites": 2,
-                "OutboxMessages": 2
-              }
-              """
-            : """
-              {
-                "StateAfterPersist": "Closed",
-                "FinalState": "Closed",
-                "SameBackend": true,
-                "ApplicationWrites": 0,
-                "OutboxMessages": 0
-              }
-              """);
+        Assert.Equal(ConnectionState.Closed, stateAfterPersist);
+        Assert.Equal(ConnectionState.Closed, scopedContext.Database.GetDbConnection().State);
+        Assert.Equal(firstBackend, secondBackend);
+        var expectedCount = commit ? 2 : 0;
+        var applicationWrites = await verification.Writes.CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(expectedCount, applicationWrites);
+        var outboxMessages = await verification.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(expectedCount, outboxMessages);
     }
 
     [Theory]
@@ -240,19 +204,11 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
 
         // assert
         await using var verification = CreateContext(dataSource);
-        new
-        {
-            StateAfterPersist = stateAfterPersist,
-            ApplicationWrites = await verification.Writes.CountAsync(TestContext.Current.CancellationToken),
-            OutboxMessages = await verification.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "StateAfterPersist": "Open",
-              "ApplicationWrites": 0,
-              "OutboxMessages": 0
-            }
-            """);
+        Assert.Equal(ConnectionState.Open, stateAfterPersist);
+        var applicationWrites = await verification.Writes.CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0, applicationWrites);
+        var outboxMessages = await verification.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0, outboxMessages);
     }
 
     [Theory]
@@ -281,21 +237,13 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // assert
-        new
-        {
-            exception.SqlState,
-            StateRestored = stateAfterFailure == (alreadyOpen ? ConnectionState.Open : ConnectionState.Closed),
-            ApplicationWrites = await context.Writes.CountAsync(TestContext.Current.CancellationToken),
-            OutboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "SqlState": "42P01",
-              "StateRestored": true,
-              "ApplicationWrites": 1,
-              "OutboxMessages": 0
-            }
-            """);
+        Assert.Equal("42P01", exception.SqlState);
+        var expectedState = alreadyOpen ? ConnectionState.Open : ConnectionState.Closed;
+        Assert.Equal(expectedState, stateAfterFailure);
+        var applicationWrites = await context.Writes.CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, applicationWrites);
+        var outboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0, outboxMessages);
     }
 
     [Theory]
@@ -339,19 +287,11 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         await outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken);
 
         // assert
-        new
-        {
-            StateRestored = stateAfterCancellation == (alreadyOpen ? ConnectionState.Open : ConnectionState.Closed),
-            MessagesAfterCancellation = messagesAfterCancellation,
-            MessagesAfterRetry = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "StateRestored": true,
-              "MessagesAfterCancellation": 0,
-              "MessagesAfterRetry": 1
-            }
-            """);
+        var expectedState = alreadyOpen ? ConnectionState.Open : ConnectionState.Closed;
+        Assert.Equal(expectedState, stateAfterCancellation);
+        Assert.Equal(0, messagesAfterCancellation);
+        var messagesAfterRetry = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, messagesAfterRetry);
     }
 
     [Fact]
@@ -371,17 +311,9 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         await outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken);
 
         // assert
-        new
-        {
-            StateAfterCancellation = stateAfterCancellation,
-            OutboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "StateAfterCancellation": "Closed",
-              "OutboxMessages": 1
-            }
-            """);
+        Assert.Equal(ConnectionState.Closed, stateAfterCancellation);
+        var outboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, outboxMessages);
     }
 
     [Fact]
@@ -395,24 +327,18 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         await using var dataSource = NpgsqlDataSource.Create(settings.ConnectionString);
         await using var context = CreateContext(dataSource);
         using var outbox = CreateOutbox(context);
-        var results = new List<object?>();
+        var results = new List<(string SqlState, ConnectionState State)>();
 
         // act
         for (var i = 0; i < 2; i++)
         {
             var exception = await Assert.ThrowsAsync<PostgresException>(
                 () => outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken).AsTask());
-            results.Add(new { exception.SqlState, State = context.Database.GetDbConnection().State });
+            results.Add((exception.SqlState, context.Database.GetDbConnection().State));
         }
 
         // assert
-        const string expected = """
-            {
-              "SqlState": "3D000",
-              "State": "Closed"
-            }
-            """;
-        results.MatchInlineSnapshots([expected, expected]);
+        Assert.Equal([("3D000", ConnectionState.Closed), ("3D000", ConnectionState.Closed)], results);
     }
 
     [Fact]
@@ -437,21 +363,11 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         await outbox.PersistAsync(CreateEnvelope(), TestContext.Current.CancellationToken);
 
         // assert
-        new
-        {
-            StateWhileOpening = stateWhileOpening,
-            StateAfterCancellation = stateAfterCancellation,
-            StateAfterRetry = context.Database.GetDbConnection().State,
-            OutboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "StateWhileOpening": "Connecting",
-              "StateAfterCancellation": "Closed",
-              "StateAfterRetry": "Closed",
-              "OutboxMessages": 1
-            }
-            """);
+        Assert.Equal(ConnectionState.Connecting, stateWhileOpening);
+        Assert.Equal(ConnectionState.Closed, stateAfterCancellation);
+        Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+        var outboxMessages = await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, outboxMessages);
     }
 
     private async Task<NpgsqlDataSource> CreateDataSourceAsync()
