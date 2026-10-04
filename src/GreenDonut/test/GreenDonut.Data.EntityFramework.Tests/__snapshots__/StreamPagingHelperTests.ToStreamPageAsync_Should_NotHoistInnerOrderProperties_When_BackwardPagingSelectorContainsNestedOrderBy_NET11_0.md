@@ -1,9 +1,9 @@
-# ToPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy
+# ToStreamPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy
 
 ## SQL 0
 
 ```sql
--- @__p_0='2'
+-- @p='2'
 SELECT b0."Id", b0."Name", (
     SELECT p."Name"
     FROM "Products" AS p
@@ -18,7 +18,7 @@ FROM (
     SELECT b."Id", b."Name"
     FROM "Brands" AS b
     ORDER BY b."Id" DESC
-    LIMIT @__p_0
+    LIMIT @p
 ) AS b0
 ORDER BY b0."Id"
 ```

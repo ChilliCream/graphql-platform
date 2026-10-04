@@ -234,6 +234,55 @@ public class StreamBatchPagingTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task ToBatchStreamPageAsync_Should_ReturnEachKeysOwnItems_When_PagesAreConsumedInterleaved()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString, ("A", 2), ("B", 2), ("C", 2));
+
+        var interceptor = new RecordingReaderInterceptor();
+        await using var context = new SequentialItemContext(connectionString, [interceptor]);
+        var arguments = new PagingArguments(2);
+        var cancellationToken = Xunit.TestContext.Current.CancellationToken;
+
+        // Act
+        var pages = await context.Items
+            .Where(t => new[] { "A", "B", "C" }.Contains(t.GroupKey))
+            .OrderBy(t => t.Name)
+            .ThenBy(t => t.Id)
+            .ToBatchStreamPageAsync(t => t.GroupKey, arguments, cancellationToken: cancellationToken);
+
+        await using var enumeratorA = pages["A"].GetAsyncEnumerator(cancellationToken);
+        await using var enumeratorB = pages["B"].GetAsyncEnumerator(cancellationToken);
+        await using var enumeratorC = pages["C"].GetAsyncEnumerator(cancellationToken);
+        var itemsA = new List<string>();
+        var itemsB = new List<string>();
+        var itemsC = new List<string>();
+
+        // advance one step per key, round-robin, instead of draining one key before the next.
+        while (await enumeratorA.MoveNextAsync())
+        {
+            itemsA.Add(enumeratorA.Current.Name);
+
+            if (await enumeratorB.MoveNextAsync())
+            {
+                itemsB.Add(enumeratorB.Current.Name);
+            }
+
+            if (await enumeratorC.MoveNextAsync())
+            {
+                itemsC.Add(enumeratorC.Current.Name);
+            }
+        }
+
+        // Assert
+        Assert.Equal(["A-Item01", "A-Item02"], itemsA);
+        Assert.Equal(["B-Item01", "B-Item02"], itemsB);
+        Assert.Equal(["C-Item01", "C-Item02"], itemsC);
+        Assert.Single(interceptor.CommandTexts);
+    }
+
+    [Fact]
     public async Task ToBatchStreamPageAsync_Should_ProjectItemsWhileCursorsUseTheSourceElement_When_ValueSelectorIsGiven()
     {
         // Arrange

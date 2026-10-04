@@ -10,7 +10,7 @@ namespace GreenDonut.Data;
 public class StreamPagingTotalCountTests
 {
     [Fact]
-    public async Task ToPageAsync_Should_ReturnZeroTotalCount_When_FilteredDataSetIsEmpty()
+    public async Task ToStreamPageAsync_Should_ReturnZeroTotalCount_When_FilteredDataSetIsEmpty()
     {
         // Arrange
         await using var database = await TestDatabase.CreateAsync(2);
@@ -37,7 +37,7 @@ public class StreamPagingTotalCountTests
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_PreserveCursorTotalCount_When_CountIsNotRequested()
+    public async Task ToStreamPageAsync_Should_PreserveCursorTotalCount_When_CountIsNotRequested()
     {
         // Arrange
         await using var database = await TestDatabase.CreateAsync(2);
@@ -70,7 +70,7 @@ public class StreamPagingTotalCountTests
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_ReturnDataSetCount_When_PageAfterLastItemIsEmpty()
+    public async Task ToStreamPageAsync_Should_ReturnDataSetCount_When_PageAfterLastItemIsEmpty()
     {
         // Arrange
         await using var database = await TestDatabase.CreateAsync(2);
@@ -104,7 +104,7 @@ public class StreamPagingTotalCountTests
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_ReturnDataSetCount_When_PageBeforeFirstItemIsEmpty()
+    public async Task ToStreamPageAsync_Should_ReturnDataSetCount_When_PageBeforeFirstItemIsEmpty()
     {
         // Arrange
         await using var database = await TestDatabase.CreateAsync(2);
@@ -138,7 +138,7 @@ public class StreamPagingTotalCountTests
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_LeaveTotalCountUnknown_When_CountIsNotRequested()
+    public async Task ToStreamPageAsync_Should_LeaveTotalCountUnknown_When_CountIsNotRequested()
     {
         // Arrange
         await using var database = await TestDatabase.CreateAsync(0);
@@ -164,7 +164,7 @@ public class StreamPagingTotalCountTests
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_UseCombinedCountQuery_When_PageIsNotEmpty()
+    public async Task ToStreamPageAsync_Should_UseCombinedCountQuery_When_PageIsNotEmpty()
     {
         // Arrange
         await using var database = await TestDatabase.CreateAsync(2);

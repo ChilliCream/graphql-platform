@@ -1,4 +1,4 @@
-# ToPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy
+# ToStreamPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy
 
 ## SQL 0
 

@@ -920,7 +920,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_CreateCursor_When_SelectorContainsNestedOrderBy()
+    public async Task ToStreamPageAsync_Should_CreateCursor_When_SelectorContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -962,7 +962,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy()
+    public async Task ToStreamPageAsync_Should_NotHoistInnerOrderProperties_When_BackwardPagingSelectorContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -1004,7 +1004,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy()
+    public async Task ToStreamPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -1039,7 +1039,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_PreserveNestedOrdering_When_BackwardPagingPredicateContainsOrderBy()
+    public async Task ToStreamPageAsync_Should_PreserveNestedOrdering_When_BackwardPagingPredicateContainsOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -1074,7 +1074,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_CreateCursor_When_OrderKeyContainsNestedOrderBy()
+    public async Task ToStreamPageAsync_Should_CreateCursor_When_OrderKeyContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();
@@ -1114,7 +1114,7 @@ public class StreamPagingHelperTests(PostgreSqlResource resource)
     }
 
     [Fact]
-    public async Task ToPageAsync_Should_FetchSecondPage_When_OrderKeyContainsNestedOrderBy()
+    public async Task ToStreamPageAsync_Should_FetchSecondPage_When_OrderKeyContainsNestedOrderBy()
     {
         // Arrange
         using var interceptor = new CapturePagingQueryInterceptor();

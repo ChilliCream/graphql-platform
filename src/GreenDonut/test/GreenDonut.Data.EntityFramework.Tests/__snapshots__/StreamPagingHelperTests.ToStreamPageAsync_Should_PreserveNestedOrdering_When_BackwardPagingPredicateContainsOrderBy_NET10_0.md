@@ -1,4 +1,4 @@
-# ToPageAsync_Should_PreserveNestedOrdering_When_BackwardPagingPredicateContainsOrderBy
+# ToStreamPageAsync_Should_PreserveNestedOrdering_When_BackwardPagingPredicateContainsOrderBy
 
 ## SQL 0
 

@@ -1,4 +1,4 @@
-# ToPageAsync_Should_FetchSecondPage_When_OrderKeyContainsNestedOrderBy
+# ToStreamPageAsync_Should_FetchSecondPage_When_OrderKeyContainsNestedOrderBy
 
 ## SQL 0
 

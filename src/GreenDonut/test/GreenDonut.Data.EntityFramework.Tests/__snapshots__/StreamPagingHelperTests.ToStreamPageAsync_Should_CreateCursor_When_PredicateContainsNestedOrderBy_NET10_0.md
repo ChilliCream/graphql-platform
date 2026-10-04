@@ -1,9 +1,9 @@
-# ToPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy
+# ToStreamPageAsync_Should_CreateCursor_When_PredicateContainsNestedOrderBy
 
 ## SQL 0
 
 ```sql
--- @__p_0='3'
+-- @p='3'
 SELECT b."Id", b."Name"
 FROM "Brands" AS b
 WHERE (
@@ -13,7 +13,7 @@ WHERE (
     ORDER BY p."Price" DESC
     LIMIT 1) >= 0.0
 ORDER BY b."Id"
-LIMIT @__p_0
+LIMIT @p
 ```
 
 ## Expression 0

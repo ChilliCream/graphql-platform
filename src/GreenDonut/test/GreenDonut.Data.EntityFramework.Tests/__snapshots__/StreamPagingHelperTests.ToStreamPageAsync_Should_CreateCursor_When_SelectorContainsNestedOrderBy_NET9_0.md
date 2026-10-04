@@ -1,9 +1,9 @@
-# ToPageAsync_Should_CreateCursor_When_SelectorContainsNestedOrderBy
+# ToStreamPageAsync_Should_CreateCursor_When_SelectorContainsNestedOrderBy
 
 ## SQL 0
 
 ```sql
--- @p='3'
+-- @__p_0='3'
 SELECT b."Id", b."Name", (
     SELECT p."Name"
     FROM "Products" AS p
@@ -12,7 +12,7 @@ SELECT b."Id", b."Name", (
     LIMIT 1) AS "DisplayName"
 FROM "Brands" AS b
 ORDER BY b."Id"
-LIMIT @p
+LIMIT @__p_0
 ```
 
 ## Expression 0
