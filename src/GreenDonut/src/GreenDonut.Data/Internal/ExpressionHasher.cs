@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Text;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -534,7 +535,44 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         Append(EnumTag);
         AppendType(value.GetType());
         Append('|');
-        Append(value.ToString("D"));
+
+        switch (Type.GetTypeCode(value.GetType()))
+        {
+            case TypeCode.SByte:
+                Append((long)(sbyte)(object)value);
+                break;
+
+            case TypeCode.Int16:
+                Append((long)(short)(object)value);
+                break;
+
+            case TypeCode.Int32:
+                Append((long)(int)(object)value);
+                break;
+
+            case TypeCode.Int64:
+                Append((long)(object)value);
+                break;
+
+            case TypeCode.Byte:
+                Append((ulong)(byte)(object)value);
+                break;
+
+            case TypeCode.UInt16:
+                Append((ulong)(ushort)(object)value);
+                break;
+
+            case TypeCode.UInt32:
+                Append((ulong)(uint)(object)value);
+                break;
+
+            case TypeCode.UInt64:
+                Append((ulong)(object)value);
+                break;
+
+            default:
+                throw new UnreachableException();
+        }
     }
 
     private void AppendNumber<T>(ValueKind kind, T value)
@@ -646,6 +684,32 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     }
 
     private void Append(int i)
+    {
+        int written;
+
+        var span = _buffer.AsSpan()[_start..];
+        while (!Utf8Formatter.TryFormat(i, span, out written))
+        {
+            span = ExpandRollingBufferCapacity(_start);
+        }
+
+        _start += written;
+    }
+
+    private void Append(long i)
+    {
+        int written;
+
+        var span = _buffer.AsSpan()[_start..];
+        while (!Utf8Formatter.TryFormat(i, span, out written))
+        {
+            span = ExpandRollingBufferCapacity(_start);
+        }
+
+        _start += written;
+    }
+
+    private void Append(ulong i)
     {
         int written;
 
