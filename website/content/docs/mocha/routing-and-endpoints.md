@@ -214,10 +214,12 @@ await bus.SendAsync(new ReserveInventoryCommand
 },
 new SendOptions
 {
-    Endpoint = new Uri("rabbitmq://custom-inventory-queue")
+    Endpoint = new Uri("queue:custom-inventory-queue")
 },
 cancellationToken);
 ```
+
+The address does not have to be part of the transport topology. On RabbitMQ, `queue:<name>` or the transport form `rabbitmq:q/<name>` reaches a queue the host never declared, for example a queue another service owns. The host declares, binds, and consumes nothing for that queue. As with every RabbitMQ publish, a message the broker cannot route, for example because the queue does not exist, is dropped.
 
 # Customize queues and binding
 
