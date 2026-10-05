@@ -137,6 +137,16 @@ public sealed class Mediator(MediatorRuntime runtime, IServiceProvider servicePr
     {
         var pipelines = runtime.GetNotificationPipelines(messageType);
 
+        if (pipelines.IsEmpty)
+        {
+            if (notification is not INotification)
+            {
+                throw ThrowHelper.NotANotification(messageType);
+            }
+
+            return default;
+        }
+
         if (pipelines.Length == 1)
         {
             return PublishSingle(pipelines[0], notification, messageType, cancellationToken);
