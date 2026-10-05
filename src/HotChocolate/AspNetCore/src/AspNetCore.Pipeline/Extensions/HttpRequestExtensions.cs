@@ -14,6 +14,16 @@ internal static class HttpRequestExtensions
             && values.Count > 0 && (values[0]?.Contains(ContentType.Html) ?? false);
     }
 
+    internal static bool IsEndpointPath(this HttpRequest request, PathString path)
+    {
+        var isBelowPath = request.Path.StartsWithSegments(
+            path,
+            StringComparison.OrdinalIgnoreCase,
+            out var remaining);
+
+        return isBelowPath && remaining.Value is null or "" or "/";
+    }
+
     internal static bool IsGetOrHeadMethod(this HttpRequest request)
     {
         return HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method);

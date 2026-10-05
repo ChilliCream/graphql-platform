@@ -1,5 +1,7 @@
+using System.Net;
 using System.Text;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
+using HotChocolate.AzureFunctions.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -91,6 +93,55 @@ public class IsolatedProcessEndToEndTests
         dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
         Assert.Equal("Darth Vader", json.data.person.ToString());
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnVaryAccept_When_QueryIsExecuted()
+    {
+        // arrange
+        var host = new MockIsolatedProcessHostBuilder()
+            .AddGraphQLFunction(
+                b => b.AddQueryType(
+                    d => d.Name("Query").Field("person").Resolve("Luke Skywalker")))
+            .Build();
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(
+            host.Services,
+            "{ person }");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(response.Headers.TryGetValues("Vary", out var vary));
+        Assert.Equal(["Accept"], vary);
+    }
+
+    [Fact]
+    public async Task Get_Should_ReturnVaryAccept_When_QueryIsExecuted()
+    {
+        // arrange
+        var host = new MockIsolatedProcessHostBuilder()
+            .AddGraphQLFunction(
+                b => b.AddQueryType(
+                    d => d.Name("Query").Field("person").Resolve("Luke Skywalker")))
+            .Build();
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(response.Headers.TryGetValues("Vary", out var vary));
+        Assert.Equal(["Accept"], vary);
     }
 
     [Fact]

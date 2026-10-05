@@ -44,7 +44,7 @@ public sealed class HttpUnsupportedRequestMiddleware : MiddlewareBase
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (IsGraphQLEndpoint(context.Request))
+        if (_path is not { } path || context.Request.IsEndpointPath(path))
         {
             var options = GetOptions(context);
 
@@ -90,21 +90,6 @@ public sealed class HttpUnsupportedRequestMiddleware : MiddlewareBase
         }
 
         context.Response.StatusCode = StatusCodes.Status404NotFound;
-    }
-
-    private bool IsGraphQLEndpoint(HttpRequest request)
-    {
-        if (_path is not { } path)
-        {
-            return true;
-        }
-
-        var isBelowPath = request.Path.StartsWithSegments(
-            path,
-            StringComparison.OrdinalIgnoreCase,
-            out var remaining);
-
-        return isBelowPath && remaining.Value is null or "" or "/";
     }
 
     // The Allow header for the options this middleware serves, built on first use.

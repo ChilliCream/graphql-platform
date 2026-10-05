@@ -96,6 +96,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             var pipeline = new PipelineBuilder()
                 .Use(MiddlewareFactory.CreateCancellationMiddleware())
                 .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
+                .Use(MiddlewareFactory.CreateHttpContentNegotiationMiddleware(path))
                 .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
                 .Use(MiddlewareFactory.CreateHttpQueryMiddleware(executor, serverOptions))
