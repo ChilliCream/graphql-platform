@@ -25,7 +25,8 @@ response:
           "path": [
             "job",
             "items",
-            0
+            0,
+            "name"
           ],
           "extensions": {
             "code": "NOT_FOUND"

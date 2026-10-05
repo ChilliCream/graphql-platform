@@ -1,10 +1,11 @@
-title: Error_Below_Null_List_Element
+title: Error_Below_Null_List_Element_With_Alias
 request:
+  onError: Null
   document: |
     {
       job {
         items {
-          name
+          title: name
         }
       }
     }
@@ -25,7 +26,7 @@ response:
             "job",
             "items",
             0,
-            "name"
+            "title"
           ],
           "extensions": {
             "code": "NOT_FOUND"
@@ -55,10 +56,10 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_deadf20a_1 {
+            query Op_15f85f4f_1 {
               job {
                 items {
-                  name
+                  title: name
                 }
               }
             }
@@ -73,7 +74,7 @@ sourceSchemas:
                       "job",
                       "items",
                       0,
-                      "name"
+                      "title"
                     ],
                     "extensions": {
                       "code": "NOT_FOUND"
@@ -94,11 +95,11 @@ operationPlan:
         {
           job {
             items {
-              name
+              title: name
             }
           }
         }
-      hash: 88db52e8ab1dfecd0de99cb4a094158b
+      hash: 9467c1c16f7b80b748fefc0166a8a14a
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -106,10 +107,10 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_deadf20a_1 {
+        query Op_15f85f4f_1 {
           job {
             items {
-              name
+              title: name
             }
           }
         }
