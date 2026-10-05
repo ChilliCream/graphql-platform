@@ -111,7 +111,7 @@ Content-Type: application/json
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
-With [Nitro](./endpoints.md#tool) enabled, a GET or HEAD request on the endpoint path that no GraphQL middleware handles, such as one without GraphQL parameters, one sent while GET requests are disabled, or one without a required [preflight header](#preflight-header-enforcement), is served Nitro only when its `Accept` header rates `text/html` above every media type a GraphQL response is written in. A missing or unparsable `Accept` header, `*/*`, and a tie count as a GraphQL request, which has a `404` status code, or a `405` status code when GET requests are disabled under [`Draft20260903`](#draft20260903).
+With [Nitro](./endpoints.md#tool) enabled, a GET or HEAD request on the endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type the default response formatter writes. Such requests include one without GraphQL parameters, one sent while GET requests are disabled, and one without a required [preflight header](#preflight-header-enforcement). The media types of a [custom formatter](#defaulthttpresponseformatter) are not part of this comparison. A missing or unparsable `Accept` header, `*/*`, and a tie count as a GraphQL request, which has a `404` status code, or a `405` status code when GET requests are disabled under [`Draft20260903`](#draft20260903).
 
 ## QUERY Requests
 

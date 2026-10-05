@@ -22,7 +22,8 @@ internal static class HttpContextExtensions
     /// <summary>
     /// Returns whether the request may reach the Nitro tool on the GraphQL endpoint at
     /// <paramref name="path"/>: a GET or HEAD on the endpoint path only when its Accept header
-    /// prefers <c>text/html</c> over every GraphQL response media type, and every other request.
+    /// prefers <c>text/html</c> over every media type the default response formatter writes, and
+    /// every other request.
     /// </summary>
     public static bool MayReachNitroApp(this HttpContext context, PathString path)
     {
