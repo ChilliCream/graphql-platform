@@ -111,6 +111,8 @@ Content-Type: application/json
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
+With [Nitro](./endpoints.md#tool) enabled, a GET or HEAD request on the endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type the default response formatter writes. Such requests include one without GraphQL parameters, one sent while GET requests are disabled, and one without a required [preflight header](#preflight-header-enforcement). The media types of a [custom formatter](#defaulthttpresponseformatter) are not part of this comparison. A missing or unparsable `Accept` header, `*/*`, and a tie count as a GraphQL request, which has a `404` status code, or a `405` status code when GET requests are disabled under [`Draft20260903`](#draft20260903).
+
 ## QUERY Requests
 
 GraphQL can also be served through an HTTP QUERY request, the method defined in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html). A QUERY request carries the same JSON body as a POST request. HTTP defines QUERY as safe, idempotent, and cacheable.
@@ -576,7 +578,7 @@ app.MapGraphQL().WithOptions(o =>
 });
 ```
 
-If a request is rejected because it lacks the required preflight header, the server responds with a `400 Bad Request` status.
+A multipart request without the required preflight header is rejected with a `400 Bad Request` status. A GET request without it is executed only when it sends `Content-Type: application/json`; otherwise it has a `404` status code, or, with [Nitro](./endpoints.md#tool) enabled and an `Accept` header that prefers `text/html`, it is served Nitro.
 
 # Next Steps
 

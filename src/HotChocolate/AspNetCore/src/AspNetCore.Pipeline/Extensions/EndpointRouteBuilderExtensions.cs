@@ -142,7 +142,9 @@ public static class EndpointRouteBuilderExtensions
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
                 executor, serverOptions, path, MiddlewareRoutingType.Integrated))
-            .UseNitroApp(path, serverOptions.Tool)
+            .UseWhen(
+                context => context.MayReachNitroApp(path),
+                branch => branch.UseNitroApp(path, serverOptions.Tool))
             .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                 executor,
                 serverOptions,
