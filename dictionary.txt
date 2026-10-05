@@ -114,6 +114,7 @@ graphyne
 greendonut
 Hasura
 HCXXXX
+healthcheck
 hhmm
 HHmmssfffffff
 Hmac

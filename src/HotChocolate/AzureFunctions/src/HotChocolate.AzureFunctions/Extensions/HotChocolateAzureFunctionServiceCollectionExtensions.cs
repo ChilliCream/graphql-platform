@@ -102,7 +102,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                 .Use(MiddlewareFactory.CreateHttpQueryMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
-                .UseNitroApp(path, serverOptions.Tool)
+                .UseWhen(
+                    context => context.MayReachNitroApp(path),
+                    branch => branch.UseNitroApp(path, serverOptions.Tool))
                 .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline);

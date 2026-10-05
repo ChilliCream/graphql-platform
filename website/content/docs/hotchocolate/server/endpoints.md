@@ -45,7 +45,7 @@ Calling `MapGraphQL()` enables the following functionality on the specified endp
 - HTTP GET, HTTP POST (Multipart included), and, when enabled, HTTP QUERY GraphQL requests are handled
 - WebSocket GraphQL requests are handled (if the ASP.NET Core WebSocket middleware has been registered)
 - Including the query string `?sdl` after the endpoint downloads the GraphQL schema
-- Accessing the endpoint from a browser loads the [Nitro](/products/nitro) GraphQL IDE
+- Accessing the endpoint from a browser loads the [Nitro](/products/nitro) GraphQL IDE (see [GET Requests](./http-transport.md#get-requests))
 
 You can customize the combined middleware using `GraphQLServerOptions` as shown below, or include only the parts of the middleware you need and configure them individually.
 
