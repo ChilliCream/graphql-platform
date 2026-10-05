@@ -1,0 +1,116 @@
+title: Error_Below_Null_List_Element_With_Alias
+request:
+  onError: Null
+  document: |
+    {
+      job {
+        items {
+          title: name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "job": {
+          "items": [
+            null
+          ]
+        }
+      },
+      "errors": [
+        {
+          "message": "Could not resolve Item.name",
+          "path": [
+            "job",
+            "items",
+            0,
+            "title"
+          ],
+          "extensions": {
+            "code": "NOT_FOUND"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        job: Job!
+      }
+
+      type Item {
+        name: String!
+      }
+
+      type Job {
+        items: [Item]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_15f85f4f_1 {
+              job {
+                items {
+                  title: name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Item.name",
+                    "path": [
+                      "job",
+                      "items",
+                      0,
+                      "title"
+                    ],
+                    "extensions": {
+                      "code": "NOT_FOUND"
+                    }
+                  }
+                ],
+                "data": {
+                  "job": {
+                    "items": [
+                      null
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          job {
+            items {
+              title: name
+            }
+          }
+        }
+      hash: 15f85f4ff479faa49442967d55d6a310
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_15f85f4f_1 {
+          job {
+            items {
+              title: name
+            }
+          }
+        }

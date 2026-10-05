@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -998,6 +1001,220 @@ public class SourceSchemaErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_On_List_Field_With_Null_Element(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema9.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_Below_Null_List_Element(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema10.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_Below_Null_List_Element_With_Alias(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema10.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  title: name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_Below_Null_List_Element_With_Deep_Path(ErrorHandlingMode onError)
+    {
+        // arrange
+        // the error path continues 100000 segments below the selected leaf field
+        var deepPath = string.Join(",", Enumerable.Repeat("\"child\"", 100_000));
+        var sourceSchemaResponse =
+            $$"""
+            {
+              "errors": [
+                {
+                  "message": "Could not resolve Item.name",
+                  "path": ["job", "items", 0, "name", {{deepPath}}]
+                }
+              ],
+              "data": { "job": { "items": [null] } }
+            }
+            """;
+
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              job: Job!
+            }
+
+            type Job {
+              items: [Item]!
+            }
+
+            type Item {
+              name: String!
+            }
+            """,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        sourceSchemaResponse,
+                        Encoding.UTF8,
+                        new MediaTypeHeaderValue("application/json"))
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            configureGatewayBuilder: builder => builder.ModifyRequestOptions(
+                o => o.AllowOperationPlanRequests = false));
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "job": {
+                  "items": [
+                    null
+                  ]
+                }
+              },
+              "errors": [
+                {
+                  "message": "Could not resolve Item.name",
+                  "path": [
+                    "job",
+                    "items",
+                    0,
+                    "name"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
     public static class SourceSchema1
     {
         public class Query
@@ -1134,6 +1351,54 @@ public class SourceSchemaErrorTests : FusionTestBase
                         .SetException(new Exception("Some exception"))
                         .Build());
             }
+        }
+    }
+
+    public static class SourceSchema9
+    {
+        public class Query
+        {
+            public Job GetJob() => new();
+        }
+
+        public class Job
+        {
+            public List<Item?> GetItems(IResolverContext context)
+            {
+                context.ReportError(
+                    ErrorBuilder.New()
+                        .SetMessage("Could not resolve Job.items")
+                        .SetCode("NOT_FOUND")
+                        .SetPath(context.Path)
+                        .Build());
+                return [null];
+            }
+        }
+
+        public record Item(string Name);
+    }
+
+    public static class SourceSchema10
+    {
+        public class Query
+        {
+            public Job GetJob() => new();
+        }
+
+        public class Job
+        {
+            public List<Item?> GetItems() => [new Item()];
+        }
+
+        public class Item
+        {
+            public string GetName(IResolverContext context)
+                => throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("Could not resolve Item.name")
+                        .SetCode("NOT_FOUND")
+                        .SetPath(context.Path)
+                        .Build());
         }
     }
 }

@@ -871,6 +871,17 @@ internal sealed class ValueCompletion
             return true;
         }
 
+        // An error on a field that still has a value is forwarded without nulling the value.
+        if (errorTrie?.Error is { } fieldError)
+        {
+            var errorWithPath = ErrorBuilder.FromError(fieldError)
+                .SetPath(target.Path)
+                .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
+
+            _store.AddError(errorWithPath);
+        }
+
         switch (selection.UnwrappedKind)
         {
             case TypeKind.List:
@@ -1014,6 +1025,17 @@ internal sealed class ValueCompletion
             var elementValueKind = elementSnapshot.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
+                // The element might have been nulled due to a down-stream null propagation,
+                // so the errors below it are forwarded with their paths.
+                if (errorTrieForIndex is { Count: > 0 })
+                {
+                    ForwardErrors(
+                        errorTrieForIndex,
+                        target.CompactPath.ToPath(target.Operation, i),
+                        elementType,
+                        selection);
+                }
+
                 if (isNonNull && _propagateNullValues)
                 {
                     return false;
@@ -1086,6 +1108,103 @@ TryCompleteList_MoveNext:
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Forwards every error below a null value at <paramref name="path"/>. Each error keeps
+    /// its path in client response names down to the deepest segment that maps to a selection.
+    /// </summary>
+    private void ForwardErrors(
+        ErrorTrie errorTrie,
+        Path path,
+        IType? type,
+        Selection selection)
+    {
+        Stack<ErrorTrieFrame>? stack = null;
+
+        // The direct children are walked without a stack, which is only needed for deeper errors.
+        foreach (var (segment, childErrorTrie) in errorTrie)
+        {
+            var (childPath, childType, childSelection) =
+                MapErrorPathSegment(segment, path, type, selection);
+
+            ForwardError(childErrorTrie, childPath);
+
+            if (childErrorTrie.Count > 0)
+            {
+                stack ??= new Stack<ErrorTrieFrame>();
+                stack.Push(new ErrorTrieFrame(childErrorTrie, childPath, childType, childSelection));
+                ForwardErrors(stack);
+            }
+        }
+    }
+
+    private void ForwardErrors(Stack<ErrorTrieFrame> stack)
+    {
+        while (stack.TryPop(out var frame))
+        {
+            if (!frame.Children.MoveNext())
+            {
+                continue;
+            }
+
+            // The frame goes back with its advanced enumerator so the siblings follow the subtree.
+            stack.Push(frame);
+
+            var (segment, childErrorTrie) = frame.Children.Current;
+            var (childPath, childType, childSelection) =
+                MapErrorPathSegment(segment, frame.Path, frame.Type, frame.Selection);
+
+            ForwardError(childErrorTrie, childPath);
+
+            if (childErrorTrie.Count > 0)
+            {
+                stack.Push(new ErrorTrieFrame(childErrorTrie, childPath, childType, childSelection));
+            }
+        }
+    }
+
+    private void ForwardError(ErrorTrie errorTrie, Path path)
+    {
+        if (errorTrie.Error is { } error)
+        {
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(path)
+                .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
+
+            _store.AddError(errorWithPath);
+        }
+    }
+
+    /// <summary>
+    /// Maps an error path segment below <paramref name="path"/> to the client path. A segment that
+    /// does not map to a client selection keeps <paramref name="path"/> and yields no type.
+    /// </summary>
+    private static (Path Path, IType? Type, Selection Selection) MapErrorPathSegment(
+        object segment,
+        Path path,
+        IType? type,
+        Selection selection)
+    {
+        if (type?.NullableType() is { } nullableType)
+        {
+            if (segment is int index && nullableType.Kind is TypeKind.List)
+            {
+                return (path.Append(index), nullableType.ElementType(), selection);
+            }
+
+            if (segment is string responseName
+                && nullableType is IObjectTypeDefinition objectType
+                && selection.GetSelectionSet(objectType) is { } selectionSet
+                && selectionSet.TryGetSelection(responseName, out var fieldSelection)
+                && !fieldSelection.IsInternal)
+            {
+                return (path.Append(fieldSelection.ResponseName), fieldSelection.Type, fieldSelection);
+            }
+        }
+
+        return (path, null, selection);
     }
 
     private static void CompleteEnumValue(
@@ -1468,6 +1587,21 @@ TryCompleteList_MoveNext:
         {
             throw new NotSupportedException($"The depth {depth} is not allowed.");
         }
+    }
+
+    private struct ErrorTrieFrame(
+        ErrorTrie errorTrie,
+        Path path,
+        IType? type,
+        Selection selection)
+    {
+        public Dictionary<object, ErrorTrie>.Enumerator Children = errorTrie.GetEnumerator();
+
+        public readonly Path Path = path;
+
+        public readonly IType? Type = type;
+
+        public readonly Selection Selection = selection;
     }
 }
 
