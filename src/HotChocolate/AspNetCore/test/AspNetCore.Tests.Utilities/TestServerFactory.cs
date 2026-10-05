@@ -26,11 +26,18 @@ public class TestServerFactory : IDisposable
         return server;
     }
 
-    public void Dispose()
+    public void Dispose() => DisposeServers();
+
+    /// <summary>
+    /// Disposes and releases every server this factory has created so far.
+    /// </summary>
+    public void DisposeServers()
     {
         foreach (var testServer in _instances)
         {
             testServer.Dispose();
         }
+
+        _instances.Clear();
     }
 }
