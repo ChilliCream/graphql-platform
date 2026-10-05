@@ -258,6 +258,61 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @authenticated directive.
+    /// </summary>
+    public static class Authenticated
+    {
+        /// <summary>
+        /// The name of the @authenticated directive.
+        /// </summary>
+        public const string Name = "authenticated";
+    }
+
+    /// <summary>
+    /// The name constants of the @requiresScopes directive.
+    /// </summary>
+    public static class RequiresScopes
+    {
+        /// <summary>
+        /// The name of the @requiresScopes directive.
+        /// </summary>
+        public const string Name = "requiresScopes";
+
+        /// <summary>
+        /// The argument names of the @requiresScopes directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @requiresScopes scopes argument.
+            /// </summary>
+            public const string Scopes = "scopes";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @policy directive.
+    /// </summary>
+    public static class Policy
+    {
+        /// <summary>
+        /// The name of the @policy directive.
+        /// </summary>
+        public const string Name = "policy";
+
+        /// <summary>
+        /// The argument names of the @policy directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @policy policies argument.
+            /// </summary>
+            public const string Policies = "policies";
+        }
+    }
+
+    /// <summary>
     /// The name constants of the @key directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--key"/>
     /// </summary>
