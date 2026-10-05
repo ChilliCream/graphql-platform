@@ -22,6 +22,8 @@ A single result is written as `multipart/mixed` or `text/event-stream` only when
 
 When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation or asks for an operation kind the request method does not allow; only a request it cannot read, such as a body that is not valid JSON or a request that is not a well-formed GraphQL over HTTP request, and a batch it does not accept have a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
 
+Every response to a GET, HEAD, POST, or QUERY request on the GraphQL endpoint, other than a WebSocket upgrade, carries `Vary: Accept`, whatever its status code. A cache that honors `Vary` stores one response per distinct `Accept` value.
+
 # Types of Requests
 
 GraphQL requests over HTTP can be performed via the POST, GET, or QUERY HTTP verb.
@@ -108,6 +110,8 @@ Content-Type: application/json
 > \{query\} and \{operationName\} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the \{operationName\} being the string "null". If a literal null is desired, the parameter (e.g. \{operationName\}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
+
+With [Nitro](./endpoints.md#tool) enabled, a GET or HEAD request on the endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type the default response formatter writes. Such requests include one without GraphQL parameters, one sent while GET requests are disabled, and one without a required [preflight header](#preflight-header-enforcement). The media types of a [custom formatter](#defaulthttpresponseformatter) are not part of this comparison. A missing or unparsable `Accept` header, `*/*`, and a tie count as a GraphQL request, which has a `404` status code, or a `405` status code when GET requests are disabled under [`Draft20260903`](#draft20260903).
 
 ## QUERY Requests
 
@@ -199,6 +203,26 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
     }
 }
 ```
+
+## Adding Selecting Headers to Vary
+
+The endpoint adds `Accept` to the `Vary` header before the formatter runs. A custom formatter that selects a response by further request headers adds them to `Vary` without replacing it:
+
+```csharp
+public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
+{
+    protected override void OnWriteResponseHeaders(
+        OperationResult result,
+        FormatInfo format,
+        IHeaderDictionary headers)
+    {
+        headers.Append(HeaderNames.Vary, HeaderNames.AcceptLanguage);
+        base.OnWriteResponseHeaders(result, format, headers);
+    }
+}
+```
+
+A formatter can also remove `Accept` from `Vary` in the same method, keeping the other names in the header, for a cache that does not store responses whose `Vary` lists `Accept`.
 
 # JSON Serialization
 
@@ -331,7 +355,7 @@ Results are delivered as SSE events. This transport works well with browser `Eve
 Accept: text/event-stream
 ```
 
-Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message with an empty `data:` field signals the end of the stream.
 
 ## JSON Lines (`application/jsonl`)
 
@@ -520,7 +544,7 @@ event: complete
 data:
 ```
 
-Each result is delivered as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+Each result is delivered as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message with an empty `data:` field signals the end of the stream.
 
 ## SSE for Single Results
 
@@ -554,7 +578,7 @@ app.MapGraphQL().WithOptions(o =>
 });
 ```
 
-If a request is rejected because it lacks the required preflight header, the server responds with a `400 Bad Request` status.
+A multipart request without the required preflight header is rejected with a `400 Bad Request` status. A GET request without it is executed only when it sends `Content-Type: application/json`; otherwise it has a `404` status code, or, with [Nitro](./endpoints.md#tool) enabled and an `Accept` header that prefers `text/html`, it is served Nitro.
 
 # Next Steps
 

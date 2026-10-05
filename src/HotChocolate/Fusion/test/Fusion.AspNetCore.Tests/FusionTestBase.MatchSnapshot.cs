@@ -544,9 +544,25 @@ public abstract partial class FusionTestBase
             WriteSourceSchemaError(jsonWriter, trie.Error);
         }
 
-        foreach (var child in trie.Values)
+        var stack = new Stack<Dictionary<object, ErrorTrie>.ValueCollection.Enumerator>();
+        stack.Push(trie.Values.GetEnumerator());
+
+        while (stack.TryPop(out var children))
         {
-            WriteSourceSchemaErrors(jsonWriter, child);
+            if (!children.MoveNext())
+            {
+                continue;
+            }
+
+            var child = children.Current;
+            stack.Push(children);
+
+            if (child.Error is not null)
+            {
+                WriteSourceSchemaError(jsonWriter, child.Error);
+            }
+
+            stack.Push(child.Values.GetEnumerator());
         }
     }
 

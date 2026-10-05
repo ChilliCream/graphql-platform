@@ -245,6 +245,58 @@ A request whose `variables` field is an empty array is refused before execution 
 
 These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
 
+## Response format selection follows quality values
+
+The response format is selected by the quality values in the `Accept` header, which 16.6 ignored. The server writes the result in the acceptable format with the highest quality, and never in a media type rated `q=0`, even when a wildcard in the same header covers it. A single result is written as `multipart/mixed` or `text/event-stream` only when the header names that media type or its `multipart/*` or `text/*` range, see [Response Formats and Content Negotiation](../server/http-transport.md#response-formats-and-content-negotiation). The change applies under every transport version, `Legacy` included.
+
+These headers get a different response:
+
+| `Accept` header                                                    | Result                                | 16.6                                | 16.7                |
+| ------------------------------------------------------------------ | ------------------------------------- | ----------------------------------- | ------------------- |
+| `application/json;q=0.5, multipart/mixed`                          | Single result                         | `application/json`                  | `multipart/mixed`   |
+| `text/*`                                                           | Single result, `@defer`, or `@stream` | `406`                               | `text/event-stream` |
+| `application/graphql-response+json;q=0, application/json;q=0, */*` | Single result                         | `application/graphql-response+json` | `406`               |
+| `application/graphql-response+json;q=0, application/json;q=0, */*` | `@defer` or `@stream`                 | `text/event-stream`                 | `multipart/mixed`   |
+| `multipart/mixed, text/event-stream`                               | `@defer` or `@stream`                 | `text/event-stream`                 | `multipart/mixed`   |
+
+When a header names `multipart/mixed` and `text/event-stream` at the same quality, in either order, a `@defer` or `@stream` result is written as `multipart/mixed`.
+
+A `406` has no `Content-Type` and no body when the header also rejects the format the error would be written in, which is `application/graphql-response+json`, or `application/json` under the `Legacy` transport version. 16.6 answered `Accept: text/plain` with an `application/graphql-response+json` error body; 16.7 sends the status alone.
+
+A client that relies on the 16.6 format keeps it by rating that format highest in its `Accept` header.
+
+## Responses carry `Vary: Accept`
+
+Every response to a GET, HEAD, POST, or QUERY request on a GraphQL endpoint, other than a WebSocket upgrade, lists `Accept` in its `Vary` header, whatever its status code, under every transport version. This covers `MapGraphQL`, `MapGraphQLHttp`, `MapGraphQLPersistedOperations`, and the Azure Functions integration. 16.6 did not list `Accept` in `Vary`.
+
+The `vary` names of `@cacheControl` are added beside `Accept`. 16.6 wrote them in place of any `Vary` value that application middleware had set earlier in the request.
+
+A CDN or reverse proxy that honors `Vary` stores one cached response per distinct `Accept` value. Some CDNs do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Akamai behaves this way by default, so cached GET responses stop being cached at the edge after the update. Configure the CDN to cache them anyway, for example with Akamai's [Remove Vary Header](https://techdocs.akamai.com/property-mgr/docs/rm-vary-header) behavior, or remove `Accept` from `Vary` in a [custom formatter](../server/http-transport.md#adding-selecting-headers-to-vary).
+
+## Nitro is served only to requests that prefer HTML
+
+With Nitro enabled, a GET or HEAD request on the GraphQL endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type a GraphQL response is written in. In the serve modes that load Nitro from the CDN, the default `Latest` among them, 16.6 served Nitro every such request, redirecting a path without a trailing slash to the path with one; in the `Embedded` serve mode, it served Nitro to every such request whose `Accept` header contained `text/html`. A request that does not prefer `text/html`, including one with `Accept: */*` or without an `Accept` header, now has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version. The change applies under every transport version.
+
+These answers differ only by `Accept`, so a CDN or proxy that caches the endpoint path without honoring `Vary: Accept` can serve a cached `404` to a browser or the Nitro redirect to a health check.
+
+Health checks pointed at the GraphQL endpoint fail after the update:
+
+- A Kubernetes HTTP probe on `/graphql` sends `Accept: */*` and passed on the `301` or on the Nitro page it redirects to. A Docker `HEALTHCHECK` that runs `curl -f` passed on the `301`, and uptime monitors that follow redirects passed on the Nitro page.
+- With GraphQL mapped at the site root, `MapGraphQL("/")`, an AWS Application Load Balancer's default health check, `GET /` expecting `200`, passed because `GET /` returned the Nitro page directly.
+
+Point health checks at a dedicated endpoint instead:
+
+```csharp
+builder.Services.AddHealthChecks();
+
+var app = builder.Build();
+
+app.MapHealthChecks("/health");
+app.MapGraphQL();
+```
+
+In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, gets `404` and not the Nitro page.
+
 # Noteworthy changes
 
 ## New cost options

@@ -41,6 +41,7 @@ public abstract class CommandTestBase
     private IFileSystem? _fileSystemOverride;
     private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Preferences.IBoardPreferencesStore? _boardPreferencesStoreOverride;
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
@@ -97,6 +98,14 @@ public abstract class CommandTestBase
     private protected void SetupGlobalConfigDirectory(string directory)
     {
         _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Replaces the board preferences store resolved from services with <paramref name="store"/>.
+    /// </summary>
+    private protected void SetupBoardPreferencesStore(Services.Preferences.IBoardPreferencesStore store)
+    {
+        _boardPreferencesStoreOverride = store;
     }
 
     /// <summary>
@@ -373,6 +382,11 @@ public abstract class CommandTestBase
         if (_globalConfigDirectoryProviderOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
+        if (_boardPreferencesStoreOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_boardPreferencesStoreOverride));
         }
 
         if (_claudeSettingsPathResolverOverride is not null)

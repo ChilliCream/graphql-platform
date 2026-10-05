@@ -339,12 +339,6 @@ public class DefaultNamingConventionsTests
 
     private sealed class OrderWorkflow;
 
-    private sealed class CreateOrderCommand;
-
-    private sealed class ProcessPaymentMessage;
-
-    private sealed class OrderCreatedEvent;
-
     private sealed class GenericMessage<T>;
 
     private sealed class GenericMessage<T1, T2>;
@@ -363,3 +357,9 @@ public class DefaultNamingConventionsTests
         public bool DebuggerAttached => false;
     }
 }
+
+internal sealed class CreateOrderCommand;
+
+internal sealed class ProcessPaymentMessage;
+
+internal sealed class OrderCreatedEvent;
