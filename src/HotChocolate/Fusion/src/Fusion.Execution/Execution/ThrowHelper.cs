@@ -7,6 +7,9 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException PolicyEntryNotPartOfContext()
+        => new(FusionExecutionResources.PolicyEvaluationContext_EntryNotPartOfContext);
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,
