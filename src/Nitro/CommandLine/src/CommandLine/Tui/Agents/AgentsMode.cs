@@ -80,7 +80,7 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
     public IReadOnlyCollection<KeyHint> SuppressedGlobalHints { get; } =
     [
         new KeyHint("z", "zoom"),
-        Input.KeyMap.BoardOrientationHint,
+        KeyMap.BoardOrientationHint,
         new KeyHint("e", "edit"),
         new KeyHint("esc", "back"),
         new KeyHint("q", "quit")
