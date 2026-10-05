@@ -203,8 +203,10 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             });
     }
 
-    public async ValueTask DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
+        await base.DisposeAsync();
+
         if (_opaHandle is not null)
         {
             await _opaHandle.DisposeAsync();
