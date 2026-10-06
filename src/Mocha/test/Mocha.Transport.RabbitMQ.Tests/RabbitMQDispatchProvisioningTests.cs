@@ -233,6 +233,93 @@ public class RabbitMQDispatchProvisioningTests
             Times.Never());
     }
 
+    [Fact]
+    public async Task SendAsync_Should_PublishToDefaultExchangeByQueueName_When_QueueOutsideTopology()
+    {
+        // arrange
+        var channelMock = CreateOpenChannel();
+        var connectionMock = CreateOpenConnection(channelMock);
+        await using var bus = await BuildTestBusAsync(connectionMock.Object, t => t.BindExplicitly());
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        channelMock.Invocations.Clear();
+
+        // act
+        await messageBus.SendAsync(
+            new OrderCreated { OrderId = "EXTERNAL-1" },
+            new SendOptions { Endpoint = new Uri("rabbitmq:q/reporting.events") },
+            TestContext.Current.CancellationToken);
+
+        // assert - the message is routed through the default exchange with the queue name as
+        // routing key, and the queue the sender does not own is never declared
+        channelMock.Verify(
+            c => c.BasicPublishAsync(
+                It.Is<CachedString>(exchange => exchange.Value == ""),
+                It.Is<CachedString>(routingKey => routingKey.Value == "reporting.events"),
+                false,
+                It.IsAny<BasicProperties>(),
+                It.IsAny<ReadOnlyMemory<byte>>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once());
+
+        channelMock.Verify(
+            c => c.QueueDeclareAsync(
+                It.IsAny<string>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<IDictionary<string, object?>>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never());
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_PublishToExchangeByName_When_ExchangeOutsideTopology()
+    {
+        // arrange
+        var channelMock = CreateOpenChannel();
+        var connectionMock = CreateOpenConnection(channelMock);
+        await using var bus = await BuildTestBusAsync(connectionMock.Object, t => t.BindExplicitly());
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        channelMock.Invocations.Clear();
+
+        // act
+        await messageBus.SendAsync(
+            new OrderCreated { OrderId = "EXTERNAL-2" },
+            new SendOptions { Endpoint = new Uri("rabbitmq:e/reporting-events") },
+            TestContext.Current.CancellationToken);
+
+        // assert
+        channelMock.Verify(
+            c => c.BasicPublishAsync(
+                It.Is<CachedString>(exchange => exchange.Value == "reporting-events"),
+                It.Is<CachedString>(routingKey => routingKey.Value == ""),
+                false,
+                It.IsAny<BasicProperties>(),
+                It.IsAny<ReadOnlyMemory<byte>>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once());
+
+        channelMock.Verify(
+            c => c.ExchangeDeclareAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<IDictionary<string, object?>>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never());
+    }
+
     private static Mock<IChannel> CreateOpenChannel()
     {
         var channelMock = new Mock<IChannel>();
