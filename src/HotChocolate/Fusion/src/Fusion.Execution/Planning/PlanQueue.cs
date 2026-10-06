@@ -168,6 +168,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 toSchema,
                 out var bestLookup))
             {
+                // A lookup that resolves nothing new yields no candidate and does not start the
+                // parent-path walk.
+                if (ResolvesNothingNew(workItem, bestLookup, toSchema, type))
+                {
+                    continue;
+                }
+
                 var lookupWorkItem = workItem with { Lookup = bestLookup };
                 var branchBacklog = backlog.Push(lookupWorkItem);
                 var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
@@ -194,19 +201,23 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             var hasEnqueuedResolvingDirectLookup = false;
             foreach (var lookup in schema.GetPossibleLookupsOrdered(workItem.SelectionSet.Type, toSchema))
             {
-                var lookupWorkItem = workItem with { Lookup = lookup };
-                var branchBacklog = backlog.Push(lookupWorkItem);
-                var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
-                Enqueue(planNodeTemplate with
+                if (!ResolvesNothingNew(workItem, lookup, toSchema, type))
                 {
-                    SchemaName = toSchema,
-                    ResolutionCost = resolutionCost,
-                    Backlog = branchBacklog,
-                    RemainingCost = branchRemainingCost
-                });
+                    var lookupWorkItem = workItem with { Lookup = lookup };
+                    var branchBacklog = backlog.Push(lookupWorkItem);
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = toSchema,
+                        ResolutionCost = resolutionCost,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
+                }
 
                 // A self-cyclic lookup makes no progress on its own (see above), so it does not
-                // count as a resolving direct lookup that can suppress the parent-path walk.
+                // count as a resolving direct lookup that can suppress the parent-path walk. A
+                // lookup skipped for resolving nothing new counts as a resolving direct lookup.
                 if (!IsSelfCyclicLookup(workItem, lookup))
                 {
                     hasEnqueuedResolvingDirectLookup = true;
@@ -281,6 +292,46 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="lookup"/> entered into <paramref name="toSchema"/> can
+    /// resolve nothing the work item asks for beyond echoing its own key: every requested field
+    /// is either a key field of the lookup or one that <paramref name="toSchema"/> cannot resolve,
+    /// and at least one requested field is of the second kind.
+    /// </summary>
+    private static bool ResolvesNothingNew(
+        OperationWorkItem workItem,
+        Lookup lookup,
+        string toSchema,
+        FusionComplexTypeDefinition type)
+    {
+        var hasUnresolvableField = false;
+
+        foreach (var selection in workItem.SelectionSet.Node.Selections)
+        {
+            if (selection is not FieldNode field
+                || field.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (RequirementsContainField(lookup.Requirements, field.Name.Value))
+            {
+                continue;
+            }
+
+            if (type.Fields.TryGetField(field.Name.Value, allowInaccessibleFields: true, out var definition)
+                && definition.Sources.TryGetMember(toSchema, out var source)
+                && source is { IsExternal: false, IsSourceExternal: false })
+            {
+                return false;
+            }
+
+            hasUnresolvableField = true;
+        }
+
+        return hasUnresolvableField;
     }
 
     private static bool RequirementsContainField(SelectionSetNode requirements, string fieldName)
