@@ -33,6 +33,9 @@
   <data name="ApolloFederationSchemaFetcher_RequestFailed" xml:space="preserve">
     <value>Source schema '{0}' returned HTTP {1} ({2}) for the _service query.</value>
   </data>
+  <data name="AuthenticatedMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @authenticated directive requires the client to be authenticated.</value>
+  </data>
   <data name="AuthorizationDirective_Argument_Invalid" xml:space="preserve">
     <value>The '{1}' argument of the @{0} directive must be a list of string lists.</value>
   </data>
@@ -591,6 +594,12 @@
   <data name="OverrideMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @override directive is used to migrate a field from one source schema to another.</value>
   </data>
+  <data name="PolicyMutableDirectiveDefinition_Argument_Policies_Description" xml:space="preserve">
+    <value>The policy groups of which at least one must be fully satisfied.</value>
+  </data>
+  <data name="PolicyMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @policy directive requires the client to satisfy all policies of at least one of the policy groups.</value>
+  </data>
   <data name="ProvidesMutableDirectiveDefinition_Argument_Fields_Description" xml:space="preserve">
     <value>Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema.</value>
   </data>
@@ -602,6 +611,12 @@
   </data>
   <data name="RequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema.</value>
+  </data>
+  <data name="RequiresScopesMutableDirectiveDefinition_Argument_Scopes_Description" xml:space="preserve">
+    <value>The scope groups of which at least one must be fully granted.</value>
+  </data>
+  <data name="RequiresScopesMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @requiresScopes directive requires the client to be granted all scopes of at least one of the scope groups.</value>
   </data>
   <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
     <value>The required field '{0}' must not be defined in schema '{1}'.</value>

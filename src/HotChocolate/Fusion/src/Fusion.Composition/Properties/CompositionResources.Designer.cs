@@ -105,6 +105,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @authenticated directive requires the client to be authenticated..
+        /// </summary>
+        internal static string AuthenticatedMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("AuthenticatedMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive must be a list of string lists..
         /// </summary>
         internal static string AuthorizationDirective_Argument_Invalid {
@@ -1736,6 +1745,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The policy groups of which at least one must be fully satisfied..
+        /// </summary>
+        internal static string PolicyMutableDirectiveDefinition_Argument_Policies_Description {
+            get {
+                return ResourceManager.GetString("PolicyMutableDirectiveDefinition_Argument_Policies_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @policy directive requires the client to satisfy all policies of at least one of the policy groups..
+        /// </summary>
+        internal static string PolicyMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("PolicyMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema..
         /// </summary>
         internal static string ProvidesMutableDirectiveDefinition_Argument_Fields_Description {
@@ -1768,6 +1795,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string RequiresMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The scope groups of which at least one must be fully granted..
+        /// </summary>
+        internal static string RequiresScopesMutableDirectiveDefinition_Argument_Scopes_Description {
+            get {
+                return ResourceManager.GetString("RequiresScopesMutableDirectiveDefinition_Argument_Scopes_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresScopes directive requires the client to be granted all scopes of at least one of the scope groups..
+        /// </summary>
+        internal static string RequiresScopesMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("RequiresScopesMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
