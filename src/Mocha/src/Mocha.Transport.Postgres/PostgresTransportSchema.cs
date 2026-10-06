@@ -35,7 +35,7 @@ public static class PostgresTransportSchema
             throw ThrowHelper.MigrationTransactionNotSupported(null);
         }
 
-        var sql = PostgresSchemaMigrator.GenerateBody(schemaOptions);
+        var sql = PostgresSchemaSql.GenerateMigrationsSql(schemaOptions);
         NpgsqlTransaction transaction;
         try
         {
@@ -61,10 +61,10 @@ public static class PostgresTransportSchema
     /// Generation is synchronous and does not access a database or file.
     /// </summary>
     /// <param name="schemaOptions">The schema and table naming used by the transport.</param>
-    public static string GenerateMigrationScript(IReadOnlyPostgresSchemaOptions schemaOptions)
+    public static string GenerateMigrationsSql(IReadOnlyPostgresSchemaOptions schemaOptions)
     {
         ArgumentNullException.ThrowIfNull(schemaOptions);
 
-        return "BEGIN;\n" + PostgresSchemaMigrator.GenerateBody(schemaOptions) + "COMMIT;\n";
+        return "BEGIN;\n" + PostgresSchemaSql.GenerateMigrationsSql(schemaOptions) + "COMMIT;\n";
     }
 }

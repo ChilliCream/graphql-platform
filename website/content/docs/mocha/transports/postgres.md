@@ -284,10 +284,10 @@ Transport migration creates transport tables, indexes, constraints, the topology
 
 ### Export a migration SQL artifact
 
-`GenerateMigrationScript` synchronously returns SQL without connecting to PostgreSQL, constructing a host, or discovering application topology:
+`GenerateMigrationsSql` synchronously returns SQL without connecting to PostgreSQL, constructing a host, or discovering application topology:
 
 ```csharp
-var sql = PostgresTransportSchema.GenerateMigrationScript(new PostgresSchemaOptions());
+var sql = PostgresTransportSchema.GenerateMigrationsSql(new PostgresSchemaOptions());
 await File.WriteAllTextAsync("mocha-migrations.sql", sql, cancellationToken);
 ```
 
@@ -327,7 +327,7 @@ if (args is ["mocha", .. var command])
     if (command is ["export", "--file", var file])
     {
         ct.ThrowIfCancellationRequested();
-        var sql = PostgresTransportSchema.GenerateMigrationScript(options);
+        var sql = PostgresTransportSchema.GenerateMigrationsSql(options);
         var destination = Path.GetFullPath(file);
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try

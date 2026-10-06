@@ -1,105 +1,192 @@
-using static Mocha.Transport.Postgres.PostgresMigrationSql;
-
 namespace Mocha.Transport.Postgres;
 
-/// <summary>
-/// Contains the SQL migration scripts for the PostgreSQL messaging transport schema.
-/// </summary>
-internal static class PostgresSchemaSql
+internal static partial class PostgresSchemaSql
 {
-    public static string InitialSchema(IReadOnlyPostgresSchemaOptions s) =>
-        $"""
-        CREATE SCHEMA IF NOT EXISTS {Identifier(s.Schema)};
+    private const int LockId = 958913715;
 
-        CREATE SEQUENCE IF NOT EXISTS {QualifiedIdentifier(s.TopologySequence)} AS bigint;
+    public static string GenerateMigrationsSql(IReadOnlyPostgresSchemaOptions s)
+        => $"""
+            {Bootstrap(s)}
 
-        CREATE TABLE IF NOT EXISTS {QualifiedIdentifier(s.TopicTable)}
-        (
-            id          bigint      NOT NULL PRIMARY KEY DEFAULT nextval({Literal(QualifiedIdentifier(s.TopologySequence))}),
-            updated     timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-            name        text        NOT NULL
-        );
+            {Migration(s, "2026-03-06_InitialSchema", InitialSchema(s))}
 
-        CREATE UNIQUE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "topic_uqx")} ON {QualifiedIdentifier(s.TopicTable)} (name) INCLUDE (id);
-        ALTER TABLE {QualifiedIdentifier(s.TopicTable)} ADD CONSTRAINT {Identifier(s.TablePrefix + "unique_topic")} UNIQUE USING INDEX {Identifier(s.TablePrefix + "topic_uqx")};
+            {Migration(s, "2026-03-06_AddTransportIndex", AddTransportIndex(s))}
 
-        CREATE TABLE IF NOT EXISTS {QualifiedIdentifier(s.QueueTable)}
-        (
-            id          bigint      NOT NULL PRIMARY KEY DEFAULT nextval({Literal(QualifiedIdentifier(s.TopologySequence))}),
-            updated     timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-            name        text        NOT NULL
-        );
+            {Migration(s, "2026-03-06_AddConsumerManagement", AddConsumerManagement(s))}
 
-        CREATE UNIQUE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "queue_uqx")} ON {QualifiedIdentifier(s.QueueTable)} (name) INCLUDE (id);
-        ALTER TABLE {QualifiedIdentifier(s.QueueTable)} ADD CONSTRAINT {Identifier(s.TablePrefix + "unique_queue")} UNIQUE USING INDEX {Identifier(s.TablePrefix + "queue_uqx")};
+            """.ReplaceLineEndings("\n");
 
-        CREATE TABLE IF NOT EXISTS {QualifiedIdentifier(s.QueueSubscriptionTable)}
-        (
-            id              bigint      NOT NULL PRIMARY KEY DEFAULT nextval({Literal(QualifiedIdentifier(s.TopologySequence))}),
-            updated         timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-            source_id       bigint      NOT NULL REFERENCES {QualifiedIdentifier(s.TopicTable)} (id) ON DELETE CASCADE,
-            destination_id  bigint      NOT NULL REFERENCES {QualifiedIdentifier(s.QueueTable)} (id) ON DELETE CASCADE
-        );
+    private static string Migration(IReadOnlyPostgresSchemaOptions s, string id, string sql)
+    {
+        var migrationHistory = MigrationsTable(s);
+        var migrationIdLiteral = Literal(id);
 
-        CREATE UNIQUE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "queue_subscription_uqx")}
-            ON {QualifiedIdentifier(s.QueueSubscriptionTable)} (source_id, destination_id);
-        ALTER TABLE {QualifiedIdentifier(s.QueueSubscriptionTable)}
-            ADD CONSTRAINT {Identifier(s.TablePrefix + "unique_queue_subscription")} UNIQUE USING INDEX {Identifier(s.TablePrefix + "queue_subscription_uqx")};
+        return DoBlock(
+            $"""
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM {migrationHistory} WHERE migration_id = {migrationIdLiteral}) THEN
+            {Indent(sql, 8)}
+                    INSERT INTO {migrationHistory} (migration_id) VALUES ({migrationIdLiteral});
+                END IF;
+            END;
+            """);
+    }
 
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "queue_subscription_source_ndx")}
-            ON {QualifiedIdentifier(s.QueueSubscriptionTable)} (source_id) INCLUDE (id, destination_id);
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "queue_subscription_dest_ndx")}
-            ON {QualifiedIdentifier(s.QueueSubscriptionTable)} (destination_id) INCLUDE (id, source_id);
+    private static string DoBlock(string body)
+    {
+        var delimiter = "$mocha_migration$";
+        var suffix = 0;
+        while (body.Contains(delimiter, StringComparison.Ordinal))
+        {
+            delimiter = $"$mocha_migration_{++suffix}$";
+        }
 
-        CREATE TABLE IF NOT EXISTS {QualifiedIdentifier(s.MessageTable)}
-        (
-            transport_message_id    uuid        NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-            body                    bytea       NOT NULL,
-            headers                 jsonb,
-            queue_id                bigint      NOT NULL REFERENCES {QualifiedIdentifier(s.QueueTable)} (id) ON DELETE CASCADE,
-            sent_time               timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-            scheduled_time          timestamptz,
-            expiration_time         timestamptz,
-            delivery_count          int         NOT NULL DEFAULT 0,
-            max_delivery_count      int         NOT NULL DEFAULT 10,
-            last_delivered          timestamptz,
-            consumer_id             uuid,
-            error_reason            jsonb
-        );
+        return $"""
+            DO {delimiter}
+            {body}
+            {delimiter};
+            """;
+    }
 
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "message_queue_ndx")}
-            ON {QualifiedIdentifier(s.MessageTable)} (queue_id) INCLUDE (transport_message_id);
-        """;
+    private static string Indent(string sql, int spaces)
+    {
+        var indentation = new string(' ', spaces);
+        return string.Join("\n", sql.ReplaceLineEndings("\n").Split('\n')
+            .Select(line => line.Length == 0 ? line : indentation + line));
+    }
 
-    public static string AddTransportIndex(IReadOnlyPostgresSchemaOptions s) =>
-        $"""
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "message_transport_queue_ndx")}
-            ON {QualifiedIdentifier(s.MessageTable)} (transport_message_id, queue_id);
+    private static string SchemaName(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.Schema);
 
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "message_expiration_scheduled_ndx")}
-            ON {QualifiedIdentifier(s.MessageTable)} (expiration_time, scheduled_time);
+    private static string TopicTable(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.TopicTable);
 
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "message_sent_time_ndx")}
-            ON {QualifiedIdentifier(s.MessageTable)} (sent_time);
-        """;
+    private static string QueueTable(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.QueueTable);
 
-    public static string AddConsumerManagement(IReadOnlyPostgresSchemaOptions s) =>
-        $"""
-        CREATE TABLE IF NOT EXISTS {QualifiedIdentifier(s.ConsumersTable)}
-        (
-            id              uuid        NOT NULL PRIMARY KEY,
-            service_name    text        NOT NULL,
-            created_at      timestamptz NOT NULL DEFAULT now(),
-            updated_at      timestamptz NOT NULL DEFAULT now()
-        );
+    private static string QueueSubscriptionTable(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.QueueSubscriptionTable);
 
-        ALTER TABLE {QualifiedIdentifier(s.QueueTable)}
-            ADD COLUMN IF NOT EXISTS consumer_id uuid REFERENCES {QualifiedIdentifier(s.ConsumersTable)}(id) ON DELETE CASCADE;
+    private static string MessageTable(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.MessageTable);
 
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "consumers_updated_at_ndx")}
-            ON {QualifiedIdentifier(s.ConsumersTable)} (updated_at);
+    private static string ConsumersTable(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.ConsumersTable);
 
-        CREATE INDEX IF NOT EXISTS {Identifier(s.TablePrefix + "queue_consumer_id_ndx")}
-            ON {QualifiedIdentifier(s.QueueTable)} (consumer_id);
-        """;
+    private static string MigrationsTable(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.MigrationsTable);
+
+    private static string TopologySequence(IReadOnlyPostgresSchemaOptions options)
+        => QualifiedIdentifier(options.TopologySequence);
+
+    private static string TopologySequenceLiteral(IReadOnlyPostgresSchemaOptions options)
+        => Literal(TopologySequence(options));
+
+    private static string TopicUniqueIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "topic_uqx");
+
+    private static string TopicUniqueConstraint(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "unique_topic");
+
+    private static string QueueUniqueIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "queue_uqx");
+
+    private static string QueueUniqueConstraint(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "unique_queue");
+
+    private static string QueueSubscriptionUniqueIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "queue_subscription_uqx");
+
+    private static string QueueSubscriptionUniqueConstraint(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "unique_queue_subscription");
+
+    private static string QueueSubscriptionSourceIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "queue_subscription_source_ndx");
+
+    private static string QueueSubscriptionDestinationIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "queue_subscription_dest_ndx");
+
+    private static string MessageQueueIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "message_queue_ndx");
+
+    private static string MessageTransportQueueIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "message_transport_queue_ndx");
+
+    private static string MessageExpirationScheduledIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "message_expiration_scheduled_ndx");
+
+    private static string MessageSentTimeIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "message_sent_time_ndx");
+
+    private static string ConsumersUpdatedAtIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "consumers_updated_at_ndx");
+
+    private static string QueueConsumerIdIndex(IReadOnlyPostgresSchemaOptions options)
+        => Identifier(options.TablePrefix + "queue_consumer_id_ndx");
+
+    private static string Literal(string value)
+        => "E'" + value.Replace("\\", "\\\\").Replace("'", "''") + "'";
+
+    private static string Identifier(string identifier)
+    {
+        if (string.IsNullOrEmpty(identifier) || identifier.Any(char.IsControl))
+        {
+            throw ThrowHelper.InvalidSqlIdentifier(identifier);
+        }
+
+        if (identifier[0] == '"')
+        {
+            if (identifier.Length < 3 || identifier[^1] != '"')
+            {
+                throw ThrowHelper.InvalidSqlIdentifier(identifier);
+            }
+
+            for (var i = 1; i < identifier.Length - 1; i++)
+            {
+                if (identifier[i] == '"' && (++i >= identifier.Length - 1 || identifier[i] != '"'))
+                {
+                    throw ThrowHelper.InvalidSqlIdentifier(identifier);
+                }
+            }
+
+            return identifier;
+        }
+
+        for (var i = 0; i < identifier.Length; i++)
+        {
+            var c = identifier[i];
+            if (!(char.IsAsciiLetter(c) || c == '_' || c >= 128
+                || (i > 0 && (char.IsAsciiDigit(c) || c == '$'))))
+            {
+                throw ThrowHelper.InvalidSqlIdentifier(identifier);
+            }
+        }
+
+        // Preserve PostgreSQL's folding of unquoted ASCII identifiers.
+        return "\"" + string.Create(identifier.Length, identifier, static (span, value) =>
+        {
+            for (var i = 0; i < value.Length; i++)
+            {
+                span[i] = value[i] is >= 'A' and <= 'Z' ? (char)(value[i] + ('a' - 'A')) : value[i];
+            }
+        }) + "\"";
+    }
+
+    private static string QualifiedIdentifier(string identifier)
+    {
+        var quoted = false;
+        for (var i = 0; i < identifier.Length; i++)
+        {
+            if (identifier[i] == '"')
+            {
+                quoted = !quoted;
+            }
+            else if (identifier[i] == '.' && !quoted)
+            {
+                return Identifier(identifier[..i]) + "." + Identifier(identifier[(i + 1)..]);
+            }
+        }
+
+        return Identifier(identifier);
+    }
 }

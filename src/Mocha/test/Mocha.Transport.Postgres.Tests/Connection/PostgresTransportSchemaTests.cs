@@ -36,7 +36,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
     }
 
     [Fact]
-    public async Task GenerateMigrationScript_Should_MatchDirectMigration_When_AppliedWithPsql()
+    public async Task GenerateMigrationsSql_Should_MatchDirectMigration_When_AppliedWithPsql()
     {
         // arrange
         await using var direct = await fixture.CreateDatabaseAsync("ScriptParityDirect");
@@ -44,7 +44,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         await using var connection = await OpenAsync(direct.ConnectionString);
         var options = new PostgresSchemaOptions();
         await PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
-        var script = PostgresTransportSchema.GenerateMigrationScript(options);
+        var script = PostgresTransportSchema.GenerateMigrationsSql(options);
 
         // act
         await fixture.ApplyScriptAsync(scripted.DatabaseName, script, CancellationToken);
@@ -84,7 +84,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         if (script)
         {
             await fixture.ApplyScriptAsync(database.DatabaseName,
-                PostgresTransportSchema.GenerateMigrationScript(options), CancellationToken);
+                PostgresTransportSchema.GenerateMigrationsSql(options), CancellationToken);
         }
         else
         {
@@ -318,7 +318,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
 
     private static Task ApplyAsync(NpgsqlConnection connection, PostgresSchemaOptions options, bool script)
         => script
-            ? ExecuteAsync(connection, PostgresTransportSchema.GenerateMigrationScript(options))
+            ? ExecuteAsync(connection, PostgresTransportSchema.GenerateMigrationsSql(options))
             : PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
 
     private static async Task ExecuteAsync(NpgsqlConnection connection, string sql)
