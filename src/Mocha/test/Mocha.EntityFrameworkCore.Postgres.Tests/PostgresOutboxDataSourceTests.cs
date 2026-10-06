@@ -1,4 +1,3 @@
-using CookieCrumble.Resources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,13 +5,11 @@ using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Outbox;
 using Mocha.Transport.InMemory;
 using Npgsql;
-using Testcontainers.PostgreSql;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
-public sealed class PostgresOutboxDataSourceTests(
-    PostgresOutboxDataSourceTests.PasswordPostgresResource postgres)
-    : IClassFixture<PostgresOutboxDataSourceTests.PasswordPostgresResource>
+public sealed class PostgresOutboxDataSourceTests(PasswordPostgresResource postgres)
+    : IClassFixture<PasswordPostgresResource>
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
@@ -26,8 +23,8 @@ public sealed class PostgresOutboxDataSourceTests(
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
-        var connectionString = await CreateDatabaseAsync();
-        await using var dataSource = CreateDataSource(connectionString, configuration);
+        var connectionString = await postgres.CreateTestDatabaseAsync();
+        await using var dataSource = configuration.CreateDataSource(connectionString);
         await using var provider = await CreateProviderAsync(
             connectionString, configuration == ConnectionConfiguration.ConnectionString ? null : dataSource);
         var delivered = provider.GetRequiredService<TaskCompletionSource<string>>();
@@ -77,36 +74,43 @@ public sealed class PostgresOutboxDataSourceTests(
         Assert.Equal("committed", await delivered.Task);
     }
 
-    private async Task<string> CreateDatabaseAsync()
+    [Fact]
+    public async Task Worker_Should_ReleaseConnection_When_Idle()
     {
-        var database = $"outbox_auth_{Guid.NewGuid():N}";
-        await postgres.CreateDatabaseAsync(database);
-        var connectionString = postgres.GetConnectionString(database);
-        await using var db = new TestDbContext(new DbContextOptionsBuilder<TestDbContext>()
-            .UseTestNpgsql(connectionString).Options);
-        await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
-        return connectionString;
-    }
-
-    private static NpgsqlDataSource CreateDataSource(string connectionString, ConnectionConfiguration configuration)
-    {
-        var builder = new NpgsqlDataSourceBuilder(connectionString);
-        if (configuration is ConnectionConfiguration.PeriodicPasswordProvider or ConnectionConfiguration.AsyncPasswordProvider)
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var applicationName = $"outbox_idle_{Guid.NewGuid():N}";
+        // pooling is disabled so a released connection closes its server session
+        var connectionString = new NpgsqlConnectionStringBuilder(await postgres.CreateTestDatabaseAsync())
         {
-            var password = builder.ConnectionStringBuilder.Password!;
-            builder.ConnectionStringBuilder.Password = null;
-            if (configuration == ConnectionConfiguration.PeriodicPasswordProvider)
-            {
-                builder.UsePeriodicPasswordProvider(
-                    (_, _) => ValueTask.FromResult(password), TimeSpan.FromMinutes(30), TimeSpan.FromSeconds(1));
-            }
-            else
-            {
-                builder.UsePasswordProvider(_ => password, (_, _) => ValueTask.FromResult(password));
-            }
+            ApplicationName = applicationName,
+            Pooling = false
+        }.ConnectionString;
+        await using var provider = await CreateProviderAsync(connectionString, dataSource: null);
+        var delivered = provider.GetRequiredService<TaskCompletionSource<string>>();
+        var worker = provider.GetRequiredService<PostgresMessageBusOutboxWorker>();
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<IMessageBus>()
+                .PublishAsync(new AuthenticationEvent("idle"), cancellationToken);
         }
 
-        return builder.Build();
+        // act
+        long sessions;
+        await worker.StartAsync(cancellationToken);
+        try
+        {
+            await delivered.Task.WaitAsync(s_timeout, cancellationToken);
+            sessions = await postgres.WaitForSessionCountAsync(applicationName, expected: 0, s_timeout);
+        }
+        finally
+        {
+            await worker.StopAsync(CancellationToken.None).WaitAsync(s_timeout, cancellationToken);
+        }
+
+        // assert
+        Assert.Equal("idle", await delivered.Task);
+        Assert.Equal(0, sessions);
     }
 
     private static async Task<ServiceProvider> CreateProviderAsync(string connectionString, NpgsqlDataSource? dataSource)
@@ -136,20 +140,6 @@ public sealed class PostgresOutboxDataSourceTests(
         await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>())
             .StartAsync(TestContext.Current.CancellationToken);
         return provider;
-    }
-
-    public enum ConnectionConfiguration
-    {
-        ConnectionString,
-        DataSource,
-        PeriodicPasswordProvider,
-        AsyncPasswordProvider
-    }
-
-    public sealed class PasswordPostgresResource : PostgreSqlResource
-    {
-        protected override PostgreSqlBuilder Configure(PostgreSqlBuilder builder)
-            => builder.WithEnvironment("POSTGRES_HOST_AUTH_METHOD", "scram-sha-256");
     }
 
     public sealed record AuthenticationEvent(string Payload);
