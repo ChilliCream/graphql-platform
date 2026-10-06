@@ -7,11 +7,8 @@ namespace Mocha.Outbox;
 /// A hosted service that manages the lifecycle of the Postgres outbox processor,
 /// running the processing loop as a continuous background task.
 /// </summary>
-/// <param name="options">The outbox options containing the connection factory.</param>
 /// <param name="processor">The outbox processor that performs the message dispatch loop.</param>
-internal sealed class PostgresMessageBusOutboxWorker(
-    PostgresMessageOutboxOptions options,
-    PostgresOutboxProcessor processor) : IHostedService
+internal sealed class PostgresMessageBusOutboxWorker(PostgresOutboxProcessor processor) : IHostedService
 {
     private readonly object _lock = new();
     private ContinuousTask? _task;
@@ -31,7 +28,7 @@ internal sealed class PostgresMessageBusOutboxWorker(
                 return Task.CompletedTask;
             }
 
-            _task = new ContinuousTask(token => processor.ProcessAsync(options.CreateConnection, token));
+            _task = new ContinuousTask(processor.ProcessAsync);
         }
 
         return Task.CompletedTask;

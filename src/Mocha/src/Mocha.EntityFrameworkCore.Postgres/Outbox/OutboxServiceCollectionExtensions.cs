@@ -66,15 +66,10 @@ public static class OutboxServiceCollectionExtensions
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<IOutboxSignal>(),
-                options.Queries);
+                options);
         });
 
-        builder.Services.AddSingleton(sp =>
-        {
-            var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
-            var options = optionsMonitor.Get(builder.Name);
-            return new PostgresMessageBusOutboxWorker(options, sp.GetRequiredService<PostgresOutboxProcessor>());
-        });
+        builder.Services.AddSingleton<PostgresMessageBusOutboxWorker>();
 
         builder.Services.AddHostedService(sp => sp.GetRequiredService<PostgresMessageBusOutboxWorker>());
 

@@ -18,7 +18,7 @@ public sealed class PostgresOutboxProcessor
     private readonly IMessagingRuntime _runtime;
     private readonly IOutboxSignal _signal;
     private readonly ObjectPool<DispatchContext> _contextPool;
-    private readonly PostgresMessageOutboxQueries _queries;
+    private readonly PostgresMessageOutboxOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -38,8 +38,8 @@ public sealed class PostgresOutboxProcessor
     /// <param name="signal">
     /// The signal used to wake the processor when new outbox messages are enqueued.
     /// </param>
-    /// <param name="queries">
-    /// The SQL query definitions for Postgres outbox table operations.
+    /// <param name="options">
+    /// The outbox options containing the SQL queries and connection factory.
     /// </param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
@@ -47,14 +47,14 @@ public sealed class PostgresOutboxProcessor
         IMessagingRuntime runtime,
         IMessagingPools pools,
         IOutboxSignal signal,
-        PostgresMessageOutboxQueries queries)
+        PostgresMessageOutboxOptions options)
     {
         _logger = logger;
         _services = services;
         _runtime = runtime;
         _signal = signal;
         _contextPool = pools.DispatchContext;
-        _queries = queries;
+        _options = options;
     }
 
     /// <summary>
@@ -72,13 +72,11 @@ public sealed class PostgresOutboxProcessor
     public Task ProcessAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
         => ProcessAsync(token => ProcessNextAsync(connection, token), cancellationToken);
 
-    internal Task ProcessAsync(
-        Func<IServiceProvider, NpgsqlConnection> createConnection,
-        CancellationToken cancellationToken)
+    internal Task ProcessAsync(CancellationToken cancellationToken)
         => ProcessAsync(async token =>
         {
             await using var scope = _services.CreateAsyncScope();
-            await using var connection = createConnection(scope.ServiceProvider);
+            await using var connection = _options.CreateConnection(scope.ServiceProvider);
             await connection.OpenAsync(token);
             return await ProcessNextAsync(connection, token);
         }, cancellationToken);
@@ -147,7 +145,7 @@ public sealed class PostgresOutboxProcessor
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _queries.NextPollingInterval;
+        command.CommandText = _options.Queries.NextPollingInterval;
         await command.PrepareAsync(cancellationToken);
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
@@ -169,7 +167,7 @@ public sealed class PostgresOutboxProcessor
             // Lock an event for processing and increment TimesSent in case of failure
             await using var command = connection.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = _queries.ProcessEvent;
+            command.CommandText = _options.Queries.ProcessEvent;
 
             await command.PrepareAsync(cancellationToken);
 
@@ -346,7 +344,7 @@ public sealed class PostgresOutboxProcessor
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _queries.DeleteEvent;
+        command.CommandText = _options.Queries.DeleteEvent;
         command.Connection = connection;
         command.Transaction = transaction;
         command.Parameters.AddWithValue("@EventId", eventId);
