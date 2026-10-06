@@ -30,7 +30,8 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
                 // Verify that the request is relevant to this middleware.
                 && (context.Request.Query.ContainsKey(QueryKey)
-                    || context.Request.Query.ContainsKey(QueryIdKey)
+                    || context.Request.Query.ContainsKey(IdKey)
+                    || context.Request.Query.ContainsKey(DocumentIdKey)
                     || context.Request.Query.ContainsKey(ExtensionsKey))
 
                 // Allow ALL GET requests if we do NOT enforce preflight

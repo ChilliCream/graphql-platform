@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
@@ -198,7 +199,8 @@ public class SchedulingMiddlewareIntegrationTests
         services.AddSingleton<TimeProvider>(timeProvider);
 
         var builder = services.AddMessageBus();
-        builder.AddInMemory();
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -227,7 +229,8 @@ public class SchedulingMiddlewareIntegrationTests
 
         var builder = services.AddMessageBus();
         builder.AddEventHandler<SchedulingTestEventHandler>();
-        builder.AddInMemory();
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -260,14 +263,10 @@ public class SchedulingMiddlewareIntegrationTests
         Action<IMessageBusHostBuilder> configure,
         TimeProvider? timeProvider = null)
     {
+        var transport = new InMemoryMessagingTransport(static _ => { });
         var services = new ServiceCollection();
-        services.AddScoped(_ => store);
         services.AddSingleton(
-            new ScheduledMessageStoreRegistration(
-                typeof(InMemoryMessagingTransport),
-                InMemoryScheduledMessageStore.TokenPrefix,
-                typeof(InMemoryScheduledMessageStore)));
-        services.AddSingleton<ISchedulerSignal, TestSchedulerSignal>();
+            new ScheduledMessageStoreRegistration(transport, InMemoryScheduledMessageStore.TokenPrefix, _ => store));
 
         if (timeProvider is not null)
         {
@@ -275,9 +274,9 @@ public class SchedulingMiddlewareIntegrationTests
         }
 
         var builder = services.AddMessageBus();
-        builder.UseSchedulerCore();
         configure(builder);
-        builder.AddInMemory();
+        services.TryAddSingleton<ISchedulerSignal, TestSchedulerSignal>();
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
