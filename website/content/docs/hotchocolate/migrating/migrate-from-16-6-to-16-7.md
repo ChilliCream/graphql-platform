@@ -295,7 +295,7 @@ app.MapHealthChecks("/health");
 app.MapGraphQL();
 ```
 
-In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, gets `404` and not the Nitro page.
+In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, is not served the Nitro page: it has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version.
 
 # Noteworthy changes
 

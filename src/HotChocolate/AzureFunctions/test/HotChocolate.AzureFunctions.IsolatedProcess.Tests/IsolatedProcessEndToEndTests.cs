@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.AzureFunctions.Tests.Helpers;
 using HotChocolate.Types;
@@ -7,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests;
@@ -231,6 +234,162 @@ public class IsolatedProcessEndToEndTests
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
         Assert.True(resultContent.Contains("<html") && resultContent.Contains("</html>"));
     }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.MethodNotAllowed,
+        "GET, HEAD, OPTIONS, POST")]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_MethodIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAllow)
+    {
+        // arrange
+        var host = CreateHost(transportVersion);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Put,
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            """{"query":"{ person }"}""");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, GetAllow(response));
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.NoContent,
+        "GET, HEAD, OPTIONS, POST")]
+    public async Task Options_Should_ReturnAllowedMethods_When_EndpointIsRequested(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAllow)
+    {
+        // arrange
+        var host = CreateHost(transportVersion);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Options,
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, GetAllow(response));
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20260903, HttpStatusCode.UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var host = CreateHost(transportVersion);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Post,
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            "{ person }",
+            "text/plain");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.MethodNotAllowed,
+        "OPTIONS, POST")]
+    public async Task Get_Should_ReturnMethodNotAllowed_When_GetRequestsAreDisabled(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAllow)
+    {
+        // arrange
+        var host = CreateHost(transportVersion, enableGetRequests: false);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, GetAllow(response));
+    }
+
+    [Fact]
+    public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheFunctionRoute()
+    {
+        // arrange
+        var host = CreateHost(HttpTransportVersion.Draft20260903);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Put,
+            new Uri(TestHttpContextHelper.DefaultAzFuncGraphQLUri, "/api/graphql/other"),
+            """{"query":"{ person }"}""");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private static IHost CreateHost(
+        HttpTransportVersion transportVersion,
+        bool enableGetRequests = true)
+    {
+        var formatterOptions = new HttpResponseFormatterOptions
+        {
+            HttpTransportVersion = transportVersion
+        };
+
+        return new MockIsolatedProcessHostBuilder()
+            .AddGraphQLFunction(
+                b => b
+                    .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"))
+                    .AddHttpResponseFormatter(formatterOptions)
+                    .ModifyFunctionOptions(o => o.EnableGetRequests = enableGetRequests))
+            .Build();
+    }
+
+    private static string? GetAllow(HttpResponseData response)
+        => response.Headers.TryGetValues("Allow", out var values)
+            ? string.Join(", ", values)
+            : null;
 
     private static async Task<string> ReadResponseAsStringAsync(HttpResponseData responseData)
     {
