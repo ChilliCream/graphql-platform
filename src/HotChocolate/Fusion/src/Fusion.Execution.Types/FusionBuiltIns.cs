@@ -20,6 +20,7 @@ internal static class FusionBuiltIns
     public const string InterfaceObject = "fusion__interfaceObject";
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
+    public const string Authorization = "fusion__authorization";
     public const string Execution = "fusion__execution";
     public const string CostOptions = "fusion__cost_options";
     public const string Inaccessible = "fusion__inaccessible";

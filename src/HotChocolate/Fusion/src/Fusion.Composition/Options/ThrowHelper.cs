@@ -1,3 +1,5 @@
+using static HotChocolate.Fusion.Properties.CompositionResources;
+
 namespace HotChocolate.Fusion.Options;
 
 internal static class ThrowHelper
@@ -10,4 +12,9 @@ internal static class ThrowHelper
 
     public static ArgumentOutOfRangeException UnexpectedCostCoordinateKind(CostCoordinateKind kind)
         => new(nameof(kind));
+
+    public static InvalidOperationException AuthorizationDirectiveArgumentInvalid(
+        string directiveName,
+        string argumentName)
+        => new(string.Format(AuthorizationDirective_Argument_Invalid, directiveName, argumentName));
 }

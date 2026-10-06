@@ -105,38 +105,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;apply&apos; argument of the @authorize directive must be of type ApplyPolicy..
+        ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive must be a list of string lists..
         /// </summary>
-        internal static string AuthorizeDirective_ApplyArgument_Invalid {
+        internal static string AuthorizationDirective_Argument_Invalid {
             get {
-                return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_Invalid", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The value &apos;{0}&apos; for argument &apos;apply&apos; in the @authorize directive is invalid..
-        /// </summary>
-        internal static string AuthorizeDirective_ApplyArgument_InvalidEnumValue {
-            get {
-                return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_InvalidEnumValue", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;policy&apos; argument of the @authorize directive must be of type String..
-        /// </summary>
-        internal static string AuthorizeDirective_PolicyArgument_Invalid {
-            get {
-                return ResourceManager.GetString("AuthorizeDirective_PolicyArgument_Invalid", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;roles&apos; argument of the @authorize directive must be of type [String!]..
-        /// </summary>
-        internal static string AuthorizeDirective_RolesArgument_Invalid {
-            get {
-                return ResourceManager.GetString("AuthorizeDirective_RolesArgument_Invalid", resourceCulture);
+                return ResourceManager.GetString("AuthorizationDirective_Argument_Invalid", resourceCulture);
             }
         }
 
@@ -236,6 +209,42 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ExternalMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ExternalMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Whether the member requires an authenticated user..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__authorization directive carries the merged authorization requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -814,6 +823,33 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ListSizeDirective_SlicingArgumentsArgument_Invalid {
             get {
                 return ResourceManager.GetString("ListSizeDirective_SlicingArgumentsArgument_Invalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; is marked with @authenticated in the source schemas {1} but not in the source schemas {2}. The composed member requires authentication..
+        /// </summary>
+        internal static string LogEntryHelper_AuthenticatedMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthenticatedMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive on &apos;{2}&apos; in schema &apos;{3}&apos; must be a string or a list of strings and string lists, but has the value {4}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationDirectiveArgumentInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationDirectiveArgumentInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The merged {0} requirement of &apos;{1}&apos; has {2} alternative groups, which exceeds the threshold of {3}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationGroupCountExceeded {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationGroupCountExceeded", resourceCulture);
             }
         }
 

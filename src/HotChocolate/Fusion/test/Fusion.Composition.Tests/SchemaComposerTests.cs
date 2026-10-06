@@ -1109,6 +1109,7 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
+                "AuthorizationDirectiveArgumentRule",
                 "CostDirectiveDefinitionRule",
                 "DisallowedInaccessibleElementsRule",
                 "ExternalOnInterfaceRule",
@@ -1163,6 +1164,7 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
+                "AuthorizationDirectiveRule",
                 "EnumValuesMismatchRule",
                 "ExternalArgumentDefaultMismatchRule",
                 "ExternalArgumentMissingRule",

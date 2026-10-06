@@ -255,6 +255,7 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
+        new AuthorizationDirectiveArgumentRule(),
         new CostDirectiveDefinitionRule(),
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -302,6 +303,7 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> CreatePreMergeRules(SchemaComposerOptions options) =>
     [
+        new AuthorizationDirectiveRule(),
         new EnumValuesMismatchRule(options.Merger.EnumValuesMergeBehavior),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalArgumentMissingRule(),
