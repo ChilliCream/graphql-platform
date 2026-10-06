@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Claims;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Authorization;
 
@@ -25,8 +26,8 @@ public sealed class PolicyEvaluationContext
     /// <param name="requestServices">
     /// The request scoped service provider.
     /// </param>
-    /// <param name="operationId">
-    /// The id of the operation.
+    /// <param name="plan">
+    /// The plan of the operation being authorized.
     /// </param>
     /// <param name="requestIndex">
     /// The index of the variable set within the request.
@@ -38,19 +39,19 @@ public sealed class PolicyEvaluationContext
         ClaimsPrincipal user,
         IFeatureCollection features,
         IServiceProvider requestServices,
-        string operationId,
+        OperationPlan plan,
         int requestIndex,
         ReadOnlySpan<PolicyEvaluationEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(features);
         ArgumentNullException.ThrowIfNull(requestServices);
-        ArgumentNullException.ThrowIfNull(operationId);
+        ArgumentNullException.ThrowIfNull(plan);
 
         User = user;
         Features = features;
         RequestServices = requestServices;
-        OperationId = operationId;
+        Plan = plan;
         RequestIndex = requestIndex;
 
         _entries = new PolicyEvaluationEntry[entries.Length];
@@ -78,9 +79,9 @@ public sealed class PolicyEvaluationContext
     public IServiceProvider RequestServices { get; }
 
     /// <summary>
-    /// Gets the id of the operation.
+    /// Gets the plan of the operation being authorized.
     /// </summary>
-    public string OperationId { get; }
+    public OperationPlan Plan { get; }
 
     /// <summary>
     /// Gets the index of the variable set within the request.

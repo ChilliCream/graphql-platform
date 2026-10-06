@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Features;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Authorization.PolicyTestHelper;
 
 namespace HotChocolate.Fusion.Authorization;
@@ -114,5 +116,46 @@ public class PolicyEvaluationContextTests
         // assert
         var exception = Assert.Throws<InvalidOperationException>(Act);
         Assert.Equal("The policy entry is not part of this evaluation context.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_ExposeTheOperationPlan_When_ContextIsCreated()
+    {
+        // arrange
+        var plan = CreatePlan();
+
+        // act
+        var context = new PolicyEvaluationContext(
+            Anonymous(),
+            new FeatureCollection(),
+            new ServiceCollection().BuildServiceProvider(),
+            plan,
+            0,
+            []);
+
+        // assert
+        Assert.Same(plan, context.Plan);
+        Assert.Equal("GetProduct", context.Plan.Operation.Name);
+    }
+
+    [Fact]
+    public void Constructor_Should_Throw_When_PlanIsNull()
+    {
+        // arrange
+        var services = new ServiceCollection().BuildServiceProvider();
+
+        // act
+        void Act()
+            => _ = new PolicyEvaluationContext(
+                Anonymous(),
+                new FeatureCollection(),
+                services,
+                null!,
+                0,
+                []);
+
+        // assert
+        var exception = Assert.Throws<ArgumentNullException>(Act);
+        Assert.Equal("plan", exception.ParamName);
     }
 }

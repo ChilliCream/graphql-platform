@@ -46,9 +46,12 @@ internal static class PolicyTestHelper
             user,
             new FeatureCollection(),
             new ServiceCollection().BuildServiceProvider(),
-            "op-1",
+            CreatePlan(),
             0,
             entries);
+
+    public static OperationPlan CreatePlan()
+        => PlanFactory.Create();
 
     public static ClaimsPrincipal Authenticated(params Claim[] claims)
         => new(new ClaimsIdentity(claims, "test"));
@@ -58,4 +61,25 @@ internal static class PolicyTestHelper
 
     public static PolicyOutcome[] Outcomes(PolicyEvaluationContext context)
         => context.Verdicts.ToArray().Select(v => v.Outcome).ToArray();
+
+    private sealed class PlanFactory : FusionTestBase
+    {
+        public static OperationPlan Create()
+        {
+            var schema = ComposeSchema(
+                """
+                # name: a
+                type Query {
+                  product: Product
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+
+            return PlanOperation(schema, "query GetProduct { product { id name } }");
+        }
+    }
 }
