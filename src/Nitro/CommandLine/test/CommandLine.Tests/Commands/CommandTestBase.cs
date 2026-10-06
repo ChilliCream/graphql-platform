@@ -12,6 +12,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -61,6 +62,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<ITelemetryClient> TelemetryClientMock = new(MockBehavior.Strict);
     internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
     internal readonly Mock<IBrowserLauncher> _browserLauncherMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
@@ -435,6 +437,7 @@ public abstract class CommandTestBase
         services.Replace(ServiceDescriptor.Singleton(PersonalAccessTokensClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(EnvironmentsClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(StagesClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(TelemetryClientMock.Object));
         services.AddSingleton(console);
 
         return services.BuildServiceProvider();

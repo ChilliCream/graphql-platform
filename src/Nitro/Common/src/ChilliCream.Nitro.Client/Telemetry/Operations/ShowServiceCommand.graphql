@@ -1,0 +1,18 @@
+query ShowServiceCommandQuery(
+  $workspaceId: ID!
+  $name: String!
+  $environments: [String!]
+  $from: DateTime!
+  $to: DateTime!
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    service(name: $name, from: $from, to: $to) {
+      name
+      environmentNames
+      versionMarkers(environments: $environments, from: $from, to: $to) {
+        firstSeenAt
+        version
+      }
+    }
+  }
+}
