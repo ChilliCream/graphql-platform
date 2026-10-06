@@ -168,6 +168,40 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_Throw_When_GreedyAndSearchExpansionsTogetherExceedMaxExpandedNodes()
+    {
+        // arrange
+        // the limit equals the nodes the main search expands on its own, so only the greedy expansions can exceed it
+        var schema = CreateSerialMutationSchema();
+        var operation = ParseOperation(SerialMutationText);
+        var searchExpandedNodes = CreatePlanner(schema, new OperationPlannerOptions())
+            .CreatePlan(
+                "guardrail-greedy-shared-baseline",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken)
+            .ExpandedNodes;
+        var planner = CreatePlanner(
+            schema,
+            new OperationPlannerOptions { MaxExpandedNodes = searchExpandedNodes });
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(
+                "guardrail-greedy-shared",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
+        Assert.Equal(searchExpandedNodes, error.Limit);
+        Assert.Equal(searchExpandedNodes + 1, error.Observed);
+    }
+
+    [Fact]
     public void CreatePlan_Should_Throw_When_InitialQueueExceedsMaxQueueSizeByOne()
     {
         // arrange

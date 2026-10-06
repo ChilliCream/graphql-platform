@@ -20,7 +20,7 @@ public sealed partial class OperationPlanner
         string id,
         DeferSplitResult splitResult,
         PlanContextGraph contextGraph,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         if (splitResult.IncrementalPlanDescriptors.IsEmpty)
@@ -54,7 +54,7 @@ public sealed partial class OperationPlanner
                 id,
                 descriptor,
                 i,
-                emitPlannerEvents,
+                budget,
                 cancellationToken);
 
             var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
@@ -146,7 +146,8 @@ public sealed partial class OperationPlanner
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
                 registeredInternalOp,
                 finalSteps,
-                finalSteps.NextId());
+                finalSteps.NextId(),
+                cancellationToken);
 
             var compiledOp = AddTypeNameToAbstractSelections(
                 registeredInternalOp,
@@ -188,7 +189,7 @@ public sealed partial class OperationPlanner
         string operationId,
         IncrementalPlanDescriptor descriptor,
         int incrementalPlanId,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         var deferredOperation = descriptor.Operation;
@@ -320,7 +321,7 @@ public sealed partial class OperationPlanner
             possiblePlans.Enqueue(node);
         }
 
-        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, budget, cancellationToken);
 
         if (!plan.HasValue)
         {
@@ -2173,7 +2174,8 @@ public sealed partial class OperationPlanner
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,
         ImmutableList<PlanStep> planSteps,
-        int nextNodeId)
+        int nextNodeId,
+        CancellationToken cancellationToken)
     {
         if (planSteps.Count == 0)
         {
@@ -2185,7 +2187,7 @@ public sealed partial class OperationPlanner
 
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
-        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
+        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
         WireExecutionDependencies(ctx);
 

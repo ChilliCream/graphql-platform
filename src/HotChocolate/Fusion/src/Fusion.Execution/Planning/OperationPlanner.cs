@@ -90,6 +90,7 @@ public sealed partial class OperationPlanner
         var operationType = operationDefinition.Operation.ToString();
         var rootSelectionCount = operationDefinition.SelectionSet.Selections.Count;
         var startedAt = eventSourceEnabled ? Stopwatch.GetTimestamp() : 0L;
+        var budget = new PlanningBudget(_options, eventSourceEnabled);
         var searchSpace = 0;
         var expandedNodes = 0;
         var stepCount = 0;
@@ -174,7 +175,7 @@ public sealed partial class OperationPlanner
                         id,
                         node,
                         subscriptionField,
-                        eventSourceEnabled,
+                        budget,
                         cancellationToken);
 
                     internalOperationDefinition = eventStreamPlan.InternalOperationDefinition;
@@ -208,7 +209,7 @@ public sealed partial class OperationPlanner
                     }
 
                     // Now that we have seeded the possible plans we can start planning.
-                    var plan = Plan(id, possiblePlans, eventSourceEnabled, cancellationToken);
+                    var plan = Plan(id, possiblePlans, budget, cancellationToken);
 
                     if (!plan.HasValue)
                     {
@@ -246,7 +247,7 @@ public sealed partial class OperationPlanner
                     id,
                     deferSplit.Value,
                     deferContextGraph,
-                    eventSourceEnabled,
+                    budget,
                     cancellationToken);
 
                 // Any parent-scope transformations applied while routing
@@ -421,17 +422,16 @@ public sealed partial class OperationPlanner
     private PlanResult? Plan(
         string operationId,
         PlanQueue possiblePlans,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         var eventSource = PlannerEventSource.Log;
+        var emitPlannerEvents = budget.EmitPlannerEvents;
         var searchSpace = possiblePlans.Count;
         var expandedNodes = 0;
-        var maxPlanningTime = _options.MaxPlanningTime;
-        var maxExpandedNodes = _options.MaxExpandedNodes;
-        var maxQueueSize = _options.MaxQueueSize;
-        var maxGeneratedOptionsPerWorkItem = _options.MaxGeneratedOptionsPerWorkItem;
-        var planningStartedAt = maxPlanningTime.HasValue ? Stopwatch.GetTimestamp() : 0L;
+
+        // The seeded queue is checked before any plan is expanded.
+        budget.EnsureQueueSize(operationId, searchSpace);
 
         // TryBuildGreedyCompletePlan quickly builds one full plan by always choosing the currently
         // cheapest next option at each step.
@@ -439,7 +439,7 @@ public sealed partial class OperationPlanner
         // It gives the planner an initial best known complete cost, so the main search can skip branches
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
-        var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, cancellationToken);
+        var bestCompletePlan = TryBuildGreedyCompletePlan(operationId, possiblePlans, budget, cancellationToken);
 
         // A plan whose step-dependency graph is cyclic cannot be scheduled, so it must never win.
         // We discard a cyclic greedy plan here and reject cyclic candidates during the search below.
@@ -462,10 +462,8 @@ public sealed partial class OperationPlanner
             searchSpace = Math.Max(possiblePlansCount, searchSpace);
 
             // before we get into another planning iteration, we check if we have
-            // exceeded any of the configured guardrails and throw if so.
-            EnsurePlanningTimeGuardrail();
-            EnsureExpandedNodesGuardrail(expandedNodes);
-            EnsureQueueSizeGuardrail(possiblePlansCount);
+            // exceeded the planning time or expanded node guardrail and throw if so.
+            budget.CountExpansion(operationId);
 
             var backlog = current.Backlog;
 
@@ -559,10 +557,11 @@ public sealed partial class OperationPlanner
 
             // after we have expanded the current plan node into possible next steps,
             // we check how many new plans we have created and if we have exceeded
-            // the guardrail for generated options per work item.
+            // the guardrails for generated options per work item and queue size.
             var queueCountAfterExpansion = possiblePlans.Count;
             searchSpace = Math.Max(queueCountAfterExpansion, searchSpace);
-            EnsureGeneratedOptionsGuardrail(queueCountBeforeExpansion, queueCountAfterExpansion);
+            budget.EnsureGeneratedOptions(operationId, queueCountAfterExpansion - queueCountBeforeExpansion);
+            budget.EnsureQueueSize(operationId, queueCountAfterExpansion);
         }
 
         if (bestCompletePlan is null)
@@ -589,99 +588,13 @@ public sealed partial class OperationPlanner
                 NodeLookupWorkItem => "NodeLookupBound",
                 _ => "Unknown"
             };
-
-        void EnsurePlanningTimeGuardrail()
-        {
-            if (maxPlanningTime is not { } planningTimeLimit)
-            {
-                return;
-            }
-
-            var elapsed = Stopwatch.GetElapsedTime(planningStartedAt);
-            if (elapsed < planningTimeLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxPlanningTimeExceeded,
-                ToGuardrailMilliseconds(planningTimeLimit),
-                ToGuardrailMilliseconds(elapsed));
-        }
-
-        void EnsureExpandedNodesGuardrail(int currentExpandedNodes)
-        {
-            if (maxExpandedNodes is not { } expandedNodesLimit
-                || currentExpandedNodes <= expandedNodesLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxExpandedNodesExceeded,
-                expandedNodesLimit,
-                currentExpandedNodes);
-        }
-
-        void EnsureQueueSizeGuardrail(int queueSize)
-        {
-            if (maxQueueSize is not { } queueSizeLimit
-                || queueSize <= queueSizeLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxQueueSizeExceeded,
-                queueSizeLimit,
-                queueSize);
-        }
-
-        void EnsureGeneratedOptionsGuardrail(int queueCountBeforeExpansion, int queueCountAfterExpansion)
-        {
-            if (maxGeneratedOptionsPerWorkItem is not { } generatedOptionsLimit)
-            {
-                return;
-            }
-
-            var generatedOptions = queueCountAfterExpansion - queueCountBeforeExpansion;
-            if (generatedOptions <= generatedOptionsLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxGeneratedOptionsPerWorkItemExceeded,
-                generatedOptionsLimit,
-                generatedOptions);
-        }
-
-        void ThrowGuardrailExceeded(
-            OperationPlannerGuardrailReason reason,
-            long limit,
-            long observed)
-        {
-            if (emitPlannerEvents)
-            {
-                eventSource.PlanGuardrailExceeded(
-                    operationId,
-                    reason.ToString(),
-                    limit,
-                    observed);
-            }
-
-            throw new OperationPlannerGuardrailException(
-                operationId,
-                reason,
-                limit,
-                observed);
-        }
-
-        static long ToGuardrailMilliseconds(TimeSpan value)
-            => checked((long)Math.Ceiling(value.TotalMilliseconds));
     }
 
-    private PlanNode? TryBuildGreedyCompletePlan(PlanQueue possiblePlans, CancellationToken cancellationToken)
+    private PlanNode? TryBuildGreedyCompletePlan(
+        string operationId,
+        PlanQueue possiblePlans,
+        PlanningBudget budget,
+        CancellationToken cancellationToken)
     {
         if (!possiblePlans.TryPeek(out var current, out _))
         {
@@ -700,6 +613,8 @@ public sealed partial class OperationPlanner
             {
                 return current;
             }
+
+            budget.CountExpansion(operationId);
 
             backlog = backlog.Pop(out var workItem);
 
@@ -742,6 +657,8 @@ public sealed partial class OperationPlanner
                     throw new NotSupportedException(
                         "The work item type is not supported.");
             }
+
+            budget.EnsureGeneratedOptions(operationId, candidates.Count);
 
             if (!candidates.TryDequeue(out current, out _))
             {
@@ -921,7 +838,7 @@ public sealed partial class OperationPlanner
         string operationId,
         PlanNode seed,
         SubscriptionField subscriptionField,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         var possiblePlans = new PlanQueue(_schema);
@@ -933,7 +850,7 @@ public sealed partial class OperationPlanner
                 ResolutionCost = 0
             });
 
-        var plan = Plan(operationId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(operationId, possiblePlans, budget, cancellationToken);
 
         if (!plan.HasValue)
         {

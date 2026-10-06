@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 
@@ -24,6 +25,13 @@ internal static class ThrowHelper
 
     public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
         => new($"No plan was found for the @defer fragment at path '{path}'.");
+
+    public static OperationPlannerGuardrailException PlanningGuardrailExceeded(
+        string operationId,
+        OperationPlannerGuardrailReason reason,
+        long limit,
+        long observed)
+        => new(operationId, reason, limit, observed);
 
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(
