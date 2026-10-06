@@ -134,6 +134,10 @@ internal sealed partial class SourceSchemaMerger
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
         AddNodeField(mergedSchema);
+        AuthorizationInheritance.Apply(
+            mergedSchema,
+            _fusionDirectiveDefinitions[DirectiveNames.FusionAuthorization],
+            _schemas);
 
         // Merge directives.
         var memberDefinitions = _schemas.Select(s => new DirectivesProviderInfo(s, s)).ToImmutableArray();
@@ -318,9 +322,12 @@ internal sealed partial class SourceSchemaMerger
             && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
+            Directive? nodeFieldAuthorization = null;
+
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
                 && IsGoiNodeField(nodeField, nodeType, idType))
             {
+                nodeFieldAuthorization = nodeField.Directives.FirstOrDefault(DirectiveNames.FusionAuthorization);
                 queryType.Fields.Remove(nodeField);
             }
 
@@ -336,6 +343,12 @@ internal sealed partial class SourceSchemaMerger
                 var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+
+                if (nodeFieldAuthorization is not null)
+                {
+                    canonicalNodeField.Directives.Add(nodeFieldAuthorization);
+                }
+
                 canonicalNodeField.Directives.Add(
                     new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
 

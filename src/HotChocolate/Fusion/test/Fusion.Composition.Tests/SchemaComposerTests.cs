@@ -50,6 +50,41 @@ public sealed class SchemaComposerTests
             """);
     }
 
+    [Fact]
+    public void Compose_Should_WarnAboutInheritedAuthorization_When_ImplementationFieldIsProtected()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query { search: SearchResult }
+
+                    interface SearchResult { title: String }
+
+                    type Article implements SearchResult { title: String @authenticated }
+
+                    type Video implements SearchResult { title: String }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            [
+                "AUTHORIZATION_INHERITED:SearchResult.title",
+                "AUTHORIZATION_INHERITED:Video.title"
+            ],
+            log.Select(e => $"{e.Code}:{e.Coordinate}"));
+    }
+
     [Theory]
     [InlineData(NodeResolution.Gateway)]
     [InlineData(NodeResolution.SourceSchema)]
@@ -1110,6 +1145,7 @@ public sealed class SchemaComposerTests
         Assert.Equal(
             [
                 "AuthorizationDirectiveArgumentRule",
+                "AuthorizationOnInterfaceObjectRule",
                 "CostDirectiveDefinitionRule",
                 "DisallowedInaccessibleElementsRule",
                 "ExternalOnInterfaceRule",
@@ -1198,6 +1234,7 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
+                "AuthorizationInheritedRule",
                 "EmptyMergedEnumTypeRule",
                 "EmptyMergedInputObjectTypeRule",
                 "EmptyMergedInterfaceTypeRule",

@@ -43,6 +43,29 @@ internal static class AuthorizationGroups
     }
 
     /// <summary>
+    /// Reads the requirement carried by a <c>@fusion__authorization</c> directive.
+    /// </summary>
+    public static MergedAuthorization FromFusionDirective(IDirective directive)
+    {
+        var authenticated = directive.Arguments.TryGetValue(ArgumentNames.Authenticated, out var value)
+            && value is BooleanValueNode { Value: true };
+
+        return new MergedAuthorization(
+            authenticated,
+            ReadGroups(directive, ArgumentNames.Scopes),
+            ReadGroups(directive, ArgumentNames.Policies));
+    }
+
+    private static ImmutableArray<ImmutableArray<string>> ReadGroups(
+        IDirective directive,
+        string argumentName)
+    {
+        return directive.Arguments.ContainsName(argumentName)
+            ? Reduce([ParseGroups(directive, argumentName)])
+            : [];
+    }
+
+    /// <summary>
     /// Combines the alternative groups of every factor into the canonical reduced form: sorted,
     /// deduplicated, without supersets, ordered by length and then lexicographically.
     /// Every factor must contain at least one non-empty group.

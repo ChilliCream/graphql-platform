@@ -20,5 +20,71 @@ internal sealed record MergedAuthorization(
     ImmutableArray<ImmutableArray<string>> Scopes,
     ImmutableArray<ImmutableArray<string>> Policies)
 {
+    public static MergedAuthorization Empty { get; } = new(false, [], []);
+
     public bool IsEmpty => !Authenticated && Scopes.IsEmpty && Policies.IsEmpty;
+
+    /// <summary>
+    /// Combines this requirement with <paramref name="other"/> so that both must be satisfied.
+    /// </summary>
+    public MergedAuthorization And(MergedAuthorization other)
+    {
+        if (other.IsEmpty)
+        {
+            return this;
+        }
+
+        if (IsEmpty)
+        {
+            return other;
+        }
+
+        return new MergedAuthorization(
+            Authenticated || other.Authenticated,
+            CombineGroups(Scopes, other.Scopes),
+            CombineGroups(Policies, other.Policies));
+    }
+
+    private static ImmutableArray<ImmutableArray<string>> CombineGroups(
+        ImmutableArray<ImmutableArray<string>> left,
+        ImmutableArray<ImmutableArray<string>> right)
+    {
+        if (left.IsEmpty)
+        {
+            return right;
+        }
+
+        return right.IsEmpty ? left : AuthorizationGroups.Reduce([left, right]);
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="other"/> carries the same requirement. Both
+    /// requirements are expected in canonical form.
+    /// </summary>
+    public bool Matches(MergedAuthorization other)
+    {
+        return Authenticated == other.Authenticated
+            && GroupsMatch(Scopes, other.Scopes)
+            && GroupsMatch(Policies, other.Policies);
+    }
+
+    private static bool GroupsMatch(
+        ImmutableArray<ImmutableArray<string>> left,
+        ImmutableArray<ImmutableArray<string>> right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            if (!left[i].AsSpan().SequenceEqual(right[i].AsSpan()))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

@@ -11,8 +11,10 @@ type Query @fusion__type(schema: A) @fusion__type(schema: B) {
     @fusion__authorization(authenticated: true)
     @fusion__field(schema: A)
   product(id: ID! @fusion__inputField(schema: A)): Product
+    @fusion__authorization(authenticated: true)
     @fusion__field(schema: A)
   productById(id: ID! @fusion__inputField(schema: B)): Product
+    @fusion__authorization(authenticated: true)
     @fusion__field(schema: B)
 }
 
@@ -37,11 +39,17 @@ type Product
     internal: false
   ) {
   cost: Float
-    @fusion__authorization(policies: [["finance"]])
+    @fusion__authorization(authenticated: true, policies: [["finance"]])
     @fusion__field(schema: A)
-  id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+  id: ID!
+    @fusion__authorization(authenticated: true)
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
   price: Float
-    @fusion__authorization(scopes: [["admin", "pricing"], ["pricing", "read"]])
+    @fusion__authorization(
+      authenticated: true
+      scopes: [["admin", "pricing"], ["pricing", "read"]]
+    )
     @fusion__field(schema: A)
     @fusion__field(schema: B)
 }

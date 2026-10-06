@@ -97,7 +97,7 @@ public sealed class FusionAuthorizationDirectiveTests : FusionTestBase
               {
                 "Coordinate": "Query.secured",
                 "Authorization": {
-                  "Authenticated": false,
+                  "Authenticated": true,
                   "Scopes": [
                     [
                       "admin"
@@ -119,7 +119,11 @@ public sealed class FusionAuthorizationDirectiveTests : FusionTestBase
               },
               {
                 "Coordinate": "Query.open",
-                "Authorization": null
+                "Authorization": {
+                  "Authenticated": true,
+                  "Scopes": [],
+                  "Policies": []
+                }
               },
               {
                 "Coordinate": "FooInterface",

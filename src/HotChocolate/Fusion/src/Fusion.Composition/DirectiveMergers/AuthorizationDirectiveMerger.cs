@@ -33,6 +33,16 @@ internal sealed class AuthorizationDirectiveMerger(MutableDirectiveDefinition fu
             return;
         }
 
+        mergedMember.AddDirective(CreateDirective(fusionAuthorization, merged));
+    }
+
+    /// <summary>
+    /// Creates the <c>@fusion__authorization</c> directive that carries <paramref name="merged"/>.
+    /// </summary>
+    public static Directive CreateDirective(
+        MutableDirectiveDefinition fusionAuthorization,
+        MergedAuthorization merged)
+    {
         var arguments = new List<ArgumentAssignment>();
 
         if (merged.Authenticated)
@@ -50,7 +60,7 @@ internal sealed class AuthorizationDirectiveMerger(MutableDirectiveDefinition fu
             arguments.Add(new ArgumentAssignment(ArgumentNames.Policies, ToValueNode(merged.Policies)));
         }
 
-        mergedMember.AddDirective(new Directive(fusionAuthorization, arguments));
+        return new Directive(fusionAuthorization, arguments);
     }
 
     private static ListValueNode ToValueNode(ImmutableArray<ImmutableArray<string>> groups)

@@ -863,6 +863,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from {1} in the source schemas {2}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationInherited {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationInherited", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @interfaceObject type &apos;{0}&apos; in schema &apos;{1}&apos; cannot be annotated with @{2}. Annotate its fields instead..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationOnInterfaceObject {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationOnInterfaceObject", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {

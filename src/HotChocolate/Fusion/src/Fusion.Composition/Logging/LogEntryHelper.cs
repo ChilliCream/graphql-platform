@@ -70,6 +70,41 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry AuthorizationInherited(
+        SchemaCoordinate coordinate,
+        IEnumerable<string> paths,
+        IEnumerable<string> schemaNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationInherited,
+                coordinate,
+                string.Join("; ", paths),
+                FormatSchemaNames(schemaNames))
+            .SetCode(LogEntryCodes.AuthorizationInherited)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .Build();
+    }
+
+    public static LogEntry AuthorizationOnInterfaceObject(
+        MutableObjectTypeDefinition standIn,
+        string directiveName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationOnInterfaceObject,
+                standIn.Name,
+                schema.Name,
+                directiveName)
+            .SetCode(LogEntryCodes.AuthorizationOnInterfaceObject)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
     private static string FormatSchemaNames(IEnumerable<string> schemaNames)
         => string.Join(", ", schemaNames.Select(static n => $"'{n}'"));
 

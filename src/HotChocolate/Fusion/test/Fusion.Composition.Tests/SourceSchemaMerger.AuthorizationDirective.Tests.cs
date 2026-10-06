@@ -47,18 +47,26 @@ public sealed class SourceSchemaMergerAuthorizationDirectiveTests : SourceSchema
             }
 
             type Query @fusion__authorization(authenticated: true) @fusion__type(schema: A) {
-              enumField: FooEnum @fusion__field(schema: A)
-              field: Int
-                @fusion__authorization(scopes: [["read"]])
+              enumField: FooEnum
+                @fusion__authorization(authenticated: true)
                 @fusion__field(schema: A)
-              interfaceField: FooInterface @fusion__field(schema: A)
-              scalarField: FooScalar @fusion__field(schema: A)
+              field: Int
+                @fusion__authorization(authenticated: true, scopes: [["read"]])
+                @fusion__field(schema: A)
+              interfaceField: FooInterface
+                @fusion__authorization(authenticated: true, policies: [["Admin"]])
+                @fusion__field(schema: A)
+              scalarField: FooScalar
+                @fusion__authorization(authenticated: true, scopes: [["scalar"]])
+                @fusion__field(schema: A)
             }
 
             interface FooInterface
               @fusion__authorization(policies: [["Admin"]])
               @fusion__type(schema: A) {
-              id: Int @fusion__field(schema: A)
+              id: Int
+                @fusion__authorization(policies: [["Admin"]])
+                @fusion__field(schema: A)
             }
 
             enum FooEnum

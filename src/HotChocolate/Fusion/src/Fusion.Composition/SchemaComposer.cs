@@ -256,6 +256,7 @@ internal sealed class SchemaComposer
     internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
         new AuthorizationDirectiveArgumentRule(),
+        new AuthorizationOnInterfaceObjectRule(),
         new CostDirectiveDefinitionRule(),
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -331,6 +332,7 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> PostMergeRules { get; } =
     [
+        new AuthorizationInheritedRule(),
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInputObjectTypeRule(),
         new EmptyMergedInterfaceTypeRule(),

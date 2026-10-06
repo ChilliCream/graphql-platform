@@ -90,6 +90,12 @@
   <data name="LogEntryHelper_AuthorizationGroupCountExceeded" xml:space="preserve">
     <value>The merged {0} requirement of '{1}' has {2} alternative groups, which exceeds the threshold of {3}.</value>
   </data>
+  <data name="LogEntryHelper_AuthorizationInherited" xml:space="preserve">
+    <value>The member '{0}' requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from {1} in the source schemas {2}.</value>
+  </data>
+  <data name="LogEntryHelper_AuthorizationOnInterfaceObject" xml:space="preserve">
+    <value>The @interfaceObject type '{0}' in schema '{1}' cannot be annotated with @{2}. Annotate its fields instead.</value>
+  </data>
   <data name="SchemaHttpResponseReader_ResponseTooLarge" xml:space="preserve">
     <value>Source schema '{0}' returned a response larger than the maximum allowed size of {1} bytes.</value>
   </data>
