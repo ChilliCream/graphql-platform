@@ -9,8 +9,7 @@ internal sealed class PostgresQueueDescriptor
     : MessagingDescriptorBase<PostgresQueueDescriptorConfiguration>
     , IPostgresQueueDescriptor
 {
-    private PostgresQueueDescriptor(IMessagingConfigurationContext context, string name)
-        : base(context)
+    private PostgresQueueDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new PostgresQueueDescriptorConfiguration(name);
     }
