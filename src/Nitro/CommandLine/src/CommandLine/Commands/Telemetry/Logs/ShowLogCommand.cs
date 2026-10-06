@@ -1,10 +1,10 @@
 using System.Globalization;
-using System.Text.Json;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Logs;
@@ -32,6 +32,7 @@ internal sealed class ShowLogCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
@@ -51,7 +52,7 @@ internal sealed class ShowLogCommand : Command
 
         var detail = LogDetail.From(log);
 
-        console.WriteRawLine(JsonSerializer.Serialize(detail, LogDetailJsonContext.Default.LogDetail));
+        resultHolder.SetResult(new ObjectResult(detail));
 
         return ExitCodes.Success;
     }

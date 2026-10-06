@@ -3,8 +3,8 @@ using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces;
@@ -25,6 +25,7 @@ internal sealed class ListTraceCommand : Command
         Options.Add(Opt<TelemetrySinceOption>.Instance);
         Options.Add(Opt<TelemetryUntilOption>.Instance);
         Options.Add(Opt<TelemetryLimitOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         TelemetryCommandOptions.AddOptions(this);
 
@@ -43,6 +44,7 @@ internal sealed class ListTraceCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
@@ -68,6 +70,7 @@ internal sealed class ListTraceCommand : Command
         var spanKinds = parseResult.GetValue(Opt<TelemetrySpanKindOption>.Instance).ToOpenTelemetrySpanKinds();
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 20;
 
         var page = await client.ListTracesAsync(
@@ -78,25 +81,11 @@ internal sealed class ListTraceCommand : Command
             since,
             until,
             limit,
-            after: null,
+            cursor,
             cancellationToken);
 
         var items = page.Items.OrderByDescending(static trace => trace.Start).Select(TraceListItem.From).ToArray();
-        var emptyResultHint =
-            items.Length == 0
-                ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
-                : null;
-        console.WriteListEnvelope(
-            items,
-            total: null,
-            page.HasNextPage,
-            TraceListJsonContext.Default.TraceListItem,
-            emptyResultHint,
-            [
-                Opt<TelemetrySinceOption>.Instance,
-                Opt<TelemetryServiceOption>.Instance,
-                Opt<TelemetryFilterOption>.Instance
-            ]);
+        resultHolder.SetResult(new PaginatedListResult<TraceListItem>(items, page.EndCursor));
 
         return ExitCodes.Success;
     }

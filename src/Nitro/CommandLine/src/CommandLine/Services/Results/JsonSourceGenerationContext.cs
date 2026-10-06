@@ -19,6 +19,10 @@ using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Attributes;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Logs;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Services;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
@@ -109,4 +113,12 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MemoryPromotionResult))]
 [JsonSerializable(typeof(MemoryEntryResult))]
 [JsonSerializable(typeof(ListResult<MemoryEntryResult>))]
+[JsonSerializable(typeof(PaginatedListResult<ListAttributeKeysCommand.AttributeKeyListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListAttributeValuesCommand.AttributeValueListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListLogsCommand.LogListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListServicesCommand.ServiceListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListTraceCommand.TraceListItem>))]
+[JsonSerializable(typeof(ShowLogCommand.LogDetail))]
+[JsonSerializable(typeof(ShowServiceCommand.ServiceDetail))]
+[JsonSerializable(typeof(TraceJson))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

@@ -31,6 +31,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
               --since <since>                    The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
               --until <until>                    The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
               --limit <limit>                    The maximum number of results to show
+              --cursor <cursor>                  The pagination cursor to resume from [env: NITRO_CURSOR]
               --workspace-id <workspace-id>      The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --cloud-url <cloud-url>            The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                The API key or PAT used for authentication [env: NITRO_API_KEY]
@@ -266,7 +267,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Keys_Should_WriteEnvelope_When_KeysExist(InteractionMode mode)
+    public async Task Keys_Should_ReturnPage_When_KeysExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -306,7 +307,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "key": "service.name",
                   "kind": "Resource"
@@ -316,9 +317,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
                   "kind": "Span"
                 }
               ],
-              "returned": 2,
-              "total": null,
-              "hasMore": false
+              "cursor": null
             }
             """);
     }
@@ -327,7 +326,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Keys_Should_WriteEmptyEnvelope_When_NoKeysExist(InteractionMode mode)
+    public async Task Keys_Should_ReturnEmptyPage_When_NoKeysExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -341,10 +340,8 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
+              "values": [],
+              "cursor": null
             }
             """);
     }
@@ -353,7 +350,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Keys_Should_WriteNarrowingHint_When_MoreKeysExist(InteractionMode mode)
+    public async Task Keys_Should_ReturnCursor_When_MoreKeysExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -370,16 +367,13 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "key": "service.name",
                   "kind": "Resource"
                 }
               ],
-              "returned": 1,
-              "total": null,
-              "hasMore": true,
-              "hint": "showing 1 (more), narrow with --since, or raise --limit"
+              "cursor": "cursor-2"
             }
             """);
     }
@@ -402,6 +396,56 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
         result.AssertError(
             """
             There was an unexpected error: Something unexpected happened.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive, false)]
+    [InlineData(InteractionMode.Interactive, true)]
+    [InlineData(InteractionMode.NonInteractive, false)]
+    [InlineData(InteractionMode.NonInteractive, true)]
+    [InlineData(InteractionMode.JsonOutput, false)]
+    [InlineData(InteractionMode.JsonOutput, true)]
+    public async Task Keys_Should_ResumeFromCursor_When_CursorIsSpecified(
+        InteractionMode mode,
+        bool useEnvironmentCursor)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupEnvironmentVariable("CURSOR", "cursor-from-env");
+        var cursor = useEnvironmentCursor ? "cursor-from-env" : "cursor-from-option";
+        string[] cursorArguments = useEnvironmentCursor ? [] : ["--cursor", "cursor-from-option"];
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListAttributeKeysAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Traces,
+                    It.IsAny<IReadOnlyList<OpenTelemetryAttributeKind>?>(),
+                    null,
+                    s_defaultSince,
+                    s_defaultUntil,
+                    50,
+                    cursor,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<AttributeKeyRow>([new AttributeKeyRow("Resource", "service.name")], "cursor-2", true));
+
+        // act
+        var result = await ExecuteCommandAsync(["telemetry", "attributes", "keys", "--signal", "traces", .. cursorArguments]);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "key": "service.name",
+                  "kind": "Resource"
+                }
+              ],
+              "cursor": "cursor-2"
+            }
             """);
     }
 
@@ -436,7 +480,7 @@ public sealed class ListAttributeKeysCommandTests(NitroCommandFixture fixture) :
                     null,
                     It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ConnectionPage<AttributeKeyRow>(keys, null, hasNextPage));
+            .ReturnsAsync(new ConnectionPage<AttributeKeyRow>(keys, hasNextPage ? "cursor-2" : null, hasNextPage));
     }
 
     private void SetupListAttributeKeysException()

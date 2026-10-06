@@ -38,6 +38,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
               --since <since>                                 The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
               --until <until>                                 The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
               --limit <limit>                                 The maximum number of results to show
+              --cursor <cursor>                               The pagination cursor to resume from [env: NITRO_CURSOR]
               --severity <Debug|Error|Fatal|Info|Trace|Warn>  Only include logs at or above this severity
               --trace-id <trace-id>                           Only include logs from a trace
               --search <search>                               Search log messages
@@ -283,7 +284,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "id": "log-2",
                   "epoch": 1767225660456,
@@ -305,9 +306,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
                   "spanId": "span-1"
                 }
               ],
-              "returned": 2,
-              "total": null,
-              "hasMore": false
+              "cursor": null
             }
             """);
     }
@@ -330,10 +329,8 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
+              "values": [],
+              "cursor": null
             }
             """);
     }
@@ -342,7 +339,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_WriteNarrowingHint_When_MoreLogsExist(InteractionMode mode)
+    public async Task List_Should_ReturnCursor_When_MoreLogsExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -356,7 +353,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "id": "log-1",
                   "epoch": 1767225600123,
@@ -368,10 +365,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
                   "spanId": "span-1"
                 }
               ],
-              "returned": 1,
-              "total": null,
-              "hasMore": true,
-              "hint": "showing 1 (more), narrow with --since, --service or --filter, or raise --limit"
+              "cursor": "cursor-2"
             }
             """);
     }
@@ -380,18 +374,12 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_WriteSuggestionHint_When_FilteredResultHasAnUnknownKey(InteractionMode mode)
+    public async Task List_Should_ReturnEmptyPage_When_FilterHasNoMatches(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupListLogs();
-        SetupListAttributeKeys(
-            keys:
-            [
-                new AttributeKeyRow("Log", "http.response.status_code"),
-                new AttributeKeyRow("Log", "http.status_code")
-            ]);
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "logs", "list", "--filter", "http.statuscode:>=500");
@@ -400,26 +388,10 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false,
-              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal logs to list keys."
+              "values": [],
+              "cursor": null
             }
             """);
-        TelemetryClientMock.Verify(
-            x =>
-                x.ListAttributeKeysAsync(
-                    WorkspaceId,
-                    OpenTelemetrySignalKind.Logs,
-                    null,
-                    null,
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Theory]
@@ -443,6 +415,61 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.Interactive, false)]
+    [InlineData(InteractionMode.Interactive, true)]
+    [InlineData(InteractionMode.NonInteractive, false)]
+    [InlineData(InteractionMode.NonInteractive, true)]
+    [InlineData(InteractionMode.JsonOutput, false)]
+    [InlineData(InteractionMode.JsonOutput, true)]
+    public async Task List_Should_ResumeFromCursor_When_CursorIsSpecified(
+        InteractionMode mode,
+        bool useEnvironmentCursor)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupEnvironmentVariable("CURSOR", "cursor-from-env");
+        var cursor = useEnvironmentCursor ? "cursor-from-env" : "cursor-from-option";
+        string[] cursorArguments = useEnvironmentCursor ? [] : ["--cursor", "cursor-from-option"];
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListLogsAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    50,
+                    cursor,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<LogRow>([CreateLogRow("log-1", 1767225600123)], "cursor-2", true));
+
+        // act
+        var result = await ExecuteCommandAsync(["telemetry", "logs", "list", .. cursorArguments]);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "id": "log-1",
+                  "epoch": 1767225600123,
+                  "severityText": "ERROR",
+                  "severityNumber": 17,
+                  "serviceName": "products",
+                  "body": "Request failed",
+                  "traceId": "trace-1",
+                  "spanId": "span-1"
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+    }
+
     private void SetupListLogs(bool hasNextPage = false, params LogRow[] logs)
     {
         TelemetryClientMock
@@ -457,7 +484,7 @@ public sealed class ListLogsCommandTests(NitroCommandFixture fixture) : Telemetr
                     null,
                     It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ConnectionPage<LogRow>(logs, null, hasNextPage));
+            .ReturnsAsync(new ConnectionPage<LogRow>(logs, hasNextPage ? "cursor-2" : null, hasNextPage));
     }
 
     private void SetupListLogsException()

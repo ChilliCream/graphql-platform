@@ -2,8 +2,8 @@ using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Services;
@@ -20,6 +20,7 @@ internal sealed class ListServicesCommand : Command
         Options.Add(Opt<TelemetrySinceOption>.Instance);
         Options.Add(Opt<TelemetryUntilOption>.Instance);
         Options.Add(Opt<TelemetryLimitOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         TelemetryCommandOptions.AddOptions(this);
 
@@ -38,6 +39,7 @@ internal sealed class ListServicesCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
@@ -49,6 +51,7 @@ internal sealed class ListServicesCommand : Command
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
 
         if (!CompiledTelemetryFilter.TryCreate(console, TelemetryFilterSignal.Traces, filterText, out var filter))
@@ -64,21 +67,11 @@ internal sealed class ListServicesCommand : Command
             since,
             until,
             limit,
-            after: null,
+            cursor,
             cancellationToken);
 
         var items = page.Items.Select(ServiceListItem.From).ToArray();
-        var emptyResultHint =
-            items.Length == 0
-                ? await filter.CreateEmptyResultHintAsync(client, workspaceId, since, until, cancellationToken)
-                : null;
-        console.WriteListEnvelope(
-            items,
-            total: null,
-            page.HasNextPage,
-            ServiceListJsonContext.Default.ServiceListItem,
-            emptyResultHint,
-            [Opt<TelemetrySinceOption>.Instance, Opt<TelemetryFilterOption>.Instance]);
+        resultHolder.SetResult(new PaginatedListResult<ServiceListItem>(items, page.EndCursor));
 
         return ExitCodes.Success;
     }

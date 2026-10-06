@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
@@ -38,6 +37,7 @@ internal sealed class ShowTraceCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
@@ -57,10 +57,10 @@ internal sealed class ShowTraceCommand : Command
                 "run nitro telemetry traces list --since 2h");
         }
 
-        if (console.OutputFormat is OutputFormat.Json)
+        if (!console.IsHumanReadable)
         {
             var detail = TraceJson.From(traceId, trace);
-            console.WriteRawLine(JsonSerializer.Serialize(detail, TraceJsonContext.Default.TraceJson));
+            resultHolder.SetResult(new ObjectResult(detail));
             return ExitCodes.Success;
         }
 

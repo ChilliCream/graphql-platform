@@ -26,8 +26,6 @@ internal sealed class NitroConsole : INitroConsole
 
     public bool IsHumanReadable => _outputFormat is null;
 
-    public OutputFormat? OutputFormat => _outputFormat;
-
     public bool HasWrittenOutput => _hasWrittenOutput;
 
     public IAnsiConsole Out => _outConsole;

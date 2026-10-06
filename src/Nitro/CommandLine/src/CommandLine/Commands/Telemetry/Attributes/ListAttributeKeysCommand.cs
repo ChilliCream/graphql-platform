@@ -1,8 +1,8 @@
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Attributes;
@@ -19,6 +19,7 @@ internal sealed class ListAttributeKeysCommand : Command
         Options.Add(Opt<TelemetrySinceOption>.Instance);
         Options.Add(Opt<TelemetryUntilOption>.Instance);
         Options.Add(Opt<TelemetryLimitOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
         TelemetryCommandOptions.AddOptions(this);
 
@@ -37,6 +38,7 @@ internal sealed class ListAttributeKeysCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
@@ -48,6 +50,7 @@ internal sealed class ListAttributeKeysCommand : Command
         var search = parseResult.GetValue(Opt<AttributeKeySearchOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
         var page = await client.ListAttributeKeysAsync(
             workspaceId,
@@ -57,17 +60,11 @@ internal sealed class ListAttributeKeysCommand : Command
             since,
             until,
             limit,
-            after: null,
+            cursor,
             cancellationToken);
 
         var items = page.Items.Select(AttributeKeyListItem.From).ToArray();
-        console.WriteListEnvelope(
-            items,
-            total: null,
-            page.HasNextPage,
-            AttributeKeyListJsonContext.Default.AttributeKeyListItem,
-            emptyResultHint: null,
-            [Opt<TelemetrySinceOption>.Instance]);
+        resultHolder.SetResult(new PaginatedListResult<AttributeKeyListItem>(items, page.EndCursor));
 
         return ExitCodes.Success;
     }

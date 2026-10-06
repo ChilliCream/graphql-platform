@@ -28,6 +28,7 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
               --since <since>                The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
               --until <until>                The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
               --limit <limit>                The maximum number of results to show
+              --cursor <cursor>              The pagination cursor to resume from [env: NITRO_CURSOR]
               --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>            The API key or PAT used for authentication [env: NITRO_API_KEY]
@@ -192,16 +193,14 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "name": "products",
                   "environments": "production, staging",
                   "lastVersion": "1.2.0"
                 }
               ],
-              "returned": 1,
-              "total": null,
-              "hasMore": false
+              "cursor": null
             }
             """);
     }
@@ -224,10 +223,8 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
+              "values": [],
+              "cursor": null
             }
             """);
     }
@@ -236,7 +233,7 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_AdvertiseSinceAndFilterNarrowing_When_ResultHasMoreItems(InteractionMode mode)
+    public async Task List_Should_ReturnCursor_When_ResultHasMoreItems(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -250,17 +247,14 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "name": "products",
                   "environments": "production, staging",
                   "lastVersion": "1.2.0"
                 }
               ],
-              "returned": 1,
-              "total": null,
-              "hasMore": true,
-              "hint": "showing 1 (more), narrow with --since or --filter, or raise --limit"
+              "cursor": "cursor-2"
             }
             """);
     }
@@ -298,10 +292,8 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
+              "values": [],
+              "cursor": null
             }
             """);
     }
@@ -310,18 +302,12 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_WriteSuggestionHint_When_FilteredResultHasAnUnknownKey(InteractionMode mode)
+    public async Task List_Should_ReturnEmptyPage_When_FilterHasNoMatches(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupListServices(filterPredicate: _ => true);
-        SetupListAttributeKeys(
-            keys:
-            [
-                new AttributeKeyRow("Span", "http.response.status_code"),
-                new AttributeKeyRow("Span", "http.status_code")
-            ]);
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "services", "list", "--filter", "http.statuscode:>=500");
@@ -330,26 +316,10 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false,
-              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."
+              "values": [],
+              "cursor": null
             }
             """);
-        TelemetryClientMock.Verify(
-            x =>
-                x.ListAttributeKeysAsync(
-                    WorkspaceId,
-                    OpenTelemetrySignalKind.Traces,
-                    null,
-                    null,
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Theory]
@@ -373,6 +343,57 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.Interactive, false)]
+    [InlineData(InteractionMode.Interactive, true)]
+    [InlineData(InteractionMode.NonInteractive, false)]
+    [InlineData(InteractionMode.NonInteractive, true)]
+    [InlineData(InteractionMode.JsonOutput, false)]
+    [InlineData(InteractionMode.JsonOutput, true)]
+    public async Task List_Should_ResumeFromCursor_When_CursorIsSpecified(
+        InteractionMode mode,
+        bool useEnvironmentCursor)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupEnvironmentVariable("CURSOR", "cursor-from-env");
+        var cursor = useEnvironmentCursor ? "cursor-from-env" : "cursor-from-option";
+        string[] cursorArguments = useEnvironmentCursor ? [] : ["--cursor", "cursor-from-option"];
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListServicesAsync(
+                    WorkspaceId,
+                    null,
+                    null,
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<DateTimeOffset>(),
+                    50,
+                    cursor,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<ServiceRow>([CreateService()], "cursor-2", true));
+
+        // act
+        var result = await ExecuteCommandAsync(["telemetry", "services", "list", .. cursorArguments]);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "name": "products",
+                  "environments": "production, staging",
+                  "lastVersion": "1.2.0"
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+    }
+
     private void SetupListServices(
         string? search = null,
         string[]? environments = null,
@@ -393,7 +414,7 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
                     null,
                     It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ConnectionPage<ServiceRow>(services, null, hasNextPage));
+            .ReturnsAsync(new ConnectionPage<ServiceRow>(services, hasNextPage ? "cursor-2" : null, hasNextPage));
     }
 
     private void SetupListServicesException()

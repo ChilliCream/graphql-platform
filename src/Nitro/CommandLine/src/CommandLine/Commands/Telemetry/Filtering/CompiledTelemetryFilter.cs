@@ -2,8 +2,6 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Telemetry;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 
@@ -23,22 +21,10 @@ internal sealed class CompiledTelemetryFilter
         .Select(static (level, index) => new KeyValuePair<string, int>(level, index))
         .ToFrozenDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.OrdinalIgnoreCase);
 
-    private readonly TelemetryFilterSignal _signal;
-
-    private CompiledTelemetryFilter(
-        TelemetryFilterSignal signal,
-        FilterNode? parsedFilter,
-        OpenTelemetryFilterInput? input)
+    private CompiledTelemetryFilter(OpenTelemetryFilterInput? input)
     {
-        _signal = signal;
-        ParsedFilter = parsedFilter;
         Input = input;
     }
-
-    /// <summary>
-    /// The parsed <c>--filter</c> expression, or <c>null</c> when no filter text was given.
-    /// </summary>
-    public FilterNode? ParsedFilter { get; }
 
     /// <summary>
     /// The server filter combining the <c>--filter</c> expression and the shortcut options,
@@ -146,45 +132,6 @@ internal sealed class CompiledTelemetryFilter
             service,
             out filter);
 
-    /// <summary>
-    /// Returns a hint naming unknown keys in the parsed filter and similar known keys,
-    /// or <c>null</c> when there is nothing to suggest.
-    /// </summary>
-    public async Task<string?> CreateEmptyResultHintAsync(
-        ITelemetryClient client,
-        string workspaceId,
-        DateTimeOffset? since,
-        DateTimeOffset? until,
-        CancellationToken cancellationToken)
-    {
-        if (ParsedFilter is null)
-        {
-            return null;
-        }
-
-        var signalKind =
-            _signal == TelemetryFilterSignal.Traces ? OpenTelemetrySignalKind.Traces : OpenTelemetrySignalKind.Logs;
-
-        try
-        {
-            var attributeKeys = await client.ListAttributeKeysAsync(
-                workspaceId,
-                signalKind,
-                kinds: null,
-                search: null,
-                since,
-                until,
-                first: 50,
-                after: null,
-                cancellationToken);
-            return KeySuggestions.CreateHint(ParsedFilter, attributeKeys.Items, signalKind);
-        }
-        catch (Exception) when (!cancellationToken.IsCancellationRequested)
-        {
-            return null;
-        }
-    }
-
     private static bool TryCreate(
         INitroConsole console,
         TelemetryFilterSignal signal,
@@ -290,7 +237,7 @@ internal sealed class CompiledTelemetryFilter
             _ => new OpenTelemetryFilterInput { And = clauses }
         };
 
-        return new CompiledTelemetryFilter(signal, parsedFilter, input);
+        return new CompiledTelemetryFilter(input);
     }
 
     private static OpenTelemetryFilterInput CreateSeverityFilter(string severity)

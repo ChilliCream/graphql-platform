@@ -1,8 +1,4 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Filtering;
 
@@ -192,27 +188,25 @@ public sealed class CompiledTelemetryFilterTests
     }
 
     [Fact]
-    public void Create_Should_ExposeTheParsedFilter_When_FilterTextIsProvided()
+    public void Create_Should_CompileTheFilter_When_FilterTextIsProvided()
     {
         // act
         var filter = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, "http.statuscode:>=500");
 
         // assert
-        var predicate = Assert.IsType<FilterPredicateNode>(filter.ParsedFilter);
-        Assert.Equal("http.statuscode", predicate.Field);
+        FilterInputFormatter.Describe(filter.Input).MatchInlineSnapshot("attribute(http.statuscode,gte(int:500))");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("  ")]
-    public void Create_Should_HaveNoParsedFilter_When_TheFilterTextIsNullOrWhitespace(string? filterText)
+    public void Create_Should_HaveNoInput_When_TheFilterTextIsNullOrWhitespace(string? filterText)
     {
         // act
         var filter = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, filterText);
 
         // assert
-        Assert.Null(filter.ParsedFilter);
         Assert.Null(filter.Input);
     }
 
@@ -261,39 +255,5 @@ public sealed class CompiledTelemetryFilterTests
 
         // assert
         Assert.Equal(expected, FilterInputFormatter.Describe(filter.Input));
-    }
-
-    [Fact]
-    public async Task CreateEmptyResultHintAsync_Should_ReturnNull_When_ListingAttributeKeysFails()
-    {
-        // arrange
-        var filter = CompiledTelemetryFilter.Create(TelemetryFilterSignal.Traces, "http.statuscode:>=500");
-        var client = new Mock<ITelemetryClient>(MockBehavior.Strict);
-        client
-            .Setup(x =>
-                x.ListAttributeKeysAsync(
-                    "workspace",
-                    OpenTelemetrySignalKind.Traces,
-                    null,
-                    null,
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>())
-            )
-            .ThrowsAsync(new InvalidOperationException());
-
-        // act
-        var result = await filter.CreateEmptyResultHintAsync(
-            client.Object,
-            "workspace",
-            null,
-            null,
-            CancellationToken.None);
-
-        // assert
-        Assert.Null(result);
-        client.VerifyAll();
     }
 }

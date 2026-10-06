@@ -36,6 +36,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
               --since <since>                                                The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
               --until <until>                                                The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
               --limit <limit>                                                The maximum number of results to show
+              --cursor <cursor>                                              The pagination cursor to resume from [env: NITRO_CURSOR]
               --workspace-id <workspace-id>                                  The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --cloud-url <cloud-url>                                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                                            The API key or PAT used for authentication [env: NITRO_API_KEY]
@@ -310,7 +311,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Values_Should_WriteEnvelope_When_ValuesExist(InteractionMode mode)
+    public async Task Values_Should_ReturnPage_When_ValuesExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -349,7 +350,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "value": "products"
                 },
@@ -357,9 +358,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
                   "value": "orders"
                 }
               ],
-              "returned": 2,
-              "total": null,
-              "hasMore": false
+              "cursor": null
             }
             """);
     }
@@ -389,7 +388,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "value": "products"
                 },
@@ -406,9 +405,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
                   "value": "false"
                 }
               ],
-              "returned": 5,
-              "total": null,
-              "hasMore": false
+              "cursor": null
             }
             """);
     }
@@ -417,7 +414,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Values_Should_WriteEmptyEnvelope_When_NoValuesExist(InteractionMode mode)
+    public async Task Values_Should_ReturnEmptyPage_When_NoValuesExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -431,10 +428,8 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
+              "values": [],
+              "cursor": null
             }
             """);
     }
@@ -443,7 +438,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task Values_Should_WriteNarrowingHint_When_MoreValuesExist(InteractionMode mode)
+    public async Task Values_Should_ReturnCursor_When_MoreValuesExist(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -460,15 +455,12 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "value": "products"
                 }
               ],
-              "returned": 1,
-              "total": null,
-              "hasMore": true,
-              "hint": "showing 1 (more), narrow with --since, or raise --limit"
+              "cursor": "cursor-2"
             }
             """);
     }
@@ -508,6 +500,56 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.Interactive, false)]
+    [InlineData(InteractionMode.Interactive, true)]
+    [InlineData(InteractionMode.NonInteractive, false)]
+    [InlineData(InteractionMode.NonInteractive, true)]
+    [InlineData(InteractionMode.JsonOutput, false)]
+    [InlineData(InteractionMode.JsonOutput, true)]
+    public async Task Values_Should_ResumeFromCursor_When_CursorIsSpecified(
+        InteractionMode mode,
+        bool useEnvironmentCursor)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupEnvironmentVariable("CURSOR", "cursor-from-env");
+        var cursor = useEnvironmentCursor ? "cursor-from-env" : "cursor-from-option";
+        string[] cursorArguments = useEnvironmentCursor ? [] : ["--cursor", "cursor-from-option"];
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListAttributeValuesAsync(
+                    WorkspaceId,
+                    OpenTelemetrySignalKind.Traces,
+                    Key,
+                    null,
+                    null,
+                    s_defaultSince,
+                    s_defaultUntil,
+                    50,
+                    cursor,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<AttributeValue>([new AttributeValue(null, null, null, "products")], "cursor-2", true));
+
+        // act
+        var result = await ExecuteCommandAsync(["telemetry", "attributes", "values", Key, "--signal", "traces", .. cursorArguments]);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "value": "products"
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+    }
+
     private void SetupListAttributeValuesPage(
         OpenTelemetrySignalKind signal,
         bool hasNextPage,
@@ -540,6 +582,6 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
                     null,
                     It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ConnectionPage<AttributeValue>(values, null, hasNextPage));
+            .ReturnsAsync(new ConnectionPage<AttributeValue>(values, hasNextPage ? "cursor-2" : null, hasNextPage));
     }
 }

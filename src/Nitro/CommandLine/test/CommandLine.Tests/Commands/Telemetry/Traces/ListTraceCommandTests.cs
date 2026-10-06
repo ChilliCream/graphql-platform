@@ -42,6 +42,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
               --since <since>                The earliest timestamp to include [default: 12/31/2025 23:30:00 +00:00]
               --until <until>                The latest timestamp to include [default: 01/01/2026 00:00:00 +00:00]
               --limit <limit>                The maximum number of results to show
+              --cursor <cursor>              The pagination cursor to resume from [env: NITRO_CURSOR]
               --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>            The API key or PAT used for authentication [env: NITRO_API_KEY]
@@ -331,7 +332,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "start": "2025-12-31T23:30:00.123+00:00",
                   "service": "products",
@@ -343,9 +344,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
                   "seeker": "seeker-1"
                 }
               ],
-              "returned": 1,
-              "total": null,
-              "hasMore": false
+              "cursor": null
             }
             """);
     }
@@ -368,10 +367,8 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false
+              "values": [],
+              "cursor": null
             }
             """);
     }
@@ -380,18 +377,12 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_WriteSuggestionHintInEnvelope_When_FilteredResultHasAnUnknownKey(InteractionMode mode)
+    public async Task List_Should_ReturnEmptyPage_When_FilterHasNoMatches(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
         SetupSessionWithWorkspace();
         SetupListTraces();
-        SetupListAttributeKeys(
-            keys:
-            [
-                new AttributeKeyRow("Span", "http.response.status_code"),
-                new AttributeKeyRow("Span", "http.status_code")
-            ]);
 
         // act
         var result = await ExecuteCommandAsync("telemetry", "traces", "list", "--filter", "http.statuscode:>=500");
@@ -400,33 +391,17 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertSuccess(
             """
             {
-              "items": [],
-              "returned": 0,
-              "total": null,
-              "hasMore": false,
-              "hint": "no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."
+              "values": [],
+              "cursor": null
             }
             """);
-        TelemetryClientMock.Verify(
-            x =>
-                x.ListAttributeKeysAsync(
-                    WorkspaceId,
-                    OpenTelemetrySignalKind.Traces,
-                    null,
-                    null,
-                    It.IsAny<DateTimeOffset?>(),
-                    It.IsAny<DateTimeOffset?>(),
-                    50,
-                    null,
-                    It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task List_Should_OrderNewestFirstAndAdvertiseNarrowing_When_ResultHasMoreItems(InteractionMode mode)
+    public async Task List_Should_OrderNewestFirstAndReturnCursor_When_ResultHasMoreItems(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -442,7 +417,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertSuccess(
             """
             {
-              "items": [
+              "values": [
                 {
                   "start": "2025-12-31T23:30:01.123+00:00",
                   "service": "products",
@@ -464,10 +439,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
                   "seeker": "seeker-1"
                 }
               ],
-              "returned": 2,
-              "total": null,
-              "hasMore": true,
-              "hint": "showing 2 (more), narrow with --since, --service or --filter, or raise --limit"
+              "cursor": "cursor-2"
             }
             """);
     }
@@ -493,6 +465,75 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.Interactive, false)]
+    [InlineData(InteractionMode.Interactive, true)]
+    [InlineData(InteractionMode.NonInteractive, false)]
+    [InlineData(InteractionMode.NonInteractive, true)]
+    [InlineData(InteractionMode.JsonOutput, false)]
+    [InlineData(InteractionMode.JsonOutput, true)]
+    public async Task List_Should_ResumeFromCursor_When_CursorIsSpecified(
+        InteractionMode mode,
+        bool useEnvironmentCursor)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupEnvironmentVariable("CURSOR", "cursor-from-env");
+        var cursor = useEnvironmentCursor ? "cursor-from-env" : "cursor-from-option";
+        string[] cursorArguments = useEnvironmentCursor ? [] : ["--cursor", "cursor-from-option"];
+        TelemetryClientMock
+            .Setup(x =>
+                x.ListTracesAsync(
+                    WorkspaceId,
+                    It.IsAny<OpenTelemetryFilterInput?>(),
+                    It.IsAny<IReadOnlyList<string>?>(),
+                    It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    It.IsAny<DateTimeOffset?>(),
+                    20,
+                    cursor,
+                    It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(new ConnectionPage<TraceRow>(
+                [CreateTrace(start: 1767223800123), CreateTrace(traceId: "trace-2", start: 1767223801123)],
+                "cursor-2",
+                true));
+
+        // act
+        var result = await ExecuteCommandAsync(["telemetry", "traces", "list", .. cursorArguments]);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "start": "2025-12-31T23:30:01.123+00:00",
+                  "service": "products",
+                  "name": "GET /products",
+                  "durationMs": 125.5,
+                  "status": "Error",
+                  "traceId": "trace-2",
+                  "spanId": "span-1",
+                  "seeker": "seeker-1"
+                },
+                {
+                  "start": "2025-12-31T23:30:00.123+00:00",
+                  "service": "products",
+                  "name": "GET /products",
+                  "durationMs": 125.5,
+                  "status": "Error",
+                  "traceId": "trace-1",
+                  "spanId": "span-1",
+                  "seeker": "seeker-1"
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+    }
+
     private void SetupListTraces(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: false);
 
     private void SetupListTracesWithMore(params TraceRow[] traces) => SetupListTraces(traces, hasNextPage: true);
@@ -512,7 +553,7 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture) : Telemet
                     null,
                     It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(new ConnectionPage<TraceRow>(traces, null, hasNextPage));
+            .ReturnsAsync(new ConnectionPage<TraceRow>(traces, hasNextPage ? "cursor-2" : null, hasNextPage));
     }
 
     private void SetupListTracesException()
