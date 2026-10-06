@@ -6,6 +6,44 @@ namespace Mocha.Transport.Postgres.Tests.Descriptors;
 
 public class PostgresDescriptorTests
 {
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData(null, false)]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task AutoMigrate_Should_ConfigureTransportIndependently_When_AutoProvisionIsSet(
+        bool? autoMigrate,
+        bool autoProvision)
+    {
+        // arrange
+        IPostgresMessagingTransportDescriptor? descriptor = null;
+        IPostgresMessagingTransportDescriptor? result = null;
+        PostgresTransportConfiguration? configuration = null;
+
+        // act
+        var runtime = PostgresBusFixture.CreateRuntime(t =>
+        {
+            descriptor = t;
+            if (autoMigrate.HasValue)
+            {
+                result = t.AutoMigrate(autoMigrate.Value);
+            }
+            t.AutoProvision(autoProvision);
+            configuration = ((IMessagingDescriptor<PostgresTransportConfiguration>)t).Extend().Configuration;
+        });
+        await using var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(autoMigrate ?? true, configuration!.AutoMigrate);
+        Assert.Equal(autoProvision, configuration.AutoProvision);
+        if (autoMigrate.HasValue)
+        {
+            Assert.Same(descriptor, result);
+        }
+    }
+
     [Fact]
     public void Transport_Should_UseCustomSchema_When_SchemaConfigured()
     {

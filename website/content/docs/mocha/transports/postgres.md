@@ -46,7 +46,7 @@ var app = builder.Build();
 app.Run();
 ```
 
-`.AddPostgres(connectionString)` creates an `NpgsqlDataSource` from the connection string, runs schema migrations on first use, and provisions topics, queues, and subscriptions for your registered handlers.
+`.AddPostgres(connectionString)` creates an `NpgsqlDataSource` from the connection string, runs schema migrations at transport startup, and provisions topics, queues, and subscriptions for your registered handlers.
 
 ## Register with .NET Aspire
 
@@ -243,12 +243,157 @@ Changing `Schema` and `TablePrefix` shifts all table names accordingly. For exam
 
 ## Schema migration
 
-The transport runs migrations automatically on first use. Migrations are protected by a PostgreSQL advisory lock (`pg_advisory_xact_lock`) to prevent concurrent migration attempts from multiple service instances starting simultaneously.
+The transport runs migrations automatically at startup using its runtime connection string. `AutoMigrate` defaults to `true`. Migrations use a PostgreSQL advisory lock (`pg_advisory_xact_lock`) and execute in one transaction, including schema creation and migration history updates.
 
-Each migration is tracked in the migrations table and is idempotent - running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
+Each migration is recorded in `mocha_migrations`. Subsequent calls skip recorded migrations. Preserve this table when resetting test data or cloning a template database; migration does not reconstruct erased history from existing tables.
 
-> [!WARNING]
-> The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
+The advisory lock ID is fixed. Independent Mocha transports in the same database share the migration lock, including transports with different table prefixes. Normal message operations do not acquire this lock.
+
+### Separate setup and runtime credentials
+
+Call `PostgresTransportSchema.MigrateAsync` from an init container, devcontainer setup command, or test fixture. Supply an open connection with DDL privileges to an existing database:
+
+```csharp
+using Mocha.Transport.Postgres;
+using Npgsql;
+
+var options = new PostgresSchemaOptions();
+await using var connection = new NpgsqlConnection(setupConnectionString);
+await connection.OpenAsync(cancellationToken);
+await PostgresTransportSchema.MigrateAsync(connection, options, cancellationToken);
+```
+
+The caller owns the connection, which remains open after migration. The connection must have no active or ambient transaction. Migration commits before returning, rolls back on failure or cancellation, and supports cancellation while waiting for the migration lock.
+
+Start the service with restricted runtime credentials after setup succeeds:
+
+```csharp
+builder.Services.AddMessageBus().AddPostgres(transport =>
+{
+    transport.ConnectionString(runtimeConnectionString);
+    transport.AutoMigrate(false);
+    transport.AutoProvision(true);
+});
+```
+
+`AutoMigrate(false)` skips migration completely. It does not validate the schema, inspect migration history, or repair missing objects. Missing infrastructure can fail through normal runtime database operations. `AutoProvision` independently controls insertion of topic, queue, and subscription rows; it does not control schema migration.
+
+Configure database access, schema usage, DML permissions on the operational tables, and usage of `mocha_topology_seq` separately through your deployment infrastructure. The runtime account does not need access to `mocha_migrations` when automatic migration is disabled.
+
+Transport migration creates transport tables, indexes, constraints, the topology sequence, and migration history. It does not seed configured topology or register a consumer. When using `Mocha.EntityFrameworkCore.Postgres`, apply application EF migrations separately to create the mapped outbox and business tables.
+
+### Export a migration SQL artifact
+
+`GenerateMigrationScript` synchronously returns SQL without connecting to PostgreSQL, constructing a host, or discovering application topology:
+
+```csharp
+var sql = PostgresTransportSchema.GenerateMigrationScript(new PostgresSchemaOptions());
+await File.WriteAllTextAsync("mocha-migrations.sql", sql, cancellationToken);
+```
+
+The artifact includes the complete migration catalog, transaction boundaries, advisory locking, and migration-history guards. It can initialize an empty database, upgrade a database with recorded older migrations, or run again against an up-to-date database. Direct migration and exported SQL use the same migration definitions and lock.
+
+Apply the artifact with a SQL client configured to stop on errors:
+
+```shell
+psql --no-psqlrc --set=ON_ERROR_STOP=1 --file=mocha-migrations.sql
+```
+
+Supply privileged connection settings to `psql` through your deployment environment. Execute the script outside an existing transaction; it already includes `BEGIN` and `COMMIT`. It contains no credentials, topology seed data, or EF migrations.
+
+### Add application setup commands
+
+This `Program.cs` exposes `mocha migrate` and `mocha export --file <path>` before constructing the service host. It requires `Microsoft.Extensions.Hosting`, `Mocha`, and `Mocha.Transport.Postgres`. Add application handlers and EF registrations to the normal service branch.
+
+```csharp
+using System.Text;
+using Microsoft.Extensions.Hosting;
+using Mocha;
+using Mocha.Transport.Postgres;
+using Npgsql;
+
+var options = new PostgresSchemaOptions();
+
+if (args is ["mocha", .. var command])
+{
+    using var cancellation = new CancellationTokenSource();
+    Console.CancelKeyPress += (_, e) =>
+    {
+        e.Cancel = true;
+        cancellation.Cancel();
+    };
+    var ct = cancellation.Token;
+
+    if (command is ["export", "--file", var file])
+    {
+        ct.ThrowIfCancellationRequested();
+        var sql = PostgresTransportSchema.GenerateMigrationScript(options);
+        var destination = Path.GetFullPath(file);
+        var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await File.WriteAllTextAsync(temporary, sql, new UTF8Encoding(false), ct);
+            ct.ThrowIfCancellationRequested();
+            File.Move(temporary, destination, overwrite: true);
+        }
+        finally
+        {
+            File.Delete(temporary);
+        }
+
+        return 0;
+    }
+
+    if (command is ["migrate"])
+    {
+        var setup = Environment.GetEnvironmentVariable("MOCHA_SETUP_CONNECTION");
+        if (string.IsNullOrWhiteSpace(setup))
+        {
+            Console.Error.WriteLine("Set MOCHA_SETUP_CONNECTION.");
+            return 2;
+        }
+
+        var settings = new NpgsqlConnectionStringBuilder(setup)
+        {
+            Pooling = false,
+            Enlist = false
+        };
+        await using var connection = new NpgsqlConnection(settings.ConnectionString);
+        await connection.OpenAsync(ct);
+        await PostgresTransportSchema.MigrateAsync(connection, options, ct);
+        return 0;
+    }
+
+    Console.Error.WriteLine("Usage: mocha migrate | mocha export --file <path>");
+    return 2;
+}
+
+var runtime = Environment.GetEnvironmentVariable("MOCHA_RUNTIME_CONNECTION");
+if (string.IsNullOrWhiteSpace(runtime))
+{
+    Console.Error.WriteLine("Set MOCHA_RUNTIME_CONNECTION.");
+    return 2;
+}
+
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddMessageBus().AddPostgres(transport =>
+{
+    transport.ConnectionString(runtime).AutoMigrate(false).AutoProvision(true);
+    ((IMessagingDescriptor<PostgresTransportConfiguration>)transport)
+        .Extend().Configuration.SchemaOptions = options;
+});
+using var host = builder.Build();
+await host.RunAsync();
+return 0;
+```
+
+Run `dotnet MyService.dll mocha migrate` with `MOCHA_SETUP_CONNECTION` in the setup container, then start the service with `MOCHA_RUNTIME_CONNECTION`. To export during the build, run `dotnet MyService.dll mocha export --file mocha-migrations.sql`. Export needs no connection string; its output directory must already exist. Failed writes do not replace an existing artifact, and command failures return a nonzero exit code.
+
+### Prepare Testcontainers and template databases
+
+For a fresh Testcontainers database, apply any application EF migrations and call `MigrateAsync` before starting the bus with `AutoMigrate(false)`. Keep `AutoProvision(true)` to create the topology rows needed by test handlers.
+
+For template-based fixtures, apply both sets of migrations once to the template without starting a bus or outbox worker. Use nonpooled setup connections and dispose them before `CREATE DATABASE ... TEMPLATE ...`. Preserve EF and Mocha migration history in each clone. Start the test bus against the clone with `AutoMigrate(false)` and `AutoProvision(true)`; each clone gets its own runtime topology and consumer rows.
 
 # Configure queues
 
@@ -336,7 +481,7 @@ If the queue already declares `AutoDelete(false)` explicitly, `Temporary()` fail
 
 # Control auto-provisioning
 
-By default, the transport auto-provisions all topology resources (topics, queues, subscriptions) in the database at startup. In environments where database schema is managed externally - for example by Flyway, Liquibase, or a CI/CD pipeline - you can disable auto-provisioning so the transport expects resources to already exist.
+By default, the transport auto-provisions topology resources (topics, queues, subscriptions) as rows at startup. Disable auto-provisioning when these rows are managed externally. To manage table creation and migration externally, use `AutoMigrate(false)` as described in [Schema migration](#schema-migration).
 
 ## Disable globally
 

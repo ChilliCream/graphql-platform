@@ -8,7 +8,7 @@ namespace Mocha.Transport.Postgres.Tests.Helpers;
 
 public sealed class PostgresFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlResource _resource = new();
+    private readonly ScriptPostgreSqlResource _resource = new();
 
     public async ValueTask InitializeAsync()
     {
@@ -21,6 +21,9 @@ public sealed class PostgresFixture : IAsyncLifetime
     }
 
     public string ConnectionString => _resource.ConnectionString;
+
+    public Task ApplyScriptAsync(string database, string sql, CancellationToken cancellationToken)
+        => _resource.ApplyScriptAsync(database, sql, cancellationToken);
 
     /// <summary>
     /// Creates an isolated database for each test to avoid interference.
@@ -73,6 +76,20 @@ public sealed class PostgresFixture : IAsyncLifetime
             ? testName[..(maxLength - overhead)]
             : testName;
         return $"mocha_{truncatedName}_{hash}".ToLowerInvariant();
+    }
+
+    private sealed class ScriptPostgreSqlResource : PostgreSqlResource
+    {
+        public async Task ApplyScriptAsync(string database, string sql, CancellationToken cancellationToken)
+        {
+            var path = $"/tmp/mocha-migration-{Guid.NewGuid():N}.sql";
+            await Container.CopyAsync(Encoding.UTF8.GetBytes(sql), path, ct: cancellationToken);
+            var result = await Container.ExecAsync(
+                ["psql", "--no-psqlrc", "-U", "postgres", "-d", database,
+                    "--set=ON_ERROR_STOP=1", "--file=" + path],
+                cancellationToken);
+            Assert.True(result.ExitCode == 0, result.Stderr);
+        }
     }
 }
 
