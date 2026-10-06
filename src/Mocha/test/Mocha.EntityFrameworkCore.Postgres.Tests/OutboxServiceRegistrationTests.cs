@@ -79,13 +79,15 @@ public sealed class OutboxServiceRegistrationTests
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
+        await using var scope = provider.CreateAsyncScope();
+        await using var connection = options.CreateConnection(scope.ServiceProvider);
 
         // Assert
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.InsertEnvelope));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.NextPollingInterval));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.ProcessEvent));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.DeleteEvent));
-        Assert.False(string.IsNullOrWhiteSpace(options.ConnectionString));
+        Assert.Equal(ConnectionString, connection.ConnectionString);
     }
 
     private static ServiceProvider BuildProvider()
