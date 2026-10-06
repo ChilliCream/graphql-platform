@@ -349,4 +349,44 @@ public sealed class AuthDirectiveIntakeTests
         Assert.True(result.IsFailure);
         Assert.Contains(log, e => e.Code == LogEntryCodes.AuthorizationDirectiveArgumentInvalid);
     }
+
+    [Fact]
+    public void Compose_Should_Fail_When_ScopeGroupIsEmpty()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@requiresScopes"])
+
+            type Query {
+              me: String @requiresScopes(scopes: [[]])
+            }
+            """;
+
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", a)],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.me' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [[]].",
+                "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                "severity": "Error",
+                "coordinate": "Query.me",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
 }

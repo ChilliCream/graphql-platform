@@ -10,8 +10,9 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
-/// Reports <c>@requiresScopes</c> and <c>@policy</c> directives whose argument is missing, null
-/// or not a string, a list of strings or a list of string lists.
+/// Reports <c>@requiresScopes</c> and <c>@policy</c> directives whose argument is missing, null,
+/// not a string, a list of strings or a list of string lists, or contains an empty list, an empty
+/// group or a blank string.
 /// </summary>
 internal sealed class AuthorizationDirectiveArgumentRule
     : IEventHandler<OutputFieldEvent>
@@ -88,28 +89,31 @@ internal sealed class AuthorizationDirectiveArgumentRule
     {
         switch (value)
         {
-            case StringValueNode:
-                return true;
+            case StringValueNode single:
+                return !string.IsNullOrWhiteSpace(single.Value);
 
-            case ListValueNode list:
+            case ListValueNode { Items.Count: > 0 } list:
                 foreach (var item in list.Items)
                 {
-                    if (item is StringValueNode)
+                    switch (item)
                     {
-                        continue;
-                    }
+                        case StringValueNode factor when !string.IsNullOrWhiteSpace(factor.Value):
+                            continue;
 
-                    if (item is not ListValueNode group)
-                    {
-                        return false;
-                    }
+                        case ListValueNode { Items.Count: > 0 } group:
+                            foreach (var scope in group.Items)
+                            {
+                                if (scope is not StringValueNode { Value: var text }
+                                    || string.IsNullOrWhiteSpace(text))
+                                {
+                                    return false;
+                                }
+                            }
 
-                    foreach (var scope in group.Items)
-                    {
-                        if (scope is not StringValueNode)
-                        {
+                            continue;
+
+                        default:
                             return false;
-                        }
                     }
                 }
 

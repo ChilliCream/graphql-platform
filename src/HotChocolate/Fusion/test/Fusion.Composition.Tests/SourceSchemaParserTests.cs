@@ -118,7 +118,7 @@ public sealed class SourceSchemaParserTests
     }
 
     [Fact]
-    public void Parse_Should_KeepCanonicalDefinition_When_SourceSchemaDeclaresIncompatibleOne()
+    public void Parse_Should_KeepCanonicalDefinition_When_SourceSchemaDeclaresCompatibleOne()
     {
         // arrange
         var sourceSchemaText =
@@ -145,6 +145,34 @@ public sealed class SourceSchemaParserTests
         Assert.Equal(
             "[[String!]!]!",
             result.Value.DirectiveDefinitions["requiresScopes"].Arguments["scopes"].Type.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_KeepCanonicalDefinition_When_SourceSchemaDeclaresIncompatibleOne()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    a: String @requiresScopes(scopes: [["read"]])
+                }
+
+                directive @requiresScopes(roles: [[String!]!]!) on FIELD_DEFINITION
+                """);
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            ["scopes"],
+            result.Value.DirectiveDefinitions["requiresScopes"].Arguments.AsEnumerable().Select(a => a.Name).ToArray());
     }
 
     [Fact]

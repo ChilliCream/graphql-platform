@@ -45,7 +45,7 @@ internal static class AuthorizationGroups
     /// <summary>
     /// Combines the alternative groups of every factor into the canonical reduced form: sorted,
     /// deduplicated, without supersets, ordered by length and then lexicographically.
-    /// A factor without a non-empty group contributes no requirement.
+    /// Every factor must contain at least one non-empty group.
     /// </summary>
     public static ImmutableArray<ImmutableArray<string>> Reduce(
         IEnumerable<ImmutableArray<ImmutableArray<string>>> factors)
@@ -55,15 +55,7 @@ internal static class AuthorizationGroups
 
         foreach (var factor in factors)
         {
-            var groups = factor
-                .Where(static g => g.Length > 0)
-                .Select(Normalize)
-                .ToList();
-
-            if (groups.Count == 0)
-            {
-                continue;
-            }
+            var groups = factor.Select(Normalize).ToList();
 
             if (!hasFactor)
             {

@@ -52,10 +52,136 @@ public sealed class AuthorizationDirectiveArgumentRuleTests : RuleTestBase
             [
                 """
                 {
-                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a string or a list of strings and string lists, but has the value 1.",
+                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value 1.",
                     "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "Query.field",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_OuterListIsEmpty()
+    {
+        // arrange & act & assert
+        AssertInvalid(
+            [
+                $$"""
+                type Query {
+                    field: Foo @requiresScopes(scopes: [])
+                }
+
+                type Foo @policy(policies: []) {
+                    id: Int
+                }
+
+                {{Directives}}
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [].",
+                    "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Query.field",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The 'policies' argument of the @policy directive on 'Foo' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [].",
+                    "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Foo",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_InnerGroupIsEmpty()
+    {
+        // arrange & act & assert
+        AssertInvalid(
+            [
+                $$"""
+                type Query {
+                    field: Foo @requiresScopes(scopes: [["read"], []])
+                }
+
+                type Foo @policy(policies: [[]]) {
+                    id: Int
+                }
+
+                {{Directives}}
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [[\"read\"], []].",
+                    "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Query.field",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The 'policies' argument of the @policy directive on 'Foo' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [[]].",
+                    "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Foo",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_StringFactorIsBlank()
+    {
+        // arrange & act & assert
+        AssertInvalid(
+            [
+                $$"""
+                type Query {
+                    field: Foo @requiresScopes(scopes: [["read", " "]])
+                }
+
+                type Foo @policy(policies: "") {
+                    id: Int
+                }
+
+                {{Directives}}
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [[\"read\", \" \"]].",
+                    "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Query.field",
+                    "schema": "A",
+                    "extensions": {}
+                }
+                """,
+                """
+                {
+                    "message": "The 'policies' argument of the @policy directive on 'Foo' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value \"\".",
+                    "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                    "severity": "Error",
+                    "coordinate": "Foo",
                     "schema": "A",
                     "extensions": {}
                 }
@@ -86,7 +212,7 @@ public sealed class AuthorizationDirectiveArgumentRuleTests : RuleTestBase
             [
                 """
                 {
-                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query' in schema 'A' must be a string or a list of strings and string lists, but has the value undefined.",
+                    "message": "The 'scopes' argument of the @requiresScopes directive on 'Query' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value undefined.",
                     "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "Query",
@@ -96,7 +222,7 @@ public sealed class AuthorizationDirectiveArgumentRuleTests : RuleTestBase
                 """,
                 """
                 {
-                    "message": "The 'policies' argument of the @policy directive on 'Foo' in schema 'A' must be a string or a list of strings and string lists, but has the value null.",
+                    "message": "The 'policies' argument of the @policy directive on 'Foo' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value null.",
                     "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "Foo",
@@ -106,7 +232,7 @@ public sealed class AuthorizationDirectiveArgumentRuleTests : RuleTestBase
                 """,
                 """
                 {
-                    "message": "The 'policies' argument of the @policy directive on 'Bar' in schema 'A' must be a string or a list of strings and string lists, but has the value [[1]].",
+                    "message": "The 'policies' argument of the @policy directive on 'Bar' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [[1]].",
                     "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "Bar",
@@ -146,7 +272,7 @@ public sealed class AuthorizationDirectiveArgumentRuleTests : RuleTestBase
         [
             """
             {
-                "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a string or a list of strings and string lists, but has the value undefined.",
+                "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.field' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value undefined.",
                 "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
                 "severity": "Error",
                 "coordinate": "Query.field",
