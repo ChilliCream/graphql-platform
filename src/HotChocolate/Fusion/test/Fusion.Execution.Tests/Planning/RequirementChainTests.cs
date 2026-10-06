@@ -55,7 +55,7 @@ public class RequirementChainTests : FusionTestBase
     }
 
     [Fact]
-    public void Requires_Requires_Many_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
+    public void CreatePlan_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
     {
         // arrange
         var schema = CreateRequiresRequiresSchema();
