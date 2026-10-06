@@ -160,6 +160,11 @@ public sealed partial class OperationPlanContext
         _resultStore.Clean(256, 256);
         _executionState.Clean();
 
+        Debug.Assert(
+            _borrowedClientScope is null,
+            "A borrowed source schema client scope must be released before the context is pooled.");
+        _borrowedClientScope = null;
+
         RequestContext = default!;
         _memory = null;
         _memorySource.Clear();
@@ -203,6 +208,10 @@ public sealed partial class OperationPlanContext
         {
             return;
         }
+
+        Debug.Assert(
+            _borrowedClientScope is null,
+            "A borrowed source schema client scope must be released before the context is disposed.");
 
         // If Initialize fails before creating a scope, _clientScope can be null.
         if (_clientScope is DefaultSourceSchemaClientScope reusableClientScope)

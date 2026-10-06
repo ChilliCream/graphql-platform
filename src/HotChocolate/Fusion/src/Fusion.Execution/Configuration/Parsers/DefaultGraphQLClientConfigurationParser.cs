@@ -10,9 +10,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Configuration.Parsers;
 
 /// <summary>
-/// Built-in fallback parser that produces a default
-/// <see cref="HttpSourceSchemaClientConfiguration"/> from a source schema's
-/// <c>transports.http</c> block.
+/// Built-in fallback parser that produces default client configurations from a source schema's
+/// <c>transports</c> block.
 /// </summary>
 internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaClientConfigurationParser
 {
@@ -22,22 +21,46 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
         [NotNullWhen(true)] out ISourceSchemaClientConfiguration[]? configurations)
     {
         if (!sourceSchema.Value.TryGetProperty("transports", out var transports)
-            || transports.ValueKind != JsonValueKind.Object
-            || !transports.TryGetProperty("http", out var http)
-            || http.ValueKind != JsonValueKind.Object)
+            || transports.ValueKind != JsonValueKind.Object)
         {
             configurations = null;
             return false;
         }
 
-        configurations = [CreateHttpClientConfiguration(schema, sourceSchema.Name, http)];
+        var hasHttp = transports.TryGetProperty("http", out var http)
+            && http.ValueKind == JsonValueKind.Object;
+        var hasWebSockets = transports.TryGetProperty("websockets", out var webSockets)
+            && webSockets.ValueKind == JsonValueKind.Object;
+
+        if (!hasHttp && !hasWebSockets)
+        {
+            configurations = null;
+            return false;
+        }
+
+        var parsedConfigurations = new List<ISourceSchemaClientConfiguration>(2);
+
+        if (hasHttp)
+        {
+            parsedConfigurations.Add(
+                CreateHttpClientConfiguration(schema, sourceSchema.Name, http, hasWebSockets));
+        }
+
+        if (hasWebSockets)
+        {
+            parsedConfigurations.Add(
+                CreateWebSocketClientConfiguration(schema, sourceSchema.Name, webSockets, hasHttp));
+        }
+
+        configurations = [.. parsedConfigurations];
         return true;
     }
 
     private static HttpSourceSchemaClientConfiguration CreateHttpClientConfiguration(
         FusionSchemaDefinition schema,
         string schemaName,
-        JsonElement http)
+        JsonElement http,
+        bool hasWebSockets)
     {
         var clientName = HttpSourceSchemaClientConfiguration.DefaultClientName;
 
@@ -48,7 +71,9 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
             schema.GetSourceSchemaConnectorKind(schemaName) == ConnectorKindNames.ApolloFederation
                 ? SourceSchemaClientCapabilities.AliasBatching
                 : SourceSchemaClientCapabilities.Default;
-        var supportedOperations = SupportedOperationType.All;
+        var supportedOperations = hasWebSockets
+            ? SupportedOperationType.Query | SupportedOperationType.Mutation
+            : SupportedOperationType.All;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null;
@@ -66,11 +91,11 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
         {
             if (capabilitiesElement.TryGetProperty("standard", out var standard))
             {
-                if (standard.TryGetProperty("formats", out var formats))
+                if (standard.TryGetProperty("formats", out var standardFormats))
                 {
                     var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
 
-                    foreach (var format in formats.EnumerateArray())
+                    foreach (var format in standardFormats.EnumerateArray())
                     {
                         builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
                     }
@@ -79,34 +104,15 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
                 }
             }
 
+            capabilities = ParseBatchingCapabilities(capabilitiesElement, capabilities);
+
             if (capabilitiesElement.TryGetProperty("batching", out var batchingElement))
             {
-                if (batchingElement.TryGetProperty("variableBatching", out var supported))
-                {
-                    capabilities = supported.GetBoolean()
-                        ? capabilities | SourceSchemaClientCapabilities.VariableBatching
-                        : capabilities & ~SourceSchemaClientCapabilities.VariableBatching;
-                }
-
-                if (batchingElement.TryGetProperty("requestBatching", out supported))
-                {
-                    capabilities = supported.GetBoolean()
-                        ? capabilities | SourceSchemaClientCapabilities.RequestBatching
-                        : capabilities & ~SourceSchemaClientCapabilities.RequestBatching;
-                }
-
-                if (batchingElement.TryGetProperty("aliasBatching", out supported))
-                {
-                    capabilities = supported.GetBoolean()
-                        ? capabilities | SourceSchemaClientCapabilities.AliasBatching
-                        : capabilities & ~SourceSchemaClientCapabilities.AliasBatching;
-                }
-
-                if (batchingElement.TryGetProperty("formats", out var formats))
+                if (batchingElement.TryGetProperty("formats", out var batchingFormats))
                 {
                     var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
 
-                    foreach (var format in formats.EnumerateArray())
+                    foreach (var format in batchingFormats.EnumerateArray())
                     {
                         builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
                     }
@@ -123,27 +129,23 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
                 onError = parsedOnError;
             }
 
-            if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement))
+            supportedOperations = ParseSupportedOperations(capabilitiesElement, supportedOperations);
+
+            if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement)
+                && subscriptionsElement.TryGetProperty("formats", out var subscriptionFormats))
             {
-                if (subscriptionsElement.TryGetProperty("supported", out var supported)
-                    && !supported.GetBoolean())
+                var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                foreach (var format in subscriptionFormats.EnumerateArray())
                 {
-                    supportedOperations &= ~SupportedOperationType.Subscription;
+                    builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
                 }
 
-                if (subscriptionsElement.TryGetProperty("formats", out var formats))
-                {
-                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                    foreach (var format in formats.EnumerateArray())
-                    {
-                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                    }
-
-                    subscriptionAcceptHeaderValues = builder.ToImmutable();
-                }
+                subscriptionAcceptHeaderValues = builder.ToImmutable();
             }
         }
+
+        supportedOperations = ParseSupportedOperations(http, supportedOperations);
 
         return new HttpSourceSchemaClientConfiguration(
             name: schemaName,
@@ -155,5 +157,114 @@ internal sealed class DefaultGraphQLClientConfigurationParser : ISourceSchemaCli
             defaultAcceptHeaderValues: defaultAcceptHeaderValues,
             batchingAcceptHeaderValues: batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues: subscriptionAcceptHeaderValues);
+    }
+
+    private static WebSocketSourceSchemaClientConfiguration CreateWebSocketClientConfiguration(
+        FusionSchemaDefinition schema,
+        string schemaName,
+        JsonElement webSockets,
+        bool hasHttp)
+    {
+        var capabilities =
+            schema.GetSourceSchemaConnectorKind(schemaName) == ConnectorKindNames.ApolloFederation
+                ? SourceSchemaClientCapabilities.AliasBatching
+                : SourceSchemaClientCapabilities.Default;
+        var supportedOperations = hasHttp
+            ? SupportedOperationType.Subscription
+            : SupportedOperationType.All;
+
+        if (webSockets.TryGetProperty("capabilities", out var capabilitiesElement))
+        {
+            capabilities = ParseBatchingCapabilities(capabilitiesElement, capabilities);
+            supportedOperations = ParseSupportedOperations(capabilitiesElement, supportedOperations);
+        }
+
+        supportedOperations = ParseSupportedOperations(webSockets, supportedOperations);
+
+        return new WebSocketSourceSchemaClientConfiguration(
+            name: schemaName,
+            url: new Uri(webSockets.GetProperty("url").GetString()!),
+            supportedOperations: supportedOperations,
+            capabilities: capabilities);
+    }
+
+    private static SourceSchemaClientCapabilities ParseBatchingCapabilities(
+        JsonElement capabilitiesElement,
+        SourceSchemaClientCapabilities capabilities)
+    {
+        if (!capabilitiesElement.TryGetProperty("batching", out var batchingElement))
+        {
+            return capabilities;
+        }
+
+        capabilities = ApplyBatchingCapability(
+            batchingElement,
+            "variableBatching",
+            SourceSchemaClientCapabilities.VariableBatching,
+            capabilities);
+        capabilities = ApplyBatchingCapability(
+            batchingElement,
+            "requestBatching",
+            SourceSchemaClientCapabilities.RequestBatching,
+            capabilities);
+        return ApplyBatchingCapability(
+            batchingElement,
+            "aliasBatching",
+            SourceSchemaClientCapabilities.AliasBatching,
+            capabilities);
+    }
+
+    private static SourceSchemaClientCapabilities ApplyBatchingCapability(
+        JsonElement batchingElement,
+        string name,
+        SourceSchemaClientCapabilities capability,
+        SourceSchemaClientCapabilities capabilities)
+    {
+        if (!batchingElement.TryGetProperty(name, out var supported)
+            || supported.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+        {
+            return capabilities;
+        }
+
+        return supported.GetBoolean() ? capabilities | capability : capabilities & ~capability;
+    }
+
+    private static SupportedOperationType ParseSupportedOperations(
+        JsonElement transport,
+        SupportedOperationType supportedOperations)
+    {
+        supportedOperations = ApplySupportedOperation(
+            transport,
+            "query",
+            SupportedOperationType.Query,
+            supportedOperations);
+        supportedOperations = ApplySupportedOperation(
+            transport,
+            "mutation",
+            SupportedOperationType.Mutation,
+            supportedOperations);
+        return ApplySupportedOperation(
+            transport,
+            "subscriptions",
+            SupportedOperationType.Subscription,
+            supportedOperations);
+    }
+
+    private static SupportedOperationType ApplySupportedOperation(
+        JsonElement transport,
+        string name,
+        SupportedOperationType operation,
+        SupportedOperationType supportedOperations)
+    {
+        if (!transport.TryGetProperty(name, out var operationElement)
+            || !operationElement.TryGetProperty("supported", out var supported)
+            || supported.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+        {
+            return supportedOperations;
+        }
+
+        return supported.GetBoolean()
+            ? supportedOperations | operation
+            : supportedOperations & ~operation;
     }
 }

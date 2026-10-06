@@ -11,6 +11,39 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class CoreFusionGatewayBuilderExtensions
 {
     /// <summary>
+    /// Configures context forwarding for all source schema WebSocket connections.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketContextForwarding(
+        this IFusionGatewayBuilder builder,
+        Action<WebSocketContextForwardingBuilder> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.GlobalWebSocketContextForwardingModifiers.Add(configure));
+    }
+
+    /// <summary>
+    /// Configures context forwarding for a source schema WebSocket connection.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketContextForwarding(
+        this IFusionGatewayBuilder builder,
+        string sourceSchemaName,
+        Action<WebSocketContextForwardingBuilder> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(sourceSchemaName);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.WebSocketContextForwardingModifiers.Add(
+                new WebSocketContextForwardingModifier(sourceSchemaName, configure)));
+    }
+
+    /// <summary>
     /// Adds an http client configuration to the fusion gateway.
     /// </summary>
     /// <param name="builder">
@@ -215,6 +248,59 @@ public static partial class CoreFusionGatewayBuilderExtensions
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, HttpSourceSchemaClientConfiguration> create)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(create);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            setup => setup.ClientConfigurationModifiers.Add(create));
+    }
+
+    /// <summary>
+    /// Adds a WebSocket client configuration to the Fusion gateway.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketClientConfiguration(
+        this IFusionGatewayBuilder builder,
+        string name,
+        Uri url,
+        SupportedOperationType supportedOperations = SupportedOperationType.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
+        TimeSpan? keepAliveInterval = null,
+        int maxOperationQueueBytes = WebSocketSourceSchemaClientConfiguration.DefaultMaxOperationQueueBytes)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return AddWebSocketClientConfiguration(
+            builder,
+            new WebSocketSourceSchemaClientConfiguration(
+                name,
+                url,
+                supportedOperations,
+                capabilities,
+                keepAliveInterval,
+                maxOperationQueueBytes));
+    }
+
+    /// <summary>
+    /// Adds a WebSocket client configuration to the Fusion gateway.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketClientConfiguration(
+        this IFusionGatewayBuilder builder,
+        WebSocketSourceSchemaClientConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        return AddWebSocketClientConfiguration(builder, _ => configuration);
+    }
+
+    /// <summary>
+    /// Adds a WebSocket client configuration to the Fusion gateway.
+    /// </summary>
+    public static IFusionGatewayBuilder AddWebSocketClientConfiguration(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, WebSocketSourceSchemaClientConfiguration> create)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(create);

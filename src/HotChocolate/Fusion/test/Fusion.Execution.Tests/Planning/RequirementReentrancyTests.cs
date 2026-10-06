@@ -5,6 +5,67 @@ namespace HotChocolate.Fusion.Planning;
 public class RequirementReentrancyTests : FusionTestBase
 {
     [Fact]
+    public void Plan_Should_Reenter_SubscriptionSource_When_EntityHopReturnsToSource()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: X
+            schema {
+              query: Query
+              subscription: Subscription
+            }
+
+            type Query {
+              value: String
+              bookById(id: ID! @is(field: "id")): Book @lookup @internal
+            }
+
+            type Subscription {
+              onBookCreated: Book!
+            }
+
+            type Book @key(fields: "id") {
+              id: ID!
+              title: String!
+            }
+            """,
+            """
+            # name: Y
+            schema {
+              query: Query
+            }
+
+            type Query {
+              bookById(id: ID! @is(field: "id")): Book @lookup @internal
+            }
+
+            type Book @key(fields: "id") {
+              id: ID!
+              sequel: Book
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            subscription {
+              onBookCreated {
+                id
+                title
+                sequel {
+                  title
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Reenter_Catalog_When_InnerProductCategory_Crosses_RequireBoundary()
     {
         // arrange

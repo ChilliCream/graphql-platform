@@ -1,6 +1,10 @@
 using System.Collections.Immutable;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<IOperationMessage>
 {
@@ -36,6 +40,32 @@ internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<
 
     private void OnNext(IOperationMessage value, ImmutableList<Subscription> subscriptions)
     {
+#if !FUSION
+        if (value is IDataMessage message)
+        {
+            var handled = false;
+
+            foreach (var subscription in subscriptions)
+            {
+                if (subscription.Observer is DataMessageObserver observer)
+                {
+                    handled |= observer.TryHandle(message);
+                }
+                else
+                {
+                    subscription.Observer.OnNext(value);
+                }
+            }
+
+            if (!handled)
+            {
+                message.Dispose();
+            }
+
+            return;
+        }
+#endif
+
         foreach (var subscription in subscriptions)
         {
             subscription.Observer.OnNext(value);

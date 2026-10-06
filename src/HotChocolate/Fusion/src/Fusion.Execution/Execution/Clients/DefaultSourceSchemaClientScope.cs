@@ -13,6 +13,8 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private readonly object _sync = new();
 #endif
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
+    private readonly ConcurrentDictionary<ISourceSchemaClientConfiguration, ISourceSchemaClient> _webSocketClients =
+        new(ReferenceEqualityComparer.Instance);
     private readonly ISourceSchemaClientFactory[] _clientFactories;
     private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
@@ -34,27 +36,49 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        var key = (name, operationType);
-
-        if (!_clients.TryGetValue(key, out var sourceSchemaClient))
+        if (!_configurations.TryGet(name, operationType, out var config))
         {
-            lock (_sync)
-            {
-                if (!_clients.TryGetValue(key, out sourceSchemaClient))
-                {
-                    if (!_configurations.TryGet(name, operationType, out var config))
-                    {
-                        throw new InvalidOperationException(
-                            $"No client configuration found for schema '{name}' and operation type {operationType}.");
-                    }
-
-                    sourceSchemaClient = CreateClient(config);
-                    _clients.TryAdd(key, sourceSchemaClient);
-                }
-            }
+            throw new InvalidOperationException(
+                $"No client configuration found for schema '{name}' and operation type {operationType}.");
         }
 
-        return sourceSchemaClient;
+        if (_webSocketClients.TryGetValue(config, out var sourceSchemaClient))
+        {
+            return sourceSchemaClient;
+        }
+
+        var key = (name, operationType);
+
+        if (_clients.TryGetValue(key, out sourceSchemaClient))
+        {
+            return sourceSchemaClient;
+        }
+
+        lock (_sync)
+        {
+            if (_webSocketClients.TryGetValue(config, out sourceSchemaClient))
+            {
+                return sourceSchemaClient;
+            }
+
+            if (_clients.TryGetValue(key, out sourceSchemaClient))
+            {
+                return sourceSchemaClient;
+            }
+
+            sourceSchemaClient = CreateClient(config);
+
+            if (sourceSchemaClient is WebSocketSourceSchemaClient)
+            {
+                _webSocketClients.TryAdd(config, sourceSchemaClient);
+            }
+            else
+            {
+                _clients.TryAdd(key, sourceSchemaClient);
+            }
+
+            return sourceSchemaClient;
+        }
     }
 
     private ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration)
@@ -103,7 +127,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     /// </summary>
     internal async ValueTask ResetAsync()
     {
-        if (_disposed || _clients.IsEmpty)
+        if (_disposed || (_clients.IsEmpty && _webSocketClients.IsEmpty))
         {
             return;
         }
@@ -113,7 +137,13 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             await client.DisposeAsync().ConfigureAwait(false);
         }
 
+        foreach (var client in _webSocketClients.Values)
+        {
+            await client.DisposeAsync().ConfigureAwait(false);
+        }
+
         _clients.Clear();
+        _webSocketClients.Clear();
     }
 
     public async ValueTask DisposeAsync()

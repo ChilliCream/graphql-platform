@@ -1,9 +1,18 @@
 using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
+#if FUSION
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#else
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#endif
 
 internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 {
@@ -30,30 +39,61 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             context.Socket,
             cancellationToken);
         using var subscription = context.Messages.Subscribe(observer);
+#if FUSION
+        await context.Sender.SendConnectionInitMessageAsync(payload, cancellationToken);
+#else
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
+#endif
         await observer.Accepted;
     }
 
+#if FUSION
+    public async ValueTask<SocketResult> ExecuteAsync(
+        SocketClientContext context,
+        IOperationRequest request,
+        IMemoryArenaSource arenaSource,
+        bool deferPayloadParsing,
+        CancellationToken cancellationToken)
+#else
     public async ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
         IOperationRequest request,
         CancellationToken cancellationToken)
+#endif
     {
         var id = Guid.NewGuid().ToString("N");
+#if FUSION
+        var completion = new DataCompletion(context.Sender, id);
+        var observer = new DataMessageObserver(
+            id,
+            arenaSource,
+            deferPayloadParsing,
+            context.Options.MaxOperationQueueBytes,
+            completion);
+#else
         var observer = new DataMessageObserver(id);
         var completion = new DataCompletion(context.Socket, id);
+#endif
         var subscription = context.Messages.Subscribe(observer);
 
         try
         {
+#if FUSION
+            await context.Sender.SendSubscribeMessageAsync(id, request, cancellationToken);
+#else
             await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+#endif
 
             // if the user cancels this stream, we send the server a complete request so that we
             // no longer receive new result messages, and we complete the local observer so that a
             // pending read terminates gracefully instead of blocking forever.
             void OnCancelled()
             {
+#if FUSION
+                _ = completion.TrySendCompleteMessageAsync();
+#else
                 completion.TrySendCompleteMessage();
+#endif
                 observer.OnCompleted();
             }
 
@@ -71,26 +111,52 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
+#if FUSION
+    public async ValueTask<SocketResult> ExecuteBatchAsync(
+        SocketClientContext context,
+        OperationBatchRequest request,
+        IMemoryArenaSource arenaSource,
+        CancellationToken cancellationToken)
+#else
     public async ValueTask<SocketResult> ExecuteBatchAsync(
         SocketClientContext context,
         OperationBatchRequest request,
         CancellationToken cancellationToken)
+#endif
     {
         var id = Guid.NewGuid().ToString("N");
+#if FUSION
+        var completion = new DataCompletion(context.Sender, id);
+        var observer = new DataMessageObserver(
+            id,
+            arenaSource,
+            deferPayloadParsing: false,
+            context.Options.MaxOperationQueueBytes,
+            completion);
+#else
         var observer = new DataMessageObserver(id);
         var completion = new DataCompletion(context.Socket, id);
+#endif
         var subscription = context.Messages.Subscribe(observer);
 
         try
         {
+#if FUSION
+            await context.Sender.SendSubscribeMessageAsync(id, request, cancellationToken);
+#else
             await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+#endif
 
             // if the user cancels this stream, we send the server a complete request so that we
             // no longer receive new result messages, and we complete the local observer so that a
             // pending read terminates gracefully instead of blocking forever.
             void OnCancelled()
             {
+#if FUSION
+                _ = completion.TrySendCompleteMessageAsync();
+#else
                 completion.TrySendCompleteMessage();
+#endif
                 observer.OnCompleted();
             }
 
@@ -118,6 +184,41 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         // protocol violation and closes the socket with code 4400 instead of propagating.
         try
         {
+#if FUSION
+            var location = WebSocketMessageParser.Locate(message);
+
+            switch (location.Type)
+            {
+                case SocketMessageType.Ping:
+                    return context.Sender.SendPongMessageAsync(cancellationToken);
+
+                case SocketMessageType.Pong:
+                    return default;
+
+                case SocketMessageType.Next:
+                    Dispatch(
+                        context,
+                        NextMessage.From(location, context.Options.PayloadBufferPool));
+                    return default;
+
+                case SocketMessageType.Error:
+                    Dispatch(
+                        context,
+                        ErrorMessage.From(location, context.Options.PayloadBufferPool));
+                    return default;
+
+                case SocketMessageType.Complete:
+                    context.Messages.OnNext(CompleteMessage.From(location.Id));
+                    return default;
+
+                case SocketMessageType.ConnectionAccept:
+                    context.Messages.OnNext(ConnectionAcceptMessage.Default);
+                    return default;
+
+                default:
+                    return FatalError(context, cancellationToken);
+            }
+#else
             switch (ParseMessageType(message))
             {
                 case MessageType.Ping:
@@ -146,6 +247,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 default:
                     return FatalError(context, cancellationToken);
             }
+#endif
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -162,10 +264,27 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             // immediately, then close the socket. Channel completion is idempotent, so a
             // later close-triggered SocketClosedException is a harmless no-op.
             context.Messages.OnError(new SocketClosedException(reason, InvalidMessage));
+#if FUSION
+            await context.Sender.CloseAsync(InvalidMessage, reason, cancellationToken);
+#else
             await context.Socket.CloseAsync(InvalidMessage, reason, cancellationToken);
+#endif
         }
     }
 
+#if FUSION
+    private static void Dispatch(
+        SocketClientContext context,
+        FusionDataMessage message)
+    {
+        context.Messages.OnNext(message);
+
+        if (!message.IsClaimed)
+        {
+            message.Dispose();
+        }
+    }
+#else
     private static MessageType ParseMessageType(ReadOnlySequence<byte> message)
     {
         var reader = new Utf8JsonReader(message);
@@ -219,14 +338,57 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         return MessageType.None;
     }
+#endif
 
+#if FUSION
+    private sealed class DataCompletion(SocketMessageSender sender, string id) : IDataCompletion
+#else
     private sealed class DataCompletion(WebSocket socket, string id) : IDataCompletion
+#endif
     {
         private int _completed;
 
-        public void MarkDataStreamCompleted()
-            => Interlocked.Exchange(ref _completed, 1);
+#if FUSION
+        private readonly TaskCompletionSource<bool> _completionSource = new();
+#endif
 
+        public void MarkDataStreamCompleted()
+        {
+            if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
+            {
+#if FUSION
+                _completionSource.TrySetResult(true);
+#endif
+            }
+        }
+
+#if FUSION
+        public void TrySendCompleteMessage()
+            => _ = TrySendCompleteMessageAsync();
+
+        public ValueTask TrySendCompleteMessageAsync()
+        {
+            if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
+            {
+                _ = SendCompleteMessageAsync();
+            }
+
+            return new ValueTask(_completionSource.Task);
+        }
+
+        private async Task SendCompleteMessageAsync()
+        {
+            try
+            {
+                await sender.TrySendCompleteMessageAsync(id).ConfigureAwait(false);
+                _completionSource.TrySetResult(true);
+            }
+            catch (Exception ex)
+            {
+                _completionSource.TrySetException(ex);
+            }
+        }
+#else
         public void TrySendCompleteMessage()
         {
             if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
@@ -234,8 +396,10 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 _ = TrySendCompleteMessageInternalAsync(socket, id);
             }
         }
+#endif
     }
 
+#if !FUSION
     private static async Task TrySendCompleteMessageInternalAsync(WebSocket socket, string id)
     {
         using var cts = new CancellationTokenSource(2000);
@@ -260,7 +424,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
             }
         }
     }
+#endif
 
+#if !FUSION
     private enum MessageType
     {
         None,
@@ -271,4 +437,5 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         Complete,
         ConnectionAccept
     }
+#endif
 }

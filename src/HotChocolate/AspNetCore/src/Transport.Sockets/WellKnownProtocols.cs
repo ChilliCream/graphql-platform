@@ -1,4 +1,8 @@
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets;
+#else
 namespace HotChocolate.Transport.Sockets;
+#endif
 
 /// <summary>
 /// Constants for the supported websocket protocols.
