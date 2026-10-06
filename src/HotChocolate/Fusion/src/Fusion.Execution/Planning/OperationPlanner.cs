@@ -20,6 +20,12 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed partial class OperationPlanner
 {
+    /// <summary>
+    /// The number of times the greedy pass may resume with a retained sibling after a dead end
+    /// before it gives up and leaves the search without an incumbent.
+    /// </summary>
+    private const int MaxGreedyBacktracks = 256;
+
     private readonly FusionSchemaDefinition _schema;
     private readonly OperationCompiler _operationCompiler;
     private readonly MergeSelectionSetRewriter _mergeRewriter;
@@ -601,7 +607,11 @@ public sealed partial class OperationPlanner
             return null;
         }
 
-        var candidates = new PlanQueue(_schema);
+        // Each frame holds the untried siblings of one expansion. When the chosen candidate
+        // dead-ends, the next cheapest sibling of the deepest frame is tried instead.
+        var frames = new Stack<PlanQueue>();
+        var spare = new Stack<PlanQueue>();
+        var backtracks = 0;
 
         while (true)
         {
@@ -617,6 +627,7 @@ public sealed partial class OperationPlanner
             budget.CountExpansion(operationId);
 
             backlog = backlog.Pop(out var workItem);
+            var candidates = spare.Count > 0 ? spare.Pop() : new PlanQueue(_schema);
 
             switch (workItem)
             {
@@ -660,12 +671,38 @@ public sealed partial class OperationPlanner
 
             budget.EnsureGeneratedOptions(operationId, candidates.Count);
 
-            if (!candidates.TryDequeue(out current, out _))
+            if (candidates.TryDequeue(out var next, out _))
+            {
+                current = next;
+
+                if (candidates.Count > 0)
+                {
+                    frames.Push(candidates);
+                }
+                else
+                {
+                    spare.Push(candidates);
+                }
+
+                continue;
+            }
+
+            spare.Push(candidates);
+
+            // The chosen candidate has no way forward. The search resumes with the cheapest
+            // retained sibling, and gives up once the backtracking allowance is used up.
+            if (!frames.TryPeek(out var frame) || ++backtracks > MaxGreedyBacktracks)
             {
                 return null;
             }
 
-            candidates.Clear();
+            frame.TryDequeue(out current, out _);
+
+            if (frame.Count == 0)
+            {
+                frames.Pop();
+                spare.Push(frame);
+            }
         }
     }
 

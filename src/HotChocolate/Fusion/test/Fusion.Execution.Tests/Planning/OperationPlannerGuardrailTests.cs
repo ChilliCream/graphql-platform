@@ -330,6 +330,120 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
         Assert.Equal(5, plan.IncrementalPlans.Length);
     }
 
+    [Fact]
+    public void CreatePlan_Should_Plan_When_MaxQueueSizeMatchesSearchPeak_And_GreedyRetainsSiblings()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              region: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              sku(region: String! @require(field: "region")): String! @shareable
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productBySku(sku: String!): Product @lookup @internal
+            }
+
+            type Product {
+              sku: String!
+              name: String!
+            }
+            """);
+        var planner = CreatePlanner(schema, new OperationPlannerOptions { MaxQueueSize = 1 });
+        var operation = ParseOperation("query GetTopProducts { topProducts { id name } }");
+
+        // act
+        var plan = planner.CreatePlan(
+            "guardrail-greedy-queue-peak",
+            "hash",
+            "12345678",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, plan.SearchSpace);
+        Assert.Equal(3, plan.AllNodes.OfType<OperationExecutionNode>().Count());
+    }
+
+    [Fact]
+    public void CreatePlan_Should_CountGreedyBacktrackingExpansions_When_MaxExpandedNodesIsSet()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Query {
+              root: T
+            }
+
+            type T @key(fields: "id") {
+              id: ID!
+              k: Int @external
+              f: Int @requires(fields: "k")
+            }
+            """,
+            GreedyKeyProvider,
+            GreedyKeyProvider,
+            GreedyKeyProvider,
+            GreedyKeyProvider,
+            GreedyKeyProvider,
+            GreedyKeyProvider);
+        var operation = ParseOperation("{ root { f } }");
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 13 })
+                .CreatePlan(
+                    "guardrail-greedy-backtracking-exceeded",
+                    "hash",
+                    "12345678",
+                    operation,
+                    TestContext.Current.CancellationToken));
+        var plan = CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 14 })
+            .CreatePlan(
+                "guardrail-greedy-backtracking-sufficient",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
+        Assert.Equal(13, error.Limit);
+        Assert.Equal(14, error.Observed);
+        Assert.Equal(9, plan.ExpandedNodes);
+    }
+
     private static FusionSchemaDefinition CreateSerialMutationSchema()
         => ComposeSchema(
             """
@@ -372,6 +486,17 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
             ... @defer(label: "third") { third }
             ... @defer(label: "fourth") { fourth }
             ... @defer(label: "fifth") { fifth }
+        }
+        """;
+
+    private const string GreedyKeyProvider =
+        """
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+        type T @key(fields: "id") {
+          id: ID!
+          k: Int @shareable
         }
         """;
 

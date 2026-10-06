@@ -130,8 +130,11 @@ sourceSchemas:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_11d4fa47_18($__fusion_13_requirement: String, $__fusion_14_id: ID!) {
-              accountById(id: $__fusion_14_id) {
-                displayName(requirement: $__fusion_13_requirement)
+              node(id: $__fusion_14_id) {
+                __typename
+                ... on Account {
+                  displayName(requirement: $__fusion_13_requirement)
+                }
               }
             }
           variables: |
@@ -144,7 +147,8 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "accountById": {
+                  "node": {
+                    "__typename": "Account",
                     "displayName": "Account: QWNjb3VudDox"
                   }
                 }
@@ -312,8 +316,8 @@ operationPlan:
           }
         }
       hash: 0712fe9e4cafd2decacfd095e0a4badc
-      searchSpace: 9
-      expandedNodes: 37
+      searchSpace: 3
+      expandedNodes: 5
   nodes:
     - id: 1
       type: Node
@@ -432,11 +436,14 @@ operationPlan:
       schema: A
       operation: |
         query Op_11d4fa47_8($__fusion_5_requirement: String, $__fusion_6_id: ID!) {
-          accountById(id: $__fusion_6_id) {
-            displayName(requirement: $__fusion_5_requirement)
+          node(id: $__fusion_6_id) {
+            __typename
+            ... on Account {
+              displayName(requirement: $__fusion_5_requirement)
+            }
           }
         }
-      source: $.accountById
+      source: $.node<Account>
       target: $.chat<Account>
       requirements:
         - name: __fusion_5_requirement
@@ -605,11 +612,14 @@ operationPlan:
       schema: A
       operation: |
         query Op_11d4fa47_18($__fusion_13_requirement: String, $__fusion_14_id: ID!) {
-          accountById(id: $__fusion_14_id) {
-            displayName(requirement: $__fusion_13_requirement)
+          node(id: $__fusion_14_id) {
+            __typename
+            ... on Account {
+              displayName(requirement: $__fusion_13_requirement)
+            }
           }
         }
-      source: $.accountById
+      source: $.node<Account>
       target: $.account<Account>
       requirements:
         - name: __fusion_13_requirement

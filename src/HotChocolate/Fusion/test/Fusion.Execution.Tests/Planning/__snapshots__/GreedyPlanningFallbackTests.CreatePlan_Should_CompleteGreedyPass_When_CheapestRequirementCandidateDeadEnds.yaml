@@ -1,40 +1,42 @@
 operation:
   - document: |
       {
-        feed {
-          needsFlag
+        root {
+          f
           id @fusion__requirement
-          flag @fusion__requirement
+          k @fusion__requirement
         }
       }
     hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 4
+    searchSpace: 6
+    expandedNodes: 9
 nodes:
   - id: 1
     type: Operation
     schema: a
     operation: |
       query Op_123456789101112_1 {
-        feed {
+        root {
           id
         }
       }
   - id: 2
-    type: Operation
+    type: ApolloOperation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_flag: Boolean!, $__fusion_2_id: ID!) {
-        postById(id: $__fusion_2_id) {
-          needsFlag(flag: $__fusion_1_flag)
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on T {
+            f
+          }
         }
       }
-    source: $.postById
-    target: $.feed
+    source: $._entities
+    target: $.root
     requirements:
-      - name: __fusion_1_flag
+      - name: __fusion_1_k
         selectionMap: >-
-          flag
+          k
       - name: __fusion_2_id
         selectionMap: >-
           id
@@ -42,16 +44,18 @@ nodes:
       - id: 1
       - id: 3
   - id: 3
-    type: Operation
+    type: ApolloOperation
     schema: b
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        postById(id: $__fusion_3_id) {
-          flag
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on T {
+            k
+          }
         }
       }
-    source: $.postById
-    target: $.feed
+    source: $._entities
+    target: $.root
     requirements:
       - name: __fusion_3_id
         selectionMap: >-

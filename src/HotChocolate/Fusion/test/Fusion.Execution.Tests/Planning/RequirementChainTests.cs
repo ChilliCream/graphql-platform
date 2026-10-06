@@ -55,7 +55,7 @@ public class RequirementChainTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
+    public void CreatePlan_Should_SplitRequirementLookups_When_GreedyIncumbentWinsEqualCostTie()
     {
         // arrange
         var schema = CreateRequiresRequiresSchema();
@@ -74,6 +74,32 @@ public class RequirementChainTests : FusionTestBase
                 isExpensiveWithDiscount
                 canAfford
                 canAfford2
+                canAffordWithDiscount
+                canAffordWithDiscount2
+              }
+            }
+            """,
+            options);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
+    {
+        // arrange
+        var schema = CreateRequiresRequiresSchema();
+        var options = new OperationPlannerOptions { OperationWeight = 100.0 };
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                isExpensive
+                isExpensiveWithDiscount
                 canAffordWithDiscount
                 canAffordWithDiscount2
               }
