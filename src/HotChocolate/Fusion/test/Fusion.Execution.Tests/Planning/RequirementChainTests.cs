@@ -144,6 +144,19 @@ public class RequirementChainTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void CreatePlan_Should_NotFetchEntryKeyAgain_When_LookupRequirementIsOnlyComputed()
+    {
+        // arrange
+        var schema = CreateComputedOnlyRequirementSchema();
+
+        // act
+        var plan = PlanOperation(schema, "{ product { onlyComputed } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateNativeAndComputedRequirementSchema(bool includeRaw)
     {
         return ComposeSchema(
@@ -203,6 +216,46 @@ public class RequirementChainTests : FusionTestBase
                   computed: Int!
                 }
                 """);
+    }
+
+    private static FusionSchemaDefinition CreateComputedOnlyRequirementSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              onlyComputed(computed: Int! @require(field: "computed")): Int!
+            }
+            """);
     }
 
     private static FusionSchemaDefinition CreateRequiresRequiresSchema()

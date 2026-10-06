@@ -101,48 +101,27 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_5ebdd92d_3($__fusion_3_id: ID!) {
-                  cartById(id: $__fusion_3_id) {
-                    promoCode {
-                      discountPercent
-                      isExpired
-                    }
-                  }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_5ebdd92d_3($__fusion_3_id: ID!) {
+              cartById(id: $__fusion_3_id) {
+                promoCode {
+                  discountPercent
+                  isExpired
                 }
-              variables: |
-                {
-                  "__fusion_3_id": "2"
-                }
-            - document: |
-                query Op_5ebdd92d_4($__fusion_4_id: ID!) {
-                  cartById(id: $__fusion_4_id) {
-                    id
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_4_id": "2"
-                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "2"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "cartById": {
                     "promoCode": null
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "cartById": {
-                    "id": "2"
                   }
                 }
               }
@@ -194,7 +173,8 @@ operationPlan:
           selectionMap: >-
             id
       dependencies:
-        - id: 5
+        - id: 1
+        - id: 3
     - id: 3
       type: Operation
       schema: promotions
@@ -209,27 +189,8 @@ operationPlan:
         }
       source: $.cartById
       target: $.cartById
-      batchingGroupId: 5
       requirements:
         - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: promotions
-      operation: |
-        query Op_5ebdd92d_4($__fusion_4_id: ID!) {
-          cartById(id: $__fusion_4_id) {
-            id
-          }
-        }
-      source: $.cartById
-      target: $.cartById
-      batchingGroupId: 5
-      requirements:
-        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:

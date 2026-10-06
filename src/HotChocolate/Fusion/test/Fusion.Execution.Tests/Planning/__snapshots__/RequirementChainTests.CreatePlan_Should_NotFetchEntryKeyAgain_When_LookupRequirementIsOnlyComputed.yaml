@@ -2,7 +2,7 @@ operation:
   - document: |
       {
         product {
-          total
+          onlyComputed
           id @fusion__requirement
           computed @fusion__requirement
           value @fusion__requirement
@@ -25,19 +25,17 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) {
+      query Op_123456789101112_3($__fusion_2_computed: Int!, $__fusion_3_id: ID!) {
         productById(id: $__fusion_3_id) {
-          total(input: $__fusion_2_input)
+          onlyComputed(computed: $__fusion_2_computed)
         }
       }
     source: $.productById
     target: $.product
     requirements:
-      - name: __fusion_2_input
+      - name: __fusion_2_computed
         selectionMap: >-
-          {
-            computed
-          }
+          computed
       - name: __fusion_3_id
         selectionMap: >-
           id

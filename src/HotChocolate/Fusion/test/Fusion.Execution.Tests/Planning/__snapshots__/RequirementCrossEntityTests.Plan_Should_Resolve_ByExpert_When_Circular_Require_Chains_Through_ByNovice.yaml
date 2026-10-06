@@ -43,8 +43,8 @@ nodes:
         selectionMap: >-
           id
     dependencies:
+      - id: 1
       - id: 4
-      - id: 8
   - id: 4
     type: Operation
     schema: b
@@ -85,7 +85,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 8
+      - id: 6
   - id: 6
     type: Operation
     schema: b
@@ -99,27 +99,8 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 8
     requirements:
       - name: __fusion_7_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 7
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_7($__fusion_8_id: ID!) {
-        postById(id: $__fusion_8_id) {
-          id
-        }
-      }
-    source: $.postById
-    target: $.feed
-    batchingGroupId: 8
-    requirements:
-      - name: __fusion_8_id
         selectionMap: >-
           id
     dependencies:

@@ -98,6 +98,34 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
+            query Op_defer_3($__fusion_4_id: ID!) {
+              productById(id: $__fusion_4_id) {
+                owner {
+                  raw
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_4_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "owner": {
+                      "raw": 5,
+                      "id": "2"
+                    }
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
             query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
               userById(id: $__fusion_6_id) {
                 computed(value: $__fusion_5_value)
@@ -136,55 +164,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_defer_3($__fusion_4_id: ID!) {
-                  productById(id: $__fusion_4_id) {
-                    owner {
-                      raw
-                      id
-                    }
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_4_id": "1"
-                }
-            - document: |
-                query Op_defer_7($__fusion_9_id: ID!) {
-                  productById(id: $__fusion_9_id) {
-                    id
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_9_id": "1"
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "owner": {
-                      "raw": 5,
-                      "id": "2"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "id": "1"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -201,45 +180,24 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_defer_5($__fusion_7_id: ID!) {
-                  userById(id: $__fusion_7_id) {
-                    value
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_7_id": "2"
-                }
-            - document: |
-                query Op_defer_6($__fusion_8_id: ID!) {
-                  userById(id: $__fusion_8_id) {
-                    id
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_8_id": "2"
-                }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_5($__fusion_7_id: ID!) {
+              userById(id: $__fusion_7_id) {
+                value
+              }
+            }
+          variables: |
+            {
+              "__fusion_7_id": "2"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "userById": {
                     "value": 4
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "userById": {
-                    "id": "2"
                   }
                 }
               }
@@ -263,28 +221,6 @@ sourceSchemas:
         computed: Int!
       }
     interactions:
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              productById(id: $__fusion_1_id) {
-                id
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "1"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "id": "1"
-                  }
-                }
-              }
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
@@ -340,23 +276,6 @@ operationPlan:
         - 0
       parentNodeId: 1
       nodes:
-        - id: 1
-          type: Operation
-          schema: C
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              productById(id: $__fusion_1_id) {
-                id
-              }
-            }
-          source: $.productById
-          target: $.product
-          requirements:
-            - name: __fusion_1_id
-              selectionMap: >-
-                id
-          dependencies:
-            - id: 8
         - id: 2
           type: Operation
           schema: C
@@ -379,8 +298,29 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
+            - id: 3
             - id: 4
-            - id: 9
+            - id: 8
+        - id: 3
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_3($__fusion_4_id: ID!) {
+              productById(id: $__fusion_4_id) {
+                owner {
+                  raw
+                  id
+                }
+              }
+            }
+          source: $.productById
+          target: $.product
+          requirements:
+            - name: __fusion_4_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 8
         - id: 4
           type: Operation
           schema: A
@@ -400,55 +340,8 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 10
-        - id: 8
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_8 {
-              product {
-                id
-              }
-            }
-        - id: 3
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_3($__fusion_4_id: ID!) {
-              productById(id: $__fusion_4_id) {
-                owner {
-                  raw
-                  id
-                }
-              }
-            }
-          source: $.productById
-          target: $.product
-          batchingGroupId: 9
-          requirements:
-            - name: __fusion_4_id
-              selectionMap: >-
-                id
-          dependencies:
-            - id: 1
-        - id: 7
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_7($__fusion_9_id: ID!) {
-              productById(id: $__fusion_9_id) {
-                id
-              }
-            }
-          source: $.productById
-          target: $.product
-          batchingGroupId: 9
-          requirements:
-            - name: __fusion_9_id
-              selectionMap: >-
-                id
-          dependencies:
-            - id: 1
+            - id: 3
+            - id: 5
         - id: 5
           type: Operation
           schema: B
@@ -460,28 +353,18 @@ operationPlan:
             }
           source: $.userById
           target: $.product.owner
-          batchingGroupId: 10
           requirements:
             - name: __fusion_7_id
               selectionMap: >-
                 id
           dependencies:
             - id: 3
-        - id: 6
+        - id: 8
           type: Operation
-          schema: B
+          schema: A
           operation: |
-            query Op_defer_6($__fusion_8_id: ID!) {
-              userById(id: $__fusion_8_id) {
+            query Op_defer_8 {
+              product {
                 id
               }
             }
-          source: $.userById
-          target: $.product.owner
-          batchingGroupId: 10
-          requirements:
-            - name: __fusion_8_id
-              selectionMap: >-
-                id
-          dependencies:
-            - id: 3

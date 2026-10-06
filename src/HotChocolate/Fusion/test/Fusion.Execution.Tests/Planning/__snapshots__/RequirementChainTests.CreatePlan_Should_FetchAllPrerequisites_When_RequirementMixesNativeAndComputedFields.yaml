@@ -66,7 +66,8 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 6
+      - id: 1
+      - id: 4
   - id: 4
     type: Operation
     schema: b
@@ -78,27 +79,8 @@ nodes:
       }
     source: $.productById
     target: $.product
-    batchingGroupId: 6
     requirements:
       - name: __fusion_5_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 5
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_5($__fusion_6_id: ID!) {
-        productById(id: $__fusion_6_id) {
-          id
-        }
-      }
-    source: $.productById
-    target: $.product
-    batchingGroupId: 6
-    requirements:
-      - name: __fusion_6_id
         selectionMap: >-
           id
     dependencies:

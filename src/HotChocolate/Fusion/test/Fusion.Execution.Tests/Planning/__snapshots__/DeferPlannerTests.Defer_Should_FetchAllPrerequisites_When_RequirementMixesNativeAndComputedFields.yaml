@@ -26,23 +26,6 @@ incrementalPlans:
       - 0
     parentNodeId: 1
     nodes:
-      - id: 1
-        type: Operation
-        schema: c
-        operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            productById(id: $__fusion_1_id) {
-              id
-            }
-          }
-        source: $.productById
-        target: $.product
-        requirements:
-          - name: __fusion_1_id
-            selectionMap: >-
-              id
-        dependencies:
-          - id: 7
       - id: 2
         type: Operation
         schema: c
@@ -65,8 +48,26 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
+          - id: 3
           - id: 4
-          - id: 8
+          - id: 7
+      - id: 3
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_3($__fusion_4_id: ID!) {
+            productById(id: $__fusion_4_id) {
+              raw
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_4_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 7
       - id: 4
         type: Operation
         schema: a
@@ -86,8 +87,8 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 1
           - id: 5
+          - id: 7
       - id: 5
         type: Operation
         schema: b
@@ -104,7 +105,7 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 1
+          - id: 7
       - id: 7
         type: Operation
         schema: a
@@ -114,39 +115,3 @@ incrementalPlans:
               id
             }
           }
-      - id: 3
-        type: Operation
-        schema: a
-        operation: |
-          query Op_defer_3($__fusion_4_id: ID!) {
-            productById(id: $__fusion_4_id) {
-              raw
-            }
-          }
-        source: $.productById
-        target: $.product
-        batchingGroupId: 8
-        requirements:
-          - name: __fusion_4_id
-            selectionMap: >-
-              id
-        dependencies:
-          - id: 1
-      - id: 6
-        type: Operation
-        schema: a
-        operation: |
-          query Op_defer_6($__fusion_8_id: ID!) {
-            productById(id: $__fusion_8_id) {
-              id
-            }
-          }
-        source: $.productById
-        target: $.product
-        batchingGroupId: 8
-        requirements:
-          - name: __fusion_8_id
-            selectionMap: >-
-              id
-        dependencies:
-          - id: 1

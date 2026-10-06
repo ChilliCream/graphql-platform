@@ -381,7 +381,7 @@ public sealed partial class OperationPlanner
                 AddVariableDefinitions(operationPlanStep, forwardVariableContext));
         }
 
-        return updatedPlanSteps;
+        return RemoveKeyOnlyLookupSteps(updatedPlanSteps);
 
         static bool IsEmptyOperation(OperationPlanStep step)
         {
@@ -512,6 +512,121 @@ public sealed partial class OperationPlanner
             }
 
             return step;
+        }
+    }
+
+    /// <summary>
+    /// Removes lookup steps that select nothing but the entry key a step they depend on already
+    /// selects, and makes their dependents depend on the steps the removed step depended on.
+    /// </summary>
+    private static ImmutableList<PlanStep> RemoveKeyOnlyLookupSteps(ImmutableList<PlanStep> planSteps)
+    {
+        var removed = true;
+
+        while (removed)
+        {
+            removed = false;
+
+            for (var i = 0; i < planSteps.Count; i++)
+            {
+                if (planSteps[i] is not OperationPlanStep { Lookup: not null } candidate
+                    || !IsKeyOnlyLookup(candidate)
+                    || IsReferencedByNodeStep(planSteps, candidate.Id)
+                    || !TryGetKeyProducers(planSteps, candidate, out var producerIndexes))
+                {
+                    continue;
+                }
+
+                foreach (var producerIndex in producerIndexes)
+                {
+                    var producer = (OperationPlanStep)planSteps[producerIndex];
+
+                    planSteps = planSteps.SetItem(
+                        producerIndex,
+                        producer with
+                        {
+                            Dependents = producer.Dependents.Remove(candidate.Id).Union(candidate.Dependents)
+                        });
+                }
+
+                planSteps = planSteps.RemoveAt(i);
+                removed = true;
+                break;
+            }
+        }
+
+        return planSteps;
+
+        static bool IsKeyOnlyLookup(OperationPlanStep step)
+        {
+            return step.Definition.SelectionSet.Selections is
+                [FieldNode { Alias: null, SelectionSet: { } entrySelectionSet }]
+                && SyntaxComparer.BySyntax.Equals(entrySelectionSet, step.Lookup!.Requirements);
+        }
+
+        static bool IsReferencedByNodeStep(ImmutableList<PlanStep> planSteps, int stepId)
+        {
+            foreach (var step in planSteps)
+            {
+                if (step is not NodeFieldPlanStep nodeStep)
+                {
+                    continue;
+                }
+
+                if (nodeStep.FallbackQuery.Id == stepId)
+                {
+                    return true;
+                }
+
+                foreach (var branch in nodeStep.Branches.Values)
+                {
+                    if (branch.Id == stepId)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        static bool TryGetKeyProducers(
+            ImmutableList<PlanStep> planSteps,
+            OperationPlanStep candidate,
+            out List<int> producerIndexes)
+        {
+            producerIndexes = [];
+            var providesKey = false;
+
+            for (var i = 0; i < planSteps.Count; i++)
+            {
+                if (planSteps[i] is not OperationPlanStep producer
+                    || !producer.Dependents.Contains(candidate.Id))
+                {
+                    continue;
+                }
+
+                producerIndexes.Add(i);
+
+                if (producer.Target.IsParentOfOrSame(candidate.Target)
+                    && ContainsSelectionsAtPath(
+                        GetEntrySelectionSet(producer),
+                        candidate.Target.RelativeTo(producer.Target),
+                        candidate.Lookup!.Requirements))
+                {
+                    providesKey = true;
+                }
+            }
+
+            return providesKey;
+        }
+
+        static SelectionSetNode GetEntrySelectionSet(OperationPlanStep step)
+        {
+            return step.Lookup is not null
+                && step.Definition.SelectionSet.Selections is [FieldNode { SelectionSet: { } entrySelectionSet }]
+                    ? entrySelectionSet
+                    : step.Definition.SelectionSet;
         }
     }
 
