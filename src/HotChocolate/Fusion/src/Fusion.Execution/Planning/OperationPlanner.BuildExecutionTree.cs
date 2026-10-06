@@ -323,6 +323,181 @@ public sealed partial class OperationPlanner
         return true;
     }
 
+    /// <summary>
+    /// Counts the operation steps that remain after <see cref="TransformPlanSteps"/>, using
+    /// <see cref="TryTransformOperationStep"/> and <see cref="RemoveKeyOnlyLookupSteps"/>.
+    /// </summary>
+    private static int CountSurvivingOperationSteps(ImmutableList<PlanStep> planSteps)
+    {
+        var remaining = ImmutableList.CreateBuilder<PlanStep>();
+
+        foreach (var step in planSteps)
+        {
+            if (step is OperationPlanStep operationPlanStep)
+            {
+                if (TryTransformOperationStep(operationPlanStep, out var transformed))
+                {
+                    remaining.Add(transformed);
+                }
+            }
+            else
+            {
+                remaining.Add(step);
+            }
+        }
+
+        var count = 0;
+
+        foreach (var step in RemoveKeyOnlyLookupSteps(remaining.ToImmutable()))
+        {
+            if (step is OperationPlanStep)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static bool IsEmptyOperation(OperationPlanStep step)
+    {
+        if (step.Definition.SelectionSet.Selections.Count == 0)
+        {
+            return true;
+        }
+
+        return step.Definition.SelectionSet.Selections is
+        [
+#pragma warning disable format
+            FieldNode
+            {
+                Alias: null,
+                Name.Value: IntrospectionFieldNames.TypeName,
+                Directives: [{ Name.Value: "fusion__empty" }]
+            }
+#pragma warning restore format
+        ];
+    }
+
+    private static OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
+    {
+        var updatedDefinition = RemoveEmptySelections(step.Definition);
+        return ReferenceEquals(updatedDefinition, step.Definition)
+            ? step
+            : step with { Definition = updatedDefinition };
+    }
+
+    /// <summary>
+    /// Applies the step-level transforms shared by <see cref="TransformPlanSteps"/> and
+    /// <see cref="CountSurvivingOperationSteps"/>. Returns <c>false</c> when the step has no
+    /// meaningful selections left and must be discarded.
+    /// </summary>
+    private static bool TryTransformOperationStep(
+        OperationPlanStep step,
+        out OperationPlanStep transformed)
+    {
+        // Requirement rewriting can leave behind empty child selection sets.
+        // We remove them here so later stages do not treat them as real selections.
+        step = RemoveEmptySelectionSets(step);
+
+        // Discard steps that have no meaningful selections left.
+        if (IsEmptyOperation(step))
+        {
+            transformed = step;
+            return false;
+        }
+
+        // When a @skip or @include directive gates every selection of the
+        // operation, we promote it to a node-level condition. This lets the
+        // executor skip the entire network call when the condition is not
+        // met, rather than sending a request that returns nothing.
+        // Directives that gate only some selections stay in the document and
+        // are evaluated by the source schema.
+        if (TryExtractCommonConditionsAndRewrite(step, out var updated))
+        {
+            step = updated;
+        }
+
+        // Strip @defer directives from subgraph operations. The gateway
+        // manages deferral itself and subgraphs should not see @defer.
+        transformed = StripDeferDirectivesFromStep(step);
+        return true;
+    }
+
+    private static OperationPlanStep StripDeferDirectivesFromStep(OperationPlanStep step)
+    {
+        var updated = StripDeferFromSelectionSet(step.Definition.SelectionSet);
+
+        if (ReferenceEquals(updated, step.Definition.SelectionSet))
+        {
+            return step;
+        }
+
+        return step with { Definition = step.Definition.WithSelectionSet(updated) };
+    }
+
+    private static SelectionSetNode StripDeferFromSelectionSet(SelectionSetNode selectionSet)
+    {
+        List<ISelectionNode>? rewritten = null;
+
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            var selection = selectionSet.Selections[i];
+
+            if (selection is InlineFragmentNode inlineFragment)
+            {
+                var strippedDirectives = StripDeferDirective(inlineFragment.Directives);
+                var strippedInner = StripDeferFromSelectionSet(inlineFragment.SelectionSet);
+
+                if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
+                    || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
+                {
+                    rewritten ??= [.. selectionSet.Selections];
+                    rewritten[i] = inlineFragment
+                        .WithDirectives(strippedDirectives)
+                        .WithSelectionSet(strippedInner);
+                }
+            }
+            else if (selection is FieldNode { SelectionSet: not null } field)
+            {
+                var strippedInner = StripDeferFromSelectionSet(field.SelectionSet);
+
+                if (!ReferenceEquals(strippedInner, field.SelectionSet))
+                {
+                    rewritten ??= [.. selectionSet.Selections];
+                    rewritten[i] = field.WithSelectionSet(strippedInner);
+                }
+            }
+        }
+
+        return rewritten is null ? selectionSet : new SelectionSetNode(rewritten);
+    }
+
+    private static IReadOnlyList<DirectiveNode> StripDeferDirective(IReadOnlyList<DirectiveNode> directives)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals(
+                DirectiveNames.Defer.Name,
+                StringComparison.Ordinal))
+            {
+                var result = new List<DirectiveNode>(directives.Count - 1);
+
+                for (var j = 0; j < directives.Count; j++)
+                {
+                    if (j != i)
+                    {
+                        result.Add(directives[j]);
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        return directives;
+    }
+
     private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
         OperationDefinitionNode originalOperation)
@@ -342,148 +517,20 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            // Requirement rewriting can leave behind empty child selection sets.
-            // We remove them here so later stages do not treat them as real selections.
-            operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
-
-            if (!ReferenceEquals(step, operationPlanStep))
+            if (!TryTransformOperationStep(operationPlanStep, out var transformed))
             {
-                updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
-            }
-
-            // Discard steps that have no meaningful selections left.
-            if (IsEmptyOperation(operationPlanStep))
-            {
-                updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
+                updatedPlanSteps = updatedPlanSteps.Remove(step);
                 continue;
             }
-
-            // When a @skip or @include directive gates every selection of the
-            // operation, we promote it to a node-level condition. This lets the
-            // executor skip the entire network call when the condition is not
-            // met, rather than sending a request that returns nothing.
-            // Directives that gate only some selections stay in the document and
-            // are evaluated by the source schema.
-            if (TryExtractCommonConditionsAndRewrite(operationPlanStep, out var updated))
-            {
-                updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updated);
-                operationPlanStep = updated;
-            }
-
-            // Strip @defer directives from subgraph operations. The gateway
-            // manages deferral itself and subgraphs should not see @defer.
-            operationPlanStep = StripDeferDirectivesFromStep(operationPlanStep);
 
             // Attach variable definitions so the operation is syntactically valid
             // when sent to the downstream service.
             updatedPlanSteps = updatedPlanSteps.Replace(
-                operationPlanStep,
-                AddVariableDefinitions(operationPlanStep, forwardVariableContext));
+                step,
+                AddVariableDefinitions(transformed, forwardVariableContext));
         }
 
         return RemoveKeyOnlyLookupSteps(updatedPlanSteps);
-
-        static bool IsEmptyOperation(OperationPlanStep step)
-        {
-            if (step.Definition.SelectionSet.Selections.Count == 0)
-            {
-                return true;
-            }
-
-            return step.Definition.SelectionSet.Selections is
-            [
-#pragma warning disable format
-                FieldNode
-                {
-                    Alias: null,
-                    Name.Value: IntrospectionFieldNames.TypeName,
-                    Directives: [{ Name.Value: "fusion__empty" }]
-                }
-#pragma warning restore format
-            ];
-        }
-
-        static OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
-        {
-            var updatedDefinition = RemoveEmptySelections(step.Definition);
-            return ReferenceEquals(updatedDefinition, step.Definition)
-                ? step
-                : step with { Definition = updatedDefinition };
-        }
-
-        static OperationPlanStep StripDeferDirectivesFromStep(OperationPlanStep step)
-        {
-            var updated = StripDeferFromSelectionSet(step.Definition.SelectionSet);
-
-            if (ReferenceEquals(updated, step.Definition.SelectionSet))
-            {
-                return step;
-            }
-
-            return step with { Definition = step.Definition.WithSelectionSet(updated) };
-        }
-
-        static SelectionSetNode StripDeferFromSelectionSet(SelectionSetNode selectionSet)
-        {
-            List<ISelectionNode>? rewritten = null;
-
-            for (var i = 0; i < selectionSet.Selections.Count; i++)
-            {
-                var selection = selectionSet.Selections[i];
-
-                if (selection is InlineFragmentNode inlineFragment)
-                {
-                    var strippedDirectives = StripDeferDirective(inlineFragment.Directives);
-                    var strippedInner = StripDeferFromSelectionSet(inlineFragment.SelectionSet);
-
-                    if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
-                        || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
-                    {
-                        rewritten ??= [.. selectionSet.Selections];
-                        rewritten[i] = inlineFragment
-                            .WithDirectives(strippedDirectives)
-                            .WithSelectionSet(strippedInner);
-                    }
-                }
-                else if (selection is FieldNode { SelectionSet: not null } field)
-                {
-                    var strippedInner = StripDeferFromSelectionSet(field.SelectionSet);
-
-                    if (!ReferenceEquals(strippedInner, field.SelectionSet))
-                    {
-                        rewritten ??= [.. selectionSet.Selections];
-                        rewritten[i] = field.WithSelectionSet(strippedInner);
-                    }
-                }
-            }
-
-            return rewritten is null ? selectionSet : new SelectionSetNode(rewritten);
-        }
-
-        static IReadOnlyList<DirectiveNode> StripDeferDirective(IReadOnlyList<DirectiveNode> directives)
-        {
-            for (var i = 0; i < directives.Count; i++)
-            {
-                if (directives[i].Name.Value.Equals(
-                    DirectiveNames.Defer.Name,
-                    StringComparison.Ordinal))
-                {
-                    var result = new List<DirectiveNode>(directives.Count - 1);
-
-                    for (var j = 0; j < directives.Count; j++)
-                    {
-                        if (j != i)
-                        {
-                            result.Add(directives[j]);
-                        }
-                    }
-
-                    return result;
-                }
-            }
-
-            return directives;
-        }
 
         static OperationPlanStep AddVariableDefinitions(
             OperationPlanStep step,

@@ -449,6 +449,7 @@ public sealed partial class OperationPlanner
         }
 
         var bestCompletePlanCost = bestCompletePlan?.PathCost ?? double.PositiveInfinity;
+        var bestSurvivingStepCount = -1;
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
@@ -478,10 +479,9 @@ public sealed partial class OperationPlanner
                     current.SchemaName);
             }
 
-            // If the current plan is already at least as expensive as the
-            // best complete plan, we can skip it and don't need to evaluate
-            // it any further.
-            if (current.BestCaseCost >= bestCompletePlanCost)
+            // Skip plans whose best-case cost exceeds the best complete plan.
+            // Plans of equal cost continue to the tie-break.
+            if (current.BestCaseCost > bestCompletePlanCost)
             {
                 continue;
             }
@@ -501,10 +501,11 @@ public sealed partial class OperationPlanner
                 if (completeCost < bestCompletePlanCost
                     || (completeCost.Equals(bestCompletePlanCost)
                         && bestCompletePlan is not null
-                        && ComparePlansForTieBreak(current, bestCompletePlan) < 0))
+                        && ComparePlansForTieBreak(current, bestCompletePlan, ref bestSurvivingStepCount) < 0))
                 {
                     bestCompletePlan = current;
                     bestCompletePlanCost = completeCost;
+                    bestSurvivingStepCount = -1;
                 }
 
                 continue;
@@ -777,8 +778,26 @@ public sealed partial class OperationPlanner
             ? stepDepth
             : 1;
 
-    private static int ComparePlansForTieBreak(PlanNode left, PlanNode right)
+    /// <summary>
+    /// Orders two complete plans of equal cost: fewer operation steps that survive the plan step
+    /// transforms first, then fewer operation steps, then step ids and schema names.
+    /// </summary>
+    internal static int ComparePlansForTieBreak(
+        PlanNode left,
+        PlanNode right,
+        ref int rightSurvivingStepCount)
     {
+        if (rightSurvivingStepCount < 0)
+        {
+            rightSurvivingStepCount = CountSurvivingOperationSteps(right.Steps);
+        }
+
+        var survivingStepComparison = CountSurvivingOperationSteps(left.Steps).CompareTo(rightSurvivingStepCount);
+        if (survivingStepComparison != 0)
+        {
+            return survivingStepComparison;
+        }
+
         var stepCountComparison = left.OperationStepCount.CompareTo(right.OperationStepCount);
         if (stepCountComparison != 0)
         {

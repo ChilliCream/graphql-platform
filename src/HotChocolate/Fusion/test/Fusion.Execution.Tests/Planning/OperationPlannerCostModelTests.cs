@@ -1,6 +1,9 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
@@ -267,6 +270,175 @@ public class OperationPlannerCostModelTests : FusionTestBase
 
         // assert
         plan.AllNodes.Select(node => node.SchemaName).MatchInlineSnapshots(["a", "b"]);
+    }
+
+    [Fact]
+    public void ComparePlansForTieBreak_Should_PreferFewerSurvivingSteps_When_CostsTie()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan1 = CreateTieNode(
+            CreateStep(1, "a", "query Test { a }", schema, lookup: null, SelectionPath.Root, SelectionPath.Root, []),
+            CreateStep(2, "z", "query Test { __typename @fusion__empty }", schema, lookup: null, SelectionPath.Root, SelectionPath.Root, []));
+        var plan2 = CreateTieNode(
+            CreateStep(1, "a", "query Test { a }", schema, lookup: null, SelectionPath.Root, SelectionPath.Root, []),
+            CreateStep(2, "a", "query Test { b }", schema, lookup: null, SelectionPath.Root, SelectionPath.Root, []));
+        var cached = -1;
+
+        // act
+        var comparison = OperationPlanner.ComparePlansForTieBreak(plan1, plan2, ref cached);
+        cached = -1;
+        var reverseComparison = OperationPlanner.ComparePlansForTieBreak(plan2, plan1, ref cached);
+
+        // assert
+        Assert.Equal(-1, Math.Sign(comparison));
+        Assert.Equal(1, Math.Sign(reverseComparison));
+    }
+
+    [Fact]
+    public void ComparePlansForTieBreak_Should_PreferFewerSurvivingSteps_When_KeyOnlyLookupIsRemoved()
+    {
+        // arrange
+        var schema = ComposeProductSchema();
+        var lookup = GetProductByIdLookup(schema);
+        var plan1 = CreateTieNode(
+            CreateStep(1, "a", "query Test { product { id } }", schema, null, SelectionPath.Root, SelectionPath.Root, [2]),
+            CreateStep(
+                2,
+                "b",
+                "query Test($x: ID!) { productById(id: $x) { id } }",
+                schema,
+                lookup,
+                SelectionPath.Parse("$.product"),
+                SelectionPath.Parse("$.productById"),
+                []));
+        var plan2 = CreateTieNode(
+            CreateStep(1, "a", "query Test { product { id } }", schema, null, SelectionPath.Root, SelectionPath.Root, [2]),
+            CreateStep(
+                2,
+                "b",
+                "query Test($x: ID!) { productById(id: $x) { name } }",
+                schema,
+                lookup,
+                SelectionPath.Parse("$.product"),
+                SelectionPath.Parse("$.productById"),
+                []));
+        var cached = -1;
+
+        // act
+        var comparison = OperationPlanner.ComparePlansForTieBreak(plan1, plan2, ref cached);
+        cached = -1;
+        var reverseComparison = OperationPlanner.ComparePlansForTieBreak(plan2, plan1, ref cached);
+
+        // assert
+        Assert.Equal(-1, Math.Sign(comparison));
+        Assert.Equal(1, Math.Sign(reverseComparison));
+    }
+
+    [Fact]
+    public void ComparePlansForTieBreak_Should_PreferFewerSurvivingSteps_When_SkipGatedKeyOnlyLookupIsRemoved()
+    {
+        // arrange
+        var schema = ComposeProductSchema();
+        var lookup = GetProductByIdLookup(schema);
+        var plan1 = CreateTieNode(
+            CreateStep(1, "a", "query Test { product { id } }", schema, null, SelectionPath.Root, SelectionPath.Root, [2]),
+            CreateStep(
+                2,
+                "b",
+                "query Test($x: ID!, $s: Boolean!) { productById(id: $x) { id @skip(if: $s) } }",
+                schema,
+                lookup,
+                SelectionPath.Parse("$.product"),
+                SelectionPath.Parse("$.productById"),
+                []));
+        var plan2 = CreateTieNode(
+            CreateStep(1, "a", "query Test { product { id } }", schema, null, SelectionPath.Root, SelectionPath.Root, [2]),
+            CreateStep(
+                2,
+                "b",
+                "query Test($x: ID!) { productById(id: $x) { name } }",
+                schema,
+                lookup,
+                SelectionPath.Parse("$.product"),
+                SelectionPath.Parse("$.productById"),
+                []));
+        var cached = -1;
+
+        // act
+        var comparison = OperationPlanner.ComparePlansForTieBreak(plan1, plan2, ref cached);
+        cached = -1;
+        var reverseComparison = OperationPlanner.ComparePlansForTieBreak(plan2, plan1, ref cached);
+
+        // assert
+        Assert.Equal(-1, Math.Sign(comparison));
+        Assert.Equal(1, Math.Sign(reverseComparison));
+    }
+
+    private static FusionSchemaDefinition ComposeProductSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+                product: Product
+            }
+
+            type Product {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID! @shareable
+                name: String
+            }
+            """);
+    }
+
+    private static Lookup GetProductByIdLookup(FusionSchemaDefinition schema)
+    {
+        return schema.Types.GetType<FusionObjectTypeDefinition>("Product").Sources["b"].Lookups[0];
+    }
+
+    private static PlanNode CreateTieNode(params PlanStep[] steps)
+    {
+        var node = CreateNode(maxDepth: 1, operationStepCount: steps.Length, excessFanout: 0);
+        return node with { Steps = [.. steps] };
+    }
+
+    private static OperationPlanStep CreateStep(
+        int id,
+        string schemaName,
+        [StringSyntax("graphql")] string operation,
+        FusionSchemaDefinition schema,
+        Lookup? lookup,
+        SelectionPath target,
+        SelectionPath source,
+        ImmutableHashSet<int> dependents)
+    {
+        return new OperationPlanStep
+        {
+            Id = id,
+            Definition = Utf8GraphQLParser
+                .Parse(operation)
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single(),
+            Type = schema.QueryType,
+            RootSelectionSetId = 0,
+            SelectionSets = [],
+            SchemaName = schemaName,
+            Target = target,
+            Source = source,
+            Lookup = lookup,
+            Dependents = dependents
+        };
     }
 
     private static PlanNode CreateNode(
