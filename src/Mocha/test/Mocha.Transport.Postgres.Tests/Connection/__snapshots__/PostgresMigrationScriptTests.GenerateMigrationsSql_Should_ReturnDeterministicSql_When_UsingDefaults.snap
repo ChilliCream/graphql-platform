@@ -1,8 +1,8 @@
 BEGIN;
 SELECT pg_advisory_xact_lock(958913715);
-CREATE SCHEMA IF NOT EXISTS "public";
+CREATE SCHEMA IF NOT EXISTS public;
 
-CREATE TABLE IF NOT EXISTS "public"."mocha_migrations"
+CREATE TABLE IF NOT EXISTS public.mocha_migrations
 (
     migration_id  text        NOT NULL PRIMARY KEY,
     applied_on    timestamptz NOT NULL DEFAULT (now() at time zone 'utc')
@@ -10,55 +10,55 @@ CREATE TABLE IF NOT EXISTS "public"."mocha_migrations"
 
 DO $mocha_migration$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM "public"."mocha_migrations" WHERE migration_id = E'2026-03-06_InitialSchema') THEN
-        CREATE SCHEMA IF NOT EXISTS "public";
+    IF NOT EXISTS (SELECT 1 FROM public.mocha_migrations WHERE migration_id = E'2026-03-06_InitialSchema') THEN
+        CREATE SCHEMA IF NOT EXISTS public;
 
-        CREATE SEQUENCE IF NOT EXISTS "public"."mocha_topology_seq" AS bigint;
+        CREATE SEQUENCE IF NOT EXISTS public.mocha_topology_seq AS bigint;
 
-        CREATE TABLE IF NOT EXISTS "public"."mocha_topic"
+        CREATE TABLE IF NOT EXISTS public.mocha_topic
         (
-            id          bigint      NOT NULL PRIMARY KEY DEFAULT nextval(E'"public"."mocha_topology_seq"'),
+            id          bigint      NOT NULL PRIMARY KEY DEFAULT nextval(E'public.mocha_topology_seq'),
             updated     timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
             name        text        NOT NULL
         );
 
-        CREATE UNIQUE INDEX IF NOT EXISTS "mocha_topic_uqx" ON "public"."mocha_topic" (name) INCLUDE (id);
-        ALTER TABLE "public"."mocha_topic" ADD CONSTRAINT "mocha_unique_topic" UNIQUE USING INDEX "mocha_topic_uqx";
+        CREATE UNIQUE INDEX IF NOT EXISTS mocha_topic_uqx ON public.mocha_topic (name) INCLUDE (id);
+        ALTER TABLE public.mocha_topic ADD CONSTRAINT mocha_unique_topic UNIQUE USING INDEX mocha_topic_uqx;
 
-        CREATE TABLE IF NOT EXISTS "public"."mocha_queue"
+        CREATE TABLE IF NOT EXISTS public.mocha_queue
         (
-            id          bigint      NOT NULL PRIMARY KEY DEFAULT nextval(E'"public"."mocha_topology_seq"'),
+            id          bigint      NOT NULL PRIMARY KEY DEFAULT nextval(E'public.mocha_topology_seq'),
             updated     timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
             name        text        NOT NULL
         );
 
-        CREATE UNIQUE INDEX IF NOT EXISTS "mocha_queue_uqx" ON "public"."mocha_queue" (name) INCLUDE (id);
-        ALTER TABLE "public"."mocha_queue" ADD CONSTRAINT "mocha_unique_queue" UNIQUE USING INDEX "mocha_queue_uqx";
+        CREATE UNIQUE INDEX IF NOT EXISTS mocha_queue_uqx ON public.mocha_queue (name) INCLUDE (id);
+        ALTER TABLE public.mocha_queue ADD CONSTRAINT mocha_unique_queue UNIQUE USING INDEX mocha_queue_uqx;
 
-        CREATE TABLE IF NOT EXISTS "public"."mocha_queue_subscription"
+        CREATE TABLE IF NOT EXISTS public.mocha_queue_subscription
         (
-            id              bigint      NOT NULL PRIMARY KEY DEFAULT nextval(E'"public"."mocha_topology_seq"'),
+            id              bigint      NOT NULL PRIMARY KEY DEFAULT nextval(E'public.mocha_topology_seq'),
             updated         timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-            source_id       bigint      NOT NULL REFERENCES "public"."mocha_topic" (id) ON DELETE CASCADE,
-            destination_id  bigint      NOT NULL REFERENCES "public"."mocha_queue" (id) ON DELETE CASCADE
+            source_id       bigint      NOT NULL REFERENCES public.mocha_topic (id) ON DELETE CASCADE,
+            destination_id  bigint      NOT NULL REFERENCES public.mocha_queue (id) ON DELETE CASCADE
         );
 
-        CREATE UNIQUE INDEX IF NOT EXISTS "mocha_queue_subscription_uqx"
-            ON "public"."mocha_queue_subscription" (source_id, destination_id);
-        ALTER TABLE "public"."mocha_queue_subscription"
-            ADD CONSTRAINT "mocha_unique_queue_subscription" UNIQUE USING INDEX "mocha_queue_subscription_uqx";
+        CREATE UNIQUE INDEX IF NOT EXISTS mocha_queue_subscription_uqx
+            ON public.mocha_queue_subscription (source_id, destination_id);
+        ALTER TABLE public.mocha_queue_subscription
+            ADD CONSTRAINT mocha_unique_queue_subscription UNIQUE USING INDEX mocha_queue_subscription_uqx;
 
-        CREATE INDEX IF NOT EXISTS "mocha_queue_subscription_source_ndx"
-            ON "public"."mocha_queue_subscription" (source_id) INCLUDE (id, destination_id);
-        CREATE INDEX IF NOT EXISTS "mocha_queue_subscription_dest_ndx"
-            ON "public"."mocha_queue_subscription" (destination_id) INCLUDE (id, source_id);
+        CREATE INDEX IF NOT EXISTS mocha_queue_subscription_source_ndx
+            ON public.mocha_queue_subscription (source_id) INCLUDE (id, destination_id);
+        CREATE INDEX IF NOT EXISTS mocha_queue_subscription_dest_ndx
+            ON public.mocha_queue_subscription (destination_id) INCLUDE (id, source_id);
 
-        CREATE TABLE IF NOT EXISTS "public"."mocha_message"
+        CREATE TABLE IF NOT EXISTS public.mocha_message
         (
             transport_message_id    uuid        NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
             body                    bytea       NOT NULL,
             headers                 jsonb,
-            queue_id                bigint      NOT NULL REFERENCES "public"."mocha_queue" (id) ON DELETE CASCADE,
+            queue_id                bigint      NOT NULL REFERENCES public.mocha_queue (id) ON DELETE CASCADE,
             sent_time               timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
             scheduled_time          timestamptz,
             expiration_time         timestamptz,
@@ -69,33 +69,33 @@ BEGIN
             error_reason            jsonb
         );
 
-        CREATE INDEX IF NOT EXISTS "mocha_message_queue_ndx"
-            ON "public"."mocha_message" (queue_id) INCLUDE (transport_message_id);
-        INSERT INTO "public"."mocha_migrations" (migration_id) VALUES (E'2026-03-06_InitialSchema');
+        CREATE INDEX IF NOT EXISTS mocha_message_queue_ndx
+            ON public.mocha_message (queue_id) INCLUDE (transport_message_id);
+        INSERT INTO public.mocha_migrations (migration_id) VALUES (E'2026-03-06_InitialSchema');
     END IF;
 END;
 $mocha_migration$;
 
 DO $mocha_migration$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM "public"."mocha_migrations" WHERE migration_id = E'2026-03-06_AddTransportIndex') THEN
-        CREATE INDEX IF NOT EXISTS "mocha_message_transport_queue_ndx"
-            ON "public"."mocha_message" (transport_message_id, queue_id);
+    IF NOT EXISTS (SELECT 1 FROM public.mocha_migrations WHERE migration_id = E'2026-03-06_AddTransportIndex') THEN
+        CREATE INDEX IF NOT EXISTS mocha_message_transport_queue_ndx
+            ON public.mocha_message (transport_message_id, queue_id);
 
-        CREATE INDEX IF NOT EXISTS "mocha_message_expiration_scheduled_ndx"
-            ON "public"."mocha_message" (expiration_time, scheduled_time);
+        CREATE INDEX IF NOT EXISTS mocha_message_expiration_scheduled_ndx
+            ON public.mocha_message (expiration_time, scheduled_time);
 
-        CREATE INDEX IF NOT EXISTS "mocha_message_sent_time_ndx"
-            ON "public"."mocha_message" (sent_time);
-        INSERT INTO "public"."mocha_migrations" (migration_id) VALUES (E'2026-03-06_AddTransportIndex');
+        CREATE INDEX IF NOT EXISTS mocha_message_sent_time_ndx
+            ON public.mocha_message (sent_time);
+        INSERT INTO public.mocha_migrations (migration_id) VALUES (E'2026-03-06_AddTransportIndex');
     END IF;
 END;
 $mocha_migration$;
 
 DO $mocha_migration$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM "public"."mocha_migrations" WHERE migration_id = E'2026-03-06_AddConsumerManagement') THEN
-        CREATE TABLE IF NOT EXISTS "public"."mocha_consumers"
+    IF NOT EXISTS (SELECT 1 FROM public.mocha_migrations WHERE migration_id = E'2026-03-06_AddConsumerManagement') THEN
+        CREATE TABLE IF NOT EXISTS public.mocha_consumers
         (
             id              uuid        NOT NULL PRIMARY KEY,
             service_name    text        NOT NULL,
@@ -103,15 +103,15 @@ BEGIN
             updated_at      timestamptz NOT NULL DEFAULT now()
         );
 
-        ALTER TABLE "public"."mocha_queue"
-            ADD COLUMN IF NOT EXISTS consumer_id uuid REFERENCES "public"."mocha_consumers"(id) ON DELETE CASCADE;
+        ALTER TABLE public.mocha_queue
+            ADD COLUMN IF NOT EXISTS consumer_id uuid REFERENCES public.mocha_consumers(id) ON DELETE CASCADE;
 
-        CREATE INDEX IF NOT EXISTS "mocha_consumers_updated_at_ndx"
-            ON "public"."mocha_consumers" (updated_at);
+        CREATE INDEX IF NOT EXISTS mocha_consumers_updated_at_ndx
+            ON public.mocha_consumers (updated_at);
 
-        CREATE INDEX IF NOT EXISTS "mocha_queue_consumer_id_ndx"
-            ON "public"."mocha_queue" (consumer_id);
-        INSERT INTO "public"."mocha_migrations" (migration_id) VALUES (E'2026-03-06_AddConsumerManagement');
+        CREATE INDEX IF NOT EXISTS mocha_queue_consumer_id_ndx
+            ON public.mocha_queue (consumer_id);
+        INSERT INTO public.mocha_migrations (migration_id) VALUES (E'2026-03-06_AddConsumerManagement');
     END IF;
 END;
 $mocha_migration$;

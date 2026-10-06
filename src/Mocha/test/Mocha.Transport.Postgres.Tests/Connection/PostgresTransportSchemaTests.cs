@@ -13,7 +13,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task MigrateAsync_Should_CreateTransportSchema_When_DatabaseIsEmpty()
+    public async Task MigrateAsync_Should_RecordMigrations_When_DatabaseIsEmpty()
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
@@ -24,7 +24,6 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
 
         // assert
         Assert.Equal(ConnectionState.Open, connection.State);
-        (await ReadSchemaAsync(connection)).MatchSnapshot();
         (await ReadHistoryAsync(connection)).MatchInlineSnapshot(
             """
             [
@@ -36,7 +35,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
     }
 
     [Fact]
-    public async Task GenerateMigrationsSql_Should_MatchDirectMigration_When_AppliedWithPsql()
+    public async Task GenerateMigrationsSql_Should_MatchDirectMigration_When_ScriptIsAppliedRepeatedly()
     {
         // arrange
         await using var direct = await fixture.CreateDatabaseAsync("ScriptParityDirect");
@@ -47,11 +46,11 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         var script = PostgresTransportSchema.GenerateMigrationsSql(options);
 
         // act
-        await fixture.ApplyScriptAsync(scripted.DatabaseName, script, CancellationToken);
-        await fixture.ApplyScriptAsync(scripted.DatabaseName, script, CancellationToken);
+        await fixture.RunSqlScriptAsync(script, scripted.DatabaseName);
+        await fixture.RunSqlScriptAsync(script, scripted.DatabaseName);
         await using var scriptedConnection = await OpenAsync(scripted.ConnectionString);
         await PostgresTransportSchema.MigrateAsync(scriptedConnection, options, CancellationToken);
-        await fixture.ApplyScriptAsync(direct.DatabaseName, script, CancellationToken);
+        await fixture.RunSqlScriptAsync(script, direct.DatabaseName);
 
         // assert
         Assert.Equal(await ReadSchemaAsync(connection), await ReadSchemaAsync(scriptedConnection));
@@ -83,8 +82,8 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         // act
         if (script)
         {
-            await fixture.ApplyScriptAsync(database.DatabaseName,
-                PostgresTransportSchema.GenerateMigrationsSql(options), CancellationToken);
+            await fixture.RunSqlScriptAsync(
+                PostgresTransportSchema.GenerateMigrationsSql(options), database.DatabaseName);
         }
         else
         {

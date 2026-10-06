@@ -7,7 +7,4 @@ internal static class ThrowHelper
 
     public static InvalidOperationException MigrationTransactionNotSupported(Exception? innerException)
         => new("Transport migration requires a connection without an active or ambient transaction.", innerException);
-
-    public static ArgumentException InvalidSqlIdentifier(string identifier)
-        => new($"'{identifier}' is not a valid PostgreSQL identifier.", nameof(identifier));
 }

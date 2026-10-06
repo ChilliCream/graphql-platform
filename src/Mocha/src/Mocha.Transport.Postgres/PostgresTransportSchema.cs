@@ -4,9 +4,6 @@ using Npgsql;
 
 namespace Mocha.Transport.Postgres;
 
-/// <summary>
-/// Applies or generates migrations for the PostgreSQL transport schema.
-/// </summary>
 public static class PostgresTransportSchema
 {
     /// <summary>
