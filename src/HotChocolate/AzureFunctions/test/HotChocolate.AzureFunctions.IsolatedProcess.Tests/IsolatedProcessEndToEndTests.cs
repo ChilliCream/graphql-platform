@@ -261,7 +261,7 @@ public class IsolatedProcessEndToEndTests
 
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
-        Assert.Equal(expectedAllow, GetAllow(response));
+        Assert.Equal(expectedAllow, GetHeader(response, "Allow"));
         Assert.Equal(0, response.Body.Length);
     }
 
@@ -290,7 +290,7 @@ public class IsolatedProcessEndToEndTests
 
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
-        Assert.Equal(expectedAllow, GetAllow(response));
+        Assert.Equal(expectedAllow, GetHeader(response, "Allow"));
     }
 
     [Theory]
@@ -346,7 +346,7 @@ public class IsolatedProcessEndToEndTests
 
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
-        Assert.Equal(expectedAllow, GetAllow(response));
+        Assert.Equal(expectedAllow, GetHeader(response, "Allow"));
     }
 
     [Fact]
@@ -368,9 +368,63 @@ public class IsolatedProcessEndToEndTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.UnsupportedMediaType,
+        "application/json")]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var host = CreateHost(transportVersion, enableQueryRequests: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            "QUERY",
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            "{ person }",
+            "text/plain");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAcceptQuery, GetHeader(response, "Accept-Query"));
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Fact]
+    public async Task Query_Should_ExecuteRequest_When_QueryRequestsAreEnabled()
+    {
+        // arrange
+        var host = CreateHost(HttpTransportVersion.Latest, enableQueryRequests: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            "QUERY",
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            """{"query":"{ person }"}""");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"person":"Luke Skywalker"}}""",
+            await ReadResponseAsStringAsync(response));
+    }
+
     private static IHost CreateHost(
         HttpTransportVersion transportVersion,
-        bool enableGetRequests = true)
+        bool enableGetRequests = true,
+        bool enableQueryRequests = false)
     {
         var formatterOptions = new HttpResponseFormatterOptions
         {
@@ -382,12 +436,17 @@ public class IsolatedProcessEndToEndTests
                 b => b
                     .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"))
                     .AddHttpResponseFormatter(formatterOptions)
-                    .ModifyFunctionOptions(o => o.EnableGetRequests = enableGetRequests))
+                    .ModifyFunctionOptions(
+                        o =>
+                        {
+                            o.EnableGetRequests = enableGetRequests;
+                            o.EnableQueryRequests = enableQueryRequests;
+                        }))
             .Build();
     }
 
-    private static string? GetAllow(HttpResponseData response)
-        => response.Headers.TryGetValues("Allow", out var values)
+    private static string? GetHeader(HttpResponseData response, string name)
+        => response.Headers.TryGetValues(name, out var values)
             ? string.Join(", ", values)
             : null;
 

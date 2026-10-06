@@ -299,9 +299,57 @@ public class InProcessEndToEndTests
         Assert.Equal(StatusCodes.Status404NotFound, httpContext.Response.StatusCode);
     }
 
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        StatusCodes.Status415UnsupportedMediaType,
+        "application/json")]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        int expectedStatusCode,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var requestExecutor = CreateRequestExecutor(transportVersion, enableQueryRequests: true);
+        var httpContext = TestHttpContextHelper.NewGraphQLHttpContext("{ person }");
+        httpContext.Request.Method = "QUERY";
+        httpContext.Request.ContentType = "text/plain";
+
+        // act
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, httpContext.Response.StatusCode);
+        Assert.Equal(expectedAcceptQuery, httpContext.Response.Headers["Accept-Query"]);
+        Assert.Equal(0, httpContext.Response.Body.Length);
+    }
+
+    [Fact]
+    public async Task Query_Should_ExecuteRequest_When_QueryRequestsAreEnabled()
+    {
+        // arrange
+        var requestExecutor = CreateRequestExecutor(
+            HttpTransportVersion.Latest,
+            enableQueryRequests: true);
+        var httpContext = TestHttpContextHelper.NewGraphQLHttpContext("{ person }");
+        httpContext.Request.Method = "QUERY";
+
+        // act
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        // assert
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        Assert.Equal(
+            """{"data":{"person":"Luke Skywalker"}}""",
+            await httpContext.ReadResponseContentAsync());
+    }
+
     private static IGraphQLRequestExecutor CreateRequestExecutor(
         HttpTransportVersion transportVersion,
-        bool enableGetRequests = true)
+        bool enableGetRequests = true,
+        bool enableQueryRequests = false)
     {
         var hostBuilder = new MockInProcessFunctionsHostBuilder();
         hostBuilder
@@ -309,7 +357,12 @@ public class InProcessEndToEndTests
             .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"))
             .AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions { HttpTransportVersion = transportVersion })
-            .ModifyFunctionOptions(o => o.EnableGetRequests = enableGetRequests);
+            .ModifyFunctionOptions(
+                o =>
+                {
+                    o.EnableGetRequests = enableGetRequests;
+                    o.EnableQueryRequests = enableQueryRequests;
+                });
 
         return hostBuilder
             .BuildServiceProvider()
