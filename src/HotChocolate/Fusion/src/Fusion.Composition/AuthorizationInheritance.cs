@@ -3,6 +3,7 @@ using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Features;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -109,7 +110,7 @@ internal static class AuthorizationInheritance
 
         Close(fieldNodes.Values, static n => n.Base);
 
-        var metadata = new AuthorizationInheritanceMetadata();
+        var entries = ImmutableArray.CreateBuilder<InheritedAuthorization>();
 
         foreach (var complexType in complexTypes)
         {
@@ -119,7 +120,7 @@ internal static class AuthorizationInheritance
 
             if (typeNode.Own.Auth.IsEmpty && !typeNode.Closed.Auth.IsEmpty)
             {
-                ReportType(metadata, typeNode, complexType, typeNodes);
+                ReportType(entries, typeNode, complexType, typeNodes);
             }
 
             foreach (var field in complexType.Fields)
@@ -130,14 +131,14 @@ internal static class AuthorizationInheritance
 
                 if (fieldNode.Own.Auth.IsEmpty && !fieldNode.Closed.Auth.Matches(fieldNode.Base.Auth))
                 {
-                    ReportField(metadata, fieldNode);
+                    ReportField(entries, fieldNode);
                 }
             }
         }
 
-        if (metadata.Entries.Count > 0)
+        if (entries.Count > 0)
         {
-            mergedSchema.Features.Set(metadata);
+            mergedSchema.Features.Set(new AuthorizationInheritanceMetadata(entries.ToImmutable()));
         }
     }
 
@@ -160,7 +161,7 @@ internal static class AuthorizationInheritance
         {
             MutableEnumTypeDefinition e => e.Directives,
             MutableScalarTypeDefinition s => s.Directives,
-            _ => throw new InvalidOperationException()
+            _ => throw ThrowHelper.UnexpectedTypeKind(type.Kind)
         };
     }
 
@@ -221,7 +222,7 @@ internal static class AuthorizationInheritance
     }
 
     private static void ReportType(
-        AuthorizationInheritanceMetadata metadata,
+        ImmutableArray<InheritedAuthorization>.Builder entries,
         Node member,
         MutableComplexTypeDefinition complexType,
         Dictionary<string, Node> typeNodes)
@@ -244,12 +245,14 @@ internal static class AuthorizationInheritance
 
         if (paths.Count > 0)
         {
-            metadata.Entries.Add(
+            entries.Add(
                 new InheritedAuthorization(member.Coordinate, [.. paths], [.. sourceNames]));
         }
     }
 
-    private static void ReportField(AuthorizationInheritanceMetadata metadata, Node member)
+    private static void ReportField(
+        ImmutableArray<InheritedAuthorization>.Builder entries,
+        Node member)
     {
         var paths = new SortedSet<string>(StringComparer.Ordinal);
         var sourceNames = new SortedSet<string>(StringComparer.Ordinal);
@@ -271,7 +274,7 @@ internal static class AuthorizationInheritance
 
         if (paths.Count > 0)
         {
-            metadata.Entries.Add(
+            entries.Add(
                 new InheritedAuthorization(member.Coordinate, [.. paths], [.. sourceNames]));
         }
     }

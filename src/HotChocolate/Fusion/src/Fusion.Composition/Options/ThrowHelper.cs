@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion.Options;
@@ -17,4 +18,7 @@ internal static class ThrowHelper
         string directiveName,
         string argumentName)
         => new(string.Format(AuthorizationDirective_Argument_Invalid, directiveName, argumentName));
+
+    public static InvalidOperationException UnexpectedTypeKind(TypeKind kind)
+        => new(string.Format(AuthorizationInheritance_UnexpectedTypeKind, kind));
 }

@@ -72,8 +72,8 @@ internal static class LogEntryHelper
 
     public static LogEntry AuthorizationInherited(
         SchemaCoordinate coordinate,
-        IEnumerable<string> paths,
-        IEnumerable<string> schemaNames)
+        ImmutableArray<string> paths,
+        ImmutableArray<string> schemaNames)
     {
         return LogEntryBuilder.New()
             .SetMessage(

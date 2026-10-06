@@ -123,6 +123,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The type kind &apos;{0}&apos; does not carry authorization directives..
+        /// </summary>
+        internal static string AuthorizationInheritance_UnexpectedTypeKind {
+            get {
+                return ResourceManager.GetString("AuthorizationInheritance_UnexpectedTypeKind", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
         /// </summary>
         internal static string CompositionLogExtensions_EntryMessageWithSchemaName {

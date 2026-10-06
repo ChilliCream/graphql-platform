@@ -39,6 +39,9 @@
   <data name="AuthorizationDirective_Argument_Invalid" xml:space="preserve">
     <value>The '{1}' argument of the @{0} directive must be a list of string lists.</value>
   </data>
+  <data name="AuthorizationInheritance_UnexpectedTypeKind" xml:space="preserve">
+    <value>The type kind '{0}' does not carry authorization directives.</value>
+  </data>
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
   </data>
