@@ -14,6 +14,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     private readonly Action<IPostgresMessagingTransportDescriptor> _configure;
     private readonly PostgresBackgroundTaskScheduler _backgroundTasks = new();
     private IReadOnlyPostgresSchemaOptions _schemaOptions = null!;
+    private bool _autoMigrate;
 
     /// <summary>
     /// Creates a new PostgreSQL transport with the specified configuration delegate.
@@ -64,6 +65,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         }
 
         _schemaOptions = configuration.SchemaOptions;
+        _autoMigrate = configuration.AutoMigrate;
 
         var connectionManagerLogger = context.Services.GetRequiredService<ILogger<PostgresConnectionManager>>();
         ConnectionManager = new PostgresConnectionManager(
@@ -113,9 +115,8 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     }
 
     /// <summary>
-    /// Ensures database migrations are run, registers the consumer, starts the notification listener,
-    /// provisions topology resources, and starts background tasks before the transport's endpoints
-    /// begin processing messages.
+    /// Prepares the configured schema and topology and registers the consumer before
+    /// the transport's endpoints begin processing messages.
     /// </summary>
     /// <param name="context">The configuration context for the current startup phase.</param>
     /// <param name="cancellationToken">A token to cancel the startup.</param>
@@ -123,7 +124,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         IMessagingConfigurationContext context,
         CancellationToken cancellationToken)
     {
-        await ConnectionManager.EnsureMigratedAsync(cancellationToken);
+        if (_autoMigrate)
+        {
+            await ConnectionManager.EnsureMigratedAsync(cancellationToken);
+        }
+
         await ConsumerManager.RegisterAsync(cancellationToken);
         await NotificationListener.StartAsync(cancellationToken);
 

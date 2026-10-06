@@ -214,10 +214,12 @@ await bus.SendAsync(new ReserveInventoryCommand
 },
 new SendOptions
 {
-    Endpoint = new Uri("rabbitmq://custom-inventory-queue")
+    Endpoint = new Uri("queue:custom-inventory-queue")
 },
 cancellationToken);
 ```
+
+The queue does not have to be declared by the host. On RabbitMQ, `queue:<name>` or the transport form `rabbitmq:q/<name>` reaches a queue the host never declared, for example a queue another service owns. Under explicit binding, the host records that queue in its topology with auto-provisioning disabled and never declares, binds, or consumes it. A message the broker cannot route, for example because the queue does not exist, is dropped.
 
 # Customize queues and binding
 

@@ -335,25 +335,34 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             return;
         }
 
-        // Under BindExplicitly, the dispatch endpoint must not materialize a destination
-        // exchange the user never declared: the user retains full ownership of the topology,
-        // and a default-config (fanout) shadow can collide with a previously-declared exchange
-        // on the broker (PRECONDITION_FAILED on declare). The user is expected to either
-        // DeclareExchange it explicitly or rely on a pre-existing broker entity.
+        // Under explicit binding, a target that is not declared is recorded in the topology
+        // but never provisioned or bound. The sender does not own it.
         var bindImplicitly = Transport.BindMode == MessagingBindMode.Implicit;
 
-        if (rabbitConfiguration.ExchangeName is not null && bindImplicitly)
+        if (rabbitConfiguration.ExchangeName is not null)
         {
             _topology.GetOrAddExchange(
                 rabbitConfiguration.ExchangeName,
-                static _ => new RabbitMQExchangeConfiguration());
+                bindImplicitly
+                    ? static _ => new RabbitMQExchangeConfiguration()
+                    : static _ => new RabbitMQExchangeConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
-        if (rabbitConfiguration.QueueName is not null && bindImplicitly)
+        if (rabbitConfiguration.QueueName is not null)
         {
             _topology.GetOrAddQueue(
                 rabbitConfiguration.QueueName,
-                _ => new RabbitMQQueueConfiguration { AutoProvision = rabbitConfiguration.AutoProvision });
+                bindImplicitly
+                    ? _ => new RabbitMQQueueConfiguration { AutoProvision = rabbitConfiguration.AutoProvision }
+                    : static _ => new RabbitMQQueueConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
         var schema = Transport.Schema;

@@ -81,6 +81,12 @@ public interface IPostgresMessagingTransportDescriptor
     /// <returns>The descriptor for method chaining.</returns>
     IPostgresMessagingTransportDescriptor AutoProvision(bool autoProvision = true);
 
+    /// <summary>
+    /// Sets whether transport schema migrations run at startup. Defaults to <c>true</c>.
+    /// When <c>false</c>, startup skips migration without checking the schema.
+    /// </summary>
+    IPostgresMessagingTransportDescriptor AutoMigrate(bool autoMigrate);
+
     /// <inheritdoc cref="IMessagingTransportDescriptor.Name(string)"/>
     new IPostgresMessagingTransportDescriptor Name(string name);
 
