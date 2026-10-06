@@ -79,6 +79,50 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
     }
 
     [Fact]
+    public async Task Create_CollectionExpression_WithVariables()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<Foo, FooFilterInputType>(s_fooEntities);
+        const string query =
+            """
+            query Test($where: FooFilterInput) {
+              root(where: $where) {
+                name
+                lastName
+              }
+            }
+            """;
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?>
+                {
+                    { "where", CreateLatestBarFilter("A") }
+                })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?>
+                {
+                    { "where", CreateLatestBarFilter("NoMatch") }
+                })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "A")
+            .Add(res2, "NoMatch")
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
@@ -112,6 +156,30 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 
+    private static Dictionary<string, object?> CreateLatestBarFilter(string value)
+        => new()
+        {
+            {
+                "latestBar",
+                new Dictionary<string, object?>
+                {
+                    {
+                        "some",
+                        new Dictionary<string, object?>
+                        {
+                            {
+                                "value",
+                                new Dictionary<string, object?>
+                                {
+                                    { "eq", value }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
     public class Foo
     {
         public int Id { get; set; }
@@ -136,6 +204,12 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
         {
             descriptor.Field(x => x.Name + " " + x.LastName).Name("displayName");
             descriptor.Field(x => x.Bars!.Count).Name("barLength");
+            descriptor
+                .Field(x => x.Bars!.OrderByDescending(b => b.Id).Take(1))
+                .Name("latestBar")
+                .Type<ListFilterInputType<BarFilterInputType>>();
         }
     }
+
+    public class BarFilterInputType : FilterInputType<Bar>;
 }
