@@ -86,17 +86,18 @@ jobs:
         env:
           CI_BUILD: true
 
-      - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: test-results-${{ matrix.name }}
-          path: ${{ matrix.directoryPath }}/TestResults/*.trx
+      - parallel:
+          - name: Upload Test Results as Artifact
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+            with:
+              name: test-results-${{ matrix.name }}
+              path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
-      - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: coverage-${{ matrix.name }}
-          path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
+          - name: Upload Coverage File as Artifact
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+            with:
+              name: coverage-${{ matrix.name }}
+              path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
 
       - name: Upload mismatch files as Artifact
         if: failure()

@@ -50,6 +50,8 @@ jobs:
         working-directory: website
 
       - name: Install Playwright Chromium
+        id: install-chromium
+        background: true
         run: yarn playwright install --with-deps chromium
         working-directory: website
 
@@ -73,6 +75,8 @@ jobs:
       - name: Generate Agent Skills
         run: yarn generate-agent-skills
         working-directory: website
+
+      - wait: install-chromium
 
       - name: Build Website
         run: yarn build

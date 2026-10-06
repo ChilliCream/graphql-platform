@@ -31,10 +31,10 @@ jobs:
           fetch-depth: 2
           show-progress: false
 
-      - name: Check for changes in website directory
+      - name: Check for changes in website directory or CI workflow
         id: check-website
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website)
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./website .github/workflows/ci.yml)
           if [[ -n "$changes" ]]; then
             echo "website_changes=true" >> $GITHUB_OUTPUT
           else
@@ -168,17 +168,18 @@ jobs:
         run: yarn --immutable --network-timeout 100000
         working-directory: website
 
-      - name: Install Playwright Chromium
-        run: yarn playwright install --with-deps chromium
-        working-directory: website
+      - parallel:
+          - name: Install Playwright Chromium
+            run: yarn playwright install --with-deps chromium
+            working-directory: website
 
-      - name: Format Check
-        run: yarn format:check
-        working-directory: website
+          - name: Format Check
+            run: yarn format:check
+            working-directory: website
 
-      - name: Lint
-        run: yarn lint
-        working-directory: website
+          - name: Lint
+            run: yarn lint
+            working-directory: website
 
       - name: Generate Agent Skills
         run: yarn generate-agent-skills
@@ -278,17 +279,18 @@ jobs:
         env:
           CI_BUILD: true
 
-      - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: test-results-${{ matrix.name }}
-          path: ${{ matrix.directoryPath }}/TestResults/*.trx
+      - parallel:
+          - name: Upload Test Results as Artifact
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+            with:
+              name: test-results-${{ matrix.name }}
+              path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
-      - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: coverage-${{ matrix.name }}
-          path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
+          - name: Upload Coverage File as Artifact
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+            with:
+              name: coverage-${{ matrix.name }}
+              path: ${{ matrix.directoryPath }}/TestResults/*.cobertura.xml
 
       - name: Upload mismatch files as Artifact
         if: steps.run-tests.outcome == 'failure'
