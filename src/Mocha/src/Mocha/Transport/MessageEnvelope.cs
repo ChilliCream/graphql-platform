@@ -45,6 +45,16 @@ public sealed class MessageEnvelope
     }
 
     /// <summary>
+    /// Creates a copy of the specified envelope that owns its body buffer. Unlike the copy
+    /// constructor, which shares the source body, this clones the body so the copy stays valid
+    /// after the source (or the pooled buffer backing it) is reused.
+    /// </summary>
+    /// <param name="envelope">The source envelope to copy. Must not be <see langword="null"/>.</param>
+    /// <returns>A copy whose body is an independent buffer.</returns>
+    public static MessageEnvelope CopyWithOwnedBody(MessageEnvelope envelope)
+        => new(envelope) { Body = envelope.Body.ToArray() };
+
+    /// <summary>
     /// Unique identifier for the message.
     /// </summary>
     public string? MessageId { get; init; }
