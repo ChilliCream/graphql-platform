@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
@@ -966,6 +968,176 @@ public sealed class AuthorizationTransitiveRequirementsRuleTests : RuleTestBase
             }
             """
         ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_NodeLookupInheritsAProtectedImplementorIdOntoASiblingImplementor()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+        [
+            new SourceSchemaText(
+                "A",
+                $$"""
+                type Query { node(id: ID!): Node @lookup }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Article implements Node @key(fields: "id") @authenticated {
+                    id: ID!
+                }
+
+                type Video implements Node @key(fields: "id") {
+                    id: ID!
+                }
+
+                {{Directives}}
+                """),
+            new SourceSchemaText(
+                "B",
+                $$"""
+                type Query {
+                    articleById(id: ID!): Article @lookup
+                    videoById(id: ID!): Video @lookup
+                }
+
+                type Article @key(fields: "id") {
+                    id: ID!
+                    title: String
+                }
+
+                type Video @key(fields: "id") {
+                    id: ID!
+                    duration: Int
+                }
+
+                {{Directives}}
+                """)
+        ],
+        new SchemaComposerOptions(),
+        log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+              "message": "The member 'Article' is marked with @authenticated in the source schemas 'A' but not in the source schemas 'B'. The composed member requires authentication.",
+              "code": "AUTHENTICATED_MISMATCH",
+              "severity": "Warning",
+              "coordinate": "Article",
+              "schema": "A",
+              "extensions": {}
+            }
+            """,
+            """
+            {
+              "message": "The member 'Node.id' requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from Article.id -> Node.id in the source schemas 'A'.",
+              "code": "AUTHORIZATION_INHERITED",
+              "severity": "Warning",
+              "coordinate": "Node.id",
+              "extensions": {}
+            }
+            """,
+            """
+            {
+              "message": "The member 'Video.id' requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from Article.id -> Node.id -> Video.id in the source schemas 'A'.",
+              "code": "AUTHORIZATION_INHERITED",
+              "severity": "Warning",
+              "coordinate": "Video.id",
+              "extensions": {}
+            }
+            """,
+            """
+            {
+              "message": "The field 'Video.duration' depends on 'Video.id' through 'Query.videoById' in schema 'B', but does not declare all authorization requirements of 'Video.id'. Not covered: @authenticated.",
+              "code": "AUTHORIZATION_TRANSITIVE_REQUIREMENTS_MISSING",
+              "severity": "Error",
+              "coordinate": "Video.duration",
+              "schema": "B",
+              "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_LookupSchemaServesAFieldOfAnAuthenticatedEntity()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(ProductSchemas("@authenticated"), new SchemaComposerOptions(), log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+              "message": "The member 'Product' is marked with @authenticated in the source schemas 'A' but not in the source schemas 'B'. The composed member requires authentication.",
+              "code": "AUTHENTICATED_MISMATCH",
+              "severity": "Warning",
+              "coordinate": "Product",
+              "schema": "A",
+              "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_LookupSchemaServesAFieldOfAnUnprotectedEntity()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(ProductSchemas(""), new SchemaComposerOptions(), log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(log.IsEmpty);
+    }
+
+    private static SourceSchemaText[] ProductSchemas([StringSyntax("graphql")] string authorization)
+    {
+        return
+        [
+            new SourceSchemaText(
+                "A",
+                $$"""
+                type Query { products: [Product] }
+
+                type Product @key(fields: "id") {{authorization}} {
+                    id: ID!
+                }
+
+                {{Directives}}
+                """),
+            new SourceSchemaText(
+                "B",
+                $$"""
+                type Query { productById(id: ID!): Product @lookup }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    reviews: [String]
+                }
+
+                {{Directives}}
+                """)
+        ];
     }
 
     private static string[] RequireSchemas(
