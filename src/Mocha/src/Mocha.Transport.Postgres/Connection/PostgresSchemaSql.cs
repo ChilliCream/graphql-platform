@@ -37,7 +37,8 @@ internal static partial class PostgresSchemaSql
         var suffix = 0;
         while (body.Contains(delimiter, StringComparison.Ordinal))
         {
-            delimiter = $"$mocha_migration_{++suffix}$";
+            suffix++;
+            delimiter = $"$mocha_migration_{suffix}$";
         }
 
         return $"""
@@ -50,8 +51,7 @@ internal static partial class PostgresSchemaSql
     private static string Indent(string sql, int spaces)
     {
         var indentation = new string(' ', spaces);
-        return string.Join("\n", sql.ReplaceLineEndings("\n").Split('\n')
-            .Select(line => line.Length == 0 ? line : indentation + line));
+        return indentation + sql.ReplaceLineEndings("\n" + indentation);
     }
 
     private static string Literal(string value)

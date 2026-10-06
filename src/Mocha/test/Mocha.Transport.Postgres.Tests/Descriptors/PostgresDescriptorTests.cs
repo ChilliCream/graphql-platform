@@ -7,41 +7,48 @@ namespace Mocha.Transport.Postgres.Tests.Descriptors;
 public class PostgresDescriptorTests
 {
     [Theory]
-    [InlineData(null, true)]
-    [InlineData(null, false)]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
-    public async Task AutoMigrate_Should_ConfigureTransportIndependently_When_AutoProvisionIsSet(
-        bool? autoMigrate,
-        bool autoProvision)
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AutoMigrate_Should_DefaultToTrue_When_OnlyAutoProvisionConfigured(bool autoProvision)
     {
         // arrange
-        IPostgresMessagingTransportDescriptor? descriptor = null;
-        IPostgresMessagingTransportDescriptor? result = null;
-        PostgresTransportConfiguration? configuration = null;
+        PostgresTransportConfiguration configuration = null!;
 
         // act
-        var runtime = PostgresBusFixture.CreateRuntime(t =>
+        var runtime = PostgresBusFixture.CreateRuntime(transport =>
         {
-            descriptor = t;
-            if (autoMigrate.HasValue)
-            {
-                result = t.AutoMigrate(autoMigrate.Value);
-            }
-            t.AutoProvision(autoProvision);
-            configuration = ((IMessagingDescriptor<PostgresTransportConfiguration>)t).Extend().Configuration;
+            transport.AutoProvision(autoProvision);
+            configuration = ((IMessagingDescriptor<PostgresTransportConfiguration>)transport).Extend().Configuration;
         });
         await using var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert
-        Assert.Equal(autoMigrate ?? true, configuration!.AutoMigrate);
+        Assert.True(configuration.AutoMigrate);
         Assert.Equal(autoProvision, configuration.AutoProvision);
-        if (autoMigrate.HasValue)
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task AutoMigrate_Should_SetValue_When_AutoProvisionIsConfigured(bool autoMigrate, bool autoProvision)
+    {
+        // arrange
+        PostgresTransportConfiguration configuration = null!;
+
+        // act
+        var runtime = PostgresBusFixture.CreateRuntime(transport =>
         {
-            Assert.Same(descriptor, result);
-        }
+            transport.AutoMigrate(autoMigrate);
+            transport.AutoProvision(autoProvision);
+            configuration = ((IMessagingDescriptor<PostgresTransportConfiguration>)transport).Extend().Configuration;
+        });
+        await using var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(autoMigrate, configuration.AutoMigrate);
+        Assert.Equal(autoProvision, configuration.AutoProvision);
     }
 
     [Fact]

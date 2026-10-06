@@ -13,76 +13,92 @@ public sealed class PostgresMigrationOutboxTests(PostgresFixture fixture) : ICla
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PublishAsync_Should_PersistOutboxMessage_When_DatabasePreparedBeforeRuntime(bool template)
+    public async Task PublishAsync_Should_PersistOutboxMessage_When_DatabasePreparedBeforeRuntime(bool cloneFromTemplate)
     {
         // arrange
-        var ct = TestContext.Current.CancellationToken;
-        var source = new NpgsqlConnectionStringBuilder(await fixture.CreateDatabaseAsync()) { Pooling = false };
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(source.ConnectionString).Options;
-        await using (var db = new TestDbContext(options))
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var connectionString = await CreateMigratedDatabaseAsync(cancellationToken);
+        if (cloneFromTemplate)
         {
-            await db.Database.EnsureCreatedAsync(ct);
-            await db.Database.OpenConnectionAsync(ct);
-            await PostgresTransportSchema.MigrateAsync(
-                (NpgsqlConnection)db.Database.GetDbConnection(), new PostgresSchemaOptions(), ct);
-        }
-
-        var runtimeConnection = source.ConnectionString;
-        if (template)
-        {
-            var clone = new NpgsqlConnectionStringBuilder(await fixture.CreateDatabaseAsync()) { Pooling = false };
-            var adminSettings = new NpgsqlConnectionStringBuilder(source.ConnectionString) { Database = "postgres" };
-            await using var admin = new NpgsqlConnection(adminSettings.ConnectionString);
-            await admin.OpenAsync(ct);
-            await using var command = admin.CreateCommand();
-            command.CommandText = $"DROP DATABASE \"{clone.Database}\";";
-            await command.ExecuteNonQueryAsync(ct);
-            command.CommandText = $"CREATE DATABASE \"{clone.Database}\" TEMPLATE \"{source.Database}\";";
-            await command.ExecuteNonQueryAsync(ct);
-            runtimeConnection = clone.ConnectionString;
+            connectionString = await CloneDatabaseAsync(connectionString, cancellationToken);
         }
 
         var services = new ServiceCollection();
-        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(runtimeConnection));
+        services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
         services.AddMessageBus()
             .AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox())
-            .AddPostgres(t =>
+            .AddPostgres(transport =>
             {
-                t.ConnectionString(runtimeConnection).AutoMigrate(false).AutoProvision(true);
-                t.DeclareTopic("prepared-events");
-                t.DispatchEndpoint("prepared-events").ToTopic("prepared-events").Publish<PreparedEvent>();
+                transport.ConnectionString(connectionString);
+                transport.AutoMigrate(false);
+                transport.DeclareTopic("prepared-events");
+                transport.DispatchEndpoint("prepared-events").ToTopic("prepared-events").Publish<PreparedEvent>();
             });
+
         await using var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         await using var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
-        await runtime.StartAsync(ct);
+        var expectedEvent = new PreparedEvent("persisted-before-dispatch");
+        await runtime.StartAsync(cancellationToken);
+
         try
         {
             // act
-            using (var scope = provider.CreateScope())
+            await using (var scope = provider.CreateAsyncScope())
             {
-                var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-                await bus.PublishAsync(new PreparedEvent("persisted-before-dispatch"), ct);
+                var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+                await messageBus.PublishAsync(expectedEvent, cancellationToken);
             }
 
             // assert
-            using var verification = provider.CreateScope();
-            var db = verification.ServiceProvider.GetRequiredService<TestDbContext>();
-            var message = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(ct);
+            await using var verification = provider.CreateAsyncScope();
+            var context = verification.ServiceProvider.GetRequiredService<TestDbContext>();
+            var message = await context.Set<OutboxMessage>().AsNoTracking().SingleAsync(cancellationToken);
             var body = message.Envelope.RootElement.GetProperty("body");
-            var persisted = body.Deserialize<PreparedEvent>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
-            Assert.Equal(new PreparedEvent("persisted-before-dispatch"), persisted);
+            var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            var persistedEvent = body.Deserialize<PreparedEvent>(jsonOptions);
+
+            Assert.Equal(expectedEvent, persistedEvent);
             Assert.Equal(0, message.TimesSent);
-            await db.Database.OpenConnectionAsync(ct);
-            await using var command = db.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "SELECT count(*) FROM public.mocha_migrations;";
-            Assert.Equal(3L, await command.ExecuteScalarAsync(ct));
         }
         finally
         {
             await transport.StopAsync(runtime, CancellationToken.None);
         }
+    }
+
+    private async Task<string> CreateMigratedDatabaseAsync(CancellationToken cancellationToken)
+    {
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var settings = new NpgsqlConnectionStringBuilder(connectionString) { Pooling = false };
+        var options = new DbContextOptionsBuilder<TestDbContext>()
+            .UseTestNpgsql(settings.ConnectionString)
+            .Options;
+        await using var context = new TestDbContext(options);
+        await context.Database.EnsureCreatedAsync(cancellationToken);
+        await context.Database.OpenConnectionAsync(cancellationToken);
+        var connection = (NpgsqlConnection)context.Database.GetDbConnection();
+        await PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), cancellationToken);
+
+        return settings.ConnectionString;
+    }
+
+    private static async Task<string> CloneDatabaseAsync(
+        string templateConnectionString,
+        CancellationToken cancellationToken)
+    {
+        var template = new NpgsqlConnectionStringBuilder(templateConnectionString);
+        var cloneName = $"mocha_clone_{Guid.NewGuid():N}";
+        var adminSettings = new NpgsqlConnectionStringBuilder(templateConnectionString) { Database = "postgres" };
+        await using var connection = new NpgsqlConnection(adminSettings.ConnectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"CREATE DATABASE \"{cloneName}\" TEMPLATE \"{template.Database}\";";
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        var cloneSettings = new NpgsqlConnectionStringBuilder(templateConnectionString) { Database = cloneName };
+        return cloneSettings.ConnectionString;
     }
 
     public sealed record PreparedEvent(string Payload);

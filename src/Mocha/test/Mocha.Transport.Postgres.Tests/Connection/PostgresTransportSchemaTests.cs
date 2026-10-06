@@ -1,7 +1,6 @@
 using System.Data;
 using System.Transactions;
 using CookieCrumble;
-using Mocha.Transport.Postgres.Tests.Behaviors;
 using Mocha.Transport.Postgres.Tests.Helpers;
 using Npgsql;
 
@@ -17,14 +16,16 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
 
         // act
         await PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), CancellationToken);
 
         // assert
+        var migrationHistory = await ReadMigrationHistoryAsync(connection);
+
         Assert.Equal(ConnectionState.Open, connection.State);
-        (await ReadHistoryAsync(connection)).MatchInlineSnapshot(
+        migrationHistory.MatchInlineSnapshot(
             """
             [
               "2026-03-06_AddConsumerManagement",
@@ -40,7 +41,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         // arrange
         await using var direct = await fixture.CreateDatabaseAsync("ScriptParityDirect");
         await using var scripted = await fixture.CreateDatabaseAsync("ScriptParityScripted");
-        await using var connection = await OpenAsync(direct.ConnectionString);
+        await using var connection = await OpenConnectionAsync(direct.ConnectionString);
         var options = new PostgresSchemaOptions();
         await PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
         var script = PostgresTransportSchema.GenerateMigrationsSql(options);
@@ -48,26 +49,31 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         // act
         await fixture.RunSqlScriptAsync(script, scripted.DatabaseName);
         await fixture.RunSqlScriptAsync(script, scripted.DatabaseName);
-        await using var scriptedConnection = await OpenAsync(scripted.ConnectionString);
+        await using var scriptedConnection = await OpenConnectionAsync(scripted.ConnectionString);
         await PostgresTransportSchema.MigrateAsync(scriptedConnection, options, CancellationToken);
         await fixture.RunSqlScriptAsync(script, direct.DatabaseName);
 
         // assert
-        Assert.Equal(await ReadSchemaAsync(connection), await ReadSchemaAsync(scriptedConnection));
-        Assert.Equal(await ReadHistoryAsync(connection), await ReadHistoryAsync(scriptedConnection));
+        var directSchema = await ReadSchemaAsync(connection);
+        var scriptedSchema = await ReadSchemaAsync(scriptedConnection);
+        var directHistory = await ReadMigrationHistoryAsync(connection);
+        var scriptedHistory = await ReadMigrationHistoryAsync(scriptedConnection);
+
+        Assert.Equal(directSchema, scriptedSchema);
+        Assert.Equal(directHistory, scriptedHistory);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task MigrateAsync_Should_UpgradeAndPreserveData_When_InitialMigrationAlreadyApplied(bool script)
+    public async Task MigrateAsync_Should_UpgradeAndPreserveData_When_InitialMigrationAlreadyApplied(bool useMigrationScript)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
         var options = new PostgresSchemaOptions();
-        await ExecuteAsync(connection, PostgresSchemaSql.InitialSchema(options));
-        await ExecuteAsync(connection,
+        await ExecuteNonQueryAsync(connection, PostgresSchemaSql.InitialSchema(options));
+        await ExecuteNonQueryAsync(connection,
             """
             CREATE TABLE public.mocha_migrations (
                 migration_id text PRIMARY KEY,
@@ -80,20 +86,16 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
             """);
 
         // act
-        if (script)
-        {
-            await fixture.RunSqlScriptAsync(
-                PostgresTransportSchema.GenerateMigrationsSql(options), database.DatabaseName);
-        }
-        else
-        {
-            await PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
-        }
-        await using var freshConnection = await OpenAsync(database.ConnectionString);
-        await ApplyAsync(freshConnection, options, !script);
+        await ApplyMigrationsAsync(connection, options, useMigrationScript);
 
         // assert
-        (await ReadHistoryAsync(connection)).MatchInlineSnapshot(
+        var migrationHistory = await ReadMigrationHistoryAsync(connection);
+        var queueName = await ExecuteScalarAsync<string>(connection, "SELECT name FROM public.mocha_queue;");
+        var messageBody = await ExecuteScalarAsync<byte[]>(connection, "SELECT body FROM public.mocha_message;");
+
+        Assert.Equal("existing-queue", queueName);
+        Assert.Equal([1, 2], messageBody);
+        migrationHistory.MatchInlineSnapshot(
             """
             [
               "2026-03-06_AddConsumerManagement",
@@ -102,87 +104,117 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
               "future-migration"
             ]
             """);
-        Assert.Equal("existing-queue:0102", await ScalarAsync(connection,
-            "SELECT q.name || ':' || encode(m.body, 'hex') FROM public.mocha_message m JOIN public.mocha_queue q ON q.id = m.queue_id"));
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    public async Task MigrateAsync_Should_SerializeCallers_When_MigrationsRunConcurrently(int mode)
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public async Task MigrateAsync_Should_ApplyMigrationsOnce_When_CallersRunConcurrently(
+        bool firstUsesScript,
+        bool secondUsesScript)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
+        await using var firstConnection = await OpenConnectionAsync(database.ConnectionString);
+        await using var secondConnection = await OpenConnectionAsync(database.ConnectionString);
         var options = new PostgresSchemaOptions();
 
         // act
-        await Task.WhenAll(Enumerable.Range(0, 4).Select(async index =>
-        {
-            await using var connection = await OpenAsync(database.ConnectionString);
-            await ApplyAsync(connection, options, mode == 1 || (mode == 2 && index % 2 == 0));
-        }));
+        var firstMigration = ApplyMigrationsAsync(firstConnection, options, firstUsesScript);
+        var secondMigration = ApplyMigrationsAsync(secondConnection, options, secondUsesScript);
+        await Task.WhenAll(firstMigration, secondMigration);
 
         // assert
-        await using var verification = await OpenAsync(database.ConnectionString);
-        Assert.Equal(3, (await ReadHistoryAsync(verification)).Length);
+        var migrationHistory = await ReadMigrationHistoryAsync(firstConnection);
+
+        Assert.Equal(3, migrationHistory.Length);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task MigrateAsync_Should_RollBackAndAllowRetry_When_MigrationFails(bool script)
+    public async Task MigrateAsync_Should_RollBack_When_MigrationFails(bool useMigrationScript)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
-        await ExecuteAsync(connection, "CREATE VIEW public.mocha_message AS SELECT 1 AS sentinel;");
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
+        var options = new PostgresSchemaOptions();
+        await ExecuteNonQueryAsync(connection, "CREATE VIEW public.mocha_message AS SELECT 1 AS sentinel;");
 
         // act
-        await Assert.ThrowsAsync<PostgresException>(
-            () => ApplyAsync(connection, new PostgresSchemaOptions(), script));
-        if (script)
-        {
-            await ExecuteAsync(connection, "ROLLBACK;");
-        }
+        var exception = await Assert.ThrowsAsync<PostgresException>(
+            () => ApplyMigrationsAsync(connection, options, useMigrationScript));
 
         // assert
-        Assert.Equal(0L, await ScalarAsync(connection,
-            "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';"));
-        Assert.Equal(DBNull.Value, await ScalarAsync(connection,
-            "SELECT to_regclass('public.mocha_topology_seq')::text;"));
-        await ExecuteAsync(connection, "DROP VIEW public.mocha_message;");
-        await ApplyAsync(connection, new PostgresSchemaOptions(), script);
-        Assert.Equal(3, (await ReadHistoryAsync(connection)).Length);
+        await using var verification = await OpenConnectionAsync(database.ConnectionString);
+        var tableCount = await ExecuteScalarAsync<long>(verification,
+            "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';");
+        var sequenceExists = await ExecuteScalarAsync<bool>(verification,
+            "SELECT to_regclass('public.mocha_topology_seq') IS NOT NULL;");
+
+        Assert.Equal(PostgresErrorCodes.WrongObjectType, exception.SqlState);
+        Assert.Equal(0, tableCount);
+        Assert.False(sequenceExists);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MigrateAsync_Should_AllowRetry_When_PreviousMigrationFailed(bool useMigrationScript)
+    {
+        // arrange
+        await using var database = await fixture.CreateDatabaseAsync();
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
+        var options = new PostgresSchemaOptions();
+        await ExecuteNonQueryAsync(connection, "CREATE VIEW public.mocha_message AS SELECT 1 AS sentinel;");
+        await Assert.ThrowsAsync<PostgresException>(() => ApplyMigrationsAsync(connection, options, useMigrationScript));
+
+        if (useMigrationScript)
+        {
+            await ExecuteNonQueryAsync(connection, "ROLLBACK;");
+        }
+
+        await ExecuteNonQueryAsync(connection, "DROP VIEW public.mocha_message;");
+
+        // act
+        await ApplyMigrationsAsync(connection, options, useMigrationScript);
+
+        // assert
+        var migrationHistory = await ReadMigrationHistoryAsync(connection);
+
+        Assert.Equal(3, migrationHistory.Length);
     }
 
     [Fact]
-    public async Task MigrateAsync_Should_CancelAndAllowRetry_When_WaitingForExistingMigrationLock()
+    public async Task MigrateAsync_Should_AllowRetry_When_CancelledWhileWaitingForMigrationLock()
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var blocker = await OpenAsync(database.ConnectionString);
-        await using var connection = await OpenAsync(database.ConnectionString);
+        await using var blocker = await OpenConnectionAsync(database.ConnectionString);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
         await using var transaction = await blocker.BeginTransactionAsync(CancellationToken);
-        await ExecuteAsync(blocker, "SELECT pg_advisory_xact_lock(958913715);");
+        await ExecuteNonQueryAsync(blocker, "SELECT pg_advisory_xact_lock(958913715);");
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+        var options = new PostgresSchemaOptions();
 
         // act
-        var migration = PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), cancellation.Token);
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        while (!(bool)(await ScalarAsync(blocker,
-            $"SELECT EXISTS (SELECT FROM pg_locks WHERE pid = {connection.ProcessID} AND locktype = 'advisory' AND NOT granted);"))!)
-        {
-            await Task.Delay(20, timeout.Token);
-        }
+        var migration = PostgresTransportSchema.MigrateAsync(connection, options, cancellation.Token);
+        await WaitForMigrationLockAsync(blocker, connection.ProcessID);
         await cancellation.CancelAsync();
+        var exception = await Record.ExceptionAsync(() => migration);
+        var historyExists = await ExecuteScalarAsync<bool>(connection,
+            "SELECT to_regclass('public.mocha_migrations') IS NOT NULL;");
+
+        await transaction.RollbackAsync(CancellationToken);
+        await PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
 
         // assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => migration);
-        Assert.Equal(DBNull.Value, await ScalarAsync(connection, "SELECT to_regclass('public.mocha_migrations')::text;"));
-        await transaction.RollbackAsync(CancellationToken);
-        await PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), CancellationToken);
-        Assert.Equal(3, (await ReadHistoryAsync(connection)).Length);
+        var migrationHistory = await ReadMigrationHistoryAsync(connection);
+
+        Assert.IsAssignableFrom<OperationCanceledException>(exception);
+        Assert.False(historyExists);
+        Assert.Equal(3, migrationHistory.Length);
     }
 
     [Theory]
@@ -193,16 +225,21 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
         var options = new PostgresSchemaOptions { Schema = schema, TablePrefix = prefix };
 
         // act
-        await ApplyAsync(connection, options, true);
-        await ApplyAsync(connection, options, false);
+        await ApplyMigrationsAsync(connection, options, useMigrationScript: true);
+        await ApplyMigrationsAsync(connection, options, useMigrationScript: false);
 
         // assert
-        Assert.Equal(3L, await ScalarAsync(connection, $"SELECT count(*) FROM {options.MigrationsTable};"));
-        Assert.Equal(0L, await ScalarAsync(connection, $"SELECT count(*) FROM {options.QueueTable};"));
+        var migrationCount = await ExecuteScalarAsync<long>(connection,
+            $"SELECT count(*) FROM {options.MigrationsTable};");
+        var queueCount = await ExecuteScalarAsync<long>(connection,
+            $"SELECT count(*) FROM {options.QueueTable};");
+
+        Assert.Equal(3, migrationCount);
+        Assert.Equal(0, queueCount);
     }
 
     [Fact]
@@ -220,49 +257,74 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         Assert.Equal(ConnectionState.Closed, connection.State);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task MigrateAsync_Should_RejectTransaction_When_CallerOwnsTransaction(bool ambient)
+    [Fact]
+    public async Task MigrateAsync_Should_RejectTransaction_When_ConnectionHasActiveTransaction()
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
-        using var scope = ambient ? new TransactionScope(TransactionScopeAsyncFlowOption.Enabled) : null;
-        await using var transaction = ambient ? null : await connection.BeginTransactionAsync(CancellationToken);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
+        await using var transaction = await connection.BeginTransactionAsync(CancellationToken);
+        var options = new PostgresSchemaOptions();
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), CancellationToken));
+            () => PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken));
 
         // assert
+        var historyExists = await ExecuteScalarAsync<bool>(connection,
+            "SELECT to_regclass('public.mocha_migrations') IS NOT NULL;");
+
         Assert.Equal("Transport migration requires a connection without an active or ambient transaction.", exception.Message);
-        Assert.Equal(DBNull.Value, await ScalarAsync(connection, "SELECT to_regclass('public.mocha_migrations')::text;"));
-        Assert.Equal(1, await ScalarAsync(connection, "SELECT 1;"));
+        Assert.False(historyExists);
+        Assert.Same(connection, transaction.Connection);
+    }
+
+    [Fact]
+    public async Task MigrateAsync_Should_RejectTransaction_When_AmbientTransactionExists()
+    {
+        // arrange
+        await using var database = await fixture.CreateDatabaseAsync();
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        var options = new PostgresSchemaOptions();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken));
+
+        // assert
+        var historyExists = await ExecuteScalarAsync<bool>(connection,
+            "SELECT to_regclass('public.mocha_migrations') IS NOT NULL;");
+
+        Assert.Equal("Transport migration requires a connection without an active or ambient transaction.", exception.Message);
+        Assert.False(historyExists);
+        Assert.Equal(ConnectionState.Open, connection.State);
     }
 
     [Fact]
     public async Task MigrateAsync_Should_PreserveHistory_When_DatabaseClonedFromTemplate()
     {
         // arrange
-        await using var template = await fixture.CreateDatabaseAsync("MigrationTemplate");
-        await using var clone = await fixture.CreateDatabaseAsync("MigrationClone");
-        await using (var source = await OpenAsync(template.ConnectionString))
+        await using var template = await fixture.CreateDatabaseAsync();
+        string[] templateHistory;
+        await using (var connection = await OpenConnectionAsync(template.ConnectionString))
         {
-            await PostgresTransportSchema.MigrateAsync(source, new PostgresSchemaOptions(), CancellationToken);
+            await PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), CancellationToken);
+            templateHistory = await ReadMigrationHistoryAsync(connection);
         }
-        await using var admin = await OpenAsync(fixture.ConnectionString);
 
         // act
-        await ExecuteAsync(admin, $"DROP DATABASE \"{clone.DatabaseName}\";");
-        await ExecuteAsync(admin, $"CREATE DATABASE \"{clone.DatabaseName}\" TEMPLATE \"{template.DatabaseName}\";");
-        await using var connection = await OpenAsync(clone.ConnectionString);
+        await using var clone = await CloneDatabaseAsync(template);
 
         // assert
-        Assert.Equal(3, (await ReadHistoryAsync(connection)).Length);
-        Assert.Equal(0L, await ScalarAsync(connection, "SELECT count(*) FROM public.mocha_consumers;"));
-        Assert.Equal(0L, await ScalarAsync(connection, "SELECT count(*) FROM public.mocha_queue;"));
-        await AutoMigrateIntegrationTests.PublishAndReceiveAsync(clone.ConnectionString);
+        await using var verification = await OpenConnectionAsync(clone.ConnectionString);
+        var migrationHistory = await ReadMigrationHistoryAsync(verification);
+        var consumerCount = await ExecuteScalarAsync<long>(verification, "SELECT count(*) FROM public.mocha_consumers;");
+        var queueCount = await ExecuteScalarAsync<long>(verification, "SELECT count(*) FROM public.mocha_queue;");
+
+        Assert.Equal(0, consumerCount);
+        Assert.Equal(0, queueCount);
+        Assert.Equal(templateHistory, migrationHistory);
     }
 
     [Fact]
@@ -270,7 +332,7 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
         using var cancellation = new CancellationTokenSource();
         await cancellation.CancelAsync();
 
@@ -279,35 +341,41 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
             () => PostgresTransportSchema.MigrateAsync(connection, new PostgresSchemaOptions(), cancellation.Token));
 
         // assert
-        Assert.Equal(0L, await ScalarAsync(connection, "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';"));
+        var tableCount = await ExecuteScalarAsync<long>(connection,
+            "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';");
+
+        Assert.Equal(0, tableCount);
         Assert.Equal(ConnectionState.Open, connection.State);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task MigrateAsync_Should_RejectReplay_When_HistoryWasErased(bool script)
+    public async Task MigrateAsync_Should_RejectReplay_When_HistoryWasErased(bool useMigrationScript)
     {
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
-        await using var connection = await OpenAsync(database.ConnectionString);
+        await using var connection = await OpenConnectionAsync(database.ConnectionString);
         var options = new PostgresSchemaOptions();
         await PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
-        await ExecuteAsync(connection, "TRUNCATE public.mocha_migrations;");
+        await ExecuteNonQueryAsync(connection, "TRUNCATE public.mocha_migrations;");
 
         // act
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => ApplyAsync(connection, options, script));
-        if (script)
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => ApplyMigrationsAsync(connection, options, useMigrationScript));
+        if (useMigrationScript)
         {
-            await ExecuteAsync(connection, "ROLLBACK;");
+            await ExecuteNonQueryAsync(connection, "ROLLBACK;");
         }
 
         // assert
+        var migrationCount = await ExecuteScalarAsync<long>(connection,
+            "SELECT count(*) FROM public.mocha_migrations;");
+
         Assert.Equal(PostgresErrorCodes.DuplicateTable, exception.SqlState);
-        Assert.Equal(0L, await ScalarAsync(connection, "SELECT count(*) FROM public.mocha_migrations;"));
+        Assert.Equal(0, migrationCount);
     }
 
-    private static async Task<NpgsqlConnection> OpenAsync(string connectionString)
+    private static async Task<NpgsqlConnection> OpenConnectionAsync(string connectionString)
     {
         var settings = new NpgsqlConnectionStringBuilder(connectionString) { Pooling = false, Enlist = false };
         var connection = new NpgsqlConnection(settings.ConnectionString);
@@ -315,31 +383,44 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         return connection;
     }
 
-    private static Task ApplyAsync(NpgsqlConnection connection, PostgresSchemaOptions options, bool script)
-        => script
-            ? ExecuteAsync(connection, PostgresTransportSchema.GenerateMigrationsSql(options))
-            : PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
+    private static Task ApplyMigrationsAsync(
+        NpgsqlConnection connection,
+        PostgresSchemaOptions options,
+        bool useMigrationScript)
+    {
+        if (useMigrationScript)
+        {
+            var sql = PostgresTransportSchema.GenerateMigrationsSql(options);
+            return ExecuteNonQueryAsync(connection, sql);
+        }
 
-    private static async Task ExecuteAsync(NpgsqlConnection connection, string sql)
+        return PostgresTransportSchema.MigrateAsync(connection, options, CancellationToken);
+    }
+
+    private static async Task ExecuteNonQueryAsync(NpgsqlConnection connection, string sql)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
         await command.ExecuteNonQueryAsync(CancellationToken);
     }
 
-    private static async Task<object?> ScalarAsync(NpgsqlConnection connection, string sql)
+    private static async Task<T> ExecuteScalarAsync<T>(NpgsqlConnection connection, string sql)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
-        return await command.ExecuteScalarAsync(CancellationToken);
+        var result = await command.ExecuteScalarAsync(CancellationToken);
+        return (T)result!;
     }
 
-    private static async Task<string[]> ReadHistoryAsync(NpgsqlConnection connection)
-        => (string[])(await ScalarAsync(connection,
-            "SELECT array_agg(migration_id ORDER BY migration_id) FROM public.mocha_migrations;"))!;
+    private static Task<string[]> ReadMigrationHistoryAsync(NpgsqlConnection connection)
+    {
+        const string sql = "SELECT array_agg(migration_id ORDER BY migration_id) FROM public.mocha_migrations;";
+        return ExecuteScalarAsync<string[]>(connection, sql);
+    }
 
-    private static async Task<string[]> ReadSchemaAsync(NpgsqlConnection connection)
-        => (string[])(await ScalarAsync(connection,
+    private static Task<string[]> ReadSchemaAsync(NpgsqlConnection connection)
+    {
+        const string sql =
             """
             SELECT array_agg(description ORDER BY description)
             FROM (
@@ -354,5 +435,46 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
                 UNION ALL
                 SELECT 'index: ' || indexdef FROM pg_indexes WHERE schemaname = 'public'
             ) state;
-            """))!;
+            """;
+
+        return ExecuteScalarAsync<string[]>(connection, sql);
+    }
+
+    private static async Task WaitForMigrationLockAsync(NpgsqlConnection connection, int processId)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(10));
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT EXISTS (
+                SELECT FROM pg_locks
+                WHERE pid = @process_id AND locktype = 'advisory' AND NOT granted);
+            """;
+        command.Parameters.AddWithValue("process_id", processId);
+
+        while (true)
+        {
+            var waitingForLock = await command.ExecuteScalarAsync(timeout.Token);
+            if (waitingForLock is true)
+            {
+                return;
+            }
+
+            await Task.Delay(20, timeout.Token);
+        }
+    }
+
+    private async Task<DatabaseContext> CloneDatabaseAsync(DatabaseContext template)
+    {
+        var databaseName = $"mocha_clone_{Guid.NewGuid():N}";
+        await using var connection = await OpenConnectionAsync(fixture.ConnectionString);
+        await ExecuteNonQueryAsync(connection, $"CREATE DATABASE \"{databaseName}\" TEMPLATE \"{template.DatabaseName}\";");
+
+        var settings = new NpgsqlConnectionStringBuilder(template.ConnectionString)
+        {
+            Database = databaseName
+        };
+        return new DatabaseContext(fixture, databaseName, settings.ConnectionString);
+    }
 }

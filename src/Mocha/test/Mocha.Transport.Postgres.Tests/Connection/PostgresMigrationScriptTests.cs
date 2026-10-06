@@ -12,9 +12,10 @@ public class PostgresMigrationScriptTests
 
         // act
         var script = PostgresTransportSchema.GenerateMigrationsSql(options);
+        var repeatedScript = PostgresTransportSchema.GenerateMigrationsSql(options);
 
         // assert
-        Assert.Equal(script, PostgresTransportSchema.GenerateMigrationsSql(options));
+        Assert.Equal(script, repeatedScript);
         Assert.Equal(script.ReplaceLineEndings("\n"), script);
         script.MatchSnapshot();
     }
