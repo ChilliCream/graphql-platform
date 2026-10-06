@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore;
 using Mocha.EntityFrameworkCore.Postgres;
+using Npgsql;
 
 namespace Mocha.Outbox;
 
@@ -43,15 +44,14 @@ public static class OutboxServiceCollectionExtensions
 
         builder
             .Services.AddOptions<PostgresMessageOutboxOptions>(builder.Name)
-            .Configure<IServiceProvider, IOptionsMonitor<PostgresTableInfo>>((options, postgresOptions,
-                tableInfoMonitor) =>
+            .Configure<IOptionsMonitor<PostgresTableInfo>>((options, tableInfoMonitor) =>
             {
-                using var scope = postgresOptions.CreateScope();
-                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
-                options.ConnectionString =
-                    dbContext.Database.GetConnectionString() ??
-                    throw new InvalidOperationException(
-                        $"Could not read the connection string from {contextType.Name}");
+                options.CreateConnection = services =>
+                {
+                    var dbContext = (DbContext)services.GetRequiredService(contextType);
+                    return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
+                };
+
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
             });

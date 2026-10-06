@@ -69,7 +69,23 @@ public sealed class PostgresOutboxProcessor
     /// </remarks>
     /// <param name="connection">An open Postgres connection to use for outbox queries.</param>
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
-    public async Task ProcessAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
+    public Task ProcessAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
+        => ProcessAsync(token => ProcessNextAsync(connection, token), cancellationToken);
+
+    internal Task ProcessAsync(
+        Func<IServiceProvider, NpgsqlConnection> createConnection,
+        CancellationToken cancellationToken)
+        => ProcessAsync(async token =>
+        {
+            await using var scope = _services.CreateAsyncScope();
+            await using var connection = createConnection(scope.ServiceProvider);
+            await connection.OpenAsync(token);
+            return await ProcessNextAsync(connection, token);
+        }, cancellationToken);
+
+    private async Task ProcessAsync(
+        Func<CancellationToken, ValueTask<(bool Processed, TimeSpan? Delay)>> processNext,
+        CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -84,12 +100,10 @@ public sealed class PostgresOutboxProcessor
             {
                 var signaled = _signal.WaitAsync(joinedCts.Token);
 
-                var result = await ProcessEventAsync(connection, cancellationToken);
+                var (result, nextPollingInterval) = await processNext(cancellationToken);
 
                 if (!result)
                 {
-                    var nextPollingInterval = await GetNextPollingIntervalAsync(connection, cancellationToken);
-
                     activity?.Dispose();
 
                     if (nextPollingInterval is not null)
@@ -118,6 +132,14 @@ public sealed class PostgresOutboxProcessor
                 throw;
             }
         }
+    }
+
+    private async ValueTask<(bool Processed, TimeSpan? Delay)> ProcessNextAsync(
+        NpgsqlConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var processed = await ProcessEventAsync(connection, cancellationToken);
+        return (processed, processed ? null : await GetNextPollingIntervalAsync(connection, cancellationToken));
     }
 
     private async Task<TimeSpan?> GetNextPollingIntervalAsync(
