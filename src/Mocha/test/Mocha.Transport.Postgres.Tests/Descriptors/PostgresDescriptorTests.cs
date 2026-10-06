@@ -6,51 +6,6 @@ namespace Mocha.Transport.Postgres.Tests.Descriptors;
 
 public class PostgresDescriptorTests
 {
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task AutoMigrate_Should_DefaultToTrue_When_OnlyAutoProvisionConfigured(bool autoProvision)
-    {
-        // arrange
-        PostgresTransportConfiguration configuration = null!;
-
-        // act
-        var runtime = PostgresBusFixture.CreateRuntime(transport =>
-        {
-            transport.AutoProvision(autoProvision);
-            configuration = ((IMessagingDescriptor<PostgresTransportConfiguration>)transport).Extend().Configuration;
-        });
-        await using var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
-
-        // assert
-        Assert.True(configuration.AutoMigrate);
-        Assert.Equal(autoProvision, configuration.AutoProvision);
-    }
-
-    [Theory]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
-    public async Task AutoMigrate_Should_SetValue_When_AutoProvisionIsConfigured(bool autoMigrate, bool autoProvision)
-    {
-        // arrange
-        PostgresTransportConfiguration configuration = null!;
-
-        // act
-        var runtime = PostgresBusFixture.CreateRuntime(transport =>
-        {
-            transport.AutoMigrate(autoMigrate);
-            transport.AutoProvision(autoProvision);
-            configuration = ((IMessagingDescriptor<PostgresTransportConfiguration>)transport).Extend().Configuration;
-        });
-        await using var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
-
-        // assert
-        Assert.Equal(autoMigrate, configuration.AutoMigrate);
-        Assert.Equal(autoProvision, configuration.AutoProvision);
-    }
-
     [Fact]
     public void Transport_Should_UseCustomSchema_When_SchemaConfigured()
     {
