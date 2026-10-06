@@ -2812,4 +2812,138 @@ public class DeferPlannerTests : FusionTestBase
         }
         Assert.True(dependsOnProvider);
     }
+
+    [Fact]
+    public void Defer_Should_FetchAllPrerequisites_When_RequirementMixesNativeAndComputedFields()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: TotalInput! @require(field: "{ raw computed }")): Int!
+            }
+
+            input TotalInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_Should_FetchAllPrerequisites_When_RequirementSelectsNestedFieldWithOwnRequirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              owner: User!
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: OwnerInput! @require(field: "owner.{ raw computed }")): Int!
+            }
+
+            input OwnerInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
 }

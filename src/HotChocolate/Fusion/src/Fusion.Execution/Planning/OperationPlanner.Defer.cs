@@ -579,11 +579,19 @@ public sealed partial class OperationPlanner
                         schemaHint,
                         resolver,
                         scopeState,
-                        out var parentStepId))
+                        out var parentStepId,
+                        out var isPartiallyResolvable))
                     {
                         lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, parentStepId));
                         resolved = true;
                         break;
+                    }
+
+                    // A partially hostable requirement lifts nothing, so the incremental plan
+                    // stays self-contained.
+                    if (isPartiallyResolvable)
+                    {
+                        return incrementalPlanSteps;
                     }
 
                     // When no existing parent-scope step can supply the
@@ -617,6 +625,13 @@ public sealed partial class OperationPlanner
 
                 if (!resolved)
                 {
+                    // A requirement whose map names no single root field has no provider the
+                    // scope walker can lift, so the incremental plan stays self-contained.
+                    if ((requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString())) is null)
+                    {
+                        return incrementalPlanSteps;
+                    }
+
                     throw CreateUnsatisfiableDeferRequirementException(
                         producers[0],
                         requirement,
@@ -676,7 +691,8 @@ public sealed partial class OperationPlanner
                         candidateSchema!,
                         resolver,
                         scopeState,
-                        out var parentStepId))
+                        out var parentStepId,
+                        out _))
                     {
                         resolvedParentStepId = parentStepId;
                         break;
@@ -1200,16 +1216,19 @@ public sealed partial class OperationPlanner
     /// Mirrors the inline onto the parent's internal operation so the
     /// compiled parent Operation carries the field (the runtime composite
     /// result document relies on that field being preserved during result
-    /// merging).
+    /// merging). Nothing is injected and <paramref name="isPartiallyResolvable"/> is set
+    /// when the step can host only part of the requirement.
     /// </summary>
     private bool TryInlineDeferRequirementInScope(
         OperationRequirement requirement,
         string schemaName,
         ValueSelectionToSelectionSetRewriter resolver,
         ScopeState scopeState,
-        out int parentStepId)
+        out int parentStepId,
+        out bool isPartiallyResolvable)
     {
         parentStepId = 0;
+        isPartiallyResolvable = false;
 
         for (var i = 0; i < scopeState.Steps.Count; i++)
         {
@@ -1256,6 +1275,8 @@ public sealed partial class OperationPlanner
 
             var dependentsBeforeInline = parentStep.Dependents;
 
+            RegisterRequirementSelectionSets(injectionSelections, stepIndex);
+
             if (!TryInlineSelectionSetIntoStep(
                 parentStep,
                 targetId,
@@ -1266,10 +1287,16 @@ public sealed partial class OperationPlanner
                 stepIndex,
                 new RequirementAliasContext([], RequirementAliasRegistry.Empty),
                 out var updatedParentStep,
-                out _,
-                out _))
+                out var unresolvable,
+                out var fieldsWithRequirements))
             {
                 continue;
+            }
+
+            if (!unresolvable.IsEmpty || !fieldsWithRequirements.IsEmpty)
+            {
+                isPartiallyResolvable = true;
+                return false;
             }
 
             updatedParentStep = updatedParentStep with
