@@ -8,7 +8,6 @@ public interface IRabbitMQDispatchEndpointDescriptor
 {
     /// <summary>
     /// Sets the endpoint to dispatch messages to the specified queue, clearing any exchange target.
-    /// A queue that is not declared in the transport topology is addressed by name and never provisioned.
     /// </summary>
     /// <param name="name">The target queue name.</param>
     /// <returns>The descriptor for method chaining.</returns>
@@ -16,7 +15,6 @@ public interface IRabbitMQDispatchEndpointDescriptor
 
     /// <summary>
     /// Sets the endpoint to dispatch messages to the specified exchange, clearing any queue target.
-    /// An exchange that is not declared in the transport topology is addressed by name and never provisioned.
     /// </summary>
     /// <param name="name">The target exchange name.</param>
     /// <returns>The descriptor for method chaining.</returns>
