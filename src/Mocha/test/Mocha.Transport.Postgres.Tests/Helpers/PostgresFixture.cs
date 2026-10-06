@@ -22,9 +22,6 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public string ConnectionString => _resource.ConnectionString;
 
-    public Task RunSqlScriptAsync(string sql, string database)
-        => _resource.RunSqlScriptAsync(sql, database);
-
     /// <summary>
     /// Creates an isolated database for each test to avoid interference.
     /// </summary>
