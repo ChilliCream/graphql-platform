@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Authorization;
 
@@ -13,7 +14,7 @@ public sealed class PolicyDescriptor
     /// Initializes a new instance of <see cref="PolicyDescriptor"/>.
     /// </summary>
     /// <param name="directiveName">
-    /// The name of the directive, see <see cref="PolicyDirectiveNames"/>.
+    /// The name of the directive, see <see cref="DirectiveNames"/>.
     /// </param>
     /// <param name="policyName">
     /// The opaque policy name, or <c>null</c> for directives without one.

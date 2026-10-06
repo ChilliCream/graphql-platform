@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Authorization.PolicyTestHelper;
 
 namespace HotChocolate.Fusion.Authorization;
@@ -13,8 +14,8 @@ public class BuiltInPolicyTests
         var policy = AuthenticatedPolicy.Instance;
         var context = CreateContext(
             Authenticated(),
-            CreateEntry(selections[1], policy, PolicyDirectiveNames.Authenticated, null),
-            CreateEntry(selections[2], policy, PolicyDirectiveNames.Authenticated, null));
+            CreateEntry(selections[1], policy, DirectiveNames.Authenticated.Name, null),
+            CreateEntry(selections[2], policy, DirectiveNames.Authenticated.Name, null));
 
         // act
         await policy.EvaluateAsync(context, CancellationToken.None);
@@ -31,8 +32,8 @@ public class BuiltInPolicyTests
         var policy = AuthenticatedPolicy.Instance;
         var context = CreateContext(
             Anonymous(),
-            CreateEntry(selections[1], policy, PolicyDirectiveNames.Authenticated, null),
-            CreateEntry(selections[2], policy, PolicyDirectiveNames.Authenticated, null));
+            CreateEntry(selections[1], policy, DirectiveNames.Authenticated.Name, null),
+            CreateEntry(selections[2], policy, DirectiveNames.Authenticated.Name, null));
 
         // act
         await policy.EvaluateAsync(context, CancellationToken.None);
@@ -54,7 +55,7 @@ public class BuiltInPolicyTests
             CreateEntry(
                 selections[1],
                 policy,
-                PolicyDirectiveNames.RequiresScopes,
+                DirectiveNames.RequiresScopes.Name,
                 null,
                 [["read"]]));
 
@@ -73,10 +74,10 @@ public class BuiltInPolicyTests
         var policy = new RequiresScopesPolicy();
         var context = CreateContext(
             Authenticated(new Claim("scope", "read write"), new Claim("scope", "admin")),
-            CreateEntry(selections[0], policy, PolicyDirectiveNames.RequiresScopes, null, [["read", "write"]]),
-            CreateEntry(selections[1], policy, PolicyDirectiveNames.RequiresScopes, null, [["read", "delete"], ["admin"]]),
-            CreateEntry(selections[2], policy, PolicyDirectiveNames.RequiresScopes, null, [["read", "delete"]]),
-            CreateEntry(selections[2], policy, PolicyDirectiveNames.RequiresScopes, null, []));
+            CreateEntry(selections[0], policy, DirectiveNames.RequiresScopes.Name, null, [["read", "write"]]),
+            CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null, [["read", "delete"], ["admin"]]),
+            CreateEntry(selections[2], policy, DirectiveNames.RequiresScopes.Name, null, [["read", "delete"]]),
+            CreateEntry(selections[2], policy, DirectiveNames.RequiresScopes.Name, null, []));
 
         // act
         await policy.EvaluateAsync(context, CancellationToken.None);
@@ -95,8 +96,8 @@ public class BuiltInPolicyTests
         var policy = new RequiresScopesPolicy("scp");
         var context = CreateContext(
             Authenticated(new Claim("scope", "read"), new Claim("scp", "write")),
-            CreateEntry(selections[1], policy, PolicyDirectiveNames.RequiresScopes, null, [["write"]]),
-            CreateEntry(selections[2], policy, PolicyDirectiveNames.RequiresScopes, null, [["read"]]));
+            CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null, [["write"]]),
+            CreateEntry(selections[2], policy, DirectiveNames.RequiresScopes.Name, null, [["read"]]));
 
         // act
         await policy.EvaluateAsync(context, CancellationToken.None);
@@ -111,7 +112,7 @@ public class BuiltInPolicyTests
         // arrange
         var selections = CreateSelections();
         var policy = new RequiresScopesPolicy();
-        var entry = CreateEntry(selections[1], policy, PolicyDirectiveNames.RequiresScopes, null);
+        var entry = CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null);
         var context = CreateContext(Authenticated(new Claim("scope", "read")), entry);
 
         // act

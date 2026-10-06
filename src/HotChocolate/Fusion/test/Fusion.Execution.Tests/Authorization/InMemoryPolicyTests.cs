@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Authorization.InMemory;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Fusion.Authorization.PolicyTestHelper;
 
@@ -54,7 +55,7 @@ public class InMemoryPolicyTests : FusionTestBase
         var (resolver, _) = await CreateResolverAsync(policies => policies.Allow("known"));
 
         // act
-        var policy = resolver.Resolve("unknown", PolicyDirectiveNames.Policy);
+        var policy = resolver.Resolve("unknown", DirectiveNames.Policy.Name);
 
         // assert
         Assert.Null(policy);
@@ -158,7 +159,7 @@ public class InMemoryPolicyTests : FusionTestBase
         string policyName,
         params ISelection[] selections)
     {
-        var policy = resolver.Resolve(policyName, PolicyDirectiveNames.Policy);
+        var policy = resolver.Resolve(policyName, DirectiveNames.Policy.Name);
         Assert.NotNull(policy);
 
         var context = CreateContext(

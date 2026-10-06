@@ -32,7 +32,7 @@ internal static class PolicyTestHelper
     public static PolicyEvaluationEntry CreateEntry(
         ISelection selection,
         IPolicy policy,
-        string directiveName = PolicyDirectiveNames.Policy,
+        string directiveName = DirectiveNames.Policy.Name,
         string? policyName = "p",
         ImmutableArray<ImmutableArray<string>> scopes = default)
         => new(

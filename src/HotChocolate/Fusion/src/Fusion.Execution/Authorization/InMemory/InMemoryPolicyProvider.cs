@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Fusion.Authorization.InMemory;
 
 /// <summary>
@@ -23,7 +25,7 @@ public sealed class InMemoryPolicyProvider : IPolicyProvider
         ArgumentNullException.ThrowIfNull(policyName);
         ArgumentNullException.ThrowIfNull(directiveName);
 
-        if (directiveName is not PolicyDirectiveNames.Policy)
+        if (directiveName is not DirectiveNames.Policy.Name)
         {
             return null;
         }

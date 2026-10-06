@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Fusion.Authorization;
 
 public class PolicyResolverTests
@@ -13,7 +15,7 @@ public class PolicyResolverTests
             [new StubProvider(first), new StubProvider(second)]);
 
         // act
-        var policy = resolver.Resolve("p", PolicyDirectiveNames.Policy);
+        var policy = resolver.Resolve("p", DirectiveNames.Policy.Name);
 
         // assert
         Assert.Same(first, policy);
@@ -29,7 +31,7 @@ public class PolicyResolverTests
             [new StubProvider(null), new StubProvider(second)]);
 
         // act
-        var policy = resolver.Resolve("p", PolicyDirectiveNames.Policy);
+        var policy = resolver.Resolve("p", DirectiveNames.Policy.Name);
 
         // assert
         Assert.Same(second, policy);
@@ -44,7 +46,7 @@ public class PolicyResolverTests
             [new StubProvider(null)]);
 
         // act
-        var policy = resolver.Resolve("p", PolicyDirectiveNames.Policy);
+        var policy = resolver.Resolve("p", DirectiveNames.Policy.Name);
 
         // assert
         Assert.Null(policy);
@@ -59,8 +61,8 @@ public class PolicyResolverTests
             [new StubProvider(new StubPolicy())]);
 
         // act
-        var authenticated = resolver.Resolve(string.Empty, PolicyDirectiveNames.Authenticated);
-        var scopes = resolver.Resolve(string.Empty, PolicyDirectiveNames.RequiresScopes);
+        var authenticated = resolver.Resolve(string.Empty, DirectiveNames.Authenticated.Name);
+        var scopes = resolver.Resolve(string.Empty, DirectiveNames.RequiresScopes.Name);
 
         // assert
         Assert.Same(AuthenticatedPolicy.Instance, authenticated);
@@ -74,32 +76,32 @@ public class PolicyResolverTests
         var provider = new BuiltInPolicyProvider();
 
         // act
-        var policy = provider.GetPolicy("authenticated", PolicyDirectiveNames.Policy);
+        var policy = provider.GetPolicy("authenticated", DirectiveNames.Policy.Name);
 
         // assert
         Assert.Null(policy);
     }
 
     [Fact]
-    public void GetEvaluationOrder_Should_OrderAuthenticatedBeforeScopesBeforePolicies_When_Compared()
+    public void Get_Should_OrderAuthenticatedBeforeScopesBeforePolicies_When_Compared()
     {
         // arrange
         string[] names =
         [
-            PolicyDirectiveNames.Policy,
-            PolicyDirectiveNames.RequiresScopes,
-            PolicyDirectiveNames.Authenticated
+            DirectiveNames.Policy.Name,
+            DirectiveNames.RequiresScopes.Name,
+            DirectiveNames.Authenticated.Name
         ];
 
         // act
-        var ordered = names.OrderBy(PolicyDirectiveNames.GetEvaluationOrder).ToArray();
+        var ordered = names.OrderBy(PolicyEvaluationOrder.Get).ToArray();
 
         // assert
         Assert.Equal(
             [
-                PolicyDirectiveNames.Authenticated,
-                PolicyDirectiveNames.RequiresScopes,
-                PolicyDirectiveNames.Policy
+                DirectiveNames.Authenticated.Name,
+                DirectiveNames.RequiresScopes.Name,
+                DirectiveNames.Policy.Name
             ],
             ordered);
     }

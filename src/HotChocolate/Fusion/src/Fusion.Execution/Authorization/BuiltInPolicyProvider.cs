@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Fusion.Authorization;
 
 /// <summary>
@@ -36,8 +38,8 @@ public sealed class BuiltInPolicyProvider : IPolicyProvider
 
         return directiveName switch
         {
-            PolicyDirectiveNames.Authenticated => AuthenticatedPolicy.Instance,
-            PolicyDirectiveNames.RequiresScopes => _requiresScopes,
+            DirectiveNames.Authenticated.Name => AuthenticatedPolicy.Instance,
+            DirectiveNames.RequiresScopes.Name => _requiresScopes,
             _ => null
         };
     }
