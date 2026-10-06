@@ -58,11 +58,11 @@ public sealed class PostgresOutboxProcessor
     }
 
     /// <summary>
-    /// Runs the outbox processing loop, dispatching one message per iteration and sleeping
+    /// Runs the outbox processing loop, dispatching pending messages and waiting
     /// until the next message is due or a signal is received.
     /// </summary>
     /// <remarks>
-    /// The loop continues until <paramref name="cancellationToken"/> is cancelled. Each iteration
+    /// The loop continues until <paramref name="cancellationToken"/> is cancelled. Each transaction
     /// locks a single outbox row using <c>FOR UPDATE SKIP LOCKED</c>, dispatches the envelope,
     /// and deletes the row on success. Messages that fail are retried with exponential backoff
     /// up to 10 attempts before being dropped.
@@ -70,7 +70,7 @@ public sealed class PostgresOutboxProcessor
     /// <param name="connection">An open Postgres connection to use for outbox queries.</param>
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
     public Task ProcessAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
-        => ProcessAsync(token => ProcessNextAsync(connection, token), cancellationToken);
+        => ProcessAsync(token => ProcessPendingAsync(connection, token), cancellationToken);
 
     internal Task ProcessAsync(CancellationToken cancellationToken)
         => ProcessAsync(async token =>
@@ -78,16 +78,16 @@ public sealed class PostgresOutboxProcessor
             await using var scope = _services.CreateAsyncScope();
             await using var connection = _options.CreateConnection(scope.ServiceProvider);
             await connection.OpenAsync(token);
-            return await ProcessNextAsync(connection, token);
+            return await ProcessPendingAsync(connection, token);
         }, cancellationToken);
 
     private async Task ProcessAsync(
-        Func<CancellationToken, ValueTask<(bool Processed, TimeSpan? Delay)>> processNext,
+        Func<CancellationToken, ValueTask<TimeSpan?>> processPending,
         CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var activity = OpenTelemetry.Source.StartActivity(
+            using var activity = OpenTelemetry.Source.StartActivity(
                 "Process Message Outbox",
                 ActivityKind.Consumer,
                 new ActivityContext());
@@ -98,26 +98,19 @@ public sealed class PostgresOutboxProcessor
             {
                 var signaled = _signal.WaitAsync(joinedCts.Token);
 
-                var (result, nextPollingInterval) = await processNext(cancellationToken);
+                var nextPollingInterval = await processPending(cancellationToken);
 
-                if (!result)
+                activity?.Dispose();
+
+                if (nextPollingInterval is not null)
                 {
-                    activity?.Dispose();
+                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
 
-                    if (nextPollingInterval is not null)
-                    {
-                        _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
-
-                        await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
-                    }
-                    else
-                    {
-                        await signaled;
-                    }
+                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
                 }
                 else
                 {
-                    activity?.Dispose();
+                    await signaled;
                 }
             }
             catch (OperationCanceledException)
@@ -132,12 +125,16 @@ public sealed class PostgresOutboxProcessor
         }
     }
 
-    private async ValueTask<(bool Processed, TimeSpan? Delay)> ProcessNextAsync(
+    private async ValueTask<TimeSpan?> ProcessPendingAsync(
         NpgsqlConnection connection,
         CancellationToken cancellationToken)
     {
-        var processed = await ProcessEventAsync(connection, cancellationToken);
-        return (processed, processed ? null : await GetNextPollingIntervalAsync(connection, cancellationToken));
+        while (await ProcessEventAsync(connection, cancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        return await GetNextPollingIntervalAsync(connection, cancellationToken);
     }
 
     private async Task<TimeSpan?> GetNextPollingIntervalAsync(
