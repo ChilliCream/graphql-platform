@@ -56,7 +56,7 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
-    public static Version Version { get; } = new(2, 0, 0);
+    public static Version Version { get; } = new(2, 1, 0);
 
     internal OperationPlannerOptions Options => _options;
 
@@ -1077,6 +1077,7 @@ public sealed partial class OperationPlanner
             workItem.Conditions,
             workItem.AllowSourceSchemaReentry,
             workItem.SourceSchemaNodePolicy,
+            consumerStep: null,
             out var unresolvedRequirements);
 
         // A self-cyclic lookup can proceed only when an existing step supplies its key.
@@ -1284,6 +1285,7 @@ public sealed partial class OperationPlanner
         ExecutionNodeCondition[]? conditions,
         bool allowSourceSchemaReentry,
         SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy,
+        OperationPlanStep? consumerStep,
         out SelectionSetNode? unresolvedRequirements)
     {
         var processed = new HashSet<string>();
@@ -1336,6 +1338,13 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            // The lookup step inherits the dependents of the step that consumes its field, so
+            // a step that already depends on the consumer cannot provide the lookup's key.
+            if (consumerStep is not null && step.DependsOn(consumerStep, steps))
+            {
+                continue;
+            }
+
             if (!processed.Add(schemaName)
                 || (!allowSourceSchemaReentry && lookup.SchemaName.Equals(schemaName)))
             {
@@ -1371,7 +1380,7 @@ public sealed partial class OperationPlanner
                         : null
             };
 
-            var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
+            var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
 
             if (resolvable is { Selections.Count: > 0 })
             {
@@ -1399,6 +1408,14 @@ public sealed partial class OperationPlanner
                 steps = steps.SetItem(stepIndex, updatedStep);
 
                 selectionSet = null;
+
+                // fields of the inlined requirement that carry their own requirements are not
+                // resolvable in the step yet, so they are planned on behalf of the step.
+                backlog = backlog.PushRequirements(
+                    fieldsWithRequirements,
+                    new StepConsumer(step.Id),
+                    GetOperationStepDepth(current, step.Id),
+                    descendantPolicy);
 
                 if (!unresolvable.IsEmpty)
                 {
@@ -1434,6 +1451,7 @@ public sealed partial class OperationPlanner
                 index,
                 workItemSelectionSet.Id,
                 workItemSelectionSet.Path) is { } ancestorMatch
+            && (consumerStep is null || !ancestorMatch.Step.DependsOn(consumerStep, steps))
             && processed.Add(ancestorMatch.Step.SchemaName!)
             && (allowSourceSchemaReentry || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)))
         {
@@ -1445,9 +1463,16 @@ public sealed partial class OperationPlanner
                 index,
                 ref steps,
                 out var unresolvable,
+                out var ancestorFieldsWithRequirements,
                 treatSourceExternalAsUnresolvable: sourceSchemaNodePolicy is not null))
             {
                 selectionSet = null;
+
+                backlog = backlog.PushRequirements(
+                    ancestorFieldsWithRequirements,
+                    new StepConsumer(ancestorMatch.Step.Id),
+                    GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                    descendantPolicy);
 
                 if (!unresolvable.IsEmpty)
                 {
@@ -1809,6 +1834,7 @@ public sealed partial class OperationPlanner
                 workItem.Conditions,
                 allowSourceSchemaReentry: false,
                 workItem.SourceSchemaNodePolicy,
+                currentStep,
                 out _);
             backlog = current.Backlog;
 
@@ -2867,6 +2893,7 @@ public sealed partial class OperationPlanner
                 requirementAliases,
                 out var updatedStep,
                 out var unresolvable,
+                out var nestedFieldsWithRequirements,
                 treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
             {
                 // if we cannot resolve any selection with the current source we cannot inline the
@@ -2876,6 +2903,16 @@ public sealed partial class OperationPlanner
 
             steps = steps.SetItem(stepIndex, updatedStep);
             requirements = null;
+
+            // fields of the inlined requirement that carry their own requirements are not
+            // resolvable in the step yet, so they are planned on behalf of the step.
+            backlog = backlog.PushRequirements(
+                nestedFieldsWithRequirements,
+                new StepConsumer(step.Id),
+                GetOperationStepDepth(current, step.Id),
+                workItem.SourceSchemaNodePolicy is null
+                    ? null
+                    : SourceSchemaNodePlanningPolicy.Descendant);
 
             if (!unresolvable.IsEmpty)
             {
@@ -2948,9 +2985,18 @@ public sealed partial class OperationPlanner
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
                 dependentStepId, index, ref steps, out var unresolvable,
+                out var nestedAncestorFieldsWithRequirements,
                 treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
             {
                 requirements = null;
+
+                backlog = backlog.PushRequirements(
+                    nestedAncestorFieldsWithRequirements,
+                    new StepConsumer(ancestorMatch.Step.Id),
+                    GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                    workItem.SourceSchemaNodePolicy is null
+                        ? null
+                        : SourceSchemaNodePlanningPolicy.Descendant);
 
                 if (!unresolvable.IsEmpty)
                 {
@@ -2995,6 +3041,7 @@ public sealed partial class OperationPlanner
         RequirementAliasContext requirementAliases,
         out OperationPlanStep updatedStep,
         out ImmutableStack<ConditionedSelectionSet> unresolvable,
+        out ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         bool treatSourceExternalAsUnresolvable = false)
     {
         index.Register(targetSelectionSetId, requirementSelections);
@@ -3017,14 +3064,18 @@ public sealed partial class OperationPlanner
                     : null
         };
 
-        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+        var (resolvable, partitionUnresolvable, partitionFieldsWithRequirements, _) =
+            _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 })
         {
             updatedStep = step;
             unresolvable = [];
+            fieldsWithRequirements = [];
             return false;
         }
+
+        fieldsWithRequirements = partitionFieldsWithRequirements;
 
         var existingSelectionSet = FindSelectionSet(
             step.Definition.SelectionSet,
@@ -4199,9 +4250,11 @@ public sealed partial class OperationPlanner
         SelectionSetIndexBuilder index,
         ref ImmutableList<PlanStep> steps,
         out ImmutableStack<ConditionedSelectionSet> unresolvable,
+        out ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         bool treatSourceExternalAsUnresolvable = false)
     {
         unresolvable = [];
+        fieldsWithRequirements = [];
 
         var input = new SelectionSetPartitionerInput
         {
@@ -4222,7 +4275,8 @@ public sealed partial class OperationPlanner
                     : null
         };
 
-        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+        var (resolvable, partitionUnresolvable, partitionFieldsWithRequirements, _) =
+            _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 })
         {
@@ -4254,6 +4308,7 @@ public sealed partial class OperationPlanner
 
         steps = steps.SetItem(match.StepIndex, updatedStep);
         unresolvable = partitionUnresolvable;
+        fieldsWithRequirements = partitionFieldsWithRequirements;
 
         return true;
     }

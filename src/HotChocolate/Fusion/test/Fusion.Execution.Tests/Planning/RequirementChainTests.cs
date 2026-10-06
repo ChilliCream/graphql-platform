@@ -1,6 +1,4 @@
-using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -130,21 +128,7 @@ public class RequirementChainTests : FusionTestBase
         var plan = PlanOperation(schema, "{ product { total } }");
 
         // assert
-        new
-        {
-            TotalPrerequisites = GetPrerequisiteFields(plan, "total"),
-            ValueBeforeComputed = GetPrerequisiteFields(plan, "computed").Contains("value")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "TotalPrerequisites": [
-                "computed",
-                "raw",
-                "value"
-              ],
-              "ValueBeforeComputed": true
-            }
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -157,58 +141,7 @@ public class RequirementChainTests : FusionTestBase
         var plan = PlanOperation(schema, "{ product { total } }");
 
         // assert
-        new
-        {
-            TotalPrerequisites = GetPrerequisiteFields(plan, "total"),
-            ValueBeforeComputed = GetPrerequisiteFields(plan, "computed").Contains("value")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "TotalPrerequisites": [
-                "computed",
-                "value"
-              ],
-              "ValueBeforeComputed": true
-            }
-            """);
-    }
-
-    private static string[] GetPrerequisiteFields(OperationPlan plan, string fieldName)
-    {
-        var fetches = plan.AllNodes
-            .OfType<OperationExecutionNode>()
-            .ToDictionary(node => node.Id, GetFields);
-        var pending = new Stack<ExecutionNode>(
-            plan.AllNodes.Where(node =>
-                fetches.TryGetValue(node.Id, out var fields) && fields.Contains(fieldName)));
-        var visited = new HashSet<int>();
-        var prerequisites = new HashSet<string>();
-
-        while (pending.TryPop(out var node))
-        {
-            foreach (var dependency in node.Dependencies)
-            {
-                if (visited.Add(dependency.Id))
-                {
-                    if (fetches.TryGetValue(dependency.Id, out var fields))
-                    {
-                        prerequisites.UnionWith(fields);
-                    }
-
-                    pending.Push(plan.GetExecutionNode(dependency));
-                }
-            }
-        }
-
-        return prerequisites.Where(field => field != "id").Order(StringComparer.Ordinal).ToArray();
-
-        static string[] GetFields(OperationExecutionNode node)
-            => Utf8GraphQLParser.Parse(node.Operation.Value.Span)
-                .Definitions.OfType<OperationDefinitionNode>().Single()
-                .SelectionSet.Selections.OfType<FieldNode>()
-                .SelectMany(root => root.SelectionSet?.Selections.OfType<FieldNode>() ?? [])
-                .Select(field => field.Name.Value)
-                .ToArray();
+        MatchSnapshot(plan);
     }
 
     private static FusionSchemaDefinition CreateNativeAndComputedRequirementSchema(bool includeRaw)

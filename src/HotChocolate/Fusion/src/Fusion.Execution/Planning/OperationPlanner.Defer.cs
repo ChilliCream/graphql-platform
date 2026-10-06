@@ -1256,6 +1256,7 @@ public sealed partial class OperationPlanner
                 stepIndex,
                 new RequirementAliasContext([], RequirementAliasRegistry.Empty),
                 out var updatedParentStep,
+                out _,
                 out _))
             {
                 continue;
