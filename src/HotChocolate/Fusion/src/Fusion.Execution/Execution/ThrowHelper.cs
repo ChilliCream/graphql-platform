@@ -22,6 +22,9 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
+    public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
+        => new($"No plan was found for the @defer fragment at path '{path}'.");
+
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(
             FusionExecutionResources.OperationBatchExecutionNode_MissingBatchResult,

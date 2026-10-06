@@ -1,4 +1,6 @@
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -2370,6 +2372,69 @@ public class DeferPlannerTests : FusionTestBase
             }
             """
         ]);
+    }
+
+    [Fact]
+    public void Defer_Should_ThrowPlannerError_When_DeferredFieldHasNoReachableSource()
+    {
+        // arrange
+        var options = new SchemaComposerOptions();
+        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
+
+        var result = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    extend schema
+                        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+                    type Query {
+                        a: Node
+                    }
+
+                    interface Node @key(fields: "id") {
+                        id: ID!
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.6"
+                            import: ["@key", "@interfaceObject"])
+
+                    type Query {
+                        b: Node
+                    }
+
+                    type Node @key(fields: "id", resolvable: false) @interfaceObject {
+                        id: ID!
+                        field: String
+                    }
+                    """)
+            ],
+            options,
+            new CompositionLog()).Compose();
+        var schema = FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
+
+        // act
+        var error = Assert.Throws<InvalidOperationException>(() => PlanOperation(
+            schema,
+            """
+            {
+                __typename
+                ... @defer {
+                    a {
+                        field
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("No plan was found for the @defer fragment at path '$'.", error.Message);
     }
 
     private static FusionSchemaDefinition CreateNodeDeferSchema()

@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -219,6 +220,7 @@ public sealed partial class OperationPlanner
             SelectionSet selectionSet;
             (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
 
+            // Nothing to fetch: the deferred operation selects no field that needs a source.
             if (node.Backlog.IsEmpty)
             {
                 return new DeferIncrementalPlanResult([], null);
@@ -274,6 +276,7 @@ public sealed partial class OperationPlanner
                 SelectionSet mutationSelectionSet;
                 (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
 
+                // Nothing to fetch: the deferred operation selects no field that needs a source.
                 if (node.Backlog.IsEmpty)
                 {
                     return new DeferIncrementalPlanResult([], null);
@@ -330,7 +333,7 @@ public sealed partial class OperationPlanner
                 throw new DeferredMutationLookupRequiredException(descriptor.Path, mutationAnchorType.Name);
             }
 
-            return new DeferIncrementalPlanResult([], null);
+            throw ThrowHelper.DeferredPlanNotFound(descriptor.Path);
         }
 
         return new DeferIncrementalPlanResult(
@@ -402,24 +405,31 @@ public sealed partial class OperationPlanner
     {
         nodeField = null!;
 
-        if (path.Length != 1
-            || path[0].Kind != SelectionPathSegmentKind.Field
-            || !_schema.QueryType.Fields.TryGetField(
-                path[0].Name,
-                allowInaccessibleFields: true,
-                out var field)
-            || field is not { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+        if (path.Length != 1 || path[0].Kind != SelectionPathSegmentKind.Field)
         {
             return false;
         }
 
+        // A path segment carries the response name, so the AST field is resolved by
+        // alias (or name when there is no alias) before its schema field is checked.
+        var responseName = path[0].Name;
+
         foreach (var selection in operation.SelectionSet.Selections)
         {
             if (selection is FieldNode candidate
-                && (candidate.Alias?.Value == path[0].Name || candidate.Name.Value == path[0].Name))
+                && (candidate.Alias?.Value ?? candidate.Name.Value) == responseName)
             {
-                nodeField = candidate;
-                return true;
+                if (_schema.QueryType.Fields.TryGetField(
+                    candidate.Name.Value,
+                    allowInaccessibleFields: true,
+                    out var field)
+                    && field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+                {
+                    nodeField = candidate;
+                    return true;
+                }
+
+                return false;
             }
         }
 
