@@ -1,4 +1,6 @@
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -2154,6 +2156,178 @@ public class DeferPlannerTests : FusionTestBase
         // assert
         MatchSnapshot(plan);
     }
+
+    [Theory]
+    [InlineData("__typename")]
+    [InlineData("")]
+    public void Defer_RootFragment_Should_PreserveDeferredFetch_When_InitialSelectionHasNoSourceFetch(
+        string initialSelection)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            $$"""
+            {
+                {{initialSelection}}
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$", Assert.Single(plan.DeliveryGroups).Path!.ToString());
+        Assert.Empty(plan.AllNodes.OfType<OperationExecutionNode>());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              users {
+                id
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsNotAliased()
+    {
+        // arrange
+        var schema = CreateNodeDeferSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                node(id: "1") {
+                    id
+                    ... @defer {
+                        ... on User {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$.node", Assert.Single(incrementalPlan.DeliveryGroups).Path!.ToString());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              node(id: "1") {
+                __typename
+              }
+            }
+            """,
+            """
+            {
+              node(id: "1") {
+                __typename
+                ... on User {
+                  __typename
+                  name
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsAliased()
+    {
+        // arrange
+        var schema = CreateNodeDeferSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                n: node(id: "1") {
+                    id
+                    ... @defer {
+                        ... on User {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$.n", Assert.Single(incrementalPlan.DeliveryGroups).Path!.ToString());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              n: node(id: "1") {
+                __typename
+              }
+            }
+            """,
+            """
+            {
+              n: node(id: "1") {
+                __typename
+                ... on User {
+                  __typename
+                  name
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    private static FusionSchemaDefinition CreateNodeDeferSchema()
+        => ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                userById(id: ID!): User @lookup
+                users: [User!]!
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node {
+                id: ID!
+                name: String!
+            }
+            """);
+
+    private static string[] GetOperationSelectionSets(IEnumerable<ExecutionNode> nodes)
+        => nodes
+            .OfType<OperationExecutionNode>()
+            .Select(node => Utf8GraphQLParser.Parse(node.Operation.Value.Span)
+                .Definitions.OfType<OperationDefinitionNode>().Single()
+                .SelectionSet.ToString())
+            .ToArray();
 
     [Fact]
     public void Defer_KeyOnlyField_Should_NotDefer_When_OnlyReachableLookupIsSelfCyclic()

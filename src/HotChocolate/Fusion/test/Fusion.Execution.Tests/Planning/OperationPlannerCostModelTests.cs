@@ -131,6 +131,140 @@ public class OperationPlannerCostModelTests : FusionTestBase
         Assert.True(excessiveFanoutCost > moderateFanoutCost);
     }
 
+    [Theory]
+    [InlineData(1.5)]
+    [InlineData(10.0)]
+    public void RemainingCost_Should_NotExceedCompletionCost_When_OneOperationRemains(
+        double operationWeight)
+    {
+        // arrange
+        var options = new OperationPlannerOptions { OperationWeight = operationWeight };
+        var backlogCost = CreateBacklogCost(1);
+        var completed = CreateNode(1, 1, 0, options);
+
+        // act
+        var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
+            options,
+            currentMaxDepth: 0,
+#if NET10_0_OR_GREATER
+            [],
+#else
+            ImmutableDictionary<int, int>.Empty,
+#endif
+            backlogCost);
+
+        // assert
+        Assert.True(
+            remainingCost <= completed.PathCost,
+            $"Remaining cost {remainingCost} exceeds completion cost {completed.PathCost}.");
+    }
+
+    [Theory]
+    [InlineData(1.5)]
+    [InlineData(10.0)]
+    public void CreatePlan_Should_ChooseTwoRootFetches_When_GreedyCoverNeedsThree(
+        double operationWeight)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                f1: Int @shareable
+                f2: Int @shareable
+                f3: Int @shareable
+                f4: Int @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                f1: Int @shareable
+                f2: Int @shareable
+                f5: Int
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                f3: Int @shareable
+                f4: Int @shareable
+                f6: Int
+            }
+            """);
+        var options = new OperationPlannerOptions { OperationWeight = operationWeight };
+
+        // act
+        var plan = PlanOperation(schema, "{ f1 f2 f3 f4 f5 f6 }", options);
+
+        // assert
+        plan.AllNodes
+            .Cast<OperationExecutionNode>()
+            .OrderBy(node => node.SchemaName, StringComparer.Ordinal)
+            .Select(node => new
+            {
+                node.SchemaName,
+                Fields = Utf8GraphQLParser.Parse(node.Operation.Value.Span)
+                    .GetOperation(operationName: null)
+                    .SelectionSet.Selections
+                    .Cast<FieldNode>()
+                    .Select(field => field.Name.Value)
+                    .ToArray(),
+                DependencyCount = node.Dependencies.Length
+            })
+            .ToArray()
+            .MatchInlineSnapshot(
+                """
+                [
+                  {
+                    "SchemaName": "b",
+                    "Fields": [
+                      "f1",
+                      "f2",
+                      "f5"
+                    ],
+                    "DependencyCount": 0
+                  },
+                  {
+                    "SchemaName": "c",
+                    "Fields": [
+                      "f3",
+                      "f4",
+                      "f6"
+                    ],
+                    "DependencyCount": 0
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_ApplySchemaTieBreak_When_GreedyPlanHasEqualCost()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                a: Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                b: Int
+                c: Int
+            }
+            """);
+        var options = new OperationPlannerOptions { OperationWeight = 10.0 };
+
+        // act
+        var plan = PlanOperation(schema, "{ a b c }", options);
+
+        // assert
+        plan.AllNodes.Select(node => node.SchemaName).MatchInlineSnapshots(["a", "b"]);
+    }
+
     private static PlanNode CreateNode(
         int maxDepth,
         int operationStepCount,
