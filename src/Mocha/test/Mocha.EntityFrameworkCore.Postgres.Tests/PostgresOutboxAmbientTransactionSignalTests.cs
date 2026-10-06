@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,11 +20,10 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var probeConnectionString = new NpgsqlConnectionStringBuilder(connectionString) { Enlist = false }
-            .ConnectionString;
-        var signal = new VisibilityProbeSignal(probeConnectionString);
+        var signal = new VisibilityProbeSignal(connectionString);
         await using var provider = await CreateProviderAsync(connectionString, signal, addHandler: false);
         await EnsureCreatedAsync(provider);
+        signal.Events.Clear();
 
         // act
         using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -35,15 +35,60 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
             transaction.Complete();
         }
 
-        signal.Mark("after-commit");
+        // assert
+        AssertSignaledOnlyAfterCommit(signal);
+    }
+
+    [Fact]
+    public async Task SaveChanges_Should_SignalOnlyAfterCommit_When_AmbientTransactionIsUsed()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var signal = new VisibilityProbeSignal(connectionString);
+        await using var provider = await CreateProviderAsync(connectionString, signal, addHandler: false);
+        await EnsureCreatedAsync(provider);
+        signal.Events.Clear();
+
+        // act
+        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await using var scope = provider.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            db.Add(new OutboxMessage(Guid.NewGuid(), JsonDocument.Parse("{}")));
+            await db.SaveChangesAsync(TestToken);
+            signal.Mark("before-complete");
+            transaction.Complete();
+        }
 
         // assert
-        var events = signal.Events.ToArray();
-        var setsBeforeComplete = events.TakeWhile(e => e != "before-complete").Count(e => e.StartsWith("set"));
-        var setsSeeingNoRows = events.Count(e => e == "set(visible=0)");
-        var setsAfterComplete = events.SkipWhile(e => e != "before-complete").Count(e => e.StartsWith("set"));
-        Assert.Equal((0, 0), (setsBeforeComplete, setsSeeingNoRows));
-        Assert.NotEqual(0, setsAfterComplete);
+        AssertSignaledOnlyAfterCommit(signal);
+    }
+
+    [Fact]
+    public async Task PersistAsync_Should_SignalOnCompletion_When_AmbientTransactionRollsBack()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var signal = new VisibilityProbeSignal(connectionString);
+        await using var provider = await CreateProviderAsync(connectionString, signal, addHandler: false);
+        await EnsureCreatedAsync(provider);
+        signal.Events.Clear();
+
+        // act
+        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await using var scope = provider.CreateAsyncScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            await bus.PublishAsync(new TestEvent { Payload = "ambient" }, TestToken);
+            signal.Mark("before-dispose");
+        }
+
+        signal.Mark("after-rollback");
+
+        // assert
+        Assert.Equal(
+            ["before-dispose", "set(visible=0)", "after-rollback"],
+            signal.Events.Distinct().ToArray());
     }
 
     [Fact]
@@ -94,6 +139,16 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
 
             await Task.Delay(250, CancellationToken.None);
         }
+    }
+
+    private static void AssertSignaledOnlyAfterCommit(VisibilityProbeSignal signal)
+    {
+        var events = signal.Events.ToArray();
+        var setsBeforeComplete = events.TakeWhile(e => e != "before-complete").Count(e => e.StartsWith("set"));
+        var setsSeeingNoRows = events.Count(e => e == "set(visible=0)");
+        var setsAfterComplete = events.SkipWhile(e => e != "before-complete").Count(e => e.StartsWith("set"));
+        Assert.Equal((0, 0), (setsBeforeComplete, setsSeeingNoRows));
+        Assert.NotEqual(0, setsAfterComplete);
     }
 
     private static async Task PublishAsync(IServiceProvider provider, string payload)
@@ -162,13 +217,16 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
 
     private sealed class VisibilityProbeSignal(string connectionString) : IOutboxSignal
     {
+        private readonly string _connectionString =
+            new NpgsqlConnectionStringBuilder(connectionString) { Enlist = false }.ConnectionString;
+
         public ConcurrentQueue<string> Events { get; } = new();
 
         public void Mark(string label) => Events.Enqueue(label);
 
         public void Set()
         {
-            using var connection = new NpgsqlConnection(connectionString);
+            using var connection = new NpgsqlConnection(_connectionString);
             connection.Open();
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT COUNT(*) FROM outbox_messages";
