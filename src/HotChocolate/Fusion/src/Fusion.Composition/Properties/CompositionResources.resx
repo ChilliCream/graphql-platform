@@ -96,6 +96,9 @@
   <data name="LogEntryHelper_AuthorizationOnInterfaceObject" xml:space="preserve">
     <value>The @interfaceObject type '{0}' in schema '{1}' cannot be annotated with @{2}. Annotate its fields instead.</value>
   </data>
+  <data name="LogEntryHelper_AuthorizationTransitiveRequirementsMissing" xml:space="preserve">
+    <value>The field '{0}' depends on '{1}' through '{2}' in schema '{3}', but does not declare all authorization requirements of '{1}'. Not covered: {4}.</value>
+  </data>
   <data name="SchemaHttpResponseReader_ResponseTooLarge" xml:space="preserve">
     <value>Source schema '{0}' returned a response larger than the maximum allowed size of {1} bytes.</value>
   </data>

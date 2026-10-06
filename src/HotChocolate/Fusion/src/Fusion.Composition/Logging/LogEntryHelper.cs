@@ -105,6 +105,28 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry AuthorizationTransitiveRequirementsMissing(
+        SchemaCoordinate requiringCoordinate,
+        SchemaCoordinate dependencyCoordinate,
+        SchemaCoordinate viaCoordinate,
+        MutableSchemaDefinition schema,
+        IEnumerable<string> uncoveredDirectiveNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationTransitiveRequirementsMissing,
+                requiringCoordinate,
+                dependencyCoordinate,
+                viaCoordinate,
+                schema.Name,
+                string.Join(", ", uncoveredDirectiveNames.Select(static n => $"@{n}")))
+            .SetCode(LogEntryCodes.AuthorizationTransitiveRequirementsMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(requiringCoordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
     private static string FormatSchemaNames(IEnumerable<string> schemaNames)
         => string.Join(", ", schemaNames.Select(static n => $"'{n}'"));
 

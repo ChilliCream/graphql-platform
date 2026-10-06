@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Directives;
 
@@ -66,6 +67,32 @@ internal sealed record MergedAuthorization(
         return Authenticated == other.Authenticated
             && GroupsMatch(Scopes, other.Scopes)
             && GroupsMatch(Policies, other.Policies);
+    }
+
+    /// <summary>
+    /// Gets the names of the directives of <paramref name="dependency"/> that this requirement
+    /// does not cover. Both requirements are expected in canonical form.
+    /// </summary>
+    public ImmutableArray<string> GetUncovered(MergedAuthorization dependency)
+    {
+        var uncovered = ImmutableArray.CreateBuilder<string>();
+
+        if (dependency.Authenticated && !Authenticated)
+        {
+            uncovered.Add(DirectiveNames.Authenticated);
+        }
+
+        if (!AuthorizationGroups.Covers(Scopes, dependency.Scopes))
+        {
+            uncovered.Add(DirectiveNames.RequiresScopes);
+        }
+
+        if (!AuthorizationGroups.Covers(Policies, dependency.Policies))
+        {
+            uncovered.Add(DirectiveNames.Policy);
+        }
+
+        return uncovered.ToImmutable();
     }
 
     private static bool GroupsMatch(

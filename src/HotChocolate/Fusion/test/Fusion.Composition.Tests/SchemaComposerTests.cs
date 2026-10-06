@@ -1235,6 +1235,7 @@ public sealed class SchemaComposerTests
         Assert.Equal(
             [
                 "AuthorizationInheritedRule",
+                "AuthorizationTransitiveRequirementsRule",
                 "EmptyMergedEnumTypeRule",
                 "EmptyMergedInputObjectTypeRule",
                 "EmptyMergedInterfaceTypeRule",

@@ -333,6 +333,7 @@ internal sealed class SchemaComposer
     internal static ImmutableArray<object> PostMergeRules { get; } =
     [
         new AuthorizationInheritedRule(),
+        new AuthorizationTransitiveRequirementsRule(),
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInputObjectTypeRule(),
         new EmptyMergedInterfaceTypeRule(),

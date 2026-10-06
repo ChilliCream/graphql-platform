@@ -197,6 +197,46 @@ internal static class AuthorizationGroups
         return [.. kept];
     }
 
+    /// <summary>
+    /// Determines whether every alternative group of <paramref name="requirement"/> contains an
+    /// alternative group of <paramref name="dependency"/>. An empty dependency is always covered.
+    /// </summary>
+    public static bool Covers(
+        ImmutableArray<ImmutableArray<string>> requirement,
+        ImmutableArray<ImmutableArray<string>> dependency)
+    {
+        if (dependency.IsEmpty)
+        {
+            return true;
+        }
+
+        if (requirement.IsEmpty)
+        {
+            return false;
+        }
+
+        foreach (var group in requirement)
+        {
+            var covered = false;
+
+            foreach (var dependencyGroup in dependency)
+            {
+                if (IsSubset(dependencyGroup, group))
+                {
+                    covered = true;
+                    break;
+                }
+            }
+
+            if (!covered)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Both groups are sorted and deduplicated.
     private static bool IsSubset(ImmutableArray<string> subset, ImmutableArray<string> superset)
     {

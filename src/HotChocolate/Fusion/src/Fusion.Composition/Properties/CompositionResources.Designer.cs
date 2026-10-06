@@ -881,6 +881,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; depends on &apos;{1}&apos; through &apos;{2}&apos; in schema &apos;{3}&apos;, but does not declare all authorization requirements of &apos;{1}&apos;. Not covered: {4}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationTransitiveRequirementsMissing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationTransitiveRequirementsMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {
