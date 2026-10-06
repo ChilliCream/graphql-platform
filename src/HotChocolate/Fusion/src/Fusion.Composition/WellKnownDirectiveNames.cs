@@ -4,11 +4,12 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownDirectiveNames
 {
-    public const string Authorize = "authorize";
+    public const string Authenticated = DirectiveNames.Authenticated.Name;
     public const string CacheControl = DirectiveNames.CacheControl.Name;
     public const string Cost = DirectiveNames.Cost.Name;
     public const string EventCursor = DirectiveNames.EventCursor.Name;
     public const string External = DirectiveNames.External.Name;
+    public const string FusionAuthorization = "fusion__authorization";
     public const string FusionCost = "fusion__cost";
     public const string FusionCostOptions = "fusion__cost_options";
     public const string FusionEnumValue = "fusion__enumValue";
@@ -38,9 +39,11 @@ internal static class WellKnownDirectiveNames
     public const string OneOf = DirectiveNames.OneOf.Name;
     public const string OptInFeatureStability = DirectiveNames.OptInFeatureStability.Name;
     public const string Override = DirectiveNames.Override.Name;
+    public const string Policy = DirectiveNames.Policy.Name;
     public const string Provides = DirectiveNames.Provides.Name;
     public const string Require = DirectiveNames.Require.Name;
     public const string RequiresOptIn = DirectiveNames.RequiresOptIn.Name;
+    public const string RequiresScopes = DirectiveNames.RequiresScopes.Name;
     public const string SerializeAs = DirectiveNames.SerializeAs.Name;
     public const string Shareable = DirectiveNames.Shareable.Name;
     public const string SpecifiedBy = DirectiveNames.SpecifiedBy.Name;

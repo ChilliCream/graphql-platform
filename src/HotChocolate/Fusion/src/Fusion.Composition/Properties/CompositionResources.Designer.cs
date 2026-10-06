@@ -105,38 +105,29 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;apply&apos; argument of the @authorize directive must be of type ApplyPolicy..
+        ///   Looks up a localized string similar to The @authenticated directive requires the client to be authenticated..
         /// </summary>
-        internal static string AuthorizeDirective_ApplyArgument_Invalid {
+        internal static string AuthenticatedMutableDirectiveDefinition_Description {
             get {
-                return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_Invalid", resourceCulture);
+                return ResourceManager.GetString("AuthenticatedMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The value &apos;{0}&apos; for argument &apos;apply&apos; in the @authorize directive is invalid..
+        ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive must be a list of string lists..
         /// </summary>
-        internal static string AuthorizeDirective_ApplyArgument_InvalidEnumValue {
+        internal static string AuthorizationDirective_Argument_Invalid {
             get {
-                return ResourceManager.GetString("AuthorizeDirective_ApplyArgument_InvalidEnumValue", resourceCulture);
+                return ResourceManager.GetString("AuthorizationDirective_Argument_Invalid", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;policy&apos; argument of the @authorize directive must be of type String..
+        ///   Looks up a localized string similar to The type kind &apos;{0}&apos; does not carry authorization directives..
         /// </summary>
-        internal static string AuthorizeDirective_PolicyArgument_Invalid {
+        internal static string AuthorizationInheritance_UnexpectedTypeKind {
             get {
-                return ResourceManager.GetString("AuthorizeDirective_PolicyArgument_Invalid", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;roles&apos; argument of the @authorize directive must be of type [String!]..
-        /// </summary>
-        internal static string AuthorizeDirective_RolesArgument_Invalid {
-            get {
-                return ResourceManager.GetString("AuthorizeDirective_RolesArgument_Invalid", resourceCulture);
+                return ResourceManager.GetString("AuthorizationInheritance_UnexpectedTypeKind", resourceCulture);
             }
         }
 
@@ -236,6 +227,42 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ExternalMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ExternalMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Whether the member requires an authenticated user..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__authorization directive carries the merged authorization requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied..
+        /// </summary>
+        internal static string FusionAuthorizationMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -814,6 +841,60 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ListSizeDirective_SlicingArgumentsArgument_Invalid {
             get {
                 return ResourceManager.GetString("ListSizeDirective_SlicingArgumentsArgument_Invalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; is marked with @authenticated in the source schemas {1} but not in the source schemas {2}. The composed member requires authentication..
+        /// </summary>
+        internal static string LogEntryHelper_AuthenticatedMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthenticatedMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive on &apos;{2}&apos; in schema &apos;{3}&apos; must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value {4}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationDirectiveArgumentInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationDirectiveArgumentInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The merged {0} requirement of &apos;{1}&apos; has {2} alternative groups, which exceeds the threshold of {3}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationGroupCountExceeded {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationGroupCountExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from {1} in the source schemas {2}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationInherited {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationInherited", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @interfaceObject type &apos;{0}&apos; in schema &apos;{1}&apos; cannot be annotated with @{2}. Annotate its fields instead..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationOnInterfaceObject {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationOnInterfaceObject", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; depends on &apos;{1}&apos; through &apos;{2}&apos; in schema &apos;{3}&apos;, but does not declare all authorization requirements of &apos;{1}&apos;. Not covered: {4}..
+        /// </summary>
+        internal static string LogEntryHelper_AuthorizationTransitiveRequirementsMissing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_AuthorizationTransitiveRequirementsMissing", resourceCulture);
             }
         }
 
@@ -1700,6 +1781,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The policy groups of which at least one must be fully satisfied..
+        /// </summary>
+        internal static string PolicyMutableDirectiveDefinition_Argument_Policies_Description {
+            get {
+                return ResourceManager.GetString("PolicyMutableDirectiveDefinition_Argument_Policies_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @policy directive requires the client to satisfy all policies of at least one of the policy groups..
+        /// </summary>
+        internal static string PolicyMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("PolicyMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema..
         /// </summary>
         internal static string ProvidesMutableDirectiveDefinition_Argument_Fields_Description {
@@ -1732,6 +1831,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string RequiresMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("RequiresMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The scope groups of which at least one must be fully granted..
+        /// </summary>
+        internal static string RequiresScopesMutableDirectiveDefinition_Argument_Scopes_Description {
+            get {
+                return ResourceManager.GetString("RequiresScopesMutableDirectiveDefinition_Argument_Scopes_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresScopes directive requires the client to be granted all scopes of at least one of the scope groups..
+        /// </summary>
+        internal static string RequiresScopesMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("RequiresScopesMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 

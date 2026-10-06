@@ -147,4 +147,7 @@
   <data name="ErrorHelper_OperationKindNotAllowed" xml:space="preserve">
     <value>The specified operation kind is not allowed.</value>
   </data>
+  <data name="PolicyEvaluationContext_EntryNotPartOfContext" xml:space="preserve">
+    <value>The policy entry is not part of this evaluation context.</value>
+  </data>
 </root>

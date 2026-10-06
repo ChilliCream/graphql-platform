@@ -302,5 +302,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_OperationKindNotAllowed", resourceCulture);
             }
         }
+
+        internal static string PolicyEvaluationContext_EntryNotPartOfContext {
+            get {
+                return ResourceManager.GetString("PolicyEvaluationContext_EntryNotPartOfContext", resourceCulture);
+            }
+        }
     }
 }

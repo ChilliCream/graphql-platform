@@ -82,8 +82,9 @@ internal sealed partial class SourceSchemaMerger
             new Dictionary<string, IDirectiveMerger>
             {
                 {
-                    DirectiveNames.Authorize,
-                    new AuthorizeDirectiveMerger(DirectiveMergeBehavior.Include)
+                    DirectiveNames.FusionAuthorization,
+                    new AuthorizationDirectiveMerger(
+                        _fusionDirectiveDefinitions[DirectiveNames.FusionAuthorization])
                 },
                 {
                     DirectiveNames.CacheControl,
@@ -133,6 +134,10 @@ internal sealed partial class SourceSchemaMerger
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
         AddNodeField(mergedSchema);
+        AuthorizationInheritance.Apply(
+            mergedSchema,
+            _fusionDirectiveDefinitions[DirectiveNames.FusionAuthorization],
+            _schemas);
 
         // Merge directives.
         var memberDefinitions = _schemas.Select(s => new DirectivesProviderInfo(s, s)).ToImmutableArray();
@@ -317,9 +322,12 @@ internal sealed partial class SourceSchemaMerger
             && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
+            Directive? nodeFieldAuthorization = null;
+
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
                 && IsGoiNodeField(nodeField, nodeType, idType))
             {
+                nodeFieldAuthorization = nodeField.Directives.FirstOrDefault(DirectiveNames.FusionAuthorization);
                 queryType.Fields.Remove(nodeField);
             }
 
@@ -335,6 +343,12 @@ internal sealed partial class SourceSchemaMerger
                 var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+
+                if (nodeFieldAuthorization is not null)
+                {
+                    canonicalNodeField.Directives.Add(nodeFieldAuthorization);
+                }
+
                 canonicalNodeField.Directives.Add(
                     new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
 
@@ -501,6 +515,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.FusionAuthorization]
+                    .MergeDirectives(enumType, memberDefinitions, mergedSchema);
                 DeriveCostDirectives(enumType, memberDefinitions, mergedSchema, CostCoordinateKind.LeafType, null);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumType, memberDefinitions, mergedSchema);
 
@@ -751,6 +767,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.FusionAuthorization]
+                    .MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
 
@@ -844,7 +862,7 @@ internal sealed partial class SourceSchemaMerger
             () =>
             {
                 var memberDefinitions = typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Authorize]
+                _directiveMergers[DirectiveNames.FusionAuthorization]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
@@ -972,7 +990,7 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     fieldGroup.Select(g => new DirectivesProviderInfo(g.Field, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Authorize]
+                _directiveMergers[DirectiveNames.FusionAuthorization]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
@@ -1039,6 +1057,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.FusionAuthorization]
+                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 DeriveCostDirectives(scalarType, memberDefinitions, mergedSchema, CostCoordinateKind.LeafType, null);
                 _directiveMergers[DirectiveNames.SerializeAs]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
@@ -2209,6 +2229,10 @@ internal sealed partial class SourceSchemaMerger
 
         return new Dictionary<string, MutableDirectiveDefinition>
         {
+            {
+                DirectiveNames.FusionAuthorization,
+                new FusionAuthorizationMutableDirectiveDefinition(stringType, booleanType)
+            },
             {
                 DirectiveNames.FusionCost,
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)

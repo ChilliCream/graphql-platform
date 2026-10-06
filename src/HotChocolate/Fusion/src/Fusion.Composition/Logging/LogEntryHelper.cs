@@ -8,6 +8,128 @@ namespace HotChocolate.Fusion.Logging;
 
 internal static class LogEntryHelper
 {
+    public static LogEntry AuthenticatedMismatch(
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema,
+        IEnumerable<string> markedSchemaNames,
+        IEnumerable<string> unmarkedSchemaNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthenticatedMismatch,
+                coordinate,
+                FormatSchemaNames(markedSchemaNames),
+                FormatSchemaNames(unmarkedSchemaNames))
+            .SetCode(LogEntryCodes.AuthenticatedMismatch)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry AuthorizationDirectiveArgumentInvalid(
+        string directiveName,
+        string argumentName,
+        IValueNode? value,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationDirectiveArgumentInvalid,
+                directiveName,
+                argumentName,
+                coordinate,
+                schema.Name,
+                value?.ToString() ?? "undefined")
+            .SetCode(LogEntryCodes.AuthorizationDirectiveArgumentInvalid)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry AuthorizationGroupCountExceeded(
+        string requirement,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema,
+        int groupCount,
+        int threshold)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationGroupCountExceeded,
+                requirement,
+                coordinate,
+                groupCount,
+                threshold)
+            .SetCode(LogEntryCodes.AuthorizationGroupCountExceeded)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry AuthorizationInherited(
+        SchemaCoordinate coordinate,
+        ImmutableArray<string> paths,
+        ImmutableArray<string> schemaNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationInherited,
+                coordinate,
+                string.Join("; ", paths),
+                FormatSchemaNames(schemaNames))
+            .SetCode(LogEntryCodes.AuthorizationInherited)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .Build();
+    }
+
+    public static LogEntry AuthorizationOnInterfaceObject(
+        MutableObjectTypeDefinition standIn,
+        string directiveName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationOnInterfaceObject,
+                standIn.Name,
+                schema.Name,
+                directiveName)
+            .SetCode(LogEntryCodes.AuthorizationOnInterfaceObject)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry AuthorizationTransitiveRequirementsMissing(
+        SchemaCoordinate requiringCoordinate,
+        SchemaCoordinate dependencyCoordinate,
+        SchemaCoordinate viaCoordinate,
+        MutableSchemaDefinition schema,
+        IEnumerable<string> uncoveredDirectiveNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthorizationTransitiveRequirementsMissing,
+                requiringCoordinate,
+                dependencyCoordinate,
+                viaCoordinate,
+                schema.Name,
+                string.Join(", ", uncoveredDirectiveNames.Select(static n => $"@{n}")))
+            .SetCode(LogEntryCodes.AuthorizationTransitiveRequirementsMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(requiringCoordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    private static string FormatSchemaNames(IEnumerable<string> schemaNames)
+        => string.Join(", ", schemaNames.Select(static n => $"'{n}'"));
+
     public static LogEntry DisallowedInaccessibleBuiltInScalar(
         MutableScalarTypeDefinition scalar,
         MutableSchemaDefinition schema)

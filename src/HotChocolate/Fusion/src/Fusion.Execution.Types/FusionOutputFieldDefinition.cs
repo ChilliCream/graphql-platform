@@ -125,6 +125,11 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public string? DeprecationReason { get; }
 
     /// <summary>
+    /// Gets the merged authorization requirement, or <c>null</c> if the field has none.
+    /// </summary>
+    internal AuthorizationDirective? Authorization { get; init; }
+
+    /// <summary>
     /// Gets a value indicating whether this field is marked as inaccessible.
     /// </summary>
     public bool IsInaccessible => (_flags & FieldDefinitionFlags.Inaccessible) == FieldDefinitionFlags.Inaccessible;

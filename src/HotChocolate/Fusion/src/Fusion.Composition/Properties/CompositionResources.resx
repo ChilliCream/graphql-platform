@@ -33,17 +33,14 @@
   <data name="ApolloFederationSchemaFetcher_RequestFailed" xml:space="preserve">
     <value>Source schema '{0}' returned HTTP {1} ({2}) for the _service query.</value>
   </data>
-  <data name="AuthorizeDirective_ApplyArgument_Invalid" xml:space="preserve">
-    <value>The 'apply' argument of the @authorize directive must be of type ApplyPolicy.</value>
+  <data name="AuthenticatedMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @authenticated directive requires the client to be authenticated.</value>
   </data>
-  <data name="AuthorizeDirective_ApplyArgument_InvalidEnumValue" xml:space="preserve">
-    <value>The value '{0}' for argument 'apply' in the @authorize directive is invalid.</value>
+  <data name="AuthorizationDirective_Argument_Invalid" xml:space="preserve">
+    <value>The '{1}' argument of the @{0} directive must be a list of string lists.</value>
   </data>
-  <data name="AuthorizeDirective_PolicyArgument_Invalid" xml:space="preserve">
-    <value>The 'policy' argument of the @authorize directive must be of type String.</value>
-  </data>
-  <data name="AuthorizeDirective_RolesArgument_Invalid" xml:space="preserve">
-    <value>The 'roles' argument of the @authorize directive must be of type [String!].</value>
+  <data name="AuthorizationInheritance_UnexpectedTypeKind" xml:space="preserve">
+    <value>The type kind '{0}' does not carry authorization directives.</value>
   </data>
   <data name="CompositionLogExtensions_EntryMessageWithSchemaName" xml:space="preserve">
     <value>{0} (Schema: '{1}')</value>
@@ -74,6 +71,36 @@
   </data>
   <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
     <value>Source schema validation failed.</value>
+  </data>
+  <data name="FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description" xml:space="preserve">
+    <value>Whether the member requires an authenticated user.</value>
+  </data>
+  <data name="FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description" xml:space="preserve">
+    <value>The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass.</value>
+  </data>
+  <data name="FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description" xml:space="preserve">
+    <value>The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present.</value>
+  </data>
+  <data name="FusionAuthorizationMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__authorization directive carries the merged authorization requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied.</value>
+  </data>
+  <data name="LogEntryHelper_AuthenticatedMismatch" xml:space="preserve">
+    <value>The member '{0}' is marked with @authenticated in the source schemas {1} but not in the source schemas {2}. The composed member requires authentication.</value>
+  </data>
+  <data name="LogEntryHelper_AuthorizationDirectiveArgumentInvalid" xml:space="preserve">
+    <value>The '{1}' argument of the @{0} directive on '{2}' in schema '{3}' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value {4}.</value>
+  </data>
+  <data name="LogEntryHelper_AuthorizationGroupCountExceeded" xml:space="preserve">
+    <value>The merged {0} requirement of '{1}' has {2} alternative groups, which exceeds the threshold of {3}.</value>
+  </data>
+  <data name="LogEntryHelper_AuthorizationInherited" xml:space="preserve">
+    <value>The member '{0}' requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from {1} in the source schemas {2}.</value>
+  </data>
+  <data name="LogEntryHelper_AuthorizationOnInterfaceObject" xml:space="preserve">
+    <value>The @interfaceObject type '{0}' in schema '{1}' cannot be annotated with @{2}. Annotate its fields instead.</value>
+  </data>
+  <data name="LogEntryHelper_AuthorizationTransitiveRequirementsMissing" xml:space="preserve">
+    <value>The field '{0}' depends on '{1}' through '{2}' in schema '{3}', but does not declare all authorization requirements of '{1}'. Not covered: {4}.</value>
   </data>
   <data name="SchemaHttpResponseReader_ResponseTooLarge" xml:space="preserve">
     <value>Source schema '{0}' returned a response larger than the maximum allowed size of {1} bytes.</value>
@@ -579,6 +606,12 @@
   <data name="OverrideMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @override directive is used to migrate a field from one source schema to another.</value>
   </data>
+  <data name="PolicyMutableDirectiveDefinition_Argument_Policies_Description" xml:space="preserve">
+    <value>The policy groups of which at least one must be fully satisfied.</value>
+  </data>
+  <data name="PolicyMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @policy directive requires the client to satisfy all policies of at least one of the policy groups.</value>
+  </data>
   <data name="ProvidesMutableDirectiveDefinition_Argument_Fields_Description" xml:space="preserve">
     <value>Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema.</value>
   </data>
@@ -590,6 +623,12 @@
   </data>
   <data name="RequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema.</value>
+  </data>
+  <data name="RequiresScopesMutableDirectiveDefinition_Argument_Scopes_Description" xml:space="preserve">
+    <value>The scope groups of which at least one must be fully granted.</value>
+  </data>
+  <data name="RequiresScopesMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @requiresScopes directive requires the client to be granted all scopes of at least one of the scope groups.</value>
   </data>
   <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
     <value>The required field '{0}' must not be defined in schema '{1}'.</value>

@@ -1,6 +1,7 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
@@ -60,6 +61,11 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
+    /// <summary>
+    /// Gets the merged authorization requirement, or <c>null</c> if the scalar type has none.
+    /// </summary>
+    internal AuthorizationDirective? Authorization { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether this scalar type is marked as inaccessible.
