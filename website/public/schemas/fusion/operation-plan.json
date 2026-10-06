@@ -6,7 +6,7 @@
   "required": ["version"],
   "properties": {
     "version": {
-      "enum": ["1.0.0"]
+      "enum": ["1.0.0", "1.1.0"]
     }
   },
   "allOf": [
@@ -21,6 +21,19 @@
       },
       "then": {
         "$ref": "#/$defs/v1_0_0_plan"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "version": {
+            "const": "1.1.0"
+          }
+        },
+        "required": ["version"]
+      },
+      "then": {
+        "$ref": "#/$defs/v1_1_0_plan"
       }
     }
   ],
@@ -76,6 +89,71 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/incrementalPlan"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "operation",
+        "searchSpace",
+        "expandedNodes",
+        "nodes"
+      ],
+      "additionalProperties": false
+    },
+    "v1_1_0_plan": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "version": {
+          "const": "1.1.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "searchSpace": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expandedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "appId": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "traceId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "nodes": {
+          "$ref": "#/$defs/nodes"
+        },
+        "deliveryGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/deliveryGroup"
+          },
+          "minItems": 1
+        },
+        "incrementalPlans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/v1_1_0_incrementalPlan"
           },
           "minItems": 1
         }
@@ -265,6 +343,34 @@
         "parentNodeId": {
           "type": "integer",
           "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/requirements"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "nodes": {
+          "$ref": "#/$defs/nodes"
+        }
+      },
+      "required": ["deliveryGroupIds", "parentNodeId", "operation"],
+      "additionalProperties": false
+    },
+    "v1_1_0_incrementalPlan": {
+      "type": "object",
+      "properties": {
+        "deliveryGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "parentNodeId": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The id of the execution node of the enclosing plan that this plan is anchored at. 0 means the plan is anchored at the operation root of an enclosing plan that has no execution node."
         },
         "requirements": {
           "$ref": "#/$defs/requirements"

@@ -28,7 +28,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <summary>
     /// The version of the operation plan JSON format written by this formatter.
     /// </summary>
-    private const string FormatVersion = "1.0.0";
+    private const string FormatVersion = "1.1.0";
 
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {

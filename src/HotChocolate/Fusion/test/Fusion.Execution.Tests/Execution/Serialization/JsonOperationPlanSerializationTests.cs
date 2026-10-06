@@ -1024,6 +1024,58 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Plan_Preserves_NoParentNodeId_When_RootPlanHasNoExecutionNode()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        var originalPlan = PlanOperation(
+            schema,
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchSnapshot();
+        Assert.Empty(parsedPlan.AllNodes);
+        Assert.Equal(
+            IncrementalPlan.NoParentNodeId,
+            Assert.Single(parsedPlan.IncrementalPlans).ParentNodeId);
+    }
+
+    [Fact]
     public void Parse_Plan_Preserves_ParentDependencies_On_Deferred_IncrementalPlan_Nodes()
     {
         // arrange

@@ -1,0 +1,51 @@
+{
+  "version": "1.1.0",
+  "id": "e3bfdf27a7447da7a44fc86a7c355ebfe8fb39a1032110dfefda270dc6b969ba",
+  "operation": {
+    "kind": "Query",
+    "document": "{\n  __typename @fusion__empty\n}",
+    "id": "123456789101112",
+    "hash": "123456789101112",
+    "shortHash": "123456789101112"
+  },
+  "searchSpace": 1,
+  "expandedNodes": 1,
+  "nodes": [],
+  "deliveryGroups": [
+    {
+      "id": 0,
+      "path": "$"
+    }
+  ],
+  "incrementalPlans": [
+    {
+      "deliveryGroupIds": [
+        0
+      ],
+      "parentNodeId": 0,
+      "operation": {
+        "kind": "Query",
+        "document": "{\n  users {\n    id\n  }\n}",
+        "id": "123456789101112#defer_0",
+        "hash": "123456789101112#defer_0",
+        "shortHash": "123456789101112"
+      },
+      "nodes": [
+        {
+          "id": 1,
+          "type": "Operation",
+          "schema": "a",
+          "operation": {
+            "name": "Op_defer_1",
+            "kind": "Query",
+            "document": "query Op_defer_1 {\n  users {\n    id\n  }\n}",
+            "hash": "2cc3b5a55fdfdf80b9984b175e1cae7bc21de0a605d4647d549c5ed435bea939",
+            "shortHash": "2cc3b5a5",
+            "xxHash": 2175018508951606729
+          },
+          "resultSelectionSet": "{ users }"
+        }
+      ]
+    }
+  ]
+}

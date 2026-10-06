@@ -2036,4 +2036,91 @@ public class DeferTests : FusionTestBase
         // The incremental payload carries both birthdate and reviewCount, with birthdate non-null.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
+
+    [Fact]
+    public async Task Defer_RootFragment_Should_DeliverDeferredFetch_When_RootSelectsNothingElse()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server1)]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_RootFragment_Should_DeliverDeferredFetch_When_RootSelectsOnlyTypename()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server1)]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                __typename
+                ... @defer {
+                    users {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
 }

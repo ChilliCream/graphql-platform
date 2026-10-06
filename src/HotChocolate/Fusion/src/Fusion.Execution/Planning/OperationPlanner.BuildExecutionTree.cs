@@ -42,7 +42,18 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, [], [], searchSpace, expandedNodes);
+            var introspectionPlan = OperationPlan.Create(
+                operation,
+                nodes,
+                nodes,
+                deliveryGroups,
+                incrementalPlans,
+                searchSpace,
+                expandedNodes);
+
+            AssignIncrementalPlanAnchors(introspectionPlan, nodes, incrementalPlans);
+
+            return introspectionPlan;
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
@@ -90,28 +101,53 @@ public sealed partial class OperationPlanner
             searchSpace,
             expandedNodes);
 
-        // Assign parent node ids and stable ids after the root plan and
-        // incremental plan nodes have been built. Nested incremental plans are
-        // associated with the plan that owns their parent delivery group.
-        if (!incrementalPlans.IsDefaultOrEmpty)
-        {
-            // Plan-time id: the parent id is known here because the root plan
-            // was just created above, and OperationPlan.Create's content hash
-            // does not include incremental plan ids.
-            for (var i = 0; i < incrementalPlans.Length; i++)
-            {
-                var incrementalPlan = incrementalPlans[i];
-                incrementalPlan.Id = $"{operationPlan.Id}#{i}";
-
-                var path = ResolveIncrementalPlanPath(incrementalPlan);
-                var parent = ResolveIncrementalPlanParent(incrementalPlan, incrementalPlans);
-                var owningNodes = parent is null ? allNodes : parent.AllNodes;
-                incrementalPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
-                    ?? throw ThrowHelper.IncrementalPlanParentNotFound(path);
-            }
-        }
+        AssignIncrementalPlanAnchors(operationPlan, allNodes, incrementalPlans);
 
         return operationPlan;
+    }
+
+    /// <summary>
+    /// Assigns the stable id and the parent node id of every incremental plan after the
+    /// root plan has been created. Nested incremental plans are associated with the plan
+    /// that owns their parent delivery group.
+    /// </summary>
+    private static void AssignIncrementalPlanAnchors(
+        OperationPlan operationPlan,
+        ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
+    {
+        if (incrementalPlans.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        // Plan-time id: the parent id is known here because the root plan
+        // was just created, and OperationPlan.Create's content hash
+        // does not include incremental plan ids.
+        for (var i = 0; i < incrementalPlans.Length; i++)
+        {
+            var incrementalPlan = incrementalPlans[i];
+            incrementalPlan.Id = $"{operationPlan.Id}#{i}";
+
+            var path = ResolveIncrementalPlanPath(incrementalPlan);
+            var parent = ResolveIncrementalPlanParent(incrementalPlan, incrementalPlans);
+            var owningNodes = parent is null ? allNodes : parent.AllNodes;
+
+            if (ResolveDeferParentNodeId(owningNodes, path) is { } parentNodeId)
+            {
+                incrementalPlan.ParentNodeId = parentNodeId;
+            }
+            else if (path.IsRoot && owningNodes.IsDefaultOrEmpty)
+            {
+                // The owning plan has no execution node, so the plan is anchored
+                // directly at the operation root and no node id applies.
+                incrementalPlan.ParentNodeId = IncrementalPlan.NoParentNodeId;
+            }
+            else
+            {
+                throw ThrowHelper.IncrementalPlanParentNotFound(path);
+            }
+        }
     }
 
     /// <summary>
@@ -188,6 +224,7 @@ public sealed partial class OperationPlanner
         var bestDepth = -1;
         int? fallbackMatch = null;
         var fallbackDepth = -1;
+        int? introspectionMatch = null;
 
         for (var i = 0; i < owningNodes.Length; i++)
         {
@@ -196,6 +233,12 @@ public sealed partial class OperationPlanner
 
             switch (owningNodes[i])
             {
+                case IntrospectionExecutionNode when deferPath.IsRoot:
+                    // Introspection results live in the root result object, so a root
+                    // defer can anchor there when no fetch node produces it.
+                    introspectionMatch ??= owningNodes[i].Id;
+                    continue;
+
                 case OperationExecutionNode op:
                     target = op.Target;
                     resultSelectionSet = op.ResultSelectionSet;
@@ -241,7 +284,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        return match ?? fallbackMatch;
+        return match ?? fallbackMatch ?? introspectionMatch;
     }
 
     /// <summary>

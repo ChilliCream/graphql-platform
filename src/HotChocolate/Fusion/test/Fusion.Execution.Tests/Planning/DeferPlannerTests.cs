@@ -2207,6 +2207,76 @@ public class DeferPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void Defer_RootFragment_Should_AnchorDeferredPlanAtIntrospectionNode_When_RootSelectsOnlyTypename()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                __typename
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var parent = plan.GetNodeById(incrementalPlan.ParentNodeId);
+        Assert.IsType<IntrospectionExecutionNode>(parent);
+        Assert.Same(Assert.Single(plan.AllNodes), parent);
+    }
+
+    [Fact]
+    public void Defer_RootFragment_Should_HaveNoParentNode_When_RootPlanHasNoExecutionNode()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Empty(plan.AllNodes);
+        Assert.Equal(IncrementalPlan.NoParentNodeId, incrementalPlan.ParentNodeId);
+    }
+
+    [Fact]
     public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsNotAliased()
     {
         // arrange

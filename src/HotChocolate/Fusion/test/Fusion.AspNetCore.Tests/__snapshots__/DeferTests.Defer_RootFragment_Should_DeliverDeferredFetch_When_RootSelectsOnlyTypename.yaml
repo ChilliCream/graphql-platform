@@ -1,0 +1,154 @@
+title: Defer_RootFragment_Should_DeliverDeferredFetch_When_RootSelectsOnlyTypename
+request:
+  document: |
+    {
+      __typename
+      ... @defer {
+        users {
+          id
+          name
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "__typename": "Query"
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": []
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [],
+        "data": {
+          "users": [
+            {
+              "id": "VXNlcjox",
+              "name": "User: VXNlcjox"
+            },
+            {
+              "id": "VXNlcjoy",
+              "name": "User: VXNlcjoy"
+            },
+            {
+              "id": "VXNlcjoz",
+              "name": "User: VXNlcjoz"
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "__typename": "Query",
+        "users": [
+          {
+            "id": "VXNlcjox",
+            "name": "User: VXNlcjox"
+          },
+          {
+            "id": "VXNlcjoy",
+            "name": "User: VXNlcjoy"
+          },
+          {
+            "id": "VXNlcjoz",
+            "name": "User: VXNlcjoz"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              users {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox",
+                      "name": "User: VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy",
+                      "name": "User: VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz",
+                      "name": "User: VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __typename
+        }
+      hash: 66ec3dd11cfd686e09ab6f8f7e2cf968
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __typename
+          fieldName: __typename
+  deliveryGroups:
+    - id: 0
+      path: $
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              users {
+                id
+                name
+              }
+            }
