@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -27,14 +28,23 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 /// included as a separate per-entry write reference.
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob(
-    RuntimeMoniker.Net10_0,
-    launchCount: 3,
-    warmupCount: 15,
-    iterationCount: 20,
-    invocationCount: 1)]
+[Config(typeof(BenchmarkConfig))]
 public class VariableMergingBenchmark : FusionBenchmarkBase
 {
+    private sealed class BenchmarkConfig : InProcessBenchmarkConfig
+    {
+        public BenchmarkConfig()
+            : base(
+                Job.Default
+                    .WithLaunchCount(3)
+                    .WithWarmupCount(15)
+                    .WithIterationCount(20)
+                    .WithInvocationCount(1)
+                    .WithUnrollFactor(1))
+        {
+        }
+    }
+
     private const string OperationId = "123456789101112";
     private const int MaxRetainedLength = 256;
 

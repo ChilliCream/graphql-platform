@@ -1,12 +1,12 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Configs;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
-[ShortRunJob(RuntimeMoniker.Net10_0)]
+[Config(typeof(InProcessShortRunConfig))]
 [MarkdownExporter]
 public class InlineFragmentOperationRewriterBenchmark : FusionBenchmarkBase
 {
