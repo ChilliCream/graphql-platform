@@ -96,12 +96,15 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             var pipeline = new PipelineBuilder()
                 .Use(MiddlewareFactory.CreateCancellationMiddleware())
                 .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
+                .Use(MiddlewareFactory.CreateHttpContentNegotiationMiddleware(path))
                 .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
                 .Use(MiddlewareFactory.CreateHttpQueryMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
                 .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
-                .UseNitroApp(path, serverOptions.Tool)
+                .UseWhen(
+                    context => context.MayReachNitroApp(path),
+                    branch => branch.UseNitroApp(path, serverOptions.Tool))
                 .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline);

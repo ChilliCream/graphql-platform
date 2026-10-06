@@ -27,6 +27,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
     private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
 
+    private static readonly ResponseContentType[] s_responseContentTypes =
+    [
+        ResponseContentType.GraphQLResponse,
+        ResponseContentType.GraphQLResponseStream,
+        ResponseContentType.Json,
+        ResponseContentType.JsonLines,
+        ResponseContentType.MultiPartMixed,
+        ResponseContentType.EventStream
+    ];
+
     private readonly ConcurrentDictionary<SchemaCacheKey, CachedSchemaOutput> _schemaCache = [];
     private readonly ConcurrentDictionary<SchemaCacheKey, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = [];
     private readonly ITimeProvider _timeProvider;
@@ -386,7 +396,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
                     && varyValue is string varyHeaderValue)
                 {
-                    response.Headers.Vary = varyHeaderValue;
+                    response.Headers.AppendVary(varyHeaderValue);
                 }
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
@@ -1063,6 +1073,78 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     private static double GetQuality(AcceptMediaType mediaType)
         => mediaType.Quality ?? 1.0;
+
+    /// <summary>
+    /// Returns whether the Accept header rates <c>text/html</c> strictly above every media
+    /// type the formatter writes, where a media type no range covers has quality zero.
+    /// </summary>
+    internal static bool PrefersHtml(AcceptMediaType[] acceptMediaTypes)
+    {
+        var htmlQuality = GetHtmlQuality(acceptMediaTypes);
+
+        foreach (var contentType in s_responseContentTypes)
+        {
+            if (MatchFormat(acceptMediaTypes, contentType).Quality >= htmlQuality)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the quality of the most specific media range that covers <c>text/html</c>, or
+    /// zero when no range covers it.
+    /// </summary>
+    private static double GetHtmlQuality(AcceptMediaType[] acceptMediaTypes)
+    {
+        var precedence = 0;
+        var quality = 0d;
+
+        for (var i = 0; i < acceptMediaTypes.Length; i++)
+        {
+            ref readonly var acceptMediaType = ref acceptMediaTypes[i];
+            int candidate;
+
+            if (acceptMediaType.Type.Equals(
+                    ContentType.Types.Text,
+                    StringComparison.OrdinalIgnoreCase)
+                && acceptMediaType.SubType.Equals(
+                    ContentType.SubTypes.Html,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                candidate = ExactRange;
+            }
+            else if (acceptMediaType.Kind is AllText)
+            {
+                candidate = TypeWildcardRange;
+            }
+            else if (acceptMediaType.Kind is All)
+            {
+                candidate = FullWildcardRange;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (candidate < precedence)
+            {
+                continue;
+            }
+
+            var candidateQuality = GetQuality(acceptMediaType);
+
+            if (candidate > precedence || candidateQuality > quality)
+            {
+                precedence = candidate;
+                quality = candidateQuality;
+            }
+        }
+
+        return quality;
+    }
 
     /// <summary>
     /// Throws <see cref="ArgumentOutOfRangeException"/> when <paramref name="version"/> is not a

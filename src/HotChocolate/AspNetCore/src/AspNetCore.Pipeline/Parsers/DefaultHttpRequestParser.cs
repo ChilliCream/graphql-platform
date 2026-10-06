@@ -15,7 +15,8 @@ namespace HotChocolate.AspNetCore.Parsers;
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
     internal const int MinRequestSize = 256;
-    internal const string QueryIdKey = "id";
+    internal const string DocumentIdKey = "documentId";
+    internal const string IdKey = "id";
     private const string OperationNameKey = "operationName";
     private const string OnErrorKey = "onError";
     internal const string QueryKey = "query";
@@ -206,13 +207,19 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             query = parameters[QueryKey];
         }
 
-        string? queryId = parameters[QueryIdKey];
+        string? documentId = parameters[IdKey];
+
+        if (string.IsNullOrWhiteSpace(documentId))
+        {
+            documentId = parameters[DocumentIdKey];
+        }
+
         string? operationName = parameters[OperationNameKey];
         string? onError = parameters[OnErrorKey];
         JsonDocument? extensions = null;
 
-        // if we have no query or query id, we cannot execute anything.
-        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(queryId))
+        // if we have no query or document ID, we cannot execute anything.
+        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(documentId))
         {
             // so, if we do not find a top-level query or top-level id, we will try to parse
             // the extensions and look in the extensions for Apollo's active persisted
@@ -247,14 +254,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 }
             }
 
-            // if we however found a query hash, we will use it as a query id and move on
+            // if we however found a query hash, we will use it as a document ID and move on
             // to execute the query.
-            queryId = hash;
+            documentId = hash;
         }
 
-        if (!string.IsNullOrWhiteSpace(queryId))
+        if (!string.IsNullOrWhiteSpace(documentId))
         {
-            EnsureValidDocumentId(queryId);
+            EnsureValidDocumentId(documentId);
         }
 
         try
@@ -285,7 +292,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
             return new GraphQLRequest(
                 document,
-                queryId,
+                documentId,
                 documentHash,
                 operationName,
                 errorHandlingMode,

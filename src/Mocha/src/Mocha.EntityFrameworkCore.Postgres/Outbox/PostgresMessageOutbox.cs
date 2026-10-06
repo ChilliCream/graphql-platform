@@ -78,28 +78,32 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
             var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
 
-            if (connection.State != System.Data.ConnectionState.Open)
+            try
             {
-                await connection.OpenAsync(cancellationToken);
+                await _originalDbContext.Database.OpenConnectionAsync(cancellationToken);
+
+                await using var writer = new Utf8JsonWriter(_arrayWriter);
+                writer.WriteEnvelope(envelope);
+                writer.Flush(); // we know it's not async
+
+                // Execute the INSERT command
+                await using var command = connection.CreateCommand();
+                command.CommandText = _insertSql;
+                command.Parameters.AddWithValue("@id", NewVersion());
+                command.Parameters.Add(
+                    new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
+                await command.PrepareAsync(cancellationToken);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
+
+                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                {
+                    _signal.Set();
+                }
             }
-
-            await using var writer = new Utf8JsonWriter(_arrayWriter);
-            writer.WriteEnvelope(envelope);
-            writer.Flush(); // we know it's not async
-
-            // Execute the INSERT command
-            await using var command = connection.CreateCommand();
-            command.CommandText = _insertSql;
-            command.Parameters.AddWithValue("@id", NewVersion());
-            command.Parameters.Add(
-                new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
-            await command.PrepareAsync(cancellationToken);
-
-            await command.ExecuteNonQueryAsync(cancellationToken);
-
-            if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+            finally
             {
-                _signal.Set();
+                await _originalDbContext.Database.CloseConnectionAsync();
             }
         }
         finally

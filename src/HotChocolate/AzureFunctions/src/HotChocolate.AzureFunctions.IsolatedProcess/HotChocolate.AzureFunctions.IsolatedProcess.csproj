@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" />
   </ItemGroup>

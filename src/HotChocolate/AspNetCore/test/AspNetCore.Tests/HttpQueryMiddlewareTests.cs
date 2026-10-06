@@ -34,6 +34,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
@@ -67,6 +68,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
@@ -179,6 +181,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -214,6 +217,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -251,6 +255,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -292,6 +297,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -345,6 +351,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
