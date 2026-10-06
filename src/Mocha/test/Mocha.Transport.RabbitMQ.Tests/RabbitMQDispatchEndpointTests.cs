@@ -25,7 +25,6 @@ public class RabbitMQDispatchEndpointTests
         // assert
         Assert.NotNull(endpoint.Queue);
         Assert.Equal("my-q", endpoint.Queue.Name);
-        Assert.Equal("my-q", endpoint.QueueName);
         Assert.Null(endpoint.Exchange);
         Assert.IsType<RabbitMQQueue>(endpoint.Destination);
     }
@@ -49,7 +48,6 @@ public class RabbitMQDispatchEndpointTests
         // assert
         Assert.NotNull(endpoint.Exchange);
         Assert.Equal("my-ex", endpoint.Exchange.Name);
-        Assert.Equal("my-ex", endpoint.ExchangeName);
         Assert.Null(endpoint.Queue);
         Assert.IsType<RabbitMQExchange>(endpoint.Destination);
     }
@@ -201,11 +199,9 @@ public class RabbitMQDispatchEndpointTests
     }
 
     [Fact]
-    public void GetDispatchEndpoint_Should_TargetQueueByName_When_QueueNotInTopology()
+    public void GetDispatchEndpoint_Should_AddUnprovisionedQueue_When_QueueNotDeclaredUnderExplicitBinding()
     {
         // arrange
-        // explicit binding adds nothing to the topology for an address-created endpoint, so the
-        // queue is addressed by name only
         var runtime = CreateRuntime(t => t.BindExplicitly());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
@@ -214,22 +210,30 @@ public class RabbitMQDispatchEndpointTests
 
         // assert
         var rabbitEndpoint = Assert.IsType<RabbitMQDispatchEndpoint>(endpoint);
-        Assert.Equal("reporting.events", rabbitEndpoint.QueueName);
-        Assert.Null(rabbitEndpoint.Queue);
-        Assert.Null(rabbitEndpoint.Destination);
+        Assert.NotNull(rabbitEndpoint.Queue);
+        Assert.False(rabbitEndpoint.Queue.AutoProvision);
+        Assert.Equal(TopologyOrigin.Endpoint, rabbitEndpoint.Queue.Origin);
+        Assert.Same(rabbitEndpoint.Queue, rabbitEndpoint.Destination);
         RabbitMQDescribeSnapshot.Create(transport.Describe()).MatchInlineSnapshot(
             """
             {
               "Schema": "rabbitmq",
               "TransportType": "RabbitMQMessagingTransport",
-              "Entities": [],
+              "Entities": [
+                {
+                  "Kind": "queue",
+                  "Name": "reporting.events",
+                  "AutoProvision": false,
+                  "Origin": "endpoint"
+                }
+              ],
               "Links": []
             }
             """);
     }
 
     [Fact]
-    public void GetDispatchEndpoint_Should_TargetExchangeByName_When_ExchangeNotInTopology()
+    public void GetDispatchEndpoint_Should_AddUnprovisionedExchange_When_ExchangeNotDeclaredUnderExplicitBinding()
     {
         // arrange
         var runtime = CreateRuntime(t => t.BindExplicitly());
@@ -240,15 +244,23 @@ public class RabbitMQDispatchEndpointTests
 
         // assert
         var rabbitEndpoint = Assert.IsType<RabbitMQDispatchEndpoint>(endpoint);
-        Assert.Equal("reporting-events", rabbitEndpoint.ExchangeName);
-        Assert.Null(rabbitEndpoint.Exchange);
-        Assert.Null(rabbitEndpoint.Destination);
+        Assert.NotNull(rabbitEndpoint.Exchange);
+        Assert.False(rabbitEndpoint.Exchange.AutoProvision);
+        Assert.Equal(TopologyOrigin.Endpoint, rabbitEndpoint.Exchange.Origin);
+        Assert.Same(rabbitEndpoint.Exchange, rabbitEndpoint.Destination);
         RabbitMQDescribeSnapshot.Create(transport.Describe()).MatchInlineSnapshot(
             """
             {
               "Schema": "rabbitmq",
               "TransportType": "RabbitMQMessagingTransport",
-              "Entities": [],
+              "Entities": [
+                {
+                  "Kind": "exchange",
+                  "Name": "reporting-events",
+                  "AutoProvision": false,
+                  "Origin": "endpoint"
+                }
+              ],
               "Links": []
             }
             """);

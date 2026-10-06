@@ -240,7 +240,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
-                if (candidate.IsCompleted && candidate.Address == address)
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
+                if (candidate.Address == address)
                 {
                     endpoint = candidate;
                     return true;
@@ -248,35 +253,16 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        string? queueName = null;
-        string? exchangeName = null;
-
-        if (address.TryParseTopologyAddress(Topology.Address, out var kind, out var name))
-        {
-            if (kind is 'q')
-            {
-                queueName = name;
-            }
-            else if (kind is 'e')
-            {
-                exchangeName = name;
-            }
-        }
-        else if (TryGetResourceName(address, "queue", out var resourceQueueName))
-        {
-            queueName = resourceQueueName;
-        }
-        else if (TryGetResourceName(address, "exchange", out var resourceExchangeName))
-        {
-            exchangeName = resourceExchangeName;
-        }
-
-        if (queueName is not null)
+        if (Topology.Address.IsBaseOf(address))
         {
             foreach (var candidate in DispatchEndpoints)
             {
-                if (candidate is RabbitMQDispatchEndpoint { IsCompleted: true } rabbitCandidate
-                    && rabbitCandidate.QueueName == queueName)
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
+                if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
                     return true;
@@ -284,12 +270,34 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        if (exchangeName is not null)
+        if (TryGetResourceName(address, "queue", out var queueName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
-                if (candidate is RabbitMQDispatchEndpoint { IsCompleted: true } rabbitCandidate
-                    && rabbitCandidate.ExchangeName == exchangeName)
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
+                if (candidate.Destination is RabbitMQQueue queue && queue.Name == queueName)
+                {
+                    endpoint = candidate;
+                    return true;
+                }
+            }
+        }
+
+        if (TryGetResourceName(address, "exchange", out var exchangeName))
+        {
+            foreach (var candidate in DispatchEndpoints)
+            {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
+                if (candidate.Destination is RabbitMQExchange exchange
+                    && exchange.Name == exchangeName)
                 {
                     endpoint = candidate;
                     return true;

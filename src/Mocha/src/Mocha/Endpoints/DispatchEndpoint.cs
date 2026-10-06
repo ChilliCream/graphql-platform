@@ -95,7 +95,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 
     /// <summary>
     /// Gets the topology resource that represents the destination to which messages are dispatched.
-    /// A transport leaves this unset when the endpoint addresses a destination outside its topology.
     /// </summary>
     public TopologyResource Destination { get; protected set; } = null!;
 
