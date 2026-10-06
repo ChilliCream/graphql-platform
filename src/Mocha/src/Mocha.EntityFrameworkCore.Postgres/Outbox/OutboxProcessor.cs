@@ -66,11 +66,6 @@ public sealed class PostgresOutboxProcessor
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            using var activity = OpenTelemetry.Source.StartActivity(
-                "Process Message Outbox",
-                ActivityKind.Consumer,
-                new ActivityContext());
-
             using var joinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             try
@@ -78,8 +73,6 @@ public sealed class PostgresOutboxProcessor
                 var signaled = _signal.WaitAsync(joinedCts.Token);
 
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
-
-                activity?.Dispose();
 
                 if (nextPollingInterval is not null)
                 {
@@ -110,12 +103,20 @@ public sealed class PostgresOutboxProcessor
         await using var connection = _options.CreateConnection(scope.ServiceProvider);
         await connection.OpenAsync(cancellationToken);
 
-        while (await ProcessEventAsync(connection, cancellationToken))
+        while (true)
         {
+            using var activity = OpenTelemetry.Source.StartActivity(
+                "Process Message Outbox",
+                ActivityKind.Consumer,
+                new ActivityContext());
+
+            if (!await ProcessEventAsync(connection, cancellationToken))
+            {
+                return await GetNextPollingIntervalAsync(connection, cancellationToken);
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
         }
-
-        return await GetNextPollingIntervalAsync(connection, cancellationToken);
     }
 
     private async Task<TimeSpan?> GetNextPollingIntervalAsync(
