@@ -40,7 +40,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
     }
 
     [Fact]
-    public async Task PersistAsync_Should_SignalOnce_When_ManyMessagesShareAmbientTransaction()
+    public async Task PersistAsync_Should_SignalOnlyAfterCommit_When_ManyMessagesShareAmbientTransaction()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -64,24 +64,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         }
 
         // assert
-        Assert.Equal(["before-complete", "set(visible=5)"], signal.Events.ToArray());
-    }
-
-    [Fact]
-    public void SetAfterAmbientTransaction_Should_NotThrowOnCommit_When_SignalIsDisposed()
-    {
-        // arrange
-        var signal = new DisposedOutboxSignal();
-        var transaction = new TransactionScope();
-        signal.SetAfterAmbientTransaction();
-        transaction.Complete();
-
-        // act
-        var exception = Record.Exception(transaction.Dispose);
-
-        // assert
-        Assert.Null(exception);
-        Assert.Equal(1, signal.SetCallCount);
+        AssertSignaledOnlyAfterCommit(signal);
     }
 
     [Fact]
@@ -258,20 +241,6 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         public void Record(object message) => _semaphore.Release();
 
         public Task<bool> WaitAsync(TimeSpan timeout) => _semaphore.WaitAsync(timeout);
-    }
-
-    private sealed class DisposedOutboxSignal : IOutboxSignal
-    {
-        public int SetCallCount { get; private set; }
-
-        public void Set()
-        {
-            SetCallCount++;
-            throw new ObjectDisposedException(nameof(DisposedOutboxSignal));
-        }
-
-        public Task WaitAsync(CancellationToken cancellationToken)
-            => throw new ObjectDisposedException(nameof(DisposedOutboxSignal));
     }
 
     private sealed class VisibilityProbeSignal(string connectionString) : IOutboxSignal
