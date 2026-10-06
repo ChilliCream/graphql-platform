@@ -110,12 +110,8 @@ internal static class TelemetryTimestamp
     }
 
     private static string MaximumAgeMessage(string optionName)
-        => $"Option '{optionName}' cannot be more than 60 days in the past."
-        + Environment.NewLine
-        + "hint: choose a more recent timestamp or duration.";
+        => $"Option '{optionName}' cannot be more than 60 days in the past.";
 
     private static string InvalidValueMessage(string optionName, string value)
-        => $"Option '{optionName}' received an invalid value: {value}"
-        + Environment.NewLine
-        + "hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.";
+        => $"Option '{optionName}' received an invalid value: {value}";
 }

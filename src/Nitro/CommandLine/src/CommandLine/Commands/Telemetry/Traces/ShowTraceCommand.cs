@@ -39,22 +39,19 @@ internal sealed class ShowTraceCommand : Command
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var traceId = parseResult.GetRequiredValue(Opt<TraceIdArgument>.Instance);
         var spanId = parseResult.GetValue(Opt<TraceSpanOption>.Instance);
         var seeker = parseResult.GetSeeker();
+
         var trace = await client.GetTraceAsync(workspaceId, traceId, spanId, seeker, cancellationToken);
 
         if (trace is null || trace.Spans.Count == 0)
         {
-            return TelemetryErrorRenderer.Render(
-                console,
-                $"The trace '{traceId}' was not found.",
-                "run nitro telemetry traces list --since 2h");
+            throw ThrowHelper.Exit($"The trace '{traceId.EscapeMarkup()}' was not found.");
         }
 
         if (!console.IsHumanReadable)

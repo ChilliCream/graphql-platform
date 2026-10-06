@@ -151,7 +151,7 @@ internal sealed class CompiledTelemetryFilter
         }
         catch (FilterParseException exception)
         {
-            RenderParseError(console, signal, filterText!, exception);
+            RenderParseError(console, filterText!, exception);
             filter = null;
             return false;
         }
@@ -260,23 +260,14 @@ internal sealed class CompiledTelemetryFilter
 
     private static void RenderParseError(
         INitroConsole console,
-        TelemetryFilterSignal signal,
         string filterText,
         FilterParseException exception)
     {
-        var examples =
-            signal == TelemetryFilterSignal.Traces
-                ? "hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`"
-                : "hint: examples: `severity:error`, `@resource.service.name:checkout`, "
-                    + "or `exception.type:TimeoutException`";
-
         console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
         console.Error.WriteLine();
         console.Error.Write(new Text(filterText));
         console.Error.WriteLine();
         console.Error.Write(new Text($"{new string(' ', exception.Column - 1)}^"));
-        console.Error.WriteLine();
-        console.Error.Write(new Text(examples));
         console.Error.WriteLine();
     }
 }

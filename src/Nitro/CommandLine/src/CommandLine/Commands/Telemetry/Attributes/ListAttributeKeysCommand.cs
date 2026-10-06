@@ -35,15 +35,13 @@ internal sealed class ListAttributeKeysCommand : Command
         ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var signal = parseResult.GetRequiredValue(Opt<AttributeSignalOption>.Instance);
         var kinds = parseResult.GetValue(Opt<AttributeKindsOption>.Instance);
@@ -52,6 +50,7 @@ internal sealed class ListAttributeKeysCommand : Command
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
+
         var page = await client.ListAttributeKeysAsync(
             workspaceId,
             signal,

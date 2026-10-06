@@ -54,7 +54,7 @@ public sealed class TelemetryTimestampTests
     }
 
     [Fact]
-    public void TryParse_Should_ReturnHint_When_ValueIsInvalid()
+    public void TryParse_Should_ReturnError_When_ValueIsInvalid()
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
@@ -73,7 +73,6 @@ public sealed class TelemetryTimestampTests
         Assert.Equal(
             """
             Option '--since' received an invalid value: yesterday
-            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """,
             error);
     }
@@ -81,7 +80,7 @@ public sealed class TelemetryTimestampTests
     [Theory]
     [InlineData("61d")]
     [InlineData("2025-10-31T12:00:00Z")]
-    public void TryParse_Should_ReturnHint_When_SinceIsOlderThanSixtyDays(string value)
+    public void TryParse_Should_ReturnError_When_SinceIsOlderThanSixtyDays(string value)
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
@@ -94,7 +93,6 @@ public sealed class TelemetryTimestampTests
         Assert.Equal(
             """
             Option '--since' cannot be more than 60 days in the past.
-            hint: choose a more recent timestamp or duration.
             """,
             error);
     }
@@ -119,7 +117,6 @@ public sealed class TelemetryTimestampTests
         Assert.Equal(
             """
             Option '--until' cannot be more than 60 days in the past.
-            hint: choose a more recent timestamp or duration.
             """,
             error);
     }
@@ -146,7 +143,6 @@ public sealed class TelemetryTimestampTests
         Assert.Equal(
             $"""
             Option '{optionName}' received an invalid value: yesterday
-            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """,
             Assert.Single(result.Errors).Message);
     }

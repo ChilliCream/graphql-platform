@@ -58,7 +58,6 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertError(
             """
             This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
-            hint: run `nitro login`.
             """);
     }
 
@@ -79,7 +78,6 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.AssertError(
             """
             Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
-            hint: run `nitro workspace set-default`.
             """);
     }
 
@@ -93,7 +91,6 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--since' received an invalid value: yesterday
-            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -108,7 +105,6 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--until' received an invalid value: yesterday
-            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -123,7 +119,6 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--since' cannot be more than 60 days in the past.
-            hint: choose a more recent timestamp or duration.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -171,7 +166,6 @@ public sealed class ListServicesCommandTests(NitroCommandFixture fixture) : Tele
             filter: Missing value in key:value pair at column 7
             status:
                   ^
-            hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`
             """);
     }
 

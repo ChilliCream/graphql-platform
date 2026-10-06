@@ -2,7 +2,6 @@ using System.Globalization;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -29,25 +28,21 @@ internal sealed class ShowLogCommand : Command
         ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var id = parseResult.GetRequiredValue(Opt<LogIdArgument>.Instance);
+
         var log = await client.GetLogAsync(workspaceId, id, cancellationToken);
 
         if (log is null)
         {
-            return TelemetryErrorRenderer.Render(
-                console,
-                $"The log '{id}' was not found.",
-                "run nitro telemetry logs list");
+            throw ThrowHelper.Exit($"The log '{id.EscapeMarkup()}' was not found.");
         }
 
         var detail = LogDetail.From(log);

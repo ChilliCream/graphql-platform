@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
-using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -34,28 +33,24 @@ internal sealed class ShowServiceCommand : Command
         ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ITelemetryClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var name = parseResult.GetRequiredValue(Opt<ServiceNameArgument>.Instance);
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
+
         var service = await client.GetServiceAsync(workspaceId, name, environments, since, until, cancellationToken);
 
         if (service is null)
         {
-            return TelemetryErrorRenderer.Render(
-                console,
-                $"The service '{name}' was not found.",
-                "run nitro telemetry services list");
+            throw ThrowHelper.Exit($"The service '{name.EscapeMarkup()}' was not found.");
         }
 
         var detail = ServiceDetail.From(service);

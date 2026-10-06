@@ -41,10 +41,9 @@ internal sealed class ListServicesCommand : Command
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var search = parseResult.GetValue(Opt<TelemetryServiceSearchOption>.Instance);
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);

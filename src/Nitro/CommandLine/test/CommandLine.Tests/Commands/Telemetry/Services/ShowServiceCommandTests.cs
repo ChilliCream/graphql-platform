@@ -57,7 +57,6 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         result.AssertError(
             """
             This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
-            hint: run `nitro login`.
             """);
     }
 
@@ -78,7 +77,6 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         result.AssertError(
             """
             Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
-            hint: run `nitro workspace set-default`.
             """);
     }
 
@@ -106,7 +104,6 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--since' received an invalid value: yesterday
-            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -121,7 +118,6 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--until' received an invalid value: yesterday
-            hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -136,7 +132,6 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--since' cannot be more than 60 days in the past.
-            hint: choose a more recent timestamp or duration.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -248,7 +243,6 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         result.AssertError(
             """
             The service 'products' was not found.
-            hint: run nitro telemetry services list
             """);
     }
 
@@ -271,6 +265,32 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
             """
             There was an unexpected error: Something unexpected happened.
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Show_Should_PrintLiteralName_When_MissingServiceNameContainsMarkup(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        TelemetryClientMock
+            .Setup(x => x.GetServiceAsync(
+                WorkspaceId,
+                "[products]",
+                It.IsAny<IReadOnlyList<string>?>(),
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ServiceRow?)null);
+
+        // act
+        var result = await ExecuteCommandAsync("telemetry", "services", "show", "[products]");
+
+        // assert
+        result.AssertError("The service '[products]' was not found.");
     }
 
     private void SetupGetService(ServiceRow? service, string[]? environments = null)

@@ -46,10 +46,9 @@ internal sealed class ListTraceCommand : Command
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetryTraceSearchOption>.Instance);

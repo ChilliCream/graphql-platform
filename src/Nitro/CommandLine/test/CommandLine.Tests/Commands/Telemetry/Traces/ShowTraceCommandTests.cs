@@ -57,7 +57,6 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertError(
             """
             This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
-            hint: run `nitro login`.
             """);
     }
 
@@ -78,7 +77,6 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertError(
             """
             Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
-            hint: run `nitro workspace set-default`.
             """);
     }
 
@@ -470,7 +468,6 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertError(
             """
             The trace 'trace-id' was not found.
-            hint: run nitro telemetry traces list --since 2h
             """);
     }
 
@@ -492,7 +489,6 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
         result.AssertError(
             """
             The trace 'trace-id' was not found.
-            hint: run nitro telemetry traces list --since 2h
             """);
     }
 

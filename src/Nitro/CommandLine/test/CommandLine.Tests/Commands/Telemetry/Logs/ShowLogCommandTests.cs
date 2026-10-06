@@ -52,7 +52,6 @@ public sealed class ShowLogCommandTests(NitroCommandFixture fixture) : Telemetry
         result.AssertError(
             """
             This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
-            hint: run `nitro login`.
             """);
     }
 
@@ -73,7 +72,6 @@ public sealed class ShowLogCommandTests(NitroCommandFixture fixture) : Telemetry
         result.AssertError(
             """
             Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
-            hint: run `nitro workspace set-default`.
             """);
     }
 
@@ -207,7 +205,6 @@ public sealed class ShowLogCommandTests(NitroCommandFixture fixture) : Telemetry
         result.AssertError(
             """
             The log 'log-1' was not found.
-            hint: run nitro telemetry logs list
             """);
     }
 

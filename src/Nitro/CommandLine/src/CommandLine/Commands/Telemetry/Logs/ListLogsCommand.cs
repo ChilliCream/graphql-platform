@@ -47,16 +47,16 @@ internal sealed class ListLogsCommand : Command
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
-        {
-            return ExitCodes.Error;
-        }
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
         var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
         var severity = parseResult.GetValue(Opt<TelemetrySeverityOption>.Instance);
         var traceId = parseResult.GetValue(Opt<TelemetryTraceIdOption>.Instance);
         var search = parseResult.GetValue(Opt<TelemetryLogSearchOption>.Instance);
+
         if (!CompiledTelemetryFilter.TryCreate(
                 console,
                 filterText,
@@ -74,6 +74,7 @@ internal sealed class ListLogsCommand : Command
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
+
         var page = await client.ListLogsAsync(
             workspaceId,
             filter.Input,
