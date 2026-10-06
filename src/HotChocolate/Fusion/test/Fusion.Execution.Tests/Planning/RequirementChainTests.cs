@@ -55,6 +55,37 @@ public class RequirementChainTests : FusionTestBase
     }
 
     [Fact]
+    public void Requires_Requires_Many_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
+    {
+        // arrange
+        var schema = CreateRequiresRequiresSchema();
+        var options = new OperationPlannerOptions { OperationWeight = 100.0 };
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                price
+                hasDiscount
+                isExpensive
+                isExpensiveWithDiscount
+                canAfford
+                canAfford2
+                canAffordWithDiscount
+                canAffordWithDiscount2
+              }
+            }
+            """,
+            options);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Requires_Requires_Two_Fields_Same_Requirement_Different_Order()
     {
         // arrange

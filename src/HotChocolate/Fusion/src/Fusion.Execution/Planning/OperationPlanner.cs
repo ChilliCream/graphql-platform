@@ -1943,17 +1943,40 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 workItem.SourceSchemaNodePolicy);
 
-        var selectionSetNode = new SelectionSetNode(
-            [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
-        indexBuilder.Register(workItem.Selection.SelectionSetId, selectionSetNode);
+        var selectionNode =
+            workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections);
+        OperationPlanStep? refreshedExistingStep = null;
 
         if (mergeWithExistingStep)
         {
-            if (steps[existingStepIndex] is not OperationPlanStep refreshedExistingStep)
+            if (steps[existingStepIndex] is not OperationPlanStep refreshedStep)
             {
                 return;
             }
 
+            refreshedExistingStep = refreshedStep;
+
+            // Two merged lookups that select the same response name with different
+            // argument variables must not share a response key in the merged document.
+            var existingSelectionSet = FindSelectionSet(
+                refreshedExistingStep.Definition.SelectionSet,
+                indexBuilder,
+                refreshedExistingStep.RootSelectionSetId);
+
+            if (existingSelectionSet is not null
+                && HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+            {
+                selectionNode = CreateFieldWithAlias(
+                    selectionNode,
+                    requirementAliases.MintAlias(selectionNode));
+            }
+        }
+
+        var selectionSetNode = new SelectionSetNode([selectionNode]);
+        indexBuilder.Register(workItem.Selection.SelectionSetId, selectionSetNode);
+
+        if (refreshedExistingStep is not null)
+        {
             var operation = InlineSelections(
                 refreshedExistingStep.Definition,
                 indexBuilder,
@@ -3186,56 +3209,56 @@ public sealed partial class OperationPlanner
 
         unresolvable = partitionUnresolvable;
         return true;
+    }
 
-        static SelectionSetNode? FindSelectionSet(
-            SelectionSetNode selectionSet,
-            SelectionSetIndexBuilder index,
-            uint targetSelectionSetId)
+    private static SelectionSetNode? FindSelectionSet(
+        SelectionSetNode selectionSet,
+        SelectionSetIndexBuilder index,
+        uint targetSelectionSetId)
+    {
+        if (index.IsRegistered(selectionSet)
+            && index.GetId(selectionSet) == targetSelectionSetId)
         {
-            if (index.IsRegistered(selectionSet)
-                && index.GetId(selectionSet) == targetSelectionSetId)
-            {
-                return selectionSet;
-            }
+            return selectionSet;
+        }
 
-            foreach (var selection in selectionSet.Selections)
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
             {
-                switch (selection)
+                case FieldNode { SelectionSet: not null } field:
                 {
-                    case FieldNode { SelectionSet: not null } field:
+                    var result = FindSelectionSet(
+                        field.SelectionSet,
+                        index,
+                        targetSelectionSetId);
+
+                    if (result is not null)
                     {
-                        var result = FindSelectionSet(
-                            field.SelectionSet,
-                            index,
-                            targetSelectionSetId);
-
-                        if (result is not null)
-                        {
-                            return result;
-                        }
-
-                        break;
+                        return result;
                     }
 
-                    case InlineFragmentNode inlineFragment:
+                    break;
+                }
+
+                case InlineFragmentNode inlineFragment:
+                {
+                    var result = FindSelectionSet(
+                        inlineFragment.SelectionSet,
+                        index,
+                        targetSelectionSetId);
+
+                    if (result is not null)
                     {
-                        var result = FindSelectionSet(
-                            inlineFragment.SelectionSet,
-                            index,
-                            targetSelectionSetId);
-
-                        if (result is not null)
-                        {
-                            return result;
-                        }
-
-                        break;
+                        return result;
                     }
+
+                    break;
                 }
             }
-
-            return null;
         }
+
+        return null;
     }
 
     private static FieldNode CreateFieldWithAlias(FieldNode field, string internalAlias)
