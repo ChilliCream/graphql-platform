@@ -8,17 +8,37 @@ namespace Mocha.Transport.RabbitMQ;
 /// RabbitMQ dispatch endpoint that publishes outbound messages to a target queue or exchange
 /// using pooled channels from the transport's dispatcher.
 /// </summary>
+/// <remarks>
+/// The target is addressed by name. A target that is part of the transport topology is provisioned
+/// according to its auto-provision setting; a target outside the topology is published to by name
+/// and is never declared, bound, or consumed.
+/// </remarks>
 /// <param name="transport">The owning RabbitMQ transport instance.</param>
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)
     : DispatchEndpoint<RabbitMQDispatchEndpointConfiguration>(transport)
 {
+    private CachedString _exchangeName = CachedString.Empty;
+    private CachedString _routingKey = CachedString.Empty;
+
     /// <summary>
-    /// Gets the target queue for this endpoint, or <c>null</c> if the endpoint targets an exchange.
+    /// Gets the name of the target queue, or <c>null</c> if the endpoint targets an exchange.
+    /// </summary>
+    public string? QueueName { get; private set; }
+
+    /// <summary>
+    /// Gets the name of the target exchange, or <c>null</c> if the endpoint targets a queue.
+    /// </summary>
+    public string? ExchangeName { get; private set; }
+
+    /// <summary>
+    /// Gets the topology queue this endpoint targets, or <c>null</c> if the endpoint targets an
+    /// exchange or a queue that is not part of the transport topology.
     /// </summary>
     public RabbitMQQueue? Queue { get; private set; }
 
     /// <summary>
-    /// Gets the target exchange for this endpoint, or <c>null</c> if the endpoint targets a queue.
+    /// Gets the topology exchange this endpoint targets, or <c>null</c> if the endpoint targets a
+    /// queue or an exchange that is not part of the transport topology.
     /// </summary>
     public RabbitMQExchange? Exchange { get; private set; }
 
@@ -107,19 +127,14 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         }
         else
         {
-            if (Exchange is not null)
-            {
-                exchangeName = Exchange.CachedName;
+            exchangeName = _exchangeName;
+            routingKey = _routingKey;
 
-                if (envelope.Headers is not null
-                    && envelope.Headers.TryGet(RabbitMQMessageHeaders.RoutingKey, out var rk))
-                {
-                    routingKey = new CachedString(rk);
-                }
-            }
-            else if (Queue is not null)
+            if (ExchangeName is not null
+                && envelope.Headers is not null
+                && envelope.Headers.TryGet(RabbitMQMessageHeaders.RoutingKey, out var rk))
             {
-                routingKey = Queue.CachedName;
+                routingKey = new CachedString(rk);
             }
         }
 
@@ -167,22 +182,21 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         RabbitMQDispatchEndpointConfiguration configuration)
     {
         var topology = (RabbitMQMessagingTopology)Transport.Topology;
-        if (configuration.ExchangeName is not null)
+
+        if (configuration.ExchangeName is { } exchangeName)
         {
-            Exchange =
-                topology.Exchanges.FirstOrDefault(e => e.Name == configuration.ExchangeName)
-                ?? throw new InvalidOperationException("Exchange not found");
+            ExchangeName = exchangeName;
+            Exchange = topology.Exchanges.FirstOrDefault(e => e.Name == exchangeName);
+            _exchangeName = Exchange?.CachedName ?? new CachedString(exchangeName);
         }
-        else if (configuration.QueueName is not null)
+        else if (configuration.QueueName is { } queueName)
         {
-            Queue =
-                topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName)
-                ?? throw new InvalidOperationException("Queue not found");
+            QueueName = queueName;
+            Queue = topology.Queues.FirstOrDefault(q => q.Name == queueName);
+            _routingKey = Queue?.CachedName ?? new CachedString(queueName);
         }
 
-        Destination =
-            Exchange as TopologyResource
-            ?? Queue as TopologyResource
-            ?? throw new InvalidOperationException("Destination is not set");
+        // The destination stays unset for a target outside the topology.
+        Destination = ((TopologyResource?)Exchange ?? Queue)!;
     }
 }
