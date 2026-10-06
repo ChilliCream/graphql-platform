@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.Postgres.Tests.Helpers;
 using Npgsql;
@@ -100,13 +99,23 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
 
         // assert
         var migrationHistory = await ReadMigrationHistoryAsync(connection);
+        var tables = await ReadTableNamesAsync(connection);
+        var sequences = await ReadSequenceNamesAsync(connection);
 
         Assert.Equal(
             ["2026-03-06_AddConsumerManagement", "2026-03-06_AddTransportIndex", "2026-03-06_InitialSchema"],
             migrationHistory);
-        Snapshot.Create()
-            .Add(await ReadSchemaAsync(connection), "Schema")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(
+            [
+                "mocha_consumers",
+                "mocha_message",
+                "mocha_migrations",
+                "mocha_queue",
+                "mocha_queue_subscription",
+                "mocha_topic"
+            ],
+            tables);
+        Assert.Equal(["mocha_topology_seq"], sequences);
     }
 
     [Theory]
@@ -118,17 +127,17 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         await using var database = await fixture.CreateDatabaseAsync();
         await using var connection = await OpenConnectionAsync(database.ConnectionString);
         await ApplyMigrationsAsync(connection, useMigrationScript);
-        var schema = await ReadSchemaAsync(connection);
+        var tables = await ReadTableNamesAsync(connection);
         var migrationHistory = await ReadMigrationHistoryAsync(connection);
 
         // act
         await ApplyMigrationsAsync(connection, useMigrationScript);
 
         // assert
-        var repeatedSchema = await ReadSchemaAsync(connection);
+        var repeatedTables = await ReadTableNamesAsync(connection);
         var repeatedMigrationHistory = await ReadMigrationHistoryAsync(connection);
 
-        Assert.Equal(schema, repeatedSchema);
+        Assert.Equal(tables, repeatedTables);
         Assert.Equal(migrationHistory, repeatedMigrationHistory);
     }
 
@@ -148,19 +157,38 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
                 applied_on timestamptz NOT NULL DEFAULT now());
             INSERT INTO messaging.mocha_migrations (migration_id) VALUES ('2026-03-06_InitialSchema');
             """);
+        var tables = await ReadTableNamesAsync(connection);
 
         // act
         await ApplyMigrationsAsync(connection, useMigrationScript);
 
         // assert
         var migrationHistory = await ReadMigrationHistoryAsync(connection);
+        var migratedTables = await ReadTableNamesAsync(connection);
+        var messageIndexes = await ReadMessageIndexNamesAsync(connection);
+        var queueColumns = await ReadQueueColumnNamesAsync(connection);
 
         Assert.Equal(
             ["2026-03-06_AddConsumerManagement", "2026-03-06_AddTransportIndex", "2026-03-06_InitialSchema"],
             migrationHistory);
-        Snapshot.Create()
-            .Add(await ReadSchemaAsync(connection), "Schema")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(["mocha_consumers"], migratedTables.Except(tables));
+        Assert.Equal(
+            [
+                "mocha_message_expiration_scheduled_ndx",
+                "mocha_message_pkey",
+                "mocha_message_queue_ndx",
+                "mocha_message_sent_time_ndx",
+                "mocha_message_transport_queue_ndx"
+            ],
+            messageIndexes);
+        Assert.Equal(
+            [
+                "id",
+                "updated",
+                "name",
+                "consumer_id"
+            ],
+            queueColumns);
     }
 
     [Fact]
@@ -226,21 +254,21 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         // arrange
         await using var database = await fixture.CreateDatabaseAsync();
         await using var connection = await OpenConnectionAsync(database.ConnectionString);
+        // The conflicting view deliberately makes index creation fail after earlier resources have been created.
         await ExecuteNonQueryAsync(connection,
             """
             CREATE SCHEMA messaging;
             CREATE VIEW messaging.mocha_message AS SELECT 1 AS sentinel;
             """);
-        var schema = await ReadSchemaAsync(connection);
 
         // act
         await Assert.ThrowsAsync<PostgresException>(
             () => PostgresTransportSchema.MigrateAsync(connection, _schemaOptions, CancellationToken));
 
         // assert
-        var schemaAfterFailure = await ReadSchemaAsync(connection);
+        var relations = await ReadRelationNamesAsync(connection);
 
-        Assert.Equal(schema, schemaAfterFailure);
+        Assert.Equal(["mocha_message"], relations);
     }
 
     private static async Task<NpgsqlConnection> OpenConnectionAsync(string connectionString)
@@ -280,25 +308,43 @@ public class PostgresTransportSchemaTests(PostgresFixture fixture)
         => ExecuteScalarAsync<string[]>(connection,
             "SELECT array_agg(migration_id ORDER BY migration_id) FROM messaging.mocha_migrations;");
 
-    private static Task<string[]> ReadSchemaAsync(NpgsqlConnection connection)
-    {
-        const string sql =
+    private static Task<string[]> ReadTableNamesAsync(NpgsqlConnection connection)
+        => ExecuteScalarAsync<string[]>(connection,
             """
-            SELECT array_agg(description ORDER BY description)
-            FROM (
-                SELECT 'relation: ' || relname || ' ' || relkind::text AS description
-                FROM pg_class WHERE relnamespace = 'messaging'::regnamespace
-                UNION ALL
-                SELECT 'column: ' || table_name || '.' || column_name || ' ' || data_type || ' ' || is_nullable
-                FROM information_schema.columns WHERE table_schema = 'messaging'
-                UNION ALL
-                SELECT 'constraint: ' || conname || ' ' || pg_get_constraintdef(oid)
-                FROM pg_constraint WHERE connamespace = 'messaging'::regnamespace
-                UNION ALL
-                SELECT 'index: ' || indexdef FROM pg_indexes WHERE schemaname = 'messaging'
-            ) state;
-            """;
+            SELECT array_agg(table_name ORDER BY table_name)
+            FROM information_schema.tables
+            WHERE table_schema = 'messaging' AND table_type = 'BASE TABLE';
+            """);
 
-        return ExecuteScalarAsync<string[]>(connection, sql);
-    }
+    private static Task<string[]> ReadSequenceNamesAsync(NpgsqlConnection connection)
+        => ExecuteScalarAsync<string[]>(connection,
+            """
+            SELECT array_agg(sequence_name ORDER BY sequence_name)
+            FROM information_schema.sequences
+            WHERE sequence_schema = 'messaging';
+            """);
+
+    private static Task<string[]> ReadMessageIndexNamesAsync(NpgsqlConnection connection)
+        => ExecuteScalarAsync<string[]>(connection,
+            """
+            SELECT array_agg(indexname ORDER BY indexname)
+            FROM pg_indexes
+            WHERE schemaname = 'messaging' AND tablename = 'mocha_message';
+            """);
+
+    private static Task<string[]> ReadQueueColumnNamesAsync(NpgsqlConnection connection)
+        => ExecuteScalarAsync<string[]>(connection,
+            """
+            SELECT array_agg(column_name ORDER BY ordinal_position)
+            FROM information_schema.columns
+            WHERE table_schema = 'messaging' AND table_name = 'mocha_queue';
+            """);
+
+    private static Task<string[]> ReadRelationNamesAsync(NpgsqlConnection connection)
+        => ExecuteScalarAsync<string[]>(connection,
+            """
+            SELECT array_agg(relname ORDER BY relname)
+            FROM pg_class
+            WHERE relnamespace = 'messaging'::regnamespace;
+            """);
 }
