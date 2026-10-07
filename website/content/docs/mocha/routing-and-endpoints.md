@@ -151,18 +151,19 @@ For publish (fan-out) endpoints, the name includes the message namespace in keba
 
 ## Special endpoint names
 
-| Purpose       | Name pattern         | Example                                     |
-| ------------- | -------------------- | ------------------------------------------- |
-| Error queue   | `{endpoint}_error`   | `catalog.order-placed-event_error`          |
-| Skipped queue | `{endpoint}_skipped` | `catalog.order-placed-event_skipped`        |
-| Reply queue   | `response-{guid:N}`  | `response-3f2504e04f8911d39a0c0305e82c3301` |
+| Purpose               | Name pattern          | Example                                           |
+| --------------------- | --------------------- | ------------------------------------------------- |
+| Error queue           | `{endpoint}_error`    | `catalog.order-placed-event_error`                |
+| Skipped queue         | `{endpoint}_skipped`  | `catalog.order-placed-event_skipped`              |
+| Reply queue           | `response-{guid:N}`   | `response-3f2504e04f8911d39a0c0305e82c3301`       |
+| Instance-scoped queue | `{endpoint}-{guid:N}` | `health-request-3f2504e04f8911d39a0c0305e82c3301` |
 
 The two failure-side endpoints are populated by different middlewares:
 
 - **Error queue (`_error`)** receives messages whose handler threw an exception. The `Fault` middleware (`ReceiveFaultMiddleware`) catches the exception, attaches `fault-*` headers (exception type, message, stack trace, timestamp), and forwards the original envelope to the configured `ErrorEndpoint`.
 - **Skipped queue (`_skipped`)** receives messages that completed the pipeline without any consumer marking them as consumed. The `DeadLetter` middleware (`ReceiveDeadLetterMiddleware`) re-dispatches the original envelope to the configured `SkippedEndpoint`.
 
-Reply queues are temporary, per-instance queues used for request/reply correlation.
+Reply queues are temporary, per-instance queues used for request/reply correlation. Instance-scoped queues are temporary, per-instance queues for [instance-scoped consumers](#instance-scoped-consumers).
 
 # Customize outbound routes
 
@@ -415,7 +416,7 @@ transport.Queue($"tenant-events-{instanceId}")
     .Receives<TenantEvent>();
 ```
 
-`instanceId` here is a value your host or application supplies - a process GUID, a pod name, an assigned worker ID. Mocha does not generate or append an instance identity to endpoint or queue names on your behalf. `Queue(name)` always uses the complete string you pass as the endpoint name and as the broker entity name; `GetReceiveEndpointName` applies the same naming conventions described above regardless of `Temporary()`, and never appends an instance segment.
+`instanceId` here is a value your host or application supplies - a process GUID, a pod name, an assigned worker ID. Apart from [instance-scoped consumers](#instance-scoped-consumers), Mocha does not generate or append an instance identity to endpoint or queue names on your behalf. `Queue(name)` always uses the complete string you pass as the endpoint name and as the broker entity name; `GetReceiveEndpointName` applies the same naming conventions described above regardless of `Temporary()`, and never appends an instance segment.
 
 `Temporary()` is a lifecycle intent, not a message setting. It controls how long the endpoint's backing queue exists, not how long an individual message on that queue lives - do not confuse it with a message TTL.
 
@@ -431,6 +432,19 @@ Each transport maps `Temporary()` to a different native mechanism:
 | InMemory          | API parity only - a temporary queue's lifetime is the hosting process's own runtime disposal      |
 
 See the transport pages under [Transports](./transports/index.md) for the full mapping, defaults, and conflict-detection behavior for each transport.
+
+### Instance-scoped consumers
+
+Call `InstanceScoped()` on a consumer descriptor to bind the consumer's routes to a temporary queue named `{endpoint}-{instanceId:N}`, where `instanceId` is `IHostInfo.InstanceId` of the bus. Only the current bus instance consumes this queue. The default transport binds it even when the transport binds explicitly, and the consumer does not claim its message type for other handlers.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddRequestHandler<PingHandler>(d => d.InstanceScoped())
+    .AddRabbitMQ();
+```
+
+Messages reach an instance-scoped consumer only when they are sent to the address of its endpoint, for example with `SendOptions.Endpoint`.
 
 ## Dispatch endpoints
 

@@ -119,6 +119,18 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             };
         }
 
+        if (route.IsInstanceScoped)
+        {
+            var instanceEndpointName = GetInstanceEndpointName(context, route);
+            return new AzureServiceBusReceiveEndpointConfiguration
+            {
+                Name = instanceEndpointName,
+                QueueName = instanceEndpointName,
+                IsTemporary = true,
+                AutoProvision = true
+            };
+        }
+
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new AzureServiceBusReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }

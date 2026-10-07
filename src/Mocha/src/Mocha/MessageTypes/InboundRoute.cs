@@ -51,6 +51,12 @@ public sealed class InboundRoute
     public ReceiveEndpoint? Endpoint { get; private set; }
 
     /// <summary>
+    /// Gets a value indicating whether this route is bound to a temporary receive endpoint that
+    /// only the current bus instance consumes.
+    /// </summary>
+    public bool IsInstanceScoped { get; private set; }
+
+    /// <summary>
     /// Initializes the inbound route from configuration, resolving the message type and consumer.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
@@ -76,6 +82,7 @@ public sealed class InboundRoute
 
         Consumer = configuration.Consumer ?? throw ThrowHelper.RouteRequiresConsumer();
         Kind = configuration.Kind;
+        IsInstanceScoped = configuration.IsInstanceScoped;
 
         if (configuration.ResponseRuntimeType is not null)
         {

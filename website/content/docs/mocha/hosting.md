@@ -15,7 +15,7 @@ Mocha integrates with the [ASP.NET Core health checks](https://learn.microsoft.c
 
 ## Register the health check handler
 
-On the bus builder, call `.AddHealthCheck()` to register the built-in `HealthRequestHandler`. This handler responds to `HealthRequest` messages with an `"OK"` response.
+On the bus builder, call `.AddHealthCheck()` to register the built-in `HealthRequestHandler`. This handler responds to `HealthRequest` messages with an `"OK"` response. It is [instance-scoped](./routing-and-endpoints.md#instance-scoped-consumers): it listens on a temporary queue named `health-request-{instanceId:N}` that only the current bus instance consumes.
 
 ```csharp
 using Mocha;
@@ -54,7 +54,7 @@ A `GET /health` request will now include the message bus status. If the bus cann
 
 ## Target a specific endpoint
 
-By default the health check uses the bus's default routing to deliver the `HealthRequest`. To target a specific endpoint (useful when you have multiple transports or want to verify a particular service), pass a URI:
+By default the health check sends the `HealthRequest` to the instance queue registered by `.AddHealthCheck()`, so no other service or instance can answer it. To target a specific endpoint (useful when you have multiple transports or want to verify a particular service), pass a URI:
 
 ```csharp
 builder.Services

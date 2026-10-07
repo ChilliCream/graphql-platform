@@ -157,6 +157,18 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
             };
         }
 
+        if (route.IsInstanceScoped)
+        {
+            var instanceEndpointName = GetInstanceEndpointName(context, route);
+            return new InMemoryReceiveEndpointConfiguration
+            {
+                Name = instanceEndpointName,
+                QueueName = instanceEndpointName,
+                IsTemporary = true,
+                AutoProvision = true
+            };
+        }
+
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new InMemoryReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }

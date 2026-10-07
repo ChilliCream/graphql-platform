@@ -16,7 +16,7 @@ public sealed class MessageBusHealthCheckTests
             .Returns(new ValueTask<HealthResponse>(new HealthResponse("OK")));
 
         var options = Options.Create(new MessageBusHealthCheckOptions());
-        var healthCheck = new MessageBusHealthCheck(busMock.Object, options);
+        var healthCheck = new MessageBusHealthCheck(busMock.Object, Mock.Of<IMessagingRuntime>(), options);
 
         // Act
         var result = await healthCheck.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);
@@ -36,7 +36,7 @@ public sealed class MessageBusHealthCheckTests
             .Returns(new ValueTask<HealthResponse>(new HealthResponse("ERROR")));
 
         var options = Options.Create(new MessageBusHealthCheckOptions());
-        var healthCheck = new MessageBusHealthCheck(busMock.Object, options);
+        var healthCheck = new MessageBusHealthCheck(busMock.Object, Mock.Of<IMessagingRuntime>(), options);
 
         // Act
         var result = await healthCheck.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);
@@ -57,7 +57,7 @@ public sealed class MessageBusHealthCheckTests
             .Returns(new ValueTask<HealthResponse>(new HealthResponse("OK")));
 
         var options = Options.Create(new MessageBusHealthCheckOptions { Endpoint = endpoint });
-        var healthCheck = new MessageBusHealthCheck(busMock.Object, options);
+        var healthCheck = new MessageBusHealthCheck(busMock.Object, Mock.Of<IMessagingRuntime>(), options);
 
         // Act
         await healthCheck.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);
@@ -79,7 +79,7 @@ public sealed class MessageBusHealthCheckTests
             .Returns(new ValueTask<HealthResponse>(new HealthResponse("OK")));
 
         var options = Options.Create(new MessageBusHealthCheckOptions());
-        var healthCheck = new MessageBusHealthCheck(busMock.Object, options);
+        var healthCheck = new MessageBusHealthCheck(busMock.Object, Mock.Of<IMessagingRuntime>(), options);
 
         // Act
         await healthCheck.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);

@@ -35,4 +35,10 @@ public class InboundRouteConfiguration : MessagingConfiguration
     /// message, or <c>null</c> to derive the default condition from the message type.
     /// </summary>
     public RouteCondition? Condition { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this route is bound to a temporary receive endpoint
+    /// that only the current bus instance consumes.
+    /// </summary>
+    public bool IsInstanceScoped { get; set; }
 }

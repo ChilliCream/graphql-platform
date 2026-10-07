@@ -9,13 +9,14 @@ namespace Mocha.Hosting;
 public static class MessageBusHealthCheckExtensions
 {
     /// <summary>
-    /// Registers the built-in health request handler so the message bus can respond to health check requests.
+    /// Registers the built-in health request handler on a temporary endpoint that only the current bus
+    /// instance consumes.
     /// </summary>
     /// <param name="builder">The message bus host builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IMessageBusHostBuilder AddHealthCheck(this IMessageBusHostBuilder builder)
     {
-        builder.AddRequestHandler<HealthRequestHandler>();
+        builder.AddRequestHandler<HealthRequestHandler>(static d => d.InstanceScoped());
         return builder;
     }
 
@@ -24,8 +25,8 @@ public static class MessageBusHealthCheckExtensions
     /// </summary>
     /// <remarks>
     /// The check sends a <see cref="HealthRequest"/> through the message bus and verifies the response.
-    /// When an <paramref name="endpoint"/> is provided, the request is routed to that specific endpoint
-    /// rather than using the default routing.
+    /// When an <paramref name="endpoint"/> is provided, the request is routed to that specific endpoint.
+    /// Otherwise it is routed to the instance endpoint registered by <see cref="AddHealthCheck"/>.
     /// </remarks>
     /// <param name="builder">The health checks builder to extend.</param>
     /// <param name="endpoint">An optional endpoint URI to target with the health check request.</param>

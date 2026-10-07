@@ -3,50 +3,52 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Mocha.Hosting;
 using Mocha.Transport.Postgres.Tests.Helpers;
+using Npgsql;
 
 namespace Mocha.Transport.Postgres.Tests.Behaviors;
 
 [Collection("Postgres")]
-public sealed class SharedHealthQueueReproTests(PostgresFixture fixture)
+public sealed class InstanceHealthCheckTests(PostgresFixture fixture)
 {
     [Fact]
-    public async Task HealthCheck_Should_ReportHealthy_When_OnlyAnotherInstanceConsumesHealthRequests()
+    public async Task HealthCheck_Should_ReportUnhealthy_When_OwnEndpointIsStoppedAndAnotherInstanceIsRunning()
     {
         // arrange
-        // two instances configured like AddNitroMessageBus, sharing one database
         await using var db = await fixture.CreateDatabaseAsync();
-        await using var instanceA = await CreateDefaultInstanceAsync(db.ConnectionString);
-        await using var instanceB = await CreateDefaultInstanceAsync(db.ConnectionString);
+        await using var instanceA = await CreateInstanceAsync(db.ConnectionString);
+        await using var instanceB = await CreateInstanceAsync(db.ConnectionString);
 
         var endpointNamesA = GetReceiveEndpointNames(instanceA);
-        await StopReceiveEndpointAsync(instanceA, "health-request");
+        var beforeStop = await CheckHealthAsync(instanceA);
+        await StopHealthEndpointAsync(instanceA);
 
         // act
-        var withOtherInstance = await CheckHealthAsync(instanceA);
-        await StopReceiveEndpointAsync(instanceB, "health-request");
-        var withoutOtherInstance = await CheckHealthAsync(instanceA);
+        var instanceAfterStop = await CheckHealthAsync(instanceA);
+        var otherInstanceAfterStop = await CheckHealthAsync(instanceB);
 
         // assert
         new
         {
             EndpointNamesA = endpointNamesA,
-            WithOtherInstance = withOtherInstance,
-            WithoutOtherInstance = withoutOtherInstance
+            BeforeStop = beforeStop,
+            InstanceAfterStop = instanceAfterStop,
+            OtherInstanceAfterStop = otherInstanceAfterStop
         }.MatchInlineSnapshot(
             """
             {
               "EndpointNamesA": [
                 "Replies",
-                "health-request"
+                "health-request-{instance}"
               ],
-              "WithOtherInstance": "Healthy: Message Bus is healthy.",
-              "WithoutOtherInstance": "Unhealthy: A timeout occurred while running check."
+              "BeforeStop": "Healthy: Message Bus is healthy.",
+              "InstanceAfterStop": "Unhealthy: A timeout occurred while running check.",
+              "OtherInstanceAfterStop": "Healthy: Message Bus is healthy."
             }
             """);
     }
 
     [Fact]
-    public async Task HealthCheck_Should_ReportUnhealthy_When_InstanceQueueIsNotConsumed()
+    public async Task HealthCheck_Should_ReportUnhealthy_When_ConfiguredEndpointIsNotConsumed()
     {
         // arrange
         await using var db = await fixture.CreateDatabaseAsync();
@@ -79,7 +81,24 @@ public sealed class SharedHealthQueueReproTests(PostgresFixture fixture)
             """);
     }
 
-    private static async Task<TestBus> CreateDefaultInstanceAsync(string connectionString)
+    [Fact]
+    public async Task StopAsync_Should_RemoveHealthQueue_When_InstanceStops()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync();
+        var instance = await CreateInstanceAsync(db.ConnectionString);
+        var queueName = GetHealthEndpoint(instance).Name;
+        var beforeStop = await QueueExistsAsync(db.ConnectionString, queueName);
+
+        // act
+        await instance.DisposeAsync();
+
+        // assert
+        var afterStop = await QueueExistsAsync(db.ConnectionString, queueName);
+        Assert.Equal((true, false), (beforeStop, afterStop));
+    }
+
+    private static async Task<TestBus> CreateInstanceAsync(string connectionString)
     {
         var services = new ServiceCollection();
         services.AddHealthChecks().AddMessageBus();
@@ -133,14 +152,26 @@ public sealed class SharedHealthQueueReproTests(PostgresFixture fixture)
     private static string[] GetReceiveEndpointNames(TestBus bus)
     {
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var instanceId = runtime.Host.InstanceId.ToString("N");
         return
         [
             .. runtime.Transports
                 .SelectMany(t => t.ReceiveEndpoints)
-                .Select(e => e.Name)
-                .Where(n => !n.StartsWith("response-", StringComparison.Ordinal))
+                .Select(e => e.Name.Replace(instanceId, "{instance}"))
                 .Order(StringComparer.Ordinal)
         ];
+    }
+
+    private static ReceiveEndpoint GetHealthEndpoint(TestBus bus)
+    {
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        return runtime.Router.InboundRoutes.Single(r => r.IsInstanceScoped).Endpoint!;
+    }
+
+    private static async Task StopHealthEndpointAsync(TestBus bus)
+    {
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        await GetHealthEndpoint(bus).StopAsync(runtime, CancellationToken.None);
     }
 
     private static async Task StopReceiveEndpointAsync(TestBus bus, string name)
@@ -148,6 +179,17 @@ public sealed class SharedHealthQueueReproTests(PostgresFixture fixture)
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         var endpoint = runtime.Transports.SelectMany(t => t.ReceiveEndpoints).Single(e => e.Name == name);
         await endpoint.StopAsync(runtime, CancellationToken.None);
+    }
+
+    private static async Task<bool> QueueExistsAsync(string connectionString, string queueName)
+    {
+        var schema = new PostgresSchemaOptions();
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT EXISTS(SELECT 1 FROM {schema.QueueTable} q WHERE q.name = @queue_name)";
+        command.Parameters.AddWithValue("queue_name", queueName);
+        return (bool)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
     }
 
     public sealed class InstanceHealthRequestHandler : IEventRequestHandler<HealthRequest, HealthResponse>

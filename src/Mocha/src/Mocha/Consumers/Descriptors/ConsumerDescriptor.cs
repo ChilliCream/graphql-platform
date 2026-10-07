@@ -29,6 +29,13 @@ public class ConsumerDescriptor : MessagingDescriptorBase<ConsumerConfiguration>
     }
 
     /// <inheritdoc />
+    public IConsumerDescriptor InstanceScoped()
+    {
+        Configuration.IsInstanceScoped = true;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IConsumerDescriptor AddRoute(Action<IInboundRouteDescriptor> configure)
     {
         var descriptor = new InboundRouteDescriptor(Context, InboundRouteKind.Subscribe);
@@ -74,6 +81,14 @@ public class ConsumerDescriptor : MessagingDescriptorBase<ConsumerConfiguration>
     public ConsumerConfiguration CreateConfiguration()
     {
         var routes = _routes.Select(r => r.CreateConfiguration()).ToList();
+
+        if (Configuration.IsInstanceScoped)
+        {
+            foreach (var route in routes)
+            {
+                route.IsInstanceScoped = true;
+            }
+        }
 
         Configuration.Routes = routes;
 

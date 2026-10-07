@@ -12,6 +12,12 @@ public class ConsumerConfiguration : MessagingConfiguration
     public string? Name { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the routes of this consumer are bound to a temporary
+    /// receive endpoint that only the current bus instance consumes.
+    /// </summary>
+    public bool IsInstanceScoped { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of inbound route configurations that determine which message types
     /// this consumer handles.
     /// </summary>

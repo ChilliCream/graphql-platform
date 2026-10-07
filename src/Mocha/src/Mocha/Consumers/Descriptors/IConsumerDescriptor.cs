@@ -14,6 +14,13 @@ public interface IConsumerDescriptor : IMessagingDescriptor<ConsumerConfiguratio
     IConsumerDescriptor Name(string name);
 
     /// <summary>
+    /// Binds the routes of this consumer to a temporary receive endpoint that only the current bus
+    /// instance consumes, instead of an endpoint shared by all instances.
+    /// </summary>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IConsumerDescriptor InstanceScoped();
+
+    /// <summary>
     /// Adds an inbound route that binds this consumer to a specific message type and routing
     /// pattern.
     /// </summary>

@@ -156,6 +156,18 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             };
         }
 
+        if (route.IsInstanceScoped)
+        {
+            var instanceEndpointName = GetInstanceEndpointName(context, route);
+            return new RabbitMQReceiveEndpointConfiguration
+            {
+                Name = instanceEndpointName,
+                QueueName = instanceEndpointName,
+                IsTemporary = true,
+                AutoProvision = true
+            };
+        }
+
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new RabbitMQReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }

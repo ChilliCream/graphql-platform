@@ -38,6 +38,25 @@ public sealed class MessageBusHealthCheckIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task AddHealthCheck_Should_BindHandlerToInstanceEndpoint_When_Called()
+    {
+        // Arrange
+        await using var provider = await CreateBusWithHealthCheckAsync();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var instanceId = runtime.Host.InstanceId.ToString("N");
+
+        // Act
+        var endpoints = runtime.Transports
+            .SelectMany(t => t.ReceiveEndpoints)
+            .Select(e => e.Name.Replace(instanceId, "{instance}"))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        // Assert
+        Assert.Equal(["Replies", "health-request-{instance}"], endpoints);
+    }
+
     private static async Task<ServiceProvider> CreateBusWithHealthCheckAsync()
     {
         var services = new ServiceCollection();

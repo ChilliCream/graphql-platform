@@ -60,6 +60,7 @@ public abstract class RoutingStrategy
     public virtual void DiscoverEndpoints(IMessagingSetupContext context)
     {
         DiscoverReplyEndpoints(context);
+        DiscoverInstanceEndpoints(context);
 
         if (Transport.BindMode == MessagingBindMode.Implicit)
         {
@@ -139,12 +140,40 @@ public abstract class RoutingStrategy
         }
     }
 
+    /// <summary>
+    /// Binds every instance scoped route that has no endpoint yet to a temporary receive endpoint of
+    /// the current bus instance. Only the default transport binds these routes.
+    /// </summary>
+    protected virtual void DiscoverInstanceEndpoints(IMessagingSetupContext context)
+    {
+        if (!IsDefaultTransport(context))
+        {
+            return;
+        }
+
+        foreach (var route in context.Router.InboundRoutes)
+        {
+            if (route is { IsInstanceScoped: true, Endpoint: null })
+            {
+                Transport.ConnectRoute(context, route);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the name of the temporary receive endpoint that binds an instance scoped route for the
+    /// current bus instance.
+    /// </summary>
+    protected static string GetInstanceEndpointName(IMessagingConfigurationContext context, InboundRoute route)
+        => $"{context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default)}-{context.Host.InstanceId:N}";
+
     protected virtual void DiscoverImplicitEndpoints(IMessagingSetupContext context)
     {
         var claimedTypeEndpoints = new Dictionary<Type, List<ReceiveEndpoint>>();
         foreach (var route in context.Router.InboundRoutes)
         {
-            if (route.Endpoint is { Transport: { } endpointTransport } endpoint
+            if (!route.IsInstanceScoped
+                && route.Endpoint is { Transport: { } endpointTransport } endpoint
                 && endpointTransport == Transport
                 && route.MessageType is { RuntimeType: { } runtimeType })
             {
@@ -163,6 +192,11 @@ public abstract class RoutingStrategy
 
         foreach (var route in context.Router.InboundRoutes)
         {
+            if (route.IsInstanceScoped)
+            {
+                continue;
+            }
+
             if (route.Endpoint is null)
             {
                 if (route.MessageType is { RuntimeType: { } runtimeType }
@@ -232,7 +266,7 @@ public abstract class RoutingStrategy
     {
         foreach (var inboundRoute in context.Router.InboundRoutes)
         {
-            if (inboundRoute.MessageType != route.MessageType)
+            if (inboundRoute.MessageType != route.MessageType || inboundRoute.IsInstanceScoped)
             {
                 continue;
             }
@@ -250,6 +284,11 @@ public abstract class RoutingStrategy
             }
         }
 
+        return IsDefaultTransport(context);
+    }
+
+    private bool IsDefaultTransport(IMessagingSetupContext context)
+    {
         foreach (var transport in context.Transports)
         {
             if (transport.IsDefaultTransport)

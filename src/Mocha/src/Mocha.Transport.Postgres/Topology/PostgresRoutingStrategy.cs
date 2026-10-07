@@ -154,6 +154,18 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             };
         }
 
+        if (route.IsInstanceScoped)
+        {
+            var instanceEndpointName = GetInstanceEndpointName(context, route);
+            return new PostgresReceiveEndpointConfiguration
+            {
+                Name = instanceEndpointName,
+                QueueName = instanceEndpointName,
+                IsTemporary = true,
+                AutoProvision = true
+            };
+        }
+
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }
