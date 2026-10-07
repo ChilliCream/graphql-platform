@@ -288,9 +288,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Stops this endpoint, ceasing message consumption and releasing runtime resources.
     /// </summary>
     /// <remarks>
-    /// Delegates to <see cref="OnStopAsync"/> for transport-specific shutdown and clears
-    /// the runtime state. This method is idempotent; calling it on an already-stopped
-    /// endpoint is a no-op.
+    /// Delegates to <see cref="OnStopAsync"/> for transport-specific shutdown. This method is
+    /// idempotent; calling it on an already-stopped endpoint is a no-op.
     /// </remarks>
     /// <param name="context">The messaging runtime context.</param>
     /// <param name="cancellationToken">Token to signal cancellation of the stop operation.</param>
@@ -303,7 +302,6 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         await OnStopAsync(context, cancellationToken);
 
-        _runtimeState = null;
         IsStarted = false;
     }
 
