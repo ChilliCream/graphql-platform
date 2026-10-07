@@ -66,7 +66,7 @@ To work outside the devcontainer, you will need the .NET SDK version from [globa
 
 [src/All.slnx](./src/All.slnx) is the root solution. More focused per-area solution files exist if you want to narrow in on a particular part of the platform. They're great when working with [VS Code](https://code.visualstudio.com/).
 
-The documentation is located in the `website` directory and can be started with `yarn dev` (served on port 3001).
+The documentation is located in the `website` directory and can be started with `yarn dev` (served on port 3002).
 
 ## How to Check the docs
 

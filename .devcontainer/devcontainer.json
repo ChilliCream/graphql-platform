@@ -12,9 +12,9 @@
       "moby": "true"
     }
   },
-  "forwardPorts": [3001, 6006],
+  "forwardPorts": [3002, 6006],
   "portsAttributes": {
-    "3001": {
+    "3002": {
       "label": "Next.js dev server",
       "onAutoForward": "notify"
     },
