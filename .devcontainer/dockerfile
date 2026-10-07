@@ -34,21 +34,16 @@ RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
     && ./dotnet-install.sh --channel 11.0 --install-dir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
-# Install Node.js 24 (the version CI uses; Corepack is no longer bundled from Node.js 25 on)
+# Install Node.js 24 (the version CI uses)
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs
 
-# Suppress Corepack's "about to download" prompt during yarn activation
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-
-# Update npm, install GitHub Copilot CLI and Codex CLI, and enable Corepack so the
-# Yarn version from package.json's packageManager field is used
-RUN npm install -g npm@11.12.0 @openai/codex @github/copilot \
-    && corepack enable
+# Install GitHub Copilot CLI and Codex CLI
+RUN npm install -g @openai/codex @github/copilot
 
 # Install Playwright's OS dependencies for Chromium (version-independent apt packages).
 # The browser binary itself is downloaded in postCreateCommand so it matches the
-# Playwright version resolved from yarn.lock. DejaVu is the fallback font the visual
+# Playwright version resolved from package-lock.json. DejaVu is the fallback font the visual
 # regression baselines are rendered with.
 RUN apt-get update && npx -y playwright install-deps chromium \
     && apt-get install -y fonts-dejavu-core

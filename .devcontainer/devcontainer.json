@@ -36,7 +36,7 @@
     "source=copilot-config-${devcontainerId},target=/home/vscode/.copilot,type=volume",
     "source=shell-history-${devcontainerId},target=/home/vscode/.commandhistory,type=volume"
   ],
-  "postCreateCommand": "./init.sh && cd website && yarn playwright install chromium",
+  "postCreateCommand": "./init.sh && cd website && npx playwright install chromium",
   "postStartCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/setup-git-signing.sh",
   "customizations": {
     "vscode": {
