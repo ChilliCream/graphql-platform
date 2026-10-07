@@ -422,14 +422,14 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 13 })
+            () => CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 7 })
                 .CreatePlan(
                     "guardrail-greedy-backtracking-exceeded",
                     "hash",
                     "12345678",
                     operation,
                     TestContext.Current.CancellationToken));
-        var plan = CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 14 })
+        var plan = CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 8 })
             .CreatePlan(
                 "guardrail-greedy-backtracking-sufficient",
                 "hash",
@@ -439,9 +439,9 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
-        Assert.Equal(13, error.Limit);
-        Assert.Equal(14, error.Observed);
-        Assert.Equal(9, plan.ExpandedNodes);
+        Assert.Equal(7, error.Limit);
+        Assert.Equal(8, error.Observed);
+        Assert.Equal(3, plan.ExpandedNodes);
     }
 
     private static FusionSchemaDefinition CreateSerialMutationSchema()

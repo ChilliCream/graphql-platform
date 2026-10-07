@@ -87,7 +87,7 @@ operation:
     name: TestQuery
     hash: 123456789101112
     searchSpace: 3
-    expandedNodes: 14
+    expandedNodes: 10
 nodes:
   - id: 1
     type: Operation

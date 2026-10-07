@@ -531,11 +531,11 @@ public sealed partial class OperationPlanner
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, possiblePlans);
+                    PlanRootSelections(wi, current, backlog, possiblePlans, bestCompletePlanCost);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans);
+                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans, bestCompletePlanCost);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -543,7 +543,8 @@ public sealed partial class OperationPlanner
                         wi,
                         current,
                         possiblePlans,
-                        backlog);
+                        backlog,
+                        bestCompletePlanCost);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -552,15 +553,16 @@ public sealed partial class OperationPlanner
                         wi.Lookup,
                         current,
                         possiblePlans,
-                        backlog);
+                        backlog,
+                        bestCompletePlanCost);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, possiblePlans, backlog);
+                    PlanNode(wi, current, possiblePlans, backlog, bestCompletePlanCost);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog);
+                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog, bestCompletePlanCost);
                     break;
 
                 default:
@@ -639,11 +641,11 @@ public sealed partial class OperationPlanner
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, candidates);
+                    PlanRootSelections(wi, current, backlog, candidates, double.PositiveInfinity);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, candidates);
+                    PlanLookupSelections(wi, lookup, current, backlog, candidates, double.PositiveInfinity);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -651,7 +653,8 @@ public sealed partial class OperationPlanner
                         wi,
                         current,
                         candidates,
-                        backlog);
+                        backlog,
+                        double.PositiveInfinity);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -660,15 +663,16 @@ public sealed partial class OperationPlanner
                         wi.Lookup,
                         current,
                         candidates,
-                        backlog);
+                        backlog,
+                        double.PositiveInfinity);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, candidates, backlog);
+                    PlanNode(wi, current, candidates, backlog, double.PositiveInfinity);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, candidates, backlog);
+                    PlanNodeLookup(wi, lookup, current, candidates, backlog, double.PositiveInfinity);
                     break;
 
                 default:
@@ -733,6 +737,33 @@ public sealed partial class OperationPlanner
             opsPerLevel,
             current.OperationStepDepths.SetItem(stepId, stepDepth));
     }
+
+    private static bool CannotBeatIncumbent(
+        PlanNode current,
+        OperationStepCostState costState,
+        Backlog backlog,
+        double incumbentCost)
+        => PlanQueue.CannotBeatIncumbent(
+            current.Options,
+            costState.MaxDepth,
+            current.OperationStepCount + 1,
+            costState.ExcessFanout,
+            costState.OpsPerLevel,
+            backlog,
+            incumbentCost);
+
+    private static bool CannotBeatIncumbent(
+        PlanNode current,
+        Backlog backlog,
+        double incumbentCost)
+        => PlanQueue.CannotBeatIncumbent(
+            current.Options,
+            current.MaxDepth,
+            current.OperationStepCount,
+            current.ExcessFanout,
+            current.OpsPerLevel,
+            backlog,
+            incumbentCost);
 
     private static int GetOperationStepDepth(PlanNode current, int stepId)
         => current.OperationStepDepths.TryGetValue(stepId, out var stepDepth)
@@ -1038,15 +1069,17 @@ public sealed partial class OperationPlanner
         OperationWorkItem workItem,
         PlanNode current,
         Backlog backlog,
-        PlanQueue possiblePlans)
-        => PlanSelections(workItem, current, null, backlog, possiblePlans);
+        PlanQueue possiblePlans,
+        double incumbentCost)
+        => PlanSelections(workItem, current, null, backlog, possiblePlans, incumbentCost);
 
     private void PlanLookupSelections(
         OperationWorkItem workItem,
         Lookup lookup,
         PlanNode current,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        double incumbentCost)
     {
         current = InlineLookupRequirements(
             workItem.SelectionSet,
@@ -1077,7 +1110,8 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             current.Backlog,
-            possiblePlans);
+            possiblePlans,
+            incumbentCost);
     }
 
     private void PlanSelections(
@@ -1085,7 +1119,8 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup? lookup,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        double incumbentCost)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -1153,6 +1188,13 @@ public sealed partial class OperationPlanner
             workItem.SourceSchemaNodePolicy is null
                 ? null
                 : SourceSchemaNodePlanningPolicy.Descendant);
+
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
+        if (CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
 
         // Lookups are always queries. Root work items can also be rewritten to the query root
         // when walking shared paths (for example the viewer convention in mutations).
@@ -1222,7 +1264,6 @@ public sealed partial class OperationPlanner
             Lookup = lookup
         };
 
-        var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             current.Options,
             costState.MaxDepth,
@@ -1631,7 +1672,8 @@ public sealed partial class OperationPlanner
         FieldRequirementWorkItem workItem,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         // The main planning backlog handles step-owned requirements. Incremental
         // plan requirements are handled by defer planning.
@@ -1704,6 +1746,11 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 workItem.SourceSchemaNodePolicy);
 
+        if (CannotBeatIncumbent(current, backlog, incumbentCost))
+        {
+            return;
+        }
+
         var operation =
             InlineSelections(
                 currentStep.Definition,
@@ -1775,7 +1822,8 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         // The main planning backlog handles step-owned requirements. Incremental
         // plan requirements are handled by defer planning.
@@ -1923,6 +1971,18 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 workItem.SourceSchemaNodePolicy);
 
+        // A merged lookup adds no operation step, a new lookup step adds one.
+        var costState = mergeWithExistingStep
+            ? default
+            : AddOperationStepCostState(current, stepId, stepDepth);
+
+        if (mergeWithExistingStep
+            ? CannotBeatIncumbent(current, backlog, incumbentCost)
+            : CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
+
         var selectionNode =
             workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections);
         OperationPlanStep? refreshedExistingStep = null;
@@ -2055,7 +2115,6 @@ public sealed partial class OperationPlanner
             Lookup = lookup
         };
 
-        var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,
@@ -2144,7 +2203,8 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -2202,6 +2262,13 @@ public sealed partial class OperationPlanner
             new StepConsumer(stepId),
             stepDepth,
             descendantPolicy);
+
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
+        if (CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -2268,7 +2335,6 @@ public sealed partial class OperationPlanner
         // Add the lookup operation to the steps
         steps = steps.Add(operationPlanStep);
 
-        var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,
@@ -2359,7 +2425,8 @@ public sealed partial class OperationPlanner
         NodeFieldWorkItem workItem,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
@@ -2525,6 +2592,12 @@ public sealed partial class OperationPlanner
         }
 
         var costState = AddOperationStepCostState(current, fallbackQueryStepId, stepDepth);
+
+        if (CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
+
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,

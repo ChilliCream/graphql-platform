@@ -53,7 +53,7 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(["a", "c"], listener.SchemaNames(operationId).Distinct().Order());
+        Assert.Equal(["a"], listener.SchemaNames(operationId).Distinct().Order());
     }
 
     private static FusionSchemaDefinition CreateExternalKeySchema()

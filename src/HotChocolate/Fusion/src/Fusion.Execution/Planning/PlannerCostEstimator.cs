@@ -250,7 +250,10 @@ internal static class PlannerCostEstimator
         return new BacklogCost(minimumCost, maxProjectedDepth, projectedOpsPerLevel);
     }
 
-    private static double EstimateMinimumCost(WorkItem workItem)
+    /// <summary>
+    /// Gets the cheapest cost the backlog tracks for the work item.
+    /// </summary>
+    public static double EstimateMinimumCost(WorkItem workItem)
     {
         return workItem switch
         {

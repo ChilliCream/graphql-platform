@@ -89,6 +89,68 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         }
     }
 
+    /// <summary>
+    /// Determines whether none of the plans that can follow from a child with the given counters
+    /// and backlog can cost less than or equal to <paramref name="incumbentCost"/>.
+    /// </summary>
+    public static bool CannotBeatIncumbent(
+        OperationPlannerOptions options,
+        int maxDepth,
+        int operationStepCount,
+        int excessFanout,
+        ImmutableDictionary<int, int> opsPerLevel,
+        Backlog backlog,
+        double incumbentCost)
+    {
+        if (double.IsPositiveInfinity(incumbentCost))
+        {
+            return false;
+        }
+
+        var pathCost = PlanNode.CalculatePathCost(options, maxDepth, operationStepCount, excessFanout);
+        var remainingCost = PlannerCostEstimator.EstimateRemainingCost(options, maxDepth, opsPerLevel, backlog.Cost);
+
+        if (pathCost + remainingCost <= incumbentCost)
+        {
+            return false;
+        }
+
+        // The child is queued as the branches of its next work item, so the lowest branch decides.
+        var lowestBranchRemainingCost =
+            EstimateLowestBranchRemainingCost(options, maxDepth, opsPerLevel, backlog);
+
+        return pathCost + lowestBranchRemainingCost > incumbentCost;
+    }
+
+    /// <summary>
+    /// Estimates the lowest remaining cost of any node <see cref="EnqueueBranches"/> creates
+    /// from a node with the given counters and <paramref name="backlog"/>.
+    /// </summary>
+    public static double EstimateLowestBranchRemainingCost(
+        OperationPlannerOptions options,
+        int maxDepth,
+        ImmutableDictionary<int, int> opsPerLevel,
+        Backlog backlog)
+    {
+        // Branches of these work items keep the backlog as it is.
+        if (backlog.IsEmpty
+            || backlog.Peek() is NodeFieldWorkItem
+                or OperationWorkItem { Kind: OperationWorkItemKind.Root }
+                or OperationWorkItem { Lookup: not null })
+        {
+            return PlannerCostEstimator.EstimateRemainingCost(options, maxDepth, opsPerLevel, backlog.Cost);
+        }
+
+        // Every other branch replaces the next work item with work items that cost at least as much.
+        var branchCost = backlog.Pop(out var workItem).Cost;
+        branchCost = branchCost with
+        {
+            MinimumCost = branchCost.MinimumCost + PlannerCostEstimator.EstimateMinimumCost(workItem)
+        };
+
+        return PlannerCostEstimator.EstimateRemainingCost(options, maxDepth, opsPerLevel, branchCost);
+    }
+
     private void EnqueueRootPlanNodes(
         PlanNode planNodeTemplate,
         OperationWorkItem workItem)

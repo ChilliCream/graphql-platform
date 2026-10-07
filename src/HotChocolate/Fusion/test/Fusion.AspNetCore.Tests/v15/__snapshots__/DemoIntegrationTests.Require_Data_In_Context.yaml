@@ -439,8 +439,8 @@ operationPlan:
         }
       name: Requires
       hash: 2a01009c0a2c1a5ecafecee5663d60d4
-      searchSpace: 2
-      expandedNodes: 3
+      searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Operation

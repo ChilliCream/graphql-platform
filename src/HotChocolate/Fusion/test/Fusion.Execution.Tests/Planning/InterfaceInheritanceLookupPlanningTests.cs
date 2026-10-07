@@ -212,7 +212,7 @@ public sealed class InterfaceInheritanceLookupPlanningTests : FusionTestBase
                   }
                 hash: 123456789101112
                 searchSpace: 1
-                expandedNodes: 2
+                expandedNodes: 1
             nodes:
               - id: 1
                 type: Operation

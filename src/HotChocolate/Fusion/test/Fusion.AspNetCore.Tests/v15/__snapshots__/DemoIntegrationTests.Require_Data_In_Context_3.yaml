@@ -908,8 +908,8 @@ operationPlan:
         }
       name: Large
       hash: 4f94623210f21dd6188bb9f3ed313525
-      searchSpace: 2
-      expandedNodes: 4
+      searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
