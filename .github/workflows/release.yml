@@ -735,6 +735,11 @@ jobs:
     name: 🔄 Update GitHub Actions
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
+    # Serialize per action repository across release runs, so each run computes the floating
+    # tags (vX, vX.Y) against the tags of the previous release.
+    concurrency:
+      group: update-github-actions-${{ matrix.repo }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix:
@@ -778,8 +783,6 @@ jobs:
           repo: ChilliCream/${{ matrix.repo }}
           workflow: release.yaml
           version: ${{ needs.compute-release-context.outputs.git_tag }}
-          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
-          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
           token: ${{ steps.app-token.outputs.token }}
 
   update-cloud-platform:
