@@ -67,7 +67,7 @@ operationPlan:
       name: OverCost
       hash: 5d21d70ce0a03457c9ae42b3b8938cac
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

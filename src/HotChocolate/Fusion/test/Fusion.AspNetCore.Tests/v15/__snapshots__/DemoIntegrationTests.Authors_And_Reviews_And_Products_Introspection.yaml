@@ -792,7 +792,7 @@ operationPlan:
       name: Introspect
       hash: b78797d1fc038cb78f881ab78bd98ee7
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Introspection

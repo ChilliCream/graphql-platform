@@ -55,7 +55,7 @@ public class RequirementChainTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_SplitRequirementLookups_When_GreedyIncumbentWinsEqualCostTie()
+    public void CreatePlan_Should_MergeRequirementLookups_When_EqualCostPlanHasFewerSurvivingSteps()
     {
         // arrange
         var schema = CreateRequiresRequiresSchema();

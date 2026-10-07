@@ -1,3 +1,5 @@
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
+
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
@@ -24,6 +26,12 @@ public sealed class OperationPlannerOptions
         set
         {
             ExpectMutableOptions();
+
+            if (!double.IsFinite(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidPlannerWeight("depth");
+            }
+
             field = value;
         }
     } = 15.0;
@@ -38,6 +46,12 @@ public sealed class OperationPlannerOptions
         set
         {
             ExpectMutableOptions();
+
+            if (!double.IsFinite(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidPlannerWeight("operation");
+            }
+
             field = value;
         }
     } = 1.5;
@@ -110,6 +124,12 @@ public sealed class OperationPlannerOptions
         set
         {
             ExpectMutableOptions();
+
+            if (!double.IsFinite(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidPlannerWeight("excess fan-out");
+            }
+
             field = value;
         }
     } = 3.0;

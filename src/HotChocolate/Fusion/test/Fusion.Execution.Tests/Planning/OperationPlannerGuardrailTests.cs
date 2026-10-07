@@ -377,7 +377,7 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
               name: String!
             }
             """);
-        var planner = CreatePlanner(schema, new OperationPlannerOptions { MaxQueueSize = 1 });
+        var planner = CreatePlanner(schema, new OperationPlannerOptions { MaxQueueSize = 2 });
         var operation = ParseOperation("query GetTopProducts { topProducts { id name } }");
 
         // act
@@ -389,7 +389,7 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, plan.SearchSpace);
+        Assert.Equal(2, plan.SearchSpace);
         Assert.Equal(3, plan.AllNodes.OfType<OperationExecutionNode>().Count());
     }
 
@@ -422,14 +422,14 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 7 })
+            () => CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 84 })
                 .CreatePlan(
                     "guardrail-greedy-backtracking-exceeded",
                     "hash",
                     "12345678",
                     operation,
                     TestContext.Current.CancellationToken));
-        var plan = CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 8 })
+        var plan = CreatePlanner(schema, new OperationPlannerOptions { MaxExpandedNodes = 85 })
             .CreatePlan(
                 "guardrail-greedy-backtracking-sufficient",
                 "hash",
@@ -439,9 +439,9 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
-        Assert.Equal(7, error.Limit);
-        Assert.Equal(8, error.Observed);
-        Assert.Equal(3, plan.ExpandedNodes);
+        Assert.Equal(84, error.Limit);
+        Assert.Equal(85, error.Observed);
+        Assert.Equal(81, plan.ExpandedNodes);
     }
 
     private static FusionSchemaDefinition CreateSerialMutationSchema()

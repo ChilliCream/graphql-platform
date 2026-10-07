@@ -138,8 +138,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_ca09eae1_3($__fusion_2_id: ID!) {
-              node(id: $__fusion_2_id) {
+            query TopProducts_ca09eae1_2($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
                   reviews {
@@ -151,13 +151,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDox"
+                "__fusion_1_id": "UHJvZHVjdDox"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoy"
+                "__fusion_1_id": "UHJvZHVjdDoy"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoz"
+                "__fusion_1_id": "UHJvZHVjdDoz"
               }
             ]
         response:
@@ -322,8 +322,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_ca09eae1_2($__fusion_1_id: ID!) {
-              node(id: $__fusion_1_id) {
+            query TopProducts_ca09eae1_3($__fusion_2_id: ID!) {
+              node(id: $__fusion_2_id) {
                 __typename
                 ... on Product {
                   deliveryEstimate(zip: "12345") {
@@ -336,13 +336,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDox"
+                "__fusion_2_id": "UHJvZHVjdDox"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoy"
+                "__fusion_2_id": "UHJvZHVjdDoy"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoz"
+                "__fusion_2_id": "UHJvZHVjdDoz"
               }
             ]
         response:
@@ -403,7 +403,7 @@ operationPlan:
       name: TopProducts
       hash: 4a544b60aaeb90cab08d4d28d93b1c06
       searchSpace: 2
-      expandedNodes: 5
+      expandedNodes: 7
   nodes:
     - id: 1
       type: Operation
@@ -417,15 +417,14 @@ operationPlan:
         }
     - id: 2
       type: Operation
-      schema: D
+      schema: B
       operation: |
         query TopProducts_ca09eae1_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
-              deliveryEstimate(zip: "12345") {
-                min
-                max
+              reviews {
+                body
               }
             }
           }
@@ -440,14 +439,15 @@ operationPlan:
         - id: 1
     - id: 3
       type: Operation
-      schema: B
+      schema: D
       operation: |
         query TopProducts_ca09eae1_3($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on Product {
-              reviews {
-                body
+              deliveryEstimate(zip: "12345") {
+                min
+                max
               }
             }
           }

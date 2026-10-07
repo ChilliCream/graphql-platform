@@ -109,7 +109,7 @@ public sealed class InterfaceInheritanceLookupPlanningTests : FusionTestBase
                   }
                 hash: 123456789101112
                 searchSpace: 1
-                expandedNodes: 2
+                expandedNodes: 3
             nodes:
               - id: 1
                 type: Operation
@@ -212,7 +212,7 @@ public sealed class InterfaceInheritanceLookupPlanningTests : FusionTestBase
                   }
                 hash: 123456789101112
                 searchSpace: 1
-                expandedNodes: 1
+                expandedNodes: 4
             nodes:
               - id: 1
                 type: Operation

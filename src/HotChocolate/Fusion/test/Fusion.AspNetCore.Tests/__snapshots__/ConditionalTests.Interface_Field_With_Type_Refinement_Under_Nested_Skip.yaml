@@ -282,7 +282,7 @@ operationPlan:
         }
       hash: 36c1fa1dc3deacfef079f1f3da44c798
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 5
   nodes:
     - id: 1
       type: Operation

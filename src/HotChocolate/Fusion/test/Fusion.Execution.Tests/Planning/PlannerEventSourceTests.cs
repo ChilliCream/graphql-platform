@@ -342,6 +342,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
             """
             {
               "Exhausted": [
+                "planner_etw_improvement_deferred",
                 "planner_etw_improvement_deferred#defer_0",
                 "planner_etw_improvement_deferred#defer_1"
               ],

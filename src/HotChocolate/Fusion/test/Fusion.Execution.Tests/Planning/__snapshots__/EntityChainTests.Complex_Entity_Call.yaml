@@ -18,7 +18,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 1
-    expandedNodes: 3
+    expandedNodes: 4
 nodes:
   - id: 1
     type: Operation
@@ -41,9 +41,9 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_categoryId: ID!
-          $__fusion_1_categoryTag: String
-          $__fusion_1_id: ID!
-          $__fusion_1_pid: ID!
+        $__fusion_1_categoryTag: String
+        $__fusion_1_id: ID!
+        $__fusion_1_pid: ID!
       ) {
         productByIdPidAndCategory(
           id: $__fusion_1_id

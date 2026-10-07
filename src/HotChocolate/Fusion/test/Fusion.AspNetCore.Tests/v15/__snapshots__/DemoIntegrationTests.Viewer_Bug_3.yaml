@@ -43,7 +43,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_dc7df637_2 {
+            query Op_dc7df637_1 {
               viewer {
                 subgraphA
               }
@@ -108,7 +108,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_dc7df637_1 {
+            query Op_dc7df637_2 {
               subgraphC {
                 someField
                 anotherField
@@ -139,26 +139,26 @@ operationPlan:
           }
         }
       hash: 0a1f94255876f2cadcbe6e70fc2c6705
-      searchSpace: 3
-      expandedNodes: 3
+      searchSpace: 4
+      expandedNodes: 15
   nodes:
     - id: 1
       type: Operation
-      schema: C
+      schema: A
       operation: |
         query Op_dc7df637_1 {
-          subgraphC {
-            someField
-            anotherField
+          viewer {
+            subgraphA
           }
         }
     - id: 2
       type: Operation
-      schema: A
+      schema: C
       operation: |
         query Op_dc7df637_2 {
-          viewer {
-            subgraphA
+          subgraphC {
+            someField
+            anotherField
           }
         }
     - id: 3

@@ -29,7 +29,7 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_NotDequeueNodesOfSchemaThatOnlyEchoesKey_When_RequirementFieldIsExternal()
+    public void CreatePlan_Should_DequeueTwelveCandidates_When_RequirementFieldIsExternal()
     {
         // arrange
         using var listener = new DequeueListener();
@@ -53,7 +53,55 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(["a"], listener.SchemaNames(operationId).Distinct().Order());
+        listener.Dequeues(operationId).MatchInlineSnapshot(
+            """
+            [
+              "OperationRoot:a",
+              "FieldRequirementLookup:a",
+              "FieldRequirementLookup:a",
+              "FieldRequirementInline:a",
+              "OperationLookup:c",
+              "OperationLookup:c",
+              "OperationLookup:c",
+              "OperationLookup:c",
+              "Complete:c",
+              "Complete:c",
+              "OperationLookup:b",
+              "Complete:b"
+            ]
+            """);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_ReturnPlan_When_NoProgressLookupCandidatesMeetTheAdmissibleBound()
+    {
+        // arrange
+        var schema = CreateExternalKeySchema();
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool));
+        var operation = Utf8GraphQLParser.Parse("{ root { f24 } }")
+            .Definitions.OfType<OperationDefinitionNode>().First();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(30));
+
+        // act
+        var plan = planner.CreatePlan(
+            "no_progress_lookup_cancellation",
+            "no_progress_lookup_cancellation",
+            "12345678",
+            operation,
+            cts.Token);
+
+        // assert
+        plan.AllNodes.Select(node => node.SchemaName).MatchInlineSnapshot(
+            """
+            [
+              "a",
+              "a",
+              "c"
+            ]
+            """);
     }
 
     private static FusionSchemaDefinition CreateExternalKeySchema()
@@ -131,7 +179,7 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
 
     private sealed class DequeueListener : EventListener
     {
-        private readonly ConcurrentQueue<(string OperationId, string SchemaName)> _dequeues = [];
+        private readonly ConcurrentQueue<(string OperationId, string Dequeue)> _dequeues = [];
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
@@ -144,16 +192,16 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
             if (eventData.EventId == PlannerEventSource.PlanDequeueEventId
-                && eventData.Payload is [string operationId, _, _, _, string schemaName])
+                && eventData.Payload is [string operationId, _, _, string nextWorkItem, string schemaName])
             {
-                _dequeues.Enqueue((operationId, schemaName));
+                _dequeues.Enqueue((operationId, $"{nextWorkItem}:{schemaName}"));
             }
         }
 
-        public string[] SchemaNames(string operationId)
+        public string[] Dequeues(string operationId)
             => _dequeues
                 .Where(t => t.OperationId.Equals(operationId, StringComparison.Ordinal))
-                .Select(t => t.SchemaName)
+                .Select(t => t.Dequeue)
                 .ToArray();
     }
 }

@@ -370,8 +370,8 @@ operationPlan:
         }
       name: ConnectorDetailsQuery
       hash: fdf38f87112ff3a7b4e0e331217bd94c
-      searchSpace: 1
-      expandedNodes: 1
+      searchSpace: 2
+      expandedNodes: 4
   nodes:
     - id: 1
       type: Node

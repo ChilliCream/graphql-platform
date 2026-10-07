@@ -9,8 +9,8 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    searchSpace: 2
+    expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
@@ -29,8 +29,8 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_upc: String!
-          $__fusion_2_price: Int
-          $__fusion_2_weight: Int
+        $__fusion_2_price: Int
+        $__fusion_2_weight: Int
       ) {
         productByUpc(upc: $__fusion_1_upc) {
           shippingEstimate(price: $__fusion_2_price, weight: $__fusion_2_weight)

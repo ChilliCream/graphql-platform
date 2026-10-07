@@ -67,6 +67,9 @@ internal static class ThrowHelper
     public static InvalidOperationException CostOptionsAreReadOnly()
         => new("The cost options are read-only.");
 
+    public static ArgumentException InvalidPlannerWeight(string weightName)
+        => new($"The planner {weightName} weight must be a finite, non-negative number.");
+
     public static InvalidOperationException OperationDocumentNotAvailable()
         => new("The operation document is not available in the context.");
 

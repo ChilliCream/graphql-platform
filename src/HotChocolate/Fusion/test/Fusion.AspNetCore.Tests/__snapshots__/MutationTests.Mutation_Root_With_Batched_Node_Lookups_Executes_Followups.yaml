@@ -213,7 +213,7 @@ operationPlan:
       name: createReview
       hash: 1d762f7cd968a8b20792799166f23f87
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 4
   nodes:
     - id: 1
       type: Operation

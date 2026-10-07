@@ -10,7 +10,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 2
-    expandedNodes: 5
+    expandedNodes: 8
 nodes:
   - id: 1
     type: Operation
@@ -28,7 +28,7 @@ nodes:
     operation: |
       query Op_123456789101112_3(
         $__fusion_2_isExpensiveWithDiscount: Boolean!
-          $__fusion_3_id: ID!
+        $__fusion_3_id: ID!
       ) {
         productById(id: $__fusion_3_id) {
           canAffordWithDiscount(
@@ -54,7 +54,7 @@ nodes:
     operation: |
       query Op_123456789101112_4(
         $__fusion_4_id: ID!
-          $__fusion_5_hasDiscount: Boolean!
+        $__fusion_5_hasDiscount: Boolean!
       ) {
         productById(id: $__fusion_4_id) {
           isExpensiveWithDiscount(hasDiscount: $__fusion_5_hasDiscount)

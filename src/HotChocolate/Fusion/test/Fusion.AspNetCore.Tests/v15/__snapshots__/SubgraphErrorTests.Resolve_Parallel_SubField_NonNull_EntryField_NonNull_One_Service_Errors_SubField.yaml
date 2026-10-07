@@ -95,7 +95,7 @@ operationPlan:
         }
       hash: 7963466da102bb0bb53f94a0de8f2f1e
       searchSpace: 2
-      expandedNodes: 2
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation

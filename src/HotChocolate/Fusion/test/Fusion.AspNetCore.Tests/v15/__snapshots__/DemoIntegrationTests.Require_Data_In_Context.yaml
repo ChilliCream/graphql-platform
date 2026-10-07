@@ -280,21 +280,21 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Requires_beac16b7_3($__fusion_2_id: ID!) {
-              productById(id: $__fusion_2_id) {
+            query Requires_beac16b7_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
                 name
               }
             }
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo1"
+                "__fusion_1_id": "UHJvZHVjdDo1"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo3"
+                "__fusion_1_id": "UHJvZHVjdDo3"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo5"
+                "__fusion_1_id": "UHJvZHVjdDo5"
               }
             ]
         response:
@@ -354,8 +354,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Requires_beac16b7_2($__fusion_1_id: ID!) {
-              node(id: $__fusion_1_id) {
+            query Requires_beac16b7_3($__fusion_2_id: ID!) {
+              node(id: $__fusion_2_id) {
                 __typename
                 ... on Product {
                   deliveryEstimate(zip: "12345") {
@@ -368,13 +368,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDo1"
+                "__fusion_2_id": "UHJvZHVjdDo1"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo3"
+                "__fusion_2_id": "UHJvZHVjdDo3"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo5"
+                "__fusion_2_id": "UHJvZHVjdDo5"
               }
             ]
         response:
@@ -439,8 +439,8 @@ operationPlan:
         }
       name: Requires
       hash: 2a01009c0a2c1a5ecafecee5663d60d4
-      searchSpace: 1
-      expandedNodes: 1
+      searchSpace: 2
+      expandedNodes: 9
   nodes:
     - id: 1
       type: Operation
@@ -459,10 +459,27 @@ operationPlan:
         }
     - id: 2
       type: Operation
-      schema: D
+      schema: C
       operation: |
         query Requires_beac16b7_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.reviews.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: D
+      operation: |
+        query Requires_beac16b7_3($__fusion_2_id: ID!) {
+          node(id: $__fusion_2_id) {
             __typename
             ... on Product {
               deliveryEstimate(zip: "12345") {
@@ -473,23 +490,6 @@ operationPlan:
           }
         }
       source: $.node<Product>
-      target: $.reviews.product
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: C
-      operation: |
-        query Requires_beac16b7_3($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            name
-          }
-        }
-      source: $.productById
       target: $.reviews.product
       requirements:
         - name: __fusion_2_id

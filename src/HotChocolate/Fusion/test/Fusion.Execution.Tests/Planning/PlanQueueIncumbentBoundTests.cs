@@ -17,39 +17,18 @@ public class PlanQueueIncumbentBoundTests : FusionTestBase
 #endif
 
     [Fact]
-    public void EstimateLowestBranchRemainingCost_Should_DropDepthPenalty_When_NextLookupHasNoLookupChosen()
+    public void RemainingCost_Should_NotProjectDepth_When_NextLookupHasNoLookupChosen()
     {
         // arrange
-        var backlog = CreateBacklog(OperationWorkItemKind.Lookup, parentDepth: 2);
+        var lookupBacklog = CreateBacklog(OperationWorkItemKind.Lookup, parentDepth: 2);
+        var rootBacklog = CreateBacklog(OperationWorkItemKind.Root, parentDepth: 2);
 
         // act
-        var childCost = EstimateRemainingCost(backlog);
-        var lowestCost = PlanQueue.EstimateLowestBranchRemainingCost(
-            s_options,
-            maxDepth: 1,
-            s_noOpsPerLevel,
-            backlog);
+        var lookupCost = EstimateRemainingCost(lookupBacklog);
+        var rootCost = EstimateRemainingCost(rootBacklog);
 
         // assert
-        Assert.Equal([40.0, 10.0], [childCost, lowestCost]);
-    }
-
-    [Fact]
-    public void EstimateLowestBranchRemainingCost_Should_MatchChildCost_When_NextWorkItemIsRoot()
-    {
-        // arrange
-        var backlog = CreateBacklog(OperationWorkItemKind.Root, parentDepth: 2);
-
-        // act
-        var childCost = EstimateRemainingCost(backlog);
-        var lowestCost = PlanQueue.EstimateLowestBranchRemainingCost(
-            s_options,
-            maxDepth: 1,
-            s_noOpsPerLevel,
-            backlog);
-
-        // assert
-        Assert.Equal([10.0, 10.0], [childCost, lowestCost]);
+        Assert.Equal([10.0, 10.0], [lookupCost, rootCost]);
     }
 
     [Fact]
@@ -123,7 +102,7 @@ public class PlanQueueIncumbentBoundTests : FusionTestBase
     public void CannotBeatIncumbent_Should_ReturnFalse_When_LookupBranchCanMoveToTheRoot()
     {
         // arrange
-        // the child costs 25 + 10 + 2 * 15 = 65, its lookup branch can restart at the root for 35
+        // the lookup can restart at the root, so the child costs 25 + 10 = 35 at the very least
         var backlog = CreateBacklog(OperationWorkItemKind.Lookup, parentDepth: 2);
 
         // act

@@ -98,7 +98,7 @@ operationPlan:
       name: GetUsers
       hash: f691e3e2582deb123a76041a5b41737a
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
