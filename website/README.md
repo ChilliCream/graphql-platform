@@ -9,11 +9,11 @@ The ChilliCream website and documentation, built on Next.js (MDX-based docs).
 
 ## Development
 
-Use `yarn` (not `npm`):
+Use npm:
 
 ```bash
-yarn
-yarn dev
+npm ci
+npm run dev
 ```
 
 ## Authoring Markdown Content

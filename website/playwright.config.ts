@@ -46,7 +46,7 @@ export default defineConfig({
     // reading storybook-static/index.json at collection time (before webServer
     // would otherwise run). During iteration you can pre-run a server on this
     // port and it will be reused.
-    command: `yarn http-server storybook-static -p ${PORT} -s`,
+    command: `npx http-server storybook-static -p ${PORT} -s`,
     url: `${STORYBOOK_URL}/index.json`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
