@@ -77,6 +77,48 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         await instanceA.Provider.DisposeAsync();
     }
 
+    [Fact]
+    public async Task Saga_Should_ReceiveFaultOnAnotherInstance_When_SendingInstanceStopsBeforeFault()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var sagaStates = new InMemorySagaStateStorage();
+        var gate = new IdentityUserGate();
+
+        await using var worker = await StartInstanceAsync(
+            db.ConnectionString,
+            sagaStates,
+            b =>
+            {
+                b.Services.AddSingleton(gate);
+                b.AddRequestHandler<GatedFailingCreateIdentityUserHandler>();
+            });
+        var instanceA = await StartInstanceAsync(
+            db.ConnectionString,
+            sagaStates,
+            b => b.AddSaga<ProvisionUserWithFaultSaga>());
+        await using var requester = await StartInstanceAsync(db.ConnectionString, sagaStates, _ => { });
+
+        using var scope = requester.Provider.CreateScope();
+        await scope.ServiceProvider
+            .GetRequiredService<IMessageBus>()
+            .SendAsync(new ProvisionUser("ada@example.com"), ct);
+        await gate.Entered.Task.WaitAsync(s_timeout, ct);
+        await using var instanceB = await StartInstanceAsync(
+            db.ConnectionString,
+            sagaStates,
+            b => b.AddSaga<ProvisionUserWithFaultSaga>());
+
+        // act
+        await instanceA.DisposeAsync();
+        gate.Release.SetResult();
+        await WaitUntilAsync(() => sagaStates.Count == 0, ct);
+
+        // assert
+        Assert.Equal(0, sagaStates.Count);
+    }
+
     private static Task<TestBus> StartWorkerAsync(
         string connectionString,
         InMemorySagaStateStorage sagaStates,
@@ -115,6 +157,16 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         var scope = requester.Provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         return bus.RequestAsync(new ProvisionUser("ada@example.com"), ct).AsTask();
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition, CancellationToken ct)
+    {
+        var deadline = DateTime.UtcNow + s_timeout;
+
+        while (!condition() && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(100, ct);
+        }
     }
 
     private static async Task CrashAsync(TestBus instance, CancellationToken ct)
@@ -163,6 +215,23 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         }
     }
 
+    public sealed class ProvisionUserWithFaultSaga : Saga<ProvisionUserState>
+    {
+        protected override void Configure(ISagaDescriptor<ProvisionUserState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnRequest<ProvisionUser>()
+                .StateFactory(r => new ProvisionUserState { Email = r.Email })
+                .Send(s => new CreateIdentityUser(s.Id, s.Email))
+                .TransitionTo("IdentityUserPending");
+
+            descriptor.During("IdentityUserPending").OnFault().TransitionTo("Failed");
+
+            descriptor.Finally("Failed");
+        }
+    }
+
     public sealed class IdentityUserGate
     {
         public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -180,6 +249,19 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
             gate.Entered.TrySetResult();
             await gate.Release.Task.WaitAsync(cancellationToken);
             return new IdentityUserCreated(request.SagaId);
+        }
+    }
+
+    public sealed class GatedFailingCreateIdentityUserHandler(IdentityUserGate gate)
+        : IEventRequestHandler<CreateIdentityUser, IdentityUserCreated>
+    {
+        public async ValueTask<IdentityUserCreated> HandleAsync(
+            CreateIdentityUser request,
+            CancellationToken cancellationToken)
+        {
+            gate.Entered.TrySetResult();
+            await gate.Release.Task.WaitAsync(cancellationToken);
+            throw new InvalidOperationException("The identity user could not be created.");
         }
     }
 }

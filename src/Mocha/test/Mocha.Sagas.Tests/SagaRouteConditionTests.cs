@@ -6,9 +6,9 @@ namespace Mocha.Sagas.Tests;
 
 /// <summary>
 /// Tests for the route conditions that <see cref="SagaConsumer"/> derives. Reply transitions are
-/// gated on the saga-id header so non saga replies on the shared reply endpoint cannot select a saga;
-/// catch-all replies exclude faults, typed replies keep their message type term, and subscribe
-/// transitions route by type alone.
+/// gated on the saga-id header and the reply kind so neither non saga replies nor the saga's own
+/// messages can select a saga; catch-all replies exclude faults, typed replies keep their message
+/// type term, and subscribe transitions route by type alone.
 /// </summary>
 public class SagaRouteConditionTests
 {
@@ -25,11 +25,15 @@ public class SagaRouteConditionTests
         Assert.Collection(
             description.Children,
             c => Assert.Equal("HeaderPresent", c.Kind),
-            c => Assert.Equal("NotFault", c.Kind));
+            c =>
+            {
+                Assert.Equal("ReplyKind", c.Kind);
+                Assert.Equal("reply", c.Detail);
+            });
     }
 
     [Fact]
-    public void Configure_Should_GateOnSagaIdAndMessageType_When_OnFault()
+    public void Configure_Should_GateOnSagaIdReplyKindAndMessageType_When_OnFault()
     {
         // arrange & act
         var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
@@ -44,6 +48,11 @@ public class SagaRouteConditionTests
             {
                 Assert.Equal("HeaderPresent", c.Kind);
                 Assert.Equal("saga-id", c.Detail);
+            },
+            c =>
+            {
+                Assert.Equal("ReplyKind", c.Kind);
+                Assert.Equal("reply,fault", c.Detail);
             },
             c => Assert.Equal("MessageType", c.Kind));
     }
@@ -65,7 +74,28 @@ public class SagaRouteConditionTests
                 Assert.Equal("HeaderPresent", c.Kind);
                 Assert.Equal("saga-id", c.Detail);
             },
+            c =>
+            {
+                Assert.Equal("ReplyKind", c.Kind);
+                Assert.Equal("reply,fault", c.Detail);
+            },
             c => Assert.Equal("MessageType", c.Kind));
+    }
+
+    [Fact]
+    public void Configure_Should_BindReplyRoutesToSagaAndReplyEndpoints_When_SagaHasReplyTransition()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b => b.AddSaga<TypedReplySaga>());
+
+        // assert
+        var consumer = runtime.Consumers.OfType<SagaConsumer>().Single();
+        var endpoints = runtime
+            .Router.GetInboundByConsumer(consumer)
+            .Where(r => r.Kind == InboundRouteKind.Reply)
+            .Select(r => r.Endpoint!.Kind)
+            .Order();
+        Assert.Equal([ReceiveEndpointKind.Default, ReceiveEndpointKind.Reply], endpoints);
     }
 
     [Fact]
@@ -87,7 +117,9 @@ public class SagaRouteConditionTests
         var consumer = runtime.Consumers.OfType<SagaConsumer>().Single();
         return runtime
             .Router.GetInboundByConsumer(consumer)
-            .Single(r => r.Kind == kind && (messageType is null || r.MessageType?.RuntimeType == messageType));
+            .Single(r => r.Kind == kind
+                && r.Endpoint?.Kind == ReceiveEndpointKind.Default
+                && (messageType is null || r.MessageType?.RuntimeType == messageType));
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

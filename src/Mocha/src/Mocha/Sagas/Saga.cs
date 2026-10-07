@@ -220,6 +220,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     private SagaState _initialState = null!;
 
+    private Dictionary<MessagingTransport, Uri>? _replyAddresses;
+
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
     public override IReadOnlyDictionary<string, SagaState> States => _states ?? throw ThrowHelper.SagaNotInitialized();
@@ -541,7 +543,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             var eventType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetPublishEndpoint(eventType);
-            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
 
             options = options with { FaultEndpoint = replyEndpoint };
 
@@ -587,9 +589,9 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
-            // Route replies and faults to the shared reply endpoint, where the saga's reply routes
-            // are bound and correlated by the saga header.
-            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            // Route replies and faults to an endpoint where the saga's reply routes are bound and
+            // correlated by the saga header.
+            var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
             options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
@@ -598,6 +600,34 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             await context.GetBus().SendAsync(message, options, ct);
         }
+    }
+
+    private Uri? GetReplyAddress(IMessagingRuntime runtime, MessagingTransport transport)
+    {
+        var replyAddresses = _replyAddresses ??= CreateReplyAddresses(runtime.Router);
+
+        // The saga's own endpoint on this transport, or the instance's reply endpoint when the saga
+        // does not receive on it.
+        return replyAddresses.TryGetValue(transport, out var address)
+            ? address
+            : transport.ReplyReceiveEndpoint?.Source.Address;
+    }
+
+    private Dictionary<MessagingTransport, Uri> CreateReplyAddresses(IMessageRouter router)
+    {
+        var replyAddresses = new Dictionary<MessagingTransport, Uri>();
+
+        var routes = router.GetInboundByConsumer(Consumer).OrderBy(static r => r.Endpoint?.Name, StringComparer.Ordinal);
+
+        foreach (var route in routes)
+        {
+            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Default } endpoint })
+            {
+                replyAddresses.TryAdd(endpoint.Transport, endpoint.Source.Address);
+            }
+        }
+
+        return replyAddresses;
     }
 }
 

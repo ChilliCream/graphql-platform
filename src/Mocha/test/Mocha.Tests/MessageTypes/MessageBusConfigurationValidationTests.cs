@@ -46,7 +46,7 @@ public sealed class MessageBusConfigurationValidationTests
     }
 
     [Fact]
-    public async Task Build_Should_BindSagaReplyRoutesToReplyEndpoint_When_ExplicitBindMode()
+    public async Task Build_Should_BindSagaReplyRoutesToSagaAndReplyEndpoints_When_ExplicitBindMode()
     {
         await InspectRuntimeAsync(
             builder =>
@@ -61,11 +61,13 @@ public sealed class MessageBusConfigurationValidationTests
             runtime =>
             {
                 var sagaConsumer = runtime.Consumers.Single(consumer => consumer.Identity == typeof(StockCheckSaga));
-                var replyRoute = runtime.Router
+                var replyEndpoints = runtime.Router
                     .GetInboundByConsumer(sagaConsumer)
-                    .Single(route => route.Kind == InboundRouteKind.Reply);
+                    .Where(route => route.Kind == InboundRouteKind.Reply)
+                    .Select(route => route.Endpoint?.Name)
+                    .Order(StringComparer.Ordinal);
 
-                Assert.Equal(ReceiveEndpointKind.Reply, replyRoute.Endpoint?.Kind);
+                Assert.Equal(["Replies", "stock-start"], replyEndpoints);
 
                 Assert.All(
                     runtime.Router.InboundRoutes.Where(route => route.Kind == InboundRouteKind.Reply),
