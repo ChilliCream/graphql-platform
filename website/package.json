@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 3002",
     "build": "next build && yarn generate:llms && yarn validate:llms",
-    "start": "next start -p 3001",
+    "start": "next start -p 3002",
     "optimize-images": "node scripts/optimize-images.mjs",
     "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
     "generate-agent-skills": "node scripts/generate-agent-skills.mjs",
