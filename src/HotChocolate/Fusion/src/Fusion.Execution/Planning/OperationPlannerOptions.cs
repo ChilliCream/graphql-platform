@@ -1,8 +1,8 @@
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Configures the operation planner, including cost-formula tuning
-/// and planning guardrails.
+/// Configures the operation planner, including cost-formula tuning,
+/// planning guardrails, and the improvement budget.
 /// All guardrail properties default to <c>null</c> (disabled).
 /// </summary>
 public sealed class OperationPlannerOptions
@@ -211,6 +211,28 @@ public sealed class OperationPlannerOptions
             field = value;
         }
     }
+
+    /// <summary>
+    /// Gets or sets the maximum number of planner nodes that may be expanded for one operation
+    /// after a complete plan exists, after which the planner returns the best complete plan found
+    /// so far. Defaults to 8192; <c>null</c> disables the limit.
+    /// </summary>
+    public int? MaxPlanImprovementNodes
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            if (value is < 1)
+            {
+                throw new ArgumentException(
+                    "The planner max plan improvement nodes must be at least 1.");
+            }
+
+            field = value;
+        }
+    } = 8192;
 
     internal void MakeReadOnly()
         => _isReadOnly = true;

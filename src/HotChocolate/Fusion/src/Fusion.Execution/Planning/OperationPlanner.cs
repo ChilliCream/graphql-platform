@@ -463,6 +463,13 @@ public sealed partial class OperationPlanner
             // so that we throw ones a request was canceled so that no unnecessary work is done.
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Once a complete plan exists, every further expansion draws from the shared
+            // improvement allowance and the search ends with the best plan when it is spent.
+            if (bestCompletePlan is not null && !budget.TryCountImprovement(operationId))
+            {
+                break;
+            }
+
             expandedNodes++;
             var possiblePlansCount = possiblePlans.Count;
             searchSpace = Math.Max(possiblePlansCount, searchSpace);

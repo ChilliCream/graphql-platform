@@ -206,6 +206,152 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         Assert.Equal("Query", plannerError.GetStringPayload(1));
     }
 
+    [Fact]
+    public void CreatePlan_Should_EmitImprovementBudgetExhausted_When_BudgetEndsSearch()
+    {
+        // arrange
+        using var listener = new PlannerEventListener();
+        const string operationId = "planner_etw_improvement_budget";
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                f1: Int @shareable
+                f2: Int @shareable
+                f3: Int @shareable
+                f4: Int @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                f1: Int @shareable
+                f2: Int @shareable
+                f5: Int
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                f3: Int @shareable
+                f4: Int @shareable
+                f6: Int
+            }
+            """);
+        var planner = CreatePlanner(
+            schema,
+            new OperationPlannerOptions { OperationWeight = 10.0, MaxPlanImprovementNodes = 1 });
+        var operation = ParseOperation("{ f1 f2 f3 f4 f5 f6 }");
+
+        // act
+        planner.CreatePlan(
+            operationId,
+            operationId,
+            "12345678",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var exhausted = listener.Single(
+            PlannerEventSource.PlanImprovementBudgetExhaustedEventId,
+            operationId);
+        var stop = listener.Single(PlannerEventSource.PlanStopEventId, operationId);
+
+        Assert.Equal(operationId, exhausted.GetStringPayload(0));
+        Assert.Equal(1, exhausted.GetInt32Payload(1));
+        Assert.Equal(1, stop.GetInt32Payload(3));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_NotEmitImprovementBudgetExhausted_When_SearchCompletesWithinBudget()
+    {
+        // arrange
+        using var listener = new PlannerEventListener();
+        const string operationId = "planner_etw_improvement_within_budget";
+        var schema = CreateCompositeSchema();
+
+        // act
+        CreatePlan(
+            schema,
+            """
+            {
+              productBySlug(slug: "1") {
+                id
+                name
+              }
+            }
+            """,
+            operationId);
+
+        // assert
+        Assert.Empty(
+            listener.ByEventId(
+                PlannerEventSource.PlanImprovementBudgetExhaustedEventId,
+                operationId));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_ShareImprovementBudget_When_OperationHasDeferredSearches()
+    {
+        // arrange
+        using var listener = new PlannerEventListener();
+        const string operationId = "planner_etw_improvement_deferred";
+        var schema = ComposeSchema(
+            """
+            type Query {
+                immediate: Int
+                first: Int
+                second: Int
+            }
+            """);
+        var planner = CreatePlanner(
+            schema,
+            new OperationPlannerOptions { EnableDefer = true, MaxPlanImprovementNodes = 1 });
+        var operation = ParseOperation(
+            """
+            {
+                immediate
+                ... @defer(label: "first") { first }
+                ... @defer(label: "second") { second }
+            }
+            """);
+
+        // act
+        planner.CreatePlan(
+            operationId,
+            operationId,
+            "12345678",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        new
+        {
+            Exhausted = listener
+                .ByOperationPrefix(PlannerEventSource.PlanImprovementBudgetExhaustedEventId, operationId)
+                .Select(t => t.GetStringPayload(0))
+                .Order(StringComparer.Ordinal)
+                .ToArray(),
+            Expansions = listener
+                .ByOperationPrefix(PlannerEventSource.PlanDequeueEventId, operationId)
+                .GroupBy(t => t.GetStringPayload(0))
+                .OrderBy(g => g.Key, StringComparer.Ordinal)
+                .Select(g => $"{g.Key}: {g.Count()}")
+                .ToArray()
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Exhausted": [
+                "planner_etw_improvement_deferred#defer_0",
+                "planner_etw_improvement_deferred#defer_1"
+              ],
+              "Expansions": [
+                "planner_etw_improvement_deferred: 1"
+              ]
+            }
+            """);
+    }
+
     private static OperationPlanner CreatePlanner(
         FusionSchemaDefinition schema,
         OperationPlannerOptions? options = null)
@@ -265,6 +411,14 @@ public sealed class PlannerEventSourceTests : FusionTestBase
 
         public IReadOnlyList<CapturedEvent> ByEventId(int eventId, string operationId)
             => _events.Where(t => t.EventId == eventId && t.HasOperationId(operationId)).ToArray();
+
+        public IReadOnlyList<CapturedEvent> ByOperationPrefix(int eventId, string operationIdPrefix)
+            => _events
+                .Where(t => t.EventId == eventId
+                    && t.Payload.Count > 0
+                    && t.Payload[0] is string id
+                    && id.StartsWith(operationIdPrefix, StringComparison.Ordinal))
+                .ToArray();
 
         public CapturedEvent Single(int eventId, string operationId)
             => Assert.Single(ByEventId(eventId, operationId));
