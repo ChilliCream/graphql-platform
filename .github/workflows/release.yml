@@ -823,8 +823,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
     if: needs.compute-release-context.outputs.is_stable == 'true'
+    # Serialize across release runs and branches, so each run gates against the tags of the previous
+    # release. Every branch's release.yml must use this same group name.
+    concurrency:
+      group: update-azure-pipelines-extension
+      cancel-in-progress: false
 
     steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/actions
+          show-progress: false
+
       - name: 🔐 Create GitHub App token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -834,43 +845,10 @@ jobs:
           owner: ChilliCream
           repositories: nitro-azure-pipelines-tasks
 
-      - name: 🚀 Dispatch extension release workflow
-        id: dispatch
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPO: ChilliCream/nitro-azure-pipelines-tasks
-          VERSION: ${{ needs.compute-release-context.outputs.git_tag }}
-          IS_ACTIVE_MAJOR: ${{ needs.compute-release-context.outputs.is_active_major }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          RUN_URL=$(gh workflow run release.yaml --repo "$REPO" --ref main \
-            -f version="$VERSION" \
-            -f is_active_major="$IS_ACTIVE_MAJOR")
-          if [ -z "$RUN_URL" ]; then
-            echo "::error::Dispatch did not return a run URL. Requires gh >= 2.87.0."
-            exit 1
-          fi
-          RUN_ID="${RUN_URL##*/}"
-          echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
-          echo "Dispatched run: $RUN_URL"
-
-      - name: 👀 Watch extension release run
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPO: ChilliCream/nitro-azure-pipelines-tasks
-          RUN_ID: ${{ steps.dispatch.outputs.run-id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # A single transient API error kills `gh run watch`, so retry it. Re-watching a run that
-          # really failed costs nothing, because watching a completed run returns immediately.
-          for attempt in 1 2 3; do
-            gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact && exit 0
-            echo "Watch attempt $attempt/3 failed."
-            sleep 10
-          done
-
-          echo "::error::Run $RUN_ID failed, or its status could not be read."
-          exit 1
+      - name: 🚀 Run extension release workflow
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        with:
+          repo: ChilliCream/nitro-azure-pipelines-tasks
+          workflow: release.yaml
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          token: ${{ steps.app-token.outputs.token }}
