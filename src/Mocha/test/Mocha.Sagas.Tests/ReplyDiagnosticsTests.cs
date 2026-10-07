@@ -7,7 +7,7 @@ namespace Mocha.Sagas.Tests;
 
 /// <summary>
 /// Tests that a reply reaching the shared reply endpoint without a pending request is reported when
-/// nothing else claims it, and stays quiet when a saga route owns it.
+/// nothing else claims it, and that a saga reply is not reported.
 /// </summary>
 public class ReplyDiagnosticsTests
 {
@@ -16,8 +16,8 @@ public class ReplyDiagnosticsTests
     [Fact]
     public async Task ReplyConsumer_Should_WarnAboutDiscardedReply_When_NoRouteClaimsIt()
     {
-        // A saga that handles only fault replies leaves a successful reply unclaimed: it fails the
-        // fault route's message type term and matches no request promise, so it is dropped.
+        // A send that names the reply endpoint without a pending request leaves its reply unclaimed:
+        // it matches no request promise and no saga route, so it is dropped.
 
         // arrange
         var logs = new CapturingLoggerProvider();
@@ -26,14 +26,18 @@ public class ReplyDiagnosticsTests
         {
             b.Services.AddSingleton(handlerRan);
             b.AddRequestHandler<DiagnosticsRequestHandler>();
-            b.AddSaga<FaultOnlySaga>();
         });
 
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var replyAddress = runtime.Transports.Single().ReplyReceiveEndpoint!.Source.Address;
 
         // act
-        await bus.PublishAsync(new StartDiagnosticsEvent(), CancellationToken.None);
+        await bus.SendAsync(
+            new DiagnosticsRequest(),
+            new SendOptions { ReplyEndpoint = replyAddress },
+            CancellationToken.None);
         await handlerRan.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // assert
@@ -112,26 +116,6 @@ public class ReplyDiagnosticsTests
         {
             handlerRan.TrySetResult();
             return new(new DiagnosticsResponse());
-        }
-    }
-
-    /// <summary>
-    /// Handles only fault replies, so a successful reply matches no route on the reply endpoint.
-    /// </summary>
-    public sealed class FaultOnlySaga : Saga<DiagnosticsState>
-    {
-        protected override void Configure(ISagaDescriptor<DiagnosticsState> descriptor)
-        {
-            descriptor
-                .Initially()
-                .OnEvent<StartDiagnosticsEvent>()
-                .StateFactory(_ => new DiagnosticsState())
-                .Send((_, _) => new DiagnosticsRequest())
-                .TransitionTo("Awaiting");
-
-            descriptor.During("Awaiting").OnFault().TransitionTo("Failed");
-
-            descriptor.Finally("Failed");
         }
     }
 

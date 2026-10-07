@@ -40,9 +40,9 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
 
                     if (transitionKind == SagaTransitionKind.Reply)
                     {
-                        // A reply lands on the shared reply endpoint alongside non saga (RPC) replies.
-                        // The saga-id header marks replies to the saga's own requests, so the route
-                        // selects only those. A typed reply additionally narrows by its message type.
+                        // A reply lands on the saga's own endpoint or on the shared reply endpoint.
+                        // The route selects only replies to the saga's own requests, and a typed reply
+                        // additionally narrows by its message type.
                         r.Condition(CreateReplyCondition(eventType));
                     }
                 });
@@ -52,21 +52,24 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
 
     private static RouteCondition CreateReplyCondition(Type eventType)
     {
-        // The saga-id header is the discriminator: only replies to the saga's own requests carry it,
-        // so the route never selects a non saga (RPC) reply on the shared reply endpoint.
+        // Only replies to the saga's own requests carry the saga-id header and a reply kind. The
+        // saga's own sends and publishes carry the header too, but not a reply kind.
         var sagaId = new HeaderPresentCondition<string>(SagaContextData.SagaId);
 
         // OnAnyReply routes successful replies to the saga consumer. Fault notifications are
         // selected only by an explicit OnFault route.
         if (eventType == typeof(object))
         {
-            return AndCondition.Create(sagaId, NotFaultCondition.Instance);
+            return AndCondition.Create(sagaId, ReplyKindCondition.Reply);
         }
 
         // A typed OnReply<T> requires the saga-id and, when the received message resolves a message
         // type, requires it to match the reply type. A reply with no resolved message type still
         // selects the route on the saga-id alone.
-        return AndCondition.Create(sagaId, new MessageTypeCondition(eventType, optional: true));
+        return AndCondition.Create(
+            sagaId,
+            ReplyKindCondition.ReplyOrFault,
+            new MessageTypeCondition(eventType, optional: true));
     }
 
     /// <inheritdoc />

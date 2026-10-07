@@ -66,6 +66,7 @@ public abstract class RoutingStrategy
             DiscoverImplicitEndpoints(context);
         }
 
+        DiscoverConsumerReplyEndpoints(context);
         DiscoverOutboundEndpoints(context);
         DiscoverEndpointTopology(context);
     }
@@ -182,6 +183,28 @@ public abstract class RoutingStrategy
             if (route.Endpoint?.Transport == Transport)
             {
                 CreateMatchingOutboundRoute(context, route);
+            }
+        }
+    }
+
+    private void DiscoverConsumerReplyEndpoints(IMessagingSetupContext context)
+    {
+        // A reply route is also bound to the endpoints its consumer receives on, so a reply can be
+        // addressed to the consumer instead of this instance.
+        foreach (var route in context.Router.InboundRoutes.Where(static route => route.Kind == Reply).ToArray())
+        {
+            if (route.Consumer is not { } consumer)
+            {
+                continue;
+            }
+
+            foreach (var consumerRoute in context.Router.GetInboundByConsumer(consumer))
+            {
+                if (consumerRoute is { Kind: not Reply, Endpoint: { Kind: ReceiveEndpointKind.Default } endpoint }
+                    && endpoint.Transport == Transport)
+                {
+                    context.BindRouteToEndpoint(route, endpoint);
+                }
             }
         }
     }
