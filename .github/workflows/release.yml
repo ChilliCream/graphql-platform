@@ -703,7 +703,10 @@ jobs:
     name: 🍺 Update Homebrew Tap
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
-    if: needs.compute-release-context.outputs.is_stable == 'true' || needs.compute-release-context.outputs.is_active_major == 'true'
+    # Serialize across release runs, so each run compares against the formulas of the previous release.
+    concurrency:
+      group: update-homebrew
+      cancel-in-progress: false
 
     steps:
       - name: 📦 Checkout
@@ -727,8 +730,6 @@ jobs:
           repo: ChilliCream/homebrew-tools
           workflow: release.yaml
           version: ${{ needs.compute-release-context.outputs.git_tag }}
-          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
-          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
           token: ${{ steps.app-token.outputs.token }}
 
   update-github-actions:
