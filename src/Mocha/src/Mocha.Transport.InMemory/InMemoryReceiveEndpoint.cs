@@ -78,6 +78,10 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
                 item.Envelope,
                 cancellationToken);
         }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // Message processing was cancelled during shutdown.
+        }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "Error processing message");

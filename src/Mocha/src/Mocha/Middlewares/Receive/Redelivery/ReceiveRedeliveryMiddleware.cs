@@ -35,7 +35,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             // Request/reply messages must not be redelivered - the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)

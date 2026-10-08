@@ -643,30 +643,65 @@ public sealed class RetryExecutorTests
     [Fact]
     public async Task ExecuteAsync_Should_ThrowOperationCanceled_When_CancellationRequestedDuringDelay()
     {
-        // arrange - use a short real delay with pre-cancelled token to verify cancellation propagation
-        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(1), RetryBackoffType.Constant));
+        // arrange
+        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(10), RetryBackoffType.Constant));
         using var cts = new CancellationTokenSource();
         var counter = new Counter();
 
-        // Pre-cancel so the delay will throw OperationCanceledException immediately
-        cts.Cancel();
+        // act
+        var execution = RetryExecutor.ExecuteAsync(
+            rules,
+            counter,
+            static s =>
+            {
+                s.Increment();
+                throw new InvalidOperationException("fail");
+            },
+            onRetry: null,
+            cts.Token).AsTask();
+        await cts.CancelAsync();
 
-        // act & assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            RetryExecutor
-                .ExecuteAsync(
-                    rules,
-                    counter,
-                    static (s) =>
-                    {
-                        s.Increment();
-                        throw new InvalidOperationException("fail");
-                    },
-                    onRetry: null,
-                    cts.Token)
-                .AsTask()
-        );
+        // assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => execution);
+        Assert.Equal(1, counter.Count);
+    }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_Should_PropagateFailure_When_ActionCancelsProcessing(bool discard)
+    {
+        // arrange
+        var rules = BuildRules(p =>
+        {
+            if (discard)
+            {
+                p.On<Exception>().Discard();
+            }
+            else
+            {
+                p.On<Exception>().Retry(3, TimeSpan.Zero, RetryBackoffType.Constant);
+            }
+        });
+        using var cts = new CancellationTokenSource();
+        var counter = new Counter();
+        var failure = new InvalidOperationException("Cancelled attempt");
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => RetryExecutor.ExecuteAsync(
+            rules,
+            counter,
+            s =>
+            {
+                s.Increment();
+                cts.Cancel();
+                throw failure;
+            },
+            onRetry: null,
+            cts.Token).AsTask());
+
+        // assert
+        Assert.Same(failure, exception);
         Assert.Equal(1, counter.Count);
     }
 

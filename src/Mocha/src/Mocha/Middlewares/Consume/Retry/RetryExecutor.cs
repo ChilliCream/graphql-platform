@@ -30,12 +30,14 @@ internal static class RetryExecutor
 
         while (true)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 await action(state);
                 return;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 // Match exception against policy rules.
                 var rule = ExceptionPolicyMatcher.Match(rules, ex);
