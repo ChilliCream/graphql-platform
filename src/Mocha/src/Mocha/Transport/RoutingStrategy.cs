@@ -1,3 +1,4 @@
+using Mocha.Sagas;
 using static Mocha.InboundRouteKind;
 
 namespace Mocha;
@@ -45,6 +46,19 @@ public abstract class RoutingStrategy
         IMessagingConfigurationContext context,
         InboundRoute route);
 
+    /// <summary>
+    /// Creates the configuration of a durable reply endpoint that all instances of the route's
+    /// consumer share, or <c>null</c> when the consumer receives replies on the instance reply
+    /// endpoint only.
+    /// </summary>
+    /// <param name="context">The messaging configuration context.</param>
+    /// <param name="route">A reply route of the consumer that owns the endpoint.</param>
+    /// <returns>The reply endpoint configuration, or <c>null</c>.</returns>
+    public virtual ReceiveEndpointConfiguration? CreateReplyEndpointConfiguration(
+        IMessagingConfigurationContext context,
+        InboundRoute route)
+        => null;
+
     public virtual void ConfigureEndpoint(
         IMessagingConfigurationContext context,
         ReceiveEndpointConfiguration configuration)
@@ -66,7 +80,7 @@ public abstract class RoutingStrategy
             DiscoverImplicitEndpoints(context);
         }
 
-        DiscoverConsumerReplyEndpoints(context);
+        DiscoverSagaReplyEndpoints(context);
         DiscoverOutboundEndpoints(context);
         DiscoverEndpointTopology(context);
     }
@@ -187,24 +201,27 @@ public abstract class RoutingStrategy
         }
     }
 
-    private void DiscoverConsumerReplyEndpoints(IMessagingSetupContext context)
+    private void DiscoverSagaReplyEndpoints(IMessagingSetupContext context)
     {
-        // A reply route is also bound to the endpoints its consumer receives on, so a reply can be
-        // addressed to the consumer instead of this instance.
-        foreach (var route in context.Router.InboundRoutes.Where(static route => route.Kind == Reply).ToArray())
+        // A saga receives its replies on a durable endpoint that all of its instances share, so a
+        // reply outlives the instance that sent the request.
+        var sagaReplyRoutes = context.Router.InboundRoutes
+            .Where(static route => route is { Kind: Reply, Consumer: SagaConsumer })
+            .GroupBy(static route => route.Consumer)
+            .ToArray();
+
+        foreach (var routes in sagaReplyRoutes)
         {
-            if (route.Consumer is not { } consumer)
+            if (CreateReplyEndpointConfiguration(context, routes.First()) is not { } configuration)
             {
                 continue;
             }
 
-            foreach (var consumerRoute in context.Router.GetInboundByConsumer(consumer))
+            var endpoint = Transport.AddEndpoint(context, configuration);
+
+            foreach (var route in routes)
             {
-                if (consumerRoute is { Kind: not Reply, Endpoint: { Kind: ReceiveEndpointKind.Default } endpoint }
-                    && endpoint.Transport == Transport)
-                {
-                    context.BindRouteToEndpoint(route, endpoint);
-                }
+                context.BindRouteToEndpoint(route, endpoint);
             }
         }
     }

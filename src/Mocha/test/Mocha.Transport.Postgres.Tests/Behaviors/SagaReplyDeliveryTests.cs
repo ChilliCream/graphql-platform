@@ -1,7 +1,10 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Sagas;
 using Mocha.Transport.Postgres.Tests.Helpers;
+using Npgsql;
 
 namespace Mocha.Transport.Postgres.Tests.Behaviors;
 
@@ -119,6 +122,50 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         Assert.Equal(0, sagaStates.Count);
     }
 
+    [Fact]
+    public async Task Saga_Should_DiscardReply_When_NoReplyTransitionMatches()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var sagaStates = new InMemorySagaStateStorage();
+        var gate = new IdentityUserGate();
+        gate.Release.SetResult();
+        var replyLogger = new DiscardedReplyLoggerProvider();
+
+        await using var instance = await StartInstanceAsync(
+            db.ConnectionString,
+            sagaStates,
+            b =>
+            {
+                b.Services.AddLogging(l => l.AddProvider(replyLogger));
+                b.Services.AddSingleton(gate);
+                b.AddRequestHandler<GatedCreateIdentityUserHandler>();
+                b.AddRequestHandler<AuditUserHandler>();
+                b.AddSaga<AuditedProvisionUserSaga>();
+            });
+
+        // act
+        // the acknowledgement of the audit command matches none of the saga's reply transitions
+        var response = await SendProvisionUserAsync(instance, ct).WaitAsync(s_timeout, ct);
+        await replyLogger.Discarded.Task.WaitAsync(s_timeout, ct);
+
+        // assert
+        new
+        {
+            response.Email,
+            PersistedSagas = sagaStates.Count,
+            QueuedMessages = await WaitForQueuesToDrainAsync(db.ConnectionString, ct)
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Email": "ada@example.com",
+              "PersistedSagas": 0,
+              "QueuedMessages": []
+            }
+            """);
+    }
+
     private static Task<TestBus> StartWorkerAsync(
         string connectionString,
         InMemorySagaStateStorage sagaStates,
@@ -169,6 +216,44 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         }
     }
 
+    private static async Task<string[]> WaitForQueuesToDrainAsync(string connectionString, CancellationToken ct)
+    {
+        var deadline = DateTime.UtcNow + s_timeout;
+        var messages = await GetQueuedMessagesAsync(connectionString, ct);
+
+        while (messages.Length > 0 && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(100, ct);
+            messages = await GetQueuedMessagesAsync(connectionString, ct);
+        }
+
+        return messages;
+    }
+
+    private static async Task<string[]> GetQueuedMessagesAsync(string connectionString, CancellationToken ct)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(ct);
+
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT q.name || ': ' || (m.headers ->> 'messageType')
+            FROM public.mocha_message m
+            JOIN public.mocha_queue q ON q.id = m.queue_id
+            ORDER BY q.name
+            """,
+            connection);
+        await using var reader = await command.ExecuteReaderAsync(ct);
+
+        var messages = new List<string>();
+        while (await reader.ReadAsync(ct))
+        {
+            messages.Add(reader.GetString(0));
+        }
+
+        return [.. messages];
+    }
+
     private static async Task CrashAsync(TestBus instance, CancellationToken ct)
     {
         var runtime = (MessagingRuntime)instance.Provider.GetRequiredService<IMessagingRuntime>();
@@ -203,6 +288,29 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
                 .Initially()
                 .OnRequest<ProvisionUser>()
                 .StateFactory(r => new ProvisionUserState { Email = r.Email })
+                .Send(s => new CreateIdentityUser(s.Id, s.Email))
+                .TransitionTo("IdentityUserPending");
+
+            descriptor
+                .During("IdentityUserPending")
+                .OnReply<IdentityUserCreated>()
+                .TransitionTo("Success");
+
+            descriptor.Finally("Success").Respond(s => new UserProvisioned(s.Id, s.Email));
+        }
+    }
+
+    public sealed record AuditUser(string Email);
+
+    public sealed class AuditedProvisionUserSaga : Saga<ProvisionUserState>
+    {
+        protected override void Configure(ISagaDescriptor<ProvisionUserState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnRequest<ProvisionUser>()
+                .StateFactory(r => new ProvisionUserState { Email = r.Email })
+                .Send(s => new AuditUser(s.Email))
                 .Send(s => new CreateIdentityUser(s.Id, s.Email))
                 .TransitionTo("IdentityUserPending");
 
@@ -263,5 +371,37 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
             await gate.Release.Task.WaitAsync(cancellationToken);
             throw new InvalidOperationException("The identity user could not be created.");
         }
+    }
+
+    public sealed class AuditUserHandler : IEventRequestHandler<AuditUser>
+    {
+        public ValueTask HandleAsync(AuditUser request, CancellationToken cancellationToken) => default;
+    }
+
+    private sealed class DiscardedReplyLoggerProvider : ILoggerProvider, ILogger
+    {
+        public TaskCompletionSource Discarded { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ILogger CreateLogger(string categoryName)
+            => categoryName == typeof(ReplyConsumer).FullName ? this : NullLogger.Instance;
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => logLevel == LogLevel.Warning;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (logLevel == LogLevel.Warning)
+            {
+                Discarded.TrySetResult();
+            }
+        }
+
+        public void Dispose() { }
     }
 }

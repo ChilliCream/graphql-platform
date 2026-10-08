@@ -151,18 +151,19 @@ For publish (fan-out) endpoints, the name includes the message namespace in keba
 
 ## Special endpoint names
 
-| Purpose       | Name pattern         | Example                                     |
-| ------------- | -------------------- | ------------------------------------------- |
-| Error queue   | `{endpoint}_error`   | `catalog.order-placed-event_error`          |
-| Skipped queue | `{endpoint}_skipped` | `catalog.order-placed-event_skipped`        |
-| Reply queue   | `response-{guid:N}`  | `response-3f2504e04f8911d39a0c0305e82c3301` |
+| Purpose          | Name pattern             | Example                                     |
+| ---------------- | ------------------------ | ------------------------------------------- |
+| Error queue      | `{endpoint}_error`       | `catalog.order-placed-event_error`          |
+| Skipped queue    | `{endpoint}_skipped`     | `catalog.order-placed-event_skipped`        |
+| Reply queue      | `response-{guid:N}`      | `response-3f2504e04f8911d39a0c0305e82c3301` |
+| Saga reply queue | `{service}.{saga}_reply` | `catalog.quick-refund-saga_reply`           |
 
 The two failure-side endpoints are populated by different middlewares:
 
 - **Error queue (`_error`)** receives messages whose handler threw an exception. The `Fault` middleware (`ReceiveFaultMiddleware`) catches the exception, attaches `fault-*` headers (exception type, message, stack trace, timestamp), and forwards the original envelope to the configured `ErrorEndpoint`.
 - **Skipped queue (`_skipped`)** receives messages that completed the pipeline without any consumer marking them as consumed. The `DeadLetter` middleware (`ReceiveDeadLetterMiddleware`) re-dispatches the original envelope to the configured `SkippedEndpoint`.
 
-Reply queues are temporary, per-instance queues used for request/reply correlation.
+Reply queues are temporary, per-instance queues used for request/reply correlation. Saga reply queues are durable and shared by all instances of a service: they receive the replies and faults to the requests a saga sends, so any instance can continue the saga after the sending instance stops.
 
 # Customize outbound routes
 

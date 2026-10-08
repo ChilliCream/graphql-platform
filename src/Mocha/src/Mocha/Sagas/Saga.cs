@@ -589,8 +589,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
-            // Route replies and faults to an endpoint where the saga's reply routes are bound and
-            // correlated by the saga header.
+            // Route replies and faults to the saga's reply endpoint, where the saga's reply routes
+            // correlate them by the saga header.
             var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
             options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
@@ -606,8 +606,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         var replyAddresses = _replyAddresses ??= CreateReplyAddresses(runtime.Router);
 
-        // The saga's own endpoint on this transport, or the instance's reply endpoint when the saga
-        // does not receive on it.
+        // The saga's reply endpoint on this transport, or the instance's reply endpoint when the
+        // transport has none.
         return replyAddresses.TryGetValue(transport, out var address)
             ? address
             : transport.ReplyReceiveEndpoint?.Source.Address;
@@ -617,11 +617,11 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         var replyAddresses = new Dictionary<MessagingTransport, Uri>();
 
-        var routes = router.GetInboundByConsumer(Consumer).OrderBy(static r => r.Endpoint?.Name, StringComparer.Ordinal);
-
-        foreach (var route in routes)
+        foreach (var route in router.GetInboundByConsumer(Consumer))
         {
-            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Default } endpoint })
+            // The saga's reply routes are also bound to the instance reply endpoint, which is skipped.
+            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Reply } endpoint }
+                && endpoint != endpoint.Transport.ReplyReceiveEndpoint)
             {
                 replyAddresses.TryAdd(endpoint.Transport, endpoint.Source.Address);
             }

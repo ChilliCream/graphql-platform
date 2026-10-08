@@ -135,40 +135,32 @@ public class RouteConditionTests : ReceiveMiddlewareTestBase
         Assert.False(matches);
     }
 
-    [Theory]
-    [InlineData(MessageKind.Reply, true)]
-    [InlineData(MessageKind.Fault, false)]
-    [InlineData(MessageKind.Send, false)]
-    [InlineData(MessageKind.Publish, false)]
-    public void ReplyKindCondition_Should_MatchOnlyReplies_When_FaultsExcluded(string kind, bool expected)
+    [Fact]
+    public void NotFaultCondition_Should_NotMatch_When_MessageIsFault()
     {
         // arrange
         var context = new StubReceiveContext();
-        context.Headers.SetMessageKind(kind);
+        context.Headers.SetMessageKind(MessageKind.Fault);
 
         // act
-        var matches = ReplyKindCondition.Reply.Matches(context);
+        var matches = NotFaultCondition.Instance.Matches(context);
 
         // assert
-        Assert.Equal(expected, matches);
+        Assert.False(matches);
     }
 
-    [Theory]
-    [InlineData(MessageKind.Reply, true)]
-    [InlineData(MessageKind.Fault, true)]
-    [InlineData(MessageKind.Send, false)]
-    [InlineData(MessageKind.Publish, false)]
-    public void ReplyKindCondition_Should_MatchRepliesAndFaults_When_FaultsIncluded(string kind, bool expected)
+    [Fact]
+    public void NotFaultCondition_Should_Match_When_MessageIsReply()
     {
         // arrange
         var context = new StubReceiveContext();
-        context.Headers.SetMessageKind(kind);
+        context.Headers.SetMessageKind(MessageKind.Reply);
 
         // act
-        var matches = ReplyKindCondition.ReplyOrFault.Matches(context);
+        var matches = NotFaultCondition.Instance.Matches(context);
 
         // assert
-        Assert.Equal(expected, matches);
+        Assert.True(matches);
     }
 
     [Fact]
