@@ -1229,16 +1229,12 @@ public class DeferPlannerTests : FusionTestBase
         Assert.True(true);
     }
 
-    [Fact(Skip = "Natural schemas do not reach the unsatisfiable-requirement throw. "
-        + "If the defer's incremental plan planner produced a self-fetch, that self-fetch is "
-        + "an existence proof that the required value is reachable from some subgraph, "
-        + "and the parent's planning machinery (same-subgraph injection or cross-subgraph "
-        + "promote) can route to the same subgraph. Every attempt to construct an "
-        + "unsatisfiable schema collapsed into either (a) a composition-time failure or "
-        + "(b) a schema whose same-subgraph hoist or cross-subgraph promote succeeds. "
-        + "The throw in ApplyDeferRequirementsToParent is defensive against "
-        + "planner-internal matching bugs, not against schema shapes. Retained as a "
-        + "documentation fixture for .work/defer-requirement-variable-wiring.md Phase 1.")]
+    [Fact(Skip = "No schema was found that reaches the throw for a requirement whose field no "
+        + "parent-reachable subgraph provides. The other throw in ApplyDeferRequirementsToParent, "
+        + "a requirement anchored below the defer's own path (a deferred field nested under the "
+        + "anchor, for example `owner { total }` when `total` needs the owner key), is reachable, "
+        + "so the exception stays. Retained as a documentation fixture for "
+        + ".work/defer-requirement-variable-wiring.md Phase 1.")]
     public void Defer_UnsatisfiableRequirement_Should_ThrowPlannerError_When_NotReachableAnywhere()
     {
         // arrange
@@ -2936,6 +2932,154 @@ public class DeferPlannerTests : FusionTestBase
             query {
               product {
                 id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_Should_KeepPrerequisitesInDeferredPlan_When_DeferredFragmentSelectsPrerequisiteField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              owner: User!
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: OwnerInput! @require(field: "owner.{ raw computed }")): Int!
+            }
+
+            input OwnerInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  owner {
+                    raw
+                  }
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_Should_LiftPrerequisites_When_LiftKeepsMainPlanDepth()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: TotalInput! @require(field: "{ raw value }")): Int!
+            }
+
+            input TotalInput {
+              raw: Int!
+              value: Int!
+            }
+            """,
+            """
+            # name: d
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              other: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                other
                 ... @defer {
                   total
                 }

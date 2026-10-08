@@ -2221,6 +2221,102 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_ResolveAllPrerequisites_When_LiftKeepsMainPlanDepth()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<LiftRequirementSourceA.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<LiftRequirementSourceB.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<LiftRequirementSourceC.Query>());
+
+        using var server4 = CreateSourceSchema(
+            "D",
+            b => b.AddQueryType<LiftRequirementSourceD.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3),
+            ("D", server4)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                product {
+                    id
+                    other
+                    ... @defer {
+                        total
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_ReturnSameData_When_LiftKeepsMainPlanDepthWithoutDefer()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<LiftRequirementSourceA.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<LiftRequirementSourceB.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<LiftRequirementSourceC.Query>());
+
+        using var server4 = CreateSourceSchema(
+            "D",
+            b => b.AddQueryType<LiftRequirementSourceD.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3),
+            ("D", server4)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            "{ product { id other total } }",
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(
+            """{"product":{"id":"1","other":5,"total":10}}""",
+            response.Data.GetRawText());
+    }
+
     private static class MixedRequirementSourceA
     {
         public class Query
@@ -2332,5 +2428,70 @@ public class DeferTests : FusionTestBase
         }
 
         public record OwnerInput(int Raw, int Computed);
+    }
+
+    private static class LiftRequirementSourceA
+    {
+        public class Query
+        {
+            public Product GetProduct() => new(1);
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int Raw => 7;
+        }
+    }
+
+    private static class LiftRequirementSourceB
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int Value => 3;
+        }
+    }
+
+    private static class LiftRequirementSourceC
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int GetTotal([Require("{ raw value }")] TotalInput input)
+                => input.Raw + input.Value;
+        }
+
+        public record TotalInput(int Raw, int Value);
+    }
+
+    private static class LiftRequirementSourceD
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int Other => 5;
+        }
     }
 }
