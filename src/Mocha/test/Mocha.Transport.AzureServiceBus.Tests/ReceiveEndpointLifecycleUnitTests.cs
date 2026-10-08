@@ -384,6 +384,44 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         Assert.False(endpoint.IsStarted);
     }
 
+    [Fact]
+    public async Task StopAsync_Should_StopRemainingEndpoints_When_AnEndpointFailsToStop()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("first-ep").Consumer<NoOpConsumer>().Queue("first");
+                t.Endpoint("second-ep").Consumer<NoOpConsumer>().Queue("second");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        // the endpoint that is stopped first fails, so every later endpoint depends on the stop continuing
+        var failing = (AzureServiceBusReceiveEndpoint)transport.ReceiveEndpoints.First();
+        var failure = new TimeoutException("stop processing timed out");
+        client.CreatedProcessors.Single(p => p.QueueName == failing.Queue.Name).Processor.OnStopProcessing =
+            () => throw failure;
+
+        // act
+        var exception = await Assert.ThrowsAsync<TimeoutException>(
+            () => runtime.StopAsync(Xunit.TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        Assert.Same(failure, exception);
+        Assert.All(transport.ReceiveEndpoints.Where(e => e != failing), e => Assert.False(e.IsStarted));
+        Assert.True(transport.IsStarted);
+        Assert.False(runtime.IsStarted);
+    }
+
     public sealed class NoOpConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
