@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
@@ -12,8 +11,9 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class EnumValueNode : IValueNode<string>
 {
-    private ReadOnlyMemorySegment _memorySegment;
+    private readonly ReadOnlyMemorySegment _memorySegment;
     private string? _value;
+    private byte[]? _encoded;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
@@ -149,29 +149,15 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment;
         }
 
-        var encoding = Encoding.UTF8;
+        var encoded = _encoded;
 
-        byte[]? rented = null;
-        var requiredLength = encoding.GetByteCount(_value!);
-        var buffer = requiredLength < 256
-            ? stackalloc byte[256]
-            : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
-
-        try
+        if (encoded is null)
         {
-            var written = encoding.GetBytes(_value!, buffer);
-            buffer = buffer.Slice(0, written);
-            _memorySegment = new ReadOnlyMemorySegment(buffer.ToArray());
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
+            encoded = Encoding.UTF8.GetBytes(_value!);
+            _encoded = encoded;
         }
 
-        return _memorySegment;
+        return new ReadOnlyMemorySegment(encoded);
     }
 
     /// <summary>

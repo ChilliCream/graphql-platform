@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Buffers;
 using static HotChocolate.Language.SyntaxComparison;
 
@@ -247,5 +248,17 @@ public class StringValueNodeTests
         Assert.Equal(SyntaxKind.StringValue, value.Kind);
         Assert.Null(value.Location);
         Assert.Empty(value.GetNodes());
+    }
+
+    [Fact]
+    public void AsSpan_Should_ReturnEncodedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new StringValueNode("abc"),
+            node => Encoding.UTF8.GetString(node.AsSpan()));
+
+        // assert
+        Assert.Equal(["abc"], results);
     }
 }

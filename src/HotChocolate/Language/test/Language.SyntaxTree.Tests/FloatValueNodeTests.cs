@@ -328,4 +328,88 @@ public class FloatValueNodeTests
         { "1.568", 1.568m },
         { "2.0", 2.0m }
     };
+
+    [Fact]
+    public void Value_Should_ReturnFormattedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new FloatValueNode(1.5),
+            node => node.Value);
+
+        // assert
+        Assert.Equal(["1.5"], results);
+    }
+
+    [Fact]
+    public void AsSpan_Should_ReturnFormattedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new FloatValueNode(1.5),
+            node => Encoding.UTF8.GetString(node.AsSpan()));
+
+        // assert
+        Assert.Equal(["1.5"], results);
+    }
+
+    [InlineData(0.30000000000000004, "0.30000000000000004")]
+    [InlineData(-1.5, "-1.5")]
+    [InlineData(double.MaxValue, "1.7976931348623157E+308")]
+    [Theory]
+    public void ToDouble_Should_ReturnOriginalValue_When_CreatedFromDouble(double value, string expected)
+    {
+        // arrange
+        var node = new FloatValueNode(value);
+
+        // act
+        var result = node.ToDouble();
+
+        // assert
+        Assert.Equal(value, result);
+        Assert.Equal(expected, node.Value);
+    }
+
+    [Fact]
+    public void ToDecimal_Should_ReturnOriginalValue_When_CreatedFromDecimal()
+    {
+        // arrange
+        var node = new FloatValueNode(decimal.MaxValue);
+
+        // act
+        var result = node.ToDecimal();
+
+        // assert
+        Assert.Equal(decimal.MaxValue, result);
+        Assert.Equal("79228162514264337593543950335", node.Value);
+    }
+
+    [Fact]
+    public void ToDouble_Should_ReturnParsedValue_When_ToSingleWasCalledBefore()
+    {
+        // arrange
+        var node = new FloatValueNode(
+            new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes("0.1")),
+            FloatFormat.FixedPoint);
+        node.ToSingle();
+
+        // act
+        var result = node.ToDouble();
+
+        // assert
+        Assert.Equal(0.1, result);
+    }
+
+    [Fact]
+    public void ToDouble_Should_ReturnConvertedValue_When_CreatedFromDecimal()
+    {
+        // arrange
+        var node = new FloatValueNode(0.1m);
+
+        // act
+        var result = node.ToDouble();
+
+        // assert
+        Assert.Equal(0.1, result);
+    }
 }

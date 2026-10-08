@@ -1,5 +1,4 @@
 using System.Buffers.Text;
-using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
@@ -29,8 +28,7 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
 {
-    private ReadOnlyMemorySegment _memorySegment;
-    private byte[]? _value;
+    private readonly ReadOnlyMemorySegment _memorySegment;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FloatValueNode"/>
@@ -56,13 +54,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         Location = location;
         Format = FloatFormat.FixedPoint;
-        _value = new byte[17];
-        _value[0] = FloatValueKind.Double;
-#if NET8_0_OR_GREATER
-        MemoryMarshal.Write(_value.AsSpan(1), in value);
-#else
-        MemoryMarshal.Write(_value.AsSpan(1), ref value);
-#endif
+        _memorySegment = FormatValue(value);
     }
 
     /// <summary>
@@ -89,13 +81,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         Location = location;
         Format = FloatFormat.FixedPoint;
-        _value = new byte[17];
-        _value[0] = FloatValueKind.Decimal;
-#if NET8_0_OR_GREATER
-        MemoryMarshal.Write(_value.AsSpan(1), in value);
-#else
-        MemoryMarshal.Write(_value.AsSpan(1), ref value);
-#endif
+        _memorySegment = FormatValue(value);
     }
 
     /// <summary>
@@ -138,12 +124,6 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         Format = format;
     }
 
-    private FloatValueNode(Location? location, FloatFormat format)
-    {
-        Location = location;
-        Format = format;
-    }
-
     /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.FloatValue;
 
@@ -166,25 +146,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         get
         {
-            if (!_memorySegment.IsEmpty)
-            {
-                return Encoding.UTF8.GetString(_memorySegment.Span);
-            }
-
-            if (_value is null)
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            Span<byte> buffer = stackalloc byte[32];
-            var written = FormatValue(_value, buffer);
-#if NET8_0_OR_GREATER
-            var value = buffer[..written];
-#else
-            var value = buffer.Slice(0, written);
-#endif
-            _memorySegment = new ReadOnlyMemorySegment(value.ToArray());
-            return Encoding.UTF8.GetString(value);
+            return Encoding.UTF8.GetString(_memorySegment.Span);
         }
     }
 
@@ -219,37 +181,12 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public float ToSingle()
     {
-        if (_value is null)
+        if (!Utf8Parser.TryParse(_memorySegment.Span, out float value, out _))
         {
-            if (_memorySegment.IsEmpty)
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            if (!Utf8Parser.TryParse(_memorySegment.Span, out float value, out _))
-            {
-                throw new InvalidFormatException(
-                    $"The value `{Encoding.UTF8.GetString(_memorySegment.Span)}` is not a valid float.");
-            }
-
-            Span<byte> buffer = stackalloc byte[17];
-            buffer[0] = FloatValueKind.Single;
-#if NET8_0_OR_GREATER
-            MemoryMarshal.Write(buffer[1..], in value);
-#else
-            MemoryMarshal.Write(buffer.Slice(1), ref value);
-#endif
-            _value = buffer.ToArray();
-            return value;
+            throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "float");
         }
 
-        return _value[0] switch
-        {
-            FloatValueKind.Single => MemoryMarshal.Read<float>(_value.AsSpan(1)),
-            FloatValueKind.Double => (float)MemoryMarshal.Read<double>(_value.AsSpan(1)),
-            FloatValueKind.Decimal => (float)MemoryMarshal.Read<decimal>(_value.AsSpan(1)),
-            _ => throw new InvalidOperationException("Unsupported numeric kind.")
-        };
+        return value;
     }
 
     /// <summary>
@@ -257,37 +194,12 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public double ToDouble()
     {
-        if (_value is null)
+        if (!Utf8Parser.TryParse(_memorySegment.Span, out double value, out _))
         {
-            if (_memorySegment.IsEmpty)
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            if (!Utf8Parser.TryParse(_memorySegment.Span, out double value, out _))
-            {
-                throw new InvalidFormatException(
-                    $"The value `{Encoding.UTF8.GetString(_memorySegment.Span)}` is not a valid double.");
-            }
-
-            Span<byte> buffer = stackalloc byte[17];
-            buffer[0] = FloatValueKind.Double;
-#if NET8_0_OR_GREATER
-            MemoryMarshal.Write(buffer[1..], in value);
-#else
-            MemoryMarshal.Write(buffer.Slice(1), ref value);
-#endif
-            _value = buffer.ToArray();
-            return value;
+            throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "double");
         }
 
-        return _value[0] switch
-        {
-            FloatValueKind.Single => MemoryMarshal.Read<float>(_value.AsSpan(1)),
-            FloatValueKind.Double => MemoryMarshal.Read<double>(_value.AsSpan(1)),
-            FloatValueKind.Decimal => (double)MemoryMarshal.Read<decimal>(_value.AsSpan(1)),
-            _ => throw new InvalidOperationException("Unsupported numeric kind.")
-        };
+        return value;
     }
 
     /// <summary>
@@ -295,37 +207,12 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public decimal ToDecimal()
     {
-        if (_value is null)
+        if (!Utf8Parser.TryParse(_memorySegment.Span, out decimal value, out _))
         {
-            if (_memorySegment.IsEmpty)
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            if (!Utf8Parser.TryParse(_memorySegment.Span, out decimal value, out _))
-            {
-                throw new InvalidFormatException(
-                    $"The value `{Encoding.UTF8.GetString(_memorySegment.Span)}` is not a valid decimal.");
-            }
-
-            Span<byte> buffer = stackalloc byte[17];
-            buffer[0] = FloatValueKind.Decimal;
-#if NET8_0_OR_GREATER
-            MemoryMarshal.Write(buffer[1..], in value);
-#else
-            MemoryMarshal.Write(buffer.Slice(1), ref value);
-#endif
-            _value = buffer.ToArray();
-            return value;
+            throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "decimal");
         }
 
-        return _value[0] switch
-        {
-            FloatValueKind.Single => (decimal)MemoryMarshal.Read<float>(_value.AsSpan(1)),
-            FloatValueKind.Double => (decimal)MemoryMarshal.Read<double>(_value.AsSpan(1)),
-            FloatValueKind.Decimal => MemoryMarshal.Read<decimal>(_value.AsSpan(1)),
-            _ => throw new InvalidOperationException("Unsupported numeric kind.")
-        };
+        return value;
     }
 
     /// <summary>
@@ -333,22 +220,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public ReadOnlySpan<byte> AsSpan() => AsMemorySegment().Span;
 
-    public ReadOnlyMemorySegment AsMemorySegment()
-    {
-        if (!_memorySegment.IsEmpty)
-        {
-            return _memorySegment;
-        }
-
-        Span<byte> buffer = stackalloc byte[32];
-        var written = FormatValue(_value, buffer);
-#if NET8_0_OR_GREATER
-        _memorySegment = new ReadOnlyMemorySegment(buffer[..written].ToArray());
-#else
-        _memorySegment = new ReadOnlyMemorySegment(buffer.Slice(0, written).ToArray());
-#endif
-        return _memorySegment;
-    }
+    public ReadOnlyMemorySegment AsMemorySegment() => _memorySegment;
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -361,7 +233,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public FloatValueNode WithLocation(Location? location)
-        => new(location, Format) { _memorySegment = _memorySegment, _value = _value };
+        => new(location, _memorySegment, Format);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -405,36 +277,25 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     public FloatValueNode WithValue(ReadOnlyMemorySegment value, FloatFormat format)
         => new(Location, value, format);
 
-    private static int FormatValue(ReadOnlySpan<byte> value, Span<byte> utf8Buffer)
+    private static ReadOnlyMemorySegment FormatValue(double value)
     {
-        int w;
-        var kind = value[0];
+        Span<byte> buffer = stackalloc byte[32];
+        Utf8Formatter.TryFormat(value, buffer, out var written);
 #if NET8_0_OR_GREATER
-        value = value[1..];
+        return new ReadOnlyMemorySegment(buffer[..written].ToArray());
 #else
-        value = value.Slice(1);
+        return new ReadOnlyMemorySegment(buffer.Slice(0, written).ToArray());
 #endif
-
-        var success = kind switch
-        {
-            FloatValueKind.Single => Utf8Formatter.TryFormat(MemoryMarshal.Read<float>(value), utf8Buffer, out w),
-            FloatValueKind.Double => Utf8Formatter.TryFormat(MemoryMarshal.Read<double>(value), utf8Buffer, out w),
-            FloatValueKind.Decimal => Utf8Formatter.TryFormat(MemoryMarshal.Read<decimal>(value), utf8Buffer, out w),
-            _ => throw new InvalidOperationException("Invalid numeric kind.")
-        };
-
-        if (!success)
-        {
-            throw new InvalidOperationException("Failed to format numeric value.");
-        }
-
-        return w;
     }
 
-    private static class FloatValueKind
+    private static ReadOnlyMemorySegment FormatValue(decimal value)
     {
-        public const byte Single = 1;
-        public const byte Double = 2;
-        public const byte Decimal = 3;
+        Span<byte> buffer = stackalloc byte[32];
+        Utf8Formatter.TryFormat(value, buffer, out var written);
+#if NET8_0_OR_GREATER
+        return new ReadOnlyMemorySegment(buffer[..written].ToArray());
+#else
+        return new ReadOnlyMemorySegment(buffer.Slice(0, written).ToArray());
+#endif
     }
 }
