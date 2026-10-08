@@ -130,6 +130,30 @@ public sealed class RetryTests
     }
 
     [Fact]
+    public void Retry_Should_ThrowOnStartup_When_ConsumerEndpointsResolveToDifferentPolicies()
+    {
+        // arrange & act
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            new ServiceCollection()
+                .AddMessageBus()
+                .AddEventHandler<AlwaysThrowingHandler>()
+                .AddInMemory(t =>
+                {
+                    t.BindExplicitly();
+                    t.Endpoint("ep-a")
+                        .Handler<AlwaysThrowingHandler>()
+                        .AddResilience(p => p.On<Exception>().DeadLetter());
+                    t.Endpoint("ep-b").Handler<AlwaysThrowingHandler>();
+                })
+                .BuildRuntime());
+
+        // assert
+        Assert.Contains("resolve to different exception policies", exception.Message);
+        Assert.Contains("'ep-a'", exception.Message);
+        Assert.Contains("'ep-b'", exception.Message);
+    }
+
+    [Fact]
     public async Task Retry_Should_SkipRetry_When_ExceptionIsIgnored()
     {
         // arrange
