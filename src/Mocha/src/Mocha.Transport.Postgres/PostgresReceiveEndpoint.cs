@@ -194,6 +194,10 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                 message.TransportMessageId,
                 cancellationToken);
         }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // The interrupted message remains leased until it can be reclaimed.
+        }
         catch (Exception ex)
         {
             logger.MessageProcessingFailed(ex, message.TransportMessageId);

@@ -19,7 +19,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
@@ -27,14 +26,14 @@ internal sealed class RabbitMQAcknowledgementMiddleware
 
             if (channel.IsOpen)
             {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, cancellationToken);
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
             }
         }
         catch
         {
             if (channel.IsOpen)
             {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, cancellationToken);
+                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
             }
 
             throw;

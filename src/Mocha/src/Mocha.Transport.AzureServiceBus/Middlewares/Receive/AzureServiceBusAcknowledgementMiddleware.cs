@@ -25,19 +25,18 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
             feature.ProcessMessageEventArgs?.EntityPath
             ?? feature.ProcessSessionMessageEventArgs?.EntityPath
             ?? string.Empty;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
             await next(context);
 
-            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
+            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, CancellationToken.None);
         }
         catch
         {
             try
             {
-                await AbandonAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
+                await AbandonAsync(feature.Actions, context.Services, feature.Message, entityPath, CancellationToken.None);
             }
             catch
             {
