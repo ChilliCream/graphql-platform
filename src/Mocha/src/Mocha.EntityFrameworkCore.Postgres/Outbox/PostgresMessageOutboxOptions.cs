@@ -1,8 +1,10 @@
+using Npgsql;
+
 namespace Mocha.Outbox;
 
 /// <summary>
 /// Configuration options for the Postgres message outbox, including pre-built SQL queries
-/// and the connection string used by the outbox worker.
+/// and the connection factory used by the outbox worker.
 /// </summary>
 internal sealed class PostgresMessageOutboxOptions
 {
@@ -12,7 +14,7 @@ internal sealed class PostgresMessageOutboxOptions
     public PostgresMessageOutboxQueries Queries { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the Postgres connection string used by the outbox worker to open a dedicated connection.
+    /// Gets or sets a factory that creates a closed connection using services from the current scope.
     /// </summary>
-    public string ConnectionString { get; set; } = null!;
+    public Func<IServiceProvider, NpgsqlConnection> CreateConnection { get; set; } = null!;
 }

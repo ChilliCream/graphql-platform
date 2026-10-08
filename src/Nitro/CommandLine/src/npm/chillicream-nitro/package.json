@@ -38,7 +38,13 @@
   "scripts": {
     "build": "tsc"
   },
-  "packageManager": "yarn@4.18.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "onFail": "error",
+      "version": ">=11.18.0"
+    }
+  },
   "dependencies": {
     "detect-libc": "^2.0.4"
   },

@@ -32,25 +32,25 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          cache: "yarn"
-          cache-dependency-path: "website/yarn.lock"
+          cache: "npm"
+          cache-dependency-path: "website/package-lock.json"
 
       - name: Cache Next.js Build Artifacts
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             website/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-${{ github.sha }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('website/package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('website/package-lock.json') }}-
             ${{ runner.os }}-nextjs-
 
       - name: Install Packages
-        run: yarn --immutable --network-timeout 100000
+        run: npm ci
         working-directory: website
 
       - name: Install Playwright Chromium
-        run: yarn playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
         working-directory: website
 
       - name: Cache Optimized Images
@@ -58,24 +58,24 @@ jobs:
         with:
           path: |
             website/public/_optimized
-          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/src/image-optimization/**', 'website/scripts/optimize-images.mjs', 'website/yarn.lock') }}
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/src/image-optimization/**', 'website/scripts/optimize-images.mjs', 'website/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-optimized-images-
 
       - name: Optimize Images
-        run: yarn optimize-images
+        run: npm run optimize-images
         working-directory: website
 
       - name: Generate Git Metadata
-        run: yarn generate-git-metadata
+        run: npm run generate-git-metadata
         working-directory: website
 
       - name: Generate Agent Skills
-        run: yarn generate-agent-skills
+        run: npm run generate-agent-skills
         working-directory: website
 
       - name: Build Website
-        run: yarn build
+        run: npm run build
         working-directory: website
         env:
           NEXT_PUBLIC_SITE_URL: "https://chillicream.com"

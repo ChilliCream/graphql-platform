@@ -46,7 +46,7 @@ var app = builder.Build();
 app.Run();
 ```
 
-`.AddPostgres(connectionString)` creates an `NpgsqlDataSource` from the connection string, runs schema migrations on first use, and provisions topics, queues, and subscriptions for your registered handlers.
+`.AddPostgres(connectionString)` creates an `NpgsqlDataSource` from the connection string, runs schema migrations at transport startup, and provisions topics, queues, and subscriptions for your registered handlers.
 
 ## Register with .NET Aspire
 
@@ -243,12 +243,36 @@ Changing `Schema` and `TablePrefix` shifts all table names accordingly. For exam
 
 ## Schema migration
 
-The transport runs migrations automatically on first use. Migrations are protected by a PostgreSQL advisory lock (`pg_advisory_xact_lock`) to prevent concurrent migration attempts from multiple service instances starting simultaneously.
+The transport runs migrations automatically at startup by default. Migrations are protected by a PostgreSQL advisory lock (`pg_advisory_xact_lock`) to prevent concurrent migration attempts from multiple service instances starting simultaneously.
 
 Each migration is tracked in the migrations table and is idempotent - running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
 
 > [!WARNING]
-> The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
+> The advisory lock ID is fixed. Independent Mocha transports in the same database share this lock, including transports with different table prefixes. The lock serializes migrations without blocking normal message operations.
+
+To set up the database schema at a different point in time, disable automatic migration:
+
+```csharp
+builder.Services.AddMessageBus().AddPostgres(transport =>
+{
+    transport.ConnectionString(connectionString);
+    transport.AutoMigrate(false);
+});
+```
+
+Call `PostgresTransportSchema.MigrateAsync` before the transport is started. Use an open connection with schema modification permissions and the same schema options as the transport:
+
+```csharp
+// Match the transport's schema and table prefix.
+var options = new PostgresSchemaOptions();
+
+await using var connection = new NpgsqlConnection(connectionString);
+await connection.OpenAsync(cancellationToken);
+await PostgresTransportSchema.MigrateAsync(
+    connection,
+    options,
+    cancellationToken);
+```
 
 # Configure queues
 
@@ -336,7 +360,7 @@ If the queue already declares `AutoDelete(false)` explicitly, `Temporary()` fail
 
 # Control auto-provisioning
 
-By default, the transport auto-provisions all topology resources (topics, queues, subscriptions) in the database at startup. In environments where database schema is managed externally - for example by Flyway, Liquibase, or a CI/CD pipeline - you can disable auto-provisioning so the transport expects resources to already exist.
+By default, the transport auto-provisions topology resources (topics, queues, subscriptions) as rows at startup. Disable auto-provisioning when these rows are managed externally. Schema migration is controlled separately by `AutoMigrate`, as described in [Schema migration](#schema-migration).
 
 ## Disable globally
 

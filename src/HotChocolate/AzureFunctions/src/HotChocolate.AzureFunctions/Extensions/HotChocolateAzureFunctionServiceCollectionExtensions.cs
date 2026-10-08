@@ -105,6 +105,10 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                 .UseWhen(
                     context => context.MayReachNitroApp(path),
                     branch => branch.UseNitroApp(path, serverOptions.Tool))
+                .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
+                    executor,
+                    serverOptions,
+                    path))
                 .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline);

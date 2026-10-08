@@ -15,12 +15,14 @@ This file provides guidance to coding agents when working with this repository.
 
 ### Website
 
-Use `yarn` instead of `npm`.
+Use `npm`.
 
 ```bash
 cd website
-yarn
+npm ci
 ```
+
+Until [npm/cli#10059](https://github.com/npm/cli/pull/10059) ships in npm 11, `npm install-scripts approve` writes `allowScripts` entries that npm cannot match under the linked install strategy ([npm/cli#9939](https://github.com/npm/cli/issues/9939)), so add approvals by hand as `"<package>@<version>": true`.
 
 ### C# Source Code
 

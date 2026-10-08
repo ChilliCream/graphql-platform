@@ -164,6 +164,25 @@ builder.Services
 // AuditHandler → InMemory (claimed)
 ```
 
+# Scheduled delivery
+
+`AddInMemory()` registers a scheduled message store and a background worker for the transport, so scheduling messages for future delivery works with no extra setup:
+
+```csharp
+var result = await bus.SchedulePublishAsync(
+    new PaymentReminderEvent { OrderId = orderId },
+    DateTimeOffset.UtcNow.AddHours(24),
+    cancellationToken);
+```
+
+The background worker holds scheduled messages in process memory and dispatches each one once its scheduled time arrives. Cancel a pending message with the token returned in `SchedulingResult`:
+
+```csharp
+await bus.CancelScheduledMessageAsync(result.Token!, cancellationToken);
+```
+
+Scheduled messages live only in process memory. They are not persisted to disk, so any message still pending when the process stops is lost. See [Scheduling](../scheduling.md) for the full scheduling API and how it behaves across transports.
+
 # Next steps
 
 - [RabbitMQ Transport](./rabbitmq.md) - Configure the RabbitMQ transport for production deployments.

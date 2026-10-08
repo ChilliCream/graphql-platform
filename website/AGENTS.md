@@ -73,7 +73,7 @@ helper classes. Avoid ad-hoc `text-4xl`-style sizes for display headings.
 
 ## Before you finish
 
-- Verify visually against the running dev server (`yarn dev`).
+- Verify visually against the running dev server (`npm run dev`).
 - `npx eslint <changed files>` must pass.
-- `yarn format` must be run and `yarn format:check` must pass (Prettier
+- `npm run format` must be run and `npm run format:check` must pass (Prettier
   formatting, including Tailwind class sorting, is enforced in CI).

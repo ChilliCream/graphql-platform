@@ -146,6 +146,13 @@ public sealed class PostgresMessagingTransportDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IPostgresMessagingTransportDescriptor AutoMigrate(bool autoMigrate)
+    {
+        Configuration.AutoMigrate = autoMigrate;
+        return this;
+    }
+
     /// <inheritdoc  />
     public IPostgresMessagingTransportDescriptor ConnectionString(string connectionString)
     {

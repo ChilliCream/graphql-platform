@@ -295,7 +295,7 @@ app.MapHealthChecks("/health");
 app.MapGraphQL();
 ```
 
-In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, gets `404` and not the Nitro page.
+In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, is not served the Nitro page: it has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version.
 
 # Noteworthy changes
 
@@ -326,3 +326,7 @@ Cost rejections, including the single result for a rejected variable batch, retu
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
 Use `#!csharp RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an empty variable batch executed through `IRequestExecutor`; over HTTP, the transport refuses `variables: []` before execution), or when metrics cannot be attached to the execution-result state.
+
+## Persisted operations over GET accept `documentId`
+
+A GET request on a GraphQL endpoint reads the operation document ID from a `documentId` query parameter as well as from `id`, the two names a POST body already accepts. A GET request that carries both uses `id`. This covers `MapGraphQL`, `MapGraphQLHttp`, and the Azure Functions integration, under every transport version. 16.6 did not execute a GET request that carried only `documentId`, so it was served Nitro or got a `404` status code.
