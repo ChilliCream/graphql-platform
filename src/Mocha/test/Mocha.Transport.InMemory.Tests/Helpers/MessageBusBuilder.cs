@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Mocha.Transport.InMemory.Tests.Helpers;
 
@@ -9,6 +10,12 @@ internal static class MessageBusHostBuilderTestExtensions
         var provider = builder.Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
         await runtime.StartAsync(CancellationToken.None);
+
+        foreach (var hostedService in provider.GetServices<IHostedService>())
+        {
+            await hostedService.StartAsync(CancellationToken.None);
+        }
+
         return provider;
     }
 

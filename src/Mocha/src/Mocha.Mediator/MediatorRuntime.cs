@@ -98,7 +98,8 @@ public sealed class MediatorRuntime : IMediatorRuntime
     }
 
     /// <summary>
-    /// Gets the compiled notification pipeline delegates for the specified notification type.
+    /// Gets the compiled notification pipeline delegates for the specified notification type,
+    /// or an empty array if no handler is registered for it.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ImmutableArray<MediatorDelegate> GetNotificationPipelines(Type notificationType)
@@ -108,6 +109,6 @@ public sealed class MediatorRuntime : IMediatorRuntime
             return pipelines;
         }
 
-        throw ThrowHelper.MissingNotificationPipeline(notificationType);
+        return [];
     }
 }

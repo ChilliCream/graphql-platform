@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -27,6 +28,8 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new RegisterAgentCommand());
         Subcommands.Add(new ListAgentCommand());
         Subcommands.Add(new TakeoverAgentCommand());
+        Subcommands.Add(new BackupAgentCommand());
+        Subcommands.Add(new RestoreAgentCommand());
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
 
@@ -60,6 +63,7 @@ internal sealed class AgentCommand : Command
                 var agentStore = services.GetRequiredService<IAgentStore>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
+                var boardPreferences = services.GetRequiredService<IBoardPreferencesStore>();
 
                 return await AgentTuiLauncher.RunAsync(
                     console,
@@ -70,6 +74,7 @@ internal sealed class AgentCommand : Command
                     timeProvider,
                     workspaceDirectory,
                     mailWakeDaemonCoordinator,
+                    boardPreferences,
                     cancellationToken);
             }
         }

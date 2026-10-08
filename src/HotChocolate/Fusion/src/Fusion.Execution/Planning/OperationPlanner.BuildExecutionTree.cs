@@ -42,7 +42,18 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, [], [], searchSpace, expandedNodes);
+            var introspectionPlan = OperationPlan.Create(
+                operation,
+                nodes,
+                nodes,
+                deliveryGroups,
+                incrementalPlans,
+                searchSpace,
+                expandedNodes);
+
+            AssignIncrementalPlanAnchors(introspectionPlan, nodes, incrementalPlans);
+
+            return introspectionPlan;
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
@@ -90,28 +101,53 @@ public sealed partial class OperationPlanner
             searchSpace,
             expandedNodes);
 
-        // Assign parent node ids and stable ids after the root plan and
-        // incremental plan nodes have been built. Nested incremental plans are
-        // associated with the plan that owns their parent delivery group.
-        if (!incrementalPlans.IsDefaultOrEmpty)
-        {
-            // Plan-time id: the parent id is known here because the root plan
-            // was just created above, and OperationPlan.Create's content hash
-            // does not include incremental plan ids.
-            for (var i = 0; i < incrementalPlans.Length; i++)
-            {
-                var incrementalPlan = incrementalPlans[i];
-                incrementalPlan.Id = $"{operationPlan.Id}#{i}";
-
-                var path = ResolveIncrementalPlanPath(incrementalPlan);
-                var parent = ResolveIncrementalPlanParent(incrementalPlan, incrementalPlans);
-                var owningNodes = parent is null ? allNodes : parent.AllNodes;
-                incrementalPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
-                    ?? throw ThrowHelper.IncrementalPlanParentNotFound(path);
-            }
-        }
+        AssignIncrementalPlanAnchors(operationPlan, allNodes, incrementalPlans);
 
         return operationPlan;
+    }
+
+    /// <summary>
+    /// Assigns the stable id and the parent node id of every incremental plan after the
+    /// root plan has been created. Nested incremental plans are associated with the plan
+    /// that owns their parent delivery group.
+    /// </summary>
+    private static void AssignIncrementalPlanAnchors(
+        OperationPlan operationPlan,
+        ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
+    {
+        if (incrementalPlans.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        // Plan-time id: the parent id is known here because the root plan
+        // was just created, and OperationPlan.Create's content hash
+        // does not include incremental plan ids.
+        for (var i = 0; i < incrementalPlans.Length; i++)
+        {
+            var incrementalPlan = incrementalPlans[i];
+            incrementalPlan.Id = $"{operationPlan.Id}#{i}";
+
+            var path = ResolveIncrementalPlanPath(incrementalPlan);
+            var parent = ResolveIncrementalPlanParent(incrementalPlan, incrementalPlans);
+            var owningNodes = parent is null ? allNodes : parent.AllNodes;
+
+            if (ResolveDeferParentNodeId(owningNodes, path) is { } parentNodeId)
+            {
+                incrementalPlan.ParentNodeId = parentNodeId;
+            }
+            else if (path.IsRoot && owningNodes.IsDefaultOrEmpty)
+            {
+                // The owning plan has no execution node, so the plan is anchored
+                // directly at the operation root and no node id applies.
+                incrementalPlan.ParentNodeId = IncrementalPlan.NoParentNodeId;
+            }
+            else
+            {
+                throw ThrowHelper.IncrementalPlanParentNotFound(path);
+            }
+        }
     }
 
     /// <summary>
@@ -188,6 +224,7 @@ public sealed partial class OperationPlanner
         var bestDepth = -1;
         int? fallbackMatch = null;
         var fallbackDepth = -1;
+        int? introspectionMatch = null;
 
         for (var i = 0; i < owningNodes.Length; i++)
         {
@@ -196,6 +233,12 @@ public sealed partial class OperationPlanner
 
             switch (owningNodes[i])
             {
+                case IntrospectionExecutionNode when deferPath.IsRoot:
+                    // Introspection results live in the root result object, so a root
+                    // defer can anchor there when no fetch node produces it.
+                    introspectionMatch ??= owningNodes[i].Id;
+                    continue;
+
                 case OperationExecutionNode op:
                     target = op.Target;
                     resultSelectionSet = op.ResultSelectionSet;
@@ -241,7 +284,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        return match ?? fallbackMatch;
+        return match ?? fallbackMatch ?? introspectionMatch;
     }
 
     /// <summary>
@@ -280,6 +323,181 @@ public sealed partial class OperationPlanner
         return true;
     }
 
+    /// <summary>
+    /// Counts the operation steps that remain after <see cref="TransformPlanSteps"/>, using
+    /// <see cref="TryTransformOperationStep"/> and <see cref="RemoveKeyOnlyLookupSteps"/>.
+    /// </summary>
+    private static int CountSurvivingOperationSteps(ImmutableList<PlanStep> planSteps)
+    {
+        var remaining = ImmutableList.CreateBuilder<PlanStep>();
+
+        foreach (var step in planSteps)
+        {
+            if (step is OperationPlanStep operationPlanStep)
+            {
+                if (TryTransformOperationStep(operationPlanStep, out var transformed))
+                {
+                    remaining.Add(transformed);
+                }
+            }
+            else
+            {
+                remaining.Add(step);
+            }
+        }
+
+        var count = 0;
+
+        foreach (var step in RemoveKeyOnlyLookupSteps(remaining.ToImmutable()))
+        {
+            if (step is OperationPlanStep)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static bool IsEmptyOperation(OperationPlanStep step)
+    {
+        if (step.Definition.SelectionSet.Selections.Count == 0)
+        {
+            return true;
+        }
+
+        return step.Definition.SelectionSet.Selections is
+        [
+#pragma warning disable format
+            FieldNode
+            {
+                Alias: null,
+                Name.Value: IntrospectionFieldNames.TypeName,
+                Directives: [{ Name.Value: "fusion__empty" }]
+            }
+#pragma warning restore format
+        ];
+    }
+
+    private static OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
+    {
+        var updatedDefinition = RemoveEmptySelections(step.Definition);
+        return ReferenceEquals(updatedDefinition, step.Definition)
+            ? step
+            : step with { Definition = updatedDefinition };
+    }
+
+    /// <summary>
+    /// Applies the step-level transforms shared by <see cref="TransformPlanSteps"/> and
+    /// <see cref="CountSurvivingOperationSteps"/>. Returns <c>false</c> when the step has no
+    /// meaningful selections left and must be discarded.
+    /// </summary>
+    private static bool TryTransformOperationStep(
+        OperationPlanStep step,
+        out OperationPlanStep transformed)
+    {
+        // Requirement rewriting can leave behind empty child selection sets.
+        // We remove them here so later stages do not treat them as real selections.
+        step = RemoveEmptySelectionSets(step);
+
+        // Discard steps that have no meaningful selections left.
+        if (IsEmptyOperation(step))
+        {
+            transformed = step;
+            return false;
+        }
+
+        // When a @skip or @include directive gates every selection of the
+        // operation, we promote it to a node-level condition. This lets the
+        // executor skip the entire network call when the condition is not
+        // met, rather than sending a request that returns nothing.
+        // Directives that gate only some selections stay in the document and
+        // are evaluated by the source schema.
+        if (TryExtractCommonConditionsAndRewrite(step, out var updated))
+        {
+            step = updated;
+        }
+
+        // Strip @defer directives from subgraph operations. The gateway
+        // manages deferral itself and subgraphs should not see @defer.
+        transformed = StripDeferDirectivesFromStep(step);
+        return true;
+    }
+
+    private static OperationPlanStep StripDeferDirectivesFromStep(OperationPlanStep step)
+    {
+        var updated = StripDeferFromSelectionSet(step.Definition.SelectionSet);
+
+        if (ReferenceEquals(updated, step.Definition.SelectionSet))
+        {
+            return step;
+        }
+
+        return step with { Definition = step.Definition.WithSelectionSet(updated) };
+    }
+
+    private static SelectionSetNode StripDeferFromSelectionSet(SelectionSetNode selectionSet)
+    {
+        List<ISelectionNode>? rewritten = null;
+
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            var selection = selectionSet.Selections[i];
+
+            if (selection is InlineFragmentNode inlineFragment)
+            {
+                var strippedDirectives = StripDeferDirective(inlineFragment.Directives);
+                var strippedInner = StripDeferFromSelectionSet(inlineFragment.SelectionSet);
+
+                if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
+                    || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
+                {
+                    rewritten ??= [.. selectionSet.Selections];
+                    rewritten[i] = inlineFragment
+                        .WithDirectives(strippedDirectives)
+                        .WithSelectionSet(strippedInner);
+                }
+            }
+            else if (selection is FieldNode { SelectionSet: not null } field)
+            {
+                var strippedInner = StripDeferFromSelectionSet(field.SelectionSet);
+
+                if (!ReferenceEquals(strippedInner, field.SelectionSet))
+                {
+                    rewritten ??= [.. selectionSet.Selections];
+                    rewritten[i] = field.WithSelectionSet(strippedInner);
+                }
+            }
+        }
+
+        return rewritten is null ? selectionSet : new SelectionSetNode(rewritten);
+    }
+
+    private static IReadOnlyList<DirectiveNode> StripDeferDirective(IReadOnlyList<DirectiveNode> directives)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals(
+                DirectiveNames.Defer.Name,
+                StringComparison.Ordinal))
+            {
+                var result = new List<DirectiveNode>(directives.Count - 1);
+
+                for (var j = 0; j < directives.Count; j++)
+                {
+                    if (j != i)
+                    {
+                        result.Add(directives[j]);
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        return directives;
+    }
+
     private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
         OperationDefinitionNode originalOperation)
@@ -299,148 +517,20 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            // Requirement rewriting can leave behind empty child selection sets.
-            // We remove them here so later stages do not treat them as real selections.
-            operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
-
-            if (!ReferenceEquals(step, operationPlanStep))
+            if (!TryTransformOperationStep(operationPlanStep, out var transformed))
             {
-                updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
-            }
-
-            // Discard steps that have no meaningful selections left.
-            if (IsEmptyOperation(operationPlanStep))
-            {
-                updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
+                updatedPlanSteps = updatedPlanSteps.Remove(step);
                 continue;
             }
-
-            // When a @skip or @include directive gates every selection of the
-            // operation, we promote it to a node-level condition. This lets the
-            // executor skip the entire network call when the condition is not
-            // met, rather than sending a request that returns nothing.
-            // Directives that gate only some selections stay in the document and
-            // are evaluated by the source schema.
-            if (TryExtractCommonConditionsAndRewrite(operationPlanStep, out var updated))
-            {
-                updatedPlanSteps = updatedPlanSteps.Replace(operationPlanStep, updated);
-                operationPlanStep = updated;
-            }
-
-            // Strip @defer directives from subgraph operations. The gateway
-            // manages deferral itself and subgraphs should not see @defer.
-            operationPlanStep = StripDeferDirectivesFromStep(operationPlanStep);
 
             // Attach variable definitions so the operation is syntactically valid
             // when sent to the downstream service.
             updatedPlanSteps = updatedPlanSteps.Replace(
-                operationPlanStep,
-                AddVariableDefinitions(operationPlanStep, forwardVariableContext));
+                step,
+                AddVariableDefinitions(transformed, forwardVariableContext));
         }
 
-        return updatedPlanSteps;
-
-        static bool IsEmptyOperation(OperationPlanStep step)
-        {
-            if (step.Definition.SelectionSet.Selections.Count == 0)
-            {
-                return true;
-            }
-
-            return step.Definition.SelectionSet.Selections is
-            [
-#pragma warning disable format
-                FieldNode
-                {
-                    Alias: null,
-                    Name.Value: IntrospectionFieldNames.TypeName,
-                    Directives: [{ Name.Value: "fusion__empty" }]
-                }
-#pragma warning restore format
-            ];
-        }
-
-        static OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
-        {
-            var updatedDefinition = RemoveEmptySelections(step.Definition);
-            return ReferenceEquals(updatedDefinition, step.Definition)
-                ? step
-                : step with { Definition = updatedDefinition };
-        }
-
-        static OperationPlanStep StripDeferDirectivesFromStep(OperationPlanStep step)
-        {
-            var updated = StripDeferFromSelectionSet(step.Definition.SelectionSet);
-
-            if (ReferenceEquals(updated, step.Definition.SelectionSet))
-            {
-                return step;
-            }
-
-            return step with { Definition = step.Definition.WithSelectionSet(updated) };
-        }
-
-        static SelectionSetNode StripDeferFromSelectionSet(SelectionSetNode selectionSet)
-        {
-            List<ISelectionNode>? rewritten = null;
-
-            for (var i = 0; i < selectionSet.Selections.Count; i++)
-            {
-                var selection = selectionSet.Selections[i];
-
-                if (selection is InlineFragmentNode inlineFragment)
-                {
-                    var strippedDirectives = StripDeferDirective(inlineFragment.Directives);
-                    var strippedInner = StripDeferFromSelectionSet(inlineFragment.SelectionSet);
-
-                    if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
-                        || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
-                    {
-                        rewritten ??= [.. selectionSet.Selections];
-                        rewritten[i] = inlineFragment
-                            .WithDirectives(strippedDirectives)
-                            .WithSelectionSet(strippedInner);
-                    }
-                }
-                else if (selection is FieldNode { SelectionSet: not null } field)
-                {
-                    var strippedInner = StripDeferFromSelectionSet(field.SelectionSet);
-
-                    if (!ReferenceEquals(strippedInner, field.SelectionSet))
-                    {
-                        rewritten ??= [.. selectionSet.Selections];
-                        rewritten[i] = field.WithSelectionSet(strippedInner);
-                    }
-                }
-            }
-
-            return rewritten is null ? selectionSet : new SelectionSetNode(rewritten);
-        }
-
-        static IReadOnlyList<DirectiveNode> StripDeferDirective(IReadOnlyList<DirectiveNode> directives)
-        {
-            for (var i = 0; i < directives.Count; i++)
-            {
-                if (directives[i].Name.Value.Equals(
-                    DirectiveNames.Defer.Name,
-                    StringComparison.Ordinal))
-                {
-                    var result = new List<DirectiveNode>(directives.Count - 1);
-
-                    for (var j = 0; j < directives.Count; j++)
-                    {
-                        if (j != i)
-                        {
-                            result.Add(directives[j]);
-                        }
-                    }
-
-                    return result;
-                }
-            }
-
-            return directives;
-        }
+        return RemoveKeyOnlyLookupSteps(updatedPlanSteps);
 
         static OperationPlanStep AddVariableDefinitions(
             OperationPlanStep step,
@@ -469,6 +559,121 @@ public sealed partial class OperationPlanner
             }
 
             return step;
+        }
+    }
+
+    /// <summary>
+    /// Removes lookup steps that select nothing but the entry key a step they depend on already
+    /// selects, and makes their dependents depend on the steps the removed step depended on.
+    /// </summary>
+    private static ImmutableList<PlanStep> RemoveKeyOnlyLookupSteps(ImmutableList<PlanStep> planSteps)
+    {
+        var removed = true;
+
+        while (removed)
+        {
+            removed = false;
+
+            for (var i = 0; i < planSteps.Count; i++)
+            {
+                if (planSteps[i] is not OperationPlanStep { Lookup: not null } candidate
+                    || !IsKeyOnlyLookup(candidate)
+                    || IsReferencedByNodeStep(planSteps, candidate.Id)
+                    || !TryGetKeyProducers(planSteps, candidate, out var producerIndexes))
+                {
+                    continue;
+                }
+
+                foreach (var producerIndex in producerIndexes)
+                {
+                    var producer = (OperationPlanStep)planSteps[producerIndex];
+
+                    planSteps = planSteps.SetItem(
+                        producerIndex,
+                        producer with
+                        {
+                            Dependents = producer.Dependents.Remove(candidate.Id).Union(candidate.Dependents)
+                        });
+                }
+
+                planSteps = planSteps.RemoveAt(i);
+                removed = true;
+                break;
+            }
+        }
+
+        return planSteps;
+
+        static bool IsKeyOnlyLookup(OperationPlanStep step)
+        {
+            return step.Definition.SelectionSet.Selections is
+                [FieldNode { Alias: null, SelectionSet: { } entrySelectionSet }]
+                && SyntaxComparer.BySyntax.Equals(entrySelectionSet, step.Lookup!.Requirements);
+        }
+
+        static bool IsReferencedByNodeStep(ImmutableList<PlanStep> planSteps, int stepId)
+        {
+            foreach (var step in planSteps)
+            {
+                if (step is not NodeFieldPlanStep nodeStep)
+                {
+                    continue;
+                }
+
+                if (nodeStep.FallbackQuery.Id == stepId)
+                {
+                    return true;
+                }
+
+                foreach (var branch in nodeStep.Branches.Values)
+                {
+                    if (branch.Id == stepId)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        static bool TryGetKeyProducers(
+            ImmutableList<PlanStep> planSteps,
+            OperationPlanStep candidate,
+            out List<int> producerIndexes)
+        {
+            producerIndexes = [];
+            var providesKey = false;
+
+            for (var i = 0; i < planSteps.Count; i++)
+            {
+                if (planSteps[i] is not OperationPlanStep producer
+                    || !producer.Dependents.Contains(candidate.Id))
+                {
+                    continue;
+                }
+
+                producerIndexes.Add(i);
+
+                if (producer.Target.IsParentOfOrSame(candidate.Target)
+                    && ContainsSelectionsAtPath(
+                        GetEntrySelectionSet(producer),
+                        candidate.Target.RelativeTo(producer.Target),
+                        candidate.Lookup!.Requirements))
+                {
+                    providesKey = true;
+                }
+            }
+
+            return providesKey;
+        }
+
+        static SelectionSetNode GetEntrySelectionSet(OperationPlanStep step)
+        {
+            return step.Lookup is not null
+                && step.Definition.SelectionSet.Selections is [FieldNode { SelectionSet: { } entrySelectionSet }]
+                    ? entrySelectionSet
+                    : step.Definition.SelectionSet;
         }
     }
 

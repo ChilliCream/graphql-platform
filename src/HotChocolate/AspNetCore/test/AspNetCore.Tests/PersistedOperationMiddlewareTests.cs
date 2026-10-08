@@ -266,6 +266,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
@@ -302,6 +303,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
@@ -335,6 +337,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: UnprocessableEntity
@@ -371,6 +374,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: BadRequest
@@ -399,5 +403,36 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Empty(response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("POST")]
+    [InlineData("QUERY")]
+    public async Task Request_Should_ReturnVaryAccept_When_PersistedOperationIsExecuted(
+        string method)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            new HttpMethod(method),
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+
+        if (method is not "GET")
+        {
+            request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
+        }
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
     }
 }

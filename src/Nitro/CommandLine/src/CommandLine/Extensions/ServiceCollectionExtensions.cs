@@ -7,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -77,6 +78,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IMemoryStore, MemoryStore>();
+        services.TryAddSingleton<IBoardPreferencesStore, BoardPreferencesStore>();
 
         return services;
     }

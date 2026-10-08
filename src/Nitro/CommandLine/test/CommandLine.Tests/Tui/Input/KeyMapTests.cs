@@ -226,6 +226,23 @@ public sealed class KeyMapTests
     }
 
     [Fact]
+    public void CreateDefaultGlobal_Should_MapO_ToCycleBoardOrientation()
+    {
+        // arrange
+        var keyMap = KeyMap.CreateDefaultGlobal();
+
+        // act
+        var resolved = keyMap.TryResolve(
+            new KeyChord(ConsoleKey.O, ConsoleModifiers.None, 'o'),
+            out var message);
+
+        // assert
+        Assert.True(resolved);
+        Assert.IsType<TuiMessage.CycleBoardOrientation>(message);
+        Assert.Contains(new KeyHint("o", "cols"), keyMap.Hints);
+    }
+
+    [Fact]
     public void CreateDefaultGlobal_Should_MapS_ToStatusPickerRequested()
     {
         // arrange

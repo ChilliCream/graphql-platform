@@ -1,3 +1,5 @@
+using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore;
@@ -15,6 +17,27 @@ internal static class HttpContextExtensions
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Returns whether the request may reach the Nitro tool on the GraphQL endpoint at
+    /// <paramref name="path"/>: a GET or HEAD on the endpoint path only when its Accept header
+    /// prefers <c>text/html</c> over every media type the default response formatter writes, and
+    /// every other request.
+    /// </summary>
+    public static bool MayReachNitroApp(this HttpContext context, PathString path)
+    {
+        var request = context.Request;
+
+        if (!request.IsGetOrHeadMethod() || !request.IsEndpointPath(path))
+        {
+            return true;
+        }
+
+        var acceptHeader = HeaderUtilities.GetAcceptHeader(request);
+
+        return !acceptHeader.HasError
+            && DefaultHttpResponseFormatter.PrefersHtml(acceptHeader.AcceptMediaTypes);
     }
 
     public static string? TryGetCostSwitch(this HttpContext context)

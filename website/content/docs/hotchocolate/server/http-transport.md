@@ -22,6 +22,8 @@ A single result is written as `multipart/mixed` or `text/event-stream` only when
 
 When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation or asks for an operation kind the request method does not allow; only a request it cannot read, such as a body that is not valid JSON or a request that is not a well-formed GraphQL over HTTP request, and a batch it does not accept have a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
 
+Every response to a GET, HEAD, POST, or QUERY request on the GraphQL endpoint, other than a WebSocket upgrade, carries `Vary: Accept`, whatever its status code. A cache that honors `Vary` stores one response per distinct `Accept` value.
+
 # Types of Requests
 
 GraphQL requests over HTTP can be performed via the POST, GET, or QUERY HTTP verb.
@@ -108,6 +110,8 @@ Content-Type: application/json
 > \{query\} and \{operationName\} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the \{operationName\} being the string "null". If a literal null is desired, the parameter (e.g. \{operationName\}) should be omitted.
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
+
+With [Nitro](./endpoints.md#tool) enabled, a GET or HEAD request on the endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type the default response formatter writes. Such requests include one without GraphQL parameters, one sent while GET requests are disabled, and one without a required [preflight header](#preflight-header-enforcement). The media types of a [custom formatter](#defaulthttpresponseformatter) are not part of this comparison. A missing or unparsable `Accept` header, `*/*`, and a tie count as a GraphQL request, which has a `404` status code, or a `405` status code when GET requests are disabled under [`Draft20260903`](#draft20260903).
 
 ## QUERY Requests
 
@@ -199,6 +203,26 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
     }
 }
 ```
+
+## Adding Selecting Headers to Vary
+
+The endpoint adds `Accept` to the `Vary` header before the formatter runs. A custom formatter that selects a response by further request headers adds them to `Vary` without replacing it:
+
+```csharp
+public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
+{
+    protected override void OnWriteResponseHeaders(
+        OperationResult result,
+        FormatInfo format,
+        IHeaderDictionary headers)
+    {
+        headers.Append(HeaderNames.Vary, HeaderNames.AcceptLanguage);
+        base.OnWriteResponseHeaders(result, format, headers);
+    }
+}
+```
+
+A formatter can also remove `Accept` from `Vary` in the same method, keeping the other names in the header, for a cache that does not store responses whose `Vary` lists `Accept`.
 
 # JSON Serialization
 
@@ -389,6 +413,8 @@ A value outside this list throws an `ArgumentOutOfRangeException` when the forma
 - A request on the GraphQL endpoint whose method the endpoint does not support has a `405` status code and an `Allow` header listing the supported methods, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, all three have a `404` status code.
 - When `EnableQueryRequests` is `true`, the `Allow` header lists `QUERY`, the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, and a `QUERY` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, that request has a `404` status code.
 
+In Azure Functions, a request reaches Hot Chocolate only with a method the function's `HttpTrigger` accepts, and the Functions host gives any other method a `404` status code. A trigger that lists no methods, as the one in the `graphql-azf` template does, passes every method to Hot Chocolate.
+
 > [!NOTE]
 > `294` is not registered with IANA. Clients and intermediaries that do not recognize it treat it as `200` per RFC 9110, and it is not heuristically cacheable, so a response without cache headers is not stored. Infrastructure that acts on a fixed list of status codes can still treat it differently from `200`. nginx's `add_header` directive, for example, emits headers only for a fixed list of codes unless the `always` flag is set, so CORS and security headers added that way are missing on a `294` response. Before enabling `Draft20260903`, verify that headers and caching behave as intended for `294` through your own infrastructure.
 
@@ -554,7 +580,7 @@ app.MapGraphQL().WithOptions(o =>
 });
 ```
 
-If a request is rejected because it lacks the required preflight header, the server responds with a `400 Bad Request` status.
+A multipart request without the required preflight header is rejected with a `400 Bad Request` status. A GET request without it is executed only when it sends `Content-Type: application/json`; otherwise it has a `404` status code, or, with [Nitro](./endpoints.md#tool) enabled and an `Accept` header that prefers `text/html`, it is served Nitro.
 
 # Next Steps
 

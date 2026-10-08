@@ -75,11 +75,12 @@ internal sealed class AgentsMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// The Agents tab hosts its own d/D/search bindings and hides the global tab's
-    /// unrelated zoom, edit, back, and quit hints so its footer lists only its own keys.
+    /// unrelated zoom, layout, edit, back, and quit hints so its footer lists only its own keys.
     /// </summary>
     public IReadOnlyCollection<KeyHint> SuppressedGlobalHints { get; } =
     [
         new KeyHint("z", "zoom"),
+        KeyMap.BoardOrientationHint,
         new KeyHint("e", "edit"),
         new KeyHint("esc", "back"),
         new KeyHint("q", "quit")

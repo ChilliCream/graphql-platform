@@ -265,6 +265,38 @@ A `406` has no `Content-Type` and no body when the header also rejects the forma
 
 A client that relies on the 16.6 format keeps it by rating that format highest in its `Accept` header.
 
+## Responses carry `Vary: Accept`
+
+Every response to a GET, HEAD, POST, or QUERY request on a GraphQL endpoint, other than a WebSocket upgrade, lists `Accept` in its `Vary` header, whatever its status code, under every transport version. This covers `MapGraphQL`, `MapGraphQLHttp`, `MapGraphQLPersistedOperations`, and the Azure Functions integration. 16.6 did not list `Accept` in `Vary`.
+
+The `vary` names of `@cacheControl` are added beside `Accept`. 16.6 wrote them in place of any `Vary` value that application middleware had set earlier in the request.
+
+A CDN or reverse proxy that honors `Vary` stores one cached response per distinct `Accept` value. Some CDNs do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Akamai behaves this way by default, so cached GET responses stop being cached at the edge after the update. Configure the CDN to cache them anyway, for example with Akamai's [Remove Vary Header](https://techdocs.akamai.com/property-mgr/docs/rm-vary-header) behavior, or remove `Accept` from `Vary` in a [custom formatter](../server/http-transport.md#adding-selecting-headers-to-vary).
+
+## Nitro is served only to requests that prefer HTML
+
+With Nitro enabled, a GET or HEAD request on the GraphQL endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type a GraphQL response is written in. In the serve modes that load Nitro from the CDN, the default `Latest` among them, 16.6 served Nitro every such request, redirecting a path without a trailing slash to the path with one; in the `Embedded` serve mode, it served Nitro to every such request whose `Accept` header contained `text/html`. A request that does not prefer `text/html`, including one with `Accept: */*` or without an `Accept` header, now has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version. The change applies under every transport version.
+
+These answers differ only by `Accept`, so a CDN or proxy that caches the endpoint path without honoring `Vary: Accept` can serve a cached `404` to a browser or the Nitro redirect to a health check.
+
+Health checks pointed at the GraphQL endpoint fail after the update:
+
+- A Kubernetes HTTP probe on `/graphql` sends `Accept: */*` and passed on the `301` or on the Nitro page it redirects to. A Docker `HEALTHCHECK` that runs `curl -f` passed on the `301`, and uptime monitors that follow redirects passed on the Nitro page.
+- With GraphQL mapped at the site root, `MapGraphQL("/")`, an AWS Application Load Balancer's default health check, `GET /` expecting `200`, passed because `GET /` returned the Nitro page directly.
+
+Point health checks at a dedicated endpoint instead:
+
+```csharp
+builder.Services.AddHealthChecks();
+
+var app = builder.Build();
+
+app.MapHealthChecks("/health");
+app.MapGraphQL();
+```
+
+In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, is not served the Nitro page: it has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version.
+
 # Noteworthy changes
 
 ## New cost options
@@ -294,3 +326,7 @@ Cost rejections, including the single result for a rejected variable batch, retu
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
 Use `#!csharp RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an empty variable batch executed through `IRequestExecutor`; over HTTP, the transport refuses `variables: []` before execution), or when metrics cannot be attached to the execution-result state.
+
+## Persisted operations over GET accept `documentId`
+
+A GET request on a GraphQL endpoint reads the operation document ID from a `documentId` query parameter as well as from `id`, the two names a POST body already accepts. A GET request that carries both uses `id`. This covers `MapGraphQL`, `MapGraphQLHttp`, and the Azure Functions integration, under every transport version. 16.6 did not execute a GET request that carried only `documentId`, so it was served Nitro or got a `404` status code.

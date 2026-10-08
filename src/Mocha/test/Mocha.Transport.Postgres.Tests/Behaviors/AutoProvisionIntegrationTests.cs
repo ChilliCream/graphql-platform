@@ -143,8 +143,7 @@ public class AutoProvisionIntegrationTests
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
             await conn.OpenAsync(TestContext.Current.CancellationToken);
-            var migrator = new PostgresSchemaMigrator(schemaOptions);
-            await migrator.MigrateAsync(conn);
+            await PostgresTransportSchema.MigrateAsync(conn, schemaOptions, TestContext.Current.CancellationToken);
         }
 
         // Pre-provision topology resources directly in the database
@@ -206,8 +205,7 @@ public class AutoProvisionIntegrationTests
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
         {
             await conn.OpenAsync(TestContext.Current.CancellationToken);
-            var migrator = new PostgresSchemaMigrator(schemaOptions);
-            await migrator.MigrateAsync(conn);
+            await PostgresTransportSchema.MigrateAsync(conn, schemaOptions, TestContext.Current.CancellationToken);
         }
 
         // Pre-provision only the topic (with auto-provision disabled for it)

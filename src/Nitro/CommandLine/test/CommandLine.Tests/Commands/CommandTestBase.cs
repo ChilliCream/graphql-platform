@@ -12,6 +12,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -40,6 +41,7 @@ public abstract class CommandTestBase
     private IFileSystem? _fileSystemOverride;
     private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Preferences.IBoardPreferencesStore? _boardPreferencesStoreOverride;
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
@@ -60,6 +62,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<ITelemetryClient> TelemetryClientMock = new(MockBehavior.Strict);
     internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
     internal readonly Mock<IBrowserLauncher> _browserLauncherMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
@@ -95,6 +98,14 @@ public abstract class CommandTestBase
     private protected void SetupGlobalConfigDirectory(string directory)
     {
         _globalConfigDirectoryProviderOverride = new FixedGlobalConfigDirectoryProvider(directory);
+    }
+
+    /// <summary>
+    /// Replaces the board preferences store resolved from services with <paramref name="store"/>.
+    /// </summary>
+    private protected void SetupBoardPreferencesStore(Services.Preferences.IBoardPreferencesStore store)
+    {
+        _boardPreferencesStoreOverride = store;
     }
 
     /// <summary>
@@ -373,6 +384,11 @@ public abstract class CommandTestBase
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
         }
 
+        if (_boardPreferencesStoreOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_boardPreferencesStoreOverride));
+        }
+
         if (_claudeSettingsPathResolverOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
@@ -421,6 +437,7 @@ public abstract class CommandTestBase
         services.Replace(ServiceDescriptor.Singleton(PersonalAccessTokensClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(EnvironmentsClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(StagesClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(TelemetryClientMock.Object));
         services.AddSingleton(console);
 
         return services.BuildServiceProvider();

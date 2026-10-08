@@ -58,6 +58,11 @@ internal abstract record TuiMessage
     public sealed record ToggleMaximize : TuiMessage;
 
     /// <summary>
+    /// The active mode should advance its column orientation to the next value.
+    /// </summary>
+    public sealed record CycleBoardOrientation : TuiMessage;
+
+    /// <summary>
     /// The current selection should be opened.
     /// </summary>
     public sealed record OpenSelected : TuiMessage;

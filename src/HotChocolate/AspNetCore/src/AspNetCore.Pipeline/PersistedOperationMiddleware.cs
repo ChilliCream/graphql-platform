@@ -26,6 +26,10 @@ internal static class PersistedOperationMiddleware
     {
         var executorProxy = HttpRequestExecutorProxy.Create(services, schemaName);
         var serverOptions = services.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
+        var negotiation = MiddlewareFactory.CreateHttpContentNegotiationMiddleware(path: null);
+
+        ((IEndpointConventionBuilder)groupBuilder).Add(
+            endpoint => endpoint.RequestDelegate = negotiation(endpoint.RequestDelegate!));
 
         groupBuilder.MapGet(
             "/{operationId}",

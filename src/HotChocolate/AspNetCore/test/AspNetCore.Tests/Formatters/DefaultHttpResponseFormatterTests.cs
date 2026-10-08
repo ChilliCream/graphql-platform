@@ -1,3 +1,6 @@
+using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.Http;
+
 namespace HotChocolate.AspNetCore.Formatters;
 
 public sealed class DefaultHttpResponseFormatterTests
@@ -43,5 +46,66 @@ public sealed class DefaultHttpResponseFormatterTests
             + Environment.NewLine
             + "Actual value was 99.",
             exception.Message);
+    }
+
+    [Theory]
+    [InlineData("text/html")]
+    [InlineData("TEXT/HTML")]
+    [InlineData("text/html;q=0.5")]
+    [InlineData("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")]
+    [InlineData("text/html, application/json;q=0.5")]
+    [InlineData("text/html, */*;q=0.9")]
+    [InlineData("application/json;q=0.5", "text/html")]
+    public void PrefersHtml_Should_ReturnTrue_When_HtmlIsRatedAboveEveryGraphQLMediaType(
+        params string[] accept)
+    {
+        // arrange
+        var acceptMediaTypes = ParseAccept(accept);
+
+        // act
+        var prefersHtml = DefaultHttpResponseFormatter.PrefersHtml(acceptMediaTypes);
+
+        // assert
+        Assert.True(prefersHtml);
+    }
+
+    [Theory]
+    [InlineData]
+    [InlineData("*/*")]
+    [InlineData("text/*")]
+    [InlineData("text/html, application/json")]
+    [InlineData("text/html, application/*")]
+    [InlineData("text/html, multipart/mixed")]
+    [InlineData("text/html;q=0, */*")]
+    [InlineData("text/html;q=0")]
+    [InlineData("text/event-stream")]
+    [InlineData("application/graphql-response+json, application/json;q=0.9")]
+    [InlineData("application/graphql-response+json, text/html;q=0.1")]
+    public void PrefersHtml_Should_ReturnFalse_When_AGraphQLMediaTypeIsRatedAtLeastAsHigh(
+        params string[] accept)
+    {
+        // arrange
+        var acceptMediaTypes = ParseAccept(accept);
+
+        // act
+        var prefersHtml = DefaultHttpResponseFormatter.PrefersHtml(acceptMediaTypes);
+
+        // assert
+        Assert.False(prefersHtml);
+    }
+
+    private static AcceptMediaType[] ParseAccept(string[] accept)
+    {
+        var context = new DefaultHttpContext();
+
+        if (accept.Length > 0)
+        {
+            context.Request.Headers.Accept = accept;
+        }
+
+        var acceptHeader = HeaderUtilities.GetAcceptHeader(context.Request);
+        Assert.False(acceptHeader.HasError);
+
+        return acceptHeader.AcceptMediaTypes;
     }
 }

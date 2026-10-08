@@ -54,6 +54,7 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         response.Headers.Remove("ETag");
+        response.Headers.Remove("Vary");
         response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();
@@ -83,6 +84,7 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         response.Headers.Remove("ETag");
+        response.Headers.Remove("Vary");
         response.Content.Headers.ContentLength = null;
 
         response.MatchMarkdownSnapshot();

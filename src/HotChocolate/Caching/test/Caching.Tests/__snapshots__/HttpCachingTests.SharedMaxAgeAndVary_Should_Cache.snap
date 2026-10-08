@@ -1,16 +1,17 @@
 ﻿{
   "Headers": [
     {
-      "Key": "Cache-Control",
+      "Key": "Vary",
       "Value": [
-        "s-maxage=2000"
+        "Accept",
+        "x-bar",
+        "x-foo"
       ]
     },
     {
-      "Key": "Vary",
+      "Key": "Cache-Control",
       "Value": [
-        "x-bar",
-        "x-foo"
+        "s-maxage=2000"
       ]
     }
   ],

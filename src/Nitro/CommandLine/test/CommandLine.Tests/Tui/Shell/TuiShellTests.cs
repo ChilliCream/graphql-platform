@@ -1145,10 +1145,10 @@ public sealed class TuiShellTests
     public void Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive()
     {
         // arrange
-        var shell = CreateShell(new FakeTuiMode(), actor: "pascal");
+        var shell = CreateShell(new FakeTuiMode(), width: 120, actor: "pascal");
 
         // act
-        var text = RenderToText(shell);
+        var text = RenderToText(shell, 120);
 
         // assert
         Assert.Contains("move", text);
@@ -1156,6 +1156,7 @@ public sealed class TuiShellTests
         Assert.Contains("refresh", text);
         Assert.Contains("copy id", text);
         Assert.Contains("zoom", text);
+        Assert.Contains("cols", text);
         Assert.Contains("edit", text);
         Assert.Contains("back", text);
         Assert.Contains("quit", text);

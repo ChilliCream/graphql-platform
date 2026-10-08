@@ -24,7 +24,7 @@ jobs:
       # Stable Rust >= 1.90 and the ubuntu-latest C++ compiler are required by
       # the oracle fuzz package because it links libfuzzer-sys unconditionally.
       - name: Install stable Rust
-        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable (2026-09-03)
+        uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de # master (2026-09-12)
         with:
           toolchain: stable
 
@@ -58,7 +58,7 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
 
       - name: Install stable Rust
-        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable (2026-09-03)
+        uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de # master (2026-09-12)
         with:
           toolchain: stable
 

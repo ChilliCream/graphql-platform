@@ -33,6 +33,16 @@ internal static class MiddlewareFactory
         };
     }
 
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpContentNegotiationMiddleware(
+        PathString? path)
+    {
+        return next =>
+        {
+            var middleware = new HttpContentNegotiationMiddleware(next, path);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
         HttpRequestExecutorProxy executor,
         GraphQLServerOptions serverOptions)

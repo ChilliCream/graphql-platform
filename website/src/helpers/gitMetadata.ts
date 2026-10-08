@@ -9,7 +9,7 @@ const DISPLAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
 };
 
 const WEBSITE_ROOT = process.cwd();
-// Static manifest produced by `yarn generate-git-metadata` in the release
+// Static manifest produced by `npm run generate-git-metadata` in the release
 // workflow. Absent during development and builds outside the workflow, in which
 // case metadata is omitted rather than fabricated from the build time.
 const MANIFEST_PATH = path.join(WEBSITE_ROOT, "git-metadata.generated.json");
