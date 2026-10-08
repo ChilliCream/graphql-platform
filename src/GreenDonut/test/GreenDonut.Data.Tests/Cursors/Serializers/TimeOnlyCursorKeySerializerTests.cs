@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GreenDonut.Data.Cursors.Serializers;
 
 public class TimeOnlyCursorKeySerializerTests
@@ -29,6 +31,67 @@ public class TimeOnlyCursorKeySerializerTests
 
         // assert
         Assert.Equal(result, timeOnly);
+    }
+
+    [Theory]
+    [InlineData("th-TH")]
+    [InlineData("sv-SE")]
+    public void TryFormat_Should_ProduceInvariantBytes_When_CurrentCultureIsNonInvariant(string cultureName)
+    {
+        // arrange
+        var timeOnly = new TimeOnly(13, 45, 30).Add(TimeSpan.FromTicks(1234567));
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            Span<byte> invariantBuffer = stackalloc byte[13];
+            s_serializer.TryFormat(timeOnly, invariantBuffer, out _);
+            var invariantBytes = invariantBuffer.ToArray();
+
+            // act
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+            Span<byte> buffer = stackalloc byte[13];
+            var success = s_serializer.TryFormat(timeOnly, buffer, out var written);
+            var parsed = (TimeOnly)s_serializer.Parse(buffer);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(13, written);
+            Assert.Equal(invariantBytes, buffer.ToArray());
+            Assert.Equal(timeOnly, parsed);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
+    public void Parse_Should_DecodeCorrectly_When_FormattedUnderThTh_AndParsedUnderInvariant()
+    {
+        // arrange
+        var timeOnly = new TimeOnly(13, 45, 30).Add(TimeSpan.FromTicks(1234567));
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("th-TH");
+            Span<byte> buffer = stackalloc byte[13];
+            s_serializer.TryFormat(timeOnly, buffer, out _);
+            var formatted = buffer.ToArray();
+
+            // act
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            var parsed = (TimeOnly)s_serializer.Parse(formatted);
+
+            // assert
+            Assert.Equal(timeOnly, parsed);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     public static TheoryData<TimeOnly, byte[]> Data()

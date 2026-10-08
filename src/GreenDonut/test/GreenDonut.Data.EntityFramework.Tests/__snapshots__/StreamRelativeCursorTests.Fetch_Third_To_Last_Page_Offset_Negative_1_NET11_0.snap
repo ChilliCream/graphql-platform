@@ -1,0 +1,26 @@
+---------------
+{
+  "Page": 8,
+  "TotalCount": 20,
+  "Items": [
+    "Omniflex",
+    "Pulsarix"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @value='Synerflux'
+-- @value2='19'
+-- @p='2'
+SELECT b0."Id", b0."GroupId", b0."Name"
+FROM (
+    SELECT b."Id", b."GroupId", b."Name"
+    FROM "Brands" AS b
+    WHERE b."Name" < @value OR (b."Name" = @value AND b."Id" < @value2)
+    ORDER BY b."Name" DESC, b."Id" DESC
+    LIMIT @p OFFSET @p
+) AS b0
+ORDER BY b0."Name", b0."Id"
+---------------

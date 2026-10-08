@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenDonut.Data.TestContext;
 
-public class FileSystemContext(string connectionString) : DbContext
+public class FileSystemContext(string connectionString, IEnumerable<IInterceptor>? interceptors = null) : DbContext
 {
     public DbSet<FileSystemEntry> Entries => Set<FileSystemEntry>();
 
@@ -13,6 +14,11 @@ public class FileSystemContext(string connectionString) : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseNpgsql(connectionString);
+
+        if (interceptors is not null)
+        {
+            optionsBuilder.AddInterceptors(interceptors);
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

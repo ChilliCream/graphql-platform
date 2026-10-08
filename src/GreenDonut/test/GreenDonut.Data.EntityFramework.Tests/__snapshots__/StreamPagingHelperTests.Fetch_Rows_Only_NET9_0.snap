@@ -1,0 +1,18 @@
+---------------
+{
+  "TotalCount": null,
+  "Items": [
+    "Item0001",
+    "Item0002"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @__p_0='3'
+SELECT b."Id", b."Name"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+LIMIT @__p_0
+---------------

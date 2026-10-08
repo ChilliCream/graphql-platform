@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenDonut.Data.TestContext;
 
-public class NullableTestsContext(Provider provider, string connectionString) : DbContext
+public class NullableTestsContext(
+    Provider provider,
+    string connectionString,
+    IEnumerable<IInterceptor>? interceptors = null) : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -17,6 +21,11 @@ public class NullableTestsContext(Provider provider, string connectionString) : 
                 break;
             default:
                 throw new InvalidOperationException();
+        }
+
+        if (interceptors is not null)
+        {
+            optionsBuilder.AddInterceptors(interceptors);
         }
     }
 

@@ -1,0 +1,34 @@
+{
+  "Key1": {
+    "Index": 1,
+    "TotalCount": 25,
+    "HasNextPage": false,
+    "HasPreviousPage": false,
+    "Items": []
+  },
+  "Key2": {
+    "Index": 1,
+    "TotalCount": 30,
+    "HasNextPage": false,
+    "HasPreviousPage": false,
+    "Items": []
+  },
+  "Key3": {
+    "Index": 1,
+    "TotalCount": 40,
+    "HasNextPage": true,
+    "HasPreviousPage": false,
+    "Items": [
+      "C0001",
+      "C0002",
+      "C0003",
+      "C0004",
+      "C0005",
+      "C0006",
+      "C0007",
+      "C0008",
+      "C0009",
+      "C0010"
+    ]
+  }
+}

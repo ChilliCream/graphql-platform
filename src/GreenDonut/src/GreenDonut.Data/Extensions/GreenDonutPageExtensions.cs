@@ -102,7 +102,7 @@ public static class GreenDonutPageExtensions
                 "Max cursors must be greater than or equal to 0.");
         }
 
-        if (page.Last is null || page.Index is null)
+        if (maxCursors == 0 || page.Last is null || page.Index is null)
         {
             return [];
         }
@@ -127,5 +127,64 @@ public static class GreenDonutPageExtensions
         }
 
         return cursors.ToImmutable();
+    }
+
+    /// <summary>
+    /// Creates a cursor for the last page of the dataset, or a page before it.
+    /// </summary>
+    /// <param name="page">
+    /// The page to create the cursor for.
+    /// </param>
+    /// <param name="offset">
+    /// The number of pages before the last page. Zero targets the last page itself.
+    /// </param>
+    /// <returns>
+    /// Returns a cursor for the last page, offset backwards by <paramref name="offset"/> pages.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if the page is null.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown if the offset is greater than zero, or if it moves the page number below the first page.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the page does not allow relative cursors.
+    /// </exception>
+    public static PageCursor CreateLastPageCursor<T>(this Page<T> page, int offset = 0)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+
+        return LastPageCursorMath.CreateLastPageCursor(page.TotalCount, page.RequestedSize, offset);
+    }
+
+    /// <summary>
+    /// Creates cursors for the pages between the current page and the last page of the dataset.
+    /// </summary>
+    /// <param name="page">
+    /// The page to create cursors for.
+    /// </param>
+    /// <param name="maxCursors">
+    /// The maximum number of cursors to create.
+    /// </param>
+    /// <returns>
+    /// Returns an array of cursors, ordered by page number ascending, for the pages after the
+    /// current page up to and including the last page. Empty if relative cursors are not available
+    /// or the current page is already the last page.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown if the page is null.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown if the maximum number of cursors is less than 0.
+    /// </exception>
+    public static ImmutableArray<PageCursor> CreateRelativeLastPageCursors<T>(this Page<T> page, int maxCursors = 5)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+
+        return LastPageCursorMath.CreateRelativeLastPageCursors(
+            page.TotalCount,
+            page.RequestedSize,
+            page.Index,
+            maxCursors);
     }
 }

@@ -1,0 +1,23 @@
+---------------
+{
+  "Page": 3,
+  "TotalCount": 20,
+  "Items": [
+    "Evolvance",
+    "Futurova"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @__value_0='Brightex'
+-- @__value_1='2'
+-- @__p_3='3'
+-- @__p_2='2'
+SELECT b."Id", b."GroupId", b."Name"
+FROM "Brands" AS b
+WHERE b."Name" > @__value_0 OR (b."Name" = @__value_0 AND b."Id" > @__value_1)
+ORDER BY b."Name", b."Id"
+LIMIT @__p_3 OFFSET @__p_2
+---------------

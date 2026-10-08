@@ -1,0 +1,23 @@
+---------------
+{
+  "Page": 4,
+  "TotalCount": 20,
+  "Items": [
+    "Glacient",
+    "Hyperionix"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @value='Brightex'
+-- @value1='2'
+-- @p0='3'
+-- @p='4'
+SELECT b."Id", b."GroupId", b."Name"
+FROM "Brands" AS b
+WHERE b."Name" > @value OR (b."Name" = @value AND b."Id" > @value1)
+ORDER BY b."Name", b."Id"
+LIMIT @p0 OFFSET @p
+---------------
