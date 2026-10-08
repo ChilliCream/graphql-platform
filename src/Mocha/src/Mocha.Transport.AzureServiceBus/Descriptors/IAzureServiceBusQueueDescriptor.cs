@@ -2,8 +2,11 @@ namespace Mocha.Transport.AzureServiceBus;
 
 /// <summary>
 /// Configures an Azure Service Bus queue together with its receive endpoint.
+/// Receive configuration callbacks apply to the queue's receive endpoint.
 /// </summary>
-public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureServiceBusQueueDescriptorConfiguration>
+public interface IAzureServiceBusQueueDescriptor
+    : IMessagingDescriptor<AzureServiceBusQueueDescriptorConfiguration>
+    , IConfigurable<IReceiveMiddlewareProvider>
 {
     IAzureServiceBusQueueDescriptor AutoProvision(bool autoProvision = true);
 

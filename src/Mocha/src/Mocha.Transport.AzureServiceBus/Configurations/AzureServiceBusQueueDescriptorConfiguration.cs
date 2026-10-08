@@ -101,6 +101,11 @@ public sealed class AzureServiceBusQueueDescriptorConfiguration : MessagingConfi
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; } = [];
 
     /// <summary>
+    /// Gets the configuration callbacks applied to the materialized endpoint, in registration order.
+    /// </summary>
+    public List<Action<IReceiveMiddlewareProvider>> ConfigureReceiveEndpoint { get; } = [];
+
+    /// <summary>
     /// Gets the explicitly declared source topics.
     /// </summary>
     public List<AzureServiceBusQueueSourceTopicConfiguration> SourceTopics { get; } = [];
