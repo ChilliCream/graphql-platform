@@ -117,14 +117,24 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                         continue;
                     }
 
-                    await Parallel.ForEachAsync(
-                        batch.Messages,
-                        new ParallelOptions
+                    try
+                    {
+                        await Parallel.ForEachAsync(
+                            batch.Messages,
+                            new ParallelOptions
+                            {
+                                MaxDegreeOfParallelism = _maxConcurrency,
+                                CancellationToken = cancellationToken
+                            },
+                            (message, ct) => new ValueTask(ProcessMessageAsync(message, logger, ct)));
+                    }
+                    finally
+                    {
+                        if (cancellationToken.IsCancellationRequested)
                         {
-                            MaxDegreeOfParallelism = _maxConcurrency,
-                            CancellationToken = cancellationToken
-                        },
-                        (message, ct) => new ValueTask(ProcessMessageAsync(message, logger, ct)));
+                            await ReleaseLeasedMessagesAsync(batch, logger);
+                        }
+                    }
 
                     // If we got a full batch, there may be more messages
                     hasMore = batch.Count >= _maxBatchSize;
@@ -190,13 +200,14 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                 message,
                 cancellationToken);
 
+            // The message was handled, so it is deleted even when the endpoint is stopping.
             await transport.MessageStore.DeleteMessageAsync(
                 message.TransportMessageId,
-                cancellationToken);
+                CancellationToken.None);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)
         {
-            // The interrupted message remains leased until it can be reclaimed.
+            // The interrupted message is released with the rest of its batch.
         }
         catch (Exception ex)
         {
@@ -208,12 +219,33 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                 await transport.MessageStore.ReleaseMessageAsync(
                     message.TransportMessageId,
                     errorInfo,
-                    cancellationToken);
+                    CancellationToken.None);
             }
             catch (Exception releaseEx)
             {
                 logger.MessageReleaseFailed(releaseEx, message.TransportMessageId);
             }
+        }
+    }
+
+    private async Task ReleaseLeasedMessagesAsync(PostgresMessageBatch batch, ILogger logger)
+    {
+        var transportMessageIds = new Guid[batch.Count];
+        for (var i = 0; i < transportMessageIds.Length; i++)
+        {
+            transportMessageIds[i] = batch.Messages[i].TransportMessageId;
+        }
+
+        try
+        {
+            await transport.MessageStore.ReleaseLeasedMessagesAsync(
+                transportMessageIds,
+                _consumerId,
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            logger.LeasedMessagesReleaseFailed(ex, Queue.Name);
         }
     }
 
@@ -304,6 +336,9 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Error releasing message {TransportMessageId}.")]
     public static partial void MessageReleaseFailed(this ILogger logger, Exception exception, Guid transportMessageId);
+
+    [LoggerMessage(LogLevel.Error, "Error releasing the leased messages of queue {QueueName} while stopping.")]
+    public static partial void LeasedMessagesReleaseFailed(this ILogger logger, Exception exception, string queueName);
 
     [LoggerMessage(LogLevel.Warning, "Database is unreachable for queue {QueueName}, waiting for connectivity to resume.")]
     public static partial void WaitingForDatabase(this ILogger logger, string queueName);

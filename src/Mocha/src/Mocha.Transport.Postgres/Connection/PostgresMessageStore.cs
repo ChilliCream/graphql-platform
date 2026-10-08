@@ -416,6 +416,40 @@ public sealed class PostgresMessageStore
         => ReleaseMessageAsync(transportMessageId, errorInfo: null, cancellationToken);
 
     /// <summary>
+    /// Releases the messages that are still leased by the specified consumer back to the queue.
+    /// Messages that were deleted or already released are not affected.
+    /// </summary>
+    public async Task ReleaseLeasedMessagesAsync(
+        Guid[] transportMessageIds,
+        Guid consumerId,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = $"""
+            WITH released AS (
+                UPDATE {_schemaOptions.MessageTable}
+                SET consumer_id = NULL
+                WHERE transport_message_id = ANY(@ids)
+                  AND consumer_id = @consumer_id
+                RETURNING queue_id
+            )
+            SELECT pg_notify(
+                '{_schemaOptions.NotificationChannel}',
+                q.name::text
+            )
+            FROM (SELECT DISTINCT queue_id FROM released) r
+            JOIN {_schemaOptions.QueueTable} q ON r.queue_id = q.id;
+            """;
+
+        command.Parameters.Add(
+            new NpgsqlParameter("ids", NpgsqlDbType.Array | NpgsqlDbType.Uuid) { Value = transportMessageIds });
+        command.Parameters.Add(new NpgsqlParameter("consumer_id", NpgsqlDbType.Uuid) { Value = consumerId });
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Appends error information to the <c>error_reason</c> JSONB array on a message.
     /// Called when a message processing attempt fails but has not yet exceeded the retry limit.
     /// </summary>

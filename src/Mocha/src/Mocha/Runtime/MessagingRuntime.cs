@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Primitives;
 using Mocha.Middlewares;
 
@@ -148,22 +149,34 @@ public sealed class MessagingRuntime(
 
     /// <summary>
     /// Stops the started transports so their receive endpoints stop consuming messages. A stopped
-    /// runtime cannot be started again.
+    /// runtime cannot be started again, and a transport that fails to stop does not prevent the
+    /// others from stopping; the first failure is rethrown.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the shutdown operations.</param>
     public async ValueTask StopAsync(CancellationToken cancellationToken)
     {
         _stopped = true;
+        ExceptionDispatchInfo? failure = null;
 
         foreach (var transport in transports)
         {
-            if (transport.IsStarted)
+            if (!transport.IsStarted)
+            {
+                continue;
+            }
+
+            try
             {
                 await transport.StopAsync(this, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
             }
         }
 
         IsStarted = false;
+        failure?.Throw();
     }
 
     /// <inheritdoc />

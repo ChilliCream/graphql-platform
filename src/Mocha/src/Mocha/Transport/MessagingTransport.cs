@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
@@ -227,7 +228,9 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     }
 
     /// <summary>
-    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints.
+    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints. A failing
+    /// step does not prevent the remaining steps from running; the first failure is rethrown and the
+    /// transport stays started.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the shutdown sequence.</param>
@@ -239,13 +242,39 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             throw ThrowHelper.TransportNotStarted();
         }
 
-        await OnBeforeStopAsync(cancellationToken);
-        foreach (var endpoint in ReceiveEndpoints)
+        ExceptionDispatchInfo? failure = null;
+
+        try
         {
-            await endpoint.StopAsync(context, cancellationToken);
+            await OnBeforeStopAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            failure = ExceptionDispatchInfo.Capture(ex);
         }
 
-        await OnAfterStopAsync(cancellationToken);
+        foreach (var endpoint in ReceiveEndpoints)
+        {
+            try
+            {
+                await endpoint.StopAsync(context, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
+        }
+
+        try
+        {
+            await OnAfterStopAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            failure ??= ExceptionDispatchInfo.Capture(ex);
+        }
+
+        failure?.Throw();
 
         IsStarted = false;
     }
