@@ -64,29 +64,18 @@ nodes:
     schema: c
     operation: |
       query Op_123456789101112_4(
-        $__fusion_10_hasDiscount: Boolean!
         $__fusion_11_price: Float!
         $__fusion_4_id: ID!
         $__fusion_5_hasDiscount: Boolean!
-        $__fusion_8_hasDiscount: Boolean!
       ) {
         productById(id: $__fusion_4_id) {
           isExpensiveWithDiscount(hasDiscount: $__fusion_5_hasDiscount)
-          fusion__requirement_isExpensiveWithDiscount_0: isExpensiveWithDiscount(
-            hasDiscount: $__fusion_8_hasDiscount
-          )
-          fusion__requirement_isExpensiveWithDiscount_1: isExpensiveWithDiscount(
-            hasDiscount: $__fusion_10_hasDiscount
-          )
           isExpensive(price: $__fusion_11_price)
         }
       }
     source: $.productById
     target: $.product
     requirements:
-      - name: __fusion_10_hasDiscount
-        selectionMap: >-
-          hasDiscount
       - name: __fusion_11_price
         selectionMap: >-
           price
@@ -94,9 +83,6 @@ nodes:
         selectionMap: >-
           id
       - name: __fusion_5_hasDiscount
-        selectionMap: >-
-          hasDiscount
-      - name: __fusion_8_hasDiscount
         selectionMap: >-
           hasDiscount
     dependencies:

@@ -1,0 +1,103 @@
+operation:
+  - document: |
+      {
+        product {
+          fieldOne
+          fieldTwo
+          id @fusion__requirement
+          foo @fusion__requirement {
+            x(first: 2) @fusion__requirement
+            x(first: 1) @fusion__requirement
+          }
+          seed @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 12
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+          seed
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_x: Int
+        $__fusion_2_id: ID!
+        $__fusion_6_x: Int
+      ) {
+        productById(id: $__fusion_2_id) {
+          fieldTwo(x: $__fusion_1_x)
+          fieldOne(x: $__fusion_6_x)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_1_x
+        selectionMap: >-
+          foo.x(first: 2)
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_6_x
+        selectionMap: >-
+          foo.x(first: 1)
+    dependencies:
+      - id: 1
+      - id: 6
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!, $__fusion_4_seed: Int) {
+        productById(id: $__fusion_3_id) {
+          foo(seed: $__fusion_4_seed) {
+            x(first: 2)
+          }
+        }
+      }
+    source: $.productById
+    target: $.product
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+      - name: __fusion_4_seed
+        selectionMap: >-
+          seed
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5($__fusion_7_id: ID!, $__fusion_8_seed: Int) {
+        productById(id: $__fusion_7_id) {
+          foo(seed: $__fusion_8_seed) {
+            x(first: 1)
+          }
+        }
+      }
+    source: $.productById
+    target: $.product
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+      - name: __fusion_8_seed
+        selectionMap: >-
+          seed
+    dependencies:
+      - id: 1

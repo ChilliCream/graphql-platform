@@ -15,6 +15,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using ArgumentNode = HotChocolate.Language.ArgumentNode;
 using NameNode = HotChocolate.Language.NameNode;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -554,7 +555,8 @@ public sealed partial class OperationPlanner
                         current,
                         possiblePlans,
                         backlog,
-                        bestCompletePlanCost);
+                        bestCompletePlanCost,
+                        allowMerge: true);
                     break;
 
                 case NodeFieldWorkItem wi:
@@ -664,7 +666,8 @@ public sealed partial class OperationPlanner
                         current,
                         candidates,
                         backlog,
-                        double.PositiveInfinity);
+                        double.PositiveInfinity,
+                        allowMerge: true);
                     break;
 
                 case NodeFieldWorkItem wi:
@@ -1823,7 +1826,8 @@ public sealed partial class OperationPlanner
         PlanNode current,
         PlanQueue possiblePlans,
         Backlog backlog,
-        double incumbentCost)
+        double incumbentCost,
+        bool allowMerge)
     {
         // The main planning backlog handles step-owned requirements. Incremental
         // plan requirements are handled by defer planning.
@@ -1837,14 +1841,19 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        var originalCurrent = current;
+        var originalBacklog = backlog;
+        OperationPlanStep existingStep = null!;
+        var existingStepIndex = -1;
         var mergeWithExistingStep =
-            TryFindMergeableRequirementLookupStep(
+            allowMerge
+            && TryFindMergeableRequirementLookupStep(
                 current,
                 workItem,
                 lookup,
                 stepConsumer.StepId,
-                out var existingStep,
-                out var existingStepIndex);
+                out existingStep,
+                out existingStepIndex);
 
         if (!mergeWithExistingStep)
         {
@@ -2003,12 +2012,44 @@ public sealed partial class OperationPlanner
                 indexBuilder,
                 refreshedExistingStep.RootSelectionSetId);
 
-            if (existingSelectionSet is not null
-                && HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+            if (existingSelectionSet is not null)
             {
-                selectionNode = CreateFieldWithAlias(
-                    selectionNode,
-                    requirementAliases.MintAlias(selectionNode));
+                if (HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+                {
+                    if (TryBindToExistingSelection(
+                        selectionNode,
+                        existingSelectionSet.Selections,
+                        requirements,
+                        $"{requirementKey}_",
+                        out var boundSelection,
+                        out var boundRequirementKeys))
+                    {
+                        selectionNode = boundSelection;
+                        requirements = requirements.RemoveRange(boundRequirementKeys);
+                    }
+
+                    if (HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+                    {
+                        selectionNode = CreateFieldWithAlias(
+                            selectionNode,
+                            requirementAliases.MintAlias(selectionNode));
+                    }
+                }
+
+                // The merged document would violate FieldsInSetCanMerge below the
+                // selected field, so the lookup is planned as a step of its own.
+                if (HasFieldMergeConflict(selectionNode, existingSelectionSet.Selections))
+                {
+                    PlanFieldWithRequirement(
+                        workItem,
+                        lookup,
+                        originalCurrent,
+                        possiblePlans,
+                        originalBacklog,
+                        incumbentCost,
+                        allowMerge: false);
+                    return;
+                }
             }
         }
 
@@ -3588,6 +3629,283 @@ public sealed partial class OperationPlanner
 
         return false;
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="field"/> cannot share a selection set with
+    /// <paramref name="existingSelections"/>: a field with the same response name selects
+    /// a different field or different arguments, or their child selections conflict in turn.
+    /// </summary>
+    private static bool HasFieldMergeConflict(
+        FieldNode field,
+        IReadOnlyList<ISelectionNode> existingSelections)
+    {
+        var responseName = field.Alias?.Value ?? field.Name.Value;
+
+        foreach (var selection in existingSelections)
+        {
+            switch (selection)
+            {
+                case FieldNode existingField
+                    when responseName.Equals(
+                        existingField.Alias?.Value ?? existingField.Name.Value,
+                        StringComparison.Ordinal):
+                    if (!CanMergeFields(field, existingField))
+                    {
+                        return true;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    if (HasFieldMergeConflict(field, fragment.SelectionSet.Selections))
+                    {
+                        return true;
+                    }
+
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool CanMergeFields(FieldNode left, FieldNode right)
+    {
+        if (!left.Name.Value.Equals(right.Name.Value, StringComparison.Ordinal)
+            || left.Arguments.Count != right.Arguments.Count)
+        {
+            return false;
+        }
+
+        foreach (var argument in left.Arguments)
+        {
+            var found = false;
+
+            foreach (var candidate in right.Arguments)
+            {
+                if (candidate.Name.Value.Equals(argument.Name.Value, StringComparison.Ordinal))
+                {
+                    if (!SyntaxComparer.BySyntax.Equals(argument, candidate))
+                    {
+                        return false;
+                    }
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                return false;
+            }
+        }
+
+        return left.SelectionSet is null
+            || right.SelectionSet is null
+            || CanMergeSelections(left.SelectionSet.Selections, right.SelectionSet.Selections);
+    }
+
+    private static bool CanMergeSelections(
+        IReadOnlyList<ISelectionNode> selections,
+        IReadOnlyList<ISelectionNode> otherSelections)
+    {
+        foreach (var selection in selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    if (HasFieldMergeConflict(field, otherSelections))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    if (!CanMergeSelections(fragment.SelectionSet.Selections, otherSelections))
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rewrites <paramref name="selection"/> to the arguments of an existing field with the
+    /// same response name when the two differ only in requirement variables whose requirements
+    /// read the same value. <paramref name="boundRequirementKeys"/> lists the new requirement
+    /// variables the rewritten selection no longer uses.
+    /// </summary>
+    internal static bool TryBindToExistingSelection(
+        FieldNode selection,
+        IReadOnlyList<ISelectionNode> existingSelections,
+        ImmutableDictionary<string, OperationRequirement> requirements,
+        string newRequirementKeyPrefix,
+        [NotNullWhen(true)] out FieldNode? boundSelection,
+        [NotNullWhen(true)] out List<string>? boundRequirementKeys)
+    {
+        var responseName = selection.Alias?.Value ?? selection.Name.Value;
+
+        foreach (var existing in existingSelections)
+        {
+            if (existing is FieldNode existingField
+                && responseName.Equals(
+                    existingField.Alias?.Value ?? existingField.Name.Value,
+                    StringComparison.Ordinal)
+                && TryBindArguments(
+                    selection,
+                    existingField,
+                    requirements,
+                    newRequirementKeyPrefix,
+                    out var arguments,
+                    out boundRequirementKeys))
+            {
+                boundSelection = selection.WithArguments(arguments);
+                return true;
+            }
+        }
+
+        boundSelection = null;
+        boundRequirementKeys = null;
+        return false;
+    }
+
+    private static bool TryBindArguments(
+        FieldNode selection,
+        FieldNode existing,
+        ImmutableDictionary<string, OperationRequirement> requirements,
+        string newRequirementKeyPrefix,
+        [NotNullWhen(true)] out List<ArgumentNode>? arguments,
+        [NotNullWhen(true)] out List<string>? boundRequirementKeys)
+    {
+        arguments = null;
+        boundRequirementKeys = null;
+
+        if (!selection.Name.Value.Equals(existing.Name.Value, StringComparison.Ordinal)
+            || selection.Arguments.Count != existing.Arguments.Count)
+        {
+            return false;
+        }
+
+        var boundCount = 0;
+
+        foreach (var argument in selection.Arguments)
+        {
+            if (!TryGetBindableArgument(
+                argument,
+                existing,
+                requirements,
+                newRequirementKeyPrefix,
+                out _,
+                out var isBound))
+            {
+                return false;
+            }
+
+            if (isBound)
+            {
+                boundCount++;
+            }
+        }
+
+        if (boundCount == 0)
+        {
+            return false;
+        }
+
+        var boundArguments = new List<ArgumentNode>(selection.Arguments.Count);
+        var boundKeys = new List<string>(boundCount);
+
+        foreach (var argument in selection.Arguments)
+        {
+            TryGetBindableArgument(
+                argument,
+                existing,
+                requirements,
+                newRequirementKeyPrefix,
+                out var target,
+                out var isBound);
+
+            boundArguments.Add(target!);
+
+            if (isBound)
+            {
+                boundKeys.Add(((VariableNode)argument.Value).Name.Value);
+            }
+        }
+
+        arguments = boundArguments;
+        boundRequirementKeys = boundKeys;
+        return true;
+    }
+
+    private static bool TryGetBindableArgument(
+        ArgumentNode argument,
+        FieldNode existing,
+        ImmutableDictionary<string, OperationRequirement> requirements,
+        string newRequirementKeyPrefix,
+        out ArgumentNode? target,
+        out bool isBound)
+    {
+        target = null;
+        isBound = false;
+
+        foreach (var candidate in existing.Arguments)
+        {
+            if (candidate.Name.Value.Equals(argument.Name.Value, StringComparison.Ordinal))
+            {
+                target = candidate;
+                break;
+            }
+        }
+
+        if (target is null)
+        {
+            return false;
+        }
+
+        if (SyntaxComparer.BySyntax.Equals(argument, target))
+        {
+            target = argument;
+            return true;
+        }
+
+        if (argument.Value is not VariableNode variable
+            || target.Value is not VariableNode existingVariable
+            || !variable.Name.Value.StartsWith(newRequirementKeyPrefix, StringComparison.Ordinal)
+            || existingVariable.Name.Value.StartsWith(newRequirementKeyPrefix, StringComparison.Ordinal)
+            || !requirements.TryGetValue(variable.Name.Value, out var requirement)
+            || !requirements.TryGetValue(existingVariable.Name.Value, out var existingRequirement))
+        {
+            return false;
+        }
+
+        if (!ReadsSameValue(requirement, existingRequirement))
+        {
+            throw ThrowHelper.RequirementBindingReadsDifferentValue(
+                variable.Name.Value,
+                existingVariable.Name.Value);
+        }
+
+        isBound = true;
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether two requirements read the same value: they are anchored at the
+    /// same path, declare the same type, use the same field selection map instance and are
+    /// read under the same internal alias.
+    /// </summary>
+    internal static bool ReadsSameValue(OperationRequirement left, OperationRequirement right)
+        => left.Path == right.Path
+            && string.Equals(left.InternalAlias, right.InternalAlias, StringComparison.Ordinal)
+            && ReferenceEquals(left.Map, right.Map)
+            && SyntaxComparer.BySyntax.Equals(left.Type, right.Type);
 
     private OperationDefinitionNode InlineSelectionsIntoOverallOperation(
         OperationDefinitionNode operation,

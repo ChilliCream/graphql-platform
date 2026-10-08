@@ -86,7 +86,7 @@ public class RequirementChainTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
+    public void CreatePlan_Should_SelectMergedLookupFieldOnce_When_RequirementVariablesDifferOnlyByName()
     {
         // arrange
         var schema = CreateRequiresRequiresSchema();
@@ -108,6 +108,7 @@ public class RequirementChainTests : FusionTestBase
             options);
 
         // assert
+        SourceOperationFieldMergeAssert.AllOperationsCanMerge(plan);
         MatchSnapshot(plan);
     }
 

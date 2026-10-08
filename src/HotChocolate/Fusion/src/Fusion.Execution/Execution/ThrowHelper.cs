@@ -23,6 +23,11 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
+    public static InvalidOperationException RequirementBindingReadsDifferentValue(
+        string requirementKey,
+        string existingRequirementKey)
+        => new($"The requirement variable '{requirementKey}' cannot be bound to '{existingRequirementKey}' because the two requirements do not read the same value.");
+
     public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
         => new($"No plan was found for the @defer fragment at path '{path}'.");
 
