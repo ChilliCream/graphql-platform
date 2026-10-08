@@ -160,6 +160,21 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         return new RabbitMQReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
     }
 
+    /// <inheritdoc />
+    public override ReceiveEndpointConfiguration CreateReplyEndpointConfiguration(
+        IMessagingConfigurationContext context,
+        InboundRoute route)
+    {
+        var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Reply);
+        return new RabbitMQReceiveEndpointConfiguration
+        {
+            Name = queueName,
+            QueueName = queueName,
+            Kind = ReceiveEndpointKind.Reply,
+            ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
+        };
+    }
+
     public override void ConfigureEndpoint(
         IMessagingConfigurationContext context,
         ReceiveEndpointConfiguration configuration)
