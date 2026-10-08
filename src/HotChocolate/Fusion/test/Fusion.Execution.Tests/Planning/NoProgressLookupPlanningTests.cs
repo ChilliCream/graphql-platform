@@ -29,7 +29,7 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_DequeueTwelveCandidates_When_RequirementFieldIsExternal()
+    public void CreatePlan_Should_NotDequeueKeyOnlySchema_When_RequirementFieldIsExternal()
     {
         // arrange
         using var listener = new DequeueListener();
@@ -65,9 +65,78 @@ public sealed class NoProgressLookupPlanningTests : FusionTestBase
               "OperationLookup:c",
               "OperationLookup:c",
               "Complete:c",
-              "Complete:c",
-              "OperationLookup:b",
-              "Complete:b"
+              "Complete:c"
+            ]
+            """);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_NotDequeueKeyOnlySchema_When_FieldIsDeferred()
+    {
+        // arrange
+        using var listener = new DequeueListener();
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              userByKey(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String!
+            }
+            """);
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var planner = new OperationPlanner(
+            schema,
+            new OperationCompiler(schema, pool),
+            new OperationPlannerOptions { MaxExpandedNodes = 1_000 });
+        var operation = Utf8GraphQLParser.Parse(
+                """
+                { user(id: "1") { name ... @defer { id email } } }
+                """)
+            .Definitions.OfType<OperationDefinitionNode>().First();
+        const string operationId = "no_progress_lookup_deferred_dequeues";
+
+        // act
+        planner.CreatePlan(
+            operationId,
+            operationId,
+            "12345678",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        listener.Dequeues(operationId + "#defer_0").MatchInlineSnapshot(
+            """
+            [
+              "OperationLookup:c",
+              "OperationRoot:a",
+              "Complete:a",
+              "OperationLookup:a"
             ]
             """);
     }

@@ -226,6 +226,7 @@ public sealed class OperationPlannerImprovementBudgetTests : FusionTestBase
 
             type Author @key(fields: "id") {
               id: ID!
+              rank: Int
             }
             """);
 }
