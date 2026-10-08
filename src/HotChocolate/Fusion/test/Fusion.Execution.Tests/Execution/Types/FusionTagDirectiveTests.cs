@@ -349,7 +349,13 @@ public sealed class FusionTagDirectiveTests : FusionTestBase
     {
         var sourceSchemas = new[] { new SourceSchemaText("a", SourceSchema) };
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions();
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                DefaultListSize = 1
+            }
+        };
 
         if (tagMergeBehavior is { } value)
         {

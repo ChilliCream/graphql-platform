@@ -37,9 +37,7 @@ public sealed partial class TaskDetailBodyTests
             .Select(l => StripMarkupTags(l.Content))
             .ToList();
 
-        // assert: Design, Acceptance criteria, Dependencies, Blocks, Comments are all
-        // empty and must not appear; each present section renders as a 3-line box
-        // (top border, content, bottom border), with a blank line separating them.
+        // assert
         Assert.Equal(
             [
                 BoxTop("Description", 40),
@@ -81,9 +79,7 @@ public sealed partial class TaskDetailBodyTests
 
         var listStyleHeaders = new HashSet<string>(["Dependencies", "Blocks", "Comments"]);
 
-        // act: Description, Design, Acceptance criteria, and Notes render as boxes,
-        // so their names are extracted from the box's top border; Dependencies,
-        // Blocks, and Comments stay a plain header line.
+        // act
         var headers = TaskDetailBody.Build(model, 40, focused: true)
             .Select(l => StripMarkupTags(l.Content))
             .Where(l => l.StartsWith("╭─", StringComparison.Ordinal) || listStyleHeaders.Contains(l))
@@ -108,8 +104,7 @@ public sealed partial class TaskDetailBodyTests
         // act
         var lines = TaskDetailBody.Build(model, 40, focused: true);
 
-        // assert: the box's top and bottom borders are styled markup carrying the
-        // section name; the content row is plain, unescaped text.
+        // assert
         Assert.Equal(BoxTop("Description", 40), StripMarkupTags(lines[0].Content));
         Assert.True(lines[0].IsMarkup);
         Assert.Equal(new TaskDetailBodyLine(BoxContent("desc", 40), false), lines[1]);
@@ -133,8 +128,7 @@ public sealed partial class TaskDetailBodyTests
         // act
         var lines = TaskDetailBody.Build(model, 40, focused: true).ToList();
 
-        // assert: the styled "Dependencies" header line is followed by a blank
-        // separator, then the markup row.
+        // assert
         var headerIndex = lines.FindIndex(l => StripMarkupTags(l.Content) == "Dependencies");
         var blankLine = lines[headerIndex + 1];
         var rowLine = lines[headerIndex + 2];

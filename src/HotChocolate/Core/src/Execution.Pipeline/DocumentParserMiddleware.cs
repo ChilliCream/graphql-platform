@@ -1,3 +1,4 @@
+using System.Net;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,7 +81,14 @@ internal sealed class DocumentParserMiddleware
                                 .AddLocation(new Location(ex.Line, ex.Column))
                                 .Build());
 
-                        context.Result = OperationResult.FromError(error);
+                        // A document the server cannot parse is answered 400 under every
+                        // revision of the GraphQL over HTTP specification.
+                        var result = OperationResult.FromError(error);
+                        result.ContextData = result.ContextData.Add(
+                            ExecutionContextData.HttpStatusCode,
+                            HttpStatusCode.BadRequest);
+
+                        context.Result = result;
                         _diagnosticEvents.RequestError(context, ex);
                     }
                 }

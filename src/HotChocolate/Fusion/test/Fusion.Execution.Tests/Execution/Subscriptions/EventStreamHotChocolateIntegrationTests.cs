@@ -708,7 +708,14 @@ public sealed class EventStreamHotChocolateIntegrationTests
         var log = new CompositionLog();
         var composer = new SchemaComposer(
             [new SourceSchemaText("EVENTS", sourceSchemaSdl)],
-            new SchemaComposerOptions { Merger = { AddFusionDefinitions = addFusionDefinitions } },
+            new SchemaComposerOptions
+            {
+                Merger =
+                {
+                    AddFusionDefinitions = addFusionDefinitions,
+                    DefaultListSize = 1
+                }
+            },
             log);
 
         var result = composer.Compose();

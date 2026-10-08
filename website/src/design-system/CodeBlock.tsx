@@ -6,10 +6,8 @@ import {
 } from "react";
 import { codeToHtml, type BundledTheme } from "shiki";
 import { ClipboardButton } from "@/src/components/ClipboardButton";
-import { LANGUAGES, STEP_PALETTE } from "./languages";
+import { CODE_THEME, LANGUAGES, STEP_PALETTE } from "./languages";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
-
-const DEFAULT_THEME: BundledTheme = "github-dark";
 
 type CodeBlockProps = ComponentPropsWithoutRef<"pre"> & {
   theme?: BundledTheme;
@@ -44,7 +42,7 @@ function extract(children: ReactNode): ExtractedCode | null {
 export async function CodeBlock({
   children,
   className = "",
-  theme = DEFAULT_THEME,
+  theme = CODE_THEME,
 }: CodeBlockProps) {
   const extracted = extract(children);
   if (!extracted) {

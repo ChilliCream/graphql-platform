@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// A curated or journal memory record's core fields, as returned by the
-/// structured (JSON) output of the memory commands.
+/// A curated memory summary returned by memory mutation commands.
 /// </summary>
 internal sealed record MemoryRecordResult
 {

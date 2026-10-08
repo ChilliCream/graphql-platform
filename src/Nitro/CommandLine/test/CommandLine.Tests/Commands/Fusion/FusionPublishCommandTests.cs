@@ -654,6 +654,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -707,8 +708,82 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_BreakingChanges_ReleasesDeploymentSlot()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        FusionConfigurationClientMock.Verify(
+            x => x.ReleaseDeploymentSlotAsync(RequestId, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task WithArchive_BreakingChanges_ReleaseFailure_PreservesValidationError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Fusion configuration failed validation.
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Something unexpected happened.
+            This is the error that caused the publishing process to fail in the first place:
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -778,7 +853,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1337,6 +1414,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1428,6 +1506,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1875,10 +1954,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchemaFile_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
     {
         // arrange
-        // Simulates a v1 to v2 migration workflow where prior `fusion publish begin`
-        // and `fusion publish start` invocations stored the request ID on disk and
-        // claimed the slot. Publish must reuse the request ID and skip both the
-        // deployment slot request and the claim mutations.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
         SetupStageCompositionSettings();
@@ -1945,8 +2020,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchemaFile_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
     {
         // arrange
-        // Without --legacy-v1-archive the cached request ID must be ignored and
-        // publish must request a new deployment slot as usual.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
         SetupStageCompositionSettings();
@@ -2407,6 +2480,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -2464,7 +2538,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2541,7 +2617,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -3485,10 +3563,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchema_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
     {
         // arrange
-        // Simulates a v1 to v2 migration workflow where prior `fusion publish begin`
-        // and `fusion publish start` invocations stored the request ID on disk and
-        // claimed the slot. Publish must reuse the request ID and skip both the
-        // deployment slot request and the claim mutations.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
         SetupStageCompositionSettings();
@@ -3557,8 +3631,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchema_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
     {
         // arrange
-        // Without --legacy-v1-archive the cached request ID must be ignored and
-        // publish must request a new deployment slot as usual.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
         SetupStageCompositionSettings();
@@ -4046,6 +4118,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -4137,6 +4210,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -4377,6 +4451,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationValidationSubscription(
             CreateValidationInProgressEvent(),
             CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -4436,7 +4511,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -4515,7 +4592,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
-            │       └── An unexpected error occurred.
+            │       ├── An unexpected error occurred.
+            │       ├── The validation timed out.
+            │       └── The request did not become ready in time.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -5172,6 +5251,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
               "The name of the source schema that provides the specified enum value."
@@ -5369,6 +5450,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5673,6 +5756,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(

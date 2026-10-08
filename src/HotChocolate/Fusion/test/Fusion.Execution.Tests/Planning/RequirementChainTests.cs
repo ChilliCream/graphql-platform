@@ -55,6 +55,37 @@ public class RequirementChainTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_AliasMergedLookupFields_When_RequirementVariablesDiffer()
+    {
+        // arrange
+        var schema = CreateRequiresRequiresSchema();
+        var options = new OperationPlannerOptions { OperationWeight = 100.0 };
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                price
+                hasDiscount
+                isExpensive
+                isExpensiveWithDiscount
+                canAfford
+                canAfford2
+                canAffordWithDiscount
+                canAffordWithDiscount2
+              }
+            }
+            """,
+            options);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Requires_Requires_Two_Fields_Same_Requirement_Different_Order()
     {
         // arrange
@@ -116,6 +147,146 @@ public class RequirementChainTests : FusionTestBase
 
         // assert
         MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_FetchAllPrerequisites_When_RequirementMixesNativeAndComputedFields()
+    {
+        // arrange
+        var schema = CreateNativeAndComputedRequirementSchema(includeRaw: true);
+
+        // act
+        var plan = PlanOperation(schema, "{ product { total } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_FetchAllPrerequisites_When_RequirementContainsOnlyComputedField()
+    {
+        // arrange
+        var schema = CreateNativeAndComputedRequirementSchema(includeRaw: false);
+
+        // act
+        var plan = PlanOperation(schema, "{ product { total } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_NotFetchEntryKeyAgain_When_LookupRequirementIsOnlyComputed()
+    {
+        // arrange
+        var schema = CreateComputedOnlyRequirementSchema();
+
+        // act
+        var plan = PlanOperation(schema, "{ product { onlyComputed } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition CreateNativeAndComputedRequirementSchema(bool includeRaw)
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            includeRaw
+                ? """
+                # name: c
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  total(input: TotalInput! @require(field: "{ raw computed }")): Int!
+                }
+
+                input TotalInput {
+                  raw: Int!
+                  computed: Int!
+                }
+                """
+                : """
+                # name: c
+                type Query {
+                  productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                  id: ID!
+                  total(input: TotalInput! @require(field: "{ computed }")): Int!
+                }
+
+                input TotalInput {
+                  computed: Int!
+                }
+                """);
+    }
+
+    private static FusionSchemaDefinition CreateComputedOnlyRequirementSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              onlyComputed(computed: Int! @require(field: "computed")): Int!
+            }
+            """);
     }
 
     private static FusionSchemaDefinition CreateRequiresRequiresSchema()

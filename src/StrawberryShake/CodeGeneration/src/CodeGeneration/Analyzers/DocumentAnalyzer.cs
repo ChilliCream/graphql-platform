@@ -9,12 +9,19 @@ public partial class DocumentAnalyzer
 {
     private readonly List<DocumentNode> _documents = [];
     private Schema? _schema;
+    private bool _enableCovariantFieldMerging;
 
     public static DocumentAnalyzer New() => new();
 
     public DocumentAnalyzer SetSchema(Schema schema)
     {
         _schema = schema;
+        return this;
+    }
+
+    public DocumentAnalyzer EnableCovariantFieldMerging(bool enabled)
+    {
+        _enableCovariantFieldMerging = enabled;
         return this;
     }
 
@@ -38,7 +45,8 @@ public partial class DocumentAnalyzer
                 "You must at least provide one document.");
         }
 
-        var operationDocuments = CreateOperationDocuments(_documents, _schema);
+        var operationDocuments =
+            CreateOperationDocuments(_documents, _schema, _enableCovariantFieldMerging);
         List<OperationModel> operations = [];
         Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
         Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);

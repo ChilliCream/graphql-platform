@@ -69,7 +69,7 @@ Hot Chocolate exposes diagnostic events across the server, execution engine, and
 
 # Batching
 
-Batching lets you send and execute multiple GraphQL operations in a single request. Batching is disabled by default and you enable it through the `AllowedBatching` flags enum.
+Batching lets you send and execute multiple GraphQL operations in a single request. Variable batching is enabled by default. Request batching is disabled by default and can be enabled through the `AllowedBatching` flags enum.
 
 [Learn more about batching](./batching.md)
 

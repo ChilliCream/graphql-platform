@@ -5,10 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <summary>
 /// Parses the memory tab's single search box into a <see cref="MemoryQuery"/>:
 /// whitespace-separated words starting with <c>tag:</c> or <c>type:</c>
-/// narrow the curated list the same way the CLI's <c>--tag</c> (repeatable)
-/// and <c>--type</c> (last one wins) options do; every other word joins the
-/// free-text query passed to the store's own literal lexical search, so no
-/// second query syntax is invented beyond these two recognized prefixes.
+/// narrow the curated list; every other word joins the free-text query.
 /// </summary>
 internal static class MemoryQueryParser
 {

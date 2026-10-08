@@ -72,7 +72,7 @@ operationPlan:
           petName(input: $pet)
         }
       name: testQuery
-      hash: 6ad33e0e14956b35c9ec32997037bbd7
+      hash: b6e8c6220a0398691b9c91494a099cb2
       searchSpace: 1
       expandedNodes: 1
   nodes:

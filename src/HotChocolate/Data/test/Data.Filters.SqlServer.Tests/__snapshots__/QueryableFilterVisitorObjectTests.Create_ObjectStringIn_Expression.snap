@@ -45,12 +45,6 @@ testbtestAndNull
   "errors": [
     {
       "message": "The provided value for filter `in` of type StringOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 41
-        }
-      ],
       "path": [
         "root"
       ],

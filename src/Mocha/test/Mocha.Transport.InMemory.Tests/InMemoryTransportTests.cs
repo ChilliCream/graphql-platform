@@ -995,12 +995,6 @@ public class InMemoryTransportTests
         Assert.Equal("dst-t", topicBinding.Destination.Name);
     }
 
-    public sealed class ProcessRefund
-    {
-        public required string OrderId { get; init; }
-        public required decimal Amount { get; init; }
-    }
-
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
     {
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
@@ -1055,4 +1049,10 @@ public class InMemoryTransportTests
         var topology = (InMemoryMessagingTopology)transport.Topology;
         return (runtime, transport, topology);
     }
+}
+
+public sealed class ProcessRefund
+{
+    public required string OrderId { get; init; }
+    public required decimal Amount { get; init; }
 }

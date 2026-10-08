@@ -151,6 +151,7 @@
     <Project Path="HotChocolate/Core/test/Types.Queries.Tests/HotChocolate.Types.Queries.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Records.Tests/HotChocolate.Types.Records.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Scalars.Tests/HotChocolate.Types.Scalars.Tests.csproj" />
+    <Project Path="HotChocolate/Core/test/Types.SpecVersion.Tests/HotChocolate.Types.SpecVersion.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests.Documentation/HotChocolate.Types.Tests.Documentation.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Types.Validation.Tests/HotChocolate.Types.Validation.Tests.csproj" />
@@ -158,11 +159,22 @@
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/" />
+  <Folder Name="/HotChocolate/CostAnalysis/benchmarks/">
+    <Project Path="HotChocolate/CostAnalysis/benchmarks/CostAnalysis.Core.Benchmarks/HotChocolate.CostAnalysis.Core.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/src/">
+    <Project Path="HotChocolate/CostAnalysis/src/CostAnalysis.Core/HotChocolate.CostAnalysis.Core.csproj" />
     <Project Path="HotChocolate/CostAnalysis/src/CostAnalysis/HotChocolate.CostAnalysis.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/test/">
+    <Project Path="HotChocolate/CostAnalysis/test/CostAnalysis.Core.Conformance.Tests/HotChocolate.CostAnalysis.Core.Conformance.Tests.csproj" />
+    <Project Path="HotChocolate/CostAnalysis/test/CostAnalysis.Core.PublicApi.Tests/HotChocolate.CostAnalysis.Core.PublicApi.Tests.csproj" />
+    <Project Path="HotChocolate/CostAnalysis/test/CostAnalysis.Core.Tests/HotChocolate.CostAnalysis.Core.Tests.csproj" />
     <Project Path="HotChocolate/CostAnalysis/test/CostAnalysis.Tests/HotChocolate.CostAnalysis.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/CostAnalysis/tools/">
+    <Project Path="HotChocolate/CostAnalysis/tools/AotSmoke/AotSmoke.csproj" />
+    <Project Path="HotChocolate/CostAnalysis/tools/oracle/Fuzz/HotChocolate.CostAnalysis.Fuzz.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Data/" />
   <Folder Name="/HotChocolate/Data/src/">

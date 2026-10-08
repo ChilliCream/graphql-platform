@@ -4,13 +4,10 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// Composes a task detail body's sections, in the order Description, Design,
-/// Acceptance criteria, Notes, Dependencies, Blocks, Comments, with a blank
-/// line between consecutive non-empty sections. Description, Design,
-/// Acceptance criteria, and Notes each render as their own bordered box, see
-/// <see cref="TaskDetailSectionBox"/>; Dependencies, Blocks, and Comments
-/// stay a styled header line followed by a blank line and their rows. Empty
-/// sections are omitted entirely, including their header.
+/// Composes a task detail body's sections in Description, Design, Acceptance criteria, Notes,
+/// Dependencies, Blocks, and Comments order, with a blank line between non-empty sections. Description,
+/// Design, Acceptance criteria, and Notes render as bordered boxes (<see cref="TaskDetailSectionBox"/>);
+/// empty sections, including their header, are omitted.
 /// </summary>
 internal static class TaskDetailBody
 {
@@ -93,9 +90,8 @@ internal static class TaskDetailBody
     }
 
     /// <summary>
-    /// Drops a raw section's leading header line, since the caller re-adds
-    /// it styled, and wraps the remaining lines as plain, unescaped body
-    /// content.
+    /// Removes the leading header and converts the remaining lines to unescaped
+    /// plain-text body lines; empty input produces no lines.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> PlainBody(IReadOnlyList<string> rawLines)
     {
@@ -115,9 +111,8 @@ internal static class TaskDetailBody
     }
 
     /// <summary>
-    /// Prefixes non-empty section content with a bold header line and a
-    /// blank separator line. Empty content stays empty, so the caller omits
-    /// the section entirely, header included.
+    /// Prefixes non-empty content with a styled section header and a blank line.
+    /// Empty content produces no lines.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> WithStyledHeader(string header, IReadOnlyList<TaskDetailBodyLine> body)
     {

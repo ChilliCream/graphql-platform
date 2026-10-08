@@ -21,8 +21,22 @@ public sealed class BoardModeTests
         ]
     };
 
-    private static BoardMode CreateMode(FakeTaskStore store, BoardView? view = null)
-        => new(new BoardDataLoader(store, new FakeTimeProvider(s_now)), view is null ? null : [view]);
+    private static BoardMode CreateMode(
+        FakeTaskStore store,
+        BoardView? view = null,
+        BoardOrientation orientation = BoardOrientation.Auto)
+        => new(
+            new BoardDataLoader(store, new FakeTimeProvider(s_now)),
+            view is null ? null : [view],
+            orientation);
+
+    private static FakeTaskStore StoreWithOneTaskPerColumn()
+    {
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        return store;
+    }
 
     [Fact]
     public void FocusColumn_Should_ClampAtFirstColumn_When_MovingLeftPastStart()
@@ -43,7 +57,10 @@ public sealed class BoardModeTests
     public void FocusColumn_Should_ClampAtLastColumn_When_MovingRightPastEnd()
     {
         // arrange
+        // both columns need a task so neither is hidden by the empty-column rule
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
 
@@ -218,9 +235,7 @@ public sealed class BoardModeTests
     [Fact]
     public void OpenSelected_Should_ReturnEmpty()
     {
-        // arrange: TuiShell intercepts OpenSelected for the board before it
-        // ever reaches BoardMode.Handle, switching to BoardDetailMode itself
-        // (see TuiShellTests). BoardMode's own handling is a no-op.
+        // arrange
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -304,6 +319,7 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -313,8 +329,136 @@ public sealed class BoardModeTests
 
         // assert
         Assert.Contains("Open (1)", console.Output);
-        Assert.Contains("Closed (0)", console.Output);
+        Assert.Contains("Closed (1)", console.Output);
         Assert.Contains("a-1", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_HideColumn_When_ColumnHasNoTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(6);
+
+        // act
+        console.Write(mode.Render(80, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open (1) | auto──────────────────────────────────────────────────────────────╮
+            │                                                                              │
+            │     TYPE        PRIO    ID            TITLE                                  │
+            │ ──────────────────────────────────────────────────────────────────────────── │
+            │ > ○ task          P2    a-1           a-1                                    │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShareWidthAmongVisibleColumnsOnly_When_SomeColumnsAreEmpty()
+    {
+        // arrange
+        // Ready, In Progress and Closed each get one task; Blocked and Deferred stay empty
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.InProgress));
+        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Closed));
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(90).Height(6);
+
+        // act
+        console.Write(mode.Render(90, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Ready (1) | auto───────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
+            │                            ││                            ││                            │
+            │     ID            TITLE    ││     ID            TITLE    ││     ID            TITLE    │
+            │ ────────────────────────── ││ ────────────────────────── ││ ────────────────────────── │
+            │ > ○ a-1           a-1      ││   ● a-2           a-2      ││   ✓ a-3           a-3      │
+            ╰────────────────────────────╯╰────────────────────────────╯╰────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowEmptyBoardPanel_When_EveryColumnHasNoTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(80).Height(6);
+
+        // act
+        console.Write(mode.Render(80, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Board (0) | auto─────────────────────────────────────────────────────────────╮
+            │ No tasks yet.                                                                │
+            │                                                                              │
+            │                                                                              │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
+    public void FocusColumn_Should_SkipHiddenColumns_When_MovingRight()
+    {
+        // arrange
+        // Deferred sits between Open and Closed but has no tasks, so it must be skipped
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns =
+            [
+                new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "Deferred", Statuses = [TaskStates.Deferred] },
+                new ColumnDefinition { Name = "Closed", Statuses = [TaskStates.Closed] }
+            ]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+
+        // act
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+
+        // assert
+        Assert.Equal(2, mode.State.FocusedColumnIndex);
+        Assert.Equal("a-2", mode.SelectedTaskId);
+    }
+
+    [Fact]
+    public async Task Refresh_Should_MoveFocusToFirstVisibleColumn_When_FocusedColumnBecomesEmpty()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
+        Assert.Equal(1, mode.State.FocusedColumnIndex);
+
+        // act
+        // the focused column's only task closes out of it
+        store.Tasks.RemoveAt(1);
+        await mode.State.RefreshAsync(CancellationToken.None);
+
+        // assert
+        Assert.Equal(0, mode.State.FocusedColumnIndex);
     }
 
     [Fact]
@@ -385,6 +529,7 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -403,6 +548,8 @@ public sealed class BoardModeTests
     {
         // arrange
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -422,6 +569,8 @@ public sealed class BoardModeTests
     {
         // arrange
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(80).Height(20);
@@ -432,8 +581,8 @@ public sealed class BoardModeTests
         console.Write(mode.Render(80, 20));
 
         // assert
-        Assert.Contains("Open (0)", console.Output);
-        Assert.Contains("Closed (0)", console.Output);
+        Assert.Contains("Open (1)", console.Output);
+        Assert.Contains("Closed (1)", console.Output);
     }
 
     [Fact]
@@ -454,21 +603,25 @@ public sealed class BoardModeTests
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
         bigConsole.Write(mode.Render(80, 20));
 
-        // act: shrink the frame drastically after scrolling to the bottom
+        // act
+        // shrink the frame drastically after scrolling to the bottom
         mode.OnResize(80, 4);
         var smallConsole = new TestConsole().Width(80).Height(4);
         var exception = Record.Exception(() => smallConsole.Write(mode.Render(80, 4)));
 
         // assert
         Assert.Null(exception);
-        Assert.Contains("t-30", smallConsole.Output);
+        var lines = TrimTrailingNewline(smallConsole.Output.Split('\n'));
+        Assert.Equal(4, lines.Length);
     }
 
     [Fact]
     public void Render_Should_NotThrow_When_WidthIsBelowColumnCount()
     {
         // arrange
+        // one task matching every column's filter keeps all five columns visible
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
         var view = new BoardView
         {
             Name = "Many",
@@ -529,8 +682,7 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(80, 24));
 
-        // assert: every column's bottom border reaches the last requested row,
-        // with no blank gap left below the panels.
+        // assert
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[^1]);
@@ -558,10 +710,10 @@ public sealed class BoardModeTests
     [Fact]
     public void Render_Should_FillRequestedHeight_When_Stacked()
     {
-        // arrange: width/columnCount below the stacked threshold forces the
-        // stacked layout kind, and 24 rows over 2 columns clears the
-        // equal-share minimum, so both columns render expanded.
+        // arrange
         var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         var console = new TestConsole().Width(40).Height(24);
@@ -569,11 +721,7 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(40, 24));
 
-        // assert: the 1 separator row between the 2 columns leaves 23 rows to
-        // share, an uneven split of 12 and 11, so the first column's bottom
-        // border sits at row 11, row 12 is the blank separator, and the
-        // second column's bottom border reaches the last requested row, no
-        // blank gap left over below it.
+        // assert
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[11]);
@@ -581,11 +729,361 @@ public sealed class BoardModeTests
         Assert.Contains('╰', lines[^1]);
     }
 
+    [Fact]
+    public void Render_Should_ShowColumnTableHeader_When_ColumnHasTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(20);
+
+        // act
+        console.Write(mode.Render(100, 20));
+
+        // assert
+        Assert.Contains("TYPE", console.Output);
+        Assert.Contains("PRIO", console.Output);
+        Assert.Contains("ID", console.Output);
+        Assert.Contains("TITLE", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTrimmedHeaderAndMoreBelow_When_InteriorHeightExactlyFitsHeaderBlock()
+    {
+        // arrange
+        // a four-row interior trims the header block to make room for one row
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open, createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", status: TaskStates.Open, createdAt: s_now.AddMinutes(1)));
+        store.Tasks.Add(TaskItemBuilder.Create("c-1", status: TaskStates.Closed));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(80).Height(6);
+
+        // act
+        console.Write(mode.Render(80, 6));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open - 1/2 (2) | auto────────────────────────────────────────────────────────╮
+            │                                                                              │
+            │     TYPE        PRIO    ID            TITLE                                  │
+            │ ──────────────────────────────────────────────────────────────────────────── │
+            │   2 more below                                                               │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTask_When_InteriorHeightAddsOneRowPastHeaderBlock()
+    {
+        // arrange
+        // one interior row past the header block fits the column's one task
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", status: TaskStates.Open));
+        var mode = CreateMode(store, TwoColumnView());
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(80).Height(7);
+
+        // act
+        console.Write(mode.Render(80, 7));
+
+        // assert
+        Assert.Contains("t-1", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_ShowFocusedTaskRow_When_StackedFiveColumnsAt33Rows()
+    {
+        // arrange
+        // one task per remaining column keeps all five columns visible
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("blocked-1", status: TaskStates.Open, createdAt: s_now));
+        store.Blocked["blocked-1"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "blocked-2", status: TaskStates.Open, createdAt: s_now.AddMinutes(1)));
+        store.Blocked["blocked-2"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create("deferred-1", status: TaskStates.Deferred));
+        store.Tasks.Add(TaskItemBuilder.Create("ready-1", status: TaskStates.Open, createdAt: s_now.AddMinutes(2)));
+        store.Tasks.Add(TaskItemBuilder.Create("in-progress-1", status: TaskStates.InProgress));
+        store.Tasks.Add(TaskItemBuilder.Create("closed-1", status: TaskStates.Closed, closedAt: s_now.AddDays(-1)));
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole().Width(95).Height(33);
+
+        // act
+        console.Write(mode.Render(95, 33));
+
+        // assert
+        var selectedLine = Array.Find(
+            console.Output.Split('\n'), line => line.Contains("blocked-1", StringComparison.Ordinal));
+        Assert.NotNull(selectedLine);
+        selectedLine.MatchInlineSnapshot(
+            "│ > ○ task          P2    blocked-1     blocked-1                                             │");
+    }
+
+    [Fact]
+    public void Render_Should_ShowTaskTable_When_GridWithThreeTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-1", status: TaskStates.Open, priority: TaskPriorities.Critical, type: TaskTypes.Bug,
+            title: "Fix bug", createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-2", status: TaskStates.InProgress, priority: TaskPriorities.Medium, type: TaskTypes.Feature,
+            title: "Add feature", createdAt: s_now.AddMinutes(1)));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-3", status: TaskStates.Open, priority: TaskPriorities.Low, type: TaskTypes.Docs,
+            title: "Write docs", createdAt: s_now.AddMinutes(2)));
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open, TaskStates.InProgress] }]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+        var console = new TestConsole().Width(60).Height(12);
+
+        // act
+        console.Write(mode.Render(60, 12));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open (3) | auto──────────────────────────────────────────╮
+            │                                                          │
+            │     TYPE        PRIO    ID            TITLE              │
+            │ ──────────────────────────────────────────────────────── │
+            │ > ○ bug           P0    a-1           Fix bug            │
+            │   ● feature       P2    a-2           Add feature        │
+            │   ○ docs          P3    a-3           Write docs         │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            ╰──────────────────────────────────────────────────────────╯
+            """);
+    }
+
+    [Fact]
+    public void Render_Should_ShowTaskTable_When_MaximizedWithThreeTasks()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-1", status: TaskStates.Open, priority: TaskPriorities.Critical, type: TaskTypes.Bug,
+            title: "Fix bug", createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-2", status: TaskStates.InProgress, priority: TaskPriorities.Medium, type: TaskTypes.Feature,
+            title: "Add feature", createdAt: s_now.AddMinutes(1)));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "a-3", status: TaskStates.Open, priority: TaskPriorities.Low, type: TaskTypes.Docs,
+            title: "Write docs", createdAt: s_now.AddMinutes(2)));
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open, TaskStates.InProgress] }]
+        };
+        var mode = CreateMode(store, view);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ToggleMaximize());
+        var console = new TestConsole().Width(60).Height(12);
+
+        // act
+        console.Write(mode.Render(60, 12));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Open - 1/1 (3) | auto────────────────────────────────────╮
+            │                                                          │
+            │     TYPE        PRIO    ID            TITLE              │
+            │ ──────────────────────────────────────────────────────── │
+            │ > ○ bug           P0    a-1           Fix bug            │
+            │   ● feature       P2    a-2           Add feature        │
+            │   ○ docs          P3    a-3           Write docs         │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            │                                                          │
+            ╰──────────────────────────────────────────────────────────╯
+
+            """);
+    }
+
+    [Fact]
+    public void Handle_Should_CycleOrientation_When_CycleBoardOrientationIsHandled()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
+        var seen = new List<BoardOrientation>();
+
+        // act
+        for (var i = 0; i < 3; i++)
+        {
+            mode.Handle(new TuiMessage.CycleBoardOrientation());
+            seen.Add(mode.Orientation);
+        }
+
+        // assert
+        Assert.Equal([BoardOrientation.SideBySide, BoardOrientation.Stacked, BoardOrientation.Auto], seen);
+    }
+
+    [Fact]
+    public void Handle_Should_RaiseOrientationChanged_When_CycleBoardOrientationIsHandled()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView(), BoardOrientation.Stacked);
+        var raised = new List<BoardOrientation>();
+        mode.OrientationChanged += raised.Add;
+
+        // act
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+
+        // assert
+        Assert.Equal([BoardOrientation.Auto, BoardOrientation.SideBySide], raised);
+    }
+
+    [Theory]
+    [InlineData("Auto", "Open (1) | auto")]
+    [InlineData("SideBySide", "Open (1) | grid")]
+    [InlineData("Stacked", "Open (1) | stack")]
+    public void Render_Should_NameTheOrientationInTheFocusedColumnHeader_When_TheBoardHasTasks(
+        string orientationName, string expectedHeader)
+    {
+        // arrange
+        var mode = CreateMode(
+            StoreWithOneTaskPerColumn(), TwoColumnView(), Enum.Parse<BoardOrientation>(orientationName));
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(12);
+
+        // act
+        console.Write(mode.Render(100, 12));
+
+        // assert
+        Assert.Contains(expectedHeader, console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_NameTheOrientationOnlyOnTheFocusedColumn_When_ColumnsSitSideBySide()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(12);
+
+        // act
+        console.Write(mode.Render(100, 12));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | grid────────────────────────────────╮╭─Closed (1)─────────────────────────────────────╮");
+    }
+
+    [Fact]
+    public void Render_Should_PlaceColumnsOnOneRow_When_SideBySideAtWidthWhereAutoStacks()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(30).Height(12);
+
+        // act
+        console.Write(mode.Render(30, 12));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1)────╮╭─Closed (1)──╮");
+    }
+
+    [Fact]
+    public void Render_Should_StackColumns_When_StackedAtWidthWhereAutoUsesGrid()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.Stacked);
+        mode.OnEnter();
+        var console = new TestConsole().Width(120).Height(30);
+
+        // act
+        console.Write(mode.Render(120, 30));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | stack─────────────────────────────────────────────────────────────────────────────────────────────────────╮");
+    }
+
+    [Fact]
+    public void TabBadge_Should_BeNull_When_TheFocusedColumnHeaderNamesTheOrientation()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+
+        // act
+        var badge = mode.TabBadge(100, 12);
+
+        // assert
+        Assert.Null(badge);
+    }
+
+    [Theory]
+    [InlineData("SideBySide", "grid")]
+    [InlineData("Stacked", "stack")]
+    public void TabBadge_Should_NameTheOrientation_When_TheFocusedColumnHeaderIsTooNarrow(
+        string orientationName, string expectedBadge)
+    {
+        // arrange
+        var mode = CreateMode(
+            StoreWithOneTaskPerColumn(), TwoColumnView(), Enum.Parse<BoardOrientation>(orientationName));
+        mode.OnEnter();
+
+        // act
+        var badge = mode.TabBadge(16, 12);
+
+        // assert
+        Assert.Equal(expectedBadge, badge);
+    }
+
+    [Fact]
+    public void TabBadge_Should_NameTheOrientation_When_TheEmptyBoardHeaderIsTooNarrow()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+
+        // act
+        var narrow = mode.TabBadge(12, 12);
+        var wide = mode.TabBadge(60, 12);
+
+        // assert
+        Assert.Equal("grid", narrow);
+        Assert.Null(wide);
+    }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(3)]
+    public void Render_Should_NotThrow_When_SideBySideColumnsAreNarrow(int width)
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(width).Height(12);
+
+        // act
+        var exception = Record.Exception(() => console.Write(mode.Render(width, 12)));
+
+        // assert
+        Assert.Null(exception);
+    }
+
     /// <summary>
-    /// Spectre appends a trailing line break to some renderables (a bare
-    /// panel, a stacked rows list) but not others (a grid layout), so
-    /// splitting console output on '\n' can leave one extra empty entry at
-    /// the end. Strips it so line counts are comparable across layout kinds.
+    /// Removes the last entry when it is empty; otherwise returns the supplied lines unchanged.
     /// </summary>
     private static string[] TrimTrailingNewline(string[] lines) =>
         lines.Length > 0 && lines[^1].Length == 0 ? lines[..^1] : lines;

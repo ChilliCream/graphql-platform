@@ -6,7 +6,7 @@ description: "Configure the PostgreSQL transport in Mocha for database-backed me
 > [!EXPERIMENTAL]
 > The PostgreSQL transport is currently in preview and its API may change in future releases.
 
-The PostgreSQL transport uses your existing database as a message broker. It stores messages, topics, queues, and subscriptions as rows in PostgreSQL tables, delivers messages using `SELECT ... FOR UPDATE SKIP LOCKED`, and signals consumers in real time with `LISTEN/NOTIFY`. When you already run PostgreSQL and want messaging without deploying a separate broker, this is the transport to use.
+The PostgreSQL transport uses your existing database as a message broker. It stores messages, topics, queues, and subscriptions as rows in PostgreSQL tables, delivers messages using `#!sql SELECT ... FOR UPDATE SKIP LOCKED`, and signals consumers in real time with `LISTEN/NOTIFY`. When you already run PostgreSQL and want messaging without deploying a separate broker, this is the transport to use.
 
 **When to choose PostgreSQL over a dedicated broker:**
 
@@ -23,7 +23,7 @@ By the end of this section, you will have a Mocha bus connected to PostgreSQL wi
 
 ## Install the package
 
-```bash
+```shell
 dotnet add package Mocha.Transport.Postgres
 ```
 
@@ -46,7 +46,7 @@ var app = builder.Build();
 app.Run();
 ```
 
-`.AddPostgres(connectionString)` creates an `NpgsqlDataSource` from the connection string, runs schema migrations on first use, and provisions topics, queues, and subscriptions for your registered handlers.
+`.AddPostgres(connectionString)` creates an `NpgsqlDataSource` from the connection string, runs schema migrations at transport startup, and provisions topics, queues, and subscriptions for your registered handlers.
 
 ## Register with .NET Aspire
 
@@ -139,7 +139,7 @@ Two connection-string settings are applied automatically:
 
 A separate long-lived connection is opened for `LISTEN/NOTIFY` signaling. This connection subscribes to the notification channel and dispatches queue-change signals to receive endpoints for low-latency message pickup.
 
-The transport checks database connectivity with a lightweight `SELECT 1` query with a 5-second timeout before polling. If the health check fails, the receive endpoint backs off with exponential delay.
+The transport checks database connectivity with a lightweight `#!sql SELECT 1` query with a 5-second timeout before polling. If the health check fails, the receive endpoint backs off with exponential delay.
 
 # How topology works
 
@@ -243,12 +243,36 @@ Changing `Schema` and `TablePrefix` shifts all table names accordingly. For exam
 
 ## Schema migration
 
-The transport runs migrations automatically on first use. Migrations are protected by a PostgreSQL advisory lock (`pg_advisory_xact_lock`) to prevent concurrent migration attempts from multiple service instances starting simultaneously.
+The transport runs migrations automatically at startup by default. Migrations are protected by a PostgreSQL advisory lock (`pg_advisory_xact_lock`) to prevent concurrent migration attempts from multiple service instances starting simultaneously.
 
 Each migration is tracked in the migrations table and is idempotent - running the same migration twice has no effect. The migration creates the schema if it does not exist, then applies each pending migration in order within a single transaction.
 
 > [!WARNING]
-> The advisory lock ID is fixed. If you run multiple independent Mocha transports in the same PostgreSQL cluster with different table prefixes, they share the same advisory lock. This is safe - it serializes migrations but does not block normal message operations.
+> The advisory lock ID is fixed. Independent Mocha transports in the same database share this lock, including transports with different table prefixes. The lock serializes migrations without blocking normal message operations.
+
+To set up the database schema at a different point in time, disable automatic migration:
+
+```csharp
+builder.Services.AddMessageBus().AddPostgres(transport =>
+{
+    transport.ConnectionString(connectionString);
+    transport.AutoMigrate(false);
+});
+```
+
+Call `PostgresTransportSchema.MigrateAsync` before the transport is started. Use an open connection with schema modification permissions and the same schema options as the transport:
+
+```csharp
+// Match the transport's schema and table prefix.
+var options = new PostgresSchemaOptions();
+
+await using var connection = new NpgsqlConnection(connectionString);
+await connection.OpenAsync(cancellationToken);
+await PostgresTransportSchema.MigrateAsync(
+    connection,
+    options,
+    cancellationToken);
+```
 
 # Configure queues
 
@@ -336,7 +360,7 @@ If the queue already declares `AutoDelete(false)` explicitly, `Temporary()` fail
 
 # Control auto-provisioning
 
-By default, the transport auto-provisions all topology resources (topics, queues, subscriptions) in the database at startup. In environments where database schema is managed externally - for example by Flyway, Liquibase, or a CI/CD pipeline - you can disable auto-provisioning so the transport expects resources to already exist.
+By default, the transport auto-provisions topology resources (topics, queues, subscriptions) as rows at startup. Disable auto-provisioning when these rows are managed externally. Schema migration is controlled separately by `AutoMigrate`, as described in [Schema migration](#schema-migration).
 
 ## Disable globally
 
@@ -398,7 +422,7 @@ builder.Services
 
 For full control over the queue name, source bindings, and handler assignment, use `Queue("name")` instead.
 
-**MaxBatchSize** controls how many messages the endpoint reads from the database in a single `SELECT ... FOR UPDATE SKIP LOCKED` query. Default: `10`. Higher values reduce round trips but lock more rows simultaneously.
+**MaxBatchSize** controls how many messages the endpoint reads from the database in a single `#!sql SELECT ... FOR UPDATE SKIP LOCKED` query. Default: `10`. Higher values reduce round trips but lock more rows simultaneously.
 
 **MaxConcurrency** controls how many messages the endpoint processes in parallel using `Parallel.ForEachAsync`. Default: `Environment.ProcessorCount`. Set this based on your handler's throughput characteristics.
 
@@ -412,7 +436,7 @@ The transport uses a hybrid polling and notification model for message delivery.
 
 Receive endpoints do not busy-poll the database. Instead, they wait on an `AsyncAutoResetEvent` signal:
 
-1. When a message is published or sent, the transport calls `pg_notify('mocha_queue_changed', queue_name)`.
+1. When a message is published or sent, the transport calls `#!sql pg_notify('mocha_queue_changed', queue_name)`.
 2. A long-lived LISTEN connection receives the notification and sets the signal for the matching receive endpoint.
 3. The endpoint wakes up and reads available messages.
 
@@ -420,7 +444,7 @@ If the endpoint drains all messages (empty read), it goes back to waiting on the
 
 ## Concurrent consumers with SKIP LOCKED
 
-Multiple consumers can process messages from the same queue concurrently. The transport uses `SELECT ... FOR UPDATE SKIP LOCKED` to lock messages for processing without blocking other consumers. Each consumer gets a unique `consumer_id` (a GUID), and locked messages are assigned to that consumer.
+Multiple consumers can process messages from the same queue concurrently. The transport uses `#!sql SELECT ... FOR UPDATE SKIP LOCKED` to lock messages for processing without blocking other consumers. Each consumer gets a unique `consumer_id` (a GUID), and locked messages are assigned to that consumer.
 
 ## Retry backoff
 

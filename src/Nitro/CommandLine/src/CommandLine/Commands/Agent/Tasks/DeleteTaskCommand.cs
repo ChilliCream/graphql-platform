@@ -41,8 +41,7 @@ internal sealed class DeleteTaskCommand : Command
             parseResult.GetValue(Opt<TaskActorOption>.Instance), actorResolver, cancellationToken);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
 
-        // Existence is checked up front, before the confirmation prompt, so a
-        // nonexistent task fails immediately instead of asking to confirm it.
+        // Existence is checked up front, before the confirmation prompt.
         await store.GetRequiredTaskAsync(id, cancellationToken);
 
         if (!force)

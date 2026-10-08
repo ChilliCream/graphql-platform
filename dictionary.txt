@@ -10,6 +10,7 @@ ALPN
 Andi
 annotatable
 anthropics
+Antiforgery
 apphost
 appsettings
 ASPDEPR004
@@ -38,7 +39,6 @@ Browsable
 BSON
 buildtransitive
 bytearray
-CONNECTIONSTRING
 cacheable
 cadastre
 callsite
@@ -54,6 +54,7 @@ codestudio
 colocated
 combinators
 commandcode
+CONNECTIONSTRING
 contentfiles
 Contoso
 conv
@@ -64,6 +65,7 @@ creds
 csclient
 CUST
 dataloaders
+datetimeoffset
 debuggable
 decompile
 deepagents
@@ -76,6 +78,7 @@ Diagnoser
 Dispatchable
 DOCKERHUB
 drawio
+emulatorhealth
 enisdenjo
 entityframework
 EPSG
@@ -94,6 +97,7 @@ forgecode
 fricking
 frontends
 frontmatter
+FULLYQUALIFIEDNAMESPACE
 Fzzz
 GEOGCS
 geolocation
@@ -104,11 +108,13 @@ GraphiQL
 graphqlconf
 graphqlconfig
 graphqlrc
+GraphQLResponse
 graphqls
 graphyne
 greendonut
 Hasura
 HCXXXX
+healthcheck
 hhmm
 HHmmssfffffff
 Hmac
@@ -143,8 +149,10 @@ Marek
 marocchino
 matchesBrics
 maxage
+maxAllowedResponseSize
 MCPEXP
 mcpjam
+mdns
 MediatR
 Memberwise
 mercurius
@@ -180,12 +188,14 @@ ntouches
 NUGETAPIKEY
 nwithin
 oncall
+oneline
 openclaw
 opencode
 opencover
 openhands
 OpenIddict
 opensgid
+operationCost
 OPTOUT
 overfetching
 OWIN
@@ -241,6 +251,7 @@ runbooks
 sandboxed
 SASL
 Satisfiability
+seekable
 Senn
 servicebus
 shoooe
@@ -249,6 +260,7 @@ Silmarillion
 skillz
 skybridge
 Skywalker
+slicingArgumentDefaultValue
 slnx
 snapshooter
 snupkg
@@ -298,6 +310,7 @@ Unsubscriber
 unsupplied
 uppercased
 Upsert
+upserts
 upvote
 URQL
 Usercentrics
@@ -314,6 +327,3 @@ xact
 xcrun
 xunit
 zencoder
-emulatorhealth
-FULLYQUALIFIEDNAMESPACE
-upserts

@@ -75,8 +75,8 @@ public sealed class BoardDetailModeTests
     [Fact]
     public void Handle_RefreshRequested_Should_ReloadCurrentTaskThroughStore()
     {
-        // arrange: the label is added to the store only after the initial
-        // load, so it only shows up once RefreshRequested re-fetches.
+        // arrange
+        // Add the label after opening the task.
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1"));
         var mode = new BoardDetailMode(store);

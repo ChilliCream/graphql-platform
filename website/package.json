@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build && yarn generate:llms && yarn validate:llms",
-    "start": "next start -p 3001",
+    "dev": "next dev -p 3002",
+    "build": "next build && npm run generate:llms && npm run validate:llms",
+    "start": "next start -p 3002",
     "optimize-images": "node scripts/optimize-images.mjs",
     "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
     "generate-agent-skills": "node scripts/generate-agent-skills.mjs",
@@ -19,36 +19,37 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build-storybook:test": "storybook build --quiet --output-dir storybook-static",
-    "test:visual": "yarn build-storybook:test && playwright test",
-    "test:visual:update": "yarn build-storybook:test && playwright test --update-snapshots"
+    "test:visual": "npm run build-storybook:test && playwright test",
+    "test:visual:update": "npm run build-storybook:test && playwright test --update-snapshots"
   },
   "dependencies": {
     "@chillicream/mocha-visualizer": "file:../src/Mocha/src/mocha-visualizer",
-    "@docsearch/css": "^5.0.4",
-    "@docsearch/react": "^5.0.4",
+    "@docsearch/css": "^5.1.0",
+    "@docsearch/react": "^5.1.0",
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/react-fontawesome": "^3.5.0",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
-    "@next/mdx": "16.3.3",
+    "@next/mdx": "16.3.6",
     "@xyflow/react": "^12.11.5",
     "elkjs": "^0.12.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^5.4.1",
     "motion": "^13.1.1",
-    "next": "16.3.3",
+    "next": "16.3.6",
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.35.4",
     "shiki": "^4.4.3",
-    "styled-components": "^6.5.3"
+    "styled-components": "^6.5.3",
+    "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "@storybook/nextjs-vite": "10.5.10",
+    "@storybook/nextjs-vite": "10.6.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/mdx": "^2.0.14",
@@ -56,8 +57,8 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "eslint": "^9",
-    "eslint-config-next": "16.3.3",
-    "eslint-plugin-storybook": "10.5.10",
+    "eslint-config-next": "16.3.6",
+    "eslint-plugin-storybook": "10.6.0",
     "http-server": "^14.1.1",
     "node-html-markdown": "^2.0.0",
     "node-html-parser": "^9.0.1",
@@ -65,12 +66,20 @@
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "rehype-mermaid": "^3.0.0",
-    "storybook": "10.5.10",
+    "storybook": "10.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
+    "unified": "^11.0.5",
+    "vfile": "^6.0.3",
     "vite": "^8.2.1"
   },
-  "packageManager": "yarn@4.18.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "onFail": "error",
+      "version": ">=11.18.0"
+    }
+  },
   "browserslist": [
     "chrome >= 110",
     "firefox >= 110",
@@ -79,15 +88,9 @@
     "not dead",
     "not op_mini all"
   ],
-  "dependenciesMeta": {
-    "esbuild": {
-      "built": true
-    },
-    "sharp": {
-      "built": true
-    },
-    "unrs-resolver": {
-      "built": true
-    }
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents": false,
+    "unrs-resolver@1.12.2": true
   }
 }

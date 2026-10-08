@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
@@ -118,6 +119,23 @@ public sealed class TabSwitchKeysTests
         Assert.False(nextBound);
     }
 
+    [Fact]
+    public void Resolve_Should_ReturnFalse_When_BracketChordsAreResolvedAgainstTheMemoryKeyMap()
+    {
+        // arrange
+        var keyMap = MemoryKeyMap.CreateDefault();
+        var previous = new KeyChord(ConsoleKey.Oem4, ConsoleModifiers.None, '[');
+        var next = new KeyChord(ConsoleKey.Oem6, ConsoleModifiers.None, ']');
+
+        // act
+        var previousBound = keyMap.TryResolve(previous, out _);
+        var nextBound = keyMap.TryResolve(next, out _);
+
+        // assert
+        Assert.False(previousBound);
+        Assert.False(nextBound);
+    }
+
     private static TuiTab Tab(string title, char mnemonic) =>
         new(title, mnemonic, new FakeTuiMode(), new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
@@ -138,8 +156,7 @@ public sealed class TabSwitchKeysTests
     [Fact]
     public void ResolveMnemonic_Should_MatchCaseInsensitively()
     {
-        // arrange: a terminal is expected to report the shifted letter
-        // already uppercase, but the match itself does not depend on that.
+        // arrange
         var tabs = new[] { Tab("Tasks", 'T') };
         var chord = new KeyChord(ConsoleKey.T, ConsoleModifiers.Shift, 't');
 
@@ -184,10 +201,7 @@ public sealed class TabSwitchKeysTests
     [InlineData('A')]
     public void ResolveMnemonic_Should_NotCollide_WithTheGlobalTaskKeyMap(char mnemonic)
     {
-        // arrange: T/M/A are the mnemonics AgentTuiLauncher hosts today, so
-        // the global table must not already bind Shift+<letter> for any of
-        // them (a real collision would have to be reported instead of
-        // silently shadowed).
+        // arrange
         var keyMap = KeyMap.CreateDefaultGlobal();
         var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
 
@@ -206,6 +220,23 @@ public sealed class TabSwitchKeysTests
     {
         // arrange
         var keyMap = MailKeyMap.CreateDefault();
+        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
+
+        // act
+        var bound = keyMap.TryResolve(chord, out _);
+
+        // assert
+        Assert.False(bound);
+    }
+
+    [Theory]
+    [InlineData('T')]
+    [InlineData('M')]
+    [InlineData('A')]
+    public void ResolveMnemonic_Should_ReturnFalse_When_ShiftMnemonicIsResolvedAgainstTheMemoryKeyMap(char mnemonic)
+    {
+        // arrange
+        var keyMap = MemoryKeyMap.CreateDefault();
         var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
 
         // act

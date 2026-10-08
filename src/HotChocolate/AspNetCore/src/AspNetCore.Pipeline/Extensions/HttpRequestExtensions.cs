@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.AspNetCore;
 
@@ -8,10 +7,14 @@ internal static class HttpRequestExtensions
     private const string Slash = "/";
     private static readonly PathString s_slashPath = new("/");
 
-    internal static bool AcceptHeaderContainsHtml(this HttpRequest request)
+    internal static bool IsEndpointPath(this HttpRequest request, PathString path)
     {
-        return request.Headers.TryGetValue(HeaderNames.Accept, out var values)
-            && values.Count > 0 && (values[0]?.Contains(ContentType.Html) ?? false);
+        var isBelowPath = request.Path.StartsWithSegments(
+            path,
+            StringComparison.OrdinalIgnoreCase,
+            out var remaining);
+
+        return isBelowPath && remaining.Value is null or "" or "/";
     }
 
     internal static bool IsGetOrHeadMethod(this HttpRequest request)

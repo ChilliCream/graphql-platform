@@ -10,3 +10,6 @@
 *.bat       text eol=crlf
 *.cmd       text eol=crlf
 *.ps1       text eol=crlf
+
+# Vendored patch file: preserve as-is, skip whitespace checks
+src/HotChocolate/CostAnalysis/tools/oracle/oracle.patch -whitespace

@@ -6,7 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 internal sealed record TaskUpdateResult
 {
     /// <summary>
-    /// The database column names that changed value.
+    /// Changed column names excluding status, priority, assignee, and updated_at.
+    /// Status, priority, and assignee changes produce their own audit events.
     /// </summary>
     public IReadOnlyList<string> ChangedFields { get; init; } = [];
 }

@@ -42,8 +42,7 @@ internal sealed class CodexForeignNotifyRunner : ICodexForeignNotifyRunner
         }
         catch
         {
-            // Fail-open: the foreign program no longer exists, is no longer
-            // executable, or any other spawn-time failure.
+            // A failure to start or wait for the foreign program supplies no exit code.
             return null;
         }
     }

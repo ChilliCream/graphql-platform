@@ -39,7 +39,7 @@ The adapter does not know how to fetch tools on its own. It asks an `IMcpStorage
 
 Start with an existing GraphQL server. Reference the adapter, the core Nitro package, and the Hot Chocolate integration:
 
-```bash
+```shell
 dotnet add package HotChocolate.Adapters.Mcp
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.HotChocolate
@@ -81,7 +81,7 @@ If you prefer environment variables, set `NITRO_API_ID`, `NITRO_API_KEY`, and `N
 
 The Fusion story is the same shape. Different packages, same two calls:
 
-```bash
+```shell
 dotnet add package HotChocolate.Fusion.Adapters.Mcp
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.Fusion

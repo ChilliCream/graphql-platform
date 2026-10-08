@@ -7,207 +7,227 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal sealed class ClaudeHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
-    IAgentSessionRegistry sessionRegistry,
-    ISessionDeliveryLedger ledger,
+    IAgentStore agentStore,
+    IAgentDeliveryLedger ledger,
     IMailStore mailStore,
-    IClaudeSessionFileReader sessionFileReader,
-    INitroInstanceIdProvider instanceIdProvider,
-    IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
+    IClaudeSessionFileReader sessionFileReader) : IClaudeHookHandler
 {
     /// <summary>
-    /// The per-turn Stop gate block budget, reset on <c>UserPromptSubmit</c>
-    /// so normal mail volume can never silently disable the gate for the
-    /// rest of the conversation.
+    /// The maximum number of Stop blocks per turn, reset on <c>UserPromptSubmit</c>.
     /// </summary>
     public const int MaxBlocksPerTurn = 3;
-
-    /// <summary>
-    /// How many unread messages one nudge accounts for.
-    /// </summary>
-    public const int MaxDigestMessages = 10;
 
     private static string BlockReason(string actor)
         => $"Unread nitro mail is waiting. Read it with `nitro agent mail inbox --actor {actor}` "
             + "before ending this turn, or ignore this once if it is not actionable right now.";
 
+    private const string BlockDigestPreamble =
+        "Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.";
+
     public async Task<ClaudeHookOutcome> HandleSessionStartAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        if (IsSubagentSession(payload))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = Resolve(payload, skipSessionFileLookup);
 
         if (resolved is null)
         {
             return ClaudeHookOutcome.Neutral;
         }
 
-        var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
-            && EndpointAddress.IsValid(name)
-                ? (AgentSessionEndpointKind.ClaudePeer, name)
-                : (AgentSessionEndpointKind.None, string.Empty);
+        var result = await agentStore.StartSessionAsync(BuildStartRequest(payload, resolved), cancellationToken);
 
-        var session = await sessionRegistry.StartAsync(
-            resolved.Generation,
-            payload.Cwd!,
-            resolved.WorkspaceDirectory,
-            endpointKind,
-            endpointAddr,
-            envActor: null,
-            cancellationToken);
-
-        if (resolved.HarnessVersion.Length > 0)
+        if (result.Kind == AgentSessionStartKind.Ignored)
         {
-            await sessionRegistry.RecordHarnessVersionAsync(
-                resolved.Generation, resolved.HarnessVersion, cancellationToken);
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var row = result.Row!;
+
+        return new ClaudeHookOutcome { AdditionalContext = AgentActorContext.Format(row.Name, row.Role) };
+    }
+
+    public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
+    {
+        if (IsSubagentSession(payload))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = await ResolveOrStartRowAsync(payload, skipSessionFileLookup, cancellationToken);
+
+        if (resolved is null)
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var row = resolved.Row;
+
+        await agentStore.ResetBlockBudgetAsync(row.Name, cancellationToken);
+
+        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Digest, cancellationToken);
+        var context = ComposeContext(resolved.Minted ? Announce(row) : null, digest?.Text);
+
+        return context is null ? ClaudeHookOutcome.Neutral : new ClaudeHookOutcome { AdditionalContext = context };
+    }
+
+    public async Task<ClaudeHookOutcome> HandleStopAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
+    {
+        if (IsSubagentSession(payload) || payload.StopHookActive)
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = await ResolveOrStartRowAsync(payload, skipSessionFileLookup, cancellationToken);
+
+        if (resolved is null)
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var row = resolved.Row;
+
+        if (row.BlockBudgetUsed >= MaxBlocksPerTurn)
+        {
+            // The exhausted budget leaves candidates unreserved for a later turn.
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var digest = await BuildDigestAsync(row.Name, AgentSessionChannel.Gate, cancellationToken);
+
+        if (digest is null)
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var incremented = await agentStore.IncrementBlockBudgetAsync(row.Name, cancellationToken);
+
+        if (incremented == 0)
+        {
+            // The agent no longer matches (deleted, or otherwise gone) before the budget
+            // could be incremented.
+            return ClaudeHookOutcome.Neutral;
         }
 
         return new ClaudeHookOutcome
         {
-            AdditionalContext = AgentActorContext.Format(session.AgentName!, session.Role)
+            Block = true,
+            BlockReason = digest.HasMessages
+                ? $"{BlockDigestPreamble}\n{digest.Text}"
+                : BlockReason(row.Name)
         };
     }
 
-    public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+    public async Task<ClaudeHookOutcome> HandleNotificationAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
-
-        if (resolved is null)
+        if (IsSubagentSession(payload) || payload.NotificationType != "idle_prompt")
         {
             return ClaudeHookOutcome.Neutral;
         }
 
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
+        var resolved = await ResolveOrStartRowAsync(payload, skipSessionFileLookup, cancellationToken);
 
-        if (row is null)
-        {
-            var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
-                && EndpointAddress.IsValid(name)
-                    ? (AgentSessionEndpointKind.ClaudePeer, name)
-                    : (AgentSessionEndpointKind.None, string.Empty);
-            row = await sessionRegistry.StartAsync(
-                resolved.Generation,
-                payload.Cwd!,
-                resolved.WorkspaceDirectory,
-                endpointKind,
-                endpointAddr,
-                envActor: null,
-                cancellationToken);
-        }
-        else
-        {
-            await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
-        }
-
-        if (row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
-
-        // The actor name is not repeated here: SessionStart already announces
-        // it on startup, resume, clear, compact, and fork, which covers every
-        // point the session could have lost it. This event only speaks up
-        // when there is unread mail to announce.
-        var digest = await BuildDigestAsync(resolved.Generation, row.AgentName, cancellationToken);
-
-        return digest is null
-            ? ClaudeHookOutcome.Neutral
-            : new ClaudeHookOutcome { AdditionalContext = digest };
-    }
-
-    public async Task<ClaudeHookOutcome> HandleStopAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
-    {
-        if (payload.StopHookActive)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
-
-        if (resolved is null)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
-
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
-
-        if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        if (row.BlockBudgetUsed >= MaxBlocksPerTurn)
-        {
-            // Over budget: candidates are left unreserved so a fresh
-            // UserPromptSubmit budget reset can still gate them later,
-            // instead of permanently marking them delivered on the gate
-            // channel while never actually blocking for them.
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = row.AgentName, UnreadOnly = true, Limit = MaxDigestMessages },
-            cancellationToken);
-
-        if (unread.Count == 0)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        var reserved = await ledger.ReserveAsync(
-            resolved.Generation.Harness,
-            resolved.Generation.SessionId,
-            unread.Select(m => m.Id).ToList(),
-            AgentSessionChannel.Gate,
-            timeProvider.GetUtcNow(),
-            cancellationToken);
-
-        if (reserved.Count == 0)
-        {
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        var incremented = await sessionRegistry.IncrementBlockBudgetAsync(resolved.Generation, cancellationToken);
-
-        if (incremented is null)
-        {
-            // The row was deleted (SessionEnd) between the FindByGenerationAsync
-            // above and this increment: nothing left to gate on behalf of.
-            return ClaudeHookOutcome.Neutral;
-        }
-
-        return new ClaudeHookOutcome { Block = true, BlockReason = BlockReason(row.AgentName) };
+        return resolved is { Minted: true }
+            ? new ClaudeHookOutcome { AdditionalContext = Announce(resolved.Row) }
+            : ClaudeHookOutcome.Neutral;
     }
 
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        if (IsSubagentSession(payload))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = Resolve(payload, skipSessionFileLookup);
 
         if (resolved is not null)
         {
-            await sessionRegistry.EndAsync(resolved.Generation, cancellationToken);
+            await agentStore.EndSessionAsync(AgentSessionHarness.ClaudeCode, payload.SessionId!, cancellationToken);
         }
 
         return ClaudeHookOutcome.Neutral;
     }
 
     /// <summary>
-    /// The unread-mail nudge for this session, or null when nothing is
-    /// unread or every unread message was already announced to it. It names
-    /// the command that reads the mail; the mail itself stays in the inbox.
+    /// Resolves the current harness session's row, minting one exactly like
+    /// <see cref="HandleSessionStartAsync"/> without announcing it here when none is bound
+    /// yet; callers decide whether the mint is announced. Returns null when the payload
+    /// does not resolve, the session belongs to a deleted agent, or the mint itself is
+    /// ignored for the same reason.
     /// </summary>
-    private async Task<string?> BuildDigestAsync(
-        AgentSessionGeneration generation,
+    private async Task<ResolvedRow?> ResolveOrStartRowAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
+    {
+        var resolved = Resolve(payload, skipSessionFileLookup);
+
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        var row = await agentStore.FindBySessionAsync(
+            AgentSessionHarness.ClaudeCode, payload.SessionId!, cancellationToken);
+
+        if (row is not null)
+        {
+            if (row.IsDeleted)
+            {
+                return null;
+            }
+
+            await agentStore.TouchSessionAsync(AgentSessionHarness.ClaudeCode, payload.SessionId!, cancellationToken);
+
+            return new ResolvedRow(row, Minted: false);
+        }
+
+        var result = await agentStore.StartSessionAsync(BuildStartRequest(payload, resolved), cancellationToken);
+
+        return result.Kind == AgentSessionStartKind.Ignored
+            ? null
+            : new ResolvedRow(result.Row!, result.Kind == AgentSessionStartKind.Minted);
+    }
+
+    /// <summary>
+    /// A payload carries a subagent marker when <c>agent_id</c> is set, meaning the hook
+    /// fired inside a subagent session rather than the top-level one.
+    /// </summary>
+    private static bool IsSubagentSession(ClaudeHookPayload payload)
+        => !string.IsNullOrEmpty(payload.AgentId);
+
+    private static string Announce(AgentRow row) => AgentActorContext.Format(row.Name, row.Role);
+
+    /// <summary>
+    /// Joins the mint announcement and the mail digest with a blank line when both are
+    /// present, or returns whichever one is present, or null when neither is.
+    /// </summary>
+    private static string? ComposeContext(string? announcement, string? digest) => (announcement, digest) switch
+    {
+        (null, null) => null,
+        ({ } head, null) => head,
+        (null, { } tail) => tail,
+        ({ } head, { } tail) => $"{head}\n\n{tail}"
+    };
+
+    /// <summary>
+    /// Returns a digest or unread-count reminder for newly reserved messages in the
+    /// current inbox batch, or null when that batch yields no reservations.
+    /// </summary>
+    private async Task<MailDigestResult?> BuildDigestAsync(
         string actor,
+        string channel,
         CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
+            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MailDigestPolicy.MaxMessages },
             cancellationToken);
 
         if (unread.Count == 0)
@@ -215,32 +235,35 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
+        var messageIds = unread.Select(message => message.Id).ToList();
+        var delivered = await ledger.FindDeliveredAsync(actor, messageIds, cancellationToken);
         var reserved = await ledger.ReserveAsync(
-            generation.Harness,
-            generation.SessionId,
-            unread.Select(m => m.Id).ToList(),
-            AgentSessionChannel.Digest,
-            timeProvider.GetUtcNow(),
-            cancellationToken);
+            actor, messageIds, channel, timeProvider.GetUtcNow(), cancellationToken);
 
         if (reserved.Count == 0)
         {
             return null;
         }
 
-        return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+        var reservedIds = reserved.ToHashSet(StringComparer.Ordinal);
+        var deliveredIds = delivered.ToHashSet(StringComparer.Ordinal);
+        var messages = unread
+            .Where(message => reservedIds.Contains(message.Id) && !deliveredIds.Contains(message.Id))
+            .ToList();
+        var unreadTotal = await mailStore.CountUnreadAsync(actor, cancellationToken);
+
+        return new MailDigestResult(
+            MailDigest.Render(actor, messages, unreadTotal),
+            messages.Count > 0);
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload
-    /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable cwd, a missing session id, no agent workspace at that
-    /// cwd, or this process's own cwd resolving to a different workspace
-    /// than the payload's cwd does. In a dry run the session file is not
-    /// consulted at all, so a fixture payload resolves without one.
+    /// Resolves the session's workspace and, when available, its peer name and harness
+    /// version, or null when the session id or cwd is missing, no workspace is found, or
+    /// the payload and process workspaces differ. The session-file lookup is skipped when
+    /// <paramref name="skipSessionFileLookup"/> is true.
     /// </summary>
-    private async Task<ResolvedGeneration?> ResolveAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+    private ResolvedSession? Resolve(ClaudeHookPayload payload, bool skipSessionFileLookup)
     {
         if (string.IsNullOrWhiteSpace(payload.Cwd) || string.IsNullOrWhiteSpace(payload.SessionId))
         {
@@ -255,25 +278,41 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        // The event names its own session, so the session file that carries
-        // that id describes it exactly. Nothing is inferred from the process
-        // tree, and a session with no file still resolves: the file only
-        // supplies the peer address and the harness version.
-        var session = dryRun ? null : sessionFileReader.Find(payload.SessionId);
+        // A session with no file still resolves; the file only supplies the peer
+        // address and the harness version.
+        var session = skipSessionFileLookup ? null : sessionFileReader.Find(payload.SessionId);
 
-        var host = await instanceIdProvider.GetIdAsync(
-            globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-
-        var generation = new AgentSessionGeneration(
-            AgentSessionHarness.ClaudeCode, payload.SessionId, host);
-
-        return new ResolvedGeneration(
-            generation, payloadWorkspace, session?.Name, session?.Version ?? string.Empty);
+        return new ResolvedSession(payloadWorkspace, session?.Name, session?.Version ?? string.Empty);
     }
 
-    private sealed record ResolvedGeneration(
-        AgentSessionGeneration Generation,
+    private static AgentSessionStartRequest BuildStartRequest(ClaudeHookPayload payload, ResolvedSession resolved)
+    {
+        var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
+            && EndpointAddress.IsValid(name)
+                ? (AgentSessionEndpointKind.ClaudePeer, name)
+                : (AgentSessionEndpointKind.None, string.Empty);
+
+        return new AgentSessionStartRequest
+        {
+            Harness = AgentSessionHarness.ClaudeCode,
+            SessionId = payload.SessionId!,
+            HarnessVersion = resolved.HarnessVersion,
+            Cwd = payload.Cwd!,
+            WorkspacePath = resolved.WorkspaceDirectory,
+            EndpointKind = endpointKind,
+            EndpointAddr = endpointAddr
+        };
+    }
+
+    private sealed record ResolvedSession(
         string WorkspaceDirectory,
         string? EndpointName,
         string HarnessVersion);
+
+    /// <summary>
+    /// A resolved harness session's row, and whether resolving it just minted a new agent.
+    /// </summary>
+    private sealed record ResolvedRow(AgentRow Row, bool Minted);
+
+    private sealed record MailDigestResult(string Text, bool HasMessages);
 }

@@ -109,6 +109,36 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     [Fact]
+    public async Task Http_Query_SingleRequest_GetHeroName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b.ModifyServerOptions(o => o.EnableQueryRequests = true));
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+
+            // act
+            var request = new OperationRequest(
+                @"
+                {
+                    hero {
+                        name
+                    }
+                }");
+            using var result = await client.QueryAsync(
+                request,
+                s_url,
+                TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET9_0], [NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task Http_Post_PersistedOperationEndpoint_GetHeroName_Default()
     {
         using (CaptureActivities(out var activities))
@@ -536,6 +566,33 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteHttpRequest_Should_TagSchemaName_When_SchemaIsNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateStarWarsServer(
+                configureServices: services => services
+                    .AddGraphQLServer("StarWars")
+                    .AddInstrumentation());
+            using var client = GraphQLHttpClient.Create(server.CreateClient());
+
+            // act
+            using var result = await client.PostAsync(
+                new OperationRequest("{ __typename }"),
+                new Uri("http://localhost:5000/starwars"),
+                TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            var span = Assert.Single(
+                activities.Settled,
+                a => a.OperationName == "ExecuteHttpRequest");
+            Assert.Equal("StarWars", span.GetTagItem("graphql.schema.name"));
         }
     }
 
@@ -1359,7 +1416,8 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                             {
                                 o.EnableDefer = true;
                                 o.EnableStream = true;
-                            });
+                            })
+                        .ModifyCostOptions(o => o.DefaultListSize = 1);
 
                     configureBuilder?.Invoke(builder);
                 });

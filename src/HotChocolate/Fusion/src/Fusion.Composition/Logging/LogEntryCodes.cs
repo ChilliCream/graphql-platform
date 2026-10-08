@@ -49,6 +49,7 @@ public static class LogEntryCodes
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidApolloFederationSupportSettings =
         "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
+    public const string InvalidDefaultListSizeSetting = "INVALID_DEFAULT_LIST_SIZE_SETTING";
     public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";

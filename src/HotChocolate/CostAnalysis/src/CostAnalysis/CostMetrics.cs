@@ -8,4 +8,6 @@ public sealed record CostMetrics
 
     /// <summary>https://ibm.github.io/graphql-specs/cost-spec.html#sec-Type-Cost</summary>
     public double TypeCost { get; init; }
+
+    internal double? MaxResponseSize { get; init; }
 }

@@ -13,6 +13,31 @@ namespace HotChocolate.Fusion.Diagnostics;
 public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
 {
     /// <summary>
+    /// Called while the operation cost is analyzed.
+    /// </summary>
+    /// <param name="context">
+    /// The GraphQL request context.
+    /// </param>
+    /// <returns>
+    /// A scope that is disposed when cost analysis is complete.
+    /// </returns>
+    IDisposable AnalyzeOperationCost(RequestContext context);
+
+    /// <summary>
+    /// Reports an evaluated operation cost within the analysis scope.
+    /// </summary>
+    /// <param name="context">
+    /// The GraphQL request context.
+    /// </param>
+    /// <param name="fieldCost">
+    /// The evaluated field cost.
+    /// </param>
+    /// <param name="typeCost">
+    /// The evaluated type cost.
+    /// </param>
+    void OperationCost(RequestContext context, double fieldCost, double typeCost);
+
+    /// <summary>
     /// Called when the operation is being planned.
     /// </summary>
     /// <param name="context">

@@ -1,15 +1,14 @@
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Board;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 
 /// <summary>
-/// Covers the bare <c>nitro agent</c> entry point: the group command now
-/// carries its own action (launching the unified tabbed TUI) alongside its
-/// subcommands, so this locks in that the group's help and its subcommand
-/// dispatch stay exactly as they were before the action was added, and that
-/// the paths which do not launch the TUI (non-interactive, or interactive
-/// with no workspace) fall back to the same guidance a bare group with no
-/// action prints.
+/// Covers the bare <c>nitro agent</c> entry point: its help output, its
+/// subcommand dispatch, and the guidance it falls back to when the TUI does
+/// not launch (non-interactive, or interactive with no workspace).
 /// </summary>
 public sealed class AgentCommandTests(NitroCommandFixture fixture)
     : TasksCommandTestBase(fixture)
@@ -39,7 +38,10 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
+              takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
+              restore   Replace the agent workspace with a backup archive. Deletes '.nitro' and '.git/nitro' first.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -70,7 +72,10 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
+              takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
+              restore   Replace the agent workspace with a backup archive. Deletes '.nitro' and '.git/nitro' first.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -104,7 +109,10 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
+              takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
+              restore   Replace the agent workspace with a backup archive. Deletes '.nitro' and '.git/nitro' first.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -138,7 +146,10 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
               memory    Save and recall durable agent memory.
               login     Allocate an actor name for a harness without a session-start hook.
               register  Set the role of an actor allocated by `agent login` or a session-start hook.
-              list      List the actors this workspace knows, with their session when they have one.
+              list      Lists the agents in the workspace.
+              takeover  Take over another actor's mail and tasks.
+              backup    Back up the agent workspace to a zip archive.
+              restore   Replace the agent workspace with a backup archive. Deletes '.nitro' and '.git/nitro' first.
               hooks     Install, inspect, and remove Nitro's turn-boundary hook entries per harness.
             """);
     }
@@ -169,5 +180,32 @@ public sealed class AgentCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Contains("Initialized agent workspace", result.StdOut);
+    }
+
+    [Fact]
+    public async Task Bare_Interactive_Should_LoadTheBoardOrientationFromTheStoreInServices_When_AWorkspaceExists()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var read = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var preferences = new Mock<IBoardPreferencesStore>();
+        preferences
+            .Setup(x => x.ReadOrientationAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => read.TrySetResult())
+            .ReturnsAsync(BoardOrientation.Stacked);
+        SetupBoardPreferencesStore(preferences.Object);
+        SetupInteractionMode(InteractionMode.Interactive);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var run = StartInteractiveCommand("agent").RunToCompletionAsync(runCts.Token);
+
+        // act
+        await read.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+        await runCts.CancelAsync();
+        var result = await run.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        preferences.Verify(x => x.ReadOrientationAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

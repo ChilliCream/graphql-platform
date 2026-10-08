@@ -184,6 +184,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": "Gateway",

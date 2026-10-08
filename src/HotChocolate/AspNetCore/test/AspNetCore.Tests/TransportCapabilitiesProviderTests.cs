@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore;
 public class TransportCapabilitiesProviderTests
 {
     [Fact]
-    public void GetCapabilities_Should_DeclareNoBatching_When_ServerOptionsAllowNoBatching()
+    public void GetCapabilities_Should_DeclareOnlyVariableBatching_When_ServerOptionsAreDefault()
     {
         // arrange
         var services = new ServiceCollection();
@@ -18,7 +18,7 @@ public class TransportCapabilitiesProviderTests
 
         // assert
         Assert.Equal(
-            new TransportCapabilities(VariableBatching: false, RequestBatching: false),
+            new TransportCapabilities(VariableBatching: true, RequestBatching: false),
             capabilities);
     }
 
@@ -39,14 +39,21 @@ public class TransportCapabilitiesProviderTests
             capabilities);
     }
 
-    [Fact]
-    public void GetCapabilities_Should_MapEachFlagSeparately_When_OnlyVariableBatchingIsAllowed()
+    [Theory]
+    [InlineData(AllowedBatching.None, false, false)]
+    [InlineData(AllowedBatching.VariableBatching, true, false)]
+    [InlineData(AllowedBatching.RequestBatching, false, true)]
+    [InlineData(AllowedBatching.All, true, true)]
+    public void GetCapabilities_Should_MapEachFlagSeparately_When_BatchingIsConfigured(
+        AllowedBatching batching,
+        bool variableBatching,
+        bool requestBatching)
     {
         // arrange
         var services = new ServiceCollection();
         services
             .AddGraphQLServer("a")
-            .ModifyServerOptions(o => o.Batching = AllowedBatching.VariableBatching);
+            .ModifyServerOptions(o => o.Batching = batching);
         var provider = GetProvider(services);
 
         // act
@@ -54,7 +61,7 @@ public class TransportCapabilitiesProviderTests
 
         // assert
         Assert.Equal(
-            new TransportCapabilities(VariableBatching: true, RequestBatching: false),
+            new TransportCapabilities(VariableBatching: variableBatching, RequestBatching: requestBatching),
             capabilities);
     }
 
@@ -72,7 +79,7 @@ public class TransportCapabilitiesProviderTests
 
         // assert
         Assert.Equal(
-            new TransportCapabilities(VariableBatching: false, RequestBatching: false),
+            new TransportCapabilities(VariableBatching: true, RequestBatching: false),
             capabilities);
     }
 

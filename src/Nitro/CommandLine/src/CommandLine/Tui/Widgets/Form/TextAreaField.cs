@@ -12,12 +12,12 @@ internal sealed class TextAreaField : FormField
 {
     private const int MinRenderWidth = 4;
 
+    private const int PanelBorderHeight = 2;
+
     private const string CursorStyle = "black on white";
 
     /// <summary>
-    /// The fewest interior lines a text area ever renders, even when its
-    /// content is empty or shorter than its configured visible-lines count:
-    /// keeps the field from collapsing to a cramped one-line box.
+    /// The minimum number of content rows allocated to the text area.
     /// </summary>
     private const int MinVisibleLines = 3;
 
@@ -112,10 +112,21 @@ internal sealed class TextAreaField : FormField
     }
 
     public override IRenderable Render(int width, bool focused)
+        => RenderWithVisibleLines(width, focused, _visibleLines);
+
+    public override IRenderable Render(int width, bool focused, int maxHeight)
+    {
+        var errorHeight = ShowErrors && Validate() is not null ? 1 : 0;
+        var visibleLines = Math.Clamp(maxHeight - PanelBorderHeight - errorHeight, 1, _visibleLines);
+
+        return RenderWithVisibleLines(width, focused, visibleLines);
+    }
+
+    private IRenderable RenderWithVisibleLines(int width, bool focused, int visibleLines)
     {
         var innerWidth = Math.Max(1, width - MinRenderWidth);
 
-        _rowViewport.Update(_lines.Count, _visibleLines);
+        _rowViewport.Update(_lines.Count, visibleLines);
         _rowViewport.EnsureVisible(_lineIndex);
 
         var (start, count) = _rowViewport.Slice();
@@ -134,9 +145,8 @@ internal sealed class TextAreaField : FormField
             rows.Add(new Markup(markup));
         }
 
-        // Pads short content up to the configured visible-lines height so the
-        // field always renders as a fixed-size box instead of shrinking to fit.
-        while (rows.Count < _visibleLines)
+        // Pads short content to its allocated height.
+        while (rows.Count < visibleLines)
         {
             rows.Add(new Markup(" "));
         }
@@ -232,7 +242,7 @@ internal sealed class TextAreaField : FormField
 
     private string RenderCursorLine(string line, int cursorColumn, int innerWidth)
     {
-        // +1 so the cursor can sit one column past the last character.
+        // Include one cursor position after the final character.
         _columnViewport.Update(line.Length + 1, innerWidth);
         _columnViewport.EnsureVisible(cursorColumn);
 

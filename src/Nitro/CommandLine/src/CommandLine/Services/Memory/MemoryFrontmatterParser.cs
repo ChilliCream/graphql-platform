@@ -4,20 +4,10 @@ using System.Globalization;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Parses the restricted frontmatter grammar memory markdown files use: a
-/// fixed, non-nested set of <c>key: value</c> lines between two <c>---</c>
-/// delimiters, followed by the markdown body. This is deliberately not a
-/// YAML parser; the grammar accepts nothing YAML allows beyond what is
-/// spelled out here, so there is no ambiguity to resolve and no YAML
-/// package dependency to take on.
+/// Parses curated memory metadata between two <c>---</c> delimiter lines and the
+/// following markdown body. Rejects invalid metadata, unsupported schema versions,
+/// unknown keys, and ids that differ from the expected filename id.
 /// </summary>
-/// <remarks>
-/// The failure contract is strict by design: an unsupported schema version,
-/// malformed frontmatter, an unknown key, or a filename/id mismatch all
-/// fail parsing rather than tolerating or silently dropping the offending
-/// data. Callers that build an index from many files must not let a failed
-/// parse replace a previously valid index entry.
-/// </remarks>
 internal static class MemoryFrontmatterParser
 {
     public const int SupportedSchemaVersion = 1;
@@ -237,9 +227,7 @@ internal static class MemoryFrontmatterParser
 
     private static bool TryParseTimestamp(string value, out DateTimeOffset timestamp)
     {
-        // Stored timestamps must be UTC RFC 3339, marked with the 'Z'
-        // designator; frontmatter is machine-written, not user-typed, so
-        // this is stricter than the offset-inferring parsing options use.
+        // Accepts invariant-culture timestamps with a Z suffix, interpreted as UTC.
         if (value.EndsWith('Z')
             && DateTimeOffset.TryParse(
                 value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timestamp))

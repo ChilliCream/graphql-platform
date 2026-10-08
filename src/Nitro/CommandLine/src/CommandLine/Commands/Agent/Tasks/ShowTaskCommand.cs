@@ -2,6 +2,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 
@@ -27,6 +28,7 @@ internal sealed class ShowTaskCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var store = services.GetRequiredService<ITaskStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
+        var ledger = services.GetRequiredService<ITakeoverLedger>();
 
         var id = parseResult.GetRequiredValue(Opt<TaskIdArgument>.Instance);
 
@@ -36,6 +38,11 @@ internal sealed class ShowTaskCommand : Command
         var blocks = await store.GetDependentsAsync(task.Id, cancellationToken);
         var comments = await store.GetCommentsAsync(task.Id, cancellationToken);
         var blocked = await store.ComputeBlockedAsync(cancellationToken);
+        var takeovers = (await ledger.QueryAsync(
+                new TakeoverFilter { TaskId = task.Id },
+                cancellationToken))
+            .Select(TakeoverReferenceResult.FromRecord)
+            .ToArray();
 
         if (!console.IsHumanReadable)
         {
@@ -67,7 +74,8 @@ internal sealed class ShowTaskCommand : Command
                 Blockers = blockers,
                 Dependencies = dependencies,
                 Dependents = blocks,
-                Comments = comments
+                Comments = comments,
+                Takeovers = takeovers
             }));
 
             return ExitCodes.Success;
@@ -78,7 +86,7 @@ internal sealed class ShowTaskCommand : Command
 
         var separatorPending = false;
 
-        WriteSection(console, BuildHeader(task, labels, blocked), ref separatorPending);
+        WriteSection(console, BuildHeader(task, labels, blocked, takeovers), ref separatorPending);
         WriteSection(console, BuildTextBlock("Description:", task.Description), ref separatorPending);
         WriteSection(console, BuildTextBlock("Design:", task.Design), ref separatorPending);
         WriteSection(
@@ -95,7 +103,8 @@ internal sealed class ShowTaskCommand : Command
     private static List<string> BuildHeader(
         TaskItem task,
         IReadOnlyList<string> labels,
-        IReadOnlyDictionary<string, IReadOnlyList<string>> blocked)
+        IReadOnlyDictionary<string, IReadOnlyList<string>> blocked,
+        IReadOnlyList<TakeoverReferenceResult> takeovers)
     {
         var lines = new List<string>
         {
@@ -124,6 +133,13 @@ internal sealed class ShowTaskCommand : Command
 
         lines.Add($"Created: {TaskDates.Format(task.CreatedAt)} by {task.CreatedBy}");
         lines.Add($"Updated: {TaskDates.Format(task.UpdatedAt)}");
+
+        foreach (var takeover in takeovers)
+        {
+            lines.Add(
+                $"Takeover: {takeover.From} -> {takeover.To} "
+                + $"({takeover.Id}, {takeover.CreatedAt.ToUniversalTime():yyyy-MM-dd})");
+        }
 
         if (task.Status is TaskStates.Closed or TaskStates.Archived && task.ClosedAt is { } closedAt)
         {

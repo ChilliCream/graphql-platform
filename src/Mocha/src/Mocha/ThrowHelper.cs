@@ -31,6 +31,18 @@ internal static class ThrowHelper
     public static Exception MiddlewareKeyNotFound(string key)
         => new InvalidOperationException($"Middleware with key {key} not found");
 
+    public static Exception MessageTypeNotRegistered(Type messageType)
+        => new InvalidOperationException(
+            $"Message type '{messageType.FullName}' was not registered at startup. "
+            + "Register it via the source generator or AddMessage<T>(). "
+            + "Set IsAotCompatible = false to allow runtime type registration.");
+
+    public static Exception DuplicateMessageIdentity(string identity, Type messageType, Type existingMessageType)
+        => new InvalidOperationException(
+            $"The message type '{messageType.FullName}' has the identity '{identity}', which is already "
+            + $"used by the message type '{existingMessageType.FullName}'. Each message type must have a "
+            + "unique identity.");
+
     public static Exception RouteEndpointNotConnected(InboundRoute route)
     {
         var consumer = route.Consumer?.Identity.FullName

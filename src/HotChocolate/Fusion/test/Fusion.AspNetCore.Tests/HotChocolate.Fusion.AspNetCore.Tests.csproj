@@ -31,6 +31,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 
+    <None Include="..\..\..\CostAnalysis\test\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
+          Link="__resources__\precision\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
     <Compile Update="FusionTestBase.MatchSnapshot.cs">
       <DependentUpon>FusionTestBase.cs</DependentUpon>
     </Compile>

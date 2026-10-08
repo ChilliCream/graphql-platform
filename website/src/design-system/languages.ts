@@ -1,3 +1,7 @@
+import type { BundledTheme } from "shiki";
+
+export const CODE_THEME: BundledTheme = "github-dark";
+
 export type LanguageDescriptor = {
   label: string;
   color: string;

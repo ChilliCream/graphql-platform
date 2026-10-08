@@ -89,14 +89,14 @@ public sealed class InlineFragmentOperationRewriter(
             switch (selection)
             {
                 case FieldNode field:
-                    // Check for @stream directive (only valid on fields)
-                    if (HasStreamDirective(field.Directives))
-                    {
-                        context.MarkAsIncremental();
-                    }
-
                     if (!removeStaticallyExcludedSelections || IsIncluded(field.Directives))
                     {
+                        // Check for @stream directive (only valid on fields)
+                        if (HasStreamDirective(field.Directives))
+                        {
+                            context.MarkAsIncremental();
+                        }
+
                         context.AddField(field);
                     }
                     break;
@@ -638,14 +638,17 @@ public sealed class InlineFragmentOperationRewriter(
 
         if (directives.Count == 1)
         {
-            return directives[0].Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal);
+            var directive = directives[0];
+            return directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
+                && HasActiveIfCondition(directive.Arguments, DirectiveNames.Defer.Arguments.If);
         }
 
         for (var i = 0; i < directives.Count; i++)
         {
-            if (directives[i].Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
+            var directive = directives[i];
+            if (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
             {
-                return true;
+                return HasActiveIfCondition(directive.Arguments, DirectiveNames.Defer.Arguments.If);
             }
         }
 
@@ -661,18 +664,39 @@ public sealed class InlineFragmentOperationRewriter(
 
         if (directives.Count == 1)
         {
-            return directives[0].Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal);
+            var directive = directives[0];
+            return directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)
+                && HasActiveIfCondition(directive.Arguments, DirectiveNames.Stream.Arguments.If);
         }
 
         for (var i = 0; i < directives.Count; i++)
         {
-            if (directives[i].Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
+            var directive = directives[i];
+            if (directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
             {
-                return true;
+                return HasActiveIfCondition(directive.Arguments, DirectiveNames.Stream.Arguments.If);
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether a directive's if argument permits treating it as active.
+    /// Returns true when the argument is absent, a literal true, or a variable reference,
+    /// and false only when it is a literal false.
+    /// </summary>
+    private static bool HasActiveIfCondition(IReadOnlyList<ArgumentNode> arguments, string ifArgumentName)
+    {
+        foreach (var argument in arguments)
+        {
+            if (argument.Name.Value.Equals(ifArgumentName, StringComparison.Ordinal))
+            {
+                return argument.Value is not BooleanValueNode { Value: false };
+            }
+        }
+
+        return true;
     }
 
     public readonly ref struct Context

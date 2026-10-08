@@ -35,14 +35,11 @@ internal sealed class RecentMemoryCommand : Command
         var collection = parseResult.GetValue(Opt<MemoryCollectionOption>.Instance) ?? MemoryCollections.Curated;
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
 
-        // Collection band, curated first: curated entries order by
-        // `updated_at`, journal entries by `created_at`, since a journal
-        // entry has no `updated_at`.
+        // Curated entries order by `updated_at`, journal entries by
+        // `created_at`.
 
         // Both bands are queried under --collection all: split an explicit
-        // limit across them (curated gets the ceiling half) instead of
-        // handing each band the full limit and truncating the concatenation
-        // afterward, which let curated results starve the journal band.
+        // limit across them (curated gets the ceiling half).
         var splitBands = collection is MemoryCollections.All;
         var curatedLimit = limit;
         var journalLimit = limit;
@@ -62,8 +59,6 @@ internal sealed class RecentMemoryCommand : Command
 
             if (splitBands && limit is not null)
             {
-                // Unused remainder from a short curated band flows to
-                // the journal band.
                 journalLimit = MemoryBandLimit.GrowJournalWithCuratedShortfall(
                     curatedLimit!.Value, curatedRecords.Count, journalLimit!.Value);
             }
@@ -79,8 +74,6 @@ internal sealed class RecentMemoryCommand : Command
                 && journalEntries.Count < journalLimit
                 && curated.Count == curatedLimit)
             {
-                // Unused remainder from a short journal band flows back
-                // to the curated band.
                 var curatedShare = MemoryBandLimit.GrowCuratedWithJournalShortfall(
                     journalExplicitLimit, journalEntries.Count);
                 var curatedRecords = await store.GetRecentCuratedAsync(curatedShare, cancellationToken);

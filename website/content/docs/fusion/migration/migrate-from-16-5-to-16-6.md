@@ -151,7 +151,7 @@ builder.AddNitroComposition("dev");
 
 ## Nitro schema validation during composition
 
-When the AppHost composes against a Nitro stage and the gateway selects an API with `WithNitroApiId`, composition validates the composed schema through Nitro. `WithNitroComposition(disableValidation: true)` turns the validation off.
+When the AppHost composes against a Nitro stage and the gateway selects an API with `WithNitroApiId`, composition validates the composed schema through Nitro. `#!csharp WithNitroComposition(disableValidation: true)` turns the validation off.
 
 ## Polyglot AppHost support
 

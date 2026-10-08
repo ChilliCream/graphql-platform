@@ -163,6 +163,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             }
         }
 
+        if (method == GraphQLHttpMethod.Query)
+        {
+            if (request.Body is not OperationRequest)
+            {
+                throw new InvalidOperationException(
+                    HttpResources.DefaultGraphQLHttpClient_QueryBatchNotAllowed);
+            }
+
+            if (request.EnableFileUploads)
+            {
+                throw new NotSupportedException(
+                    HttpResources.DefaultGraphQLHttpClient_QueryFileUploadNotAllowed);
+            }
+        }
+
         var message = new HttpRequestMessage
         {
             Method = method
@@ -199,7 +214,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             }
             else
             {
-                message.Content = CreatePostContent(arrayWriter, request);
+                message.Content = CreateJsonContent(arrayWriter, request);
             }
 
             message.RequestUri = requestUri;
@@ -207,6 +222,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         else if (method == GraphQLHttpMethod.Get)
         {
             message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
+        }
+        else if (method == GraphQLHttpMethod.Query)
+        {
+            message.Content = CreateJsonContent(arrayWriter, request);
+            message.RequestUri = requestUri;
         }
         else
         {
@@ -223,7 +243,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         return message;
     }
 
-    private static ByteArrayContent CreatePostContent(
+    private static ByteArrayContent CreateJsonContent(
         PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
     {
@@ -259,7 +279,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         if (fileEntries.Count == 0)
         {
             arrayWriter.Reset();
-            return CreatePostContent(arrayWriter, request);
+            return CreateJsonContent(arrayWriter, request);
         }
 
         // Group file entries by key so each physical file is written once.
@@ -372,7 +392,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         if (fileInfos.Count == 0)
         {
             arrayWriter.Reset();
-            return CreatePostContent(arrayWriter, request);
+            return CreateJsonContent(arrayWriter, request);
         }
 
         var start = arrayWriter.Length;

@@ -1,7 +1,7 @@
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
@@ -10,7 +10,7 @@ internal sealed class ListAgentCommand : Command
 {
     public ListAgentCommand() : base("list")
     {
-        Description = "List the actors this workspace knows, with their session when they have one.";
+        Description = "Lists the agents in the workspace.";
 
         Options.Add(Opt<RoleAgentOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
@@ -26,19 +26,14 @@ internal sealed class ListAgentCommand : Command
         CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<INitroConsole>();
-        var sessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
+        var agents = services.GetRequiredService<IAgentStore>();
+        var timeProvider = services.GetRequiredService<TimeProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var role = parseResult.GetValue(Opt<RoleAgentOption>.Instance);
+        var now = timeProvider.GetUtcNow();
 
-        // Actors are the unit: an actor allocated by `agent login` has no
-        // session until a hook binds one, and must still be listed.
-        var agents = services.GetRequiredService<IAgentRegistry>();
-        var identities = await sessionRegistry.ListIdentitiesAsync(cancellationToken);
-        var byActor = identities.ToDictionary(view => view.Identity.Actor, StringComparer.Ordinal);
-        var rows = (await agents.ListAsync(role: null, staleBefore: null, cancellationToken))
-            .Select(agent => new AgentListRow(agent, byActor.GetValueOrDefault(agent.Name)))
-            .ToArray();
+        var rows = await agents.ListAsync(cancellationToken);
 
         if (role is not null)
         {
@@ -46,86 +41,121 @@ internal sealed class ListAgentCommand : Command
             rows = rows.Where(row => row.Role == normalizedRole).ToArray();
         }
 
+        var ordered = Order(rows, now);
+
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ListResult<AgentListRowResult>(rows.Select(ToRow).ToArray()));
+            resultHolder.SetResult(
+                new ListResult<AgentListRowResult>(ordered.Select(row => ToRow(row, now)).ToArray()));
+
             return ExitCodes.Success;
         }
 
-        if (rows.Length == 0)
+        if (ordered.Count == 0)
         {
             console.WriteLine("No actors.");
             return ExitCodes.Success;
         }
 
-        foreach (var row in rows)
+        var lines = ordered.Select(row => AgentListLine.From(row, now)).ToArray();
+        var widths = ColumnWidths.Compute(lines);
+
+        foreach (var line in lines)
         {
-            console.WriteLine(FormatLine(row));
+            console.WriteLine(line.Format(widths));
         }
 
         return ExitCodes.Success;
     }
 
     /// <summary>
-    /// Renders one durable session identity: actor, online/offline state,
-    /// harness, optional role, and last-seen time. Connection diagnostics
-    /// remain available in machine output when the session is online.
+    /// Orders rows the way the board does: online agents first, then idle, then unreachable,
+    /// then offline, with ties broken by the most recently seen window and then by name.
     /// </summary>
-    private static string FormatLine(AgentListRow row)
-    {
-        var session = row.View?.Participant?.Session;
-        var versionSuffix = session?.HarnessVersion.Length > 0 ? $" {session.HarnessVersion}" : "";
-        var roleSuffix = row.Role.Length > 0 ? $"  role {row.Role}" : "";
-        var harness = row.View?.Identity.Harness ?? "no session";
+    private static IReadOnlyList<AgentRow> Order(IReadOnlyList<AgentRow> rows, DateTimeOffset now)
+        => rows
+            .OrderBy(row => (int)AgentStateResolver.Resolve(row, now))
+            .ThenByDescending(row => AgentStateResolver.LastSeenWindowStart(row.LastSeenAt))
+            .ThenBy(row => row.Name, StringComparer.Ordinal)
+            .ToArray();
 
-        return $"{row.Actor}  {row.State}  {harness}{versionSuffix}{roleSuffix}"
-            + $"  last heard {TaskDates.Format(row.LastSeenAt)}";
+    private static AgentListRowResult ToRow(AgentRow row, DateTimeOffset now) => new(
+        row.Name,
+        row.Role,
+        row.Harness,
+        row.StartedAt,
+        row.LastSeenAt,
+        AgentStateResolver.Resolve(row, now) == AgentState.Online);
+
+    /// <summary>
+    /// Formats the elapsed time between <paramref name="value"/> and <paramref name="now"/>
+    /// as a short relative age: "now" under a minute, then minutes, hours, or days, falling
+    /// back to an ISO date once the value is a week or older. A non-positive elapsed time
+    /// (a clock-skewed future timestamp) also formats as "now".
+    /// </summary>
+    private static string FormatAge(DateTimeOffset value, DateTimeOffset now)
+    {
+        var elapsed = now - value;
+
+        if (elapsed < TimeSpan.FromMinutes(1))
+        {
+            return "now";
+        }
+
+        if (elapsed < TimeSpan.FromHours(1))
+        {
+            return $"{(int)elapsed.TotalMinutes}m";
+        }
+
+        if (elapsed < TimeSpan.FromHours(24))
+        {
+            return $"{(int)elapsed.TotalHours}h";
+        }
+
+        if (elapsed < TimeSpan.FromDays(7))
+        {
+            return $"{(int)elapsed.TotalDays}d";
+        }
+
+        return value.ToUniversalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 
     /// <summary>
-    /// One actor, with the durable session identity bound to it when a hook
-    /// has bound one.
+    /// One agent's human-readable columns, ready to be padded against the other rows
+    /// printed alongside it.
     /// </summary>
-    private sealed record AgentListRow(AgentRecord Agent, AgentSessionIdentityView? View)
+    private readonly record struct AgentListLine(
+        string Name, string Role, string Harness, string Started, string LastSeen, bool Online)
     {
-        public string Actor => Agent.Name;
+        public static AgentListLine From(AgentRow row, DateTimeOffset now) => new(
+            row.Name,
+            row.Role.Length > 0 ? row.Role : "-",
+            AgentHarnessDisplay.Name(row.Harness),
+            FormatAge(row.StartedAt, now),
+            FormatAge(row.LastSeenAt, now),
+            AgentStateResolver.Resolve(row, now) == AgentState.Online);
 
-        public string Role => View?.Identity.Role is { Length: > 0 } role ? role : Agent.Role;
-
-        public string State => View?.State ?? "offline";
-
-        public DateTimeOffset LastSeenAt => View?.LastSeenAt ?? Agent.LastSeenAt;
+        public string Format(ColumnWidths widths)
+            => $"{Name.PadRight(widths.Name)}  {Role.PadRight(widths.Role)}  "
+                + $"{Harness.PadRight(widths.Harness)}  {Started.PadRight(widths.Started)}  "
+                + $"{LastSeen.PadRight(widths.LastSeen)}  {(Online ? "yes" : "no")}";
     }
 
-    private static AgentListRowResult ToRow(AgentListRow row) => new(
-        row.Actor,
-        row.Role,
-        row.View?.Identity.Harness ?? "",
-        row.View?.Identity.SessionId ?? "",
-        row.View?.Online ?? false,
-        row.State,
-        row.View?.Participant?.Session.HarnessVersion ?? "",
-        row.View?.Participant?.Session.StartedAt,
-        row.LastSeenAt,
-        row.View?.Participant?.Session.Cwd,
-        row.View?.Participant?.Session.WorkspacePath,
-        row.View?.Participant?.Session.Host,
-        row.View?.Participant?.Session.EndpointKind,
-        row.View?.Participant?.Session.EndpointAddr);
+    private readonly record struct ColumnWidths(int Name, int Role, int Harness, int Started, int LastSeen)
+    {
+        public static ColumnWidths Compute(IReadOnlyList<AgentListLine> lines) => new(
+            lines.Max(line => line.Name.Length),
+            lines.Max(line => line.Role.Length),
+            lines.Max(line => line.Harness.Length),
+            lines.Max(line => line.Started.Length),
+            lines.Max(line => line.LastSeen.Length));
+    }
 
     public sealed record AgentListRowResult(
-        string Actor,
+        string Name,
         string Role,
-        string Harness,
-        string SessionId,
-        bool Online,
-        string State,
-        string HarnessVersion,
-        DateTimeOffset? StartedAt,
-        DateTimeOffset LastHeardAt,
-        string? Cwd,
-        string? WorkspacePath,
-        string? Host,
-        string? EndpointKind,
-        string? EndpointAddr);
+        string? Harness,
+        DateTimeOffset StartedAt,
+        DateTimeOffset LastSeenAt,
+        bool Online);
 }

@@ -95,23 +95,26 @@ public class AzureServiceBusReceiveTopologyTests
     public void DiscoverTopology_Should_NotProvisionTopic_When_QueueBindsExplicitlyAndTopicIsUndeclared()
     {
         // arrange
-        // Receive topology discovery runs before dispatch topology discovery, so an unguarded
-        // EnsureTopic on the receive side would implicitly create "custom-orders" and mask the
-        // fact that it was never declared, letting the explicit-mode dispatch endpoint complete
-        // successfully against a topic the user never provisioned.
-
-        // act
-        var exception = Record.Exception(() => CreateRuntime(
+        var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("custom-orders-endpoint").ToTopic("custom-orders").Publish<OrderCreated>();
-            }));
+            });
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // act
+        var topic = topology.Topics.Single(t => t.Name == "custom-orders");
+        var subscriptions = topology.Subscriptions
+            .Where(s => s.Source.Name == "custom-orders" && s.Destination.Name == endpoint.Queue.Name)
+            .ToList();
 
         // assert
-        Assert.Equal("Topic not found", Assert.IsType<InvalidOperationException>(exception).Message);
+        Assert.False(topic.AutoProvision);
+        Assert.Equal(TopologyOrigin.Endpoint, topic.Origin);
+        Assert.Empty(subscriptions);
     }
 
     [Fact]

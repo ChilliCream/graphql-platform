@@ -56,7 +56,7 @@ internal static class PriorityPicker
 
             var result = await store.UpdateTaskAsync(task.Id, update, cancellationToken);
 
-            var toastText = result.ChangedFields.Count == 0
+            var toastText = priority == task.Priority
                 ? $"No changes to task '{task.Id}'."
                 : $"Priority set to '{TaskPriorities.Format(priority)}' for task '{task.Id}'.";
 

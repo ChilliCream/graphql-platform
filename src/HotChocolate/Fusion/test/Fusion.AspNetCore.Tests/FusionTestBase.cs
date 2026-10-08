@@ -40,12 +40,16 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
         string? environmentName = "Development",
+        string? gatewayName = null,
         bool disableDefaultSecurity = false,
-        bool enableGlobalObjectIdentification = true)
+        bool enableGlobalObjectIdentification = true,
+        int? defaultListSize = 1,
+        bool includeOperationPlan = true)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer(
+            gatewayName,
             disableDefaultSecurity: disableDefaultSecurity);
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
         // Interactions are keyed by an atomically-incremented int, but looked up
@@ -139,7 +143,8 @@ public abstract partial class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                DefaultListSize = defaultListSize
             }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
@@ -167,7 +172,12 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
-        gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+
+        if (includeOperationPlan)
+        {
+            gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        }
+
         gatewayBuilder.ModifyRequestOptions(o =>
         {
             o.CollectOperationPlanTelemetry = false;
@@ -181,7 +191,7 @@ public abstract partial class FusionTestBase : IDisposable
             {
                 app.UseWebSockets();
                 app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: gatewayName));
             };
 
         var gatewayTestServer = _testServerSession.CreateServer(

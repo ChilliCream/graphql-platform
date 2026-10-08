@@ -254,7 +254,7 @@ You do not register handlers manually unless you need to. The source generator d
 
 The source generator names the registration method based on your assembly:
 
-1. If you apply `[assembly: MediatorModule("Billing")]`, the method is `AddBilling()`
+1. If you apply `#!csharp [assembly: MediatorModule("Billing")]`, the method is `AddBilling()`
 2. Otherwise, it uses the last segment of the assembly name: `Demo.Catalog` produces `AddCatalog()`
 
 To set an explicit module name, add the attribute to any file in your project:
@@ -450,7 +450,7 @@ If everything worked, `dotnet run` starts the server and you can:
 
 - `POST /orders` with a JSON body to place an order
 - `GET /products` to list products
-- `POST /orders/{id}/ship` to publish a shipped notification
+- `#!http POST /orders/{id}/ship` to publish a shipped notification
 
 # Troubleshooting
 

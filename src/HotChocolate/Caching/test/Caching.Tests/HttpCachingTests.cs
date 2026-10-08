@@ -413,6 +413,31 @@ public class HttpCachingTests : ServerTestBase
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task SharedMaxAgeAndVary_Should_ListAcceptOnce_When_VaryNamesAccept()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve("")
+                        .CacheControl(sharedMaxAge: 2000, vary: ["Accept", "X-foo"]));
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.PostQueryAsync("{ field }");
+
+        // assert
+        Assert.Equal(["Accept", "x-foo"], result.Headers.Vary);
+    }
 }
 
 public class GraphQLResult

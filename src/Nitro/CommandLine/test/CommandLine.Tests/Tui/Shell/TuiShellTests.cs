@@ -1,16 +1,26 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
+using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
+using Microsoft.Extensions.Time.Testing;
+using Spectre.Console;
 using Spectre.Console.Testing;
+using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
+using static ChilliCream.Nitro.CommandLine.Tests.Tui.AnsiAssertions;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
 public sealed class TuiShellTests
 {
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     private static ConsoleKeyInfo KeyInfo(char keyChar, ConsoleKey key, ConsoleModifiers modifiers = ConsoleModifiers.None) =>
         new(
             keyChar,
@@ -20,7 +30,13 @@ public sealed class TuiShellTests
             modifiers.HasFlag(ConsoleModifiers.Control));
 
     private static TuiShell CreateShell(FakeTuiMode mode, int width = 80, int height = 24, string? actor = null) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height, actor: actor);
+        new(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            width,
+            height,
+            agentStore: new FakeAgentStore(TimeProvider.System),
+            actor: actor);
 
     private static TuiShell CreateShellWithModes(
         ITuiMode initialMode,
@@ -36,9 +52,10 @@ public sealed class TuiShellTests
             initialMode,
             80,
             24,
-            searchMode,
-            treeView,
-            store,
+            agentStore: new FakeAgentStore(TimeProvider.System),
+            searchMode: searchMode,
+            treeView: treeView,
+            store: store,
             actor: "tester");
     }
 
@@ -55,6 +72,83 @@ public sealed class TuiShellTests
         console.Write(shell.Render());
         return console.Output;
     }
+
+    private static string RenderToAnsiText(TuiShell shell, int width = 80)
+    {
+        var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(width);
+        console.Write(shell.Render());
+        return console.Output;
+    }
+
+    /// <summary>
+    /// Builds an Agents-tab shell around a freshly built <see cref="AgentsMode"/>, defaulting
+    /// the mail, task, and memory stores the agent detail popover needs when a test does not
+    /// care about them.
+    /// </summary>
+    private static TuiShell CreateAgentsShell(
+        out AgentsMode mode,
+        FakeAgentStore agentStore,
+        TimeProvider? timeProvider = null,
+        FakeMailStore? mailStore = null,
+        FakeTaskStore? taskStore = null,
+        FakeMemoryStore? memoryStore = null,
+        int width = 80)
+    {
+        var resolvedTaskStore = taskStore ?? new FakeTaskStore();
+        mode = new AgentsMode(
+            agentStore,
+            mailStore ?? new FakeMailStore(),
+            resolvedTaskStore,
+            memoryStore ?? new FakeMemoryStore(),
+            timeProvider ?? TimeProvider.System);
+
+        return new TuiShell(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            width,
+            24,
+            agentStore: agentStore,
+            store: resolvedTaskStore);
+    }
+
+    private static AgentRow AddOnlineAgent(FakeAgentStore store, string sessionId)
+        => store.StartSessionAsync(
+                new AgentSessionStartRequest
+                {
+                    Harness = AgentSessionHarness.ClaudeCode,
+                    SessionId = sessionId,
+                    HarnessVersion = "1.0.0",
+                    Cwd = "",
+                    WorkspacePath = "",
+                    EndpointKind = AgentSessionEndpointKind.ClaudePeer,
+                    EndpointAddr = "peer-1"
+                },
+                TestContext.Current.CancellationToken)
+            .GetAwaiter().GetResult().Row!;
+
+    private static AgentRow AddOfflineAgent(FakeAgentStore store, string sessionId)
+    {
+        var row = AddOnlineAgent(store, sessionId);
+        store.EndSessionAsync(row.Harness!, row.SessionId!, TestContext.Current.CancellationToken)
+            .GetAwaiter().GetResult();
+        return row;
+    }
+
+    private static void DeleteAgent(FakeAgentStore store, string name)
+        => store.DeleteAsync(name, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    private static MailThreadSummary CreateMailSummary(DateTimeOffset lastMessageAt) => new()
+    {
+        ThreadId = "t1",
+        Subject = "New thread",
+        MessageCount = 1,
+        LastMessageAt = lastMessageAt,
+        LastSender = "felix",
+        LastRecipients = ["oscar"],
+        BodyPreview = "",
+        UnreadCount = 0,
+        ArchivedCount = 0
+    };
 
     [Fact]
     public void Constructor_Should_CallOnEnter_OnActiveMode()
@@ -124,8 +218,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_PrioritizeConfirmDialogKeys_OverGlobalCopyBinding_When_ConfirmActive()
     {
-        // The global table binds 'y' to CopySelectedId; while the confirm dialog is
-        // active it must win that binding instead of falling through to global.
+        // arrange
         var mode = new FakeTuiMode();
         var shell = CreateShell(mode);
         var confirmed = false;
@@ -143,9 +236,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_SwallowUnboundKey_When_QuitConfirmIsActive()
     {
-        // The quit confirmation is fully modal: a key unresolved by its own
-        // key map (y/n/Esc) must not fall through to the active mode or the
-        // global table, so no overlay opens and no mode change happens.
+        // arrange
         var mode = new FakeTuiMode { SelectedTaskId = "a" };
         var shell = CreateShell(mode);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
@@ -163,9 +254,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_NotDelegateToActiveMode_When_EnterPressedWhileQuitConfirmIsActive()
     {
-        // Enter (OpenSelected) must not reach the active mode while the quit
-        // confirmation is open, so it cannot switch the mode underneath the
-        // dialog.
+        // arrange
         var mode = new FakeTuiMode { SelectedTaskId = "a", RenderText = "board" };
         var shell = CreateShell(mode);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('q', ConsoleKey.Q)));
@@ -464,9 +553,8 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
         Assert.Contains("Edit Task", RenderToText(shell));
 
-        // act: append a character to the focused title field, then tab to the
-        // button row (7 fields: title/status/priority/type/labels/description/
-        // notes) and activate the default-selected Save button.
+        // act
+        // Append to the title field, tab through all 7 fields, then activate Save.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 7; i++)
@@ -493,8 +581,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
 
-        // act: append a character to the focused title field, tab to the
-        // button row, and activate the default-selected Save button.
+        // act
+        // Append to the title field, tab to the button row, then activate Save.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 7; i++)
@@ -504,14 +592,13 @@ public sealed class TuiShellTests
 
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
-        // assert: the form is still open, and the store's error is shown as a
-        // toast rather than silently discarded.
+        // assert
         var rendered = RenderToText(shell);
         Assert.Contains("Edit Task", rendered);
         Assert.Contains("rejected", rendered);
 
-        // act: one more Tab wraps focus from the button row back to the title
-        // field, scrolling it into view.
+        // act
+        // One more Tab wraps focus back to the title field, scrolling it into view.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
 
         // assert: the edited value survived the rejected save.
@@ -521,8 +608,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_OpenEditorFromBoardSelection_When_BoardModeIsActive()
     {
-        // arrange: a real BoardMode (not FakeTuiMode) supplies SelectedTaskId
-        // from its focused column's selected row.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
         var view = new BoardView
@@ -545,8 +631,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_CreateChildTaskFromBoardSelection_When_BoardModeIsActive()
     {
-        // arrange: create-as-child reads the active mode's SelectedTaskId as
-        // the new task's parent id.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
         var view = new BoardView
@@ -558,8 +643,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(board, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
 
-        // act: fill the required title field, tab past the parent field
-        // (left on its default "child" option) to the button row, submit.
+        // act
+        // Fill the title field, tab past the parent field (default "child"), submit.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 6; i++)
@@ -806,8 +891,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_OpenCloseConfirmation_When_ClosedPickedOnStatusPicker()
     {
-        // arrange: picking Closed on the status picker is not a bare status
-        // write, it routes through the same close confirmation flow as x.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a"] = TaskItemBuilder.Create("a", status: TaskStates.Open);
         var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
@@ -876,8 +960,7 @@ public sealed class TuiShellTests
         Assert.Contains("Create Task", RenderToText(shell));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
 
-        // assert: the 'j' that would otherwise move the active mode's cursor
-        // was absorbed by the modal create form instead.
+        // assert
         Assert.Empty(mode.HandledMessages);
     }
 
@@ -890,8 +973,8 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('C', ConsoleKey.C, ConsoleModifiers.Shift)));
         Assert.Contains("Create Epic", RenderToText(shell));
 
-        // act: type a title, tab to the button row (5 fields: title/type/
-        // priority/labels/description), then activate the default Create button.
+        // act
+        // Type a title, tab through all 5 fields, then activate Create.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 5; i++)
@@ -914,8 +997,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
 
-        // act: a selection adds a parent field (title/type/parent/priority/
-        // labels/description), left on its default "child" option.
+        // act
+        // A selection adds a parent field, left on its default "child" option.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('!', ConsoleKey.NoName)));
 
         for (var i = 0; i < 6; i++)
@@ -932,10 +1015,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_CreateTopLevelTask_When_ParentFieldSwitchedToNoParentWithSelection()
     {
-        // arrange: TryOpenCreateForm always passes the active mode's
-        // SelectedTaskId as parent, and a populated board column always has
-        // a selection, so switching the parent field is the only board
-        // gesture that creates a root task while a row is selected.
+        // arrange
         var store = new FakeTaskStore();
         var initialMode = new FakeTuiMode { SelectedTaskId = "a" };
         var shell = CreateShellWithModes(initialMode, store, out _, out _);
@@ -961,9 +1041,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Handle_Should_CreateTopLevelTaskWithNoToast_When_CreateFormSubmittedWithNoSelection()
     {
-        // arrange: creating never requires a selection, so a null
-        // SelectedTaskId must not trigger the "No task selected." toast that
-        // gates edit, lifecycle, and the pickers.
+        // arrange
         var store = new FakeTaskStore();
         var shell = CreateShellWithModes(new FakeTuiMode(), store, out _, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('c', ConsoleKey.C)));
@@ -1024,8 +1102,7 @@ public sealed class TuiShellTests
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
-        // assert: the form is still open with the entered title, and the
-        // store's error is shown as a toast rather than silently discarded.
+        // assert
         Assert.Equal("!", store.CreationReceived!.Title);
         var rendered = RenderToText(shell);
         Assert.Contains("Create Task", rendered);
@@ -1056,8 +1133,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
 
-        // act: 'j' would move a list cursor globally, but with the query
-        // input focused it must be typed instead.
+        // act
+        // 'j' would move a list cursor globally, but with the query focused it must be typed instead.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
 
         // assert
@@ -1067,20 +1144,19 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive()
     {
-        // arrange: an actor, so the write chords are live and the footer
-        // carries its full hint set.
-        var shell = CreateShell(new FakeTuiMode(), actor: "pascal");
+        // arrange
+        var shell = CreateShell(new FakeTuiMode(), width: 120, actor: "pascal");
 
         // act
-        var text = RenderToText(shell);
+        var text = RenderToText(shell, 120);
 
-        // assert: the curated global hint set fits an 80-column footer
-        // untruncated.
+        // assert
         Assert.Contains("move", text);
         Assert.Contains("open", text);
         Assert.Contains("refresh", text);
         Assert.Contains("copy id", text);
         Assert.Contains("zoom", text);
+        Assert.Contains("cols", text);
         Assert.Contains("edit", text);
         Assert.Contains("back", text);
         Assert.Contains("quit", text);
@@ -1096,8 +1172,7 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell);
 
-        // assert: every task write is refused without an actor, so the
-        // chord is not advertised; the read-only hints stay.
+        // assert
         Assert.DoesNotContain("edit", text);
         Assert.Contains("move", text);
         Assert.Contains("open", text);
@@ -1152,8 +1227,7 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell);
 
-        // assert: the quit dialog swallows every key itself, so the global
-        // hints (which would not actually work) are not shown alongside it.
+        // assert
         Assert.Contains("confirm", text);
         Assert.Contains("cancel", text);
         Assert.DoesNotContain("move", text);
@@ -1172,8 +1246,7 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
         var text = RenderToText(shell);
 
-        // assert: the editor form swallows every key itself, so the global
-        // hints (which would not actually work) are not shown alongside it.
+        // assert
         Assert.Contains("next field", text);
         Assert.Contains("save", text);
         Assert.Contains("cancel", text);
@@ -1211,10 +1284,7 @@ public sealed class TuiShellTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
         var text = RenderToText(shell);
 
-        // assert: only the hints the query input actually honors are shown
-        // (typing, esc back, tab open, enter open); every other key,
-        // including the global table's hjkl/r/y/z/e/q, is swallowed into
-        // the query instead, so those hints must not appear.
+        // assert
         Assert.Contains("type search  esc back  tab open  enter open", text);
         Assert.DoesNotContain("move", text);
         Assert.DoesNotContain("refresh", text);
@@ -1232,8 +1302,8 @@ public sealed class TuiShellTests
         var shell = CreateShellWithModes(new FakeTuiMode(), store, out var search, out _);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
 
-        // act: Tab opens the selected result, moving focus from Input to
-        // List, so the query is no longer swallowing every key.
+        // act
+        // Tab opens the selected result, moving focus from Input to List.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
         var text = RenderToText(shell);
 
@@ -1241,6 +1311,22 @@ public sealed class TuiShellTests
         Assert.Equal(SearchFocus.List, search.Focus);
         Assert.DoesNotContain("type search", text);
         Assert.Contains("move", text);
+    }
+
+    [Fact]
+    public void FormatFooterHints_Should_FitDisplayWidth_When_HintContainsCjkAndEmoji()
+    {
+        // arrange
+        const int width = 11;
+        var hints = new[] { new KeyHint("漢", "😀 action") };
+
+        // act
+        var markup = TuiShell.FormatFooterHints(hints, width, out var plainWidth);
+        var renderedWidth = Markup.Remove(markup).GetCellWidth();
+
+        // assert
+        Assert.Equal(renderedWidth, plainWidth);
+        Assert.True(renderedWidth <= width);
     }
 
     [Fact]
@@ -1252,8 +1338,7 @@ public sealed class TuiShellTests
         // act
         var text = RenderToText(shell, width: 15);
 
-        // assert: the first (and narrowest-fitting) hint survives, later
-        // ones are dropped behind a trailing ellipsis.
+        // assert
         Assert.Contains("move", text);
         Assert.Contains("…", text);
         Assert.DoesNotContain("quit", text);
@@ -1262,17 +1347,13 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_ShowActorIdentity_When_ActorIsSet()
     {
-        // arrange: the curated global hint set already fills nearly all of
-        // an 80-column footer (see
-        // Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive),
-        // so a wider row is needed to leave room for the identity too.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), width: 120, actor: "pascal");
 
         // act
         var text = RenderToText(shell, 120);
 
-        // assert: the actor identity is shown alongside the footer hints,
-        // right-aligned after them.
+        // assert
         Assert.Contains("pascal", text);
         Assert.Contains("quit", text);
     }
@@ -1280,8 +1361,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_OmitActorIdentity_When_ActorIsNull()
     {
-        // arrange: the other TuiShell constructor can be built without an
-        // actor.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), actor: null);
 
         // act
@@ -1295,19 +1375,14 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_TruncateActorIdentity_When_NotEnoughRoomAfterHints()
     {
-        // arrange: the global hints fit an 80-column footer untruncated (see
-        // Render_Should_ShowGlobalFooterHints_When_NoOverlayOrToastIsActive),
-        // so a wider row still leaves comfortable room for the hints while
-        // an overlong actor name cannot fit in what is left over.
+        // arrange
         var longActor = new string('a', 60);
         var shell = CreateShell(new FakeTuiMode(), width: 120, actor: longActor);
 
         // act
         var text = RenderToText(shell, 120);
 
-        // assert: the identity truncates itself with an ellipsis rather than
-        // stealing width the hints would otherwise use, so the hints remain
-        // untouched and the full actor name does not appear.
+        // assert
         Assert.Contains("quit", text);
         Assert.Contains("…", text);
         Assert.DoesNotContain(longActor, text);
@@ -1316,9 +1391,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_OmitActorIdentity_When_HintsAlreadyFillTheRow()
     {
-        // arrange: at this width the hints themselves are already truncated
-        // (see Render_Should_TruncateFooterWithEllipsis_When_WidthCannotFitEveryHint),
-        // leaving no room at all for the identity.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), width: 15, actor: "someone");
 
         // act
@@ -1327,5 +1400,340 @@ public sealed class TuiShellTests
         // assert
         Assert.Contains("move", text);
         Assert.DoesNotContain("someone", text);
+    }
+
+    [Fact]
+    public void Render_Should_ShowOnlyTheAgentsTabsOwnFooterHints_When_TheAgentsTabIsActive()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now), width: 120);
+
+        // act
+        var text = RenderToText(shell, 120);
+
+        // assert
+        // None of the Tasks tab's zoom, edit, back, or quit hints leak in via the global table.
+        Assert.Contains(
+            "hjkl move  enter open  d delete  D delete offline  y copy id  r refresh  / search",
+            text);
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTheAgentDeleteDialog_When_DIsPressedWithAnAgentSelected()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains($"Delete agent '{agent.Name}'", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_DIsPressedWithNoAgentSelected()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("No agent selected.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_DeleteTheAgentAndRefresh_When_TheDeleteDialogIsConfirmed()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(out var mode, agentStore, new FakeTimeProvider(s_now));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.True(dirty);
+        Assert.Empty(mode.State.Rows);
+        Assert.Contains($"Deleted agent '{agent.Name}'", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTheDeleteOfflineDialogWithTheCount_When_ShiftDIsPressed()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        AddOfflineAgent(agentStore, "s-a");
+        AddOfflineAgent(agentStore, "s-b");
+        AddOnlineAgent(agentStore, "s-c");
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("Delete 2 offline or idle agents?", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_ShiftDIsPressedWithNoOfflineAgents()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(out _, agentStore, new FakeTimeProvider(s_now));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("No offline or idle agents to delete.", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_DeleteEveryOfflineAgentAndRefresh_When_TheDeleteOfflineDialogIsConfirmed()
+    {
+        // arrange
+        var agentStore = new FakeAgentStore(new FakeTimeProvider(s_now));
+        AddOfflineAgent(agentStore, "s-a");
+        AddOfflineAgent(agentStore, "s-b");
+        var online = AddOnlineAgent(agentStore, "s-c");
+        var shell = CreateAgentsShell(out var mode, agentStore, new FakeTimeProvider(s_now));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.True(dirty);
+        var remaining = Assert.Single(mode.State.Rows);
+        Assert.Equal(online.Name, remaining.Name);
+        Assert.Contains("Deleted 2 offline or idle agents.", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_DeleteEveryIdleAgentAndRefresh_When_TheDeleteOfflineDialogIsConfirmed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        time.Advance(AgentStateResolver.OnlineWindow + TimeSpan.FromMinutes(1));
+        var online = AddOnlineAgent(agentStore, "s-b");
+        var shell = CreateAgentsShell(out var mode, agentStore, time);
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('D', ConsoleKey.D, ConsoleModifiers.Shift)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        var rendered = RenderToText(shell);
+        Assert.True(dirty);
+        var remaining = Assert.Single(mode.State.Rows);
+        Assert.Equal(online.Name, remaining.Name);
+        Assert.Contains("Deleted 1 offline or idle agents.", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReportDirtyAndShowTheIdleBubble_When_ATickAdvancesPastTheOnlineWindow()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        AddOnlineAgent(agentStore, "s-b");
+        var shell = CreateAgentsShell(out _, agentStore, time);
+        // Move off row 0 so its bubble is never selection-highlighted, before or after the tick.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('j', ConsoleKey.J)));
+        AssertAnsiStylePrefixesText(RenderToAnsiText(shell), "agents.list.presence.online", "●");
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(31));
+        var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
+        var rendered = RenderToAnsiText(shell);
+
+        // assert
+        Assert.True(dirty);
+        AssertAnsiStylePrefixesText(rendered, "agents.list.presence.idle", "●");
+        Assert.Contains("31m ago", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReturnFalse_When_ATickHasNoTimeAdvance()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(out _, agentStore, time);
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
+
+        // assert
+        Assert.False(dirty);
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTheAgentPopover_When_EnterIsPressedWithAnAgentSelected()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains(agent.Name, RenderToText(shell, 100));
+        Assert.Contains("Harness:", RenderToText(shell, 100));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowToast_When_EnterIsPressedWithNoAgentSelected()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var shell = CreateAgentsShell(
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("No agent selected.", RenderToText(shell, 100));
+    }
+
+    [Fact]
+    public void Handle_Should_CopyThePopoversOwnAgentSessionId_When_YIsPressedAfterTheTableSelectionMovesToAnotherAgent()
+    {
+        // arrange
+        // deleting the popover agent moves the table selection to the only other agent
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var first = AddOnlineAgent(agentStore, "s-a");
+        var second = AddOnlineAgent(agentStore, "s-b");
+        var shell = CreateAgentsShell(
+            out var mode, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
+        var popoverAgent = mode.State.SelectedAgent!;
+        var otherAgent = popoverAgent.Name == first.Name ? second : first;
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        DeleteAgent(agentStore, popoverAgent.Name);
+        shell.Handle(new TuiEvent.DataChangedEvent());
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('y', ConsoleKey.Y)));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.Equal(otherAgent.Name, mode.State.SelectedAgent?.Name);
+        var statusLine = rendered.TrimEnd().Split('\n')[^1].Trim();
+        Assert.Equal($"i {popoverAgent.SessionId}", statusLine);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseThePopoverToTheTable_When_DeleteFromThePopoverIsConfirmed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        var agent = AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(
+            out var mode, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('d', ConsoleKey.D)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Empty(mode.State.Rows);
+        Assert.Contains($"Deleted agent '{agent.Name}'", rendered);
+        Assert.Contains("Agents (0 online / 0)", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseThePopover_When_EscapeIsPressed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\u001b', ConsoleKey.Escape)));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("hjkl move", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_MarkDirtyAndRedrawThePopoverAges_When_ATickEventArrivesWithThePopoverOpen()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var shell = CreateAgentsShell(
+            out _, agentStore, time, new FakeMailStore(), new FakeTaskStore(), new FakeMemoryStore());
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(2));
+        var dirty = shell.Handle(new TuiEvent.TickEvent(time.GetUtcNow()));
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("2m ago", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReloadThePopover_When_ADataChangedEventArrives()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new FakeAgentStore(time);
+        AddOnlineAgent(agentStore, "s-a");
+        var mailStore = new FakeMailStore();
+        var shell = CreateAgentsShell(out _, agentStore, time, mailStore, new FakeTaskStore(), new FakeMemoryStore());
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        mailStore.ParticipationRows = [CreateMailSummary(time.GetUtcNow())];
+        var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+        var rendered = RenderToText(shell, 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("New thread", rendered);
     }
 }

@@ -1,8 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// An audit log entry for a task mutation. Null old or new values mean the
-/// event carries no field transition.
+/// An audit event for a task mutation.
+/// The event type determines the meaning of its optional old and new values and comment.
 /// </summary>
 internal sealed class TaskEvent
 {

@@ -12,6 +12,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol;
@@ -1599,6 +1600,24 @@ public abstract class IntegrationTestBase
 
         // assert
         Assert.Equal(TimeSpan.FromSeconds(10), options.InitializationTimeout);
+    }
+
+    [Fact]
+    public async Task AddMcp_Should_NotDisposeRootLoggerFactory_When_SchemaServicesAreDisposed()
+    {
+        // arrange
+        var server = await CreateTestServerAsync(new TestMcpStorage());
+        var loggerFactory = server.Services.GetRequiredService<ILoggerFactory>();
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var schemaLoggerFactory = executor.Schema.Services.GetRequiredService<ILoggerFactory>();
+
+        // act
+        await ((IAsyncDisposable)executor.Schema.Services).DisposeAsync();
+
+        // assert
+        Assert.Same(loggerFactory, schemaLoggerFactory);
+        Assert.Null(Record.Exception(() => loggerFactory.CreateLogger("Test")));
     }
 
     protected abstract Task<TestServer> CreateTestServerAsync(

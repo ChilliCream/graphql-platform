@@ -3,7 +3,7 @@ title: HTTP Transport
 description: "How Hot Chocolate implements the GraphQL over HTTP specification: content negotiation, status codes, incremental delivery, and streaming transports like SSE."
 ---
 
-Hot Chocolate implements the latest version of the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md).
+Hot Chocolate implements the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md). The specification is a draft whose status code rules change between revisions, and the revision the server follows is selected with `HttpTransportVersion`, see [Transport Versions](#transport-versions).
 
 # Response Formats and Content Negotiation
 
@@ -18,11 +18,15 @@ Hot Chocolate uses the HTTP `Accept` header to determine how to format the respo
 
 When a client sends no `Accept` header or sends `*/*`, the server responds with `application/graphql-response+json` for single results. For streaming operations, the server defaults to `multipart/mixed` unless the client explicitly requests a different format.
 
-When the client sends `Accept: application/json`, it opts out of the GraphQL over HTTP specification and receives legacy-style responses with a `200` status code for all requests.
+A single result is written as `multipart/mixed` or `text/event-stream` only when the `Accept` header names that media type or its `multipart/*` or `text/*` range.
+
+When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation or asks for an operation kind the request method does not allow; only a request it cannot read, such as a body that is not valid JSON or a request that is not a well-formed GraphQL over HTTP request, and a batch it does not accept have a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
+
+Every response to a GET, HEAD, POST, or QUERY request on the GraphQL endpoint, other than a WebSocket upgrade, carries `Vary: Accept`, whatever its status code. A cache that honors `Vary` stores one response per distinct `Accept` value.
 
 # Types of Requests
 
-GraphQL requests over HTTP can be performed via either the POST or GET HTTP verb.
+GraphQL requests over HTTP can be performed via the POST, GET, or QUERY HTTP verb.
 
 ## POST Requests
 
@@ -107,6 +111,37 @@ Content-Type: application/json
 
 The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
+With [Nitro](./endpoints.md#tool) enabled, a GET or HEAD request on the endpoint path that no GraphQL middleware handles is served Nitro only when its `Accept` header rates `text/html` above every media type the default response formatter writes. Such requests include one without GraphQL parameters, one sent while GET requests are disabled, and one without a required [preflight header](#preflight-header-enforcement). The media types of a [custom formatter](#defaulthttpresponseformatter) are not part of this comparison. A missing or unparsable `Accept` header, `*/*`, and a tie count as a GraphQL request, which has a `404` status code, or a `405` status code when GET requests are disabled under [`Draft20260903`](#draft20260903).
+
+## QUERY Requests
+
+GraphQL can also be served through an HTTP QUERY request, the method defined in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html). A QUERY request carries the same JSON body as a POST request. HTTP defines QUERY as safe, idempotent, and cacheable.
+
+QUERY requests are disabled by default. Enable them with `EnableQueryRequests`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyServerOptions(o => o.EnableQueryRequests = true);
+```
+
+```http
+QUERY /graphql
+Content-Type: application/json
+Accept: application/graphql-response+json
+
+{
+  "query": "query($id: ID!) { user(id: $id) { name } }",
+  "variables": { "id": "QVBJcy5ndXJ1" }
+}
+```
+
+A QUERY request executes a single query operation. A mutation or subscription is refused with status code `422 Unprocessable Content`. A request batch, an operation batch (`?batchOperations=`), or a variable batch is refused with status code `400 Bad Request`. Incremental delivery (`@defer` and `@stream`) works as it does for GET requests.
+
+The request body must be `application/json`. Under `Draft20260903`, a QUERY request with another `Content-Type` has a `415 Unsupported Media Type` status code, the `Allow` header of the `405 Method Not Allowed` and `OPTIONS` responses lists `QUERY`, and the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, which advertises the method and the body media type it accepts.
+
+QUERY support follows the [proposed addition](https://github.com/graphql/graphql-over-http/pull/411) to the GraphQL over HTTP specification, which is not yet merged.
+
 # DefaultHttpResponseFormatter
 
 The `DefaultHttpResponseFormatter` abstracts how responses are delivered over HTTP.
@@ -168,6 +203,26 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
     }
 }
 ```
+
+## Adding Selecting Headers to Vary
+
+The endpoint adds `Accept` to the `Vary` header before the formatter runs. A custom formatter that selects a response by further request headers adds them to `Vary` without replacing it:
+
+```csharp
+public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
+{
+    protected override void OnWriteResponseHeaders(
+        OperationResult result,
+        FormatInfo format,
+        IHeaderDictionary headers)
+    {
+        headers.Append(HeaderNames.Vary, HeaderNames.AcceptLanguage);
+        base.OnWriteResponseHeaders(result, format, headers);
+    }
+}
+```
+
+A formatter can also remove `Accept` from `Vary` in the same method, keeping the other names in the header, for a cache that does not store responses whose `Vary` lists `Accept`.
 
 # JSON Serialization
 
@@ -300,7 +355,7 @@ Results are delivered as SSE events. This transport works well with browser `Eve
 Accept: text/event-stream
 ```
 
-Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+Each result is sent as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message with an empty `data:` field signals the end of the stream.
 
 ## JSON Lines (`application/jsonl`)
 
@@ -323,9 +378,49 @@ Hot Chocolate supports operation batching, request batching, and variable batchi
 
 For full details on how to enable and use batching, see the [Batching](./batching.md) page.
 
+# Transport Versions
+
+The GraphQL over HTTP specification is a draft, and its status code rules have changed between revisions. `HttpResponseFormatterOptions.HttpTransportVersion` selects the revision the server follows:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(
+        new HttpResponseFormatterOptions
+        {
+            HttpTransportVersion = HttpTransportVersion.Draft20260903
+        });
+```
+
+| Version         | Description                                                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Latest`        | The default. Resolves to `Draft20250508`.                                                                                                                        |
+| `Legacy`        | Predates the specification. A missing `Accept` header or `*/*` is answered as `application/json`, and every `application/json` response has a `200` status code. |
+| `Draft20230127` | Resolves to `Draft20250508`.                                                                                                                                     |
+| `Draft20250508` | The specification revision of 2025-05-08.                                                                                                                        |
+| `Draft20260903` | The specification revision of 2026-09-03, see below.                                                                                                             |
+
+A value outside this list throws an `ArgumentOutOfRangeException` when the formatter is registered.
+
+## Draft20260903
+
+`Draft20260903` changes the following compared to `Draft20250508`:
+
+- An `application/json` response takes the status code of `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`. Under `Draft20250508`, an `application/json` response has a `200` status code for every well-formed request and a `400` status code for a request the server cannot interpret.
+- A result that carries both `data` and `errors` has a `294` status code. Under `Draft20250508`, it has a `200` status code.
+- A request the server read but cannot execute has a `422` status code: a request that is not a well-formed GraphQL over HTTP request, a document that fails validation, an operation that cannot be determined, and variables that cannot be coerced. Under `Draft20250508`, these requests have a `400` status code for `application/graphql-response+json`; for `application/json`, only the request that is not well-formed has a `400` status code and the others have `200`. A request body that is not valid JSON has a `400` status code under both. A GraphQL document that cannot be parsed has a `400` status code under both for `application/graphql-response+json`, and a `200` status code under `Draft20250508` for `application/json`.
+- A request refused for its size has a `413` status code: a `POST` or `QUERY` request whose JSON body, or a multipart request whose `operations` field, exceeds the [maximum request size](./endpoints.md#maxallowedrequestsize), a multipart request with a section over `FormOptions.MultipartBodyLengthLimit`, and a request whose body exceeds the web server's limit or, when `FormOptions.BufferBody` is set, `FormOptions.BufferBodyLengthLimit`. Under `Draft20250508`, it has a `400` status code.
+- A request on the GraphQL endpoint whose method the endpoint does not support has a `405` status code and an `Allow` header listing the supported methods, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, all three have a `404` status code.
+- When `EnableQueryRequests` is `true`, the `Allow` header lists `QUERY`, the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, and a `QUERY` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, that request has a `404` status code.
+
+In Azure Functions, a request reaches Hot Chocolate only with a method the function's `HttpTrigger` accepts, and the Functions host gives any other method a `404` status code. A trigger that lists no methods, as the one in the `graphql-azf` template does, passes every method to Hot Chocolate.
+
+> [!NOTE]
+> `294` is not registered with IANA. Clients and intermediaries that do not recognize it treat it as `200` per RFC 9110, and it is not heuristically cacheable, so a response without cache headers is not stored. Infrastructure that acts on a fixed list of status codes can still treat it differently from `200`. nginx's `add_header` directive, for example, emits headers only for a fixed list of codes unless the `always` flag is set, so CORS and security headers added that way are missing on a `294` response. Before enabling `Draft20260903`, verify that headers and caching behave as intended for `294` through your own infrastructure.
+
 # Supporting Legacy Clients
 
-Your clients might not yet support the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md). This can be problematic if they cannot handle a different response `Content-Type` or HTTP status codes besides `200`.
+Your clients might not yet support the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md). This can be problematic if they cannot handle a different response `Content-Type` or HTTP status codes besides `200`.
 
 If you have control over the client, you can either:
 
@@ -340,7 +435,7 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 });
 ```
 
-An `Accept` header with the value `application/json` opts you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` becomes `application/json` and a status code of 200 is returned for every request, even if it had validation errors or a valid response could not be produced.
+An `Accept` header with the value `application/json` makes the response `Content-Type` `application/json`. Under `Legacy` and `Draft20250508`, it also opts the client out of the status codes of the [2025-05-08 revision](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) of the GraphQL over HTTP specification: a status code of 200 is returned for every well-formed request, even if it had validation errors. Under `Draft20260903`, the specification's status codes apply to `application/json` as well, see [Transport Versions](#transport-versions).
 
 # WebSocket Transport
 
@@ -381,10 +476,10 @@ app.Run();
 
 The `GraphQLSocketOptions` class controls WebSocket behavior:
 
-| Property                          | Type        | Default                    | Description                                                                                                                                                                    |
-| --------------------------------- | ----------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | `TimeSpan.FromSeconds(10)` | The time a client has to send a `connection_init` message after opening the WebSocket. If the client does not initialize within this window, the server closes the connection. |
-| `KeepAliveInterval`               | `TimeSpan?` | `TimeSpan.FromSeconds(5)`  | The interval at which the server sends keep-alive pings to prevent idle connections from being dropped. Set to `null` to disable keep-alive.                                   |
+| Property                          | Type        | Default                             | Description                                                                                                                                                                    |
+| --------------------------------- | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | `#!csharp TimeSpan.FromSeconds(10)` | The time a client has to send a `connection_init` message after opening the WebSocket. If the client does not initialize within this window, the server closes the connection. |
+| `KeepAliveInterval`               | `TimeSpan?` | `#!csharp TimeSpan.FromSeconds(5)`  | The interval at which the server sends keep-alive pings to prevent idle connections from being dropped. Set to `null` to disable keep-alive.                                   |
 
 Configure these options through `ModifyServerOptions`:
 
@@ -451,7 +546,7 @@ event: complete
 data:
 ```
 
-Each result is delivered as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message signals the end of the stream.
+Each result is delivered as an `event: next` message with the JSON payload in the `data:` field. A final `event: complete` message with an empty `data:` field signals the end of the stream.
 
 ## SSE for Single Results
 
@@ -485,7 +580,7 @@ app.MapGraphQL().WithOptions(o =>
 });
 ```
 
-If a request is rejected because it lacks the required preflight header, the server responds with a `400 Bad Request` status.
+A multipart request without the required preflight header is rejected with a `400 Bad Request` status. A GET request without it is executed only when it sends `Content-Type: application/json`; otherwise it has a `404` status code, or, with [Nitro](./endpoints.md#tool) enabled and an `Accept` header that prefers `text/html`, it is served Nitro.
 
 # Next Steps
 

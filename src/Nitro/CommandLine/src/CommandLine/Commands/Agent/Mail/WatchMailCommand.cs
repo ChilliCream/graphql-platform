@@ -108,7 +108,7 @@ internal sealed class WatchMailCommand : Command
                 {
                     resultHolder.SetResult(
                         new ListResult<MailMessageDetailResult>(
-                            arrived.Select(m => MailMessageDetailResult.Create(m, actor)).ToArray()));
+                            arrived.Select(m => MailMessageDetailResult.Create(m, actor, [])).ToArray()));
 
                     return ExitCodes.Success;
                 }
@@ -204,11 +204,9 @@ internal sealed class WatchMailCommand : Command
     }
 
     /// <summary>
-    /// True when <paramref name="message"/> is at or before the cursor, i.e.
-    /// it was already visible as of the cursor and must not be re-delivered.
-    /// A message cursor excludes exactly the cursor message itself and
-    /// everything earlier; a timestamp cursor excludes everything at or
-    /// before that instant, having no message to tiebreak against.
+    /// True when <paramref name="message"/> is at or before the cursor: a message
+    /// cursor excludes the cursor message and everything earlier, and a timestamp
+    /// cursor excludes everything at or before that instant.
     /// </summary>
     private static bool IsAtOrBeforeCursor(MailMessage message, MailCursor cursor)
     {

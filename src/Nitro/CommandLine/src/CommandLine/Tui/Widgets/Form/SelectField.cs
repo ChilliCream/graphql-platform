@@ -16,6 +16,7 @@ internal sealed class SelectField : FormField
     private const string SelectedRowStyle = "aqua";
     private const string OptionSeparator = "  ";
     private const int MinRenderWidth = 4;
+    private const int PanelBorderHeight = 2;
 
     private readonly IReadOnlyList<SelectOption> _options;
 
@@ -76,10 +77,22 @@ internal sealed class SelectField : FormField
     }
 
     public override IRenderable Render(int width, bool focused)
+        => RenderWithMaxContentRows(width, focused, maxContentRows: null);
+
+    public override IRenderable Render(int width, bool focused, int maxHeight)
+    {
+        var errorHeight = ShowErrors && Validate() is not null ? 1 : 0;
+        var maxContentRows = Math.Max(1, maxHeight - PanelBorderHeight - errorHeight);
+
+        return RenderWithMaxContentRows(width, focused, maxContentRows);
+    }
+
+    private IRenderable RenderWithMaxContentRows(int width, bool focused, int? maxContentRows)
     {
         var innerWidth = Math.Max(1, width - MinRenderWidth);
         var lines = new List<List<string>>();
         var lineWidth = 0;
+        var selectedLineIndex = 0;
 
         for (var i = 0; i < _options.Count; i++)
         {
@@ -93,11 +106,22 @@ internal sealed class SelectField : FormField
                 lineWidth = 0;
             }
 
+            if (isSelected)
+            {
+                selectedLineIndex = lines.Count - 1;
+            }
+
             var marker = isSelected ? SelectedMarker : UnselectedMarker;
             var option = $"{marker} {Markup.Escape(_options[i].Label)}";
 
             lines[^1].Add(focused && isSelected ? $"[{SelectedRowStyle}]{option}[/]" : option);
             lineWidth += (lineWidth > 0 ? OptionSeparator.Length : 0) + plainWidth;
+        }
+
+        if (maxContentRows is { } maxRows && lines.Count > maxRows)
+        {
+            var start = Math.Clamp(selectedLineIndex - (maxRows / 2), 0, lines.Count - maxRows);
+            lines = lines.GetRange(start, maxRows);
         }
 
         var rows = lines

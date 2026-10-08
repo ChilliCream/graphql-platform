@@ -14,6 +14,6 @@ internal sealed class StopHookCommand : Command
 
         this.SetHookAction(
             "Stop",
-            (handler, payload, ct) => handler.HandleStopAsync(payload, false, ct));
+            (handler, payload, ct) => handler.HandleStopAsync(payload, skipSessionFileLookup: false, ct));
     }
 }

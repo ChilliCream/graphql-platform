@@ -14,10 +14,8 @@ internal sealed record MailMessageCreation
     public IReadOnlyList<string> Cc { get; init; } = [];
 
     /// <summary>
-    /// Whether this send advances every recipient's actor-wake generation.
-    /// Defaults to <see cref="MailWakePolicy.Skip"/> for callers not yet
-    /// migrated to select a policy; a caller that wants recipients woken
-    /// must set this to <see cref="MailWakePolicy.Enqueue"/> explicitly.
+    /// Whether sending advances recipients' wake generations.
+    /// Defaults to <see cref="MailWakePolicy.Skip"/>.
     /// </summary>
     public MailWakePolicy WakePolicy { get; init; } = MailWakePolicy.Skip;
 }

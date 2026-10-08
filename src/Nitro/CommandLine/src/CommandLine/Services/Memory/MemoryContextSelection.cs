@@ -1,10 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The entries a <c>context</c> request admitted, and, when the very first
-/// candidate alone exceeded the character budget, that candidate's id so
-/// the caller can report it as omitted rather than silently returning
-/// nothing.
+/// Entries admitted to a context request, in input order.
+/// <see cref="OmittedEntryId"/> identifies a first entry that exceeds the character
+/// budget and is null otherwise.
 /// </summary>
 internal sealed record MemoryContextSelection(
     IReadOnlyList<MemoryRecord> Entries, string? OmittedEntryId);

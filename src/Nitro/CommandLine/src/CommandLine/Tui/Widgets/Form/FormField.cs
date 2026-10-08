@@ -42,10 +42,8 @@ internal abstract class FormField
     public bool Required { get; }
 
     /// <summary>
-    /// Whether <see cref="Render"/> should surface this field's validation
-    /// error, if any. The hosting <see cref="Form"/> sets this once the field
-    /// has been touched or a submit was attempted, so a required field stays
-    /// quiet until the user has had a chance to fill it in.
+    /// Whether <see cref="Render(int, bool)"/> should surface this field's validation error, if any. The hosting
+    /// <see cref="Form"/> sets this once the field has been touched or a submit was attempted.
     /// </summary>
     public bool ShowErrors { get; set; }
 
@@ -68,6 +66,13 @@ internal abstract class FormField
     public abstract IRenderable Render(int width, bool focused);
 
     /// <summary>
+    /// Renders the field within the supplied visual-row budget. Fields that cannot
+    /// adapt their own content return their natural rendering.
+    /// </summary>
+    public virtual IRenderable Render(int width, bool focused, int maxHeight)
+        => Render(width, focused);
+
+    /// <summary>
     /// Runs the field's validator against its current value, returning the error
     /// message to render under the field, or <see langword="null"/> when the value
     /// is valid or the field has no validator.
@@ -75,16 +80,14 @@ internal abstract class FormField
     public string? Validate() => _validator?.Invoke(GetValue());
 
     /// <summary>
-    /// Renders <paramref name="text"/> as the dim placeholder line a field body
-    /// shows in place of a blank line, so an empty field never collapses to a
-    /// border pair with no interior line.
+    /// Renders <paramref name="text"/> as the dim placeholder line a field body shows in place of a
+    /// blank line.
     /// </summary>
     protected static string RenderPlaceholder(string text) => $"[grey italic]{Markup.Escape(text)}[/]";
 
     /// <summary>
-    /// Wraps <paramref name="content"/> in the bordered panel shared by every field
-    /// renderer, with the field's title, focus-and-validation-driven border style,
-    /// and validation error line appended underneath when present.
+    /// Renders the content with a titled border styled for focus or a visible
+    /// validation error. A visible error is also rendered below the panel.
     /// </summary>
     protected IRenderable RenderPanel(IRenderable content, int width, bool focused)
     {

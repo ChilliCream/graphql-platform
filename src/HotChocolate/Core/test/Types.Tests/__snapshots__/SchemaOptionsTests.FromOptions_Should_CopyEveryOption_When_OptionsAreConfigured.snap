@@ -23,6 +23,7 @@
   "EnableFlagEnums": true,
   "EnableDefer": false,
   "EnableStream": false,
+  "EnableCovariantFieldMerging": true,
   "EnableEmptySelectionSets": false,
   "StripLeadingIFromInterface": false,
   "EnableTag": true,

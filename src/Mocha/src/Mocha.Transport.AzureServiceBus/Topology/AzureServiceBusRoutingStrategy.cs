@@ -289,23 +289,34 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
             return;
         }
 
-        if (Transport.BindMode != MessagingBindMode.Implicit)
-        {
-            return;
-        }
+        // Under explicit binding, a target that is not declared is recorded in the topology
+        // but never provisioned. The sender does not own it.
+        var bindImplicitly = Transport.BindMode == MessagingBindMode.Implicit;
 
         if (azureConfiguration.TopicName is not null)
         {
             _topology.GetOrAddTopic(
                 azureConfiguration.TopicName,
-                static _ => new AzureServiceBusTopicConfiguration());
+                bindImplicitly
+                    ? static _ => new AzureServiceBusTopicConfiguration()
+                    : static _ => new AzureServiceBusTopicConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
         if (azureConfiguration.QueueName is not null)
         {
             _topology.GetOrAddQueue(
                 azureConfiguration.QueueName,
-                static _ => new AzureServiceBusQueueConfiguration());
+                bindImplicitly
+                    ? static _ => new AzureServiceBusQueueConfiguration()
+                    : static _ => new AzureServiceBusQueueConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
     }
 

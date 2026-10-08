@@ -3,6 +3,9 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
@@ -756,7 +759,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -817,7 +822,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -884,7 +891,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -2029,5 +2038,299 @@ public class DeferTests : FusionTestBase
         // assert
         // The incremental payload carries both birthdate and reviewCount, with birthdate non-null.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_RootFragment_Should_DeliverDeferredFetch_When_RootSelectsNothingElse()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server1)]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_RootFragment_Should_DeliverDeferredFetch_When_RootSelectsOnlyTypename()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync([("A", server1)]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                __typename
+                ... @defer {
+                    users {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_ResolveAllPrerequisites_When_RequirementMixesNativeAndComputedFields()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<MixedRequirementSourceA.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<MixedRequirementSourceB.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<MixedRequirementSourceC.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                product {
+                    id
+                    ... @defer {
+                        total
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_ResolveAllPrerequisites_When_RequirementSelectsNestedFieldWithOwnRequirement()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<NestedRequirementSourceA.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NestedRequirementSourceB.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<NestedRequirementSourceC.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                product {
+                    id
+                    ... @defer {
+                        total
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    private static class MixedRequirementSourceA
+    {
+        public class Query
+        {
+            public Product GetProduct() => new(1);
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int Raw => 7;
+
+            public int GetComputed([Require("value")] int value) => value * 10;
+        }
+    }
+
+    private static class MixedRequirementSourceB
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int Value => 3;
+        }
+    }
+
+    private static class MixedRequirementSourceC
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int GetTotal([Require("{ raw computed }")] TotalInput input)
+                => input.Raw + input.Computed;
+        }
+
+        public record TotalInput(int Raw, int Computed);
+    }
+
+    private static class NestedRequirementSourceA
+    {
+        public class Query
+        {
+            public Product GetProduct() => new(1);
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+
+            [Lookup]
+            [Internal]
+            public User? GetUserById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public User Owner => new(2);
+        }
+
+        public record User([property: ID] int Id)
+        {
+            public int Raw => 5;
+
+            public int GetComputed([Require("value")] int value) => value * 10;
+        }
+    }
+
+    private static class NestedRequirementSourceB
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public User? GetUserById([ID] int id) => new(id);
+        }
+
+        public record User([property: ID] int Id)
+        {
+            public int Value => 4;
+        }
+    }
+
+    private static class NestedRequirementSourceC
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public int GetTotal([Require("owner.{ raw computed }")] OwnerInput input)
+                => input.Raw * 1000 + input.Computed;
+        }
+
+        public record OwnerInput(int Raw, int Computed);
     }
 }

@@ -421,11 +421,4 @@ public sealed class SearchMemoryCommandTests(NitroCommandFixture fixture)
 
         Assert.Equal([project.Id], ids);
     }
-
-    // The three self-healing scenarios the ticket's index coherence contract
-    // requires: a fresh clone (markdown present, no index yet), a manual
-    // edit outside the CLI (stale fingerprint), and an interrupted write
-    // (corrupt index file). In every case, `search` must transparently
-    // rebuild rather than crash or serve wrong results.
-
 }

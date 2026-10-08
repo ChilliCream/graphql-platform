@@ -1,15 +1,12 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using System.IO.Compression;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.Client.Schemas;
-using ChilliCream.Nitro.CommandLine.Commands.Schemas;
-using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using HotChocolate.Fusion.Packaging;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -28,6 +25,7 @@ internal sealed class FusionValidateCommand : Command
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
         this.AddExamples(
@@ -49,7 +47,6 @@ internal sealed class FusionValidateCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-        var schemasClient = services.GetRequiredService<ISchemasClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
@@ -61,6 +58,8 @@ internal sealed class FusionValidateCommand : Command
         var legacyArchiveFile = parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var sourceSchemaFiles =
             parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         var exclusiveOptionsCount = new[]
         {
@@ -150,53 +149,71 @@ internal sealed class FusionValidateCommand : Command
 
         async Task<int> ValidateAsync(INitroConsoleActivity activity, Stream archiveStream)
         {
-            IDisposable disposableArchive;
-            Stream schemaStream;
+            var result = await fusionConfigurationClient.StartFusionConfigurationValidationAsync(
+                apiId,
+                stageName,
+                archiveStream,
+                source,
+                ct);
 
-            if (IsFarFormat(archiveStream))
+            if (result.Errors?.Count > 0)
             {
-                var archive = FusionArchive.Open(archiveStream, leaveOpen: true);
-
-                schemaStream = await LoadSchemaFile(archive, ct);
-
-                disposableArchive = archive;
-            }
-            else
-            {
-                var package = FusionGraphPackage.Open(archiveStream, FileAccess.Read);
-
-                schemaStream = await LoadSchemaFile(package, ct);
-
-                disposableArchive = package;
-            }
-
-            try
-            {
-                var validationResult = await SchemaHelpers.ValidateSchemaAsync(
-                    activity,
-                    console,
-                    schemasClient,
-                    apiId,
-                    stageName,
-                    schemaStream,
-                    source: null,
-                    ct);
-
-                if (validationResult is SchemaValidationResult.Failed failed)
+                foreach (var error in result.Errors)
                 {
-                    activity.Fail(failed.Details, "Fusion configuration failed validation.");
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
 
-                    throw new ExitException("Fusion configuration failed validation.");
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
-                activity.Success("Fusion configuration passed validation.");
+                throw new ExitException();
+            }
 
-                return ExitCodes.Success;
-            }
-            finally
+            var requestId = result.Id;
+
+            if (string.IsNullOrWhiteSpace(requestId))
             {
-                disposableArchive.Dispose();
+                throw MutationReturnedNoData();
             }
+
+            activity.Update($"Validation request created. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
+
+            await foreach (var @event in fusionConfigurationClient
+                               .SubscribeToFusionConfigurationValidationAsync(requestId, ct))
+            {
+                switch (@event)
+                {
+                    case IFusionConfigurationValidationFailed validationFailed:
+                        var errorTree = new Tree("");
+                        errorTree.AddFusionConfigurationValidationErrors(validationFailed);
+
+                        activity.Fail(errorTree, "Fusion configuration failed validation.");
+
+                        throw Exit("Fusion configuration failed validation.");
+
+                    case IFusionConfigurationValidationSuccess:
+                        activity.Success("Fusion configuration passed validation.");
+
+                        return ExitCodes.Success;
+
+                    case IOperationInProgress:
+                    case IValidationInProgress:
+                        activity.Update(Messages.Validating);
+                        break;
+
+                    default:
+                        activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                        break;
+                }
+            }
+
+            throw Exit(Messages.UnknownServerResponse);
         }
 
         INitroConsoleActivity StartActivity()
@@ -204,48 +221,6 @@ internal sealed class FusionValidateCommand : Command
             return console.StartActivity(
                 $"Validating Fusion configuration of API '{apiId.EscapeMarkup()}' against stage '{stageName.EscapeMarkup()}'",
                 "Failed to validate the Fusion configuration.");
-        }
-    }
-
-    private static async Task<Stream> LoadSchemaFile(FusionArchive archive, CancellationToken ct)
-    {
-        var latestVersion = await archive.GetLatestSupportedGatewayFormatAsync(ct);
-        var configuration = await archive.TryGetGatewayConfigurationAsync(latestVersion, ct);
-
-        if (configuration is null)
-        {
-            throw new InvalidOperationException(
-                $"Failed to retrieve gateway configuration from the Fusion archive (format version: {latestVersion}). "
-                + "The archive may be corrupted, unsupported, or missing required configuration.");
-        }
-
-        return await configuration.OpenReadSchemaAsync(ct);
-    }
-
-    private static async Task<Stream> LoadSchemaFile(FusionGraphPackage package, CancellationToken ct)
-    {
-        var schemaNode = await package.GetSchemaAsync(ct);
-
-        var schemaFileStream = new MemoryStream();
-        await using var streamWriter = new StreamWriter(schemaFileStream, leaveOpen: true);
-        await streamWriter.WriteAsync(schemaNode.ToString());
-        await streamWriter.FlushAsync(ct);
-        schemaFileStream.Position = 0;
-
-        return schemaFileStream;
-    }
-
-    public static bool IsFarFormat(Stream stream)
-    {
-        try
-        {
-            using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
-
-            return zip.GetEntry("archive-metadata.json") is not null;
-        }
-        catch
-        {
-            return false;
         }
     }
 }

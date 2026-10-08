@@ -1,4 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 using FormUnderTest = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 
@@ -11,6 +13,13 @@ public sealed class FormTests
     private static ConsoleKeyInfo Key(ConsoleKey key, bool shift = false) => new('\0', key, shift, false, false);
 
     private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
+    private static IReadOnlyList<Segment> RenderSegments(IRenderable renderable, TestConsole console, int width)
+    {
+        var options = RenderOptions.Create(console, console.Profile.Capabilities);
+
+        return [.. renderable.Render(options, width)];
+    }
 
     private static FormUnderTest CreateForm(
         Func<FormValue, string?>? titleValidator = null,
@@ -129,8 +138,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_TraverseFocus_When_DownArrowOnSelectField()
     {
-        // arrange: the select field itself moves with left and right, so down
-        // arrow is left for the form to interpret as field-to-field traversal.
+        // arrange
         var form = CreateForm();
         form.HandleKey(Key(ConsoleKey.Tab));
 
@@ -200,8 +208,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_ReturnNull_When_EnterWhileFieldFocused()
     {
-        // arrange: Enter only activates a button, so it must not submit while
-        // focus is still on a field.
+        // arrange
         var form = CreateForm();
 
         // act
@@ -263,8 +270,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_Submit_When_CtrlSWhileFieldFocused()
     {
-        // arrange: Ctrl+S is the fallback chord for terminals that deliver
-        // Ctrl+Enter identically to a plain Enter.
+        // arrange
         var form = CreateForm();
         form.HandleKey(Key('h'));
 
@@ -279,8 +285,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_NotInsertNewline_When_CtrlEnterInTextAreaField()
     {
-        // arrange: a plain Enter in a text area inserts a newline, but the
-        // save chord must take priority over the field's own key handling.
+        // arrange
         var fields = new FormField[] { new TextAreaField("notes", "Notes") };
         var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
         var form = new FormUnderTest("Edit Task", fields, buttons);
@@ -297,8 +302,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_NotSubmit_When_PlainEnterInTextAreaField()
     {
-        // arrange: confirms the save chord is Ctrl-gated, not a change to
-        // the text area's own plain-Enter newline behavior.
+        // arrange
         var fields = new FormField[] { new TextAreaField("notes", "Notes") };
         var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
         var form = new FormUnderTest("Edit Task", fields, buttons);
@@ -330,8 +334,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_IgnoreSelectedButton_When_CtrlEnterOnSecondaryButton()
     {
-        // arrange: focus sits on Cancel, but the save chord always targets
-        // the primary action, not whichever button is currently selected.
+        // arrange
         var form = CreateForm();
         form.HandleKey(Key('h'));
         form.HandleKey(Key(ConsoleKey.Tab));
@@ -389,8 +392,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(80, 20));
 
-        // assert: the field has neither been touched nor has a submit been
-        // attempted, so the error stays hidden.
+        // assert
         Assert.DoesNotContain("Title is required.", console.Output);
     }
 
@@ -401,8 +403,7 @@ public sealed class FormTests
         var form = CreateForm(titleValidator: _ => "always invalid");
         var console = new TestConsole().Width(80).Height(20);
 
-        // act: typing into the title field touches it even though the
-        // validator still fails afterwards.
+        // act
         form.HandleKey(Key('h'));
         console.Write(form.Render(80, 20));
 
@@ -454,8 +455,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(160, 20));
 
-        // assert: the outer panel border is centered and never wider than 80
-        // columns, however wide the frame around it is.
+        // assert
         var borderLine = console.Output
             .Split('\n')
             .First(line => line.Contains("Edit Task"));
@@ -476,14 +476,17 @@ public sealed class FormTests
         // act
         console.Write(form.Render(80, 20));
 
-        // assert: the line directly above the button row carries no field
-        // content, only the panel's side borders.
+        // assert
         var lines = console.Output.Split('\n');
         var buttonLineIndex = Array.FindIndex(lines, line => line.Contains("Save"));
-        var lineAboveButtons = lines[buttonLineIndex - 1];
+        var rowsAroundSeparator = lines[(buttonLineIndex - 2)..(buttonLineIndex + 1)];
 
-        Assert.DoesNotContain("Status", lineAboveButtons);
-        Assert.DoesNotContain("(o)", lineAboveButtons);
+        rowsAroundSeparator.MatchInlineSnapshots(
+            [
+                "│ ╰──────────────────────────────────────────────────────────────────────────╯ │",
+                "│                                                                              │",
+                "│  Save                           Cancel                                       │"
+            ]);
     }
 
     private static FormUnderTest CreateTallForm(int fieldCount)
@@ -519,6 +522,161 @@ public sealed class FormTests
     }
 
     [Fact]
+    public void Render_Should_KeepFocusedTextAreaWithinFrameHeight_When_FieldExceedsAvailableHeight()
+    {
+        // arrange: the cursor starts on the last line of a text area taller than the form's field budget.
+        var fields = new FormField[]
+        {
+            new TextAreaField(
+                "notes",
+                "Notes",
+                initialValue: "first\nsecond\nthird\nfourth\nfifth\nsixth\nseventh\neighth\nninth\ntenth\neleventh\ntwelfth\nthirteenth\nfourteenth\nfifteenth\nsixteenth\nseventeenth\neighteenth\nnineteenth\ncursor line",
+                visibleLines: 20)
+        };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", fields, buttons);
+        var console = new TestConsole().Width(80).Height(30);
+
+        // act
+        console.Write(form.Render(80, 10));
+
+        // assert
+        var lines = console.Output.Split('\n');
+        Assert.True(lines.Length <= 10, $"expected at most 10 lines, got {lines.Length}.");
+        Assert.Contains("cursor line", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_KeepFocusedEditableListCaretAndSaveWithinFrameHeight_When_FieldExceedsAvailableHeight()
+    {
+        // arrange
+        var field = new EditableListField(
+            "labels",
+            "Labels",
+            initialValues: Enumerable.Range(1, 20).Select(index => $"entry-{index}"));
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", [field], buttons);
+        var console = new TestConsole().Width(80).Height(100);
+
+        for (var i = 0; i < 19; i++)
+        {
+            form.HandleKey(Key(ConsoleKey.DownArrow));
+        }
+
+        form.HandleKey(Key(ConsoleKey.Enter));
+        form.HandleKey(Key(ConsoleKey.Home));
+
+        // act
+        var rendered = form.Render(80, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 80);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("entry-20", console.Output);
+        Assert.Contains("Save", console.Output);
+        Assert.Contains(segments, segment =>
+            segment.Text == "e"
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
+    public void Render_Should_KeepMiddleTextAreaCaretAndSaveWithinFrameHeight_When_IndicatorsDoNotFit()
+    {
+        // arrange
+        var fields = new FormField[]
+        {
+            new TextAreaField("first", "First", initialValue: "first"),
+            new TextAreaField("middle", "Middle", initialValue: "cursor"),
+            new TextAreaField("last", "Last", initialValue: "last")
+        };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", fields, buttons);
+        var console = new TestConsole().Width(80).Height(100);
+        form.HandleKey(Key(ConsoleKey.Tab));
+        form.HandleKey(Key(ConsoleKey.Home));
+
+        // act
+        var rendered = form.Render(80, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 80);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("▲ more fields above", console.Output);
+        Assert.Contains("▼ more fields below", console.Output);
+        Assert.Contains("Save", console.Output);
+        Assert.Contains(segments, segment =>
+            segment.Text == "c"
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
+    public void Render_Should_KeepInvalidMiddleTextFieldAndSaveWithinFrameHeight_When_IndicatorsAreVisible()
+    {
+        // arrange
+        var fields = new FormField[]
+        {
+            new TextField("to", "To", initialValue: "recipient"),
+            new TextField(
+                "subject",
+                "Subject",
+                validator: value => value is FormValue.Text { Value.Length: 0 } ? "Subject is required." : null),
+            new TextField("body", "Body", initialValue: "message")
+        };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Compose", fields, buttons);
+        var console = new TestConsole().Width(80).Height(100);
+        form.HandleKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var rendered = form.Render(80, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 80);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.All(
+            ["Subject is required.", "▲ more fields above", "▼ more fields below", "Save"],
+            text => Assert.Contains(text, console.Output));
+        Assert.Contains(segments, segment =>
+            segment.Text == " "
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
+    public void Render_Should_KeepLateEditableListCaretAndSaveWithinFrameHeight_When_LongEntryWraps()
+    {
+        // arrange
+        var field = new EditableListField(
+            "labels",
+            "Labels",
+            initialValues: ["first", new string('x', 96), "last"]);
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", [field], buttons);
+        var console = new TestConsole().Width(24).Height(100);
+        form.HandleKey(Key(ConsoleKey.DownArrow));
+        form.HandleKey(Key(ConsoleKey.Enter));
+        form.HandleKey(Key(ConsoleKey.LeftArrow));
+
+        // act
+        var rendered = form.Render(24, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 24);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("Save", console.Output);
+        Assert.Contains(segments, segment =>
+            segment.Text == "x"
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
     public void Render_Should_ShowFocusedField_When_ScrolledPastTheFirstScreen()
     {
         // arrange: the same oversized form, focus moved to the last field.
@@ -533,8 +691,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(80, 23));
 
-        // assert: the focused field's label is visible even though it is the
-        // seventh of seven fields and the frame cannot show them all at once.
+        // assert
         Assert.Contains("Field 6", console.Output);
     }
 
@@ -562,8 +719,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(10, 5));
 
-        // assert: the narrow frame wraps the notice onto several lines, so
-        // only a fragment that survives wrapping is checked.
+        // assert
         Assert.Contains("too small", console.Output);
     }
 

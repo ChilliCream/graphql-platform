@@ -57,7 +57,7 @@ operationPlan:
           y @include(if: $b)
         }
       name: testQuery
-      hash: eb7993cfb23b39ea0b1548b2b1f84812
+      hash: c40243bc08cce7db5f31d769325699ce
       searchSpace: 1
       expandedNodes: 1
   nodes:

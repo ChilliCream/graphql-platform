@@ -7,10 +7,8 @@ using System.Text.Json;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Protocol-1 client for Claude Code's local cross-session inbox. The
-/// endpoint and compatibility fields are always read from Claude Code's
-/// own per-process registry row. Authentication is feature-detected from
-/// the matching key file, never inferred from the installed CLI version.
+/// Sends messages using protocol 1 to a Claude Code session's advertised local endpoint.
+/// Authentication uses a key matching the target process when one is present.
 /// </summary>
 internal sealed class ClaudePeerClient : IClaudePeerClient
 {
@@ -44,12 +42,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
     {
         try
         {
-            // Always read fresh: the registry and key files are re-read on
-            // every call rather than cached, so an attempt always sees the
-            // endpoint's current metadata instead of a stale prior read.
-            // The registry is keyed by pid on disk, so the row carrying this
-            // session id is found by scanning; the pid it names is only ever
-            // used to locate that row's key files.
+            // Reads current registry files to find the session's advertised endpoint.
             var registryJson = await FindRegistryAsync(sessionId, cancellationToken);
 
             if (registryJson is null)
@@ -65,7 +58,9 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
                 return ClaudePeerSendOutcome.EndpointGone;
             }
 
-            if (!root.TryGetProperty("peerProtocol", out var protocolElement)
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("peerProtocol", out var protocolElement)
+                || protocolElement.ValueKind != JsonValueKind.Number
                 || !protocolElement.TryGetInt32(out var protocol)
                 || protocol != SupportedProtocol)
             {
@@ -81,8 +76,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && key.Token is null)
             {
-                // Claude Code requires inbox authentication on Windows. A
-                // missing key means this endpoint cannot be spoken safely.
+                // Windows endpoints require an authentication key.
                 return ClaudePeerSendOutcome.InvalidAuth;
             }
 
@@ -144,9 +138,8 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
     }
 
     /// <summary>
-    /// The registry row carrying <paramref name="sessionId"/>, or null when
-    /// no row does. The directory holds one file per live session, named by
-    /// its pid, so the row is found by reading them rather than by name.
+    /// Returns the registry JSON matching <paramref name="sessionId"/>, or null if none exists.
+    /// Throws a JSON parsing error when no match is found and a registry file contains malformed JSON.
     /// </summary>
     private async Task<string?> FindRegistryAsync(string sessionId, CancellationToken cancellationToken)
     {
@@ -171,7 +164,8 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             {
                 using var document = JsonDocument.Parse(json);
 
-                if (document.RootElement.TryGetProperty("sessionId", out var id)
+                if (document.RootElement.ValueKind == JsonValueKind.Object
+                    && document.RootElement.TryGetProperty("sessionId", out var id)
                     && id.ValueKind == JsonValueKind.String
                     && id.GetString() == sessionId)
                 {
@@ -180,9 +174,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             }
             catch (JsonException exception)
             {
-                // Remembered, not thrown: another file may still carry this
-                // session. Only when none does is a row this reader could not
-                // parse worth reporting, since it may have been the one.
+                // A matching file takes precedence over a JSON parsing error in another file.
                 malformed ??= exception;
             }
         }
@@ -201,7 +193,9 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
         endpoint = string.Empty;
         procStart = string.Empty;
 
-        if (!root.TryGetProperty("pid", out var pidElement)
+        if (root.ValueKind != JsonValueKind.Object
+            || !root.TryGetProperty("pid", out var pidElement)
+            || pidElement.ValueKind != JsonValueKind.Number
             || !pidElement.TryGetInt32(out pid)
             || pid <= 0
             || !root.TryGetProperty("sessionId", out var sessionIdElement)
@@ -268,7 +262,8 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             using var keyDocument = JsonDocument.Parse(keyJson);
             var root = keyDocument.RootElement;
 
-            if (!root.TryGetProperty("procStart", out var procStartElement)
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("procStart", out var procStartElement)
                 || ReadScalar(procStartElement) != procStart)
             {
                 continue;
@@ -286,8 +281,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             matchedToken = token;
         }
 
-        // A key exists for this pid, but none belongs to the current Claude
-        // process incarnation. Never downgrade that case to unauthenticated.
+        // Existing keys without a matching process incarnation are invalid authentication.
         return matchedToken is null
             ? KeyResolution.Invalid
             : new KeyResolution(true, matchedToken);

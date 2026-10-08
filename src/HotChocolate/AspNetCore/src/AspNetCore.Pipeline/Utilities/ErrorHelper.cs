@@ -1,5 +1,6 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Serialization;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Utilities;
@@ -17,16 +18,26 @@ internal static class ErrorHelper
 
     public static GraphQLRequestException InvalidRequest(
         InvalidGraphQLRequestException ex) =>
-        new(ErrorBuilder.New()
-            .SetMessage(ex.Message)
-            .SetCode(ErrorCodes.Server.RequestInvalid)
-            .Build());
+        new(
+            ErrorBuilder.New()
+                .SetMessage(ex.Message)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            ex);
 
     public static IError RequestHasNoElements()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_RequestHasNoElements)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
+
+    public static GraphQLRequestException EmptyVariableBatch()
+        => new(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_EmptyVariableBatch)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            new InvalidGraphQLRequestException(ErrorHelper_EmptyVariableBatch));
 
     public static IError NoSupportedAcceptMediaType()
         => ErrorBuilder.New()
@@ -51,6 +62,20 @@ internal static class ErrorHelper
                 Extensions = ImmutableOrderedDictionary<string, object?>.Empty
                     .Add("code", ErrorCodes.Server.InvalidTypeName)
                     .Add(nameof(typeName), typeName)
+            });
+
+    public static OperationResult InvalidSpecVersion(string value)
+        => OperationResult.FromError(
+            new Error
+            {
+                Message = string.Format(
+                    ErrorHelper_InvalidSpecVersion,
+                    value,
+                    string.Join(", ", GraphQLSpecVersions.SupportedValues)),
+                Extensions = ImmutableOrderedDictionary<string, object?>.Empty
+                    .Add("code", ErrorCodes.Server.InvalidSpecVersion)
+                    .Add("specVersion", value)
+                    .Add("supportedValues", GraphQLSpecVersions.SupportedValues)
             });
 
     public static OperationResult TypeNotFound(string typeName)
@@ -83,10 +108,13 @@ internal static class ErrorHelper
             });
 
     public static GraphQLRequestException InvalidOperationIdFormat()
-        => new GraphQLRequestException(
-            ErrorBuilder.New()
-                .SetMessage("The operation id has an invalid format.")
-                .Build());
+    {
+        const string message = "The operation ID has an invalid format.";
+
+        return new GraphQLRequestException(
+            ErrorBuilder.New().SetMessage(message).Build(),
+            new InvalidGraphQLRequestException(message));
+    }
 
     public static IExecutionResult OperationNameRequired()
         => OperationResult.FromError(
@@ -109,6 +137,24 @@ internal static class ErrorHelper
     public static IError RequestBatchingDisabled()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_RequestBatchingDisabled)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError RequestBatchingNotSupportedForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequestBatchingNotSupportedForQuery)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError VariableBatchingNotSupportedForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_VariableBatchingNotSupportedForQuery)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError RequestBodyHasNoRequestForQuery()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequestBodyHasNoRequestForQuery)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 }

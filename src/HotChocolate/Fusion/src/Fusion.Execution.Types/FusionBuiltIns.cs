@@ -21,6 +21,7 @@ internal static class FusionBuiltIns
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
     public const string Execution = "fusion__execution";
+    public const string CostOptions = "fusion__cost_options";
     public const string Inaccessible = "fusion__inaccessible";
     public const string GatewayField = "fusion__gateway_field";
     public const string SchemaMetadata = "fusion__schema_metadata";

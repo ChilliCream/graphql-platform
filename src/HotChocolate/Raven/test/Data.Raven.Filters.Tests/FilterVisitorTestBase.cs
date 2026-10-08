@@ -36,6 +36,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var builder = new ServiceCollection()
             .AddSingleton(documentStore)
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddRavenFiltering()
             .AddRavenPagingProviders()
             .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)

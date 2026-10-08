@@ -30,7 +30,7 @@ Hot Chocolate comes with many more scalars than the GraphQL core scalars, mappin
 | `Guid`                  | `UUID`          | Implicit | Universally unique identifier (RFC 9562)                      | [Spec](https://scalars.graphql.org/chillicream/uuid.html)            |
 | `Uri`                   | `URI`           | Implicit | Uniform resource identifier (replaces `URL` for `System.Uri`) | [Spec](https://scalars.graphql.org/chillicream/uri.html)             |
 | `Uri`                   | `URL`           | Explicit | Deprecated, use `URI` instead                                 | [Spec](https://scalars.graphql.org/chillicream/url.html)             |
-| `byte[]`                | `Base64String`  | Implicit | Base64-encoded byte array (replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
+| `byte[]`                | `Base64String`  | Explicit | Base64-encoded byte array (replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
 | `byte`                  | `UnsignedByte`  | Implicit | Unsigned 8-bit integer                                        | [Spec](https://scalars.graphql.org/chillicream/unsigned-byte.html)   |
 | `sbyte`                 | `Byte`          | Implicit | Signed 8-bit integer                                          | [Spec](https://scalars.graphql.org/chillicream/byte.html)            |
 | `ushort`                | `UnsignedShort` | Implicit | Unsigned 16-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-short.html)  |
@@ -404,6 +404,8 @@ builder
     .BindRuntimeType<byte[], Base64StringType>();
 ```
 
+Without this binding, `byte[]` is inferred as a list of `UnsignedByte`.
+
 # Custom Converters
 
 You can reuse existing scalar types with different runtime types by registering converters. For example, to map NodaTime's `OffsetDateTime` to the existing `DateTimeType`:
@@ -433,12 +435,12 @@ builder
 
 A custom scalar converts values between the GraphQL wire format and a .NET runtime type. Each custom scalar handles four conversion scenarios:
 
-| Method                 | Direction               | Purpose                                                           |
-| ---------------------- | ----------------------- | ----------------------------------------------------------------- |
-| `OnCoerceInputLiteral` | GraphQL literal to .NET | Parses values embedded in a query, e.g. `{ field(arg: "value") }` |
-| `OnCoerceInputValue`   | JSON to .NET            | Parses values provided as variables in the request                |
-| `OnCoerceOutputValue`  | .NET to JSON            | Writes resolver results to the response                           |
-| `OnValueToLiteral`     | .NET to GraphQL literal | Converts default values for schema introspection                  |
+| Method                 | Direction               | Purpose                                                                     |
+| ---------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| `OnCoerceInputLiteral` | GraphQL literal to .NET | Parses values embedded in a query, e.g. `#!graphql { field(arg: "value") }` |
+| `OnCoerceInputValue`   | JSON to .NET            | Parses values provided as variables in the request                          |
+| `OnCoerceOutputValue`  | .NET to JSON            | Writes resolver results to the response                                     |
+| `OnValueToLiteral`     | .NET to GraphQL literal | Converts default values for schema introspection                            |
 
 Extend `ScalarType<TRuntimeType, TLiteral>` to create a custom scalar:
 

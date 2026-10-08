@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// The parameters for <see cref="ITaskStore.UpdateTaskAsync"/>. Each field
-/// pairs a value with a "given" flag so the store can tell "not passed" apart
-/// from "passed as empty", matching the CLI's per-option update semantics.
+/// Task field changes, applied only when their corresponding Given flags are set.
 /// </summary>
 internal sealed record TaskUpdate
 {
@@ -16,10 +14,9 @@ internal sealed record TaskUpdate
     public bool DescriptionGiven { get; init; }
 
     /// <summary>
-    /// The normalized target status. Setting <see cref="TaskStates.Closed"/>
-    /// or <see cref="TaskStates.Tombstone"/> here throws
-    /// <see cref="ExitException"/>; use CloseTaskAsync, ReopenTaskAsync, or
-    /// DeleteTaskAsync instead.
+    /// The target status, normalized when <see cref="StatusGiven"/> is true.
+    /// Updates cannot set closed, archived, or tombstone status, or change the status
+    /// of an already closed or archived task.
     /// </summary>
     public string? Status { get; init; }
     public bool StatusGiven { get; init; }

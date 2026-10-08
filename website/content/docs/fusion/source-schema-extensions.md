@@ -7,7 +7,7 @@ Some source schemas are not yours to edit, or you want to keep them free of Fusi
 
 # How It Works
 
-Both documents (the base schema and its extensions) are parsed sequentially into the same schema model. Extensions written with `extend type X` merge into the canonical `type X` definition during parsing. By the time composition runs, your extensions are indistinguishable from directives written directly on the base schema. Composition never sees the `extend` syntax: the parser has already folded everything into one source schema.
+Both documents (the base schema and its extensions) are parsed sequentially into the same schema model. Extensions written with `#!sdl extend type X` merge into the canonical `type X` definition during parsing. By the time composition runs, your extensions are indistinguishable from directives written directly on the base schema. Composition never sees the `extend` syntax: the parser has already folded everything into one source schema.
 
 ```mermaid
 flowchart LR
@@ -71,11 +71,11 @@ enum StockStatus {
 
 What each block does:
 
-- `extend type Query { productById(id: ID!): Product @lookup }` promotes an existing field to a lookup. The field name targets the existing field, and the return type must match the base. Arguments do not need to be repeated; if you do repeat them, their types and defaults must match the base. New arguments may be added.
-- `extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The gateway uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](./entities-and-lookups.md) for the public versus internal lookup distinction.
-- `extend type Product { warehouseLocationCode: String @inaccessible }` applies a directive to an existing field. The field type repeats the base declaration; only the directive is the new contribution. Hidden fields can still be referenced by `@require` dependencies in other source schemas. See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
-- `extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `@require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](./data-requirements-and-mapping.md) for `@require` semantics.
-- `enum StockStatus { ... }` introduces a new type. Extensions can declare types the base schema does not, because extensions are valid SDL documents in their own right.
+- `#!sdl extend type Query { productById(id: ID!): Product @lookup }` promotes an existing field to a lookup. The field name targets the existing field, and the return type must match the base. Arguments do not need to be repeated; if you do repeat them, their types and defaults must match the base. New arguments may be added.
+- `#!sdl extend type Query { productByCode(code: String!): Product @lookup @internal }` is also a lookup, but `@internal` keeps it out of the public surface. The gateway uses it to enter the Products subgraph when resolving cross-subgraph references, while clients never see it. See [Entities and Lookups](./entities-and-lookups.md) for the public versus internal lookup distinction.
+- `#!sdl extend type Product { warehouseLocationCode: String @inaccessible }` applies a directive to an existing field. The field type repeats the base declaration; only the directive is the new contribution. Hidden fields can still be referenced by `@require` dependencies in other source schemas. See [Schema Exposure and Evolution](./schema-exposure-and-evolution.md).
+- `#!sdl extend type Product { stockStatus(warehouseLocationCode: ... @require(...)): StockStatus! }` adds a brand new field with a hidden resolver argument. `#!sdl @require(field: "warehouseLocationCode")` tells the gateway to populate the argument from the existing `warehouseLocationCode` field, and the argument is removed from the public surface so clients see `stockStatus: StockStatus!` with no arguments. Adding a field via extensions still requires that field to be resolvable at runtime by the underlying subgraph implementation: the extensions document only declares the field, it does not provide the resolver. See [Data Requirements](./data-requirements-and-mapping.md) for `@require` semantics.
+- `#!sdl enum StockStatus { ... }` introduces a new type. Extensions can declare types the base schema does not, because extensions are valid SDL documents in their own right.
 
 ## The Merged Result
 
@@ -176,7 +176,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 
 | Situation                                                       | Behavior                                                                                              |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `extend type X` references a type not in the base schema        | The type is implicitly created.                                                                       |
+| `#!sdl extend type X` references a type not in the base schema  | The type is implicitly created.                                                                       |
 | Extension declares a field that already exists on the base type | Directives merge onto the existing field. Return type and any provided arguments must match the base. |
 | Same field appears twice in one `extend` block                  | Parsing fails with a duplicate field error.                                                           |
 | Extension applies a directive the schema does not define        | Implicit at parse time. Fusion's built-ins compose as-is; other custom directives must be declared.   |
@@ -186,7 +186,7 @@ The base schema is stored exactly as supplied. Fusion does not fold the extensio
 
 **My directive did not apply.** Check the field name. If it does not exactly match a field on the base type, the parser adds a new field rather than extending the existing one, and the directive lands on that new field. Return type or repeated argument mismatches are different and cause parsing to fail rather than silently producing a new field.
 
-**Composition reports the field is already defined.** You wrote a bare `type X` redeclaration where you meant `extend type X`, and the field was duplicated. Add the `extend` keyword.
+**Composition reports the field is already defined.** You wrote a bare `type X` redeclaration where you meant `#!sdl extend type X`, and the field was duplicated. Add the `extend` keyword.
 
 **I want to apply a directive that the schema does not import.** Fusion's built-in directives compose without further declaration. For any other custom directive, declare it in the schema (or in the extensions document) before applying it; otherwise composition will fail validation even though the parser accepts the unknown directive.
 

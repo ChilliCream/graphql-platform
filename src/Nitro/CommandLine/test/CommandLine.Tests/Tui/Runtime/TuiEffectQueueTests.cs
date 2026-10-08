@@ -182,8 +182,6 @@ public sealed class TuiEffectQueueTests
         var completions = queue.DrainCompletions();
 
         // assert
-        // Supervised: the exception became a deterministic completion result instead
-        // of an unobserved background-task exception.
         var faulted = Assert.IsType<TuiEffectCompletion<string>.Faulted>(Assert.Single(completions));
         Assert.Equal(operationId, faulted.OperationId);
         Assert.Same(thrown, faulted.Exception);
@@ -231,11 +229,8 @@ public sealed class TuiEffectQueueTests
     [Fact]
     public async Task DrainCompletions_Should_ReturnResult_Even_When_NoWakeEventWasEverConsumed()
     {
-        // A completion is persisted before any wake event is posted, so it is
-        // observable purely by draining, without ever running RunAsync (which is what
-        // relays the wake event onto a TuiApplication's channel) or reading anything
-        // from a channel at all. This is what makes a dropped wake event harmless.
         // arrange
+        // The wake-event relay is never started.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         queue.TrySubmit("compose", (_, _) => Task.FromResult("stored"), testToken, out _);
@@ -291,34 +286,41 @@ public sealed class TuiEffectQueueTests
     [Fact]
     public async Task DrainPendingAsync_Should_ReturnOnceEffectCompletes_When_ItFinishesBeforeTheBound()
     {
-        // Exercises an effect completing DURING the quit gate's bounded drain.
         // arrange
+        // The effect is blocked before the drain begins.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
+        var effectEntered = new TaskCompletionSource();
         var release = new TaskCompletionSource();
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
+            effectEntered.SetResult();
             await release.Task.WaitAsync(s_testTimeout, ct);
             return "done";
         }
 
         queue.TrySubmit("compose", Effect, testToken, out _);
-        release.SetResult();
+        await effectEntered.Task.WaitAsync(testToken);
 
         // act
-        await queue.DrainPendingAsync(TimeSpan.FromSeconds(5), testToken);
+        var drainTask = queue.DrainPendingAsync(TimeSpan.FromSeconds(5), testToken);
+        Assert.False(drainTask.IsCompleted); // the drain has entered its wait for the blocked effect
+        release.SetResult();
+        await drainTask;
+        var completions = queue.DrainCompletions();
 
         // assert
         Assert.Equal(0, queue.PendingCount);
+        var completed = Assert.IsType<TuiEffectCompletion<string>.Completed>(Assert.Single(completions));
+        Assert.Equal("done", completed.Result);
     }
 
     [Fact]
     public async Task DrainPendingAsync_Should_LeavePendingCount_When_EffectOutlivesTheBound()
     {
-        // Exercises an effect still running AFTER the quit gate's bounded drain
-        // expires: the runtime gives up waiting but does not cancel it.
         // arrange
+        // The effect remains blocked until released after the drain.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();

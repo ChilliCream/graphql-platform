@@ -2,6 +2,8 @@ namespace HotChocolate.AspNetCore;
 
 internal static class HttpHeaderKeys
 {
+    public const string AcceptQuery = "Accept-Query";
+
     public const string OperationPlan = "Fusion-Operation-Plan";
 
     public const string CacheControl = "Cache-Control";

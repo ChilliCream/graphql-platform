@@ -25,7 +25,7 @@ internal static class SourceMetadataParser
                 throw new InvalidOperationException("Expected a JSON object.");
             }
 
-            // When no 'type' marker is present we assume GitHub for backwards compatibility.
+            // Defaults to GitHub when no 'type' marker is present.
             var type = GitHubType;
             if (document.RootElement.TryGetProperty(TypePropertyName, out var typeElement))
             {
@@ -65,7 +65,9 @@ internal static class SourceMetadataParser
             dto.RunNumber,
             dto.RunId,
             dto.JobId,
-            new Uri(dto.RepositoryUrl));
+            new Uri(dto.RepositoryUrl),
+            dto.Ref,
+            dto.PullRequestNumber);
     }
 
     private static SourceAzureDevOpsMetadata ParseAzureDevOps(JsonElement element)
@@ -82,6 +84,8 @@ internal static class SourceMetadataParser
             dto.CommitHash,
             dto.JobId,
             dto.TaskId,
-            dto.RepositoryUrl is null ? null : new Uri(dto.RepositoryUrl));
+            dto.RepositoryUrl is null ? null : new Uri(dto.RepositoryUrl),
+            dto.Ref,
+            dto.PullRequestNumber);
     }
 }

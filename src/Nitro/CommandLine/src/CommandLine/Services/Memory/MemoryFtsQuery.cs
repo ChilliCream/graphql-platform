@@ -1,11 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Turns raw search text into an FTS5 MATCH expression that matches it
-/// literally: <c>search</c> never exposes FTS5 query syntax (operators like
-/// <c>OR</c>, <c>NOT</c>, <c>NEAR</c>, or a bare <c>*</c>) to the caller, so
-/// every whitespace-separated word becomes its own quoted phrase, implicitly
-/// ANDed by FTS5's default token-to-token operator.
+/// Builds an FTS5 expression requiring each whitespace-separated word as a quoted
+/// phrase, without treating input as query syntax.
 /// </summary>
 internal static class MemoryFtsQuery
 {

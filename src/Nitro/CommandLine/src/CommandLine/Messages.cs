@@ -1,4 +1,6 @@
+using System.Globalization;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -91,6 +93,69 @@ internal static class Messages
         "No request ID was provided and no request ID was found in the cache. Please provide a request ID.";
 
     public const string ForcePushEnabled = "Force push is enabled.";
+
+    public const string ForceUnpublishEnabled = "Force unpublish is enabled.";
+
+    public static string ClientVersionProtected(
+        string tag,
+        IReadOnlyList<ClientUnpublishProtectionRuleKind> protectedBy)
+    {
+        var reasons = protectedBy.Count == 0
+            ? "."
+            : $": {string.Join(", ", protectedBy.Select(ProtectionReason))}.";
+
+        return $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish "
+            + $"is marked as protected{reasons} "
+            + $"Use '{ClientForceUnpublishOption.OptionName}' to unpublish it anyway.";
+    }
+
+    public static string ClientRecentTrafficProtectionNotEvaluable(
+        string tag,
+        TimeSpan clientTrafficRequiredWithin)
+        => $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish is protected "
+            + "by a rule that checks that the version no longer receives traffic. The rule could "
+            + $"not be evaluated for the required window of {FormatDuration(clientTrafficRequiredWithin)}. "
+            + $"Use '{ClientForceUnpublishOption.OptionName}' to unpublish it anyway.";
+
+    private static string ProtectionReason(ClientUnpublishProtectionRuleKind kind)
+        => kind switch
+        {
+            ClientUnpublishProtectionRuleKind.MinAge
+                => "it has not yet reached the minimum age",
+            ClientUnpublishProtectionRuleKind.NewestVersions
+                => "it is among the newest published versions",
+            ClientUnpublishProtectionRuleKind.RecentTraffic
+                => "it has received traffic recently",
+            _ => "it is protected by a rule this CLI does not know about"
+        };
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.Ticks % TimeSpan.TicksPerDay == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerDay, "day");
+        }
+
+        if (duration.Ticks % TimeSpan.TicksPerHour == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerHour, "hour");
+        }
+
+        if (duration.Ticks % TimeSpan.TicksPerMinute == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerMinute, "minute");
+        }
+
+        if (duration.Ticks % TimeSpan.TicksPerSecond == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerSecond, "second");
+        }
+
+        return $"{duration.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture)} seconds";
+    }
+
+    private static string Pluralize(long value, string unit)
+        => value == 1 ? $"{value} {unit}" : $"{value} {unit}s";
 
     public const string Validating = "Validating...";
 

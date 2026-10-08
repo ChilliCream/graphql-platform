@@ -8,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -337,6 +338,18 @@ internal sealed partial class RequestExecutorManager
                 return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
             });
 
+        serviceCollection.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new NormalizedDocumentCache(options.PreparedOperationCacheSize);
+            });
+
+        serviceCollection.AddSingleton<IOperationDocumentNormalizer>(
+            static sp => new OperationDocumentNormalizer(
+                sp.GetRequiredService<ISchemaDefinition>(),
+                sp.GetRequiredService<NormalizedDocumentCache>()));
+
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(
             static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
@@ -452,7 +465,11 @@ internal sealed partial class RequestExecutorManager
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
                     .AddDefaultRules()
-                    .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
+                    .ModifyOptions(o =>
+                    {
+                        o.EnableCovariantFieldMerging = options.EnableCovariantFieldMerging;
+                        o.EnableEmptySelectionSets = options.EnableEmptySelectionSets;
+                    });
 
             foreach (var hook in hooks)
             {

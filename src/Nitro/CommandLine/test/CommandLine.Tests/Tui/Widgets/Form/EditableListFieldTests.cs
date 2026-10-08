@@ -168,6 +168,27 @@ public sealed class EditableListFieldTests
     }
 
     [Fact]
+    public void Render_Should_CentreVisibleRowsAroundMiddleSelection()
+    {
+        // arrange
+        var field = new EditableListField("labels", "Labels", initialValues: ["first", "selected", "third"]);
+        var console = new TestConsole().Width(30);
+        field.HandleKey(Key(ConsoleKey.DownArrow));
+
+        // act
+        console.Write(field.Render(30, focused: true, maxHeight: 4));
+
+        // assert
+        console.Output.MatchInlineSnapshot(
+            """
+            ╭─Labels─────────────────────╮
+            │ - first                    │
+            │ - selected                 │
+            ╰────────────────────────────╯
+            """ + "\n");
+    }
+
+    [Fact]
     public void Render_Should_ShowPlaceholder_When_Empty()
     {
         // arrange

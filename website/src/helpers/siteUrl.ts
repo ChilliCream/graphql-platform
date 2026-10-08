@@ -6,7 +6,7 @@
  * Resolution order:
  * 1. `NEXT_PUBLIC_SITE_URL` (preview/staging deployments).
  * 2. The local dev origin while running `next dev`, so links point at localhost
- *    instead of production (port matches the `dev` script's `-p 3001`).
+ *    instead of production (port matches the `dev` script's `-p 3002`).
  * 3. The production site.
  */
 function resolveSiteUrl(): string {
@@ -14,7 +14,7 @@ function resolveSiteUrl(): string {
   const value =
     configured ??
     (process.env.NODE_ENV === "development"
-      ? `http://localhost:${process.env.PORT ?? 3001}`
+      ? `http://localhost:${process.env.PORT ?? 3002}`
       : "https://chillicream.com");
   let url: URL;
   try {

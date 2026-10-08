@@ -34,3 +34,7 @@ items:
     title: stage
   - path: workspace
     title: workspace
+  - path: telemetry
+    title: telemetry
+  - path: agent-hooks
+    title: agent hooks

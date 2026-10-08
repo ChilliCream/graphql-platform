@@ -9,4 +9,6 @@ internal sealed record GitHubSourceMetadataDto(
     [property: JsonRequired] string RunNumber,
     [property: JsonRequired] string RunId,
     string? JobId,
-    [property: JsonRequired] string RepositoryUrl);
+    [property: JsonRequired] string RepositoryUrl,
+    string? Ref,
+    int? PullRequestNumber);

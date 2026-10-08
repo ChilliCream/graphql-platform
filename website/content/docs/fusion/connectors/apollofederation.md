@@ -27,7 +27,7 @@ flowchart LR
 
 That pass maps Apollo Federation directives onto the GraphQL Federation model: `@key` becomes lookup fields, `@requires` becomes `@require`, `@external` fields are resolved into the model, and the Relay `node` field becomes a lookup. Fusion removes the Apollo Federation infrastructure types (`_service`, `_entities`, `_Entity`, `_Any`). The result is the composed schema. Clients do not see Apollo Federation directives or infrastructure types.
 
-**At runtime**, when the gateway needs to resolve entity fields from an Apollo Federation subgraph, it calls that subgraph as an Apollo router would. It sends the `_entities(representations: [...])` query with typed representations (`{ __typename, <key fields> }`) and reads the entities back. The gateway enters GraphQL Federation subgraphs through their lookup fields instead. Both paths run inside the same query plan.
+**At runtime**, when the gateway needs to resolve entity fields from an Apollo Federation subgraph, it calls that subgraph as an Apollo router would. It sends the `#!graphql _entities(representations: [...])` query with typed representations (`{ __typename, <key fields> }`) and reads the entities back. The gateway enters GraphQL Federation subgraphs through their lookup fields instead. Both paths run inside the same query plan.
 
 Because Federation v2 detection happens per source schema, mixed graphs with v2 Apollo Federation sources need no graph-wide connector configuration. Federation v1 sources still require the exact per-source `"1.0"` marker. An Apollo Federation subgraph and a GraphQL Federation subgraph that both contribute fields to `Product` merge into one `Product` type in the composed schema.
 
@@ -45,7 +45,7 @@ Local schema files remain independent. They continue to use the companion settin
 
 This example composes two live Apollo subgraphs and one saved GraphQL Federation schema:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-url https://products.example.com/graphql \
   --source-schema-settings-file ./products/schema-settings.json \
@@ -87,11 +87,11 @@ For an Apollo Federation v2 endpoint, use a settings file such as:
 
 The `apolloFederationSupport` marker selects how Nitro uses the paired URL:
 
-| Marker        | HTTP request                            | Composition behavior                                                           |
-| ------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
-| Absent        | GET the exact supplied URL              | Treat the response body as plain SDL. A returned v2 `@link` is still detected. |
-| Exact `"1.0"` | POST an Apollo `_service { sdl }` query | Enable Federation v1 composition for the returned SDL.                         |
-| Exact `"2.0"` | POST an Apollo `_service { sdl }` query | Use normal v2 `@link` detection for the returned SDL.                          |
+| Marker        | HTTP request                                      | Composition behavior                                                           |
+| ------------- | ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Absent        | GET the exact supplied URL                        | Treat the response body as plain SDL. A returned v2 `@link` is still detected. |
+| Exact `"1.0"` | POST an Apollo `#!graphql _service { sdl }` query | Enable Federation v1 composition for the returned SDL.                         |
+| Exact `"2.0"` | POST an Apollo `#!graphql _service { sdl }` query | Use normal v2 `@link` detection for the returned SDL.                          |
 
 The support object must contain only the `version` property. Only exact `"1.0"` and `"2.0"` values are accepted. Other values, whitespace variants, and extra properties fail validation before Nitro sends a schema request.
 
@@ -129,7 +129,7 @@ query {
 }
 ```
 
-Save the `_service { sdl }` value unchanged to a `.graphqls` file. A schema stripped of its Federation directives cannot be detected and translated. Give each file a companion settings file based on the schema file name. For example, `products.graphqls` uses `products-settings.json`. See the [Schema Settings File Reference](../cli.md#schema-settings-file-reference) for the settings file format.
+Save the `#!graphql _service { sdl }` value unchanged to a `.graphqls` file. A schema stripped of its Federation directives cannot be detected and translated. Give each file a companion settings file based on the schema file name. For example, `products.graphqls` uses `products-settings.json`. See the [Schema Settings File Reference](../cli.md#schema-settings-file-reference) for the settings file format.
 
 # Composing an Apollo Federation Subgraph
 
@@ -137,7 +137,7 @@ Save the `_service { sdl }` value unchanged to a `.graphqls` file. A schema stri
 
 Compose Apollo Federation subgraphs the same way you compose GraphQL Federation subgraphs. Federation v2 has no compose flag to set. Point `nitro fusion compose` at the source schema files, and the composer detects and translates v2 subgraphs automatically. Federation v1 sources still need the exact per-source `"1.0"` marker:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -185,7 +185,7 @@ Apollo Federation subgraphs can define the same shareable field while declaring 
 
 Use `CommonRuntimeTypes` to reproduce the conservative routing exercised by the legacy `PartialUnion` and `PartialUnionComplex` federation gateway-audit cases, or whenever viable providers expose different members of the same interface or union. Select it while composing:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -201,7 +201,7 @@ After a successful composition, Nitro prints the archive path:
 
 To change the policy in an existing archive, run:
 
-```bash
+```shell
 nitro fusion settings set shareable-field-runtime-type-routing common-runtime-types \
   --archive gateway.far
 ```
@@ -253,7 +253,7 @@ By default, composition rejects an Apollo interface object whose key uses `resol
 
 For compatibility with an existing Apollo graph, opt in while composing the archive:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -269,7 +269,7 @@ After a successful composition, Nitro prints:
 
 To enable the option in an existing archive, run:
 
-```bash
+```shell
 nitro fusion settings set allow-non-resolvable-interface-objects true \
   --archive gateway.far
 ```
@@ -292,20 +292,20 @@ builder
 
 # Global Object Identification
 
-If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.node(id: ID!): Node` field over a `Node` interface), the connector turns it into a lookup during composition. Keep the Apollo Federation SDL as exported. You do not need to add Fusion's `@lookup` directive to the field.
+If your Apollo Federation subgraphs implement the Relay `node` field (a `#!sdl Query.node(id: ID!): Node` field over a `Node` interface), the connector turns it into a lookup during composition. Keep the Apollo Federation SDL as exported. You do not need to add Fusion's `@lookup` directive to the field.
 
 ## Configure node resolution
 
 Choose how the gateway resolves `node(id:)` when you compose the gateway archive. Fusion records the mode in the execution schema, so every compatible gateway that loads the archive uses the same behavior.
 
-| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                        |
-| --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gateway`       | `GATEWAY`              | The gateway decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                    |
-| `source-schema` | `SOURCE_SCHEMA`        | The gateway forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the gateway cannot decode your identifiers. |
+| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                              |
+| --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gateway`       | `GATEWAY`              | The gateway decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                          |
+| `source-schema` | `SOURCE_SCHEMA`        | The gateway forwards the opaque ID to a source schema with a public root `#!sdl Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the gateway cannot decode your identifiers. |
 
 To use source-schema resolution, enable Global Object Identification and select the mode in the compose command:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -316,7 +316,7 @@ nitro fusion compose \
 
 To update an existing archive, enable Global Object Identification before changing the node-resolution setting:
 
-```bash
+```shell
 nitro fusion settings set global-object-identification true \
   --archive gateway.far
 
@@ -348,7 +348,7 @@ Deploy a `SOURCE_SCHEMA` archive only to compatible gateways that support the `@
 
 If composition reports `Source-schema node resolution requires global object identification to be enabled.`, you selected `source-schema` without enabling Global Object Identification. Add both `--enable-global-object-identification` and `--node-resolution source-schema` to the compose command.
 
-Source-schema resolution covers only concrete `Node` implementations declared by a source schema with a public root `Query.node(id: ID!): Node` lookup. If a valid dispatcher covers some implementations but another composite `Node` type is uncovered, composition emits an `UNSATISFIABLE_QUERY_PATH` warning. A request for an uncovered type can return `node: null`, with an error if the source resolver reports one. Add the type as a `Node` implementation in a source schema with a public root node lookup. If no public root dispatcher covers any `Node` implementation, composition fails.
+Source-schema resolution covers only concrete `Node` implementations declared by a source schema with a public root `#!sdl Query.node(id: ID!): Node` lookup. If a valid dispatcher covers some implementations but another composite `Node` type is uncovered, composition emits an `UNSATISFIABLE_QUERY_PATH` warning. A request for an uncovered type can return `node: null`, with an error if the source resolver reports one. Add the type as a `Node` implementation in a source schema with a public root node lookup. If no public root dispatcher covers any `Node` implementation, composition fails.
 
 See [GraphQL Global Object Identification](../entities-and-lookups.md#graphql-global-object-identification) for the required schema shape and the [composition log-code reference](../composition.md#log-codes-reference) for diagnostic details.
 

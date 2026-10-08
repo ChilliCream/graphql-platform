@@ -1,6 +1,7 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using HotChocolate.Adapters.OpenApi.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -16,6 +17,16 @@ internal static class InternalServiceCollectionExtensions
     {
         applicationServices.AddOptions();
         applicationServices.TryAddSingleton<OpenApiManager>();
+        return applicationServices;
+    }
+
+    public static IServiceCollection ConfigureOpenApiSetup(
+        this IServiceCollection applicationServices,
+        string schemaName)
+    {
+        // Always register a named configuration entry, even without a storage,
+        // so that OpenApiManager.Names can discover the schema via IConfigureNamedOptions<OpenApiSetup>.
+        applicationServices.Configure<OpenApiSetup>(schemaName, static _ => { });
         return applicationServices;
     }
 

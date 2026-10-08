@@ -144,10 +144,7 @@ internal sealed class UpdateTaskCommand : Command
             || typeGiven || assigneeGiven || notesGiven || designGiven || acceptanceCriteriaGiven
             || dueGiven || deferUntilGiven || estimateGiven;
 
-        // Every id is validated up front so a bad id fails before any write,
-        // including the --add-label/--remove-label/--parent writes below,
-        // which go through the existing per-id store methods rather than the
-        // bulk-update transaction.
+        // Check that every task exists before starting updates.
         foreach (var id in ids)
         {
             await store.GetRequiredTaskAsync(id, cancellationToken);

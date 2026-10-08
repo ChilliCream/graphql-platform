@@ -805,6 +805,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
 
         services
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddCustomTypes()
             .AddGlobalObjectIdentification()
             .AddPagingArguments()

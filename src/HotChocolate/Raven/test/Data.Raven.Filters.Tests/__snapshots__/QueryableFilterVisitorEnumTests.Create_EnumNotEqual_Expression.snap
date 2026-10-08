@@ -52,12 +52,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `neq` of type FooEnumOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 33
-        }
-      ],
       "path": [
         "root"
       ],

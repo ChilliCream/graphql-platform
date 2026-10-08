@@ -8,7 +8,7 @@ When a dataset is too large to return in a single response, you need pagination.
 
 GraphQL models data as a graph of related entities. When one entity relates to a list of other entities, that relationship is called a _connection_. A `UsersConnection` for instance represents the connection between `Query` and `User`. Each _edge_ in that connection links one `User` to the parent, and carries a cursor that marks the user's position in the list.
 
-This is more than just naming. Traditional offset pagination (`skip: 20, take: 10`) breaks when data changes between pages: inserts and deletes shift items, causing duplicates or gaps. Cursors avoid this because they point to a stable position rather than a numeric offset. The database can seek directly to the cursor position, which also means pagination performance stays constant regardless of how deep into the list the client navigates.
+This is more than just naming. Traditional offset pagination (`#!graphql skip: 20, take: 10`) breaks when data changes between pages: inserts and deletes shift items, causing duplicates or gaps. Cursors avoid this because they point to a stable position rather than a numeric offset. The database can seek directly to the cursor position, which also means pagination performance stays constant regardless of how deep into the list the client navigates.
 
 # How Connections Work
 
@@ -170,9 +170,11 @@ builder
 
 # MaxPageSize and Cost Analysis
 
-The `MaxPageSize` setting works together with [cost analysis](../security/cost-analysis.md) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
+The `MaxPageSize` setting supplies the static cost bound for a variable-bound paging argument. Cost analysis evaluates a supplied `first`, `last`, or `take` value at its coerced value. When a paging request omits those arguments, it uses `DefaultPageSize` instead of `MaxPageSize`.
 
-For public APIs, keep `MaxPageSize` conservative and use `RequirePagingBoundaries = true` to force clients to declare how many items they want.
+Hot Chocolate records these values in the generated `@listSize` directive as `assumedSize: MaxPageSize` and `slicingArgumentDefaultValue: DefaultPageSize`. See [Cost Analysis](../security/cost-analysis.md#list-size) for the complete priority order.
+
+Set `RequirePagingBoundaries = true` to require clients to supply a paging boundary. Generated paging metadata writes `requireOneSlicingArgument: false` by default and writes `true` when this option is enabled.
 
 # Connection Naming
 
@@ -316,7 +318,7 @@ The response includes cursors for surrounding pages:
 }
 ```
 
-To navigate to page 3, the client sends `users(first: 10, after: "ezF8MXw2fTIz")`. By default, up to 5 cursors are returned per direction.
+To navigate to page 3, the client sends `#!graphql users(first: 10, after: "ezF8MXw2fTIz")`. By default, up to 5 cursors are returned per direction.
 
 You can also enable relative cursors globally:
 
@@ -450,7 +452,7 @@ public class ProductConnection : ConnectionBase<Product, ProductsEdge, Connectio
 
 ## Reusable Generic Connection
 
-If multiple entities share the same connection structure, define a generic connection and edge. Use the `[GraphQLName("{0}Connection")]` attribute so Hot Chocolate replaces `{0}` with the entity name (e.g. `CatalogConnection<Brand>` becomes `BrandConnection`).
+If multiple entities share the same connection structure, define a generic connection and edge. Use the `#!csharp [GraphQLName("{0}Connection")]` attribute so Hot Chocolate replaces `{0}` with the entity name (e.g. `CatalogConnection<Brand>` becomes `BrandConnection`).
 
 ```csharp
 [GraphQLName("{0}Edge")]

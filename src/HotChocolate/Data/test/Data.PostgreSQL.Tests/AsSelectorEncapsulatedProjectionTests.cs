@@ -109,6 +109,7 @@ public sealed partial class AsSelectorEncapsulatedProjectionTests(PostgreSqlReso
             .AddScoped<EncapsulatedStoreService>()
             .AddSingleton<EncapsulatedSelectorCapture>()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryContext()
             .AddQueryType(descriptor =>
             {

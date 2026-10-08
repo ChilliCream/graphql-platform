@@ -107,6 +107,7 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
     /// Examples:
     /// - CreateOrderCommand → create-order
     /// - ProcessPaymentMessage → process-payment
+    /// - CreateAccount.Command (nested) → create-account.command
     /// </remarks>
     public string GetSendEndpointName(Type messageType)
     {
@@ -123,6 +124,7 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
     /// Examples:
     /// - OrderCreatedEvent → order-created
     /// - PaymentProcessedMessage → payment-processed
+    /// - CreateAccount.Command (nested) → create-account.command
     /// </remarks>
     public string GetPublishEndpointName(Type messageType)
     {
@@ -146,28 +148,43 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
 
     private string GetReadableTypeName(Type type)
     {
-        if (!type.IsGenericType)
+        var genericArgs = type.IsGenericType ? type.GetGenericArguments() : [];
+        return GetReadableTypeName(type, genericArgs, type.IsGenericTypeDefinition);
+    }
+
+    private string GetReadableTypeName(Type type, Type[] genericArgs, bool isOpen)
+    {
+        // Nested types are prefixed with their declaring types (e.g., outer.inner), and a declaring
+        // type takes the leading generic arguments it declares (e.g., outer[string].inner).
+        var prefix = "";
+        var declaringArgCount = 0;
+
+        if (type is { IsNested: true, IsGenericParameter: false })
         {
-            return ConvertToUrnSegment(type.Name);
+            var declaringType = type.DeclaringType!;
+            declaringArgCount = declaringType.IsGenericType ? declaringType.GetGenericArguments().Length : 0;
+            prefix = GetReadableTypeName(declaringType, genericArgs[..declaringArgCount], isOpen) + ".";
         }
 
-        // Get the base name without the `1, `2 suffix
-        var baseName = type.Name[..type.Name.IndexOf('`')];
-        var convertedBaseName = ConvertToUrnSegment(baseName);
+        var convertedBaseName = prefix + ConvertToUrnSegment(GetBaseTypeName(type));
+        var ownArgs = genericArgs[declaringArgCount..];
 
-        var genericArgs = type.GetGenericArguments();
+        if (ownArgs.Length == 0)
+        {
+            return convertedBaseName;
+        }
 
         // Handle open generics (e.g., IEventRequest<,>)
-        if (type.IsGenericTypeDefinition)
+        if (isOpen)
         {
-            var arity = genericArgs.Length;
+            var arity = ownArgs.Length;
             return arity == 1
                 ? $"{convertedBaseName}[T]"
                 : $"{convertedBaseName}[{string.Join(",", Enumerable.Range(1, arity).Select(i => $"T{i}"))}]";
         }
 
         // Handle closed generics (e.g., IEventRequest<Foo, Bar>)
-        var argNames = genericArgs.Select(GetReadableTypeName);
+        var argNames = ownArgs.Select(GetReadableTypeName);
         return $"{convertedBaseName}[{string.Join(",", argNames)}]";
     }
 
@@ -247,7 +264,22 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
     {
         var name = GetBaseTypeName(type);
         name = RemoveSuffixes(name, s_messageSuffixes);
-        return ToKebabCase(name);
+        return GetDeclaringTypePrefix(type) + ToKebabCase(name);
+    }
+
+    /// <summary>
+    /// Gets the kebab-case names of the declaring types, each followed by a dot, or an empty
+    /// string when the type is not nested.
+    /// </summary>
+    private static string GetDeclaringTypePrefix(Type type)
+    {
+        if (type is not { IsNested: true, IsGenericParameter: false })
+        {
+            return "";
+        }
+
+        var declaringType = type.DeclaringType!;
+        return GetDeclaringTypePrefix(declaringType) + ToKebabCase(GetBaseTypeName(declaringType)) + ".";
     }
 
     private static string FormatMessageTypeNamespace(Type type)

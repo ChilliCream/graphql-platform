@@ -4,13 +4,13 @@
   "Entities": [
     {
       "Kind": "exchange",
-      "Name": "mocha.transport.rabbit-m-q.tests.descriptors.order-started",
+      "Name": "mocha.transport.rabbit-m-q.tests.descriptors.rabbit-m-q-unified-queue-tests.order-started",
       "AutoProvision": true,
       "Origin": "convention"
     },
     {
       "Kind": "exchange",
-      "Name": "order-started",
+      "Name": "rabbit-m-q-unified-queue-tests.order-started",
       "AutoProvision": true,
       "Origin": "convention"
     },
@@ -54,14 +54,14 @@
   "Links": [
     {
       "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.descriptors.order-started",
-      "To": "rabbitmq://localhost:5672/e/order-started",
+      "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.descriptors.rabbit-m-q-unified-queue-tests.order-started",
+      "To": "rabbitmq://localhost:5672/e/rabbit-m-q-unified-queue-tests.order-started",
       "AutoProvision": true,
       "Origin": "convention"
     },
     {
       "Kind": "bind",
-      "From": "rabbitmq://localhost:5672/e/order-started",
+      "From": "rabbitmq://localhost:5672/e/rabbit-m-q-unified-queue-tests.order-started",
       "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-process-saga",
       "AutoProvision": true,
       "Origin": "convention"

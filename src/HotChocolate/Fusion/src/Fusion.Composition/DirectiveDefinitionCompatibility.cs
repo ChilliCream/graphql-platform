@@ -16,9 +16,21 @@ internal static class DirectiveDefinitionCompatibility
     private static readonly IEqualityComparer<ISyntaxNode> s_syntaxComparer =
         SyntaxComparer.BySyntaxIgnoreDescriptions;
 
+    /// <summary>
+    /// Determines whether <paramref name="source"/> is compatible with
+    /// <paramref name="canonical"/>.
+    /// </summary>
+    /// <param name="source">The source schema's directive definition.</param>
+    /// <param name="canonical">The canonical directive definition to compare against.</param>
+    /// <param name="allowArgumentSubset">
+    /// When <see langword="true"/>, the source definition's arguments only need to be a subset
+    /// of the canonical definition's arguments (same name, same type; default values and
+    /// descriptions are never compared) instead of matching them exactly.
+    /// </param>
     public static bool IsSourceCompatibleWithCanonical(
         DirectiveDefinitionNode source,
-        DirectiveDefinitionNode canonical)
+        DirectiveDefinitionNode canonical,
+        bool allowArgumentSubset = false)
     {
         if (ReferenceEquals(source, canonical))
         {
@@ -27,7 +39,9 @@ internal static class DirectiveDefinitionCompatibility
 
         return source.Name.Value.Equals(canonical.Name.Value, StringComparison.Ordinal)
             && source.IsRepeatable == canonical.IsRepeatable
-            && ArgumentsEqual(source.Arguments, canonical.Arguments)
+            && (allowArgumentSubset
+                ? ArgumentsSubsetOfCanonical(source.Arguments, canonical.Arguments)
+                : ArgumentsEqual(source.Arguments, canonical.Arguments))
             && LocationsSubsetOfCanonical(source.Locations, canonical.Locations);
     }
 
@@ -66,6 +80,39 @@ internal static class DirectiveDefinitionCompatibility
                     && s_syntaxComparer.Equals(sourceArg, canonicalArg))
                 {
                     matched[j] = true;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// A source definition's arguments are compatible when every source argument's name is
+    /// also declared by the canonical definition with the same type. Default values and
+    /// descriptions are never compared, and the canonical definition may declare additional
+    /// arguments the source does not.
+    /// </summary>
+    private static bool ArgumentsSubsetOfCanonical(
+        IReadOnlyList<InputValueDefinitionNode> sourceArgs,
+        IReadOnlyList<InputValueDefinitionNode> canonicalArgs)
+    {
+        foreach (var sourceArg in sourceArgs)
+        {
+            var found = false;
+
+            foreach (var canonicalArg in canonicalArgs)
+            {
+                if (sourceArg.Name.Value.Equals(canonicalArg.Name.Value, StringComparison.Ordinal)
+                    && s_syntaxComparer.Equals(sourceArg.Type, canonicalArg.Type))
+                {
                     found = true;
                     break;
                 }

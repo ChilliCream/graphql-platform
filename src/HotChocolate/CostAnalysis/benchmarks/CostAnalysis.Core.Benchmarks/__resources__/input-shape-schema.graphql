@@ -1,0 +1,22 @@
+type Query {
+  search(filter: SearchFilter @cost(weight: "2")): SearchResult
+}
+
+type SearchResult {
+  count: Int
+}
+
+input SearchFilter {
+  all: [TextPredicate] @cost(weight: "3")
+  paging: PagingInput @cost(weight: "5")
+}
+
+input TextPredicate {
+  field: String @cost(weight: "1")
+  contains: String @cost(weight: "2")
+}
+
+input PagingInput {
+  first: Int @cost(weight: "1")
+  offset: Int @cost(weight: "1")
+}

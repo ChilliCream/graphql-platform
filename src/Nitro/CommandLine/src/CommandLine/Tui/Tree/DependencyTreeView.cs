@@ -13,19 +13,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Tree;
 /// dependency graph as a windowed, connector-drawn tree, and lets the cursor
 /// refocus the tree on any node while remembering the path back.
 /// </summary>
-/// <remarks>
-/// Enter and f both refocus the tree on the cursor node, and Enter is
-/// already reachable through the global key table via
-/// <see cref="TuiMessage.OpenSelected"/>; <see cref="KeyMap"/> maps f to the
-/// same message. m toggles the edge mode, d toggles the direction, and u
-/// pops the breadcrumb stack, via <see cref="TuiMessage.ToggleTreeEdgeMode"/>,
-/// <see cref="TuiMessage.ToggleTreeDirection"/>, and
-/// <see cref="TuiMessage.NavigateTreeBack"/>. Entering the tree on a task
-/// selected in another mode, and leaving it, are shell-level concerns: the
-/// shell drives <see cref="EnterOnTask"/> directly the same way
-/// <c>SearchMode.HandleQueryKey</c> is driven directly for gestures outside
-/// the closed <see cref="TuiMessage"/> set.
-/// </remarks>
 internal sealed class DependencyTreeView : ITuiMode
 {
     private readonly ITaskStore _store;
@@ -67,8 +54,7 @@ internal sealed class DependencyTreeView : ITuiMode
     public IReadOnlyList<TreeNodeRow> Rows => _rows;
 
     /// <summary>
-    /// The id of the task at the cursor, or null when the tree is empty.
-    /// Detail navigation hooks in through this.
+    /// The task id at the cursor, or null when the cursor has no row.
     /// </summary>
     public string? SelectedTaskId
         => _cursorIndex >= 0 && _cursorIndex < _rows.Count ? _rows[_cursorIndex].TaskId : null;
@@ -294,11 +280,9 @@ internal sealed class DependencyTreeView : ITuiMode
 
     /// <summary>
     /// Builds the panel header: the breadcrumb of ids the tree has been
-    /// refocused through, followed by the edge mode and direction. Degrades
-    /// deterministically as <paramref name="maxWidth"/> shrinks, middle-
-    /// truncating the id chain first and, if that alone still does not fit,
-    /// dropping the edge mode and then the direction, so the header never
-    /// depends on the panel's own ellipsis truncation.
+    /// refocused through, followed by the edge mode and direction. As
+    /// <paramref name="maxWidth"/> shrinks, the id chain is middle-truncated
+    /// first, then the edge mode is dropped, then the direction.
     /// </summary>
     private string BuildTitle(int maxWidth)
     {
@@ -330,9 +314,8 @@ internal sealed class DependencyTreeView : ITuiMode
     }
 
     /// <summary>
-    /// Truncates <paramref name="text"/> to at most <paramref name="maxLength"/>
-    /// characters, replacing the middle with a single ellipsis so both the
-    /// start and the end of an id chain stay legible.
+    /// Truncates to the requested character count using a middle ellipsis.
+    /// A non-positive limit returns an empty string.
     /// </summary>
     private static string MiddleTruncate(string text, int maxLength)
     {
@@ -361,11 +344,8 @@ internal sealed class DependencyTreeView : ITuiMode
     }
 
     /// <summary>
-    /// Renders the visible tree rows (and the "N more above/below" marker
-    /// rows, when the viewport hides part of the tree) at the given width
-    /// and height. Also returns the widest line's plain (markup-stripped)
-    /// character width, so the header can be budgeted against what the
-    /// panel actually renders rather than the raw inner width.
+    /// Renders visible tree rows and scroll indicators, returning their greatest
+    /// plain-text character count.
     /// </summary>
     private (IReadOnlyList<IRenderable> Lines, int MaxRowWidth) RenderLines(int width, int height)
     {

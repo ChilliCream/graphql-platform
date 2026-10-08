@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Resolves the global Nitro directory under the real machine's application
-/// data directory, mirroring the <c>ApplicationData/nitro</c> convention
-/// <c>ConfigurationService</c> uses.
+/// Resolves the Nitro directory under the current user's application data directory.
 /// </summary>
 internal sealed class GlobalConfigDirectoryProvider : IGlobalConfigDirectoryProvider
 {

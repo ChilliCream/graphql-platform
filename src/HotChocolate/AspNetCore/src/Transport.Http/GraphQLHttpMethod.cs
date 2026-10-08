@@ -26,5 +26,15 @@ public sealed class GraphQLHttpMethod
     /// </summary>
     public static GraphQLHttpMethod Post { get; } = new(HttpMethod.Post);
 
+    /// <summary>
+    /// Gets the HTTP QUERY method.
+    /// </summary>
+    public static GraphQLHttpMethod Query { get; } =
+#if NET10_0_OR_GREATER
+        new(HttpMethod.Query);
+#else
+        new(new HttpMethod("QUERY"));
+#endif
+
     public static implicit operator HttpMethod(GraphQLHttpMethod method) => method._method;
 }

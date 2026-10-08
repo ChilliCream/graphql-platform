@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -200,6 +201,57 @@ public class FusionArchiveTests : IDisposable
         }
 
         result.Dispose();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SetGatewayConfigurationAsync_Should_PersistPlainTextPlanningFingerprint_When_CommittingArchive(bool useBytes)
+    {
+        // arrange
+        await using var stream = CreateStream();
+        const string schema = "type Query { field: String }";
+        const string fingerprint = "v1:ad43460c77c6b31ede9d5bcd3fced3fbfea7f91d2cb6443c65757a56f30b6c72";
+        var version = new Version(2, 0, 0);
+        using var settings = CreateSettingsJson();
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
+            if (useBytes)
+            {
+                await archive.SetGatewayConfigurationAsync(
+                    Encoding.UTF8.GetBytes(schema), settings, version, TestContext.Current.CancellationToken);
+            }
+            else
+            {
+                await archive.SetGatewayConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
+            }
+
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        stream.Position = 0;
+#if NET10_0_OR_GREATER
+        await using (var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+#endif
+        {
+            var entry = Assert.IsType<ZipArchiveEntry>(zip.GetEntry("gateway/2.0.0/planning-fingerprint"));
+            await using var content = entry.Open();
+            await using var bytes = new MemoryStream();
+            await content.CopyToAsync(bytes, TestContext.Current.CancellationToken);
+            Assert.Equal(Encoding.UTF8.GetBytes(fingerprint), bytes.ToArray());
+        }
+
+        stream.Position = 0;
+        using var reader = FusionArchive.Open(stream, leaveOpen: true);
+        using var configuration = Assert.IsType<GatewayConfiguration>(
+            await reader.TryGetGatewayConfigurationAsync(version, TestContext.Current.CancellationToken));
+        Assert.Equal(fingerprint, configuration.PlanningFingerprint);
     }
 
     [Fact]

@@ -1,13 +1,17 @@
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
+using ChilliCream.Nitro.CommandLine.Tui.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using Microsoft.Extensions.Time.Testing;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
@@ -22,6 +26,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 /// </summary>
 public sealed class TuiShellTabsTests
 {
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     private static ConsoleKeyInfo KeyInfo(char keyChar, ConsoleKey key, ConsoleModifiers modifiers = ConsoleModifiers.None) =>
         new(
             keyChar,
@@ -46,29 +52,62 @@ public sealed class TuiShellTabsTests
     private static TuiTab CreateAgentsTab(string title, ITuiMode mode, char mnemonic = 'A') =>
         new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
-    private static AgentRecord Agent(string name, string role = "") => new()
+    private static TuiTab CreateMemoryTab(string title, ITuiMode mode, char mnemonic = 'e') =>
+        new(title, mnemonic, mode, new KeyDispatcher(MemoryKeyMap.CreateDefault()));
+
+    private static void LoginAgent(Agents.FakeAgentStore store)
+        => store.LoginAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    /// <summary>
+    /// A real <see cref="MemoryStore"/> over a freshly initialized workspace in its own
+    /// temporary directory, returned in <paramref name="root"/> for the caller to delete.
+    /// </summary>
+    private static MemoryStore CreateMemoryStore(TimeProvider time, out DirectoryInfo root)
     {
-        Name = name,
-        Role = role,
-        Client = "",
-        Implicit = false,
-        RegisteredAt = DateTimeOffset.UnixEpoch,
-        LastSeenAt = DateTimeOffset.UnixEpoch
-    };
+        root = Directory.CreateTempSubdirectory("nitro-shell-memory-tests");
+        var workspaceDirectory = AgentWorkspace.GetDirectory(root.FullName);
+        Directory.CreateDirectory(workspaceDirectory);
+
+        using var connection = new AgentDatabase()
+            .InitializeAsync(workspaceDirectory, CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+
+        return new MemoryStore(new TestFileSystem(root.FullName), time, new AgentDatabase());
+    }
+
+    private static MemoryRecord SaveMemory(MemoryStore store, string text) => store.SaveAsync(
+        new MemoryRecordCreation { Text = text, Type = "fact", Actor = "test-agent" },
+        TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    private static void LogMemory(MemoryStore store, string text) => store.LogAsync(
+        new MemoryJournalEntryCreation { Text = text, Actor = "test-agent" },
+        TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    private static void UpdateMemoryBody(MemoryStore store, string id, string text) => store.UpdateAsync(
+        id,
+        new MemoryRecordUpdate { Text = text, TextGiven = true },
+        TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+
+    private static void ForgetMemory(MemoryStore store, string id) => store.ForgetAsync(
+        id, TestContext.Current.CancellationToken).GetAwaiter().GetResult();
 
     [Fact]
-    public void Constructor_Should_CallOnEnter_OnEveryHostedTab_NotOnlyTheActiveOne()
+    public void Constructor_Should_CallOnEnter_When_EveryHostedTabIsConstructed()
     {
         // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
+        var time = new FakeTimeProvider(s_now);
 
         // act
-        _ = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        _ = new TuiShell(
+            [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
-        // assert: the inactive tab's mode is entered too, so its tab-strip
-        // title (for example an unread badge) is accurate before it is ever
-        // switched to.
+        // assert
         Assert.True(tab1Mode.EnterCalled);
         Assert.True(tab2Mode.EnterCalled);
     }
@@ -77,8 +116,12 @@ public sealed class TuiShellTabsTests
     public void Render_Should_ShowATabStrip_WithEveryTabsTitle_When_MoreThanOneTabIsHosted()
     {
         // arrange
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode())],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var text = RenderToText(shell);
@@ -89,11 +132,88 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Render_Should_BracketEachTabsMnemonic_InBothActiveAndInactiveState()
+    public void Render_Should_ShowEveryTasksTabFooterHint_When_TheTerminalIsOneHundredColumnsWide()
     {
-        // arrange: the tasks tab (index 0) is active by default, the agents
-        // tab (index 2) is inactive, covering both the active and inactive
-        // tab-strip styles the mnemonic bracket is rendered under.
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var board = new BoardMode(new BoardDataLoader(new FakeTaskStore(), time));
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", board), CreateMailTab("Mail", new FakeTuiMode())],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+
+        // act
+        var lines = RenderToText(shell, 100).TrimEnd().Split('\n');
+
+        // assert
+        lines[^1].TrimEnd().MatchInlineSnapshot("hjkl move  enter open  r refresh  y copy id  z zoom  o cols  esc back  q quit  [ ] shift+letter tab");
+    }
+
+    [Fact]
+    public void Render_Should_NameTheForcedOrientationOnTheTasksTab_When_TheColumnHeaderIsTooNarrow()
+    {
+        // arrange
+        var shell = CreateBoardShell(BoardOrientation.SideBySide, width: 80);
+
+        // act
+        var lines = RenderToText(shell, 80).Split('\n');
+
+        // assert
+        lines[0].TrimEnd().MatchInlineSnapshot(" [T]asks · grid   [M]ail");
+        lines[1].MatchInlineSnapshot("╭─Open (5)─────╮╭─In progress…─╮╭─Blocked (5)──╮╭─Deferred (5)─╮╭─Closed (5)───╮");
+    }
+
+    [Fact]
+    public void Render_Should_KeepTheOrientationInTheColumnHeaderOnly_When_TheTerminalIsWide()
+    {
+        // arrange
+        var shell = CreateBoardShell(BoardOrientation.SideBySide, width: 160);
+
+        // act
+        var lines = RenderToText(shell, 160).Split('\n');
+
+        // assert
+        lines[0].TrimEnd().MatchInlineSnapshot(" [T]asks   [M]ail");
+        lines[1].MatchInlineSnapshot("╭─Open (5) | grid──────────────╮╭─In progress (5)──────────────╮╭─Blocked (5)──────────────────╮╭─Deferred (5)─────────────────╮╭─Closed (5)───────────────────╮");
+    }
+
+    private static TuiShell CreateBoardShell(BoardOrientation orientation, int width)
+    {
+        var store = new FakeTaskStore();
+        store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", status: TaskStates.Open);
+        store.Tasks["a-2"] = TaskItemBuilder.Create("a-2", status: TaskStates.InProgress);
+        store.Tasks["a-3"] = TaskItemBuilder.Create("a-3", status: TaskStates.Blocked);
+        store.Tasks["a-4"] = TaskItemBuilder.Create("a-4", status: TaskStates.Deferred);
+        store.Tasks["a-5"] = TaskItemBuilder.Create("a-5", status: TaskStates.Closed);
+        var view = new BoardView
+        {
+            Name = "Test",
+            Columns =
+            [
+                new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] },
+                new ColumnDefinition { Name = "In progress", Statuses = [TaskStates.InProgress] },
+                new ColumnDefinition { Name = "Blocked", Statuses = [TaskStates.Blocked] },
+                new ColumnDefinition { Name = "Deferred", Statuses = [TaskStates.Deferred] },
+                new ColumnDefinition { Name = "Closed", Statuses = [TaskStates.Closed] }
+            ]
+        };
+        var time = new FakeTimeProvider(s_now);
+        var board = new BoardMode(new BoardDataLoader(store, time), [view], orientation);
+        board.OnEnter();
+
+        return new TuiShell(
+            [CreateTasksTab("Tasks", board), CreateMailTab("Mail", new FakeTuiMode())],
+            width,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+    }
+
+    [Fact]
+    public void Render_Should_BracketEachTabsMnemonic_When_TabsAreActiveOrInactive()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [
                 CreateTasksTab("Tasks", new FakeTuiMode()),
@@ -101,7 +221,8 @@ public sealed class TuiShellTabsTests
                 CreateAgentsTab("Agents", new FakeTuiMode())
             ],
             80,
-            24);
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var text = RenderToText(shell);
@@ -119,6 +240,7 @@ public sealed class TuiShellTabsTests
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode();
         var agentsMode = new FakeTuiMode();
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [
                 CreateTasksTab("Tasks", tasksMode),
@@ -126,24 +248,27 @@ public sealed class TuiShellTabsTests
                 CreateAgentsTab("Agents", agentsMode)
             ],
             80,
-            24);
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
-        // act: Shift+A jumps straight from the (active) tasks tab to agents.
+        // act
+        // Shift+A jumps straight from the (active) tasks tab to agents.
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('A', ConsoleKey.A, ConsoleModifiers.Shift)));
 
         // assert
         Assert.True(dirty);
         Assert.Single(agentsMode.ResizeCalls);
 
-        // act: Shift+M jumps from agents straight to mail, skipping tasks.
+        // act
+        // Shift+M jumps from agents straight to mail, skipping tasks.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('M', ConsoleKey.M, ConsoleModifiers.Shift)));
 
-        // assert: tasks was never switched back to, so it still has no
-        // resize call at all (only its constructor-time OnEnter).
+        // assert
         Assert.Single(mailMode.ResizeCalls);
         Assert.Empty(tasksMode.ResizeCalls);
 
-        // act: Shift+T jumps back to tasks.
+        // act
+        // Shift+T jumps back to tasks.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
 
         // assert
@@ -155,14 +280,17 @@ public sealed class TuiShellTabsTests
     {
         // arrange
         var tasksMode = new FakeTuiMode();
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
-            [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+            [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", new FakeTuiMode())],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
 
-        // assert: the mnemonic resolves to the tasks tab, but it is already
-        // active, so the switch (and the resulting repaint) is a no-op.
+        // assert
         Assert.False(dirty);
         Assert.Empty(tasksMode.ResizeCalls);
     }
@@ -170,10 +298,9 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_StillReachTheModeKey_When_ItsLowercaseCounterpartIsNotAMnemonic()
     {
-        // arrange: proves the mnemonic resolution does not shadow an
-        // unrelated, already-bound key. 'r' (refresh) stays reachable on the
-        // tasks tab's global table even with tab mnemonics installed.
+        // arrange
         var tasksMode = new FakeTuiMode();
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [
                 CreateTasksTab("Tasks", tasksMode),
@@ -181,7 +308,8 @@ public sealed class TuiShellTabsTests
                 CreateAgentsTab("Agents", new FakeTuiMode())
             ],
             80,
-            24);
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
@@ -193,11 +321,14 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_ReserveOneExtraRow_ForTheTabStrip_When_MultipleTabsHosted()
     {
-        // arrange: the single-tab constructor reserves only the status row
-        // (covered by TuiShellTests), so a second reserved row here isolates
-        // the tab strip's own contribution.
+        // arrange
         var mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", mode), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", mode), CreateMailTab("Mail", new FakeTuiMode())],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.ResizeEvent(100, 30));
@@ -207,14 +338,17 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_RouteKeysOnlyToTheActiveTabsDispatcherAndMode()
+    public void Handle_Should_RouteKeysOnlyToTheActiveTabsDispatcherAndMode_When_AKeyIsPressed()
     {
-        // arrange: plain 'r' means refresh on the tasks tab's global table,
-        // but reply on the mail tab's own key table, so it doubles as proof
-        // each tab's dispatcher is checked instead of a shared one.
+        // arrange
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)], 80, 24);
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
@@ -223,14 +357,14 @@ public sealed class TuiShellTabsTests
         Assert.Contains(tasksMode.HandledMessages, m => m is TuiMessage.RefreshRequested);
         Assert.Empty(mailMode.HandledMessages);
 
-        // act: switch to the mail tab and press 'r' again.
+        // act
+        // Switch to the mail tab, where 'p' resolves through the Mail key map instead.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
         tasksMode.HandledMessages.Clear();
-        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('p', ConsoleKey.P)));
 
-        // assert: the mail tab's own table wins now, and the tasks tab
-        // (inactive) receives nothing.
-        Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.ReplyRequested);
+        // assert
+        Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.AgentFilterPickerRequested);
         Assert.Empty(tasksMode.HandledMessages);
     }
 
@@ -240,15 +374,22 @@ public sealed class TuiShellTabsTests
         // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
-        // act: '[' from the first tab wraps to the last.
+        // act
+        // '[' from the first tab wraps to the last.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('[', ConsoleKey.Oem4)));
 
         // assert
         Assert.Single(tab2Mode.ResizeCalls);
 
-        // act: ']' from the last tab wraps back to the first.
+        // act
+        // ']' from the last tab wraps back to the first.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
         // assert
@@ -258,13 +399,15 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_SwitchTab_When_TheKeyCarriesNoConsoleKey()
     {
-        // arrange: Linux's Console.ReadKey never sets ConsoleKey.Oem4/Oem6
-        // for '['/']', only KeyChar (see TabSwitchKeysTests), so a
-        // shell-level case with ConsoleKey.None closes the gap the
-        // Oem4/Oem6-only tests above leave for that platform shape.
+        // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.None)));
@@ -278,35 +421,42 @@ public sealed class TuiShellTabsTests
     {
         // arrange
         var tabs = new[] { CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode()) };
+        var time = new FakeTimeProvider(s_now);
 
-        // act & assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TuiShell(tabs, 80, 24, tasksTabIndex: 2));
+        // act
+        // assert
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TuiShell(
+            tabs,
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time),
+            tasksTabIndex: 2));
     }
 
     [Fact]
-    public void HandleDataChanged_Should_NotRouteAnInactiveTabsFollowUp_ToTheActiveTab()
+    public void HandleDataChanged_Should_NotRouteAnInactiveTabsFollowUpToTheActiveTab_When_DataChanges()
     {
-        // arrange: the mail tab (inactive) is scripted to return a
-        // follow-up from its own RefreshRequested handling; that follow-up
-        // must reach only the mail tab's own mode, never the active tasks
-        // tab's mode via the shell's shared HandleMessage.
+        // arrange
+        // The inactive mail mode returns a toast when refreshed.
         var mailFollowUp = new TuiMessage.ShowToast("mail refreshed", ToastStyle.Info);
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode
         {
             HandleResult = message => message is TuiMessage.RefreshRequested ? [mailFollowUp] : []
         };
-        var shell = new TuiShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)], 80, 24);
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
         tasksMode.HandledMessages.Clear();
         mailMode.HandledMessages.Clear();
 
         // act
         shell.Handle(new TuiEvent.DataChangedEvent());
 
-        // assert: the mail tab saw only its own RefreshRequested (its
-        // follow-up was not fed back into it), and the active tasks tab saw
-        // only its own RefreshRequested too, the mail tab's follow-up never
-        // reaching it.
+        // assert
         Assert.Equal([new TuiMessage.RefreshRequested()], mailMode.HandledMessages);
         Assert.Equal([new TuiMessage.RefreshRequested()], tasksMode.HandledMessages);
     }
@@ -324,10 +474,12 @@ public sealed class TuiShellTabsTests
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var otherMode = new FakeTuiMode();
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(time),
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
@@ -335,18 +487,17 @@ public sealed class TuiShellTabsTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
         Assert.Contains("Edit Task", RenderToText(shell));
 
-        // act: ']' is swallowed by the editor form's focused text field
-        // rather than routed to tab switching.
+        // act
+        // ']' is swallowed by the editor form's focused text field, not routed to tab switching.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
-        // assert: the other tab was never activated, and the editor is
-        // still open (its title field now holds the typed ']').
+        // assert
         Assert.Empty(otherMode.ResizeCalls);
         Assert.Contains("Edit Task", RenderToText(shell));
     }
 
     [Fact]
-    public void Handle_Should_SwitchTab_Again_OnceTheOverlayThatBlockedItCloses()
+    public void Handle_Should_SwitchTab_When_TheOverlayThatBlockedItCloses()
     {
         // arrange
         var store = new FakeTaskStore();
@@ -358,16 +509,19 @@ public sealed class TuiShellTabsTests
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var otherMode = new FakeTuiMode();
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(time),
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
 
-        // act: Escape closes the (non-dirty) editor, then ']' switches tabs.
+        // act
+        // Escape closes the (non-dirty) editor, then ']' switches tabs.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
@@ -378,12 +532,15 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_RefreshEveryTabsActiveMode_When_DataChangedEventFires()
     {
-        // arrange: a single watcher notification must reach every tab, not
-        // only the active one, so an inactive tab's data (and any badge
-        // derived from it) stays current.
+        // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
         var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
@@ -395,115 +552,566 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Render_Should_ShowTheMailTabsUnreadBadge_RefreshedOnDataChanged()
+    public void Render_Should_ShowTheMailTabsThreadCount_When_MailTabIsSelected()
     {
         // arrange
         var mailStore = new FakeMailStore();
         mailStore.Messages.Add(MailMessageBuilder.Create("m1"));
-        var mailMode = new MailMode(
-            mailStore,
-            "actor",
-            new Agents.FakeAgentRegistry());
-        var mailTab = new TuiTab(
-            () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
-            mnemonic: 'M',
-            mailMode,
-            new KeyDispatcher(MailKeyMap.CreateDefault()));
-        var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), mailTab], 80, 24);
-
-        // assert: computed at construction, before the mail tab is ever
-        // active; the badge suffix is untouched by the bracketed mnemonic.
-        Assert.Contains("[M]ail (1)", RenderToText(shell));
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
+        var mailTab = new TuiTab("Mail", mnemonic: 'M', mailMode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
 
         // act
-        mailStore.Messages.Add(MailMessageBuilder.Create("m2"));
-        shell.Handle(new TuiEvent.DataChangedEvent());
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
         // assert
-        Assert.Contains("[M]ail (2)", RenderToText(shell));
+        Assert.Contains("Mail (1)", RenderToText(shell));
     }
 
     [Fact]
-    public async Task HandleDataChanged_Should_ShowTheMailTabsSendOutcomeToast_When_TheTasksTabIsActive()
+    public void Render_Should_UpdateTheMailTabsThreadCount_When_DataChangedEventArrives()
     {
-        // arrange: submits a compose directly through the mail tab's own
-        // MailMode while the tasks tab stays active throughout, mirroring
-        // how MailMode.SubmitCompose runs the store write off-thread
-        // regardless of which tab is hosting it; the
-        // outcome toast must still reach the shell's toaster once the
-        // workspace database watcher's DataChangedEvent drains it, rather
-        // than being dropped along with every other inactive-tab follow-up.
-        var testToken = TestContext.Current.CancellationToken;
+        // arrange
         var mailStore = new FakeMailStore();
-        var mailMode = new MailMode(
-            mailStore,
-            "alice",
-            new Agents.FakeAgentRegistry());
-        var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)], 80, 24);
-        mailMode.Handle(new TuiMessage.SelectInboxRequested());
-        mailMode.Handle(new TuiMessage.ComposeRequested());
+        mailStore.Messages.Add(MailMessageBuilder.Create("m1"));
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(new FakeTimeProvider(s_now)));
+        var mailTab = new TuiTab("Mail", mnemonic: 'M', mailMode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+        var time = new FakeTimeProvider(s_now);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
-        foreach (var c in "bob")
+        // act
+        mailStore.Messages.Add(MailMessageBuilder.Create("m2", threadId: "m2"));
+        shell.Handle(new TuiEvent.DataChangedEvent());
+
+        // assert
+        Assert.Contains("Mail (2)", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMailTabToPickedAgent_When_AgentFilterPickerAppliedThroughTheShell()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new Agents.FakeAgentStore(time);
+        LoginAgent(agentStore);
+        var agentName = agentStore.Rows[0].Name;
+        mailStore.Messages.Add(MailMessageBuilder.Create("m1", sender: agentName, threadId: "t-1"));
+        mailStore.Messages.Add(MailMessageBuilder.Create("m2", sender: "outsider", threadId: "t-2"));
+        var mailMode = new MailMode(mailStore, agentStore, time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: agentStore);
+
+        // act
+        // Switch to the Mail tab, open the agent picker, move to the seeded agent, and apply it.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('p', ConsoleKey.P)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\0', ConsoleKey.DownArrow)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.Contains($"Mail: {agentName} (1)", RenderToText(shell));
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMailTabRows_When_SearchSubmittedThroughTheShell()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", sender: "alice", subject: "Status update", threadId: "t-1"));
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m2", sender: "bob", subject: "Lunch plans", threadId: "t-2"));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+
+        // act
+        // Switch to the Mail tab, open search, type a subject fragment, and submit with the save chord.
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+        foreach (var c in "status")
         {
-            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo(c, ConsoleKey.NoName)));
         }
 
-        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.Tab));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S, ConsoleModifiers.Control)));
 
-        foreach (var c in "Status")
-        {
-            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
-        }
+        // assert
+        Assert.Collection(mailMode.State.Threads, t => Assert.Equal("Status update", t.Subject));
+        Assert.Contains("Status update", RenderToText(shell));
+    }
 
-        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.Tab));
+    [Fact]
+    public void Handle_Should_OpenTheMailThreadPopover_When_EnterIsPressedWithAThreadSelected()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", sender: "alice", subject: "Status update", threadId: "t-1",
+            recipients: [MailMessageBuilder.ToRecipient("bob")]));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
-        foreach (var c in "Body")
-        {
-            mailMode.HandleRawKey(KeyInfo(c, ConsoleKey.NoName));
-        }
-
-        mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.S, ConsoleModifiers.Control));
-
-        // act: the tasks tab (index 0) is still active; the send completes
-        // asynchronously on the inactive mail tab, so poll DataChangedEvent
-        // until the outcome toast renders instead of waiting on the wake
-        // observer's call count, which increments before the effect queue
-        // has anything to drain. An intermediate "Stored" toast can win the
-        // Toaster's single slot ahead of the terminal one, and Toaster.Tick
-        // only advances past it on a TickEvent, so every poll first drives a
-        // TickEvent far enough in the future to expire whatever toast a
-        // prior poll left showing, ahead of that same poll's DataChangedEvent
-        // drain; otherwise a drain landing in the commit-to-completion window
-        // could leave "Stored" showing forever and stall this loop, and
-        // ticking after the drain instead would just as wrongly expire the
-        // terminal toast this loop is waiting to observe.
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-        var dirty = false;
-        var rendered = RenderToText(shell);
-
-        while (!rendered.Contains("Sent", StringComparison.Ordinal))
-        {
-            shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow + Toaster.s_duration));
-            dirty = shell.Handle(new TuiEvent.DataChangedEvent());
-            rendered = RenderToText(shell);
-
-            if (!rendered.Contains("Sent", StringComparison.Ordinal))
-            {
-                await Task.Delay(5, timeoutCts.Token);
-            }
-        }
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+        var rendered = RenderToText(shell, width: 100);
 
         // assert
         Assert.True(dirty);
-        Assert.Contains("Sent", rendered);
+        Assert.Contains("Status update", rendered);
+        Assert.Contains("Participants:", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheThreadIdToast_When_YIsPressedInTheMailThreadPopover()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create("m1", threadId: "t-1"));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('y', ConsoleKey.Y)));
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        var statusLine = rendered.TrimEnd().Split('\n')[^1].Trim();
+        Assert.Equal("i t-1", statusLine);
+    }
+
+    [Fact]
+    public void Handle_Should_CloseTheMailThreadPopover_When_EscapeIsPressed()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", subject: "Status update", threadId: "t-1"));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\u001b', ConsoleKey.Escape)));
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("enter open", rendered);
+        Assert.Contains("SUBJECT", rendered);
+        Assert.Contains("Status update", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ReloadTheMailThreadPopover_When_ADataChangedEventArrives()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m1", body: "Original body", threadId: "t-1", createdAt: s_now));
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // act
+        mailStore.Messages.Add(MailMessageBuilder.Create(
+            "m2", body: "Distinctnewbody", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
+        var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+        var rendered = RenderToText(shell, width: 100);
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("Distinctnewbody", rendered);
+    }
+
+    [Fact]
+    public void Handle_Should_ShowNoThreadSelectedToast_When_EnterIsPressedOnAnEmptyMailTab()
+    {
+        // arrange
+        var mailStore = new FakeMailStore();
+        var time = new FakeTimeProvider(s_now);
+        var mailMode = new MailMode(mailStore, new Agents.FakeAgentStore(time), time);
+        var mailTab = CreateMailTab("Mail", mailMode);
+        var shell = new TuiShell(
+            [CreateTasksTab("Tasks", new FakeTuiMode()), mailTab],
+            100,
+            24,
+            agentStore: new Agents.FakeAgentStore(time));
+        shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
+
+        // act
+        var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+        // assert
+        Assert.True(dirty);
+        Assert.Contains("No thread selected.", RenderToText(shell, width: 100));
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheMemoryTabsHeaderRowAndCount_When_ShiftEIsPressed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Ops note.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                80,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+
+            // act
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // assert
+            var rendered = RenderToText(shell);
+            Assert.Contains("Memory (1)", rendered);
+            Assert.Contains("KIND", rendered);
+            Assert.Contains("TAGS", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMemoryTabToCurated_When_FIsPressedAfterSwitchingWithShiftE()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Ops note.");
+            LogMemory(store, "Follow up needed.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                80,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // act
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('f', ConsoleKey.F)));
+
+            // assert
+            Assert.Contains("Curated (1)", RenderToText(shell));
+            Assert.Equal(MemoryCollectionFilter.Curated, memoryMode.State.Filter);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_NarrowMemoryTabRows_When_SearchSubmittedThroughTheShell()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Deploy note.");
+            SaveMemory(store, "Lunch plan.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                80,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+
+            // act
+            // Switch to the Memory tab, open search, type a body fragment, and submit with the save chord.
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
+
+            foreach (var c in "deploy")
+            {
+                shell.Handle(new TuiEvent.KeyEvent(KeyInfo(c, ConsoleKey.NoName)));
+            }
+
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('s', ConsoleKey.S, ConsoleModifiers.Control)));
+
+            // assert
+            Assert.Collection(memoryMode.State.Rows, r => Assert.Equal("Deploy note.", r.Body));
+            Assert.Contains("Memory (1) (filtered)", RenderToText(shell));
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_OpenTheMemoryEntryPopover_When_EnterIsPressedWithARowSelected()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Restart the worker on failure.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // act
+            var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains(saved.Id, rendered);
+            Assert.Contains("Kind: curated", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheEntryIdToast_When_YIsPressedInTheMemoryEntryPopover()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Ops note.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('y', ConsoleKey.Y)));
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            var statusLine = rendered.TrimEnd().Split('\n')[^1].Trim();
+            Assert.Equal($"i {saved.Id}", statusLine);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_CloseTheMemoryEntryPopover_When_EscapeIsPressed()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            SaveMemory(store, "Ops note.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\u001b', ConsoleKey.Escape)));
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("KIND", rendered);
+            Assert.Contains("curated", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ReloadTheMemoryEntryPopover_When_ADataChangedEventArrives()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Original body.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            UpdateMemoryBody(store, saved.Id, "Distinctnewbody");
+            var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("Distinctnewbody", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ShowTheMissingState_When_TheOpenMemoryEntryIsForgotten()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var saved = SaveMemory(store, "Original body.");
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // act
+            ForgetMemory(store, saved.Id);
+            var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
+            var rendered = RenderToText(shell, width: 100);
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("This entry no longer exists.", rendered);
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Handle_Should_ShowNoItemSelectedToast_When_EnterIsPressedOnAnEmptyMemoryTab()
+    {
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var store = CreateMemoryStore(time, out var root);
+
+        try
+        {
+            var memoryMode = new MemoryMode(store, time);
+            var memoryTab = CreateMemoryTab("Memory", memoryMode);
+            var shell = new TuiShell(
+                [CreateTasksTab("Tasks", new FakeTuiMode()), memoryTab],
+                100,
+                24,
+                agentStore: new Agents.FakeAgentStore(time));
+            shell.Handle(new TuiEvent.KeyEvent(KeyInfo('E', ConsoleKey.E, ConsoleModifiers.Shift)));
+
+            // act
+            var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
+
+            // assert
+            Assert.True(dirty);
+            Assert.Contains("No item selected.", RenderToText(shell, width: 100));
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
     }
 
     [Fact]
     public void Handle_Should_OpenTaskDetail_When_EnterPressedOnBoardSelection_ThroughATabbedShell()
     {
-        // arrange: an existing single-mode board interaction, exercised
-        // through a tabbed shell to prove tasks-tab parity.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
         var view = new BoardView
@@ -512,10 +1120,12 @@ public sealed class TuiShellTabsTests
             Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode(), mnemonic: 'O')],
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(time),
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
@@ -530,134 +1140,123 @@ public sealed class TuiShellTabsTests
     }
 
     [Fact]
-    public void Handle_Should_AlwaysShowSelectedAgentDetail_WithoutOpeningAnything_ThroughATabbedShell()
+    public void Handle_Should_OpenTheAgentPopover_When_EnterIsPressed_ThroughATabbedShell()
     {
-        // arrange: the detail pane sits next to the list, so the selected
-        // participant's identity is already on screen before any key is
-        // pressed.
-        var sessions = new Agents.FakeAgentSessionRegistry();
-        sessions.Participants.Add(
-            Agents.AgentSessionParticipantBuilder.Participant(
-                sessionId: "s-a", agentName: "agent-a", role: "backend", agent: Agent("agent-a", role: "backend")));
-        var taskStore = new FakeTaskStore();
-        var mailStore = new Agents.FakeMailStore();
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new Agents.FakeAgentStore(time);
+        LoginAgent(agentStore);
         var agentsMode = new AgentsMode(
-            taskStore,
-            mailStore,
-            sessions,
-            new Agents.FakeClaudeSessionActivityReader());
+            agentStore, new Agents.FakeMailStore(), new FakeTaskStore(), new Agents.FakeMemoryStore(), time);
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             100,
             24,
+            agentStore: agentStore,
             tasksTabIndex: 0,
-            store: taskStore);
-        Assert.Contains("backend", RenderToText(shell, width: 100));
+            store: new FakeTaskStore());
+        var agentName = agentsMode.State.Rows[0].Name;
 
-        // act: Enter no longer pushes a full-screen detail mode; it focuses
-        // the already-visible detail pane instead.
+        // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // assert
         var rendered = RenderToText(shell, width: 100);
         Assert.True(dirty);
-        Assert.Equal(AgentsFocus.Detail, agentsMode.State.Focus);
-        Assert.Contains("agent-a", rendered);
-        Assert.Contains("backend", rendered);
+        Assert.Equal(0, agentsMode.State.SelectedRow);
+        Assert.Contains(agentName, rendered);
+        Assert.Contains("Harness:", rendered);
     }
 
     [Fact]
     public void Handle_Should_LeaveAgentsListSelectionUntouched_When_EscapePressed()
     {
-        // arrange: there is no pushed mode to pop anymore, so Escape on the
-        // Agents tab is inert rather than navigating anywhere.
-        var sessions = new Agents.FakeAgentSessionRegistry();
-        sessions.Participants.Add(
-            Agents.AgentSessionParticipantBuilder.Participant(
-                sessionId: "s-a", agentName: "agent-a"));
-        var taskStore = new FakeTaskStore();
-        var mailStore = new Agents.FakeMailStore();
+        // arrange
+        var time = new FakeTimeProvider(s_now);
+        var agentStore = new Agents.FakeAgentStore(time);
+        LoginAgent(agentStore);
         var agentsMode = new AgentsMode(
-            taskStore,
-            mailStore,
-            sessions,
-            new Agents.FakeClaudeSessionActivityReader());
+            agentStore, new Agents.FakeMailStore(), new FakeTaskStore(), new Agents.FakeMemoryStore(), time);
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             80,
             24,
-            tasksTabIndex: 0,
-            store: taskStore);
+            agentStore: agentStore,
+            tasksTabIndex: 0);
+        var agentName = Assert.Single(agentsMode.State.Rows).Name;
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
 
         // assert
         Assert.True(dirty);
-        Assert.Equal("agent-a", agentsMode.State.SelectedParticipant?.Participant.Session.AgentName);
-        Assert.Contains("Agents (1)", RenderToText(shell));
+        Assert.Equal(agentName, agentsMode.State.SelectedAgent?.Name);
+        Assert.Contains("Agents (0 online / 1)", RenderToText(shell));
     }
 
     [Fact]
     public void TaskOverlayGesture_Should_DoNothing_When_TheTasksTabIsNotActive()
     {
-        // arrange: a store is present (so it is not merely a null-store
-        // no-op), but the active tab is not the one that owns it.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a"] = TaskItemBuilder.Create("a");
         var otherMode = new FakeTuiMode { SelectedTaskId = "a" };
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(time),
             tasksTabIndex: 0,
             store: store,
             actor: "tester");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
-        // act: 'e' would open the task editor on the tasks tab.
+        // act
+        // 'e' would open the task editor on the tasks tab.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
 
-        // assert: no editor opened on the (non-tasks) active tab.
+        // assert
+        // No editor opened on the (non-tasks) active tab.
         Assert.DoesNotContain("Edit Task", RenderToText(shell));
     }
 
     [Fact]
-    public void Handle_Should_PreserveEachTabsNavigationStack_AcrossTabSwitches_AndKeepBackWithinTheTab()
+    public void Handle_Should_PreserveEachTabsNavigationStack_When_SwitchingTabs()
     {
         // arrange
         var store = new FakeTaskStore();
         var searchMode = new SearchMode(store);
         var board = new FakeTuiMode { RenderText = "board" };
+        var time = new FakeTimeProvider(s_now);
         var shell = new TuiShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode { RenderText = "other" }, mnemonic: 'O')],
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(time),
             tasksTabIndex: 0,
             searchMode: searchMode,
             store: store,
             actor: "tester");
 
-        // act: enter search from the tasks tab's board root.
+        // act
+        // Enter search from the tasks tab's board root.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
         Assert.Contains("Results", RenderToText(shell));
 
-        // move focus off the query input (Tab), then switch to the other
-        // tab and back.
+        // act
+        // Move focus off the query input (Tab), then switch to the other tab and back.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
         Assert.Contains("other", RenderToText(shell));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('[', ConsoleKey.Oem4)));
 
-        // assert: the tasks tab is still on search, its nested state
-        // (including the focus the earlier Tab left it on) untouched by
-        // the trip through the other tab.
+        // assert
         Assert.Contains("Results", RenderToText(shell));
         Assert.Equal(SearchFocus.List, searchMode.Focus);
 
-        // act: Escape walks focus List -> Input (mirroring h), then a
-        // second Escape at Input leaves search mode, popping the tasks
-        // tab's own stack back to its board root.
+        // act
+        // Escape walks focus List -> Input (mirroring h), a second Escape leaves search to the board root.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
 

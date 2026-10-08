@@ -255,6 +255,7 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
+        new CostDirectiveDefinitionRule(),
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
         new ExternalOverrideCollisionRule(),
@@ -272,6 +273,7 @@ internal sealed class SchemaComposer
         new KeyInvalidArgumentsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new ListSizeDirectiveArgumentRule(),
         new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),

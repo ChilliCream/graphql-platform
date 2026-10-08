@@ -58,6 +58,17 @@ internal static class ServiceCollectionExtensions
         var mcpManager = applicationServices.GetRequiredService<McpManager>();
         var setup = mcpManager.GetSetup(schemaName);
 
+        // Root services are registered as instances so that the schema service provider never disposes them.
+        if (applicationServices.GetService<ILoggerFactory>() is { } loggerFactory)
+        {
+            services.AddSingleton(loggerFactory);
+        }
+
+        if (applicationServices.GetService<IHostApplicationLifetime>() is { } applicationLifetime)
+        {
+            services.AddSingleton(applicationLifetime);
+        }
+
         services.AddLogging();
 
         services.TryAddSingleton(
@@ -99,16 +110,7 @@ internal static class ServiceCollectionExtensions
                     mcpManager.Get(schemaName).Storage,
                     sp.GetRequiredService<IMcpDiagnosticEvents>()));
 
-        services
-            .AddSingleton(
-                static sp => sp
-                    .GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider
-                    .GetRequiredService<IHostApplicationLifetime>())
-            .AddSingleton(
-                static sp => sp
-                    .GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider
-                    .GetRequiredService<ILoggerFactory>())
-            .AddSingleton<McpFeatureRegistry>();
+        services.AddSingleton<McpFeatureRegistry>();
 
         var mcpServers = new ConcurrentDictionary<string, McpServer>();
         services.AddSingleton(mcpServers);

@@ -143,6 +143,69 @@ public sealed class TaskBadgeTests
     }
 
     [Fact]
+    public void Render_Should_FitDisplayWidth_When_FixedPrefixExceedsMaxWidth()
+    {
+        // arrange
+        const int maxWidth = 1;
+
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Fix bug",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
+        Assert.Equal("…", Markup.Remove(line));
+    }
+
+    [Fact]
+    public void Render_Should_FitDisplayWidth_When_TitleContainsCjkAndEmoji()
+    {
+        // arrange
+        const int maxWidth = 20;
+
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "漢😀 task title",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
+    }
+
+    [Theory]
+    [InlineData("\aABCDE")]
+    [InlineData("\aABCDEF")]
+    public void Render_Should_FitDisplayWidth_When_TitleContainsControlCharacter(string title)
+    {
+        // arrange
+        const int maxWidth = 19;
+
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: title,
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.True(Markup.Remove(line).Replace("\a", string.Empty).GetCellWidth() <= maxWidth);
+    }
+
+    [Fact]
     public void Render_Should_ReturnEmpty_When_MaxWidthIsZero()
     {
         // act
@@ -204,6 +267,24 @@ public sealed class TaskBadgeTests
     }
 
     [Fact]
+    public void Render_Should_StopAtPartialTypeSegment_When_Narrow()
+    {
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Title",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: "漢",
+            selected: false,
+            maxWidth: 7);
+
+        // assert
+        Assert.Equal("  ○ […", Markup.Remove(line));
+        line.MatchInlineSnapshot("  [grey70]○[/] [[…");
+    }
+
+    [Fact]
     public void Render_Should_RenderAsValidMarkup_When_StatusIsTombstone()
     {
         // arrange
@@ -223,6 +304,28 @@ public sealed class TaskBadgeTests
         // assert
         Assert.Null(exception);
         Assert.Contains("Title", console.Output);
+    }
+
+    [Fact]
+    public void PriorityStyle_Should_MatchTheStyleEmbeddedInRender_When_SamePriority()
+    {
+        // arrange
+        const int priority = TaskPriorities.Medium;
+
+        // act
+        var style = TaskBadge.PriorityStyle(priority);
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Fix bug",
+            status: TaskStates.Open,
+            priority: priority,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: 80);
+
+        // assert
+        Assert.Equal("yellow", style);
+        Assert.Contains($"[{style}]P2[/]", line);
     }
 
     [Fact]

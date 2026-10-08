@@ -81,7 +81,7 @@ To connect your HotChocolate server to the client registry, you need the `Chilli
 
 To install the Nitro services, run the following command in your project's root directory:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 ```
 

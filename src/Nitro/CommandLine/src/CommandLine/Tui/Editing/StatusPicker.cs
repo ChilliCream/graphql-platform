@@ -58,7 +58,7 @@ internal static class StatusPicker
 
             var result = await store.UpdateTaskAsync(task.Id, update, cancellationToken);
 
-            var toastText = result.ChangedFields.Count == 0
+            var toastText = status == task.Status
                 ? $"No changes to task '{task.Id}'."
                 : $"Status set to '{status}' for task '{task.Id}'.";
 

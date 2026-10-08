@@ -13,6 +13,6 @@ internal sealed class UserPromptSubmitHookCommand : Command
 
         this.SetCodexHookAction(
             "UserPromptSubmit",
-            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, false, ct));
+            (handler, payload, ct) => handler.HandleUserPromptSubmitAsync(payload, ct));
     }
 }

@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Hook;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Time.Testing;
@@ -101,8 +100,7 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheEntryTimeoutElapses()
     {
-        // arrange: an explicit short timeout stands in for the real 10s
-        // entry ceiling so this test does not have to wait it out.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
@@ -127,10 +125,7 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheHandlerIgnoresCancellation()
     {
-        // arrange: the handler never observes the linked token at all (a
-        // hung database call, for instance), so only racing the entry
-        // timeout against the handler task - never awaiting the handler
-        // task itself on timeout - can keep this call within the deadline.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
@@ -161,11 +156,8 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheDatabaseIsContended()
     {
-        // arrange: a second connection holds an open write transaction on
-        // the workspace database, so the Stop handler's ledger reservation
-        // write blocks waiting for the lock. The executor's short timeout
-        // must still resolve to neutral instead of waiting out SQLite's own
-        // (far longer) default busy timeout.
+        // arrange
+        // A separate connection holds the write lock when the Stop handler touches the heartbeat.
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-executor-contention-tests");
 
@@ -177,32 +169,25 @@ public sealed class ClaudeHookExecutorTests
             var fileSystem = new TestFileSystem(workspaceRoot);
             var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
             var database = new AgentDatabase();
-            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
-            var sessions = new AgentSessionRegistry(
-                fileSystem,
-                timeProvider,
-                database,
-                agentRegistry,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
-            var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var agentStore = new AgentStore(fileSystem, timeProvider, database);
+            var ledger = new AgentDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentStore);
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
-                sessions,
+                agentStore,
                 ledger,
                 mail,
-                new FixedClaudeSessionFileReader(),
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+                new FixedClaudeSessionFileReader());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
             }
 
             var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
-            await handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+            await handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
+            await SeedAgentAsync(database, workspaceDirectory, timeProvider, "alice", cancellationToken);
+            await SeedAgentAsync(database, workspaceDirectory, timeProvider, "bob", cancellationToken);
             await mail.SendMessageAsync(
                 new MailMessageCreation { Sender = "bob", Subject = "status", Body = "check", To = ["alice"] },
                 cancellationToken);
@@ -214,7 +199,7 @@ public sealed class ClaudeHookExecutorTests
             await using (var lockCommand = lockConnection.CreateCommand())
             {
                 lockCommand.Transaction = lockTransaction;
-                lockCommand.CommandText = "UPDATE agent_sessions SET last_beat_at = last_beat_at;";
+                lockCommand.CommandText = "UPDATE agents SET last_seen_at = last_seen_at;";
                 await lockCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
@@ -229,7 +214,7 @@ public sealed class ClaudeHookExecutorTests
                 input,
                 output,
                 error,
-                (p, ct) => handler.HandleStopAsync(p, dryRun: true, ct),
+                (p, ct) => handler.HandleStopAsync(p, skipSessionFileLookup: true, ct),
                 "Stop",
                 TimeSpan.FromMilliseconds(200),
                 cancellationToken);
@@ -247,10 +232,8 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_SchemaVersionMismatches()
     {
-        // arrange: the workspace database is stamped with a schema version
-        // newer than AgentDatabase.CurrentVersion, so the handler's own
-        // connection attempt throws ExitException; the executor's fail-open
-        // envelope must still resolve to neutral instead of surfacing it.
+        // arrange
+        // the workspace database is stamped with a schema version newer than the handler supports
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-executor-version-tests");
 
@@ -262,25 +245,16 @@ public sealed class ClaudeHookExecutorTests
             var fileSystem = new TestFileSystem(workspaceRoot);
             var timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
             var database = new AgentDatabase();
-            var agentRegistry = new AgentRegistry(fileSystem, timeProvider, database);
-            var sessions = new AgentSessionRegistry(
-                fileSystem,
-                timeProvider,
-                database,
-                agentRegistry,
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
-            var ledger = new SessionDeliveryLedger(fileSystem, database);
-            var mail = new MailStore(fileSystem, timeProvider, database, agentRegistry);
+            var agentStore = new AgentStore(fileSystem, timeProvider, database);
+            var ledger = new AgentDeliveryLedger(fileSystem, database);
+            var mail = new MailStore(fileSystem, timeProvider, database, agentStore);
             var handler = new ClaudeHookHandler(
                 fileSystem,
                 timeProvider,
-                sessions,
+                agentStore,
                 ledger,
                 mail,
-                new FixedClaudeSessionFileReader(),
-                new FixedInstanceIdProvider("host-1"),
-                new FixedGlobalConfigDirectoryProvider(workspaceRoot));
+                new FixedClaudeSessionFileReader());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
@@ -306,7 +280,7 @@ public sealed class ClaudeHookExecutorTests
                 input,
                 output,
                 error,
-                (p, ct) => handler.HandleSessionStartAsync(p, dryRun: true, ct),
+                (p, ct) => handler.HandleSessionStartAsync(p, skipSessionFileLookup: true, ct),
                 "SessionStart",
                 cancellationToken);
 
@@ -431,5 +405,29 @@ public sealed class ClaudeHookExecutorTests
         Assert.Equal(expectedSessionId, captured.SessionId);
         Assert.Equal(expectedCwd, captured.Cwd);
         Assert.Equal(expectedStopHookActive, captured.StopHookActive);
+    }
+
+    /// <summary>
+    /// Registers the named agent directly against the unified <c>agents</c> table.
+    /// </summary>
+    private static async Task SeedAgentAsync(
+        AgentDatabase database,
+        string workspaceDirectory,
+        TimeProvider timeProvider,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            INSERT INTO agents (name, registered_at, started_at, last_seen_at)
+            VALUES (@name, @now, @now, @now)
+            ON CONFLICT (name) DO UPDATE SET last_seen_at = excluded.last_seen_at;
+            """;
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@now", timeProvider.GetUtcNow());
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }

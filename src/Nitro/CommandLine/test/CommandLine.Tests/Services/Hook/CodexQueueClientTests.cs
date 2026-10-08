@@ -4,11 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises the <see cref="ProcessStartInfo"/> built for the
-/// <c>codex queue</c> subprocess directly: it must strip the actor identity a real
-/// invocation would otherwise inherit and suppress the child's own hook
-/// re-entry, so a queued message's own notify firing is never misattributed
-/// to the actor that queued it and never re-triggers a ping of its own.
+/// Tests hook suppression in the queue subprocess
+/// <see cref="ProcessStartInfo"/> and classification of queue exit results.
 /// </summary>
 public sealed class CodexQueueClientTests
 {
@@ -49,11 +46,8 @@ public sealed class CodexQueueClientTests
     }
 
     /// <summary>
-    /// Signature for a malformed (non-UUID) thread id. Not expected to fire
-    /// in production because the stored
-    /// thread id always comes from Codex's own notify payload - but matched
-    /// defensively since it is an equally unambiguous "no such session"
-    /// report.
+    /// Classifies the captured no-active-session error for a malformed thread id
+    /// as an unavailable endpoint.
     /// </summary>
     [Fact]
     public void MapResult_Should_ReturnEndpointGone_When_StderrIsTheNoActiveSessionSignature()

@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Finds the Claude Code session a hook event names. The event carries the
-/// session id, so the session is identified exactly rather than inferred
-/// from the process tree.
+/// Finds Claude session metadata by the session id supplied by a hook event.
 /// </summary>
 internal interface IClaudeSessionFileReader
 {

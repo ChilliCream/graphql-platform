@@ -2,7 +2,7 @@ using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 
-file static class FormMeasurement
+internal static class FormMeasurement
 {
     /// <summary>
     /// An off-screen console used only to obtain a <see cref="RenderOptions"/> for
@@ -18,14 +18,13 @@ file static class FormMeasurement
     /// the visual lines it occupies.
     /// </summary>
     public static int MeasureHeight(IRenderable renderable, int width)
-        => Segment.SplitLines(renderable.Render(s_options, Math.Max(1, width))).Count;
+        => Segment.SplitLines(renderable.Render(s_options, Math.Max(1, width)), Math.Max(1, width)).Count;
 }
 
 /// <summary>
-/// A scoped modal form: labeled bordered fields with focus traversal, per-field
-/// validation, and a confirm/cancel button row. Rendered as a single-column,
-/// centered overlay; the host is expected to feed it raw key input and stop
-/// showing it once <see cref="HandleKey"/> returns a non-null result.
+/// A modal form with labeled fields, focus traversal, validation, and buttons.
+/// <see cref="HandleKey"/> returns submission, cancellation, or button-activation
+/// results for the host to process.
 /// </summary>
 internal sealed class Form
 {
@@ -54,7 +53,7 @@ internal sealed class Form
     private const int MinViableHeight = 10;
 
     /// <summary>
-    /// Rows of breathing room left between the modal and the edges of the frame.
+    /// Total vertical space reserved around the form panel.
     /// </summary>
     private const int FrameMargin = 2;
 
@@ -177,27 +176,54 @@ internal sealed class Form
 
         var chrome = PanelBorderHeight + SeparatorHeight + buttonsHeight;
         var totalFieldsHeight = fieldHeights.Sum();
-        // Guarantees room for the chrome plus at least one field row, even if
-        // the frame barely clears MinViableHeight.
+        // Reserves room for the chrome plus at least one field row.
         var maxPanelHeight = Math.Max(chrome + 1, height - FrameMargin);
         var availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
         var needsScrolling = totalFieldsHeight > availableFieldsHeight;
 
-        // Reserve room for the scroll indicators only when scrolling is
-        // actually happening, so a form that fits entirely never loses a row
-        // to indicators it doesn't show.
-        var windowBudget = needsScrolling
+        var anchorIndex = IsFieldFocused ? _focusIndex : _fields.Count - 1;
+        var reserveIndicators = needsScrolling && _fields.Count > 1;
+        var windowBudget = reserveIndicators
             ? Math.Max(0, availableFieldsHeight - 2)
             : availableFieldsHeight;
 
-        var anchorIndex = IsFieldFocused ? _focusIndex : _fields.Count - 1;
+        RenderAnchorWithinBudget(windowBudget);
+
+        if (reserveIndicators && fieldHeights[anchorIndex] > windowBudget)
+        {
+            var (initialStartIndex, initialEndIndex) = SelectVisibleFieldRange(fieldHeights, anchorIndex, windowBudget);
+            var indicatorHeight = (initialStartIndex > 0 ? 1 : 0) + (initialEndIndex < _fields.Count - 1 ? 1 : 0);
+            var requiredPanelHeight = chrome + indicatorHeight + fieldHeights[anchorIndex];
+
+            maxPanelHeight = Math.Min(height, Math.Max(maxPanelHeight, requiredPanelHeight));
+            availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
+            windowBudget = Math.Max(0, availableFieldsHeight - 2);
+            RenderAnchorWithinBudget(windowBudget);
+        }
+
         var (startIndex, endIndex) = SelectVisibleFieldRange(fieldHeights, anchorIndex, windowBudget);
         var hiddenAbove = startIndex > 0;
         var hiddenBelow = endIndex < _fields.Count - 1;
 
+        void RenderAnchorWithinBudget(int maxHeight)
+        {
+            if (fieldHeights[anchorIndex] <= maxHeight)
+            {
+                return;
+            }
+
+            var renderable = _fields[anchorIndex].Render(
+                formWidth,
+                focused: IsFieldFocused,
+                maxHeight: maxHeight);
+
+            fieldRenderables[anchorIndex] = renderable;
+            fieldHeights[anchorIndex] = FormMeasurement.MeasureHeight(renderable, formWidth);
+        }
+
         var sections = new List<IRenderable>(endIndex - startIndex + 4);
 
-        if (hiddenAbove)
+        if (reserveIndicators && hiddenAbove)
         {
             sections.Add(new Markup("[grey italic]▲ more fields above[/]"));
         }
@@ -207,21 +233,25 @@ internal sealed class Form
             sections.Add(fieldRenderables[i]);
         }
 
-        if (hiddenBelow)
+        if (reserveIndicators && hiddenBelow)
         {
             sections.Add(new Markup("[grey italic]▼ more fields below[/]"));
         }
 
-        // A blank line separates the fields from the button row so the buttons
-        // don't read as crowded against the last field.
+        // A blank line separates the fields from the button row.
         sections.Add(new Markup(" "));
         sections.Add(buttonsRenderable);
 
-        var panel = new Panel(new Rows(sections))
+        var content = new Rows(sections);
+        var panelHeight = Math.Min(
+            maxPanelHeight,
+            PanelBorderHeight + FormMeasurement.MeasureHeight(content, formWidth));
+        var panel = new Panel(content)
         {
             Header = new PanelHeader(Markup.Escape(_title)),
             Border = BoxBorder.Rounded,
-            Width = formWidth + 4
+            Width = formWidth + 4,
+            Height = panelHeight
         };
 
         return new Align(panel, HorizontalAlignment.Center, VerticalAlignment.Middle)
@@ -230,10 +260,7 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Picks the widest contiguous run of whole fields, anchored at
-    /// <paramref name="anchorIndex"/>, whose combined <paramref name="heights"/>
-    /// fit within <paramref name="budget"/>: the anchor field is always
-    /// included even when it alone exceeds the budget.
+    /// Selects a contiguous range of fields around the anchor within the budget.
     /// </summary>
     private static (int Start, int End) SelectVisibleFieldRange(
         IReadOnlyList<int> heights, int anchorIndex, int budget)
@@ -303,21 +330,16 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Whether <paramref name="info"/> is the save chord that submits the form
-    /// from any focus position, as if the primary button were activated:
-    /// Ctrl+Enter, or Ctrl+S as a fallback for terminals whose legacy input
-    /// mode reports Ctrl+Enter identically to a plain Enter.
+    /// Whether <paramref name="info"/> is the save chord that submits the form from any focus position,
+    /// as if the primary button were activated: Ctrl+Enter, or Ctrl+S.
     /// </summary>
     private static bool IsSaveChord(ConsoleKeyInfo info)
         => info.Modifiers.HasFlag(ConsoleModifiers.Control)
         && info.Key is ConsoleKey.Enter or ConsoleKey.S;
 
     /// <summary>
-    /// Submits the form as if the primary button were activated, regardless of
-    /// which field or button currently has focus. On validation failure,
-    /// moves focus to the first invalid field instead of leaving focus
-    /// wherever the chord was pressed, so the surfaced error is immediately
-    /// visible.
+    /// Submits the form as if the primary button were activated, regardless of which field or button
+    /// currently has focus. On validation failure, moves focus to the first invalid field.
     /// </summary>
     private FormResult? TrySave()
     {
@@ -332,10 +354,8 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Validates every field, marking the form as having attempted a submit so
-    /// every field's error becomes visible; returns the submitted values when
-    /// all fields are valid, or <see langword="null"/> to keep the form open
-    /// otherwise.
+    /// Marks submission attempted and returns the field values when all fields are
+    /// valid, or null when validation fails.
     /// </summary>
     private FormResult? TryValidateAndSubmit()
     {
@@ -359,8 +379,7 @@ internal sealed class Form
             }
         }
 
-        // TrySave only calls this after TryValidateAndSubmit found an invalid
-        // field, so one is always present here.
+        // Validation reported an invalid field before this lookup.
         throw new InvalidOperationException("Expected an invalid field.");
     }
 }

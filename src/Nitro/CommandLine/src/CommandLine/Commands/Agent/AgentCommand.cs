@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Preferences;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
@@ -26,6 +27,9 @@ internal sealed class AgentCommand : Command
         Subcommands.Add(new LoginAgentCommand());
         Subcommands.Add(new RegisterAgentCommand());
         Subcommands.Add(new ListAgentCommand());
+        Subcommands.Add(new TakeoverAgentCommand());
+        Subcommands.Add(new BackupAgentCommand());
+        Subcommands.Add(new RestoreAgentCommand());
         Subcommands.Add(new HookCommand());
         Subcommands.Add(new HooksCommand());
 
@@ -56,23 +60,21 @@ internal sealed class AgentCommand : Command
             {
                 var mailStore = services.GetRequiredService<IMailStore>();
                 var memoryStore = services.GetRequiredService<IMemoryStore>();
-                var agentRegistry = services.GetRequiredService<IAgentRegistry>();
-                var agentSessionRegistry = services.GetRequiredService<IAgentSessionRegistry>();
-                var activityReader = services.GetRequiredService<IClaudeSessionActivityReader>();
+                var agentStore = services.GetRequiredService<IAgentStore>();
                 var timeProvider = services.GetRequiredService<TimeProvider>();
                 var mailWakeDaemonCoordinator = services.GetRequiredService<IMailWakeDaemonCoordinator>();
+                var boardPreferences = services.GetRequiredService<IBoardPreferencesStore>();
 
                 return await AgentTuiLauncher.RunAsync(
                     console,
                     taskStore,
                     mailStore,
                     memoryStore,
-                    agentRegistry,
-                    agentSessionRegistry,
-                    activityReader,
+                    agentStore,
                     timeProvider,
                     workspaceDirectory,
                     mailWakeDaemonCoordinator,
+                    boardPreferences,
                     cancellationToken);
             }
         }
@@ -81,13 +83,7 @@ internal sealed class AgentCommand : Command
     }
 
     /// <summary>
-    /// Reproduces exactly what System.CommandLine prints today when this
-    /// group is invoked bare with no action set: the "Required command was
-    /// not provided." parse error on stderr, followed by the group's own
-    /// help (which lists <c>init</c> among its subcommands) on stdout.
-    /// Locked in so giving this group an action, needed to launch the TUI,
-    /// does not silently change bare-group discoverability for
-    /// non-interactive terminals or when no agent workspace is found.
+    /// Writes a missing-command error and the group help, then returns the error exit code.
     /// </summary>
     private static int WriteBareGroupGuidance(ParseResult parseResult)
     {

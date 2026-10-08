@@ -28,7 +28,7 @@ These docs run `skills` with `dnx`, which needs no install. You can also install
 
 `dnx` ships with the .NET 10 SDK and runs a tool straight from NuGet, the way `npx` runs a package from npm. Nothing is installed up front.
 
-```bash
+```shell
 dnx skills add anthropics/skills --agent claude-code
 ```
 
@@ -43,18 +43,18 @@ After you confirm, the install proceeds and prints the summary shown in [Add you
 
 To skip the download prompt (for example in CI), pass `--yes`:
 
-```bash
+```shell
 dnx --yes skills add anthropics/skills --agent claude-code
 ```
 
 You can control the `skills` version that `dnx` runs and where it fetches it from:
 
-| Command                              | What it does                        |
-| ------------------------------------ | ----------------------------------- |
-| `dnx skills@0.3.0 add ...`           | Runs an exact version.              |
-| `dnx skills@0.3.* add ...`           | Runs the latest 0.3.x version.      |
-| `dnx --prerelease skills add ...`    | Allows prerelease versions.         |
-| `dnx --source <feed> skills add ...` | Fetches from a specific NuGet feed. |
+| Command                                      | What it does                        |
+| -------------------------------------------- | ----------------------------------- |
+| `#!shell dnx skills@0.3.0 add ...`           | Runs an exact version.              |
+| `#!shell dnx skills@0.3.* add ...`           | Runs the latest 0.3.x version.      |
+| `#!shell dnx --prerelease skills add ...`    | Allows prerelease versions.         |
+| `#!shell dnx --source <feed> skills add ...` | Fetches from a specific NuGet feed. |
 
 If your repository has a `.config/dotnet-tools.json` manifest that lists `skills`, `dnx` honors the pinned version from the manifest, which keeps one-shot runs consistent with the version your team committed.
 
@@ -62,7 +62,7 @@ If your repository has a `.config/dotnet-tools.json` manifest that lists `skills
 
 If you would rather have `skills` on your `PATH`, install it as a global [.NET tool](https://learn.microsoft.com/dotnet/core/tools/global-tools). This needs the .NET SDK 8.0 or newer.
 
-```bash
+```shell
 dotnet tool install -g skills
 ```
 
@@ -75,7 +75,7 @@ With the global tool you run `skills` directly: drop the `dnx` prefix from every
 
 To pin `skills` to a version your whole team shares, install it as a local tool through a manifest instead. From the repository root:
 
-```bash
+```shell
 dotnet new tool-manifest
 dotnet tool install skills
 ```
@@ -86,7 +86,7 @@ Local tools are restored with `dotnet tool restore` and run through `dotnet skil
 
 You are ready to install a skill. The example below installs skills from [anthropics/skills](https://github.com/anthropics/skills), Anthropic's reference repository, targeting Claude Code.
 
-```bash
+```shell
 dnx skills add anthropics/skills --agent claude-code
 ```
 
@@ -122,7 +122,7 @@ If you omit `--agent`, the CLI runs interactively and lets you pick which agents
 
 To confirm what landed in your project, list the installed skills:
 
-```bash
+```shell
 dnx skills list
 ```
 
@@ -148,7 +148,7 @@ If you run `skills` with `dnx`, you never update it yourself: each run fetches t
 
 To update the global `skills` tool to the latest version:
 
-```bash
+```shell
 dotnet tool update -g skills
 ```
 
@@ -158,7 +158,7 @@ Tool 'skills' was successfully updated from version '0.3.0' to version '<new>'.
 
 To uninstall it:
 
-```bash
+```shell
 dotnet tool uninstall -g skills
 ```
 

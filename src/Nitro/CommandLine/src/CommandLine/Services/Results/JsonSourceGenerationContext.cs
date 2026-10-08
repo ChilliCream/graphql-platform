@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
@@ -7,7 +8,8 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Label;
@@ -17,10 +19,15 @@ using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Attributes;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Logs;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Services;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Traces;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
 
@@ -80,6 +87,14 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 [JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
 [JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
+[JsonSerializable(typeof(InstallOpencodeHooksCommand.OpencodeHooksInstallResult))]
+[JsonSerializable(typeof(StatusOpencodeHooksCommand.OpencodeHooksStatusResult))]
+[JsonSerializable(typeof(TakeoverAgentCommand.AgentTakeoverResult))]
+[JsonSerializable(typeof(AgentWorkspaceArchiveManifest))]
+[JsonSerializable(typeof(AgentWorkspaceArchiveSummary))]
+[JsonSerializable(typeof(AgentWorkspaceRestoreSummary))]
+[JsonSerializable(typeof(ListResult<TakeoverHistoryAgentCommand.AgentTakeoverHistoryResult>))]
+[JsonSerializable(typeof(TakeoverReferenceResult))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(MailSendResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]
@@ -98,4 +113,12 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(MemoryPromotionResult))]
 [JsonSerializable(typeof(MemoryEntryResult))]
 [JsonSerializable(typeof(ListResult<MemoryEntryResult>))]
+[JsonSerializable(typeof(PaginatedListResult<ListAttributeKeysCommand.AttributeKeyListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListAttributeValuesCommand.AttributeValueListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListLogsCommand.LogListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListServicesCommand.ServiceListItem>))]
+[JsonSerializable(typeof(PaginatedListResult<ListTraceCommand.TraceListItem>))]
+[JsonSerializable(typeof(ShowLogCommand.LogDetail))]
+[JsonSerializable(typeof(ShowServiceCommand.ServiceDetail))]
+[JsonSerializable(typeof(TraceJson))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

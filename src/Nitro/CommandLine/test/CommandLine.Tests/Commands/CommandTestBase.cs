@@ -12,6 +12,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -38,9 +39,9 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private IFileSystem? _fileSystemOverride;
-    private INitroInstanceIdProvider? _instanceIdProviderOverride;
     private IStandardInputReader? _standardInputOverride;
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
+    private Services.Preferences.IBoardPreferencesStore? _boardPreferencesStoreOverride;
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
@@ -61,6 +62,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<ITelemetryClient> TelemetryClientMock = new(MockBehavior.Strict);
     internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
     internal readonly Mock<IBrowserLauncher> _browserLauncherMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
@@ -83,8 +85,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the mocked file system with the given implementation, for
-    /// tests that run commands against real files in a temp directory.
+    /// Replaces the mocked file system with the given implementation.
     /// </summary>
     private protected void SetupFileSystem(IFileSystem fileSystem)
     {
@@ -92,19 +93,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the Nitro instance id resolution at a fixed value instead of
-    /// hashing the real machine's id, so tests that seed rows by host stay
-    /// isolated from the machine running them.
-    /// </summary>
-    private protected void SetupInstanceId(string id)
-    {
-        _instanceIdProviderOverride = new FixedInstanceIdProvider(id);
-    }
-
-    /// <summary>
-    /// Points the global config directory at a fixed directory instead of the
-    /// real machine's application data directory, so tests stay isolated to
-    /// their own temp directory.
+    /// Configures global configuration lookup to use <paramref name="directory"/>.
     /// </summary>
     private protected void SetupGlobalConfigDirectory(string directory)
     {
@@ -112,15 +101,16 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the Claude Code, Codex, and Copilot ancestor-session walk at
-    /// fixed results instead of the real process tree the test host runs
-    /// under, which (running nested inside a live Claude Code session) it
-    /// cannot control or predict deterministically. All three default to no
-    /// ancestor found when not given.
+    /// Replaces the board preferences store resolved from services with <paramref name="store"/>.
     /// </summary>
+    private protected void SetupBoardPreferencesStore(Services.Preferences.IBoardPreferencesStore store)
+    {
+        _boardPreferencesStoreOverride = store;
+    }
+
     /// <summary>
-    /// Feeds <paramref name="payload"/> to a command that reads standard
-    /// input, such as a hook adapter.
+    /// Sets standard input to a reader over <paramref name="payload"/>.
+    /// Command invocations share the reader until this method is called again.
     /// </summary>
     protected void SetupStandardInput(string payload)
     {
@@ -128,10 +118,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points Claude Code <c>settings.json</c> resolution at fixed paths
-    /// instead of the real machine's home directory, so hook command tests
-    /// never read whatever happens to be installed on the machine running
-    /// the test.
+    /// Configures Claude Code settings lookup to use the supplied user and project paths.
     /// </summary>
     private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
     {
@@ -139,9 +126,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points Codex CLI config resolution at fixed paths instead of the
-    /// real machine's <c>CODEX_HOME</c>, so hook command tests never read
-    /// whatever happens to be installed on the machine running the test.
+    /// Configures Codex CLI hooks and configuration lookup to use the supplied paths.
     /// </summary>
     private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
     {
@@ -149,9 +134,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the real subprocess-spawning <c>codex queue</c> client with
-    /// the given fake, so tests exercising a codex-thread ping through the
-    /// CLI never shell out to a real <c>codex</c> binary.
+    /// Configures commands to use the supplied <c>codex queue</c> client.
     /// </summary>
     private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
     {
@@ -159,8 +142,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the real Claude peer-socket client with a fake, so command
-    /// tests never connect to a live Claude Code session.
+    /// Configures commands to use the supplied Claude peer client.
     /// </summary>
     private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
     {
@@ -168,9 +150,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Resolves the acting actor to <paramref name="actor"/> when a command
-    /// omits <c>--actor</c>. Commands under test run without a detectable
-    /// harness session, which is the only other identity source.
+    /// Configures actor resolution to return <paramref name="actor"/> when the option value is null.
+    /// Explicit values are normalized without checking whether the actor was allocated.
     /// </summary>
     protected void SetupActingActor(string actor)
     {
@@ -178,9 +159,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Drops the fixed <see cref="IActingActorResolver"/> so the real one runs, including its guard
-    /// that the actor was actually allocated. For tests about that guard itself; every other test
-    /// keeps the fixed resolver so it does not have to seed an actor first.
+    /// Restores the production <see cref="IActingActorResolver"/> for subsequent command invocations.
     /// </summary>
     protected void SetupRealActingActor()
     {
@@ -214,8 +193,7 @@ public abstract class CommandTestBase
     /// <summary>
     /// The actor <see cref="ExecuteCommandAsync"/> supplies to any command
     /// that declares a required <c>--actor</c> option and was not given one
-    /// explicitly. Null leaves the arguments untouched, so a test that
-    /// asserts the requirement itself still sees the parse failure.
+    /// explicitly. Null leaves the arguments untouched.
     /// </summary>
     private protected string? DefaultActor { get; set; }
 
@@ -230,15 +208,15 @@ public abstract class CommandTestBase
 
         AddDefaultActorIfRequired(arguments);
 
-        var stdOutWriter = new StringWriter();
-        var stdErrWriter = new StringWriter();
+        var stdOut = new SynchronizedOutputCapture();
+        var stdErr = new SynchronizedOutputCapture();
 
         var outConsole = new TestConsole();
-        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOut.Writer);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var errConsole = new TestConsole();
-        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErr.Writer);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         if (_interactionMode is InteractionMode.JsonOutput)
@@ -266,24 +244,22 @@ public abstract class CommandTestBase
 
         var invocationConfig = new InvocationConfiguration
         {
-            Output = stdOutWriter,
-            Error = stdErrWriter
+            Output = stdOut.Writer,
+            Error = stdErr.Writer
         };
 
         var exitCode = await rootCommand.ExecuteAsync(arguments, services, invocationConfig, default);
 
         return new CommandResult(
             exitCode,
-            stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
-            stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+            stdOut.GetOutput().TrimEnd(),
+            stdErr.GetOutput().TrimEnd(),
             rootCommand.Name);
     }
 
     /// <summary>
-    /// Appends <c>--actor <see cref="DefaultActor"/></c> when the command the
-    /// arguments resolve to declares a required <c>--actor</c> option and the
-    /// caller did not pass one, so a test only spells the actor out when the
-    /// actor itself is what it is about.
+    /// Appends <c>--actor</c> with <see cref="DefaultActor"/> when the resolved command requires it
+    /// and the arguments omit it. Leaves arguments unchanged when <see cref="DefaultActor"/> is null.
     /// </summary>
     private void AddDefaultActorIfRequired(List<string> arguments)
     {
@@ -292,9 +268,7 @@ public abstract class CommandTestBase
             return;
         }
 
-        // Walked by name rather than parsed: parsing here would run the
-        // options' own default factories, which need command services this
-        // invocation has not built yet.
+        // Resolve the subcommand from leading command-name arguments.
         Command command = _fixture.RootCommand;
 
         foreach (var token in arguments)
@@ -334,16 +308,16 @@ public abstract class CommandTestBase
             arguments.AddRange(["--output", "json"]);
         }
 
-        var stdOutWriter = new StringWriter();
-        var stdErrWriter = new StringWriter();
+        var stdOut = new SynchronizedOutputCapture();
+        var stdErr = new SynchronizedOutputCapture();
 
         var outConsole = new TestConsole();
-        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOut.Writer);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
         outConsole.Profile.Capabilities.Interactive = true;
 
         var errConsole = new TestConsole();
-        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErr.Writer);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var console = new NitroConsole(
@@ -358,8 +332,8 @@ public abstract class CommandTestBase
             {
                 var invocationConfig = new InvocationConfiguration
                 {
-                    Output = stdOutWriter,
-                    Error = stdErrWriter
+                    Output = stdOut.Writer,
+                    Error = stdErr.Writer
                 };
 
                 var exitCode = await rootCommand.ExecuteAsync(
@@ -367,11 +341,13 @@ public abstract class CommandTestBase
 
                 return new CommandResult(
                     exitCode,
-                    stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
-                    stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+                    stdOut.GetOutput().TrimEnd(),
+                    stdErr.GetOutput().TrimEnd(),
                     rootCommand.Name);
             },
-            outConsole);
+            outConsole,
+            stdOut.GetOutput,
+            stdErr.GetOutput);
     }
 
     private ServiceProvider BuildServices(INitroConsole console)
@@ -403,14 +379,14 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemOverride ?? _fileSystemMock.Object));
 
-        if (_instanceIdProviderOverride is not null)
-        {
-            services.Replace(ServiceDescriptor.Singleton(_instanceIdProviderOverride));
-        }
-
         if (_globalConfigDirectoryProviderOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_globalConfigDirectoryProviderOverride));
+        }
+
+        if (_boardPreferencesStoreOverride is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(_boardPreferencesStoreOverride));
         }
 
         if (_claudeSettingsPathResolverOverride is not null)
@@ -461,6 +437,7 @@ public abstract class CommandTestBase
         services.Replace(ServiceDescriptor.Singleton(PersonalAccessTokensClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(EnvironmentsClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(StagesClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(TelemetryClientMock.Object));
         services.AddSingleton(console);
 
         return services.BuildServiceProvider();
@@ -538,8 +515,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Sets up the mock to intercept <c>CreateFile</c> for the given path.
-    /// Returns an in-memory stream that receives the written content.
+    /// Configures mocked <c>CreateFile</c> calls for <paramref name="path"/>, resolved against
+    /// the test working directory, to return the same in-memory stream. Returns that stream.
     /// </summary>
     protected MemoryStream SetupCreateFile(string path)
     {
@@ -580,10 +557,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Stubs <paramref name="variableName"/> exactly as given, without the
-    /// <c>NITRO_</c> prefix <see cref="SetupEnvironmentVariable"/> always
-    /// adds: for the small set of authoritative harness-launch variables a
-    /// harness itself sets unprefixed, e.g. <c>CODEX_SESSION_ID</c>.
+    /// Configures environment lookup for the exact <paramref name="variableName"/>
+    /// to return <paramref name="value"/>.
     /// </summary>
     protected void SetupRawEnvironmentVariable(string variableName, string? value)
     {
@@ -662,12 +637,6 @@ public sealed record CommandResult(
     string StdOut,
     string StdErr,
     string ExecutableName);
-internal sealed class FixedInstanceIdProvider(string id) : INitroInstanceIdProvider
-{
-    public Task<string> GetIdAsync(string globalConfigDirectory, CancellationToken cancellationToken)
-        => Task.FromResult(id);
-}
-
 internal sealed class FixedGlobalConfigDirectoryProvider(string directory) : IGlobalConfigDirectoryProvider
 {
     public string GetDirectory() => directory;
@@ -690,8 +659,14 @@ internal sealed class FixedCodexPathResolver(string hooksJsonPath, string config
 
 internal sealed class InteractiveCommand(
     Func<CancellationToken, Task<CommandResult>> executeAsync,
-    TestConsole testConsole)
+    TestConsole testConsole,
+    Func<string> standardOutput,
+    Func<string> standardError)
 {
+    public string StdOut => standardOutput();
+
+    public string StdErr => standardError();
+
     public void Input(string input)
     {
         testConsole.Input.PushTextWithEnter(input);

@@ -2,9 +2,12 @@
   "errors": [
     {
       "message": "StringValue is not a.",
-      "path": [
-        "a"
-      ]
+      "extensions": {
+        "inputPath": [
+          "a"
+        ],
+        "fieldType": "Foo"
+      }
     }
   ]
 }

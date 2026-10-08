@@ -6,11 +6,9 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Claude;
 
 /// <summary>
-/// Read-only: reports, per managed event, whether a Nitro-owned entry is
-/// missing, installed and current, or installed but outdated (its command
-/// text differs from what <c>install</c> would write today - a stale launch
-/// descriptor after a reinstall in a different mode, or a manual edit, look
-/// identical here by design; neither is safe to leave in place unexamined).
+/// Read-only: reports, per managed event, whether a Nitro-owned entry is missing,
+/// installed and current, or installed but outdated (its command text differs from what
+/// <c>install</c> would write today).
 /// </summary>
 internal sealed class StatusClaudeHooksCommand : Command
 {

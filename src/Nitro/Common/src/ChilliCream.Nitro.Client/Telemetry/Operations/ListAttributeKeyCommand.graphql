@@ -1,0 +1,33 @@
+query ListAttributeKeyCommandQuery(
+  $workspaceId: ID!
+  $signal: OpenTelemetrySignalKind!
+  $kinds: [OpenTelemetryAttributeKind!]
+  $search: String
+  $from: DateTime
+  $to: DateTime
+  $first: Int
+  $after: String
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    attributeKeys(
+      signal: $signal
+      kinds: $kinds
+      search: $search
+      from: $from
+      to: $to
+      first: $first
+      after: $after
+    ) {
+      edges {
+        cursor
+        node {
+          kind
+          path
+        }
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}

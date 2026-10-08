@@ -2,7 +2,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
 /// The stable reasons one <see cref="IPingSessionExecutor"/> attempt can
-/// end in, spanning both the Claude peer and Codex thread transports.
+/// end in, spanning the Claude peer, Codex thread, and opencode server
+/// transports.
 /// </summary>
 internal enum PingAttemptReason
 {
@@ -17,7 +18,7 @@ internal enum PingAttemptReason
     InvalidAuth,
 
     /// <summary>
-    /// The Claude peer socket connect failed with <c>SocketError.AccessDenied</c>.
+    /// A Claude peer socket operation reported <c>SocketError.AccessDenied</c>.
     /// </summary>
     AccessDenied,
     Timeout,

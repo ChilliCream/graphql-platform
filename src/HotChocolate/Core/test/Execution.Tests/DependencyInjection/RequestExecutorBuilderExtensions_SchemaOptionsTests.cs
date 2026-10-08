@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -176,6 +177,53 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
             """);
     }
 
+    [Fact]
+    public async Task ModifyOptions_Should_MergeCovariantFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<ItemQuery>()
+                .AddType<OptionalItem>()
+                .AddType<RequiredItem>()
+                .ModifyOptions(o => o.EnableCovariantFieldMerging = true)
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                items {
+                    ... on OptionalItem {
+                        label
+                    }
+                    ... on RequiredItem {
+                        label
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "label": null
+                  },
+                  {
+                    "label": "required"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     private sealed class OptionsInterceptor : TypeInterceptor
     {
         public IReadOnlySchemaOptions Options { get; private set; } = null!;
@@ -198,5 +246,26 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     public class Hero
     {
         public string Name => "Luke";
+    }
+
+    public class ItemQuery
+    {
+        public IItem[] Items() => [new OptionalItem(), new RequiredItem()];
+    }
+
+    [InterfaceType("Item")]
+    public interface IItem
+    {
+        string? Label { get; }
+    }
+
+    public class OptionalItem : IItem
+    {
+        public string? Label => null;
+    }
+
+    public class RequiredItem : IItem
+    {
+        public string Label => "required";
     }
 }

@@ -51,9 +51,7 @@ internal sealed class ReplyMailCommand : Command
         var message = await store.ReplyMessageAsync(
             messageId, actor, body, MailWakePolicy.Enqueue, cancellationToken);
 
-        // Strictly post-commit: the message is durably written above. The
-        // nudge only wakes recipients that have a live session; everyone
-        // else sees it when they pull, so it can never fail this command.
+        // Nudge recipients after the message and wake intent commit.
         await nudge.NudgeAsync(
             [.. message.Recipients.Select(recipient => recipient.Name)], cancellationToken);
 
@@ -67,6 +65,12 @@ internal sealed class ReplyMailCommand : Command
         console.OkLine(
             $"Sent '{message.Id.EscapeMarkup()}' to "
             + $"{string.Join(", ", message.Recipients.Select(recipient => recipient.Name)).EscapeMarkup()}.");
+
+        if (message.Skipped.Count > 0)
+        {
+            console.MarkupLine(
+                $"Skipped deleted or unknown agents: {string.Join(", ", message.Skipped).EscapeMarkup()}.");
+        }
 
         return ExitCodes.Success;
     }

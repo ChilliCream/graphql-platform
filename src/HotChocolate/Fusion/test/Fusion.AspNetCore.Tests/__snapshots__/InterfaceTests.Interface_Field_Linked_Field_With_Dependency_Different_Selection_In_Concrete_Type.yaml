@@ -162,7 +162,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1703e95bc9cba85c083d641b7c36486a
+      hash: 0cd0ad382a7a1c2245eaf8d5c2546ee8
       searchSpace: 1
       expandedNodes: 2
   nodes:

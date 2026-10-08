@@ -9,11 +9,11 @@ The ChilliCream website and documentation, built on Next.js (MDX-based docs).
 
 ## Development
 
-Use `yarn` (not `npm`):
+Use npm:
 
 ```bash
-yarn
-yarn dev
+npm ci
+npm run dev
 ```
 
 ## Authoring Markdown Content
@@ -171,6 +171,23 @@ Use GitHub-style alert blockquotes. Supported kinds: `NOTE`, `TIP`, `WARNING`,
 ```markdown
 > [!WARNING]
 > This action cannot be undone.
+```
+
+### Code blocks
+
+Use `shell` for command-line snippets. It is highlighted like Bash but renders
+without a language label.
+
+Use `sdl` for GraphQL type-system definitions and `graphql` for operations.
+
+### Inline code highlighting
+
+Inline code is not highlighted by default. Start it with a `#!lang` prefix
+followed by a space to highlight it like a fenced block in the same language.
+The prefix is removed from the rendered code.
+
+```markdown
+Declare it with `#!sdl directive @oneOf on INPUT_OBJECT`.
 ```
 
 ### Diagrams (Mermaid)

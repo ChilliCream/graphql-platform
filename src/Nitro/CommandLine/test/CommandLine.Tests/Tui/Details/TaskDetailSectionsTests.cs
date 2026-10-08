@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Details;
+using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Details;
 
@@ -121,5 +122,81 @@ public sealed class TaskDetailSectionsTests
                 "hi"
             ],
             lines);
+    }
+
+    [Fact]
+    public void WrapLine_Should_NotSplitTextElement_When_WordContainsCombiningMark()
+    {
+        // act
+        var lines = TaskDetailSections.WrapLine("éabc", width: 1);
+
+        // assert
+        Assert.Equal("é", lines[0]);
+    }
+
+    [Fact]
+    public void WrapLine_Should_FitDisplayWidthAndPreserveSurrogatePairs_When_TextContainsCjkAndEmoji()
+    {
+        // arrange
+        const int width = 2;
+
+        // act
+        var lines = TaskDetailSections.WrapLine("漢 a😀xyz", width);
+
+        // assert
+        Assert.All(lines, line => Assert.True(line.GetCellWidth() <= width));
+        Assert.All(lines, line => Assert.False(HasUnpairedSurrogate(line)));
+    }
+
+    [Fact]
+    public void WrapLine_Should_ReplaceOversizedCjkWithEllipsis_When_WidthIsOne()
+    {
+        // arrange
+        const int width = 1;
+
+        // act
+        var lines = TaskDetailSections.WrapLine("漢abc", width);
+
+        // assert
+        Assert.Equal(["…", "a", "b", "c"], lines);
+        Assert.All(lines, line => Assert.True(line.GetCellWidth() <= width));
+        Assert.Equal("abc", string.Concat(lines.Skip(1)));
+    }
+
+    [Fact]
+    public void WrapLine_Should_ReplaceOversizedEmojiWithEllipsis_When_WidthIsOne()
+    {
+        // arrange
+        const int width = 1;
+
+        // act
+        var lines = TaskDetailSections.WrapLine("😀abc", width);
+
+        // assert
+        Assert.Equal(["…", "a", "b", "c"], lines);
+        Assert.All(lines, line => Assert.True(line.GetCellWidth() <= width));
+        Assert.All(lines, line => Assert.False(HasUnpairedSurrogate(line)));
+    }
+
+    private static bool HasUnpairedSurrogate(string value)
+    {
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (char.IsHighSurrogate(value[i]))
+            {
+                if (i + 1 >= value.Length || !char.IsLowSurrogate(value[i + 1]))
+                {
+                    return true;
+                }
+
+                i++;
+            }
+            else if (char.IsLowSurrogate(value[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

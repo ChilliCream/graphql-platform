@@ -4,13 +4,7 @@ using System.Text.Json.Nodes;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Pure JSON-text editing for a Claude Code <c>settings.json</c>'s
-/// <c>hooks</c> section: no file I/O, no sidecar persistence, so golden
-/// fixture tests can feed a "before" text and a prior sidecar snapshot in
-/// and assert the exact "after" text and outcomes out. Foreign structure
-/// (other top-level keys, other events, other hook groups under our four
-/// events) round-trips through <see cref="JsonNode"/> untouched; only the
-/// group(s) this installer owns are added, replaced, or removed.
+/// Edits Nitro-owned hook groups in Claude settings JSON.
 /// </summary>
 internal static class ClaudeHooksEditor
 {
@@ -32,12 +26,9 @@ internal static class ClaudeHooksEditor
         IReadOnlyList<HookUninstallEventResult> Outcomes);
 
     /// <summary>
-    /// Adds or replaces the single Nitro-owned hook group under each managed
-    /// event. A group counts as Nitro-owned when every hook entry inside it
-    /// carries <see cref="ClaudeHooksTemplate.CommandMarker"/> - this
-    /// installer only ever writes single-hook groups, so any group failing
-    /// that test is left alone as foreign, even if one of its hooks happens
-    /// to match by coincidence.
+    /// Adds a Nitro hook group for each managed event or updates the first existing
+    /// Nitro-owned group. A nonempty group is Nitro-owned when every hook command
+    /// contains the ownership marker.
     /// </summary>
     public static InstallResult Install(
         string? existingSettingsJson,
@@ -89,11 +80,9 @@ internal static class ClaudeHooksEditor
     }
 
     /// <summary>
-    /// Reports, per managed event, whether an installed entry matches the
-    /// current template exactly (Installed), a Nitro-owned entry exists but
-    /// its text differs (Outdated - a stale launch descriptor, a changed
-    /// timeout, or a manual edit all land here identically), or no
-    /// Nitro-owned entry exists (Missing). Never mutates.
+    /// Reports Installed when the first hook in the first Nitro-owned group has the
+    /// expected command and timeout, Outdated when either differs, or Missing when
+    /// no owned group exists.
     /// </summary>
     public static IReadOnlyList<HookStatusEventResult> Status(
         string? existingSettingsJson, LaunchDescriptor descriptor)
@@ -128,15 +117,8 @@ internal static class ClaudeHooksEditor
     }
 
     /// <summary>
-    /// Removes only this installer's own entries. For each event, prefers
-    /// removing the group whose command exactly matches
-    /// <paramref name="priorSidecar"/>'s recorded text (provenance-precise:
-    /// proof this install wrote it); falls back to marker-based group
-    /// removal when the sidecar has no record or the recorded text no
-    /// longer matches anything on disk (a manual edit since install, or a
-    /// sidecar that predates this event). A foreign entry sharing the same
-    /// event (for example another tool's <c>SessionStart</c> hook) is never
-    /// touched, because it never satisfies either match.
+    /// Removes one matching group per managed event, preferring the recorded command
+    /// and falling back to the ownership marker. Other groups are preserved.
     /// </summary>
     public static UninstallResult Uninstall(
         string? existingSettingsJson,
@@ -184,9 +166,6 @@ internal static class ClaudeHooksEditor
             root.Remove(HooksKey);
         }
 
-        // After uninstall this settings file has nothing left for this
-        // installer to track; the caller persists an empty entry set (or
-        // drops the file's key entirely) for it.
         return new UninstallResult(
             Serialize(root), new Dictionary<string, ClaudeHooksSidecarEntry>(), outcomes);
     }
@@ -245,15 +224,6 @@ internal static class ClaudeHooksEditor
         return created;
     }
 
-    /// <summary>
-    /// Appends a node built at compile-time as a <see cref="JsonNode"/>
-    /// (never a raw primitive) through <see cref="JsonArray"/>'s
-    /// <see cref="IList{T}"/> implementation rather than its convenience
-    /// <c>Add&lt;T&gt;</c> overload: the generic overload exists to wrap
-    /// arbitrary primitive values into a new <see cref="JsonValue"/>, which
-    /// is unnecessary here and carries a trim/AOT warning this call does not
-    /// need to take on.
-    /// </summary>
     private static void AppendGroup(JsonArray array, JsonObject group)
         => ((IList<JsonNode?>)array).Add(group);
 
