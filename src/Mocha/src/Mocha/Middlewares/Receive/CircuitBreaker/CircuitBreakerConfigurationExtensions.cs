@@ -43,9 +43,10 @@ public static class CircuitBreakerConfigurationExtensions
     public static TDescriptor AddCircuitBreaker<TDescriptor>(
         this TDescriptor descriptor,
         Action<CircuitBreakerOptions> configure)
-        where TDescriptor : IReceiveMiddlewareProvider
+        where TDescriptor : IConfigurable<IReceiveMiddlewareProvider>
     {
-        descriptor.Extend().Configuration.Features.GetOrSet<CircuitBreakerFeature>().Configure(configure);
+        descriptor.Configure(
+            d => d.Extend().Configuration.Features.GetOrSet<CircuitBreakerFeature>().Configure(configure));
 
         return descriptor;
     }
