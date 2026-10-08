@@ -145,7 +145,7 @@ builder
 | `MaxQueueSize`                   | Disabled | Maximum size of the planner's internal work queue.                           |
 | `MaxGeneratedOptionsPerWorkItem` | Disabled | Maximum number of options the planner generates per work item.               |
 
-`MaxPlanImprovementNodes` (default `8192`) caps the planner nodes expanded after a complete plan exists, and the planner returns the best plan found so far once the cap is reached; `null` removes the cap.
+`MaxPlanImprovementNodes` (default `4096`) caps the planner nodes expanded after a complete plan exists, and the planner returns the best plan found so far once the cap is reached; `null` removes the cap.
 
 # Execution Limits
 

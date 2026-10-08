@@ -111,7 +111,7 @@ public sealed class OperationPlannerImprovementBudgetTests : FusionTestBase
         var value = options.MaxPlanImprovementNodes;
 
         // assert
-        Assert.Equal(8192, value);
+        Assert.Equal(4096, value);
     }
 
     [Theory]

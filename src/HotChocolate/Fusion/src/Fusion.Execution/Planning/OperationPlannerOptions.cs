@@ -235,7 +235,7 @@ public sealed class OperationPlannerOptions
     /// <summary>
     /// Gets or sets the maximum number of planner nodes that may be expanded for one operation
     /// after a complete plan exists, after which the planner returns the best complete plan found
-    /// so far. Defaults to 8192; <c>null</c> disables the limit.
+    /// so far. Defaults to 4096; <c>null</c> disables the limit.
     /// </summary>
     public int? MaxPlanImprovementNodes
     {
@@ -252,7 +252,7 @@ public sealed class OperationPlannerOptions
 
             field = value;
         }
-    } = 8192;
+    } = 4096;
 
     internal void MakeReadOnly()
         => _isReadOnly = true;
