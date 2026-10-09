@@ -456,16 +456,14 @@ internal ref struct JsonVariableCoercion
 
         var utf8Name = GetRawStringContent(element);
 
-        if (utf8Name.IndexOf((byte)'\\') == -1)
+        if (enumType.Values.ContainsName(utf8Name))
         {
-            if (enumType.Values.ContainsName(utf8Name))
-            {
-                value = new EnumValueNode(WriteValue(utf8Name));
-                error = null;
-                return true;
-            }
+            value = new EnumValueNode(WriteValue(utf8Name));
+            error = null;
+            return true;
         }
-        else
+
+        if (utf8Name.IndexOf((byte)'\\') != -1)
         {
             // the JSON string escapes characters of the name, so we look it up unescaped.
             var name = element.GetString()!;
