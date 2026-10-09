@@ -110,6 +110,46 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_PruneNonNodeMember_When_UnionFragmentIsInNodeSelectionSet()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: contributors
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              node(id: "test-id") {
+                id
+                ... on CommunityContributor {
+                  ... on User { name }
+                  ... on FormerUser { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Merge_Nested_Lookups_Across_Union_Members_When_Sibling_Asset_Selections_Differ()
     {
         // arrange
