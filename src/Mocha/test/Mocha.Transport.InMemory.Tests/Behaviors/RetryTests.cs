@@ -73,6 +73,87 @@ public sealed class RetryTests
     }
 
     [Fact]
+    public async Task Retry_Should_RetryHandler_When_EndpointConfiguresRetry()
+    {
+        // arrange
+        var counter = new RetryInvocationCounter();
+        await using var provider = await InMemoryBusFixture.CreateBusWithTransportAsync(
+            b =>
+            {
+                b.Services.AddSingleton(counter);
+                b.AddEventHandler<AlwaysThrowingHandler>();
+            },
+            t => t.Endpoint("retry-ep")
+                .Handler<AlwaysThrowingHandler>()
+                .AddResilience(p =>
+                    p.On<InvalidOperationException>()
+                        .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant)));
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-EP-RETRY" }, CancellationToken.None);
+
+        // assert - no bus policy, so all 4 invocations come from the endpoint policy
+        Assert.True(
+            await counter.WaitForCountAsync(4, s_timeout),
+            $"Expected 4 invocations (1 original + 3 retries), but got {counter.Count}");
+    }
+
+    [Fact]
+    public async Task Retry_Should_NotRetry_When_TransportPolicyDeadLetters()
+    {
+        // arrange
+        var counter = new RetryInvocationCounter();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(counter)
+            .AddMessageBus()
+            .AddResilience(p =>
+            {
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+            })
+            .AddEventHandler<AlwaysThrowingHandler>()
+            .AddInMemory(t => t.AddResilience(p => p.On<Exception>().DeadLetter()))
+            .BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-TRANSPORT-DL" }, CancellationToken.None);
+
+        // assert - the transport policy replaces the bus retry: only 1 invocation
+        await Task.Delay(500, TestContext.Current.CancellationToken);
+        Assert.Equal(1, counter.Count);
+    }
+
+    [Fact]
+    public void Retry_Should_ThrowOnStartup_When_ConsumerEndpointsResolveToDifferentPolicies()
+    {
+        // arrange & act
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            new ServiceCollection()
+                .AddMessageBus()
+                .AddEventHandler<AlwaysThrowingHandler>()
+                .AddInMemory(t =>
+                {
+                    t.BindExplicitly();
+                    t.Endpoint("ep-a")
+                        .Handler<AlwaysThrowingHandler>()
+                        .AddResilience(p => p.On<Exception>().DeadLetter());
+                    t.Endpoint("ep-b").Handler<AlwaysThrowingHandler>();
+                })
+                .BuildRuntime());
+
+        // assert
+        Assert.Contains("resolve to different exception policies", exception.Message);
+        Assert.Contains("'ep-a'", exception.Message);
+        Assert.Contains("'ep-b'", exception.Message);
+    }
+
+    [Fact]
     public async Task Retry_Should_SkipRetry_When_ExceptionIsIgnored()
     {
         // arrange

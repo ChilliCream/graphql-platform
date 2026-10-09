@@ -279,4 +279,9 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
             + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
+
+    public static Exception ConsumerExceptionPolicyConflict(string consumerName, string endpoint, string conflictingEndpoint)
+        => new InvalidOperationException(
+            $"Consumer '{consumerName}' is bound to receive endpoints '{endpoint}' and '{conflictingEndpoint}', "
+            + "which resolve to different exception policies. A consumer must resolve to one exception policy.");
 }
