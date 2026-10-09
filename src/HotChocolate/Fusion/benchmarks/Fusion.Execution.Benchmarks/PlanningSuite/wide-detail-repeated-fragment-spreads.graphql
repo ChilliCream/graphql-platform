@@ -1,0 +1,1381 @@
+query {
+  products {
+    details01 {
+      ...Details00
+      ...Details01
+      ...Details02
+      ...Details03
+      ...Details04
+      ...Details05
+      ...Details06
+    }
+    details02 {
+      ...Details07
+      ...Details08
+      ...Details09
+      ...Details10
+      ...Details11
+      ...Details12
+      ...Details13
+    }
+    details03 {
+      ...Details14
+      ...Details15
+      ...Details16
+      ...Details17
+      ...Details18
+      ...Details19
+      ...Details20
+    }
+    details04 {
+      ...Details21
+      ...Details22
+      ...Details23
+      ...Details24
+      ...Details25
+      ...Details26
+      ...Details27
+    }
+    details05 {
+      ...Details28
+      ...Details29
+      ...Details30
+      ...Details31
+      ...Details32
+      ...Details33
+      ...Details34
+    }
+    details06 {
+      ...Details35
+      ...Details36
+      ...Details37
+      ...Details38
+      ...Details39
+      ...Details40
+      ...Details41
+    }
+    details07 {
+      ...Details42
+      ...Details43
+      ...Details44
+      ...Details45
+      ...Details46
+      ...Details47
+      ...Details48
+    }
+    details08 {
+      ...Details49
+      ...Details50
+      ...Details51
+      ...Details52
+      ...Details53
+      ...Details54
+      ...Details55
+    }
+    details09 {
+      ...Details56
+      ...Details57
+      ...Details58
+      ...Details59
+      ...Details60
+      ...Details61
+      ...Details62
+    }
+    details10 {
+      ...Details00
+      ...Details01
+      ...Details02
+      ...Details03
+      ...Details04
+      ...Details05
+      ...Details06
+    }
+    details11 {
+      ...Details07
+      ...Details08
+      ...Details09
+      ...Details10
+      ...Details11
+      ...Details12
+      ...Details13
+    }
+    details12 {
+      ...Details14
+      ...Details15
+      ...Details16
+      ...Details17
+      ...Details18
+      ...Details19
+      ...Details20
+    }
+    details13 {
+      ...Details21
+      ...Details22
+      ...Details23
+      ...Details24
+      ...Details25
+      ...Details26
+      ...Details27
+    }
+    details14 {
+      ...Details28
+      ...Details29
+      ...Details30
+      ...Details31
+      ...Details32
+      ...Details33
+      ...Details34
+    }
+    details15 {
+      ...Details35
+      ...Details36
+      ...Details37
+      ...Details38
+      ...Details39
+      ...Details40
+      ...Details41
+    }
+    details16 {
+      ...Details42
+      ...Details43
+      ...Details44
+      ...Details45
+      ...Details46
+      ...Details47
+      ...Details48
+    }
+    details17 {
+      ...Details49
+      ...Details50
+      ...Details51
+      ...Details52
+      ...Details53
+      ...Details54
+      ...Details55
+    }
+    details18 {
+      ...Details56
+      ...Details57
+      ...Details58
+      ...Details59
+      ...Details60
+      ...Details61
+      ...Details62
+    }
+    details19 {
+      ...Details00
+      ...Details01
+      ...Details02
+      ...Details03
+      ...Details04
+      ...Details05
+      ...Details06
+    }
+    details20 {
+      ...Details07
+      ...Details08
+      ...Details09
+      ...Details10
+      ...Details11
+      ...Details12
+      ...Details13
+    }
+  }
+}
+
+fragment Details00 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details01 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details02 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details03 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details04 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details05 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details06 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details07 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details08 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details09 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details10 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details11 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details12 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details13 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details14 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details15 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details16 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details17 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details18 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details19 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details20 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details21 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details22 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details23 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details24 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details25 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details26 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details27 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details28 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details29 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details30 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details31 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details32 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details33 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details34 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details35 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details36 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details37 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details38 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details39 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details40 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details41 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details42 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details43 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details44 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details45 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details46 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details47 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details48 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details49 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details50 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details51 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details52 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details53 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details54 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details55 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}
+
+fragment Details56 on Detail {
+  d001
+  d002
+  d003
+  d004
+  d005
+  d006
+  d007
+  d008
+  d009
+  d010
+  d011
+  d012
+  d013
+  d014
+  d015
+  d016
+}
+
+fragment Details57 on Detail {
+  d017
+  d018
+  d019
+  d020
+  d021
+  d022
+  d023
+  d024
+  d025
+  d026
+  d027
+  d028
+  d029
+  d030
+  d031
+  d032
+}
+
+fragment Details58 on Detail {
+  d033
+  d034
+  d035
+  d036
+  d037
+  d038
+  d039
+  d040
+  d041
+  d042
+  d043
+  d044
+  d045
+  d046
+  d047
+  d048
+}
+
+fragment Details59 on Detail {
+  d049
+  d050
+  d051
+  d052
+  d053
+  d054
+  d055
+  d056
+  d057
+  d058
+  d059
+  d060
+  d061
+  d062
+  d063
+  d064
+}
+
+fragment Details60 on Detail {
+  d065
+  d066
+  d067
+  d068
+  d069
+  d070
+  d071
+  d072
+  d073
+  d074
+  d075
+  d076
+  d077
+  d078
+  d079
+  d080
+}
+
+fragment Details61 on Detail {
+  d081
+  d082
+  d083
+  d084
+  d085
+  d086
+  d087
+  d088
+  d089
+  d090
+  d091
+  d092
+  d093
+  d094
+  d095
+  d096
+}
+
+fragment Details62 on Detail {
+  d097
+  d098
+  d099
+  d100
+  d101
+  d102
+  d103
+  d104
+  d105
+  d106
+  d107
+  d108
+  d109
+  d110
+  d111
+  d112
+}

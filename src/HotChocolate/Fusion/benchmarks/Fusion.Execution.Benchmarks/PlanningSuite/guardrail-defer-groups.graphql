@@ -1,0 +1,18 @@
+{
+  immediate
+  ... @defer(label: "first") {
+    first
+  }
+  ... @defer(label: "second") {
+    second
+  }
+  ... @defer(label: "third") {
+    third
+  }
+  ... @defer(label: "fourth") {
+    fourth
+  }
+  ... @defer(label: "fifth") {
+    fifth
+  }
+}
