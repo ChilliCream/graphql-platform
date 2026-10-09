@@ -210,12 +210,12 @@ public class IntegrationTests
     }
 
     [Fact]
-    public async Task Saga_Should_ReceiveReply_When_SendUsedWithOnReply()
+    public async Task Saga_Should_ReceiveReply_When_SendUsedWithOnAnyReply()
     {
-        // A saga that uses .Send to dispatch a request and .OnReply (or .OnAnyReply) to handle the
-        // response routes the reply back to its own durable endpoint and correlates it by the saga
-        // header, even though the reply type does not match any subscribed route. This test isolates
-        // the reply leg: the handler runs, the reply is routed to the saga, and the saga finalizes.
+        // A saga that uses .Send to dispatch a request and .OnAnyReply to handle the response
+        // routes the reply back to its own durable endpoint and correlates it by the saga header,
+        // even though the reply type does not match any subscribed route. This test isolates the
+        // reply leg: the handler runs, the reply is routed to the saga, and the saga finalizes.
 
         // arrange
         var recorder = new MessageRecorder();
