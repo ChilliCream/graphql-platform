@@ -150,4 +150,10 @@
   <data name="PolicyEvaluationContext_EntryNotPartOfContext" xml:space="preserve">
     <value>The policy entry is not part of this evaluation context.</value>
   </data>
+  <data name="PolicyResolver_PolicyNotResolved" xml:space="preserve">
+    <value>No policy provider knows the policy '{0}' of the directive '@{1}'.</value>
+  </data>
+  <data name="Operation_AuthorizationAlreadySet" xml:space="preserve">
+    <value>The authorization of the operation was already set and cannot be set again.</value>
+  </data>
 </root>

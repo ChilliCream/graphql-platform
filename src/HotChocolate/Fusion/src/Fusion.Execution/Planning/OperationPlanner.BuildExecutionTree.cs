@@ -30,6 +30,7 @@ public sealed partial class OperationPlanner
         int searchSpace,
         int expandedNodes,
         int nextNodeId,
+        AuthorizationPlanContext? authorization,
         CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
@@ -46,9 +47,17 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
+        var marker = authorization is null
+            ? null
+            : AuthorizationMarker.TryCreate(_schema, authorization, operation);
 
-        planSteps = TransformPlanSteps(planSteps, operationDefinition);
+        planSteps = TransformPlanSteps(planSteps, operationDefinition, marker);
+
+        var hasVariables = operationDefinition.VariableDefinitions.Count > 0
+            || marker is { HasVariables: true };
+
+        operation.SetAuthorization(marker?.CreateAuthorization());
+
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
@@ -282,15 +291,27 @@ public sealed partial class OperationPlanner
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
-        OperationDefinitionNode originalOperation)
+        OperationDefinitionNode originalOperation,
+        AuthorizationMarker? marker)
     {
-        var updatedPlanSteps = planSteps;
         var forwardVariableContext = new ForwardVariableRewriter.Context();
 
         foreach (var variableDef in originalOperation.VariableDefinitions)
         {
             forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
         }
+
+        if (marker is not null)
+        {
+            planSteps = marker.Mark(planSteps);
+
+            foreach (var variableDef in marker.GetVariableDefinitions())
+            {
+                forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
+            }
+        }
+
+        var updatedPlanSteps = planSteps;
 
         foreach (var step in planSteps)
         {

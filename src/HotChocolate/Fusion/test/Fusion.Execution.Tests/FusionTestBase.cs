@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -507,7 +508,24 @@ public abstract class FusionTestBase : IDisposable
     protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText,
+        IPolicyResolver policyResolver)
+        => PlanOperation(schema, operationText, OperationPlannerOptions.Default, policyResolver);
+
+    protected static OperationPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        [StringSyntax("graphql")] string operationText,
         OperationPlannerOptions? options = null)
+        => PlanOperation(
+            schema,
+            operationText,
+            options ?? OperationPlannerOptions.Default,
+            TestPolicyResolver.Create());
+
+    private static OperationPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        string operationText,
+        OperationPlannerOptions options,
+        IPolicyResolver policyResolver)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
@@ -519,9 +537,7 @@ public abstract class FusionTestBase : IDisposable
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
-        var planner = options is null
-            ? new OperationPlanner(schema, compiler)
-            : new OperationPlanner(schema, compiler, options);
+        var planner = new OperationPlanner(schema, compiler, options, policyResolver);
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }

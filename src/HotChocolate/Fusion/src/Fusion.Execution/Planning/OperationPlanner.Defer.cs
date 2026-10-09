@@ -122,6 +122,7 @@ public sealed partial class OperationPlanner
         string shortHash,
         ImmutableArray<DeferRoutingState> routingStates,
         PlanContextGraph contextGraph,
+        AuthorizationPlanContext? authorization,
         CancellationToken cancellationToken)
     {
         if (routingStates.IsDefaultOrEmpty)
@@ -142,11 +143,6 @@ public sealed partial class OperationPlanner
             var finalSteps = contextGraph.GetRegisteredSteps(descriptor);
             var registeredInternalOp = contextGraph.GetRegisteredInternalOperation(descriptor);
 
-            var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
-                registeredInternalOp,
-                finalSteps,
-                finalSteps.NextId());
-
             var compiledOp = AddTypeNameToAbstractSelections(
                 registeredInternalOp,
                 _schema.GetOperationType(registeredInternalOp.Operation));
@@ -155,6 +151,18 @@ public sealed partial class OperationPlanner
                 hash + "#defer_" + routingState.Index,
                 shortHash,
                 compiledOp);
+
+            var marker = authorization is null
+                ? null
+                : AuthorizationMarker.TryCreate(_schema, authorization, deferredOperation);
+
+            var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
+                registeredInternalOp,
+                finalSteps,
+                finalSteps.NextId(),
+                marker);
+
+            deferredOperation.SetAuthorization(marker?.CreateAuthorization());
 
             var planScopeRequirements = descriptor.Requirements.Count == 0
                 ? ImmutableArray<OperationRequirement>.Empty
@@ -2135,7 +2143,8 @@ public sealed partial class OperationPlanner
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,
         ImmutableList<PlanStep> planSteps,
-        int nextNodeId)
+        int nextNodeId,
+        AuthorizationMarker? marker)
     {
         if (planSteps.Count == 0)
         {
@@ -2143,9 +2152,12 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = deferredOperation.VariableDefinitions.Count > 0;
 
-        planSteps = TransformPlanSteps(planSteps, deferredOperation);
+        planSteps = TransformPlanSteps(planSteps, deferredOperation, marker);
+
+        var hasVariables = deferredOperation.VariableDefinitions.Count > 0
+            || marker is { HasVariables: true };
+
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);

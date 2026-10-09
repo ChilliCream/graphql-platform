@@ -162,6 +162,72 @@ public sealed class FusionAuthorizationDirectiveTests : FusionTestBase
     }
 
     [Fact]
+    public void Create_Should_SetHasAuthorization_When_FieldCarriesOrInheritsFusionAuthorization()
+    {
+        // arrange
+        var schema = ComposeSchema(SchemaA, SchemaB);
+
+        // act
+        var query = schema.Types.GetType<FusionObjectTypeDefinition>("Query");
+        var iface = schema.Types.GetType<FusionInterfaceTypeDefinition>("FooInterface");
+
+        // assert
+        new
+        {
+            Secured = query.Fields["secured"].HasAuthorization,
+            Open = query.Fields["open"].HasAuthorization,
+            InterfaceField = iface.Fields["id"].HasAuthorization
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Secured": true,
+              "Open": true,
+              "InterfaceField": true
+            }
+            """);
+    }
+
+    [Fact]
+    public void Create_Should_SetHasAuthorization_When_InterfaceFieldCarriesFusionAuthorization()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            $$"""
+            type Query {
+              node: Node
+            }
+
+            interface Node {
+              id: Int @authenticated
+              name: String
+            }
+
+            type Item implements Node {
+              id: Int @authenticated
+              name: String
+            }
+
+            {{Directives}}
+            """);
+
+        // act
+        var node = schema.Types.GetType<FusionInterfaceTypeDefinition>("Node");
+
+        // assert
+        new
+        {
+            Id = node.Fields["id"].HasAuthorization,
+            Name = node.Fields["name"].HasAuthorization
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Id": true,
+              "Name": false
+            }
+            """);
+    }
+
+    [Fact]
     public void Create_Should_CollectAuthorizationUsage_When_SchemaUsesAuthorization()
     {
         // arrange

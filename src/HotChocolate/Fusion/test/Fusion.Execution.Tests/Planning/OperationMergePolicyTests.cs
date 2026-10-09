@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
@@ -224,7 +225,8 @@ public class OperationMergePolicyTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = mergePolicy
-            });
+            },
+            TestPolicyResolver.Create());
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }

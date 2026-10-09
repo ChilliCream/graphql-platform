@@ -3,6 +3,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
@@ -51,7 +52,10 @@ public class CorpusPlanningBenchmark
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
         var compiler = new OperationCompiler(schema, pool);
-        _planner = new OperationPlanner(schema, compiler);
+        _planner = new OperationPlanner(
+            schema,
+            compiler,
+            new PolicyResolver(new BuiltInPolicyProvider(), []));
 
         _operation1 = LoadOperation(rewriter, s_query1Path);
         _operation2 = LoadOperation(rewriter, s_query2Path);

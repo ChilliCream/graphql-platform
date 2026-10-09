@@ -308,5 +308,17 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("PolicyEvaluationContext_EntryNotPartOfContext", resourceCulture);
             }
         }
+
+        internal static string PolicyResolver_PolicyNotResolved {
+            get {
+                return ResourceManager.GetString("PolicyResolver_PolicyNotResolved", resourceCulture);
+            }
+        }
+
+        internal static string Operation_AuthorizationAlreadySet {
+            get {
+                return ResourceManager.GetString("Operation_AuthorizationAlreadySet", resourceCulture);
+            }
+        }
     }
 }

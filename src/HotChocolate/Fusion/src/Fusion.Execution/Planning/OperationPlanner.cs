@@ -1,7 +1,9 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -28,23 +30,28 @@ public sealed partial class OperationPlanner
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
     private readonly SourceSchemaNodeCandidateResolver _sourceSchemaNodeCandidateResolver;
     private readonly OperationPlannerOptions _options;
+    private readonly IPolicyResolver _policyResolver;
+    private readonly FrozenSet<string>? _protectedFieldNames;
     private bool? _schemaHasDivergentInterfaceFields;
 
     public OperationPlanner(
         FusionSchemaDefinition schema,
-        OperationCompiler operationCompiler)
-        : this(schema, operationCompiler, OperationPlannerOptions.Default)
+        OperationCompiler operationCompiler,
+        IPolicyResolver policyResolver)
+        : this(schema, operationCompiler, OperationPlannerOptions.Default, policyResolver)
     {
     }
 
     public OperationPlanner(
         FusionSchemaDefinition schema,
         OperationCompiler operationCompiler,
-        OperationPlannerOptions options)
+        OperationPlannerOptions options,
+        IPolicyResolver policyResolver)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(policyResolver);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -54,9 +61,38 @@ public sealed partial class OperationPlanner
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
         _sourceSchemaNodeCandidateResolver = new SourceSchemaNodeCandidateResolver(schema);
         _options = options;
+        _policyResolver = policyResolver;
+
+        if (schema.Features.Get<FusionAuthorizationUsage>() is { IsUsed: true })
+        {
+            _protectedFieldNames = CollectProtectedFieldNames(schema);
+        }
     }
 
-    public static Version Version { get; } = new(2, 0, 0);
+    public static Version Version { get; } = new(2, 1, 0);
+
+    private static FrozenSet<string> CollectProtectedFieldNames(FusionSchemaDefinition schema)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not FusionComplexTypeDefinition complexType)
+            {
+                continue;
+            }
+
+            foreach (var field in complexType.Fields)
+            {
+                if (field.HasAuthorization)
+                {
+                    names.Add(field.Name);
+                }
+            }
+        }
+
+        return names.ToFrozenSet(StringComparer.Ordinal);
+    }
 
     internal OperationPlannerOptions Options => _options;
 
@@ -101,6 +137,10 @@ public sealed partial class OperationPlanner
 
         try
         {
+            var authorization = _protectedFieldNames is null
+                ? null
+                : new AuthorizationPlanContext(_policyResolver, _protectedFieldNames, operationDefinition);
+
             // Interface fields whose ownership diverges across concrete types (for example after an
             // @override) are expanded into per-concrete inline fragments up front. This runs before
             // the defer split so deferred selections carry the expansion too, and before selection
@@ -296,6 +336,7 @@ public sealed partial class OperationPlanner
                     shortHash,
                     deferRoutingStates,
                     deferContextGraph,
+                    authorization,
                     cancellationToken);
             }
 
@@ -308,6 +349,7 @@ public sealed partial class OperationPlanner
                 searchSpace,
                 expandedNodes,
                 planSteps.NextId(),
+                authorization,
                 cancellationToken);
 
             if (eventSourceEnabled)

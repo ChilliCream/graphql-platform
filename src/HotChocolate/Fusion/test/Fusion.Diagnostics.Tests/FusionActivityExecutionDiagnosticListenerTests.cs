@@ -3,6 +3,7 @@ using System.Text.Json;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
@@ -1339,7 +1340,10 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         var rewritten = rewriter.RewriteDocument(operationDocument, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
         var compiler = new OperationCompiler(schema, pool);
-        var planner = new OperationPlanner(schema, compiler);
+        var planner = new OperationPlanner(
+            schema,
+            compiler,
+            new PolicyResolver(new BuiltInPolicyProvider(), []));
 
         return planner.CreatePlan("123456789101112", "123456789101112", "123456789101112", operation);
     }

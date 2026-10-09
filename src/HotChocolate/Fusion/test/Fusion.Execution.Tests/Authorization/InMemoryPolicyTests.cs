@@ -118,7 +118,7 @@ public class InMemoryPolicyTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Resolve_Should_ReturnNull_When_InMemoryPoliciesAreNotRegistered()
+    public async Task Resolve_Should_AnswerOnlyBuiltInPolicies_When_InMemoryPoliciesAreNotRegistered()
     {
         // arrange
         var services = new ServiceCollection();
@@ -130,10 +130,13 @@ public class InMemoryPolicyTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var resolver = executor.Schema.Services.GetService<IPolicyResolver>();
+        var resolver = executor.Schema.Services.GetRequiredService<IPolicyResolver>();
 
         // assert
-        Assert.Null(resolver);
+        Assert.Same(
+            AuthenticatedPolicy.Instance,
+            resolver.Resolve("p", DirectiveNames.Authenticated.Name));
+        Assert.Null(resolver.Resolve("p", DirectiveNames.Policy.Name));
     }
 
     private async Task<(IPolicyResolver Resolver, InMemoryPolicyRecorder Recorder)> CreateResolverAsync(

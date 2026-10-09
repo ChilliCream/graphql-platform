@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -53,7 +54,7 @@ public sealed class OperationPlannerCancellationTests : FusionTestBase
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
         var compiler = new OperationCompiler(schema, pool);
 
-        return new OperationPlanner(schema, compiler);
+        return new OperationPlanner(schema, compiler, TestPolicyResolver.Create());
     }
 
     private static OperationDefinitionNode ParseOperation([StringSyntax("graphql")] string operationText)

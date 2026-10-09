@@ -89,6 +89,11 @@ public sealed class Selection : ISelection
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
+        if (field is FusionOutputFieldDefinition { HasAuthorization: true })
+        {
+            _flags |= Flags.HasAuthorization;
+        }
+
         var type = field.Type;
         _type = type;
 
@@ -177,6 +182,11 @@ public sealed class Selection : ISelection
     /// Gets a value indicating whether the selection's field type is non-nullable.
     /// </summary>
     internal bool IsNonNull => (_flags & Flags.NonNull) == Flags.NonNull;
+
+    /// <summary>
+    /// Gets a value indicating whether the field of this selection carries an authorization requirement.
+    /// </summary>
+    internal bool HasAuthorization => (_flags & Flags.HasAuthorization) == Flags.HasAuthorization;
 
     /// <summary>
     /// Gets the selection's field type with its non-null wrapper removed.
@@ -769,6 +779,7 @@ nextItem:
         ValueTypeNamedType = 32,
         NonNullListElement = 64,
         RequiresWideIncludeFlags = 128,
-        RequiresWideDeferFlags = 256
+        RequiresWideDeferFlags = 256,
+        HasAuthorization = 512
     }
 }
