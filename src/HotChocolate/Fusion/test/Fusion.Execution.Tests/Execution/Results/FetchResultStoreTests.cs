@@ -1713,6 +1713,55 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_WriteForwardedVariables_When_StoreIsReusedAfterLargeInputWasCleaned()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+
+        // a forwarded value above the retained capacity grows the forwarded variable buffer, so Clean releases it
+        var payload = new string('a', 40_000);
+
+        var largeValues = target.CreateVariableValueSetsFromSnapshot(
+                [first, second],
+                ImportedKeys("__fusion_1_id"),
+                [Field("payload", new StringValueNode(payload))],
+                [Requirement("__fusion_1_id")])
+            .Select(entry => Normalize(entry.Values))
+            .ToArray();
+
+        target.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+
+        // act
+        var result = target.CreateVariableValueSetsFromSnapshot(
+            [first, second],
+            ImportedKeys("__fusion_1_id"),
+            [Field("first", new IntValueNode(10))],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        string[] expectedLargeValues =
+        [
+            $$"""{"payload":"{{payload}}","__fusion_1_id":"1"}""",
+            $$"""{"payload":"{{payload}}","__fusion_1_id":"2"}"""
+        ];
+        Assert.Equal(expectedLargeValues, largeValues);
+
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"__fusion_1_id":"1"}
+                """,
+                """
+                {"first":10,"__fusion_1_id":"2"}
+                """
+            ]);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ResolveInvariantNames_When_SelectionSetOrdinalsDiffer()
     {
         // arrange
