@@ -1,0 +1,35 @@
+schema
+  @fusion__execution(shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES) {
+  query: Query
+}
+
+type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+  actions: [Action!]!
+    @fusion__field(schema: A)
+    @fusion__field(schema: B, sourceExternal: true)
+}
+
+union Action
+  @fusion__type(schema: A)
+  @fusion__type(schema: B)
+  @fusion__unionMember(schema: A, member: "Common")
+  @fusion__unionMember(schema: A, member: "OnlyA")
+  @fusion__unionMember(schema: B, member: "Common")
+  @fusion__unionMember(schema: B, member: "OnlyB") = Common | OnlyA | OnlyB
+
+type Common @fusion__type(schema: A) @fusion__type(schema: B) {
+  label: String @fusion__field(schema: A) @fusion__field(schema: B)
+}
+
+type OnlyA @fusion__type(schema: A) {
+  a: String @fusion__field(schema: A)
+}
+
+type OnlyB @fusion__type(schema: B) {
+  b: String @fusion__field(schema: B)
+}
+
+enum fusion__Schema {
+  A @fusion__schema_metadata(name: "a", kind: "ApolloFederation")
+  B @fusion__schema_metadata(name: "b", kind: "ApolloFederation")
+}

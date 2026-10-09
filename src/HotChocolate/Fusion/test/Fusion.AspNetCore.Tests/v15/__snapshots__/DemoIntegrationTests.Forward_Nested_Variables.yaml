@@ -160,7 +160,7 @@ operationPlan:
       name: ProductReviews
       hash: b390c50427303a8430d55d5fcd842247
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

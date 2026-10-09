@@ -452,7 +452,7 @@ operationPlan:
       name: GetUserPostsAndComments
       hash: 062eb29630c5cbcb3708f6c897c35474
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

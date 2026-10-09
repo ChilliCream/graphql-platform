@@ -269,7 +269,7 @@ operationPlan:
       name: t
       hash: c4a89d1d7687730f81553a3f5f71e2b9
       searchSpace: 2
-      expandedNodes: 2
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation

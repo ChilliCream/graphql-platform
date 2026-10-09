@@ -1,0 +1,43 @@
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type CreatePaymentPayload {
+  payment: Payment
+}
+
+type Mutation {
+  createPayment(input: CreatePaymentInput!): CreatePaymentPayload!
+}
+
+type Order {
+  payments: [Payment!]!
+  id: ID!
+}
+
+type Payment implements Node {
+  order: Order!
+  id: ID!
+  amount: Float!
+  status: PaymentStatus!
+  createdAt: String!
+}
+
+type Query {
+  node(id: ID!): Node @lookup @shareable
+  nodes(ids: [ID!]!): [Node]! @shareable
+  paymentById(id: ID!): Payment @lookup
+  orderById(id: ID!): Order @lookup @shareable
+}
+
+input CreatePaymentInput {
+  orderId: ID!
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  DECLINED
+  REFUNDED
+}

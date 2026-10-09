@@ -82,8 +82,8 @@ public class EntityChainTests : FusionTestBase
                     }
                   }
                 hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                searchSpace: 2
+                expandedNodes: 6
             nodes:
               - id: 2
                 type: Operation

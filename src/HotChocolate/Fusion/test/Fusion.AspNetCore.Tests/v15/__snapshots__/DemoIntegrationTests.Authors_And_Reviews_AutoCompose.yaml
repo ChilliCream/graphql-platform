@@ -66,7 +66,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_cd73759d_2 {
+            query Op_cd73759d_1 {
               users {
                 id
               }
@@ -127,7 +127,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_cd73759d_1 {
+            query Op_cd73759d_2 {
               reviews {
                 body
               }
@@ -163,23 +163,23 @@ operationPlan:
         }
       hash: 71e028c2b0e71543b98de2d0fd0e1ae9
       searchSpace: 2
-      expandedNodes: 2
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query Op_cd73759d_1 {
-          reviews {
-            body
+          users {
+            id
           }
         }
     - id: 2
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query Op_cd73759d_2 {
-          users {
-            id
+          reviews {
+            body
           }
         }

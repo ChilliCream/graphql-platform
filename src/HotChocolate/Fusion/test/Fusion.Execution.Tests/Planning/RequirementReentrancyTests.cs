@@ -476,8 +476,8 @@ public class RequirementReentrancyTests : FusionTestBase
                   }
                 name: GetSupplier
                 hash: 123456789101112
-                searchSpace: 3
-                expandedNodes: 9
+                searchSpace: 2
+                expandedNodes: 8
             nodes:
               - id: 1
                 type: Operation

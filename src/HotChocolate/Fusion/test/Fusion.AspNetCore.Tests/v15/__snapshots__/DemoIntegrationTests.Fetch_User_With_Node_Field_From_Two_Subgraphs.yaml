@@ -64,17 +64,19 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query FetchNode_47e389d6_4($__fusion_1_id: ID!) {
-              node(id: $__fusion_1_id) {
+            query FetchNode_47e389d6_3($id: ID!) {
+              node(id: $id) {
                 __typename
                 ... on User {
+                  __typename
                   birthdate
+                  id
                 }
               }
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "id": "VXNlcjox"
             }
         response:
           results:
@@ -83,7 +85,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "birthdate": "User: VXNlcjox"
+                    "birthdate": "User: VXNlcjox",
+                    "id": "VXNlcjox"
                   }
                 }
               }
@@ -125,21 +128,19 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query FetchNode_47e389d6_3($id: ID!) {
-              node(id: $id) {
+            query FetchNode_47e389d6_4($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
                 __typename
                 ... on User {
-                  __typename
                   reviews {
                     body
                   }
-                  id
                 }
               }
             }
           variables: |
             {
-              "id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjox"
             }
         response:
           results:
@@ -158,8 +159,7 @@ sourceSchemas:
                       {
                         "body": "Review: UmV2aWV3OjM="
                       }
-                    ],
-                    "id": "VXNlcjox"
+                    ]
                   }
                 }
               }
@@ -222,7 +222,7 @@ operationPlan:
       name: FetchNode
       hash: eaa9df45387737221adc30f94fc54d7d
       searchSpace: 2
-      expandedNodes: 5
+      expandedNodes: 7
   nodes:
     - id: 1
       type: Node
@@ -245,16 +245,14 @@ operationPlan:
         - id: 1
     - id: 3
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query FetchNode_47e389d6_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on User {
               __typename
-              reviews {
-                body
-              }
+              birthdate
               id
             }
           }
@@ -265,13 +263,15 @@ operationPlan:
         - id: 1
     - id: 4
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query FetchNode_47e389d6_4($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on User {
-              birthdate
+              reviews {
+                body
+              }
             }
           }
         }

@@ -1,0 +1,141 @@
+operation:
+  - document: |
+      {
+        product {
+          id
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.product
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    nodes:
+      - id: 2
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_2($__fusion_2_input: OwnerInput!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              total(input: $__fusion_2_input)
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_input
+            selectionMap: >-
+              owner.{
+                raw
+                computed
+              }
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 4
+          - id: 9
+          - id: 10
+      - id: 4
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
+            userById(id: $__fusion_6_id) {
+              computed(value: $__fusion_5_value)
+            }
+          }
+        source: $.userById
+        target: $.product.owner
+        requirements:
+          - name: __fusion_5_value
+            selectionMap: >-
+              value
+          - name: __fusion_6_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 5
+          - id: 10
+      - id: 5
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_5($__fusion_7_id: ID!) {
+            userById(id: $__fusion_7_id) {
+              value
+            }
+          }
+        source: $.userById
+        target: $.product.owner
+        requirements:
+          - name: __fusion_7_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 10
+      - id: 9
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_9 {
+            product {
+              id
+            }
+          }
+      - id: 3
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_3($__fusion_4_id: ID!) {
+            productById(id: $__fusion_4_id) {
+              owner {
+                raw
+                id
+              }
+            }
+          }
+        source: $.productById
+        target: $.product
+        batchingGroupId: 10
+        requirements:
+          - name: __fusion_4_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 9
+      - id: 8
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_8($__fusion_10_id: ID!) {
+            productById(id: $__fusion_10_id) {
+              owner {
+                raw
+              }
+            }
+          }
+        source: $.productById
+        target: $.product
+        batchingGroupId: 10
+        requirements:
+          - name: __fusion_10_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 9

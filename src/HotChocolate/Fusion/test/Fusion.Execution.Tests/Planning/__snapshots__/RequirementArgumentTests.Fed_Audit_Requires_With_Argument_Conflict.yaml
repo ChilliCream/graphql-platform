@@ -17,8 +17,8 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    searchSpace: 3
+    expandedNodes: 9
 nodes:
   - id: 1
     type: Operation
@@ -42,11 +42,11 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_upc: String!
-          $__fusion_2_averagePrice: Int
-          $__fusion_3_price: Int
-          $__fusion_3_weight: Int
-          $__fusion_4_price: Int
-          $__fusion_4_weight: Int
+        $__fusion_2_averagePrice: Int
+        $__fusion_3_price: Int
+        $__fusion_3_weight: Int
+        $__fusion_4_price: Int
+        $__fusion_4_weight: Int
       ) {
         productByUpc(upc: $__fusion_1_upc) {
           isExpensiveCategory(averagePrice: $__fusion_2_averagePrice)

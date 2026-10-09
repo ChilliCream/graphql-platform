@@ -528,6 +528,38 @@ public sealed partial class OperationPlanner
             return rootScopeState;
         }
 
+        bool TryLiftChain(out ImmutableList<PlanStep> liftedPlan)
+        {
+            if (!TryLiftDeferRequirementChain(
+                descriptor,
+                incrementalPlanSteps,
+                producers,
+                parentContext,
+                resolver,
+                out var liftedScope,
+                out liftedPlan))
+            {
+                return false;
+            }
+
+            RecordParentScopeRequirements(descriptor, liftedPlan);
+
+            if (parentContext.OwnerDescriptor is { } ownerDescriptor)
+            {
+                contextGraph.UpdateDeferContext(
+                    ownerDescriptor,
+                    liftedScope.Steps,
+                    liftedScope.InternalOperation);
+            }
+            else
+            {
+                contextGraph.UpdateRootSteps(liftedScope.Steps);
+                contextGraph.UpdateRootInternalOperation(liftedScope.InternalOperation);
+            }
+
+            return true;
+        }
+
         foreach (var (downstreamStepId, downstreamStep) in downstreamByStepId)
         {
             foreach (var (_, requirement) in downstreamStep.Requirements)
@@ -588,11 +620,15 @@ public sealed partial class OperationPlanner
                         break;
                     }
 
-                    // A partially hostable requirement lifts nothing, so the incremental plan
-                    // stays self-contained.
+                    // A requirement the scope can host only in part is served by lifting the
+                    // prerequisite steps of the incremental plan into the scope. When they cannot
+                    // be lifted, the incremental plan stays self-contained.
                     if (isPartiallyResolvable)
                     {
-                        return incrementalPlanSteps;
+                        return ReferenceEquals(walkScope, parentContext)
+                            && TryLiftChain(out var liftedPlan)
+                                ? liftedPlan
+                                : incrementalPlanSteps;
                     }
 
                     // When no existing parent-scope step can supply the
@@ -630,7 +666,9 @@ public sealed partial class OperationPlanner
                     // scope walker can lift, so the incremental plan stays self-contained.
                     if ((requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString())) is null)
                     {
-                        return incrementalPlanSteps;
+                        return TryLiftChain(out var liftedPlan)
+                            ? liftedPlan
+                            : incrementalPlanSteps;
                     }
 
                     throw CreateUnsatisfiableDeferRequirementException(
@@ -741,19 +779,7 @@ public sealed partial class OperationPlanner
             lifted,
             droppedStepIds);
 
-        // Record the parent-scope requirements on the descriptor.
-        foreach (var step in rewrittenIncrementalPlan)
-        {
-            if (step is not OperationPlanStep operationStep)
-            {
-                continue;
-            }
-
-            foreach (var (key, requirement) in operationStep.Requirements)
-            {
-                descriptor.Requirements.TryAdd(key, requirement);
-            }
-        }
+        RecordParentScopeRequirements(descriptor, rewrittenIncrementalPlan);
 
         // Publish scope updates before processing additional descriptors.
         if (rootScopeState is not null)
@@ -767,6 +793,28 @@ public sealed partial class OperationPlanner
         }
 
         return rewrittenIncrementalPlan;
+    }
+
+    /// <summary>
+    /// Records the requirements of the steps in <paramref name="incrementalPlanSteps"/> on
+    /// <paramref name="descriptor"/> as the requirements read from the enclosing scope.
+    /// </summary>
+    private static void RecordParentScopeRequirements(
+        IncrementalPlanDescriptor descriptor,
+        ImmutableList<PlanStep> incrementalPlanSteps)
+    {
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is not OperationPlanStep operationStep)
+            {
+                continue;
+            }
+
+            foreach (var (key, requirement) in operationStep.Requirements)
+            {
+                descriptor.Requirements.TryAdd(key, requirement);
+            }
+        }
     }
 
     /// <summary>

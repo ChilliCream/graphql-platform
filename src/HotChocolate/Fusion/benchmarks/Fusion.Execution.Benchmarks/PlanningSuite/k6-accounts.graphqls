@@ -1,0 +1,23 @@
+schema {
+  query: Query
+}
+
+type Query {
+  me: User
+  user(id: ID!): User @lookup
+  users: [User!]!
+}
+
+type User {
+  id: ID!
+  name: String
+  username: String
+  birthday: Int
+}
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION

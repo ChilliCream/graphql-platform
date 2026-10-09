@@ -137,14 +137,46 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 11
-    expandedNodes: 26
+    searchSpace: 24
+    expandedNodes: 218
 nodes:
   - id: 1
     type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1($includeExpensive: Boolean!) {
+        productById(id: "1") {
+          id
+          name
+          description
+          price
+          dimension {
+            height
+            width
+          }
+        }
+        products(first: 3) {
+          edges {
+            node {
+              id
+              name
+              description
+              price
+              dimension @include(if: $includeExpensive) {
+                height
+                width
+              }
+            }
+          }
+        }
+      }
+    forwardedVariables:
+      - includeExpensive
+  - id: 2
+    type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_1(
+      query Op_123456789101112_2(
         $includeReviews: Boolean!
         $includeMetadata: Boolean!
         $includeDetails: Boolean!
@@ -177,38 +209,6 @@ nodes:
       - includeReviews
       - includeMetadata
       - includeDetails
-  - id: 2
-    type: Operation
-    schema: products
-    operation: |
-      query Op_123456789101112_2($includeExpensive: Boolean!) {
-        productById(id: "1") {
-          id
-          name
-          description
-          price
-          dimension {
-            height
-            width
-          }
-        }
-        products(first: 3) {
-          edges {
-            node {
-              id
-              name
-              description
-              price
-              dimension @include(if: $includeExpensive) {
-                height
-                width
-              }
-            }
-          }
-        }
-      }
-    forwardedVariables:
-      - includeExpensive
   - id: 3
     type: Operation
     schema: search
@@ -241,12 +241,12 @@ nodes:
     forwardedVariables:
       - includeExpensive
       - includeDetails
-  - id: 6
+  - id: 5
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_6($includeExpensive: Boolean!, $__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
+      query Op_123456789101112_5($includeExpensive: Boolean!, $__fusion_2_id: ID!) {
+        productById(id: $__fusion_2_id) {
           name
           price
           dimension @include(if: $includeExpensive) {
@@ -258,48 +258,28 @@ nodes:
     source: $.productById
     target: $.searchContent<Product>
     requirements:
-      - name: __fusion_3_id
+      - name: __fusion_2_id
         selectionMap: >-
           id
     forwardedVariables:
       - includeExpensive
     dependencies:
       - id: 3
-  - id: 9
+  - id: 7
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_9($__fusion_6_id: ID!) {
-        userById(id: $__fusion_6_id) {
-          displayName
-        }
-      }
-    source: $.userById
-    target: $.productById.reviews.edges.node.author
-    requirements:
-      - name: __fusion_6_id
-        selectionMap: >-
-          id
-    conditions:
-      - variable: $includeReviews
-        passingValue: true
-    dependencies:
-      - id: 14
-  - id: 10
-    type: Operation
-    schema: users
-    operation: |
-      query Op_123456789101112_10 {
+      query Op_123456789101112_7 {
         viewer {
           displayName
         }
       }
-  - id: 12
+  - id: 9
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_12($__fusion_8_id: ID!) {
-        reviewById(id: $__fusion_8_id) {
+      query Op_123456789101112_9($__fusion_5_id: ID!) {
+        reviewById(id: $__fusion_5_id) {
           body
           stars
         }
@@ -307,11 +287,31 @@ nodes:
     source: $.reviewById
     target: $.viewer.reviews.edges.node.author.reviews.nodes
     requirements:
-      - name: __fusion_8_id
+      - name: __fusion_5_id
         selectionMap: >-
           id
     dependencies:
       - id: 13
+  - id: 12
+    type: Operation
+    schema: users
+    operation: |
+      query Op_123456789101112_12($__fusion_8_id: ID!) {
+        userById(id: $__fusion_8_id) {
+          displayName
+        }
+      }
+    source: $.userById
+    target: $.productById.reviews.edges.node.author
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $includeReviews
+        passingValue: true
+    dependencies:
+      - id: 14
   - id: 4
     type: Operation
     schema: users
@@ -333,12 +333,12 @@ nodes:
         passingValue: true
     dependencies:
       - id: 3
-  - id: 11
+  - id: 8
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_11($__fusion_7_id: ID!) {
-        userById(id: $__fusion_7_id) {
+      query Op_123456789101112_8($__fusion_4_id: ID!) {
+        userById(id: $__fusion_4_id) {
           displayName
           reviews(first: 2) {
             nodes {
@@ -351,7 +351,7 @@ nodes:
     target: $.viewer.reviews.edges.node.author
     batchingGroupId: 13
     requirements:
-      - name: __fusion_7_id
+      - name: __fusion_4_id
         selectionMap: >-
           id
     conditions:
@@ -360,13 +360,13 @@ nodes:
       - variable: $includeDetails
         passingValue: true
     dependencies:
-      - id: 1
-  - id: 5
+      - id: 2
+  - id: 6
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_5($includeReviews: Boolean!, $__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
+      query Op_123456789101112_6($includeReviews: Boolean!, $__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
           averageRating
           reviews(first: 2) @include(if: $includeReviews) {
             nodes {
@@ -381,19 +381,19 @@ nodes:
     target: $.searchContent<Product>
     batchingGroupId: 14
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_3_id
         selectionMap: >-
           id
     forwardedVariables:
       - includeReviews
     dependencies:
       - id: 3
-  - id: 7
+  - id: 10
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_7($includeReviews: Boolean!, $__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
+      query Op_123456789101112_10($includeReviews: Boolean!, $__fusion_6_id: ID!) {
+        productById(id: $__fusion_6_id) {
           averageRating
           reviews(first: 3) @include(if: $includeReviews) {
             nodes {
@@ -408,23 +408,23 @@ nodes:
     target: $.products.edges.node
     batchingGroupId: 14
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_6_id
         selectionMap: >-
           id
     forwardedVariables:
       - includeReviews
     dependencies:
-      - id: 2
-  - id: 8
+      - id: 1
+  - id: 11
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_8(
+      query Op_123456789101112_11(
         $includeReviews: Boolean!
         $includeMetadata: Boolean!
-        $__fusion_5_id: ID!
+        $__fusion_7_id: ID!
       ) {
-        productById(id: $__fusion_5_id) {
+        productById(id: $__fusion_7_id) {
           averageRating
           reviews(first: 5) {
             pageInfo {
@@ -453,11 +453,11 @@ nodes:
     target: $.productById
     batchingGroupId: 14
     requirements:
-      - name: __fusion_5_id
+      - name: __fusion_7_id
         selectionMap: >-
           id
     forwardedVariables:
       - includeReviews
       - includeMetadata
     dependencies:
-      - id: 2
+      - id: 1

@@ -286,7 +286,7 @@ operationPlan:
       name: GetBooks
       hash: 7b8712c1a8594e1c1fcbebee8ba4a86c
       searchSpace: 1
-      expandedNodes: 2
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Operation

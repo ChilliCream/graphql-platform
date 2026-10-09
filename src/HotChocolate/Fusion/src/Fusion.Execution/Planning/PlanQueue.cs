@@ -35,6 +35,21 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         => _queue.TryPeek(out node!, out priority);
 
     /// <summary>
+    /// Adds every plan node of this queue except <paramref name="excluded"/> to
+    /// <paramref name="target"/>, keeping the scores of the nodes.
+    /// </summary>
+    public void CopyTo(PlanQueue target, PlanNode excluded)
+    {
+        foreach (var (node, priority) in _queue.UnorderedItems)
+        {
+            if (!ReferenceEquals(node, excluded))
+            {
+                target._queue.Enqueue(node, priority);
+            }
+        }
+    }
+
+    /// <summary>
     /// Removes all plan nodes from the queue.
     /// </summary>
     public void Clear() => _queue.Clear();
@@ -87,6 +102,30 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 throw new NotSupportedException(
                     "The work item type is not supported.");
         }
+    }
+
+    /// <summary>
+    /// Determines whether none of the plans that can follow from a child with the given counters
+    /// and backlog can cost less than or equal to <paramref name="incumbentCost"/>.
+    /// </summary>
+    public static bool CannotBeatIncumbent(
+        OperationPlannerOptions options,
+        int maxDepth,
+        int operationStepCount,
+        int excessFanout,
+        ImmutableDictionary<int, int> opsPerLevel,
+        Backlog backlog,
+        double incumbentCost)
+    {
+        if (double.IsPositiveInfinity(incumbentCost))
+        {
+            return false;
+        }
+
+        var pathCost = PlanNode.CalculatePathCost(options, maxDepth, operationStepCount, excessFanout);
+        var remainingCost = PlannerCostEstimator.EstimateRemainingCost(options, maxDepth, opsPerLevel, backlog.Cost);
+
+        return pathCost + remainingCost > incumbentCost;
     }
 
     private void EnqueueRootPlanNodes(
@@ -168,6 +207,18 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 toSchema,
                 out var bestLookup))
             {
+                // A lookup that resolves nothing new yields no candidate. It starts the parent-path
+                // walk only when it is self-cyclic, like the enqueued self-cyclic lookup below.
+                if (ResolvesNothingNew(workItem, bestLookup, toSchema, type))
+                {
+                    if (IsSelfCyclicLookup(workItem, bestLookup))
+                    {
+                        EnqueueParentPathLookupPlanNodes(planNodeTemplate, workItem, backlog, toSchema, resolutionCost);
+                    }
+
+                    continue;
+                }
+
                 var lookupWorkItem = workItem with { Lookup = bestLookup };
                 var branchBacklog = backlog.Push(lookupWorkItem);
                 var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
@@ -194,19 +245,23 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             var hasEnqueuedResolvingDirectLookup = false;
             foreach (var lookup in schema.GetPossibleLookupsOrdered(workItem.SelectionSet.Type, toSchema))
             {
-                var lookupWorkItem = workItem with { Lookup = lookup };
-                var branchBacklog = backlog.Push(lookupWorkItem);
-                var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
-                Enqueue(planNodeTemplate with
+                if (!ResolvesNothingNew(workItem, lookup, toSchema, type))
                 {
-                    SchemaName = toSchema,
-                    ResolutionCost = resolutionCost,
-                    Backlog = branchBacklog,
-                    RemainingCost = branchRemainingCost
-                });
+                    var lookupWorkItem = workItem with { Lookup = lookup };
+                    var branchBacklog = backlog.Push(lookupWorkItem);
+                    var branchRemainingCost = EstimateRemainingCost(planNodeTemplate, branchBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        SchemaName = toSchema,
+                        ResolutionCost = resolutionCost,
+                        Backlog = branchBacklog,
+                        RemainingCost = branchRemainingCost
+                    });
+                }
 
                 // A self-cyclic lookup makes no progress on its own (see above), so it does not
-                // count as a resolving direct lookup that can suppress the parent-path walk.
+                // count as a resolving direct lookup that can suppress the parent-path walk. A
+                // lookup skipped for resolving nothing new counts as a resolving direct lookup.
                 if (!IsSelfCyclicLookup(workItem, lookup))
                 {
                     hasEnqueuedResolvingDirectLookup = true;
@@ -281,6 +336,85 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="lookup"/> entered into <paramref name="toSchema"/> can
+    /// resolve nothing the work item asks for beyond echoing its own key. That holds when every
+    /// requested field is a key field of the lookup or one that <paramref name="toSchema"/> cannot
+    /// resolve and at least one is of the second kind, or when <paramref name="toSchema"/> owns
+    /// only key fields of <paramref name="type"/>.
+    /// </summary>
+    private static bool ResolvesNothingNew(
+        OperationWorkItem workItem,
+        Lookup lookup,
+        string toSchema,
+        FusionComplexTypeDefinition type)
+    {
+        var hasUnresolvableField = false;
+
+        foreach (var selection in workItem.SelectionSet.Node.Selections)
+        {
+            if (selection is not FieldNode field
+                || field.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (RequirementsContainField(lookup.Requirements, field.Name.Value))
+            {
+                continue;
+            }
+
+            if (type.Fields.TryGetField(field.Name.Value, allowInaccessibleFields: true, out var definition)
+                && definition.Sources.TryGetMember(toSchema, out var source)
+                && source is { IsExternal: false, IsSourceExternal: false })
+            {
+                return false;
+            }
+
+            hasUnresolvableField = true;
+        }
+
+        return hasUnresolvableField
+            || (workItem.SelectionSet.Node.Selections.Count > 0
+                && OwnsOnlyKeyFields(lookup, toSchema, type));
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="toSchema"/> owns no field of <paramref name="type"/>
+    /// other than the leaf key fields of <paramref name="lookup"/>.
+    /// </summary>
+    private static bool OwnsOnlyKeyFields(
+        Lookup lookup,
+        string toSchema,
+        FusionComplexTypeDefinition type)
+    {
+        foreach (var definition in type.Fields)
+        {
+            if (definition.Sources.TryGetMember(toSchema, out var source)
+                && source is { IsExternal: false, IsSourceExternal: false }
+                && !RequirementsContainLeafField(lookup.Requirements, definition.Name))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool RequirementsContainLeafField(SelectionSetNode requirements, string fieldName)
+    {
+        foreach (var selection in requirements.Selections)
+        {
+            if (selection is FieldNode { SelectionSet: null } field
+                && field.Name.Value.Equals(fieldName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool RequirementsContainField(SelectionSetNode requirements, string fieldName)
@@ -664,6 +798,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
         foreach (var schemaName in requirementSchemas)
         {
+            // A schema that serves the field without requirements has nothing to plan here.
+            if (!workItem.Selection.Field.Sources.TryGetMember(schemaName, out var requiringField)
+                || requiringField.Requirements is null)
+            {
+                continue;
+            }
+
             var candidateSchemas = allCandidateSchemas.Remove(schemaName);
 
             if (schemaName == planNodeTemplate.SchemaName)

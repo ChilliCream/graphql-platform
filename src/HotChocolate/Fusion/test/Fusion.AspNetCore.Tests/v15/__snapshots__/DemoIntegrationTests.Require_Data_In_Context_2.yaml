@@ -387,7 +387,7 @@ operationPlan:
       name: Requires
       hash: d717ec74012d1a9955cd360179f4c1d4
       searchSpace: 1
-      expandedNodes: 2
+      expandedNodes: 4
   nodes:
     - id: 1
       type: Operation

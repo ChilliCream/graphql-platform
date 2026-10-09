@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,8 +13,7 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal static class PlannerCostEstimator
 {
-    private const double OperationStepCost = 10.0;
-    private const double RequirementLookupCost = 12.0;
+    private const double SpilloverOperationCost = 10.0;
     private const double InlineLikelyCost = 1.0;
 
     /// <summary>
@@ -83,7 +81,7 @@ internal static class PlannerCostEstimator
             spilloverSchemas);
 
         // The count of the spilloverSchemas set drives the spillover cost estimate.
-        return spilloverSchemas.Count * OperationStepCost;
+        return spilloverSchemas.Count * SpilloverOperationCost;
     }
 
     private static void CollectSpilloverSchemas(
@@ -181,26 +179,19 @@ internal static class PlannerCostEstimator
             }
         }
 
-        return OperationStepCost - InlineLikelyCost;
+        return SpilloverOperationCost - InlineLikelyCost;
     }
 
     /// <summary>
-    /// Adds a work item's estimated cost and projected depth to the backlog cost tracking.
+    /// Adds the operations and projected depth a work item is guaranteed to produce
+    /// to the backlog cost tracking.
     /// </summary>
     public static BacklogCost AddWorkItemCost(
         BacklogCost backlogCost,
         WorkItem workItem)
     {
-        // When a work item gets added to the backlog, we record the cheapest it could possibly cost.
-        // We deliberately keep this estimate low. If a work item might be inlined for free or might
-        // need a full operation, we assume the cheap case.
-        //
-        // That way the planner never accidentally throws away a plan branch that
-        // could turn out to be the best one.
-        //
-        // We also record which depth level this work item will likely produce an operation at,
-        // so we can later detect if too many operations are piling up at the same level (fan-out).
-        var minimumCost = backlogCost.MinimumCost + EstimateMinimumCost(workItem);
+        // A work item contributes the minimum over every alternative it can become.
+        var minimumOperationCount = backlogCost.MinimumOperationCount + GetGuaranteedOperationCount(workItem);
         var maxProjectedDepth = backlogCost.MaxProjectedDepth;
         var projectedOpsPerLevel = backlogCost.ProjectedOpsPerLevel;
 
@@ -215,17 +206,20 @@ internal static class PlannerCostEstimator
             }
         }
 
-        return new BacklogCost(minimumCost, maxProjectedDepth, projectedOpsPerLevel);
+        return new BacklogCost(minimumOperationCount, maxProjectedDepth, projectedOpsPerLevel);
     }
 
     /// <summary>
-    /// Subtracts a work item's estimated cost and projected depth from the backlog cost tracking.
+    /// Subtracts the operations and projected depth a work item is guaranteed to produce
+    /// from the backlog cost tracking.
     /// </summary>
     public static BacklogCost RemoveWorkItemCost(
         BacklogCost backlogCost,
         WorkItem workItem)
     {
-        var minimumCost = Math.Max(0.0, backlogCost.MinimumCost - EstimateMinimumCost(workItem));
+        var minimumOperationCount = Math.Max(
+            0,
+            backlogCost.MinimumOperationCount - GetGuaranteedOperationCount(workItem));
         var maxProjectedDepth = backlogCost.MaxProjectedDepth;
         var projectedOpsPerLevel = backlogCost.ProjectedOpsPerLevel;
 
@@ -247,68 +241,20 @@ internal static class PlannerCostEstimator
             }
         }
 
-        return new BacklogCost(minimumCost, maxProjectedDepth, projectedOpsPerLevel);
+        return new BacklogCost(minimumOperationCount, maxProjectedDepth, projectedOpsPerLevel);
     }
 
-    private static double EstimateMinimumCost(WorkItem workItem)
+    private static int GetGuaranteedOperationCount(WorkItem workItem)
     {
         return workItem switch
         {
-            OperationWorkItem => OperationStepCost,
+            // Each of these always adds a new operation step to the plan.
+            OperationWorkItem or NodeFieldWorkItem or NodeLookupWorkItem => 1,
 
-            FieldRequirementWorkItem { Lookup: not null }
-                => RequirementLookupCost,
-
-            FieldRequirementWorkItem
-                => InlineLikelyCost,
-
-            NodeFieldWorkItem wi
-                => OperationStepCost + (EstimateNodeBranches(wi.NodeField) * OperationStepCost),
-
-            NodeLookupWorkItem
-                => OperationStepCost,
-
-            _ => 1.0
+            // A requirement lookup can merge into an existing step and an inline
+            // requirement can be satisfied without any operation.
+            _ => 0
         };
-    }
-
-    // Counts the distinct type conditions (inline fragment branches)
-    // in a node field's selection set.
-    // Each branch typically needs its own operation for a different concrete type.
-    private static int EstimateNodeBranches(NodeField nodeField)
-    {
-        if (nodeField.Field.SelectionSet is null)
-        {
-            return 0;
-        }
-
-        var typeConditions = new HashSet<string>(StringComparer.Ordinal);
-        var stack = new Stack<SelectionSetNode>();
-        stack.Push(nodeField.Field.SelectionSet);
-
-        while (stack.TryPop(out var selectionSet))
-        {
-            foreach (var selection in selectionSet.Selections)
-            {
-                switch (selection)
-                {
-                    case InlineFragmentNode inlineFragmentNode:
-                        if (inlineFragmentNode.TypeCondition is not null)
-                        {
-                            typeConditions.Add(inlineFragmentNode.TypeCondition.Name.Value);
-                        }
-
-                        stack.Push(inlineFragmentNode.SelectionSet);
-                        break;
-
-                    case FieldNode { SelectionSet: { } nestedSelectionSet }:
-                        stack.Push(nestedSelectionSet);
-                        break;
-                }
-            }
-        }
-
-        return typeConditions.Count;
     }
 
     private static bool TryGetProjectedOperationDepth(
@@ -317,16 +263,22 @@ internal static class PlannerCostEstimator
     {
         switch (workItem)
         {
+            // A path lookup that has no lookup chosen yet can still become a root work item at
+            // depth 1, so it does not guarantee a step at any depth.
+            case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: null }:
+                projectedDepth = 0;
+                return false;
+
             case OperationWorkItem:
-            case FieldRequirementWorkItem { Lookup: not null }:
             case NodeFieldWorkItem:
             case NodeLookupWorkItem:
-                // These kinds all guarantee that at least one future operation step will exist.
+                // These kinds all guarantee that a new operation step exists at this depth.
                 projectedDepth = workItem.EstimatedDepth;
                 return true;
 
             default:
-                // Inline field requirements can resolve without creating a new operation step.
+                // Requirement work items can merge into an existing step or resolve inline
+                // without creating a new operation step.
                 projectedDepth = 0;
                 return false;
         }
@@ -348,8 +300,8 @@ internal static class PlannerCostEstimator
     }
 
     /// <summary>
-    /// Estimates the cost of completing all remaining backlog work by combining the minimum cost
-    /// with penalties for additional depth and excess fan-out.
+    /// Computes a lower bound for the cost of completing all remaining backlog work by combining
+    /// the guaranteed operations with penalties for additional depth and excess fan-out.
     /// </summary>
     public static double EstimateRemainingCost(
         OperationPlannerOptions options,
@@ -357,13 +309,13 @@ internal static class PlannerCostEstimator
         ImmutableDictionary<int, int> currentOpsPerLevel,
         BacklogCost backlogCost)
     {
-        // h(n) = minimum cost
+        // h(n) = guaranteed operations * operation weight
         //      + additional depth penalty
         //      + additional excess fan-out penalty.
         //
         // We compare projected backlog fan-out against already materialized ops at each depth
         // so we only charge the additional excess this backlog can still force.
-        var total = backlogCost.MinimumCost;
+        var total = backlogCost.MinimumOperationCount * options.OperationWeight;
 
         if (backlogCost.MaxProjectedDepth > currentMaxDepth)
         {

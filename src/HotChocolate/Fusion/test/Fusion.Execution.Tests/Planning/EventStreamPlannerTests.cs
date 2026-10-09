@@ -69,7 +69,7 @@ public sealed class EventStreamPlannerTests : FusionTestBase
                   }
                 hash: 123456789101112
                 searchSpace: 2
-                expandedNodes: 3
+                expandedNodes: 5
             nodes:
               - id: 1
                 type: EventStream

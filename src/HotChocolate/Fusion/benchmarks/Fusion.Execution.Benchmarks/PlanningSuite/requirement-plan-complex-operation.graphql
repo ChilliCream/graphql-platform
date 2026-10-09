@@ -1,0 +1,23 @@
+query getReviews($userId: ID!) {
+  userById(id: $userId) {
+    name
+  }
+  users {
+    nodes {
+      id
+      reviews {
+        nodes {
+          product {
+            deliveryEstimate(zip: "123")
+          }
+        }
+      }
+    }
+  }
+  node(id: $userId) {
+    id
+    ... on User {
+      name
+    }
+  }
+}
