@@ -28,11 +28,28 @@ public class IntegrationTests
     {
         // arrange
         var recorder = new MessageRecorder();
+        var consumedTriggers = new MessageRecorder();
         await using var provider = await CreateBusAsync(b =>
         {
             b.Services.AddSingleton(recorder);
             b.AddEventHandler<TestMessageHandler>();
             b.AddSaga<StepThroughSaga>();
+
+            // record each TriggerEvent after the saga consumer returns, by which point the saga
+            // transaction has committed
+            b.ConfigureMessageBus(h =>
+                h.UseConsume(
+                    new ConsumerMiddlewareConfiguration(
+                        (_, next) => async ctx =>
+                        {
+                            await next(ctx);
+
+                            if (ctx.GetMessage() is TriggerEvent triggerEvent)
+                            {
+                                consumedTriggers.Record(triggerEvent);
+                            }
+                        },
+                        "RecordConsumedTriggerEvent")));
         });
 
         using var scope = provider.CreateScope();
@@ -65,14 +82,9 @@ public class IntegrationTests
         // send first TriggerEvent to transition Started -> Triggered
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
-        // wait until the first transition is persisted (state == "Triggered") before sending the
-        // second event, so the two events are applied to the saga in order
-        var transitionDeadline = DateTime.UtcNow + s_timeout;
-        while (storage.Load<StepThroughState>(sagaName, sagaId)?.State != "Triggered"
-            && DateTime.UtcNow < transitionDeadline)
-        {
-            await Task.Delay(50, TestContext.Current.CancellationToken);
-        }
+        // wait until the saga has consumed the first event and committed its transition before
+        // sending the second, so the two events are applied to the saga in order
+        await consumedTriggers.WaitAsync(s_timeout);
 
         // fail fast if the first transition never happened, rather than sending the second event blindly
         Assert.Equal("Triggered", storage.Load<StepThroughState>(sagaName, sagaId)?.State);
