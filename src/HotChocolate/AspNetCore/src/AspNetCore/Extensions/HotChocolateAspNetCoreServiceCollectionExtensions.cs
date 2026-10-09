@@ -160,6 +160,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     .Get(schemaName);
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
+
+            s.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         builder.Services.TryAddEnumerable(
