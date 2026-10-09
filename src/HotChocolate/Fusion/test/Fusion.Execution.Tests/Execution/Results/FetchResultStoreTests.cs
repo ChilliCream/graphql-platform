@@ -1543,6 +1543,55 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariablesForEveryEntity_When_RequestHasForwardedVariables()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"3"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [
+                Field("first", new IntValueNode(10)),
+                Field("filter", new ObjectValueNode(Field("name", new StringValueNode("a\"b"))))
+            ],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"1"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"2"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"3"}
+                """
+            ]);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ResolveInvariantNames_When_SelectionSetOrdinalsDiffer()
     {
         // arrange

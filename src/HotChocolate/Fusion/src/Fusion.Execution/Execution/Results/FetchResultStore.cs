@@ -32,6 +32,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed partial class FetchResultStore : IDisposable
 {
     private const int MaxRetainedDataElementStagingLength = 1024;
+    private const int MaxRetainedForwardedVariableCapacity = 16 * 1024;
     private const int MaxStackAllocPathSegments = 32;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
@@ -48,6 +49,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly ChunkedArrayWriter _variableWriter = new();
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
+    private PooledArrayWriter? _forwardedVariableWriter;
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -1038,6 +1040,9 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var forwardedVariables = importedEntries.Length > 1
+            ? WriteForwardedVariables(requestVariables)
+            : [];
 
         foreach (var importedEntry in importedEntries)
         {
@@ -1050,12 +1055,7 @@ AddErrors_Next:
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
 
-            for (var i = 0; i < requestVariables.Count; i++)
-            {
-                var field = requestVariables[i];
-                _jsonWriter.WritePropertyName(field.Name.Value);
-                WriteValueNode(field.Value);
-            }
+            WriteRequestVariables(requestVariables, forwardedVariables);
 
             if (!TryWriteRequestedRequirementValues(importedEntry.Values, requiredData))
             {
@@ -1133,6 +1133,9 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var forwardedVariables = elements.Length > 1
+            ? WriteForwardedVariables(requestVariables)
+            : [];
 
         foreach (var result in elements)
         {
@@ -1142,13 +1145,7 @@ AddErrors_Next:
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
 
-            // Write forwarded variables.
-            for (var i = 0; i < requestVariables.Count; i++)
-            {
-                var field = requestVariables[i];
-                _jsonWriter.WritePropertyName(field.Name.Value);
-                WriteValueNode(field.Value);
-            }
+            WriteRequestVariables(requestVariables, forwardedVariables);
 
             // Write requirement fields.
             var failed = false;
@@ -1781,6 +1778,52 @@ AddErrors_Next:
         }
 
         _jsonWriter.WriteRawValue(value.ToArray());
+    }
+
+    private void WriteRequestVariables(
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<byte> forwardedVariables)
+    {
+        if (!forwardedVariables.IsEmpty)
+        {
+            _jsonWriter.WriteRawProperties(forwardedVariables);
+            return;
+        }
+
+        for (var i = 0; i < requestVariables.Count; i++)
+        {
+            var field = requestVariables[i];
+            _jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(field.Value);
+        }
+    }
+
+    // Caller must hold _lock.
+    private ReadOnlySpan<byte> WriteForwardedVariables(IReadOnlyList<ObjectFieldNode> requestVariables)
+    {
+        if (requestVariables.Count == 0)
+        {
+            return [];
+        }
+
+        var writer = _forwardedVariableWriter ??= new PooledArrayWriter();
+        writer.Reset();
+
+        _jsonWriter.Reset(writer);
+        _jsonWriter.WriteStartObject();
+
+        for (var i = 0; i < requestVariables.Count; i++)
+        {
+            var field = requestVariables[i];
+            _jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(field.Value);
+        }
+
+        _jsonWriter.WriteEndObject();
+
+        // the forwarded variables are returned as properties without the enclosing braces.
+        var written = writer.WrittenSpan;
+        return written[1..^1];
     }
 
     private void WriteValueNode(IValueNode value)
@@ -2498,6 +2541,7 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
+        _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }
 
