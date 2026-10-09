@@ -152,14 +152,7 @@ public readonly struct ReadOnlyMemorySegment
 
             if (source is byte[] array)
             {
-#if NET8_0_OR_GREATER
-                // start and length were validated against the array when the segment was created.
-                return MemoryMarshal.CreateReadOnlySpan(
-                    ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), _start),
-                    _length);
-#else
                 return new ReadOnlySpan<byte>(array, _start, _length);
-#endif
             }
 
             if (source is null)
