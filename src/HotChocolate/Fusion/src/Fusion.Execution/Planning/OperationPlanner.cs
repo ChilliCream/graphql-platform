@@ -619,9 +619,12 @@ public sealed partial class OperationPlanner
         }
 
         // Each frame holds the untried siblings of one expansion. When the chosen candidate
-        // dead-ends, the next cheapest sibling of the deepest frame is tried instead.
+        // dead-ends, the next cheapest sibling of the deepest frame is tried instead. Once every
+        // frame is used up, the seeded root candidates other than the first form the last frame.
         var frames = new Stack<PlanQueue>();
         var spare = new Stack<PlanQueue>();
+        var seedPlan = current;
+        var rootFallbackAdded = false;
         var backtracks = 0;
 
         while (true)
@@ -705,6 +708,18 @@ public sealed partial class OperationPlanner
 
             // The chosen candidate has no way forward. The search resumes with the cheapest
             // retained sibling, and gives up once the backtracking allowance is used up.
+            if (frames.Count == 0 && !rootFallbackAdded)
+            {
+                rootFallbackAdded = true;
+
+                if (possiblePlans.Count > 1)
+                {
+                    var rootCandidates = new PlanQueue(_schema);
+                    possiblePlans.CopyTo(rootCandidates, seedPlan);
+                    frames.Push(rootCandidates);
+                }
+            }
+
             if (!frames.TryPeek(out var frame) || ++backtracks > MaxGreedyBacktracks)
             {
                 return null;

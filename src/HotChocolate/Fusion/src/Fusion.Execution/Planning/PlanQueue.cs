@@ -35,6 +35,21 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         => _queue.TryPeek(out node!, out priority);
 
     /// <summary>
+    /// Adds every plan node of this queue except <paramref name="excluded"/> to
+    /// <paramref name="target"/>, keeping the scores of the nodes.
+    /// </summary>
+    public void CopyTo(PlanQueue target, PlanNode excluded)
+    {
+        foreach (var (node, priority) in _queue.UnorderedItems)
+        {
+            if (!ReferenceEquals(node, excluded))
+            {
+                target._queue.Enqueue(node, priority);
+            }
+        }
+    }
+
+    /// <summary>
     /// Removes all plan nodes from the queue.
     /// </summary>
     public void Clear() => _queue.Clear();
