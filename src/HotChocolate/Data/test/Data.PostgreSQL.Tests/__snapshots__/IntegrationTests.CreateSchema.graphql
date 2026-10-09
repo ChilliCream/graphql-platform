@@ -490,15 +490,13 @@ schema-merging process. This allows a source schema to define lookup fields for
 resolving entities that should not be accessible through the client-facing
 composite schema.
 
-
-
-
+https://graphql.github.io/composite-schemas-spec/draft/#sec--internal
 
 type User @internal {
   id: ID!
   name: String!
 }
-            
+
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION
@@ -544,16 +542,15 @@ directive @serializeAs(
 By default, only a single source schema is allowed to contribute
 a particular field to an object type.
 
-            
 This prevents source schemas from inadvertently defining similarly named
 fields that are not semantically equivalent.
 
-            
 Fields must be explicitly marked as @shareable to allow multiple source
 schemas to define them, ensuring that the decision to serve a field from
 more than one source schema is intentional and coordinated.
 
-
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+
+https://graphql.github.io/composite-schemas-spec/draft/#sec--shareable
 """
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION

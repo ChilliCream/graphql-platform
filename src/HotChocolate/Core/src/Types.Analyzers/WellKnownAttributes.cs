@@ -44,6 +44,7 @@ public static class WellKnownAttributes
     public const string BatchResolverAttribute = "HotChocolate.Types.BatchResolverAttribute";
     public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
     public const string IsSelectedAttribute = "HotChocolate.Types.IsSelectedAttribute";
+    public const string InterfaceObjectAttribute = "HotChocolate.Types.Composite.InterfaceObjectAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [
@@ -61,6 +62,7 @@ public static class WellKnownAttributes
         InputObjectTypeAttribute,
         QueryTypeAttribute,
         MutationTypeAttribute,
-        SubscriptionTypeAttribute
+        SubscriptionTypeAttribute,
+        InterfaceObjectAttribute
     ];
 }

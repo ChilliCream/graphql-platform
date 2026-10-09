@@ -39,6 +39,12 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
                 Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
 
+            if (objectType.IsInterfaceObject)
+            {
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.InterfaceObject);
+            }
+
             if (objectType.NodeResolver is not null)
             {
                 Writer.WriteLine();
