@@ -351,6 +351,179 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Node_Should_ResolveLookupField_When_UnionFragmentHasNonNodeMember()
+    {
+        // arrange
+        using var contributors = CreateSourceSchema(
+            "CONTRIBUTORS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node {
+              id: ID!
+              name: String
+            }
+
+            type FormerUser {
+              name: String
+            }
+            """);
+        using var accounts = CreateSourceSchema(
+            "ACCOUNTS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("CONTRIBUTORS", contributors),
+            ("ACCOUNTS", accounts)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              # User:1
+              node(id: "VXNlcjox") {
+                id
+                ... on CommunityContributor {
+                  ... on User {
+                    name
+                    email
+                  }
+                  ... on FormerUser {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Node_Should_ResolveConditionalLookupField_When_UnionFragmentHasInclude(bool include)
+    {
+        // arrange
+        using var contributors = CreateSourceSchema(
+            "CONTRIBUTORS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            union CommunityContributor = User | FormerUser | Bot
+
+            type User implements Node @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Bot implements Node @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type FormerUser {
+              name: String
+            }
+            """);
+        using var accounts = CreateSourceSchema(
+            "ACCOUNTS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+              botById(id: ID! @is(field: "id")): Bot @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+
+            type Bot @key(fields: "id") {
+              id: ID!
+              owner: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("CONTRIBUTORS", contributors),
+            ("ACCOUNTS", accounts)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query($include: Boolean!) {
+              # Bot:1
+              node(id: "Qm90OjE=") {
+                id
+                ... on CommunityContributor @include(if: $include) {
+                  ... on User {
+                    email
+                  }
+                  ... on Bot {
+                    owner
+                  }
+                  ... on FormerUser {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["include"] = include
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: include.ToString());
+    }
+
+    [Fact]
     public async Task Concrete_Type_Branch_Requested_Abstract_Lookup()
     {
         // arrange
