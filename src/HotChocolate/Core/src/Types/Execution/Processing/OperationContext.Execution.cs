@@ -37,7 +37,14 @@ internal sealed partial class OperationContext
         }
     }
 
-    public OperationResultBuilder Result { get; } = new();
+    public OperationResultBuilder Result
+    {
+        get
+        {
+            AssertInitialized();
+            return _result;
+        }
+    }
 
     public RequestContext RequestContext
     {
@@ -58,6 +65,7 @@ internal sealed partial class OperationContext
     {
         AssertInitialized();
 
+        TaskCreated();
         var resolverTask = _resolverTaskFactory.Create();
 
         resolverTask.Initialize(
@@ -80,6 +88,7 @@ internal sealed partial class OperationContext
     {
         AssertInitialized();
 
+        TaskCreated();
         var batchTask = _batchResolverTaskFactory.Create();
         batchTask.Initialize(this, field, selectionPath, branchId, deferUsage);
         return batchTask;
