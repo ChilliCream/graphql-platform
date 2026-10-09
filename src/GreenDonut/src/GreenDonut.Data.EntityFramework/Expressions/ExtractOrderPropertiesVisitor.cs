@@ -8,8 +8,6 @@ internal sealed class ExtractOrderPropertiesVisitor : ExpressionVisitor
     private const string ThenByMethod = "ThenBy";
     private const string OrderByDescendingMethod = "OrderByDescending";
     private const string ThenByDescendingMethod = "ThenByDescending";
-    private bool _isOrderScope;
-
     public List<MemberExpression> OrderProperties { get; } = [];
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -19,26 +17,29 @@ internal sealed class ExtractOrderPropertiesVisitor : ExpressionVisitor
             || node.Method.Name == OrderByDescendingMethod
             || node.Method.Name == ThenByDescendingMethod)
         {
-            _isOrderScope = true;
-
             var lambda = StripQuotes(node.Arguments[1]);
-            Visit(lambda.Body);
-
-            _isOrderScope = false;
+            new OrderPropertyVisitor(lambda.Parameters[0], OrderProperties).Visit(lambda.Body);
         }
 
         return base.VisitMethodCall(node);
     }
 
-    protected override Expression VisitMember(MemberExpression node)
-    {
-        if (_isOrderScope)
-        {
-            // we only collect members that are within an order method.
-            OrderProperties.Add(node);
-        }
+    protected override Expression VisitLambda<T>(Expression<T> node) => node;
 
-        return base.VisitMember(node);
+    private sealed class OrderPropertyVisitor(
+        ParameterExpression orderKeyParameter,
+        List<MemberExpression> orderProperties)
+        : ExpressionVisitor
+    {
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            if (node.Expression == orderKeyParameter)
+            {
+                orderProperties.Add(node);
+            }
+
+            return base.VisitMember(node);
+        }
     }
 
     private static LambdaExpression StripQuotes(Expression expression)

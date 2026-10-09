@@ -95,7 +95,7 @@ operationPlan:
           }
         }
       name: AfterNull
-      hash: bcc834fd4621a90c14b517b1ca5aa99d
+      hash: d9a904ad9190596234dbfaf246df715f
       searchSpace: 1
       expandedNodes: 1
   nodes:

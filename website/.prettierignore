@@ -1,4 +1,18 @@
-.cache
-package.json
+# Prettier already respects .gitignore. Listing the generated/build output
+# explicitly also keeps `format:check` fast and deterministic in CI (where
+# .next/cache is restored).
+
+# Build and generated output
+.next/
+out/
+build/
+coverage/
+storybook-static/
+public/_optimized/
+.vercel/
+
+# Generated files
+git-metadata.generated.json
+next-env.d.ts
 package-lock.json
-public
+*.tsbuildinfo

@@ -1,0 +1,11 @@
+mutation ValidateNitroSchema($input: ValidateSchemaInput!) {
+  validateSchema(input: $input) {
+    id
+    errors {
+      __typename
+      ... on Error {
+        message
+      }
+    }
+  }
+}

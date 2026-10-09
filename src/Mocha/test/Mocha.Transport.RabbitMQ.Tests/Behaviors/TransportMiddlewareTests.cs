@@ -43,7 +43,7 @@ public class TransportMiddlewareTests
                 t.DeclareExchange("ex");
                 t.DeclareQueue("q");
                 t.DeclareBinding("ex", "q");
-                t.Endpoint("ep").Consumer<SpyConsumer>().Queue("q");
+                t.Queue("q").Consumer<SpyConsumer>();
                 t.DispatchEndpoint("dispatch").ToExchange("ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -88,7 +88,7 @@ public class TransportMiddlewareTests
                 t.DeclareExchange("ex");
                 t.DeclareQueue("q");
                 t.DeclareBinding("ex", "q");
-                t.Endpoint("ep").Consumer<SpyConsumer>().Queue("q");
+                t.Queue("q").Consumer<SpyConsumer>();
                 t.DispatchEndpoint("dispatch").ToExchange("ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -133,7 +133,7 @@ public class TransportMiddlewareTests
                 t.DeclareExchange("ex");
                 t.DeclareQueue("q");
                 t.DeclareBinding("ex", "q");
-                t.Endpoint("ep").Consumer<SpyConsumer>().Queue("q");
+                t.Queue("q").Consumer<SpyConsumer>();
                 t.DispatchEndpoint("dispatch").ToExchange("ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

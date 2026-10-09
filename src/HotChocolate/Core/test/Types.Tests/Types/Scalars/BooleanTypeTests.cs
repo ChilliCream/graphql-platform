@@ -29,7 +29,7 @@ public class BooleanTypeTests
 
         // assert
         Assert.IsType<bool>(result);
-        Assert.True((bool)result!);
+        Assert.True((bool)result);
     }
 
     [Fact]

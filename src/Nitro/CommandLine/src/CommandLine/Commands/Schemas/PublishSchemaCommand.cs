@@ -93,9 +93,9 @@ internal sealed class PublishSchemaCommand : Command
                     {
                         IUnauthorizedOperation err => err.Message,
                         IInvalidSourceMetadataInputError err => err.Message,
-                        IApiNotFoundError err => err.Message,
-                        IStageNotFoundError err => err.Message,
-                        ISchemaNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        ISchemaNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

@@ -181,7 +181,7 @@ operationPlan:
             }
           }
         }
-      hash: 192dc5f8a8f00336bac2094122ae7902
+      hash: bbc81bd737fecca721f2de75bc01e8a3
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -193,6 +193,18 @@ operationPlan:
           a: createBook(input: { title: "Book1" }) {
             book {
               id
+            }
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_192dc5f8_3 {
+          b: createBook(input: { title: "Book2" }) {
+            book {
+              id
+              title
             }
           }
         }
@@ -209,7 +221,7 @@ operationPlan:
       targets:
         - $.a.book
         - $.b.book
-      batchingGroupId: 2
+      batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -217,15 +229,3 @@ operationPlan:
       dependencies:
         - id: 1
         - id: 3
-    - id: 3
-      type: Operation
-      schema: A
-      operation: |
-        mutation Op_192dc5f8_3 {
-          b: createBook(input: { title: "Book2" }) {
-            book {
-              id
-              title
-            }
-          }
-        }

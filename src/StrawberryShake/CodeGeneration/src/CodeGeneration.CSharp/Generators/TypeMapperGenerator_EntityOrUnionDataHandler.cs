@@ -83,7 +83,7 @@ public partial class TypeMapperGenerator
             .AddIfElse(IfBuilder
                 .New()
                 .SetCondition(
-                    $"{parameterName}.Data is {complexTypeDescriptor.ParentRuntimeType!} d")
+                    $"{parameterName}.Data is {complexTypeDescriptor.ParentRuntimeType} d")
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetReturn()

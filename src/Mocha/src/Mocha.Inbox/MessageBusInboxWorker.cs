@@ -21,24 +21,28 @@ internal sealed class MessageBusInboxWorker(
     ILogger<InboxCleanupProcessor> cleanupLogger,
     ILogger<MessageBusInboxWorker> logger) : IHostedService
 {
+    private readonly object _lock = new();
     private ContinuousTask? _task;
 
     /// <summary>
-    /// Starts the inbox cleanup background task.
+    /// Starts the inbox cleanup background task. This call is idempotent: invoking it again
+    /// while the worker is already running is a no-op that returns without starting a second loop.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when startup should be aborted.</param>
     /// <returns>A completed task once the background loop has been initiated.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the worker is already running.</exception>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_task is not null)
+        lock (_lock)
         {
-            throw new InvalidOperationException("The worker is already running.");
+            if (_task is not null)
+            {
+                return Task.CompletedTask;
+            }
+
+            logger.InboxWorkerStarting();
+
+            _task = new ContinuousTask(ProcessAsync);
         }
-
-        logger.InboxWorkerStarting();
-
-        _task = new ContinuousTask(ProcessAsync);
 
         return Task.CompletedTask;
     }
@@ -49,15 +53,22 @@ internal sealed class MessageBusInboxWorker(
     /// <param name="cancellationToken">A token that signals when shutdown should be forced.</param>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.InboxWorkerStopping();
+        ContinuousTask? task;
 
-        if (_task is null)
+        lock (_lock)
+        {
+            task = _task;
+            _task = null;
+        }
+
+        if (task is null)
         {
             return;
         }
 
-        await _task.DisposeAsync();
-        _task = null;
+        logger.InboxWorkerStopping();
+
+        await task.DisposeAsync();
     }
 
     private async Task ProcessAsync(CancellationToken stoppingToken)

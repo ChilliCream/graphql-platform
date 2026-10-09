@@ -18,6 +18,9 @@ internal sealed class NextMessage : IDataMessage
 
     public OperationResult Payload { get; }
 
+    public void Dispose()
+        => Payload.Dispose();
+
     public static NextMessage From(ReadOnlySequence<byte> message)
     {
         // The ArrayWriter is used to copy the message because otherwise, the buffer is reused and

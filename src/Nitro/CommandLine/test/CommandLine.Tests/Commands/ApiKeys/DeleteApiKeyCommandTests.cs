@@ -115,6 +115,28 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
     }
 
     [Fact]
+    public async Task ApiKeyNotFound_ReturnsError()
+    {
+        // arrange
+        var error = new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
+        error.SetupGet(x => x.ApiKeyId).Returns(ApiKeyId);
+        error.As<IApiKeyNotFoundError>().SetupGet(x => x.Message).Returns("API key not found");
+        SetupDeleteApiKeyMutation(ApiKeyId, error.Object);
+
+        // act
+        var result = await ExecuteCommandAsync("api-key", "delete", ApiKeyId, "--force");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API key not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithoutForce_PromptsUser_ReturnsSuccess()
     {
         // arrange
@@ -189,19 +211,12 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
     public static TheoryData<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors, string>
         GetDeleteApiKeyErrors()
     {
-        var apiKeyNotFound =
-            new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
-        apiKeyNotFound.SetupGet(x => x.ApiKeyId).Returns("key-1");
-        apiKeyNotFound.As<IApiKeyNotFoundError>().SetupGet(x => x.Message).Returns("API key not found");
-        apiKeyNotFound.As<IError>().SetupGet(x => x.Message).Returns("API key not found");
-
         var unknownError =
             new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
         unknownError.As<IError>().SetupGet(x => x.Message).Returns("Unauthorized");
 
         return new()
         {
-            { apiKeyNotFound.Object, "API key not found" },
             { unknownError.Object, "Unexpected mutation error: Unauthorized" }
         };
     }

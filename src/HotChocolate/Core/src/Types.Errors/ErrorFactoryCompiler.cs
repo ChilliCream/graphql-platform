@@ -172,9 +172,7 @@ internal static class ErrorFactoryCompiler
                     Expression.IfThenElse(
                         test,
                         Expression.Assign(variable, createError),
-                        previous is null
-                            ? Expression.Assign(variable, nullValue)
-                            : previous);
+                        previous ?? Expression.Assign(variable, nullValue));
             }
         }
 

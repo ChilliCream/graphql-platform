@@ -8,6 +8,6 @@ type Query {
 
 input DeprecatedInputFieldsInput {
   obsoleteWithReason: Int @deprecated(reason: "reason")
-  obsolete: Int @deprecated(reason: "No longer supported.")
+  obsolete: Int @deprecated
   deprecated: Int @deprecated(reason: "reason")
 }

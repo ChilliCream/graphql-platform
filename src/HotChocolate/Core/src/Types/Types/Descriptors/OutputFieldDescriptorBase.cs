@@ -123,7 +123,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
 
     public void Deprecated(string? reason)
     {
-        if (string.IsNullOrEmpty(reason))
+        if (string.IsNullOrWhiteSpace(reason))
         {
             Deprecated();
         }

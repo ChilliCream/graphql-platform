@@ -55,5 +55,20 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
                     break;
             }
         }
+
+        foreach (var directive in schema.DirectiveDefinitions)
+        {
+            foreach (var argument in directive.Arguments)
+            {
+                if (argument.Type.IsNonNullType()
+                    && argument.DefaultValue is null
+                    && argument.Directives.Any(d => d.Definition is RequiresOptInDirectiveType))
+                {
+                    errors.Add(RequiresOptInOnRequiredDirectiveArgument(
+                        directive,
+                        argument));
+                }
+            }
+        }
     }
 }

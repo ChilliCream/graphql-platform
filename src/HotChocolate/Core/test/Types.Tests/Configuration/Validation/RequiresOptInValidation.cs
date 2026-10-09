@@ -80,4 +80,42 @@ public class RequiresOptInValidation : TypeValidationTestBase
             }
             """);
     }
+
+    [Fact]
+    public void Must_Not_Appear_On_Required_Directive_Argument()
+    {
+        ExpectError(
+            """
+            type Query { field: Int }
+
+            directive @example(
+                argument: Int!
+                    @requiresOptIn(feature: "feature1")
+                    @requiresOptIn(feature: "feature2")) on FIELD
+            """);
+    }
+
+    [Fact]
+    public void May_Appear_On_Required_With_Default_Directive_Argument()
+    {
+        ExpectValid(
+            """
+            type Query { field: Int }
+
+            directive @example(
+                argument: Int! = 1 @requiresOptIn(feature: "feature")) on FIELD
+            """);
+    }
+
+    [Fact]
+    public void May_Appear_On_Nullable_Directive_Argument()
+    {
+        ExpectValid(
+            """
+            type Query { field: Int }
+
+            directive @example(
+                argument: Int @requiresOptIn(feature: "feature")) on FIELD
+            """);
+    }
 }

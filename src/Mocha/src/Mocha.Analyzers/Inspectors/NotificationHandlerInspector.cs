@@ -60,11 +60,14 @@ public sealed class NotificationHandlerInspector : ISyntaxInspector
         }
 
         var notificationType = implemented.TypeArguments[0];
+        var notificationTypeName = notificationType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         syntaxInfo = new NotificationHandlerInfo(
             namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty,
-            notificationType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            notificationTypeName,
+            namedTypeSymbol.GetXmlDocumentation(cancellationToken),
+            typeDeclaration.ToDeclarationLocationInfo());
 
         return true;
     }

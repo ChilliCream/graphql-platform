@@ -42,9 +42,9 @@ public abstract partial class ScalarType
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     /// <summary>
-    /// Gets the optional description of this scalar type.
+    /// Gets the URL that specifies the behavior and constraints of this scalar type.
     /// </summary>
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get;
         protected set
@@ -124,6 +124,12 @@ public abstract partial class ScalarType
     {
         ArgumentNullException.ThrowIfNull(valueLiteral);
 
+        // A scalar whose serialization type is unknown cannot reject any literal.
+        if (SerializationType is ScalarSerializationType.Undefined)
+        {
+            return true;
+        }
+
         if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
             && valueLiteral is { Kind: SyntaxKind.StringValue })
         {
@@ -137,7 +143,7 @@ public abstract partial class ScalarType
         }
 
         if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
-            && valueLiteral is { Kind: SyntaxKind.FloatValue })
+            && valueLiteral is { Kind: SyntaxKind.FloatValue or SyntaxKind.IntValue })
         {
             return true;
         }

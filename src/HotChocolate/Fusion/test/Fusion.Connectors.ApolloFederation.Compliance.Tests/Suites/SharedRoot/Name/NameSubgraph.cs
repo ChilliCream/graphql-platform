@@ -35,7 +35,7 @@ public static class NameSubgraph
             .AddType<NameType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

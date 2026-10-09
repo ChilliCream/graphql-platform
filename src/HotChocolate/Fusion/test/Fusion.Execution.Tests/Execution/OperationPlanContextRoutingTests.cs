@@ -7,11 +7,16 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using ObjectFieldNode = HotChocolate.Language.ObjectFieldNode;
+using IValueNode = HotChocolate.Language.IValueNode;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -241,13 +246,19 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             GraphQLHttpClient.Create(new HttpClient()),
             new HttpSourceSchemaClientConfiguration("a", new Uri("http://localhost:5000/graphql")));
 
+        var sourceText = "subscription { field }"u8.ToArray();
+
         var request = new SourceSchemaClientRequest
         {
             Node = fixture.GetRootNode(),
             SchemaName = "a",
             OperationType = OperationType.Subscription,
-            OperationSourceText = "subscription { field }",
-            OperationHash = 0
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Subscription,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText)
         };
 
         // act
@@ -271,7 +282,8 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             key,
             new NamedTypeNode("String"),
             SelectionPath.Root,
-            new PathNode(new PathSegmentNode(new FusionNameNode(key))));
+            new PathNode(new PathSegmentNode(new FusionNameNode(key))),
+            null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);
@@ -323,7 +335,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 .BuildServiceProvider();
 
             var executor = await services.GetRequestExecutorAsync();
-            var schema = (Fusion.Types.FusionSchemaDefinition)executor.Schema;
+            var schema = (FusionSchemaDefinition)executor.Schema;
             var operationPlan = PlanOperation(
                 schema,
                 """

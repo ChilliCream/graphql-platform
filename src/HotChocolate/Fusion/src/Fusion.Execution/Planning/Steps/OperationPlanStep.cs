@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -9,6 +10,8 @@ namespace HotChocolate.Fusion.Planning;
 
 public record OperationPlanStep : PlanStep
 {
+    private const int StackAllocWordLimit = 32;
+
     public required OperationDefinitionNode Definition { get; init; }
 
     public required ITypeDefinition Type { get; init; }
@@ -38,19 +41,55 @@ public record OperationPlanStep : PlanStep
 
     public Lookup? Lookup { get; init; }
 
+    internal EventStreamPlan? EventStreamPlan { get; init; }
+
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
-        => DependsOnRecursive(otherStep, Id, allSteps, []);
+    {
+        if (otherStep.Dependents.Contains(Id))
+        {
+            return true;
+        }
+
+        if (otherStep.Dependents.IsEmpty)
+        {
+            return false;
+        }
+
+        var wordCount = (Math.Max(allSteps.Count, otherStep.Id) >> 6) + 1;
+        ulong[]? rented = null;
+        var visited = wordCount <= StackAllocWordLimit
+            ? stackalloc ulong[wordCount]
+            : (rented = ArrayPool<ulong>.Shared.Rent(wordCount)).AsSpan(0, wordCount);
+        visited.Clear();
+
+        try
+        {
+            return DependsOnRecursive(otherStep, Id, allSteps, visited);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<ulong>.Shared.Return(rented);
+            }
+        }
+    }
 
     private static bool DependsOnRecursive(
         OperationPlanStep currentStep,
         int targetId,
         ImmutableList<PlanStep> allSteps,
-        HashSet<int> visited)
+        Span<ulong> visited)
     {
-        if (!visited.Add(currentStep.Id))
+        var word = currentStep.Id >> 6;
+        var bit = 1UL << (currentStep.Id & 63);
+
+        if ((visited[word] & bit) != 0)
         {
             return false;
         }
+
+        visited[word] |= bit;
 
         if (currentStep.Dependents.Contains(targetId))
         {

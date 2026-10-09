@@ -1,0 +1,17 @@
+{
+  "message": "The argument \u0060unknown\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 25
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "fragment": "withVariable",
+    "argument": "unknown",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Names"
+  }
+}

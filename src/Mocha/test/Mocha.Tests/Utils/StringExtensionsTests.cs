@@ -72,6 +72,24 @@ public class StringExtensionsTests
         Assert.False(result);
     }
 
+    [Theory]
+    [InlineData("test", "TEST", true)]
+    [InlineData("Test", "Test", true)]
+    [InlineData("test", "other", false)]
+    [InlineData(null, null, true)]
+    [InlineData("test", null, false)]
+    public void StringExtensions_EqualsOrdinalIgnoreCase_Should_ReturnExpectedResult(
+        string? value,
+        string? other,
+        bool expected)
+    {
+        // act
+        var result = value.EqualsOrdinalIgnoreCase(other);
+
+        // assert
+        Assert.Equal(expected, result);
+    }
+
     [Fact]
     public void StringExtensions_EqualsInvariantIgnoreCase_Should_ReturnTrue_When_StringsAreEqualIgnoringCase()
     {

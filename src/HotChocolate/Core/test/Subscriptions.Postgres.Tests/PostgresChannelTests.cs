@@ -1,13 +1,12 @@
+using CookieCrumble.Resources;
 using System.Collections.Concurrent;
 using HotChocolate.Tests;
 using Npgsql;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresChannelTests
-    : IClassFixture<PostgreSqlResource>
-    , IAsyncLifetime
+    : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource;
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";

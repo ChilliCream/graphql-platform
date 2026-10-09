@@ -74,8 +74,7 @@ var consumerApp = WebApplication.CreateSlimBuilder().Build();
             });
 
             // Explicit queue for the Send pattern
-            t.DeclareQueue("bench-cmd");
-            t.Endpoint("bench-cmd-ep").Queue("bench-cmd").Handler<BenchmarkCommandHandler>();
+            t.Queue("bench-cmd").Handler<BenchmarkCommandHandler>();
         });
     consumerApp = b.Build();
 }

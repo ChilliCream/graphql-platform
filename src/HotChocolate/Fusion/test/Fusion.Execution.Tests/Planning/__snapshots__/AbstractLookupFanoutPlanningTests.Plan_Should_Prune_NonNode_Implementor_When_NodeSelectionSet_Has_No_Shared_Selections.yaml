@@ -1,0 +1,50 @@
+operation:
+  - document: |
+      query($id: ID!) {
+        node(id: $id) {
+          __typename
+          ... on Manageable {
+            canEdit
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Node
+    idValue: $id
+    responseName: node
+    branches:
+      - Ticket: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query Op_123456789101112_2($id: ID!) {
+        node(id: $id) {
+          __typename
+        }
+      }
+    forwardedVariables:
+      - id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: tickets
+    operation: |
+      query Op_123456789101112_3($id: ID!) {
+        node(id: $id) {
+          __typename
+          ... on Ticket {
+            __typename
+            canEdit
+          }
+        }
+      }
+    forwardedVariables:
+      - id
+    dependencies:
+      - id: 1

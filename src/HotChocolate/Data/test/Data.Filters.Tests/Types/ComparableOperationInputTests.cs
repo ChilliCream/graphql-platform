@@ -97,7 +97,7 @@ public class ComparableOperationInputTests
 
         public decimal? BarDecimalNullable { get; set; }
 
-        public byte? BarByteNullable { get; set; } = null!;
+        public byte? BarByteNullable { get; set; }
 
         public FooBar FooBar { get; set; }
 

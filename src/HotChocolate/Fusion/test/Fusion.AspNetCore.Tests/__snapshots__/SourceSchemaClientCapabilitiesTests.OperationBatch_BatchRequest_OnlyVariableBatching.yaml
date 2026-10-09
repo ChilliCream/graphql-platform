@@ -119,38 +119,57 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_1b3419da_2($__fusion_1_id: ID!) {
-                  authorById(id: $__fusion_1_id) {
-                    b: name(postFix: "2")
+          document: |
+            query Op_1b3419da_2($__fusion_1_id: ID!) {
+              authorById(id: $__fusion_1_id) {
+                b: name(postFix: "2")
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 1 - 2"
                   }
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "1"
-                  },
-                  {
-                    "__fusion_1_id": "2"
-                  }
-                ]
-            - document: |
-                query Op_1b3419da_3($__fusion_2_id: ID!) {
-                  authorById(id: $__fusion_2_id) {
-                    a: name
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 2 - 2"
                   }
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "1"
-                  },
-                  {
-                    "__fusion_2_id": "2"
-                  }
-                ]
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_1b3419da_3($__fusion_2_id: ID!) {
+              authorById(id: $__fusion_2_id) {
+                a: name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_2_id": "2"
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -170,22 +189,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "b": "Author 1 - 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "b": "Author 2 - 2"
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |
@@ -201,7 +204,7 @@ operationPlan:
             }
           }
         }
-      hash: 1b3419daa4dae74e12e1ad0237002b57
+      hash: 6dfeebce6555fde03c68781ef2e510e0
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -230,7 +233,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.b
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -248,7 +251,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.a
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

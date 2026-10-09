@@ -59,7 +59,7 @@ operationPlan:
           field(input: $input)
         }
       name: testQuery
-      hash: 4b201a4f390fe386d2d0db5091a152b3
+      hash: df2e3bddc2e44886b3cbc255d2efd84e
       searchSpace: 1
       expandedNodes: 1
   nodes:

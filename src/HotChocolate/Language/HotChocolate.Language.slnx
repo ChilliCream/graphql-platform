@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
     <Project Path="src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
+    <Project Path="src/Language.Utf8.SyntaxTree/HotChocolate.Language.Utf8.SyntaxTree.csproj" />
     <Project Path="src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
     <Project Path="src/Language.Web/HotChocolate.Language.Web.csproj" />
     <Project Path="src/Language/HotChocolate.Language.csproj" />

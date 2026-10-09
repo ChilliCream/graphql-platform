@@ -52,23 +52,19 @@ public sealed class NotMongoDbFilterDefinition : MongoDbFilterDefinition
             return NegateSingleElementTopLevelOperatorFilter(filter, element);
         }
 
-        if (element.Value is BsonDocument)
+        if (element.Value is BsonDocument selector && selector.ElementCount >= 1)
         {
-            var selector = (BsonDocument)element.Value;
-            if (selector.ElementCount >= 1)
+            var operatorName = selector.GetElement(0).Name;
+            if (operatorName[0] == '$' && operatorName != "$ref")
             {
-                var operatorName = selector.GetElement(0).Name;
-                if (operatorName[0] == '$' && operatorName != "$ref")
+                if (selector.ElementCount == 1)
                 {
-                    if (selector.ElementCount == 1)
-                    {
-                        return NegateSingleFieldOperatorFilter(
-                            element.Name,
-                            selector.GetElement(0));
-                    }
-
-                    return NegateArbitraryFilter(filter);
+                    return NegateSingleFieldOperatorFilter(
+                        element.Name,
+                        selector.GetElement(0));
                 }
+
+                return NegateArbitraryFilter(filter);
             }
         }
 

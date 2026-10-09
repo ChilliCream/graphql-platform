@@ -7,6 +7,12 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class IncrementalPlan : IOperationPlan
 {
+    /// <summary>
+    /// The <see cref="ParentNodeId"/> of a plan anchored at the operation root of an
+    /// enclosing plan that has no execution node.
+    /// </summary>
+    public const int NoParentNodeId = 0;
+
     private readonly ExecutionNode?[] _nodesById;
 
     /// <summary>
@@ -42,7 +48,12 @@ public sealed class IncrementalPlan : IOperationPlan
         AllNodes = allNodes;
         DeliveryGroups = deliveryGroups;
         Requirements = requirements.IsDefault ? [] : requirements;
-        _nodesById = CreateNodeLookup(allNodes);
+        _nodesById = CreateNodeLookup(
+            allNodes,
+            out var usesDynamicSchemaNames,
+            out var usesBatchNodes);
+        UsesDynamicSchemaNames = usesDynamicSchemaNames;
+        UsesBatchNodes = usesBatchNodes;
     }
 
     /// <summary>
@@ -83,7 +94,8 @@ public sealed class IncrementalPlan : IOperationPlan
     /// Gets the <see cref="ExecutionNode.Id"/> of the node that produces the
     /// result object where this incremental plan is anchored. The identifier is
     /// scoped to the root <see cref="OperationPlan"/> for top-level plans, or
-    /// to the enclosing <see cref="IncrementalPlan"/> for nested plans.
+    /// to the enclosing <see cref="IncrementalPlan"/> for nested plans. The value is
+    /// <see cref="NoParentNodeId"/> when the enclosing plan has no execution node.
     /// </summary>
     public int ParentNodeId { get; internal set; }
 
@@ -91,6 +103,10 @@ public sealed class IncrementalPlan : IOperationPlan
     /// Gets the highest plan node identifier that can be resolved by this plan.
     /// </summary>
     public int MaxNodeId => _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
+
+    internal bool UsesDynamicSchemaNames { get; }
+
+    internal bool UsesBatchNodes { get; }
 
     /// <summary>
     /// Gets the child incremental plans for this plan. Incremental plans do not
@@ -142,8 +158,14 @@ public sealed class IncrementalPlan : IOperationPlan
         throw ThrowHelper.NodeNotFound(planNode.Id);
     }
 
-    private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
+    private static ExecutionNode?[] CreateNodeLookup(
+        ImmutableArray<ExecutionNode> allNodes,
+        out bool usesDynamicSchemaNames,
+        out bool usesBatchNodes)
     {
+        usesDynamicSchemaNames = false;
+        usesBatchNodes = false;
+
         if (allNodes.IsDefaultOrEmpty)
         {
             return [];
@@ -155,9 +177,28 @@ public sealed class IncrementalPlan : IOperationPlan
         {
             maxId = Math.Max(maxId, node.Id);
 
+            switch (node.Type)
+            {
+                case ExecutionNodeType.Node:
+                    usesDynamicSchemaNames = true;
+                    break;
+
+                case ExecutionNodeType.OperationBatch:
+                    usesBatchNodes = true;
+                    break;
+            }
+
             if (node is OperationBatchExecutionNode batchNode)
             {
                 foreach (var op in batchNode.Operations)
+                {
+                    maxId = Math.Max(maxId, op.Id);
+                }
+            }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatchNode)
+            {
+                foreach (var op in apolloBatchNode.Operations)
                 {
                     maxId = Math.Max(maxId, op.Id);
                 }
@@ -177,6 +218,14 @@ public sealed class IncrementalPlan : IOperationPlan
                 foreach (var op in batchNode.Operations)
                 {
                     nodesById[op.Id] = batchNode;
+                }
+            }
+
+            if (node is ApolloOperationBatchExecutionNode apolloBatchNode)
+            {
+                foreach (var op in apolloBatchNode.Operations)
+                {
+                    nodesById[op.Id] = apolloBatchNode;
                 }
             }
         }

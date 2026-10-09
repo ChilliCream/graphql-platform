@@ -1,0 +1,44 @@
+operation:
+  - document: |
+      {
+        product {
+          __typename @fusion__requirement
+          id @fusion__requirement
+          ... on Bread {
+            id
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: opaque
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        productById(id: $__fusion_1_id) {
+          __typename
+          ... on Bread {
+            id
+          }
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

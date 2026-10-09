@@ -270,17 +270,18 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     protected void SetupUnpublishClientMutation(
         string tag = Tag,
+        bool force = false,
         params IUnpublishClient_UnpublishClient_Errors[] errors)
     {
         ClientsClientMock.Setup(x => x.UnpublishClientVersionAsync(
-                ClientId, Stage, tag, It.IsAny<CancellationToken>()))
+                ClientId, Stage, tag, force, It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateUnpublishClientPayload(errors));
     }
 
     protected void SetupUnpublishClientMutationException()
     {
         ClientsClientMock.Setup(x => x.UnpublishClientVersionAsync(
-                ClientId, Stage, Tag, It.IsAny<CancellationToken>()))
+                ClientId, Stage, Tag, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
@@ -293,7 +294,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
             .Returns((IReadOnlyList<IUnpublishClient_UnpublishClient_Errors>?)null);
 
         ClientsClientMock.Setup(x => x.UnpublishClientVersionAsync(
-                ClientId, Stage, Tag, It.IsAny<CancellationToken>()))
+                ClientId, Stage, Tag, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
     }
 
@@ -327,7 +328,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientsAsync(
                 ApiId, null, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The API was not found."));
     }
 
     private static IListClientCommandQuery_Node_Clients_Edges_Node CreateListClientNode(
@@ -376,7 +377,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientVersionsAsync(
                 ClientId, cursor, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The client was not found."));
     }
 
     protected static ConnectionPage<IClientDetailPrompt_ClientVersionEdge> CreateListClientVersionsPage(
@@ -453,7 +454,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         ClientsClientMock.Setup(x => x.ListClientPublishedVersionsAsync(
                 ClientId, Stage, cursor, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IListClientPublishedVersionsCommand_PublishedClientVersionEdge>?)null);
+            .ThrowsAsync(new NitroClientNotFoundException("The client was not found."));
     }
 
     protected static IListClientPublishedVersionsCommand_PublishedClientVersionEdge CreatePublishedVersionEdge(
@@ -477,11 +478,18 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Download
 
-    protected void SetupDownloadPersistedQueries(Stream? result)
+    protected void SetupDownloadPersistedQueries(Stream result)
     {
         ClientsClientMock.Setup(x => x.DownloadPersistedQueriesAsync(
                 ApiId, Stage, It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
+    }
+
+    protected void SetupMissingDownloadPersistedQueries()
+    {
+        ClientsClientMock.Setup(x => x.DownloadPersistedQueriesAsync(
+                ApiId, Stage, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientNotFoundException($"Could not find a published client on stage '{Stage}'."));
     }
 
     protected void SetupDownloadPersistedQueriesException()
@@ -780,6 +788,34 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var mock = new Mock<IUnpublishClient_UnpublishClient_Errors_ClientVersionNotFoundError>(MockBehavior.Strict);
         mock.SetupGet(x => x.Message).Returns("Client version not found.");
+        return mock.Object;
+    }
+
+    protected static IUnpublishClient_UnpublishClient_Errors
+        CreateUnpublishClientVersionProtectedError(
+            string tag = Tag,
+            params ClientUnpublishProtectionRuleKind[] protectedBy)
+    {
+        var mock = new Mock<IUnpublishClient_UnpublishClient_Errors_ClientVersionProtectedError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message)
+            .Returns($"Client version '{tag}' is protected and cannot be unpublished.");
+        mock.SetupGet(x => x.Tag).Returns(tag);
+        mock.SetupGet(x => x.ProtectedBy).Returns(protectedBy);
+        return mock.Object;
+    }
+
+    protected static IUnpublishClient_UnpublishClient_Errors
+        CreateUnpublishClientRecentTrafficProtectionNotEvaluableError(
+            TimeSpan? clientTrafficRequiredWithin = null,
+            string tag = Tag)
+    {
+        var mock = new Mock<IUnpublishClient_UnpublishClient_Errors_ClientRecentTrafficProtectionNotEvaluableError>(
+            MockBehavior.Strict);
+        mock.SetupGet(x => x.Message)
+            .Returns($"The protection rule of client version '{tag}' could not be evaluated.");
+        mock.SetupGet(x => x.Tag).Returns(tag);
+        mock.SetupGet(x => x.ClientTrafficRequiredWithin)
+            .Returns(clientTrafficRequiredWithin ?? TimeSpan.FromDays(7));
         return mock.Object;
     }
 

@@ -18,6 +18,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ConstantArgumentValidator_ArgumentDoesNotExist" xml:space="preserve">
+    <value>The argument '{0}' does not exist on field '{1}'.</value>
+  </data>
+  <data name="ConstantArgumentValidator_ArgumentMustBeConstant" xml:space="preserve">
+    <value>The value provided for argument '{0}' on field '{1}' must be a constant value, not a variable.</value>
+  </data>
+  <data name="ConstantArgumentValidator_DuplicateArgument" xml:space="preserve">
+    <value>The argument '{0}' on field '{1}' must not be specified more than once.</value>
+  </data>
+  <data name="ConstantArgumentValidator_DuplicateInputField" xml:space="preserve">
+    <value>The input field '{0}' on field '{1}' must not be specified more than once.</value>
+  </data>
+  <data name="ConstantArgumentValidator_MissingRequiredArgument" xml:space="preserve">
+    <value>The required argument '{0}' on field '{1}' was not provided.</value>
+  </data>
+  <data name="ConstantArgumentValidator_ValueIncompatible" xml:space="preserve">
+    <value>The value provided for argument '{0}' on field '{1}' is not compatible with the type '{2}'.</value>
+  </data>
   <data name="FieldSelectionMapValidator_ExpectedInputObjectType" xml:space="preserve">
     <value>Expected an input object type but found '{0}'.</value>
   </data>

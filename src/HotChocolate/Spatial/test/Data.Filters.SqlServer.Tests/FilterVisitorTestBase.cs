@@ -4,15 +4,14 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data.Spatial.Filters;
 
 public class FilterVisitorTestBase
 {
-    private readonly PostgreSqlResource<PostgisConfig> _resource;
+    private readonly PostgisResource _resource;
 
-    public FilterVisitorTestBase(PostgreSqlResource<PostgisConfig> resource)
+    public FilterVisitorTestBase(PostgisResource resource)
     {
         _resource = resource;
     }

@@ -19,6 +19,7 @@ public class PostgresTransportConfiguration : MessagingTransportConfiguration
     {
         Name = DefaultName;
         Schema = DefaultSchema;
+        RoutingStrategyFactory = static _ => new PostgresRoutingStrategy();
     }
 
     /// <summary>
@@ -57,6 +58,12 @@ public class PostgresTransportConfiguration : MessagingTransportConfiguration
     /// Individual resources can override this setting.
     /// </summary>
     public bool? AutoProvision { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether transport schema migrations run at startup. Defaults to <c>true</c>.
+    /// When <c>false</c>, startup skips migration without checking the schema.
+    /// </summary>
+    public bool AutoMigrate { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and topics.

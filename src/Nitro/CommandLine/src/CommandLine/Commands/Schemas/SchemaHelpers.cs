@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -32,9 +31,9 @@ internal static class SchemaHelpers
                 {
                     IUnauthorizedOperation err => err.Message,
                     IInvalidSourceMetadataInputError err => err.Message,
-                    IApiNotFoundError err => err.Message,
-                    IStageNotFoundError err => err.Message,
-                    ISchemaNotFoundError err => err.Message,
+                    IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                    IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                    ISchemaNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
                 };
@@ -113,18 +112,4 @@ internal static class SchemaHelpers
 
         throw new ExitException(Messages.UnknownServerResponse);
     }
-}
-
-internal abstract record SchemaValidationResult
-{
-    public sealed record Success : SchemaValidationResult
-    {
-        public static readonly Success Instance = new();
-
-        private Success()
-        {
-        }
-    }
-
-    public sealed record Failed(IRenderable Details) : SchemaValidationResult;
 }

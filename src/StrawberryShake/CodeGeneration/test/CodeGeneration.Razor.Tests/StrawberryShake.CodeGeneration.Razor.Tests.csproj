@@ -18,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="sqlite-net-pcl" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
   <ItemGroup>

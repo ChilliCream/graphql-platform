@@ -5,6 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Types.Composite;
 
@@ -18,11 +19,12 @@ internal sealed class SourceSchemaKeyInferenceTypeInterceptor : TypeInterceptor
     private const string IsFieldArgumentName = "field";
 
     private readonly List<LookupInfo> _lookups = [];
-    private readonly Dictionary<string, TypeConfiguration> _typesByName = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TypeConfiguration> _typesByName =
+        [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, List<TypeConfiguration>> _implementersByInterface =
-        new(StringComparer.Ordinal);
+        [with(StringComparer.Ordinal)];
     private readonly Dictionary<string, List<TypeConfiguration>> _membersByUnion =
-        new(StringComparer.Ordinal);
+        [with(StringComparer.Ordinal)];
     private ITypeCompletionContext? _completionContext;
     private TypeReference _entityKeyRef = null!;
 

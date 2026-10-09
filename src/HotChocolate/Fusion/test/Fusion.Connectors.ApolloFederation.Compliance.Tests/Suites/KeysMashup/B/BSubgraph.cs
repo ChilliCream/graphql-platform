@@ -36,7 +36,7 @@ public static class BSubgraph
             .AddType<CompositeIDType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

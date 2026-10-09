@@ -129,6 +129,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.UseConnectionAttribute());
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_AddProductsAsync_productService(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 
@@ -201,7 +206,7 @@ namespace TestNamespace
                 var args1_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args1_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args1 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Brand>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args1_selection, context.IncludeFlags),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args1_selection, context.IncludeConditionFlags),
                     args1_filter?.AsPredicate<global::TestNamespace.Brand>(),
                     args1_sorting?.AsSortDefinition<global::TestNamespace.Brand>());
                 var args2 = _binding_AddProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);
@@ -332,10 +337,8 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = GetDescription("Identifies the total count of items in the connection.", false, field.Context.Options.UseXmlDocumentation);
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
-                    configuration.ResultType = typeof(int);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.IntType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(int?);
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();

@@ -20,7 +20,7 @@ public class PostgresHandlerClaimTests
             .SingleOrDefault(e => e.Name == "order-created");
 
         Assert.NotNull(endpoint);
-        Assert.Equal(ReceiveEndpointKind.Default, endpoint!.Kind);
+        Assert.Equal(ReceiveEndpointKind.Default, endpoint.Kind);
     }
 
     [Fact]
@@ -29,17 +29,16 @@ public class PostgresHandlerClaimTests
         // arrange & act
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(),
-            t => t.Handler<OrderCreatedHandler>()
-                .ConfigureEndpoint(e => e.Queue("custom-handler-queue")));
+            t => t.Queue("custom-handler-queue").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
         // assert - the endpoint should exist with the custom queue name
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .SingleOrDefault(e => e.Name == "order-created");
+            .SingleOrDefault(e => e.Queue.Name == "custom-handler-queue");
 
         Assert.NotNull(endpoint);
-        Assert.Equal("custom-handler-queue", endpoint!.Queue.Name);
+        Assert.Equal("custom-handler-queue", endpoint.Queue.Name);
     }
 
     [Fact]
@@ -57,7 +56,7 @@ public class PostgresHandlerClaimTests
             .SingleOrDefault(e => e.Name == "order-spy");
 
         Assert.NotNull(endpoint);
-        Assert.Equal(ReceiveEndpointKind.Default, endpoint!.Kind);
+        Assert.Equal(ReceiveEndpointKind.Default, endpoint.Kind);
     }
 
     [Fact]
@@ -67,17 +66,13 @@ public class PostgresHandlerClaimTests
         // creating an explicit endpoint with the same name first should merge.
         var runtime = CreateRuntime(
             b => b.AddEventHandler<OrderCreatedHandler>(),
-            t =>
-            {
-                t.Endpoint("order-created").Queue("merged-queue");
-                t.Handler<OrderCreatedHandler>();
-            });
+            t => t.Queue("merged-queue").Handler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
 
-        // assert - should be exactly one endpoint with that name, not two
+        // assert - should be exactly one endpoint with that queue name, not two
         var endpoints = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .Where(e => e.Name == "order-created")
+            .Where(e => e.Queue.Name == "merged-queue")
             .ToList();
 
         Assert.Single(endpoints);

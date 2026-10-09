@@ -803,4 +803,94 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             }
             """);
     }
+
+    // Even if an object type is only @deprecated in the first source schema, the composite
+    // object type is marked as @deprecated.
+    [Fact]
+    public void Merge_DeprecatedObjectInFirstSchema_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Product @deprecated(reason: "Use NewProduct.") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Product {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @deprecated(reason: "Use NewProduct.") {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """);
+    }
+
+    // Even if an object type is only @deprecated in the second source schema, the composite
+    // object type is marked as @deprecated.
+    [Fact]
+    public void Merge_DeprecatedObjectInSecondSchema_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Product {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Product @deprecated(reason: "Use NewProduct.") {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @deprecated(reason: "Use NewProduct.") {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """);
+    }
+
+    // If the same object type is @deprecated in multiple source schemas, the first non-null
+    // deprecation reason is chosen.
+    [Fact]
+    public void Merge_DeprecatedObjectsUsesFirstNonNullReason_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Product @deprecated(reason: "Some reason") {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Product @deprecated(reason: "Another reason") {
+                    id: ID!
+                }
+                """
+            ],
+            """
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @deprecated(reason: "Some reason") {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """);
+    }
 }

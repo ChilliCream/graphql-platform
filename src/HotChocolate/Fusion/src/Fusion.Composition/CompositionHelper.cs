@@ -16,9 +16,10 @@ internal static class CompositionHelper
 {
     public static async Task<CompositionResult<MutableSchemaDefinition>> ComposeAsync(
         ICompositionLog compositionLog,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
+        Dictionary<string, LocalSourceSchema> localSourceSchemas,
         FusionArchive archive,
         string environment,
+        bool preferDevUrls,
         CompositionSettings? compositionSettings,
         Stream? legacyArchive,
         CancellationToken cancellationToken)
@@ -36,7 +37,7 @@ internal static class CompositionHelper
         // could be uppercased to a conflicting SOME_SERVICE.
         // To avoid weird errors for the user down the line,
         // we already validate for collisions here.
-        foreach (var (newSourceSchemaName, _) in sourceSchemas)
+        foreach (var (newSourceSchemaName, _) in localSourceSchemas)
         {
             var normalizedSchemaName = StringUtilities.ToConstantCase(newSourceSchemaName);
 
@@ -53,14 +54,25 @@ internal static class CompositionHelper
                         .SetSeverity(LogSeverity.Error)
                         .Build());
 
-                ImmutableArray<CompositionError> errors = [new("❌ Composition failed")];
-                return errors;
+                return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
             }
         }
 
+        var allSourceSchemas = new Dictionary<string, (SourceSchemaText Schema, JsonDocument Settings)>(
+            localSourceSchemas.Count,
+            localSourceSchemas.Comparer);
+
+        foreach (var (schemaName, localSourceSchema) in localSourceSchemas)
+        {
+            allSourceSchemas[schemaName] = (localSourceSchema.Schema, localSourceSchema.Settings);
+        }
+
+        using var carriedSourceSchemaConfigurations =
+            new CarriedSourceSchemaConfigurationCollection();
+
         foreach (var schemaName in existingSourceSchemaNames)
         {
-            if (sourceSchemas.ContainsKey(schemaName))
+            if (allSourceSchemas.ContainsKey(schemaName))
             {
                 // We have a new configuration for the schema, so we'll take that
                 // instead of the one in the gateway package.
@@ -74,68 +86,130 @@ internal static class CompositionHelper
                 continue;
             }
 
+            carriedSourceSchemaConfigurations.Add(configuration);
+
             var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
             var extensionsSourceText = await TryReadSchemaExtensionsTextAsync(configuration, cancellationToken);
 
-            sourceSchemas[schemaName] = (
+            allSourceSchemas[schemaName] = (
                 new SourceSchemaText(schemaName, sourceText, extensionsSourceText),
                 configuration.Settings);
         }
 
-        var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
+        var (compositionSettingsRead, existingCompositionSettings) =
+            await TryGetCompositionSettingsAsync(archive, compositionLog, cancellationToken);
+
+        if (!compositionSettingsRead)
+        {
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
+
         var mergedCompositionSettings =
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
+
+        // Report invalid settings through the composition log before the options setter can throw.
+        if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
+            && defaultListSize < 0)
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize));
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
         var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
-
-        foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
-        {
-            var schemaSettings =
-                sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
-
-            var sourceSchemaOptions = schemaSettings.ToOptions();
-
-            mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
-            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
-            schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
-        }
-
-        var schemaComposerOptions = new SchemaComposerOptions
-        {
-            SourceSchemas = sourceSchemaOptionsMap,
-            Merger = mergerOptions,
-            Satisfiability = satisfiabilityOptions
-        };
-
-        var schemaComposer = new SchemaComposer(
-            sourceSchemas.Select(s => s.Value.Item1),
-            schemaComposerOptions,
-            compositionLog);
-
-        var result = schemaComposer.Compose();
-
-        if (result.IsFailure)
-        {
-            return result;
-        }
-
+        var apolloFederationCompatibilityOptions =
+            mergedCompositionSettings.ApolloFederationCompatibility.ToOptions();
+        var runtimeSourceSchemaSettings = new List<JsonElement>(allSourceSchemas.Count);
+        var runtimeSettingsDocuments = new List<JsonDocument>();
+        CompositionResult<MutableSchemaDefinition> result;
         using var bufferWriter = new PooledArrayWriter();
-        new SettingsComposer().Compose(
-            bufferWriter,
-            sourceSchemas.Select(s => s.Value.Item2.RootElement).ToArray(),
-            environment);
+
+        try
+        {
+            foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in allSourceSchemas)
+            {
+                if (!SourceSchemaSettingsReader.TryRead(
+                    sourceSchemaName,
+                    sourceSchemaSettings,
+                    compositionLog,
+                    out var settingsResult))
+                {
+                    return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+                }
+
+                var sourceSchemaOptions = settingsResult.Options;
+
+                mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
+                sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
+                settingsResult.Settings.Satisfiability?.MergeInto(satisfiabilityOptions);
+
+                if (settingsResult.RuntimeSettings is { } runtimeSettings)
+                {
+                    runtimeSettingsDocuments.Add(runtimeSettings);
+                    runtimeSourceSchemaSettings.Add(runtimeSettings.RootElement);
+                }
+                else
+                {
+                    runtimeSourceSchemaSettings.Add(sourceSchemaSettings.RootElement);
+                }
+            }
+
+            var schemaComposerOptions = new SchemaComposerOptions
+            {
+                SourceSchemas = sourceSchemaOptionsMap,
+                Merger = mergerOptions,
+                Satisfiability = satisfiabilityOptions,
+                ApolloFederationCompatibility = apolloFederationCompatibilityOptions
+            };
+
+            var schemaComposer = new SchemaComposer(
+                allSourceSchemas.Select(s => s.Value.Schema),
+                schemaComposerOptions,
+                compositionLog);
+
+            result = schemaComposer.Compose();
+
+            if (result.IsFailure)
+            {
+                return result;
+            }
+
+            var urlOverrides = new Dictionary<string, Uri>(localSourceSchemas.Comparer);
+
+            foreach (var (schemaName, localSourceSchema) in localSourceSchemas)
+            {
+                if (localSourceSchema.UrlOverride is { } urlOverride)
+                {
+                    urlOverrides[schemaName] = urlOverride;
+                }
+            }
+
+            new SettingsComposer().Compose(
+                bufferWriter,
+                [.. runtimeSourceSchemaSettings],
+                environment,
+                urlOverrides,
+                preferDevUrls,
+                compositionLog);
+        }
+        finally
+        {
+            foreach (var runtimeSettingsDocument in runtimeSettingsDocuments)
+            {
+                runtimeSettingsDocument.Dispose();
+            }
+        }
 
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
-            SourceSchemas = [.. sourceSchemas.Keys]
+            SourceSchemas = [.. allSourceSchemas.Keys]
         };
 
         await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
 
-        foreach (var (schemaName, (schema, settings)) in sourceSchemas)
+        foreach (var (schemaName, (schema, settings)) in allSourceSchemas)
         {
             var schemaExtensions = schema.ExtensionsSourceText is null
                 ? default
@@ -149,9 +223,11 @@ internal static class CompositionHelper
                 cancellationToken);
         }
 
+        using var gatewaySettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
+
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
-            JsonDocument.Parse(bufferWriter.WrittenMemory),
+            gatewaySettings,
             WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 
@@ -172,14 +248,59 @@ internal static class CompositionHelper
         return result;
     }
 
-    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
+    // Validate the raw setting before deserialization so malformed values become composition errors.
+    internal static async Task<(bool Success, CompositionSettings Settings)> TryGetCompositionSettingsAsync(
         FusionArchive archive,
+        ICompositionLog compositionLog,
         CancellationToken cancellationToken)
     {
-        var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+        using var rawCompositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
-        return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
+        if (rawCompositionSettings is null)
+        {
+            return (true, new CompositionSettings());
+        }
+
+        var root = rawCompositionSettings.RootElement;
+
+        if (root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("merger", out var merger)
+            && merger.ValueKind == JsonValueKind.Object
+            && merger.TryGetProperty("defaultListSize", out var defaultListSize)
+            && defaultListSize.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined)
+            && (defaultListSize.ValueKind is not JsonValueKind.Number
+                || !defaultListSize.TryGetInt32(out var defaultListSizeInt32)
+                || defaultListSizeInt32 < 0))
+        {
+            // Classify literals without a decimal point as range errors, including exponent notation.
+            // Other values receive a type error.
+            var logEntry = defaultListSize.ValueKind == JsonValueKind.Number
+                && IsWholeNumber(defaultListSize)
+                    ? LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize.GetRawText())
+                    : LogEntryHelper.InvalidDefaultListSizeSettingType(defaultListSize.GetRawText());
+
+            compositionLog.Write(logEntry);
+            return (false, new CompositionSettings());
+        }
+
+        var settings = rawCompositionSettings.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
+        return (true, settings);
+    }
+
+    // Inspect the literal to distinguish unsupported ranges from non-integer syntax.
+    // A value such as 1.0 is not an integer literal even though it has no fractional remainder.
+    private static bool IsWholeNumber(JsonElement numberElement)
+    {
+        if (numberElement.TryGetInt64(out _))
+        {
+            return true;
+        }
+
+        var rawText = numberElement.GetRawText();
+        var exponentIndex = rawText.IndexOfAny(['e', 'E']);
+        var significand = exponentIndex < 0 ? rawText : rawText[..exponentIndex];
+        return !significand.Contains('.');
     }
 
     private static async Task SaveCompositionSettingsAsync(
@@ -187,7 +308,7 @@ internal static class CompositionHelper
         CompositionSettings settings,
         CancellationToken cancellationToken)
     {
-        var settingsJson = JsonSerializer.SerializeToDocument(
+        using var settingsJson = JsonSerializer.SerializeToDocument(
             settings,
             SettingsJsonSerializerContext.Default.CompositionSettings);
 
@@ -216,5 +337,21 @@ internal static class CompositionHelper
 
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    private sealed class CarriedSourceSchemaConfigurationCollection : IDisposable
+    {
+        private readonly List<SourceSchemaConfiguration> _configurations = [];
+
+        public void Add(SourceSchemaConfiguration configuration)
+            => _configurations.Add(configuration);
+
+        public void Dispose()
+        {
+            foreach (var configuration in _configurations)
+            {
+                configuration.Dispose();
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
@@ -36,6 +37,7 @@ public class VariableCoercionHelperTests : FusionTestBase
             schema,
             variableDefinitions,
             variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
             out var coercedVariableValues,
             out var error);
 
@@ -72,6 +74,7 @@ public class VariableCoercionHelperTests : FusionTestBase
             schema,
             variableDefinitions,
             variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
             out var coercedVariableValues,
             out var error);
 
@@ -110,6 +113,7 @@ public class VariableCoercionHelperTests : FusionTestBase
             schema,
             variableDefinitions,
             variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
             out var coercedVariableValues,
             out var error);
 
@@ -157,6 +161,7 @@ public class VariableCoercionHelperTests : FusionTestBase
             schema,
             variableDefinitions,
             variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
             out var coercedVariableValues,
             out var error);
 
@@ -179,6 +184,654 @@ public class VariableCoercionHelperTests : FusionTestBase
                 ]
                 """);
     }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_CoerceNullDefault_When_VariableIsOmitted()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(arg: Int = 5): Int
+            }
+            """);
+        var variableDefinition = new VariableDefinitionNode(
+            null,
+            new VariableNode("value"),
+            description: null,
+            new NamedTypeNode("Int"),
+            NullValueNode.Default,
+            Array.Empty<DirectiveNode>());
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            default,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        var entry = Assert.Single(coercedVariableValues);
+        Assert.Equal("value", entry.Key);
+        Assert.IsType<NullValueNode>(entry.Value.Value);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_PreserveNestedErrorPaths()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: RootInput!): String
+            }
+
+            input RootInput {
+              items: [ItemInput!]!
+            }
+
+            input ItemInput {
+              id: Int!
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("RootInput")));
+
+        // act
+        var errors = new[]
+        {
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"items":[{"id":1},{"id":"wrong"}]}}""",
+                ignoreAdditionalInputFields: false),
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"items":[{"id":1},{}]}}""",
+                ignoreAdditionalInputFields: false),
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"items":[{"id":1,"unknown":"wrong"}]}}""",
+                ignoreAdditionalInputFields: false)
+        };
+
+        // assert
+        errors
+            .Select(error => error.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "The value `\"wrong\"` is not a valid value for the scalar type `Int`.",
+                    "extensions": {
+                      "variable": "input.items[1].id"
+                    }
+                  },
+                  {
+                    "message": "The field `unknown` is not defined on the input object type `ItemInput`.",
+                    "extensions": {
+                      "variable": "input.items[0]"
+                    }
+                  },
+                  {
+                    "message": "The required input field `id` is missing.",
+                    "path": [
+                      "input",
+                      "items",
+                      1,
+                      "id"
+                    ],
+                    "extensions": {
+                      "field": "ItemInput.id"
+                    }
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_PreserveNestedOneOfErrors()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: RootInput!): String
+            }
+
+            input RootInput {
+              choice: Choice!
+            }
+
+            input Choice @oneOf {
+              left: String
+              right: String
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("RootInput")));
+
+        // act
+        var errors = new[]
+        {
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"choice":{}}}""",
+                ignoreAdditionalInputFields: false),
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"choice":{"left":"a","right":"b"}}}""",
+                ignoreAdditionalInputFields: false),
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"choice":{"left":null,"right":"b"}}}""",
+                ignoreAdditionalInputFields: false),
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"choice":{"unknown":"a","right":"b"}}}""",
+                ignoreAdditionalInputFields: false),
+            CoerceError(
+                schema,
+                variableDefinition,
+                """{"input":{"choice":{"left":null}}}""",
+                ignoreAdditionalInputFields: false)
+        };
+
+        // assert
+        errors
+            .Select(error => error.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "The OneOf Input Object `Choice` requires that exactly one field is supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+                    "path": [
+                      "input",
+                      "choice"
+                    ],
+                    "extensions": {
+                      "code": "HC0054"
+                    }
+                  },
+                  {
+                    "message": "More than one field of the OneOf Input Object `Choice` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+                    "path": [
+                      "input",
+                      "choice"
+                    ],
+                    "extensions": {
+                      "code": "HC0055"
+                    }
+                  },
+                  {
+                    "message": "More than one field of the OneOf Input Object `Choice` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+                    "path": [
+                      "input",
+                      "choice"
+                    ],
+                    "extensions": {
+                      "code": "HC0055"
+                    }
+                  },
+                  {
+                    "message": "More than one field of the OneOf Input Object `Choice` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+                    "path": [
+                      "input",
+                      "choice"
+                    ],
+                    "extensions": {
+                      "code": "HC0055"
+                    }
+                  },
+                  {
+                    "message": "`null` was set to the field `left` of the OneOf Input Object `Choice`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+                    "path": [
+                      "input",
+                      "choice"
+                    ],
+                    "extensions": {
+                      "code": "HC0056",
+                      "coordinate": "Choice.left"
+                    }
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_PreserveMaximumDepthBoundary()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var allowedDefinition = CreateVariableDefinition(
+            "input",
+            CreateNestedListType(64));
+        var rejectedDefinition = CreateVariableDefinition(
+            "input",
+            CreateNestedListType(65));
+        using var allowedValues = CreateNestedListValue(64);
+        using var rejectedValues = CreateNestedListValue(65);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [allowedDefinition],
+            allowedValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => VariableCoercionHelper.TryCoerceVariableValues(
+                new MockFeatureProvider(),
+                schema,
+                [rejectedDefinition],
+                rejectedValues.RootElement,
+                ignoreAdditionalInputFields: false,
+                out _,
+                out _));
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        Assert.Null(error);
+        Assert.Equal("Max allowed depth reached.", exception.Message);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_PreserveNumericLexemesAndFormats()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            scalar Any
+
+            type Query {
+              field(value: Any, integer: Int, floatingPoint: Float): String
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            CreateVariableDefinition("one", new NamedTypeNode("Int")),
+            CreateVariableDefinition("negativeZero", new NamedTypeNode("Int")),
+            CreateVariableDefinition("fixedPoint", new NamedTypeNode("Float")),
+            CreateVariableDefinition("lowerExponent", new NamedTypeNode("Float")),
+            CreateVariableDefinition("upperExponent", new NamedTypeNode("Float")),
+            CreateVariableDefinition("large", new NamedTypeNode("Any"))
+        };
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "one": 1,
+              "negativeZero": -0,
+              "fixedPoint": 1.0,
+              "lowerExponent": 1e3,
+              "upperExponent": 1E-3,
+              "large": 123456789012345678901234567890
+            }
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Null(error);
+        Assert.NotNull(coercedVariableValues);
+
+        var one = Assert.IsType<IntValueNode>(coercedVariableValues["one"].Value);
+        var negativeZero = Assert.IsType<IntValueNode>(coercedVariableValues["negativeZero"].Value);
+        var fixedPoint = Assert.IsType<FloatValueNode>(coercedVariableValues["fixedPoint"].Value);
+        var lowerExponent = Assert.IsType<FloatValueNode>(coercedVariableValues["lowerExponent"].Value);
+        var upperExponent = Assert.IsType<FloatValueNode>(coercedVariableValues["upperExponent"].Value);
+        var large = Assert.IsType<IntValueNode>(coercedVariableValues["large"].Value);
+
+        Assert.Equal("1", one.Value);
+        Assert.Equal("-0", negativeZero.Value);
+        Assert.Equal("1.0", fixedPoint.Value);
+        Assert.Equal(FloatFormat.FixedPoint, fixedPoint.Format);
+        Assert.Equal("1e3", lowerExponent.Value);
+        Assert.Equal(FloatFormat.Exponential, lowerExponent.Format);
+        Assert.Equal("1E-3", upperExponent.Value);
+        Assert.Equal(FloatFormat.Exponential, upperExponent.Format);
+        Assert.Equal("123456789012345678901234567890", large.Value);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_SkipUndefinedFields_When_AdditionalInputFieldsAreIgnored()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: RootInput!): String
+            }
+
+            input RootInput {
+              items: [ItemInput!]!
+            }
+
+            input ItemInput {
+              id: Int!
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("RootInput")));
+        using var variableValues = JsonDocument.Parse(
+            """{"input":{"items":[{"id":1,"unknown":"wrong"}],"__typename":"RootInput"}}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: true,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        coercedVariableValues["input"].Value.ToString().MatchInlineSnapshot(
+            """
+            { items: [{ id: 1 }] }
+            """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_StillRequireDefinedFields_When_AdditionalInputFieldsAreIgnored()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: RootInput!): String
+            }
+
+            input RootInput {
+              items: [ItemInput!]!
+            }
+
+            input ItemInput {
+              id: Int!
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("RootInput")));
+
+        // act
+        var error = CoerceError(
+            schema,
+            variableDefinition,
+            """{"input":{"items":[{"unknown":1}]}}""",
+            ignoreAdditionalInputFields: true);
+
+        // assert
+        new[] { error.WithException(null) }
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "The required input field `id` is missing.",
+                    "path": [
+                      "input",
+                      "items",
+                      0,
+                      "id"
+                    ],
+                    "extensions": {
+                      "field": "ItemInput.id"
+                    }
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_NotCountUndefinedFieldsTowardsOneOf_When_AdditionalInputFieldsAreIgnored()
+    {
+        // arrange
+        var schema = ComposeSchema(OneOfSchema);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("RootInput")));
+        using var variableValues = JsonDocument.Parse(
+            """{"input":{"choice":{"unknown":"a","right":"b"}}}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: true,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        coercedVariableValues["input"].Value.ToString().MatchInlineSnapshot(
+            """
+            { choice: { right: "b" } }
+            """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_StillRequireOneOfFieldToBeSet_When_AdditionalInputFieldsAreIgnored()
+    {
+        // arrange
+        var schema = ComposeSchema(OneOfSchema);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("RootInput")));
+
+        // act
+        var error = CoerceError(
+            schema,
+            variableDefinition,
+            """{"input":{"choice":{"unknown":"a"}}}""",
+            ignoreAdditionalInputFields: true);
+
+        // assert
+        new[] { error.WithException(null) }
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "The OneOf Input Object `Choice` requires that exactly one field is supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+                    "path": [
+                      "input",
+                      "choice"
+                    ],
+                    "extensions": {
+                      "code": "HC0054"
+                    }
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_UnescapeString_When_StringContainsEscapeSequences()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(a: String, b: String): String
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            CreateVariableDefinition("escaped", new NamedTypeNode("String")),
+            CreateVariableDefinition("plain", new NamedTypeNode("String"))
+        };
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "escaped": "caf\u00e9\n\ud83d\ude00 \\ \"end\"",
+              "plain": "plain"
+            }
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Equal(
+            "caf\u00e9\n\ud83d\ude00 \\ \"end\"",
+            Assert.IsType<StringValueNode>(coercedVariableValues!["escaped"].Value).Value);
+        Assert.Equal("plain", Assert.IsType<StringValueNode>(coercedVariableValues["plain"].Value).Value);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_CoerceEnum_When_NameIsPlainOrEscaped()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(a: Color, b: Color): String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            CreateVariableDefinition("plain", new NamedTypeNode("Color")),
+            CreateVariableDefinition("escaped", new NamedTypeNode("Color"))
+        };
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "plain": "GREEN",
+              "escaped": "GR\u0045EN"
+            }
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Equal("GREEN", Assert.IsType<EnumValueNode>(coercedVariableValues!["plain"].Value).Value);
+        Assert.Equal("GREEN", Assert.IsType<EnumValueNode>(coercedVariableValues["escaped"].Value).Value);
+    }
+
+    private static IError CoerceError(
+        FusionSchemaDefinition schema,
+        VariableDefinitionNode variableDefinition,
+        string variableValues,
+        bool ignoreAdditionalInputFields)
+    {
+        using var document = JsonDocument.Parse(variableValues);
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            document.RootElement,
+            ignoreAdditionalInputFields,
+            out var coercedVariableValues,
+            out var error);
+
+        Assert.False(success);
+        Assert.Null(coercedVariableValues);
+        return Assert.IsAssignableFrom<IError>(error);
+    }
+
+    private const string OneOfSchema =
+        """
+        type Query {
+          field(input: RootInput!): String
+        }
+
+        input RootInput {
+          choice: Choice!
+        }
+
+        input Choice @oneOf {
+          left: String
+          right: String
+        }
+        """;
+
+    private static VariableDefinitionNode CreateVariableDefinition(
+        string name,
+        ITypeNode type)
+        => new(
+            null,
+            new VariableNode(name),
+            description: null,
+            type,
+            defaultValue: null,
+            Array.Empty<DirectiveNode>());
+
+    private static ITypeNode CreateNestedListType(int depth)
+    {
+        ITypeNode type = new NamedTypeNode("Int");
+
+        for (var i = 0; i < depth; i++)
+        {
+            type = new ListTypeNode(type);
+        }
+
+        return type;
+    }
+
+    private static JsonDocument CreateNestedListValue(int depth)
+        => JsonDocument.Parse(
+            "{\"input\":"
+            + new string('[', depth)
+            + "1"
+            + new string(']', depth)
+            + "}",
+            new JsonDocumentOptions { MaxDepth = depth + 2 });
 
     private sealed class MockFeatureProvider : IFeatureProvider
     {

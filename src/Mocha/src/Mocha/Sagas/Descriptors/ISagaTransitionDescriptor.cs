@@ -23,13 +23,6 @@ public interface ISagaTransitionDescriptor<TState, TEvent> : IMessagingDescripto
     ISagaTransitionDescriptor<TState, TEvent> TransitionTo(string state);
 
     /// <summary>
-    /// Controls whether the messaging infrastructure for this transition is automatically provisioned.
-    /// </summary>
-    /// <param name="autoProvision"><c>true</c> to automatically provision infrastructure; otherwise, <c>false</c>.</param>
-    /// <returns>This descriptor for chaining.</returns>
-    ISagaTransitionDescriptor<TState, TEvent> AutoProvision(bool autoProvision = true);
-
-    /// <summary>
     /// Registers a message to be published as a side effect of the transition.
     /// </summary>
     /// <typeparam name="TMessage">The type of message to publish.</typeparam>

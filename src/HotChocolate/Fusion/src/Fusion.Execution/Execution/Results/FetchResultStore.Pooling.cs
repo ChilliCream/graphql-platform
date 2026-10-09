@@ -4,23 +4,21 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore
 {
-    /// <summary>
-    /// Initializes the <see cref="FetchResultStore"/> for a new request.
-    /// </summary>
     public void Initialize(
         IMemoryArena arena,
-        ISchemaDefinition schema,
+        FusionSchemaDefinition schema,
         IErrorHandler errorHandler,
         Operation operation,
         ErrorHandlingMode errorHandlingMode,
-        ulong includeFlags,
-        ulong deferFlags,
+        ConditionFlags includeFlags,
+        ConditionFlags deferFlags,
         int pathSegmentLocalPoolCapacity)
     {
         ArgumentNullException.ThrowIfNull(arena);
@@ -32,12 +30,19 @@ internal sealed partial class FetchResultStore
         _errorHandler = errorHandler;
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
-        _includeFlags = includeFlags;
-        _deferFlags = deferFlags;
+        _includeFlags = includeFlags.Word0;
+        _deferFlags = deferFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _wideDeferFlags = deferFlags.Overflow;
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-        _result = new CompositeResultDocument(arena, operation, includeFlags, deferFlags, _pathPool);
+        _result = new CompositeResultDocument(
+            arena,
+            operation,
+            includeFlags,
+            deferFlags,
+            _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -77,8 +82,8 @@ internal sealed partial class FetchResultStore
         _result = new CompositeResultDocument(
             _arena,
             _operation,
-            _includeFlags,
-            _deferFlags,
+            new ConditionFlags(_includeFlags, _wideIncludeFlags),
+            new ConditionFlags(_deferFlags, _wideDeferFlags),
             _pathPool);
 
         _errors?.Clear();
@@ -109,7 +114,7 @@ internal sealed partial class FetchResultStore
         }
 
         // return path segments to global pool and reset local pool
-        _pathPool.Dispose();
+        _pathPool?.Dispose();
         _pathPool = null!;
 
         // clear errors
@@ -127,7 +132,6 @@ internal sealed partial class FetchResultStore
 
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
-        _variableDedupTable.Clear();
 
         // null out per-request references
         _result = default!;
@@ -136,6 +140,8 @@ internal sealed partial class FetchResultStore
         _errorHandler = default!;
         _operation = default!;
         _arena = default!;
+        _wideIncludeFlags = null;
+        _wideDeferFlags = null;
     }
 
     private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)

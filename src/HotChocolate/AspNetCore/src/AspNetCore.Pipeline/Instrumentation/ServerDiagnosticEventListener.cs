@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Instrumentation;
@@ -63,6 +65,13 @@ public class ServerDiagnosticEventListener : IServerDiagnosticEventListener
     /// <inheritdoc />
     public virtual IDisposable WebSocketSession(HttpContext context)
         => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+    {
+    }
 
     /// <inheritdoc />
     public virtual void WebSocketSessionError(HttpContext context, Exception exception)

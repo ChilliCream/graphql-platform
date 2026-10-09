@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -20,13 +21,14 @@ public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
     /// </summary>
     /// <param name="name">The name of the enum value.</param>
     /// <param name="description">The description of the enum value.</param>
-    /// <param name="isDeprecated">A value indicating whether the enum value is deprecated.</param>
-    /// <param name="deprecationReason">The deprecation reason if the enum value is deprecated.</param>
+    /// <param name="deprecationReason">
+    /// The deprecation reason, or <c>null</c> if the enum value is not deprecated.
+    /// An empty or white-space value is treated as <c>null</c>.
+    /// </param>
     /// <param name="isInaccessible">A value indicating whether the enum value is marked as inaccessible.</param>
     public FusionEnumValue(
         string name,
         string? description,
-        bool isDeprecated,
         string? deprecationReason,
         bool isInaccessible)
     {
@@ -34,8 +36,7 @@ public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
 
         Name = name;
         Description = description;
-        IsDeprecated = isDeprecated;
-        DeprecationReason = deprecationReason;
+        DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
         IsInaccessible = isInaccessible;
 
         // these properties are initialized
@@ -74,12 +75,14 @@ public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
     public SchemaCoordinate Coordinate => new(DeclaringType.Name, Name, ofDirective: false);
 
     /// <summary>
-    /// Gets a value indicating whether this enum value is deprecated.
+    /// Defines if this enum value is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
-    public bool IsDeprecated { get; }
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
-    /// Gets the deprecation reason if the enum value is deprecated.
+    /// Gets the deprecation reason, or <c>null</c> if this enum value is not deprecated.
     /// </summary>
     public string? DeprecationReason { get; }
 

@@ -68,6 +68,11 @@ public static class SchemaFormatter
             document = SemanticNonNullSchemaRewriter.Rewrite(document);
         }
 
+        if (options.SpecVersion is { } specVersion)
+        {
+            document = SpecVersionSchemaRewriter.Rewrite(document, specVersion);
+        }
+
         return document;
     }
 
@@ -86,12 +91,13 @@ public static class SchemaFormatter
             var hasQuery = schema.TryGetOperationType(OperationType.Query, out var queryType);
             var hasMutation = schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
             var hasSubscription = schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
+            var printQuery = hasQuery && HasNonIntrospectionField(queryType!);
 
-            if (hasQuery || hasMutation || hasSubscription || !string.IsNullOrEmpty(schema.Description))
+            if (printQuery || hasMutation || hasSubscription)
             {
                 var operationTypes = new List<OperationTypeDefinitionNode>();
 
-                if (hasQuery)
+                if (printQuery)
                 {
                     operationTypes.Add(
                         new OperationTypeDefinitionNode(
@@ -170,6 +176,12 @@ public static class SchemaFormatter
 
                 if (definition is ITypeDefinition namedTypeDefinition)
                 {
+                    if (namedTypeDefinition is IObjectTypeDefinition objectType
+                        && IsIntrospectionOnlyQueryType(schema, objectType))
+                    {
+                        continue;
+                    }
+
                     if (!context.PrintSpecScalars
                         && namedTypeDefinition is IScalarTypeDefinition scalarType
                         && SpecScalarNames.IsSpecScalar(scalarType.Name))
@@ -195,7 +207,7 @@ public static class SchemaFormatter
             context.Schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
             context.Schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
 
-            if (queryType is not null)
+            if (queryType is not null && HasNonIntrospectionField(queryType))
             {
                 VisitType(queryType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -283,6 +295,16 @@ public static class SchemaFormatter
             context.Result = definitionNodes;
         }
 
+        private static bool IsIntrospectionOnlyQueryType(
+            ISchemaDefinition schema,
+            IObjectTypeDefinition type)
+            => schema.TryGetOperationType(OperationType.Query, out var queryType)
+                && ReferenceEquals(queryType, type)
+                && !HasNonIntrospectionField(type);
+
+        private static bool HasNonIntrospectionField(IObjectTypeDefinition type)
+            => type.Fields.Any(static field => !field.IsIntrospectionField);
+
         public override void VisitDirectiveDefinitions(
             IReadOnlyDirectiveDefinitionCollection directiveTypes,
             VisitorContext context)
@@ -313,6 +335,8 @@ public static class SchemaFormatter
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
+
+            directives = ApplyDeprecatedDirective(type, directives);
 
             VisitOutputFields(type.Fields, context);
             var fields = (List<FieldDefinitionNode>)context.Result!;
@@ -396,7 +420,7 @@ public static class SchemaFormatter
                         DirectiveNames.SpecifiedBy.Name,
                         new ArgumentNode(
                             DirectiveNames.SpecifiedBy.Arguments.Url,
-                            new StringValueNode(type.SpecifiedBy.ToString()))));
+                            new StringValueNode(type.SpecifiedBy))));
             }
 
             context.Result = IsTypeExtension(type)
@@ -609,36 +633,28 @@ public static class SchemaFormatter
             IDeprecationProvider canBeDeprecated,
             List<DirectiveNode> directives)
         {
-            if (canBeDeprecated.IsDeprecated
-                && !directives.Any(d => d.Name.Value == DirectiveNames.Deprecated.Name))
+            if (!canBeDeprecated.IsDeprecated)
             {
-                var deprecateDirective = CreateDeprecatedDirective(canBeDeprecated.DeprecationReason);
+                return directives;
+            }
 
-                if (directives.Count == 0)
-                {
-                    directives = [deprecateDirective];
-                }
-                else
-                {
-                    var temp = directives.ToList();
-                    temp.Add(deprecateDirective);
-                    directives = temp;
-                }
+            var index = directives.FindIndex(t => t.Name.Value == DirectiveNames.Deprecated.Name);
+
+            if (index == -1)
+            {
+                var temp = directives.ToList();
+                temp.Add(SchemaDebugFormatter.CreateDeprecatedDirective(canBeDeprecated));
+                return temp;
+            }
+
+            if (canBeDeprecated.HasDefaultDeprecationReason && directives[index].Arguments.Count > 0)
+            {
+                var temp = directives.ToList();
+                temp[index] = SchemaDebugFormatter.CreateDeprecatedDirective(canBeDeprecated);
+                return temp;
             }
 
             return directives;
-        }
-
-        private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
-        {
-            if (string.IsNullOrEmpty(reason))
-            {
-                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
-            }
-
-            return new DirectiveNode(
-                new NameNode(DirectiveNames.Deprecated.Name),
-                [new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason)]);
         }
 
         private static StringValueNode? CreateDescription(string? description)

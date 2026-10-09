@@ -1,0 +1,35 @@
+operation:
+  - document: |
+      {
+        featured {
+          __typename @fusion__requirement
+          ... on Product {
+            name
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        featured {
+          __typename
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: B
+    operation: |
+      query Op_123456789101112_2 {
+        featured {
+          __typename
+          ... on Product {
+            name
+          }
+        }
+      }

@@ -17,7 +17,7 @@ public class MutableDirectiveDefinitionTests
     }
 
     [Fact]
-    public void IsDeprecated_Should_ClearDeprecationReason_When_SetToFalse()
+    public void IsDeprecated_Should_BeFalse_When_DeprecationReasonIsCleared()
     {
         // arrange
         var directiveDefinition = new MutableDirectiveDefinition("foo")
@@ -26,7 +26,22 @@ public class MutableDirectiveDefinitionTests
         };
 
         // act
-        directiveDefinition.IsDeprecated = false;
+        directiveDefinition.DeprecationReason = null;
+
+        // assert
+        Assert.False(directiveDefinition.IsDeprecated);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SetDeprecationReason_Should_ClearDeprecation_When_ValueIsEmptyOrWhiteSpace(string reason)
+    {
+        // arrange
+        var directiveDefinition = new MutableDirectiveDefinition("foo");
+
+        // act
+        directiveDefinition.DeprecationReason = reason;
 
         // assert
         Assert.False(directiveDefinition.IsDeprecated);

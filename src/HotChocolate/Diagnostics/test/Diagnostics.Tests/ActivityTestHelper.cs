@@ -17,6 +17,11 @@ public static partial class ActivityTestHelper
     // stable regardless of those JIT/coverage differences.
     [GeneratedRegex(@"\n--- End of stack trace from previous location ---", RegexOptions.CultureInvariant)]
     private static partial Regex StackTraceResumptionMarkerRegex();
+    // Runtime-async continuation frames (RuntimeAsyncTaskContinuation) appear in captured stack
+    // traces on runtimes that enable runtime async and are absent otherwise. Removing them keeps
+    // the snapshot stable across runtime versions.
+    [GeneratedRegex(@"\n\s+at System\.Runtime\.CompilerServices\.RuntimeAsyncTaskContinuation[^\n]*", RegexOptions.CultureInvariant)]
+    private static partial Regex StackTraceRuntimeAsyncFrameRegex();
 
     public static IDisposable CaptureActivities(out Capture activities)
     {
@@ -33,7 +38,7 @@ public static partial class ActivityTestHelper
             // Registered after the exporter so the exporter's OnEnd appends the span before
             // this processor signals idle.
             .AddProcessor(quiescence)
-            .Build()!;
+            .Build();
 
         var capture = new Capture(tracerProvider, exported, quiescence);
         activities = capture;
@@ -90,6 +95,8 @@ public static partial class ActivityTestHelper
 
                 scrubbedStackTrace = StackTraceResumptionMarkerRegex().Replace(scrubbedStackTrace, "");
 
+                scrubbedStackTrace = StackTraceRuntimeAsyncFrameRegex().Replace(scrubbedStackTrace, "");
+
                 yield return new KeyValuePair<string, object?>(
                     tag.Key,
                     LambdaMethodRegex().Replace(scrubbedStackTrace, "lambda_method"));
@@ -121,7 +128,8 @@ public static partial class ActivityTestHelper
         // Spans are exported as they stop, and server-side spans can finish on background
         // continuations after the awaited call returns. Wait until no spans are in flight so
         // those late spans are included, then read the snapshot.
-        private IReadOnlyList<Activity> Settled => _settled ??= CollectSettledActivities();
+        [JsonIgnore]
+        public IReadOnlyList<Activity> Settled => _settled ??= CollectSettledActivities();
 
         private IReadOnlyList<Activity> CollectSettledActivities()
         {

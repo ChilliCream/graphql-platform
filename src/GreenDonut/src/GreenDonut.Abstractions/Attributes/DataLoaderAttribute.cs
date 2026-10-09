@@ -27,4 +27,11 @@ public sealed class DataLoaderAttribute(string? name = null) : Attribute
     /// Specifies if the DataLoader is generated as public or private class.
     /// </summary>
     public DataLoaderAccessModifier AccessModifier { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of keys that are dispatched to the fetch method in a
+    /// single batch. When not set, the DataLoader uses the default batch size. A value of
+    /// <c>0</c> disables batch splitting so that all buffered keys are dispatched together.
+    /// </summary>
+    public int MaxBatchSize { get; set; }
 }

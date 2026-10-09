@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -10,9 +9,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
 {
     private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = [];
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private OperationContext _operationContext = null!;
     private IServiceProvider _services = null!;
     private InputParser _parser = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
     private object? _resolverResult;
     private bool _hasResolverResult;
 
@@ -37,6 +38,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public IVariableValueCollection Variables => _operationContext.Variables;
 
     public ulong IncludeFlags => _operationContext.IncludeFlags;
+
+    public ConditionFlags IncludeConditionFlags => _operationContext.IncludeConditionFlags;
 
     public CancellationToken RequestAborted { get; private set; }
 
@@ -89,6 +92,18 @@ internal partial class MiddlewareContext : IMiddlewareContext
     {
         ArgumentNullException.ThrowIfNull(error);
 
+        // Internal selections are added by the execution engine (for example by the
+        // projection optimizers) and are never part of the client-facing result. Their
+        // data is already excluded from the response, so their errors must not be
+        // surfaced either.
+        // NOTE: we could also reconsider and track them as internal errors in the future,
+        // and allow error propagate, but make sure that an internal propagation terminates,
+        // in the mist parent internal field.
+        if (_selection.IsInternal)
+        {
+            return;
+        }
+
         if (error is AggregateError aggregateError)
         {
             foreach (var innerError in aggregateError.Errors)
@@ -110,14 +125,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
             {
                 foreach (var ie in ar.Errors)
                 {
-                    var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNodes[0].Node, Path);
+                    var errorWithPath = EnsurePath(ie, Path);
                     _operationContext.Result.AddError(errorWithPath);
                     diagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
-                var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNodes[0].Node, Path);
+                var errorWithPath = EnsurePath(handled, Path);
                 _operationContext.Result.AddError(errorWithPath);
                 diagnosticEvents.ResolverError(this, errorWithPath);
             }
@@ -125,16 +140,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
             HasErrors = true;
         }
 
-        static IError EnsurePathAndLocation(IError error, ISyntaxNode node, Path path)
+        static IError EnsurePath(IError error, Path path)
         {
             if (error.Path is null)
             {
                 error = error.WithPath(path);
-            }
-
-            if (error.Locations is not { Count: > 0 } && node.Location is not null)
-            {
-                error = error.WithLocations([new Location(node.Location.Line, node.Location.Column)]);
             }
 
             return error;

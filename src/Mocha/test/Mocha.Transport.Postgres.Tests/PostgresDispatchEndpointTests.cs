@@ -22,7 +22,7 @@ public class PostgresDispatchEndpointTests
 
         // assert
         Assert.NotNull(endpoint.Queue);
-        Assert.Equal("my-q", endpoint.Queue!.Name);
+        Assert.Equal("my-q", endpoint.Queue.Name);
         Assert.Null(endpoint.Topic);
         Assert.IsType<PostgresQueue>(endpoint.Destination);
     }
@@ -45,7 +45,7 @@ public class PostgresDispatchEndpointTests
 
         // assert
         Assert.NotNull(endpoint.Topic);
-        Assert.Equal("my-t", endpoint.Topic!.Name);
+        Assert.Equal("my-t", endpoint.Topic.Name);
         Assert.Null(endpoint.Queue);
         Assert.IsType<PostgresTopic>(endpoint.Destination);
     }

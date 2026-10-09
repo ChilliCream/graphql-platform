@@ -567,4 +567,41 @@ public class AllVariableUsagesAreAllowedRuleTests
             """
         );
     }
+
+    [Fact]
+    public void Validate_Should_ResolveTheOperationVariable_When_UsedAfterAShadowingSpread()
+    {
+        ExpectValid(
+            """
+            query ($x: Boolean!) {
+                dog {
+                    ...shadowing(x: false)
+                    isHouseTrained @skip(if: $x)
+                }
+            }
+
+            fragment shadowing($x: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $x)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_ANullableVariableIsPassedToANonNullFragmentArgument()
+    {
+        ExpectErrors(
+            """
+            query ($x: Boolean) {
+                dog {
+                    ...withRequired(y: $x)
+                }
+            }
+
+            fragment withRequired($y: Boolean!) on Dog {
+                isHouseTrained(atOtherHomes: $y)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
 }

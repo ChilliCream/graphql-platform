@@ -1,0 +1,4 @@
+model = "gpt-5.6-sol"
+
+[some.table]
+notify = ["not-top-level"]

@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -35,6 +37,33 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void Compile_Should_ExposeObjectSelectionSetThroughPublicContract()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        ISelectionSet selectionSet = operation.RootSelectionSet;
+
+        // assert
+        Assert.Equal("Query", selectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selectionSet.Type);
+
+        var selection = Assert.Single(selectionSet.GetSelections());
+        Assert.Equal("Query", selection.DeclaringSelectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selection.DeclaringSelectionSet.Type);
+    }
+
+    [Fact]
     public void Prepare_Duplicate_Field()
     {
         // arrange
@@ -59,8 +88,9 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
+    // The compiler preserves an empty root selection set in the compiled operation.
     [Fact]
-    public void Prepare_Empty_Operation_SelectionSet()
+    public void Compile_Should_CreateOperationWithEmptySelectionSet_When_RootSelectionSetIsEmpty()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -103,7 +133,7 @@ public class OperationCompilerTests
                         homePlanet
                     }
                 }
-             }");
+            }");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -139,7 +169,7 @@ public class OperationCompilerTests
               fragment def on Human {
                   homePlanet
               }
-             ");
+            ");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -916,8 +946,182 @@ public class OperationCompilerTests
             schema);
 
         // assert
+        Assert.False(operation.HasIncrementalParts);
         MatchSnapshot(document, operation);
     }
+
+    [Fact]
+    public void Stream_With_Statically_True_Skip_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream on a field that is itself statically excluded via @skip(if: true) never
+        // reaches the compiled operation, so it must not be reported as incremental either.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream @skip(if: true)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Stream_If_False_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream(if: false) is a literal false if argument, so the field must not be
+        // reported as incremental even though it is not statically excluded.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream(if: false)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Defer_On_Statically_Skipped_Fragment_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // The fragment spread itself is statically excluded via @skip(if: true), so the
+        // @defer nested inside its definition never reaches the compiled operation.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Q {
+              hero(episode: EMPIRE) {
+                ...F @skip(if: true)
+              }
+            }
+
+            fragment F on Character {
+              ... @defer {
+                name
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            "Q",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
+    {
+        // arrange
+        // Both documents contain @defer, but only one carries the normalization marker.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddStarWarsTypes()
+            .AddStarWarsRepositories()
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+
+        var unmarkedDocument = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+
+        var unmarkedDefinition = (OperationDefinitionNode)unmarkedDocument.Definitions[0];
+        var markedDefinition = unmarkedDefinition.WithDirectives(
+            [.. unmarkedDefinition.Directives, new DirectiveNode(InternalDirectiveNames.HasIncrementalParts)]);
+        var markedDocument = unmarkedDocument.WithDefinitions([markedDefinition]);
+
+        // act
+        var notIncremental = operationCompiler.Compile(
+            "opid-1",
+            "opid-1",
+            operationName: null,
+            unmarkedDocument,
+            executor);
+
+        var incremental = operationCompiler.Compile(
+            "opid-2",
+            "opid-2",
+            operationName: null,
+            markedDocument,
+            executor);
+
+        // assert
+        Assert.False(notIncremental.HasIncrementalParts);
+        Assert.True(incremental.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_TakesOnlyNormalizedDocuments_OnTheInstanceOverload()
+    {
+        // arrange
+        var actualSignatures = typeof(OperationCompiler)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.Name == nameof(OperationCompiler.Compile))
+            .Select(DescribeSignature)
+            .ToHashSet();
+
+        var expectedSignatures = new HashSet<string>
+        {
+            "static(String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
+
+            "instance(String, String, String, DocumentNode, IFeatureProvider)"
+        };
+
+        // act & assert
+        Assert.Equal(expectedSignatures, actualSignatures);
+    }
+
+    private static string DescribeSignature(MethodInfo method)
+        => $"{(method.IsStatic ? "static" : "instance")}"
+            + $"({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))})";
 
     [Fact]
     public async Task Defer_Different_Branches_Overlapping_Fields()
@@ -1421,89 +1625,6 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void FragmentSpread_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... abc
-              }
-            }
-
-            fragment abc on Droid { }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void InlineFragment_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... on Droid { }
-              }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void CompositeType_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean) {
-              hero(episode: EMPIRE) { }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
     public async Task Large_Query_Test()
     {
         // arrange
@@ -1979,8 +2100,9 @@ public class OperationCompilerTests
                     "someName",
                     SelectionPath.Root,
                     baz,
-                    [new FieldSelectionNode(bazSelection, 0)],
+                    [new FieldSelectionNode(bazSelection, default(ConditionFlags))],
                     [],
+                    isProjectionRequirement: false,
                     isInternal: true,
                     resolverPipeline: bazPipeline);
 

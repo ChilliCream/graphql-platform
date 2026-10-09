@@ -44,7 +44,7 @@ public sealed class BookType : ObjectType<Book>
     {
         if (book is null)
         {
-            return null;
+            throw new InvalidOperationException("Invalid reference.");
         }
 
         // Mirror the audit fixture: subgraph 'b' deliberately returns null

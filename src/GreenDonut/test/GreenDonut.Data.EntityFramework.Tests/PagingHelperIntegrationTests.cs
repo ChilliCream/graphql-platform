@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
+using CookieCrumble.Resources;
 using GreenDonut.Data.TestContext;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace GreenDonut.Data;
 
@@ -268,6 +268,51 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
                     First = page.Value.CreateStartCursor(),
                     Last = page.Value.CreateEndCursor(),
                     page.Value.Items
+                },
+                name: page.Key.ToString());
+        }
+
+        snapshot.AddQueries(capture.Queries);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ToBatchPageAsync_Should_PreserveNestedOrdering_When_PredicateContainsOrderBy()
+    {
+        // Arrange
+        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        using var capture = new CapturePagingQueryInterceptor();
+
+        // Act
+        await using var context = new CatalogContext(connectionString);
+
+        var results = await context.Products
+            .Where(t =>
+                (t.BrandId == 1 || t.BrandId == 2 || t.BrandId == 3)
+                && t.Brand!.Products
+                    .AsQueryable()
+                    .OrderByDescending(p => p.Name)
+                    .First()
+                    .Id > 0)
+            .OrderBy(p => p.Name)
+            .ThenBy(p => p.Id)
+            .ToBatchPageAsync(
+                k => k.BrandId,
+                new PagingArguments { First = 2 },
+                Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+        foreach (var page in results)
+        {
+            snapshot.Add(
+                new
+                {
+                    First = page.Value.CreateStartCursor(),
+                    Last = page.Value.CreateEndCursor(),
+                    Items = page.Value.Items.Select(t => new { t.Id, t.Name })
                 },
                 name: page.Key.ToString());
         }

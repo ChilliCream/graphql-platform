@@ -1,0 +1,253 @@
+"use client";
+
+import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { SolidButton } from "@/src/design-system/Button";
+import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
+import { Input } from "@/src/design-system/Input";
+import { TextArea } from "@/src/design-system/TextArea";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
+
+const SUBJECTS = [
+  "Schedule a Demo",
+  "Pricing & Plans",
+  "Sales",
+  "Technical Support",
+  "Partnership",
+  "Other",
+];
+
+const REQUEST_CONTEXTS = [
+  "GraphQL Services",
+  "Private Nitro Deployment",
+  "GraphQL Support",
+  "Startup Support",
+  "Business Support",
+  "Enterprise Support",
+  "GraphQL Advisory",
+  "Dedicated Nitro Deployment",
+  "Self-Hosted Nitro",
+];
+
+const SUBMIT_ENDPOINT = "https://forms.chillicream.com/api/SupportForm";
+const THANK_YOU_PATH = "/services/support/thank-you";
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+interface FormData {
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+}
+
+type FormErrors = Partial<Record<"name" | "email" | "company", string>>;
+
+const INITIAL: FormData = {
+  name: "",
+  email: "",
+  company: "",
+  message: "",
+};
+
+function resolveSubject(subject: string | null): string {
+  if (!subject) {
+    return SUBJECTS[0];
+  }
+
+  const match = SUBJECTS.find((s) => s.toLowerCase() === subject.toLowerCase());
+
+  return match ?? SUBJECTS[0];
+}
+
+function resolveRequestContext(context: string | null): string {
+  if (!context) {
+    return "";
+  }
+
+  const match = REQUEST_CONTEXTS.find(
+    (candidate) => candidate.toLowerCase() === context.trim().toLowerCase(),
+  );
+
+  return match ?? "";
+}
+
+const subscribe = () => () => {};
+const getSubjectFromUrl = () =>
+  resolveSubject(new URLSearchParams(window.location.search).get("subject"));
+const getServerSubject = () => "";
+const getRequestContextFromUrl = () =>
+  resolveRequestContext(
+    new URLSearchParams(window.location.search).get("context"),
+  );
+const getServerRequestContext = () => "";
+
+export function ContactForm() {
+  const router = useRouter();
+  const [data, setData] = useState<FormData>(INITIAL);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const urlSubject = useSyncExternalStore(
+    subscribe,
+    getSubjectFromUrl,
+    getServerSubject,
+  );
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const subject = selectedSubject ?? urlSubject;
+  const requestContext = useSyncExternalStore(
+    subscribe,
+    getRequestContextFromUrl,
+    getServerRequestContext,
+  );
+
+  function update<K extends keyof FormData>(field: K, value: FormData[K]) {
+    setData((prev) => ({ ...prev, [field]: value }));
+    if (field in errors) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field as keyof FormErrors];
+        return next;
+      });
+    }
+  }
+
+  function validate(): boolean {
+    const next: FormErrors = {};
+    if (data.name.trim().length < 2) {
+      next.name = "Name is required";
+    }
+    if (!EMAIL_REGEX.test(data.email)) {
+      next.email = "Please enter a valid email address";
+    }
+    if (data.company.trim().length < 2) {
+      next.company = "Company is required";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    if (!validate()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(SUBMIT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          Name: data.name,
+          Email: data.email,
+          Company: data.company,
+          SupportPlan: subject,
+          Message: requestContext
+            ? `Request: ${requestContext}\n\n${data.message}`
+            : data.message,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      let redirected = false;
+      const showThankYou = () => {
+        if (!redirected) {
+          redirected = true;
+          router.push(THANK_YOU_PATH);
+        }
+      };
+
+      const queued = sendAnalyticsEvent("generate_lead", {
+        lead_source: "support_contact_form",
+        lead_subject: subject,
+        ...(requestContext ? { lead_context: requestContext } : {}),
+        page_path: window.location.pathname,
+        event_callback: showThankYou,
+        event_timeout: 1000,
+      });
+
+      if (queued) {
+        window.setTimeout(showThankYou, 1100);
+      } else {
+        showThankYou();
+      }
+    } catch {
+      alert("There was an error submitting your request. Please try again.");
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Input
+          label="Name"
+          name="name"
+          type="text"
+          required
+          value={data.name}
+          error={errors.name}
+          disabled={isSubmitting}
+          onChange={(e) => update("name", e.target.value)}
+        />
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          required
+          value={data.email}
+          error={errors.email}
+          disabled={isSubmitting}
+          onChange={(e) => update("email", e.target.value)}
+        />
+      </div>
+      <Input
+        label="Company"
+        name="company"
+        type="text"
+        required
+        value={data.company}
+        error={errors.company}
+        disabled={isSubmitting}
+        onChange={(e) => update("company", e.target.value)}
+      />
+      <Dropdown
+        label="Subject"
+        className={isSubmitting ? "pointer-events-none opacity-60" : undefined}
+        panelClassName="p-1"
+        trigger={
+          <span className="text-cc-ink text-sm">{subject || "\u00A0"}</span>
+        }
+      >
+        <ul className="m-0 flex list-none flex-col p-0">
+          {SUBJECTS.map((s) => (
+            <DropdownItem
+              key={s}
+              active={s === subject}
+              onClick={() => setSelectedSubject(s)}
+            >
+              {s}
+            </DropdownItem>
+          ))}
+        </ul>
+      </Dropdown>
+      <TextArea
+        label="Message"
+        name="message"
+        rows={5}
+        placeholder="What are you building, what do you need, and what is your timeline?"
+        value={data.message}
+        disabled={isSubmitting}
+        onChange={(e) => update("message", e.target.value)}
+      />
+      <SolidButton type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? "Sending..." : "Send request"}
+      </SolidButton>
+    </form>
+  );
+}

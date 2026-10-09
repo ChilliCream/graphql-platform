@@ -82,6 +82,15 @@ public static class TypeReferenceBuilder
             unwrapped = UnwrapListElementType(unwrapped) ?? unwrapped;
         }
 
+        var flagsAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.FlagsAttribute);
+        if (flagsAttribute is not null && ContainsFlagsEnum(unwrapped, flagsAttribute))
+        {
+            return new SchemaTypeReference(
+                SchemaTypeReferenceKind.ExtendedTypeReference,
+                GetFullyQualifiedTypeName(unwrapped),
+                nullability: CreateNullabilityLiteral(unwrapped, IsNullable(unwrapped)));
+        }
+
         // Next, we create a key that describes the type and ensures we are only executing the type factory once.
         var (typeStructure, typeDefinition, nullability, isSimpleType) = CreateTypeKey(unwrapped);
 
@@ -220,6 +229,15 @@ public static class TypeReferenceBuilder
     {
         flags.Add(isNullable ? "true" : "false");
 
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            CollectNullability(
+                arrayType.ElementType,
+                IsNullable(arrayType.ElementType),
+                flags);
+            return;
+        }
+
         if (typeSymbol is not INamedTypeSymbol namedType || !namedType.IsGenericType)
         {
             return;
@@ -325,6 +343,43 @@ public static class TypeReferenceBuilder
         }
 
         elementType = null;
+        return false;
+    }
+
+    private static bool ContainsFlagsEnum(
+        ITypeSymbol typeSymbol,
+        INamedTypeSymbol flagsAttribute)
+    {
+        if (typeSymbol is INamedTypeSymbol nullableType
+            && nullableType.OriginalDefinition.SpecialType is SpecialType.System_Nullable_T)
+        {
+            return ContainsFlagsEnum(nullableType.TypeArguments[0], flagsAttribute);
+        }
+
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            return ContainsFlagsEnum(arrayType.ElementType, flagsAttribute);
+        }
+
+        if (typeSymbol is INamedTypeSymbol namedType
+            && TryGetListElementType(namedType, out var elementType))
+        {
+            return ContainsFlagsEnum(elementType, flagsAttribute);
+        }
+
+        if (typeSymbol.TypeKind is not TypeKind.Enum)
+        {
+            return false;
+        }
+
+        foreach (var attribute in typeSymbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, flagsAttribute))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 

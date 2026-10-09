@@ -44,7 +44,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to create an MCP Feature Collection?", parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync(Prompts.SelectApiForCreateMcpFeatureCollection, parseResult, apisClient, sessionService, cancellationToken);
 
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);
@@ -66,7 +66,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IApiNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
                         IDuplicateNameError => Messages.DuplicateName(name, "MCP Feature Collection"),
                         IError err => Messages.UnexpectedMutationError(err),

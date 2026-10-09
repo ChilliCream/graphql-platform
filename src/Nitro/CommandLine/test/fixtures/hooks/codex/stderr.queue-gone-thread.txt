@@ -1,0 +1,1 @@
+Error: failed to queue session message: thread/queue/add failed: failed to read thread: invalid thread-store request: no rollout found for thread id 00000000-0000-0000-0000-000000000000 (code -32603)

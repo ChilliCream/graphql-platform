@@ -28,6 +28,11 @@ public sealed class FieldInSelectionSetValidator(ISchemaDefinition schema)
         FieldNode node,
         FieldInSelectionSetValidatorContext context)
     {
+        if (node.Name.Value == IntrospectionFieldNames.TypeName)
+        {
+            return Skip;
+        }
+
         var type = context.TypeContext.Peek();
 
         if (context.DeclaringType == type && context.Field.Name == node.Name.Value)
@@ -40,7 +45,7 @@ public sealed class FieldInSelectionSetValidator(ISchemaDefinition schema)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
-                var fieldType = field.Type.NullableType();
+                var fieldType = field.Type.NamedType();
 
                 if (fieldType is IComplexTypeDefinition or IUnionTypeDefinition)
                 {

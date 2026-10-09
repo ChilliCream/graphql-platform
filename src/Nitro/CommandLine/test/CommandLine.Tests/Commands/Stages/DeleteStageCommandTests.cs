@@ -165,6 +165,46 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupForceDeleteStageMutation(CreateForceDeleteStageApiNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "stage", "delete", "--api-id", ApiId, "--stage", StageName, "--force");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        // arrange
+        SetupForceDeleteStageMutation(CreateForceDeleteStageStageNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "stage", "delete", "--api-id", ApiId, "--stage", StageName, "--force");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task ForceDeleteStageReturnsNullApi_ReturnsError()
     {
         // arrange
@@ -191,8 +231,6 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
     public static TheoryData<IForceDeleteStageByApiIdCommandMutation_ForceDeleteStageByApiId_Errors, string>
         GetForceDeleteStageErrors() => new()
     {
-        { CreateForceDeleteStageApiNotFoundError(), "API not found" },
-        { CreateForceDeleteStageStageNotFoundError(), "Stage not found" },
         { CreateForceDeleteStageUnauthorizedError(), "Not authorized" }
     };
 }

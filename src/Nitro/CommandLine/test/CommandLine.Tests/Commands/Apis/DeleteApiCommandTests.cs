@@ -262,10 +262,6 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
         GetDeleteApiErrors() => new()
     {
         {
-            new DeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError("API not found"),
-            "Unexpected mutation error: API not found"
-        },
-        {
             new DeleteApiCommandMutation_DeleteApiById_Errors_UnauthorizedOperation("Not authorized"),
             "Unexpected mutation error: Not authorized"
         },

@@ -1,37 +1,35 @@
 using Microsoft.Extensions.Hosting;
 using Mocha.Threading;
-using Npgsql;
 
 namespace Mocha.Outbox;
 
 /// <summary>
 /// A hosted service that manages the lifecycle of the Postgres outbox processor,
-/// opening a dedicated Npgsql connection and running the processing loop as a continuous background task.
+/// running the processing loop as a continuous background task.
 /// </summary>
-/// <param name="options">The outbox options containing the Postgres connection string.</param>
 /// <param name="processor">The outbox processor that performs the message dispatch loop.</param>
-internal sealed class PostgresMessageBusOutboxWorker(
-    PostgresMessageOutboxOptions options,
-    PostgresOutboxProcessor processor) : IHostedService
+internal sealed class PostgresMessageBusOutboxWorker(PostgresOutboxProcessor processor) : IHostedService
 {
-    private NpgsqlDataSource? _dataSource;
+    private readonly object _lock = new();
     private ContinuousTask? _task;
 
     /// <summary>
-    /// Starts the outbox processing background task.
+    /// Starts the outbox processing background task. This call is idempotent: invoking it again
+    /// while the worker is already running is a no-op that returns without starting a second loop.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when startup should be aborted.</param>
     /// <returns>A completed task once the background loop has been initiated.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the worker is already running.</exception>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_task is not null)
+        lock (_lock)
         {
-            throw new InvalidOperationException("The worker is already running.");
-        }
+            if (_task is not null)
+            {
+                return Task.CompletedTask;
+            }
 
-        _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-        _task = new ContinuousTask(ProcessAsync);
+            _task = new ContinuousTask(processor.ProcessAsync);
+        }
 
         return Task.CompletedTask;
     }
@@ -42,25 +40,19 @@ internal sealed class PostgresMessageBusOutboxWorker(
     /// <param name="cancellationToken">A token that signals when shutdown should be forced.</param>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_task is null)
+        ContinuousTask? task;
+
+        lock (_lock)
+        {
+            task = _task;
+            _task = null;
+        }
+
+        if (task is null)
         {
             return;
         }
 
-        await _task.DisposeAsync();
-        _task = null;
-
-        if (_dataSource is not null)
-        {
-            await _dataSource.DisposeAsync();
-            _dataSource = null;
-        }
-    }
-
-    private async Task ProcessAsync(CancellationToken stoppingToken)
-    {
-        await using var connection = await _dataSource!.OpenConnectionAsync(stoppingToken);
-
-        await processor.ProcessAsync(connection, stoppingToken);
+        await task.DisposeAsync();
     }
 }

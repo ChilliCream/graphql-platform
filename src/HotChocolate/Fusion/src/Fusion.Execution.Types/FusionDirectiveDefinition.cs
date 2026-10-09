@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
@@ -13,12 +14,35 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 {
+    private bool _completed;
+
+    /// <summary>
+    /// Represents a GraphQL directive definition.
+    /// </summary>
+    [Obsolete("Use the constructor overload that accepts a deprecationReason.")]
+    public FusionDirectiveDefinition(
+        string name,
+        string? description,
+        bool isRepeatable,
+        FusionInputFieldDefinitionCollection arguments,
+        DirectiveLocation locations)
+        : this(
+            name,
+            description,
+            deprecationReason: null,
+            isRepeatable,
+            arguments,
+            locations)
+    {
+    }
+
     /// <summary>
     /// Represents a GraphQL directive definition.
     /// </summary>
     public FusionDirectiveDefinition(
         string name,
         string? description,
+        string? deprecationReason,
         bool isRepeatable,
         FusionInputFieldDefinitionCollection arguments,
         DirectiveLocation locations)
@@ -35,6 +59,7 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
 
         Name = name;
         Description = description;
+        DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
         IsRepeatable = isRepeatable;
         Arguments = arguments;
         Locations = locations;
@@ -60,6 +85,19 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     public SchemaCoordinate Coordinate => new(Name, ofDirective: true);
 
     /// <summary>
+    /// Defines if this directive is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
+
+    /// <summary>
+    /// Gets the reason why this directive is deprecated,
+    /// or <c>null</c> if this directive is not deprecated.
+    /// </summary>
+    public string? DeprecationReason { get; }
+
+    /// <summary>
     /// Defines if this directive is repeatable and can be applied multiple times.
     /// </summary>
     public bool IsRepeatable { get; }
@@ -70,6 +108,14 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// but hidden from external observers.
     /// </summary>
     public bool IsPublic { get; init; } = true;
+
+    /// <summary>
+    /// Gets the directives applied to this directive definition.
+    /// </summary>
+    public FusionDirectiveCollection Directives { get; private set; } =
+        FusionDirectiveCollection.Empty;
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <summary>
     /// Gets the arguments that are defined on this directive.
@@ -91,6 +137,20 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// Gets the runtime type of the directive.
     /// </summary>
     public Type RuntimeType { get; } = typeof(object);
+
+    internal void Complete(FusionDirectiveCollection directives)
+    {
+        ArgumentNullException.ThrowIfNull(directives);
+
+        if (_completed)
+        {
+            throw new InvalidOperationException(
+                "The directive definition has already been completed.");
+        }
+
+        Directives = directives;
+        _completed = true;
+    }
 
     /// <inheritdoc />
     public IFeatureCollection Features => field ??= new FeatureCollection();

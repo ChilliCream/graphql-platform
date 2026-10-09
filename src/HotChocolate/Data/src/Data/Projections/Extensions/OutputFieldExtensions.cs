@@ -1,4 +1,5 @@
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Projections;
 
@@ -8,13 +9,13 @@ internal static class OutputFieldExtensions
         => field.IsExcludedManually() || field.HasProjectionMiddleware() || field.IsPagingField();
 
     private static bool IsExcludedManually(this IOutputFieldDefinition field)
-        => field.Features.Get<ProjectionFeature>()?.AlwaysProjected is false;
+        => field.HasCoreFieldFlags(CoreFieldFlags.NotProjected);
 
     public static bool IsAlwaysProjected(this IOutputFieldDefinition field)
-        => field.Features.Get<ProjectionFeature>()?.AlwaysProjected is true;
+        => field.HasCoreFieldFlags(CoreFieldFlags.AlwaysProjected);
 
     public static bool HasProjectionMiddleware(this IOutputFieldDefinition field)
-        => field.Features.Get<ProjectionFeature>()?.HasProjectionMiddleware is true;
+        => field.HasCoreFieldFlags(CoreFieldFlags.HasProjectionMiddleware);
 
     private static bool IsPagingField(this IOutputFieldDefinition field)
         => ((field.Flags & FieldFlags.Connection) == FieldFlags.Connection)

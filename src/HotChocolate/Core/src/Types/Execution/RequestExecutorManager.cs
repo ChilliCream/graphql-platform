@@ -8,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -299,11 +300,17 @@ internal sealed partial class RequestExecutorManager
             static sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
 
         serviceCollection.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<Schema>(),
-                sp.GetRequiredService<InputParser>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
-                sp.GetRequiredService<OperationCompilerOptimizers>()));
+            static sp =>
+            {
+                var options = sp.GetRequiredService<RequestExecutorOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<Schema>(),
+                    sp.GetRequiredService<InputParser>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    sp.GetRequiredService<OperationCompilerOptimizers>(),
+                    options.MaxAllowedIncludeConditions,
+                    options.MaxAllowedDeferConditions);
+            });
 
         serviceCollection.AddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());
@@ -330,6 +337,18 @@ internal sealed partial class RequestExecutorManager
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
                 return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
             });
+
+        serviceCollection.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new NormalizedDocumentCache(options.PreparedOperationCacheSize);
+            });
+
+        serviceCollection.AddSingleton<IOperationDocumentNormalizer>(
+            static sp => new OperationDocumentNormalizer(
+                sp.GetRequiredService<ISchemaDefinition>(),
+                sp.GetRequiredService<NormalizedDocumentCache>()));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(
@@ -439,11 +458,18 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton(sp =>
         {
             var rootServices = sp.GetRootServiceProvider();
+            // The document validator is resolved after the schema is assigned to LazySchema.
+            var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
 
             var builder =
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
-                    .AddDefaultRules();
+                    .AddDefaultRules()
+                    .ModifyOptions(o =>
+                    {
+                        o.EnableCovariantFieldMerging = options.EnableCovariantFieldMerging;
+                        o.EnableEmptySelectionSets = options.EnableEmptySelectionSets;
+                    });
 
             foreach (var hook in hooks)
             {

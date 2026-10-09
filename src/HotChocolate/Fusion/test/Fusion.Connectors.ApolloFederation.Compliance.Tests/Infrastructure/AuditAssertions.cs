@@ -6,7 +6,9 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Assertions for federation-gateway-audit test cases. Matches the audit runner
 /// contract from <c>graphql-hive/federation-gateway-audit/src/test.ts</c>: deep-compare
-/// the <c>data</c> payload and assert presence-of-errors independently.
+/// the <c>data</c> payload and assert presence-of-errors independently. Execution timeout
+/// errors are rejected because the official runner aborts the request before Fusion's
+/// execution timeout and therefore cannot observe them as a compliant GraphQL response.
 /// </summary>
 internal static class AuditAssertions
 {
@@ -17,8 +19,8 @@ internal static class AuditAssertions
     /// The full gateway response serialized as JSON (i.e. <c>result.ToJson()</c>).
     /// </param>
     /// <param name="expectedDataJson">
-    /// The expected <c>data</c> payload. When <see langword="null"/>, the <c>data</c>
-    /// payload is not asserted.
+    /// The expected <c>data</c> payload. A <see langword="null"/> value expects the response
+    /// data to be absent or explicitly <see langword="null"/>, matching the official audit runner.
     /// </param>
     /// <param name="expectsErrors">
     /// When not <see langword="null"/>, the presence of an <c>errors</c> array is
@@ -34,31 +36,36 @@ internal static class AuditAssertions
         var actual = JsonNode.Parse(actualJson)
             ?? throw new InvalidOperationException("Gateway response JSON parsed to null.");
 
-        if (expectedDataJson is not null)
+        if (ContainsExecutionTimeout(actual["errors"]))
         {
-            var actualData = actual["data"];
-            var expectedData = JsonNode.Parse(expectedDataJson);
+            Xunit.Assert.Fail(
+                "A Fusion execution timeout cannot satisfy an official audit expectation.");
+        }
 
-            if (!JsonNode.DeepEquals(actualData, expectedData))
-            {
-                var actualDataText = actualData?.ToJsonString(s_indented) ?? "null";
-                var expectedDataText = expectedData?.ToJsonString(s_indented) ?? "null";
-                var errorsText = actual["errors"]?.ToJsonString(s_indented) ?? "<none>";
+        var actualData = actual["data"];
+        var expectedData = expectedDataJson is null
+            ? null
+            : JsonNode.Parse(expectedDataJson);
 
-                Xunit.Assert.Fail(
-                    $"""
-                     Data payload did not match.
+        if (!JsonNode.DeepEquals(actualData, expectedData))
+        {
+            var actualDataText = actualData?.ToJsonString(s_indented) ?? "null";
+            var expectedDataText = expectedData?.ToJsonString(s_indented) ?? "null";
+            var errorsText = actual["errors"]?.ToJsonString(s_indented) ?? "<none>";
 
-                     Expected:
-                     {expectedDataText}
+            Xunit.Assert.Fail(
+                $"""
+                 Data payload did not match.
 
-                     Actual:
-                     {actualDataText}
+                 Expected:
+                 {expectedDataText}
 
-                     Errors:
-                     {errorsText}
-                     """);
-            }
+                 Actual:
+                 {actualDataText}
+
+                 Errors:
+                 {errorsText}
+                 """);
         }
 
         if (expectsErrors is not null)
@@ -76,6 +83,26 @@ internal static class AuditAssertions
                         : $"Expected response to carry no errors, but errors were present: {errorsText}");
             }
         }
+    }
+
+    private static bool ContainsExecutionTimeout(JsonNode? errors)
+    {
+        if (errors is not JsonArray errorArray)
+        {
+            return false;
+        }
+
+        foreach (var error in errorArray)
+        {
+            if (error?["extensions"]?["code"] is JsonValue codeValue
+                && codeValue.TryGetValue<string>(out var code)
+                && string.Equals(code, ErrorCodes.Execution.Timeout, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static readonly JsonSerializerOptions s_indented = new() { WriteIndented = true };

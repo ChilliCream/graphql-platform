@@ -6,14 +6,14 @@ operation:
           id @fusion__requirement
           profile @fusion__requirement {
             __typename @fusion__requirement
-            displayName
+            displayName @fusion__requirement
             ... on AdminAccount {
-              accountType
-              adminLevel
+              accountType @fusion__requirement
+              adminLevel @fusion__requirement
             }
             ... on GuestAccount {
-              accountType
-              guestToken
+              accountType @fusion__requirement
+              guestToken @fusion__requirement
             }
           }
         }

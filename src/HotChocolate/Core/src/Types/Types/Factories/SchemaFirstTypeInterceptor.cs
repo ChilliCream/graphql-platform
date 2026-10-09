@@ -61,7 +61,7 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
                         && directive.Arguments[0].Name.Value.EqualsOrdinal(DirectiveNames.SpecifiedBy.Arguments.Url)
                         && directive.Arguments[0].Value is StringValueNode url)
                     {
-                        scalarTypeConfig.SpecifiedBy = new Uri(url.Value);
+                        scalarTypeConfig.SpecifiedBy = url.Value;
                         continue;
                     }
 

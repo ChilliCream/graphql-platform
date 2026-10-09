@@ -68,8 +68,20 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 WriteOperationNode(operationNode, nodeTrace, writer);
                 break;
 
+            case EventStreamExecutionNode eventStreamNode:
+                WriteEventStreamNode(eventStreamNode, nodeTrace, writer);
+                break;
+
             case OperationBatchExecutionNode batchNode:
                 WriteBatchExecutionNode(batchNode, nodeTrace, writer);
+                break;
+
+            case ApolloOperationExecutionNode apolloOperationNode:
+                WriteApolloOperationNode(apolloOperationNode, nodeTrace, writer);
+                break;
+
+            case ApolloOperationBatchExecutionNode apolloBatchNode:
+                WriteApolloBatchExecutionNode(apolloBatchNode, nodeTrace, writer);
                 break;
 
             case IntrospectionExecutionNode introspectionNode:
@@ -210,7 +222,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(node.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -237,6 +250,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             {
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
+
+                if (requirement.InternalAlias is not null)
+                {
+                    writer.WriteLine("internalAlias: {0}", requirement.InternalAlias);
+                }
 
                 writer.WriteLine("selectionMap: >-");
                 writer.Indent();
@@ -296,6 +314,72 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
+    private static void WriteEventStreamNode(
+        EventStreamExecutionNode node,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", node.Type.ToString());
+        writer.WriteLine("fieldName: {0}", node.FieldName);
+        writer.WriteLine("resultSelectionSet: >-");
+        writer.Indent();
+        writer.WriteLine(node.ResultSelectionSet.ToString(indented: false));
+        writer.Unindent();
+
+        if (!node.Source.IsRoot)
+        {
+            writer.WriteLine("source: {0}", node.Source.ToString());
+        }
+
+        if (!node.Target.IsRoot)
+        {
+            writer.WriteLine("target: {0}", node.Target.ToString());
+        }
+
+        TryWriteConditions(writer, node);
+
+        var eventStreamSource = node.EventStreamSource;
+
+        writer.WriteLine("eventStream:");
+        writer.Indent();
+
+        writer.WriteLine("schema: {0}", eventStreamSource.SchemaName);
+
+        if (!eventStreamSource.Topics.IsDefaultOrEmpty)
+        {
+            writer.WriteLine(
+                "topics: [{0}]",
+                string.Join(", ", eventStreamSource.Topics));
+        }
+
+        if (eventStreamSource.Broker is { } broker)
+        {
+            writer.WriteLine("broker: {0}", broker);
+        }
+
+        writer.WriteLine("message: {0}", node.Message);
+
+        if (eventStreamSource.CursorField is { } cursorField)
+        {
+            writer.WriteLine("cursorField: {0}", cursorField);
+        }
+
+        if (eventStreamSource.CursorArgument is { } cursorArgument)
+        {
+            writer.WriteLine("cursorArgument: {0}", cursorArgument);
+        }
+
+        writer.Unindent();
+
+        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
     private static void WriteBatchExecutionNode(OperationBatchExecutionNode batchNode, ExecutionNodeTrace? trace, CodeWriter writer)
     {
         foreach (var opDef in batchNode.Operations)
@@ -331,7 +415,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -385,7 +470,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        var reader = new StringReader(opDef.Operation.SourceText);
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -427,6 +513,133 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
+    private static void WriteApolloOperationNode(
+        ApolloOperationExecutionNode node,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", "ApolloOperation");
+
+        if (node.SchemaName is not null)
+        {
+            writer.WriteLine("schema: {0}", node.SchemaName);
+        }
+
+        writer.WriteLine("operation: |");
+        writer.Indent();
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
+        writer.Unindent();
+
+        if (!node.Source.IsRoot)
+        {
+            writer.WriteLine("source: {0}", node.Source.ToString());
+        }
+
+        if (!node.Target.IsRoot)
+        {
+            writer.WriteLine("target: {0}", node.Target.ToString());
+        }
+
+        WriteRequirements(node.Requirements, writer);
+        TryWriteConditions(writer, node);
+        WriteForwardedVariables(node.ForwardedVariables, writer);
+
+        if (node.RequiresFileUpload)
+        {
+            writer.WriteLine("requiresFileUpload: true");
+        }
+
+        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
+    private static void WriteApolloBatchExecutionNode(
+        ApolloOperationBatchExecutionNode batchNode,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        var operations = batchNode.Operations;
+        var lookups = batchNode.Lookups;
+
+        for (var i = 0; i < operations.Length; i++)
+        {
+            WriteApolloOperationDefinitionAsNode(
+                batchNode,
+                operations[i],
+                lookups[i].Operation,
+                trace,
+                writer);
+        }
+    }
+
+    private static void WriteApolloOperationDefinitionAsNode(
+        ApolloOperationBatchExecutionNode batchNode,
+        SingleOperationDefinition opDef,
+        OperationSourceText operation,
+        ExecutionNodeTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", opDef.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", "ApolloOperationBatch");
+
+        if (opDef.SchemaName is not null)
+        {
+            writer.WriteLine("schema: {0}", opDef.SchemaName);
+        }
+
+        writer.WriteLine("operation: |");
+        writer.Indent();
+        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
+        var reader = new StringReader(Encoding.UTF8.GetString(operation.Value.Span));
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
+        writer.Unindent();
+
+        if (!opDef.Source.IsRoot)
+        {
+            writer.WriteLine("source: {0}", opDef.Source.ToString());
+        }
+
+        if (!opDef.Target.IsRoot)
+        {
+            writer.WriteLine("target: {0}", opDef.Target.ToString());
+        }
+
+        writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
+
+        WriteRequirements(opDef.Requirements, writer);
+        WriteConditions(opDef.Conditions, writer);
+        WriteForwardedVariables(opDef.ForwardedVariables, writer);
+
+        if (opDef.RequiresFileUpload)
+        {
+            writer.WriteLine("requiresFileUpload: true");
+        }
+
+        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
     private static void WriteRequirements(ReadOnlySpan<OperationRequirement> requirements, CodeWriter writer)
     {
         if (requirements.Length > 0)
@@ -437,6 +650,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             {
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
+
+                if (requirement.InternalAlias is not null)
+                {
+                    writer.WriteLine("internalAlias: {0}", requirement.InternalAlias);
+                }
 
                 writer.WriteLine("selectionMap: >-");
                 writer.Indent();

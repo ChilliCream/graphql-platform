@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -18,10 +19,28 @@ public sealed class FusionInterfaceTypeDefinition(
     : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
     , IInterfaceTypeDefinition
 {
+    internal const int MaxTypeNameLookupTypes = 4;
+
+    private ImmutableArray<FusionObjectTypeDefinition> _typeNameLookupTypes;
     private FusionTypeFlags _flags;
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;
+
+    internal ImmutableArray<FusionObjectTypeDefinition> TypeNameLookupTypes
+        => _typeNameLookupTypes;
+
+    internal void PrepareTypeNameLookupTypes(
+        ImmutableArray<FusionObjectTypeDefinition> possibleTypes)
+    {
+        var lookupTypes = possibleTypes.Length is > 0 and <= MaxTypeNameLookupTypes
+            ? possibleTypes
+            : [];
+
+        ImmutableInterlocked.InterlockedInitialize(
+            ref _typeNameLookupTypes,
+            lookupTypes);
+    }
 
     /// <inheritdoc />
     public override bool IsSharedType => (_flags & FusionTypeFlags.Shared) != 0;

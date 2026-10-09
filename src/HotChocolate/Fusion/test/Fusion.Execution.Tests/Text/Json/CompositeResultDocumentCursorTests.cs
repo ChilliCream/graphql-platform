@@ -21,6 +21,20 @@ public class CompositeResultDocumentCursorTests
         return data;
     }
 
+    public static TheoryData<int, int> ExpectedChunkCapacities()
+        => new()
+        {
+            { 0, 51 },
+            { 1, 102 },
+            { 2, 204 },
+            { 3, 409 },
+            { 4, 819 },
+            { 5, 1638 },
+            { 6, 3276 },
+            { 7, 6553 },
+            { 8, 6553 }
+        };
+
     [Theory]
     [MemberData(nameof(RampChunks))]
     public void From_Should_RoundTripChunkAndRow_When_AllRampChunks(int chunk)
@@ -51,6 +65,16 @@ public class CompositeResultDocumentCursorTests
 
         // assert
         Assert.Equal(expected, rowsPerChunk);
+    }
+
+    [Theory]
+    [MemberData(nameof(ExpectedChunkCapacities))]
+    public void RowsPerChunk_Should_MatchIndependentCapacityOracle_When_ChunkChanges(
+        int chunk,
+        int expected)
+    {
+        Assert.Equal(expected, Cursor.RowsPerChunkFor(chunk));
+        Assert.Equal(expected, Cursor.From(chunk, 0).RowsPerChunk);
     }
 
     [Theory]
@@ -92,6 +116,25 @@ public class CompositeResultDocumentCursorTests
     }
 
     [Theory]
+    [InlineData(0, 50, 1, 0)]
+    [InlineData(1, 101, 2, 0)]
+    [InlineData(6, 3275, 7, 0)]
+    [InlineData(7, 6552, 8, 0)]
+    public void AddRows_Should_AdvanceToNextChunk_When_LastRowIsIncremented(
+        int chunk,
+        int row,
+        int expectedChunk,
+        int expectedRow)
+    {
+        // act
+        var next = Cursor.From(chunk, row).AddRows(1);
+
+        // assert
+        Assert.Equal(expectedChunk, next.Chunk);
+        Assert.Equal(expectedRow, next.Row);
+    }
+
+    [Theory]
     [MemberData(nameof(RampChunks))]
     public void AddRows_Should_BorrowAcrossChunkBoundary_When_RowGoesNegative(int chunk)
     {
@@ -120,6 +163,107 @@ public class CompositeResultDocumentCursorTests
 
         // assert
         Assert.Equal(cursor.Index + 1, next.Index);
+    }
+
+    [Theory]
+    [MemberData(nameof(RampChunks))]
+    public void From_Should_AcceptLastAddressableRow_When_AllRampChunks(int chunk)
+    {
+        // arrange
+        var lastRow = Cursor.RowsPerChunkFor(chunk) - 1;
+
+        // act
+        var cursor = Cursor.From(chunk, lastRow);
+
+        // assert
+        Assert.Equal(chunk, cursor.Chunk);
+        Assert.Equal(lastRow, cursor.Row);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(Cursor.MaxChunks)]
+    public void From_Should_Throw_When_ChunkIsOutsideCapacity(int chunk)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Cursor.From(chunk, 0));
+    }
+
+    [Theory]
+    [MemberData(nameof(RampChunks))]
+    public void From_Should_Throw_When_RowIsOutsideChunkCapacity(int chunk)
+    {
+        var row = Cursor.RowsPerChunkFor(chunk);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Cursor.From(chunk, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Cursor.From(chunk, row));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(1)]
+    public void FromByteOffset_Should_Throw_When_OffsetIsNotANonNegativeRowBoundary(int byteOffset)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Cursor.FromByteOffset(0, byteOffset));
+    }
+
+    [Fact]
+    public void FromByteOffset_Should_Throw_When_OffsetIsOutsideChunkCapacity()
+    {
+        var byteOffset = Cursor.RowsPerChunkFor(0) * 20;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Cursor.FromByteOffset(0, byteOffset));
+    }
+
+    [Fact]
+    public void AddRows_Should_ReturnEnd_When_AdvancingPastLastAddressableRow()
+    {
+        // arrange
+        const int chunk = Cursor.MaxChunks - 1;
+        var last = Cursor.From(chunk, Cursor.RowsPerChunkFor(chunk) - 1);
+
+        // act
+        var end = last.AddRows(1);
+
+        // assert
+        Assert.Equal(Cursor.End, end);
+        Assert.Equal(chunk, end.Chunk);
+        Assert.Equal(Cursor.RowsPerChunkFor(chunk), end.Row);
+        Assert.Equal(last.Index + 1, end.Index);
+    }
+
+    [Fact]
+    public void From_Should_Throw_When_CreatingEndSentinel()
+    {
+        const int chunk = Cursor.MaxChunks - 1;
+        var row = Cursor.RowsPerChunkFor(chunk);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Cursor.From(chunk, row));
+    }
+
+    [Fact]
+    public void AddRows_Should_ReturnLastAddressableRow_When_RewindingFromEnd()
+    {
+        // act
+        var last = Cursor.End.AddRows(-1);
+
+        // assert
+        Assert.Equal(Cursor.MaxChunks - 1, last.Chunk);
+        Assert.Equal(Cursor.RowsPerChunkFor(last.Chunk) - 1, last.Row);
+    }
+
+    [Fact]
+    public void AddRows_Should_Throw_When_MovementExceedsCapacity()
+    {
+        Assert.Throws<OverflowException>(() => Cursor.CreateZero().AddRows(-1));
+        Assert.Throws<OverflowException>(() => Cursor.End.AddRows(1));
+    }
+
+    [Theory]
+    [InlineData(int.MinValue)]
+    [InlineData(int.MaxValue)]
+    public void AddRows_Should_Throw_When_DeltaExceedsCapacity(int delta)
+    {
+        Assert.Throws<OverflowException>(() => Cursor.CreateZero().AddRows(delta));
     }
 
     [Fact]
@@ -168,15 +312,17 @@ public class CompositeResultDocumentCursorTests
     public void Value_Should_BeNonNegative_When_MaxChunkAndRowAreStamped()
     {
         // arrange
-        var cursor = Cursor.From(Cursor.MaxChunks - 1, 8191);
+        const int chunk = Cursor.MaxChunks - 1;
+        var row = Cursor.RowsPerChunkFor(chunk) - 1;
+        var cursor = Cursor.From(chunk, row);
 
         // act
         var value = cursor.Value;
 
         // assert
         Assert.True(value >= 0);
-        Assert.Equal(Cursor.MaxChunks - 1, cursor.Chunk);
-        Assert.Equal(8191, cursor.Row);
+        Assert.Equal(chunk, cursor.Chunk);
+        Assert.Equal(row, cursor.Row);
     }
 
     [Fact]

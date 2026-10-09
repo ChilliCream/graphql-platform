@@ -239,7 +239,7 @@ public class ReferenceResolverAttributeTests
         if (entity is not null
             && type.Features.TryGet(out ExternalSetter? externalSetter))
         {
-            externalSetter.Invoke(type, representation, entity);
+            externalSetter.Invoke(schema, type, representation, entity);
         }
 
         return entity;

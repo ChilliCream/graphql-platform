@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Data.Data;
@@ -9,7 +10,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
@@ -137,6 +137,7 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
 
         services
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddCustomTypes()
             .AddGlobalObjectIdentification()
             .AddPagingArguments()

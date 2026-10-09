@@ -107,8 +107,11 @@ public interface ISchemasClient
     /// <summary>
     /// Downloads the latest published schema for the given API and stage.
     /// </summary>
-    /// <returns>The schema stream, or <c>null</c> if no schema was found.</returns>
+    /// <returns>The schema stream.</returns>
     /// <remarks>The caller owns and must dispose the returned stream.</remarks>
+    /// <exception cref="NitroClientNotFoundException">
+    /// No published schema was found for the requested stage.
+    /// </exception>
     /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
@@ -116,7 +119,7 @@ public interface ISchemasClient
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
-    Task<Stream?> DownloadLatestSchemaAsync(
+    Task<Stream> DownloadLatestSchemaAsync(
         string apiId,
         string stageName,
         CancellationToken cancellationToken);

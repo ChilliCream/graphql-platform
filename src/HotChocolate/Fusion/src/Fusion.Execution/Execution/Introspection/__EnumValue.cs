@@ -7,6 +7,13 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __EnumValue : ITypeResolverInterceptor
 {
+    private readonly bool _enableOptInFeatures;
+
+    public __EnumValue(bool enableOptInFeatures = false)
+    {
+        _enableOptInFeatures = enableOptInFeatures;
+    }
+
     public void OnApplyResolver(string fieldName, IFeatureCollection features)
     {
         switch (fieldName)
@@ -26,6 +33,10 @@ internal sealed class __EnumValue : ITypeResolverInterceptor
             case "deprecationReason":
                 features.Set(new ResolveFieldValue(DeprecationReason));
                 break;
+
+            case "requiresOptIn" when _enableOptInFeatures:
+                features.Set(new ResolveFieldValue(RequiresOptIn));
+                break;
         }
     }
 
@@ -40,4 +51,10 @@ internal sealed class __EnumValue : ITypeResolverInterceptor
 
     public static void DeprecationReason(FieldContext context)
         => context.WriteValue(context.Parent<IEnumValue>().DeprecationReason);
+
+    public static void RequiresOptIn(FieldContext context)
+    {
+        var value = context.Parent<IEnumValue>();
+        __Field.WriteRequiresOptIn(context, value.Directives);
+    }
 }

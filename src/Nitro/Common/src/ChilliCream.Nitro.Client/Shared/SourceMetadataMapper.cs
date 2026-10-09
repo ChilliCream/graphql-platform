@@ -16,7 +16,9 @@ internal static class SourceMetadataMapper
                     RunNumber = github.RunNumber,
                     RunId = github.RunId,
                     JobId = github.JobId,
-                    RepositoryUrl = github.RepositoryUrl
+                    RepositoryUrl = github.RepositoryUrl,
+                    Ref = github.Ref,
+                    PullRequestNumber = github.PullRequestNumber
                 }
             };
         }
@@ -39,7 +41,9 @@ internal static class SourceMetadataMapper
                     CommitHash = azureDevOps.CommitHash,
                     JobId = azureDevOps.JobId,
                     TaskId = azureDevOps.TaskId,
-                    RepositoryUrl = azureDevOps.RepositoryUrl
+                    RepositoryUrl = azureDevOps.RepositoryUrl,
+                    Ref = azureDevOps.Ref,
+                    PullRequestNumber = azureDevOps.PullRequestNumber
                 }
             };
         }

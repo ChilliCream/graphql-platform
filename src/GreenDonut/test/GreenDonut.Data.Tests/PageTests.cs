@@ -74,6 +74,19 @@ public class PageTests
     }
 
     [Fact]
+    public void TotalCount_Should_BeZero_When_PageIsEmpty()
+    {
+        // arrange
+        var page = Page<string>.Empty;
+
+        // act
+        var totalCount = page.TotalCount;
+
+        // assert
+        Assert.Equal(0, totalCount);
+    }
+
+    [Fact]
     public void CreateRelativeBackwardCursors_UsesFirstPageIndex()
     {
         // arrange

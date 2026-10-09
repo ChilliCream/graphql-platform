@@ -1,12 +1,10 @@
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 public static class GraphQLServerHelper
 {

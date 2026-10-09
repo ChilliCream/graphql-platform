@@ -279,8 +279,7 @@ public class PostgresBusDefaultsTests
             {
                 t.ConnectionString("Host=localhost;Database=test;Username=test;Password=test");
                 t.ConfigureDefaults(d => d.Endpoint.MaxBatchSize = 50);
-                t.Endpoint("custom-ep")
-                    .Queue("custom-q")
+                t.Queue("custom-q")
                     .Handler<OrderCreatedHandler>()
                     .MaxBatchSize(200);
             })
@@ -290,7 +289,7 @@ public class PostgresBusDefaultsTests
         // act
         var endpoint = transport.ReceiveEndpoints
             .OfType<PostgresReceiveEndpoint>()
-            .First(e => e.Name == "custom-ep");
+            .First(e => e.Queue.Name == "custom-q");
 
         // assert - explicit 200 should not be overridden by default 50
         Assert.Equal(200, maxBatchSize(endpoint));

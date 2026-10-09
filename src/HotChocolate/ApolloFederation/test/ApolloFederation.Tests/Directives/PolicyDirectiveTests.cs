@@ -74,7 +74,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         }
 
         Assert.Fail("No policy directive found.");
-        return null!;
+        return null;
     }
 
     private static void CheckQueryType(Schema schema)

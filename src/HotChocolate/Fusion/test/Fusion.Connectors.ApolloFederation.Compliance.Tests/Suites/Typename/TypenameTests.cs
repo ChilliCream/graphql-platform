@@ -1,10 +1,20 @@
+using HotChocolate.Fusion.Suites.Typename.A;
+using HotChocolate.Fusion.Suites.Typename.B;
+
 namespace HotChocolate.Fusion.Suites;
 
-public sealed class TypenameTests : ComplianceTestBase
+[OfficialV2Suite("typename")]
+public sealed class TypenameTests
+    : OfficialV2ComplianceTestBase<TypenameTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => throw new NotImplementedException("Subgraphs not yet wired for this suite.");
+        => ComposeOfficialV2Async(
+            (ASubgraph.Name, ASubgraph.BuildAsync),
+            (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact(Skip = "Audit subgraph 'b' uses @interfaceObject which is not yet supported by the Apollo Federation adapter. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
-    public Task Pending() => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }

@@ -24,11 +24,13 @@ internal static class ThrowHelper
 
     public static GraphQLRequestException DefaultHttpRequestParser_UnexpectedError(
         Exception ex) =>
-        new(ErrorBuilder.New()
-            .SetMessage(ex.Message)
-            .SetException(ex)
-            .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
-            .Build());
+        new(
+            ErrorBuilder.New()
+                .SetMessage(ex.Message)
+                .SetException(ex)
+                .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
+                .Build(),
+            ex);
 
     public static GraphQLRequestException DefaultHttpRequestParser_RequestIsEmpty() =>
         new(ErrorBuilder.New()
@@ -42,10 +44,15 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
-    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(
-        Exception ex) =>
-         new GraphQLRequestException(
-             ErrorBuilder.New()
+    public static GraphQLRequestException RequestBodyTooLarge() =>
+        new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_RequestBodyTooLarge)
+            .SetCode(ErrorCodes.Server.RequestBodyTooLarge)
+            .Build());
+
+    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(Exception ex) =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
                 .SetException(ex)
                 .SetCode(ErrorCodes.Server.MultiPartInvalidForm)
@@ -122,6 +129,38 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                 .Build());
 
+    public static InvalidOperationException MultipartFormReader_AntiforgeryValidationFailed() =>
+        new(ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed);
+
+    public static InvalidDataException MultipartFormReader_BoundaryLengthLimitExceeded(int limit) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded, limit));
+
+    public static InvalidOperationException MultipartFormReader_IncorrectContentType(
+        string? contentType) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_IncorrectContentType, contentType));
+
+    public static InvalidDataException MultipartFormReader_InvalidContentDisposition(
+        string? contentDisposition) =>
+        new(string.Format(
+            ThrowHelper_MultipartFormReader_InvalidContentDisposition,
+            contentDisposition));
+
+    public static InvalidDataException MultipartFormReader_MissingBoundary() =>
+        new(ThrowHelper_MultipartFormReader_MissingBoundary);
+
+    public static GraphQLRequestException MultipartFormReader_SectionTooLarge(string name) =>
+        new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_MultipartFormReader_SectionTooLarge, name)
+            .SetCode(ErrorCodes.Server.MultiPartSectionTooLarge)
+            .Build());
+
+    public static DirectoryNotFoundException MultipartFormReader_TempDirectoryNotFound(
+        string directory) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_TempDirectoryNotFound, directory));
+
+    public static InvalidDataException MultipartFormReader_ValueCountLimitExceeded(int limit) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_ValueCountLimitExceeded, limit));
+
     public static NotSupportedException Formatter_ResultKindNotSupported()
         => new(ThrowHelper_Formatter_ResultKindNotSupported);
 
@@ -129,6 +168,11 @@ internal static class ThrowHelper
         string contentType)
         => new(string.Format(ThrowHelper_Formatter_ResponseContentTypeNotSupported, contentType));
 
-    public static InvalidOperationException Formatter_InvalidAcceptMediaType()
-        => new(ThrowHelper_Formatter_InvalidAcceptMediaType);
+    public static ArgumentOutOfRangeException Formatter_TransportVersionNotSupported(
+        string paramName,
+        HttpTransportVersion transportVersion)
+        => new(
+            paramName,
+            transportVersion,
+            string.Format(ThrowHelper_Formatter_TransportVersionNotSupported, transportVersion));
 }

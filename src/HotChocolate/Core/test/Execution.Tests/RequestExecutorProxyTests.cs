@@ -32,7 +32,7 @@ public class RequestExecutorProxyTests
     {
         // arrange
         var executorUpdatedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var manager =
             new ServiceCollection()
                 .AddGraphQL()

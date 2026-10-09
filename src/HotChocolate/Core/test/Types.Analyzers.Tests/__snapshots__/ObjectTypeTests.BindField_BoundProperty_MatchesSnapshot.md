@@ -69,7 +69,7 @@ namespace TestNamespace
             }
 
             descriptor
-                .Field(naming.GetMemberName("Greeting", global::HotChocolate.Types.MemberKind.ObjectField))
+                .Field("greeting")
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;

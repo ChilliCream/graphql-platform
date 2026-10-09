@@ -1,0 +1,88 @@
+using CookieCrumble;
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Transport.Postgres.Tests.Helpers;
+
+namespace Mocha.Transport.Postgres.Tests;
+
+/// <summary>
+/// Verifies concrete error and skipped queue configuration for PostgreSQL: verbatim names, disable flags,
+/// and byte-identical output when no fault/skipped queue configuration is changed.
+/// </summary>
+public class PostgresFaultAndSkippedQueueTests
+{
+    [Fact]
+    public void Describe_Should_RenameErrorQueue_When_FaultEndpointUsesQueueUri()
+    {
+        // arrange
+        // The verbatim name "LEGACY.Orders.Error" must survive unchanged; the naming convention
+        // must not kebab-case or otherwise transform it.
+        var runtime = CreateRuntime(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
+                .FaultEndpoint(new Uri("queue:LEGACY.Orders.Error"));
+        });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        PostgresDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Describe_Should_StayByteIdentical_When_EndpointQueueUntouched()
+    {
+        // arrange
+        // When no fault/skipped queue configuration is provided the conventional names must be produced.
+        var runtime = CreateRuntime(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>();
+        });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        PostgresDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Describe_Should_OmitErrorQueue_When_FaultEndpointDisabled()
+    {
+        // arrange
+        // DisableFaultEndpoint removes the error queue from topology entirely; no queue with
+        // the conventional "_error" suffix should appear.
+        var runtime = CreateRuntime(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(true).Handler<OrderCreatedHandler>()
+                .DisableFaultEndpoint();
+        });
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        PostgresDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    private static MessagingRuntime CreateRuntime(Action<IPostgresMessagingTransportDescriptor> configureTransport)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
+        return builder
+            .AddPostgres(t =>
+            {
+                t.ConnectionString("Host=localhost;Database=mocha_test;Username=test;Password=test");
+                configureTransport(t);
+            })
+            .BuildRuntime();
+    }
+}

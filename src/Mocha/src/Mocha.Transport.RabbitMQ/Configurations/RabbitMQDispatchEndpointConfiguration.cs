@@ -19,4 +19,11 @@ public sealed class RabbitMQDispatchEndpointConfiguration : DispatchEndpointConf
     /// Gets or sets the target exchange name for exchange-based dispatch. Mutually exclusive with <see cref="QueueName"/>.
     /// </summary>
     public string? ExchangeName { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the queue backing this dispatch endpoint is automatically provisioned.
+    /// This applies only when <see cref="QueueName"/> is set. When <c>null</c>, the transport-level
+    /// default is used.
+    /// </summary>
+    public bool? AutoProvision { get; set; }
 }

@@ -1,0 +1,1 @@
+Error: failed to find Codex home: CODEX_HOME points to "/tmp/nonexistent-codex-home-probe", but that path does not exist

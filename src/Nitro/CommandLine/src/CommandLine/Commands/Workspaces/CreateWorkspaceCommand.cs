@@ -45,7 +45,7 @@ internal sealed class CreateWorkspaceCommand : Command
             .ConfirmAsync(
                 parseResult,
                 Opt<SetAsDefaultWorkspaceOption>.Instance,
-                "Set as default workspace?",
+                Prompts.SetAsDefaultWorkspace,
                 ct);
 
         await using (var activity = console.StartActivity(

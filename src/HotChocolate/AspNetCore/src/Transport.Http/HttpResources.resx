@@ -36,4 +36,10 @@
     <data name="DefaultGraphQLHttpClient_FileUploadNotAllowed" xml:space="preserve">
         <value>File uploads are not supported for HTTP GET requests.</value>
     </data>
+    <data name="DefaultGraphQLHttpClient_QueryBatchNotAllowed" xml:space="preserve">
+        <value>The request body must be of type `OperationRequest` for HTTP QUERY requests.</value>
+    </data>
+    <data name="DefaultGraphQLHttpClient_QueryFileUploadNotAllowed" xml:space="preserve">
+        <value>File uploads are not supported for HTTP QUERY requests.</value>
+    </data>
 </root>

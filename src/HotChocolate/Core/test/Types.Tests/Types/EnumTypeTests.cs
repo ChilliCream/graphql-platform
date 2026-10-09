@@ -95,9 +95,9 @@ public class EnumTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.Enum)))
+                .Location(DirectiveLocation.Enum))
             .AddEnumType(d => d.Name("Foo").Directive(new DirectiveNode("bar")).Value("ABC"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
@@ -357,9 +357,9 @@ public class EnumTypeTests : TypeTestBase
         // act
         var schema = SchemaBuilder
             .New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.EnumValue)))
+                .Location(DirectiveLocation.EnumValue))
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
@@ -380,9 +380,9 @@ public class EnumTypeTests : TypeTestBase
         // act
         var schema = SchemaBuilder
             .New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.EnumValue)))
+                .Location(DirectiveLocation.EnumValue))
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")
@@ -403,9 +403,9 @@ public class EnumTypeTests : TypeTestBase
         // act
         var schema = SchemaBuilder
             .New()
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("bar")
-                .Location(DirectiveLocation.EnumValue)))
+                .Location(DirectiveLocation.EnumValue))
             .AddEnumType(d => d
                 .Name("Foo")
                 .Value("baz")

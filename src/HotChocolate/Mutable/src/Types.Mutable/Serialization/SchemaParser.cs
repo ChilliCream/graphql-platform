@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.Types.Mutable.Properties.MutableResources;
 
@@ -394,13 +393,25 @@ public static class SchemaParser
     {
         type.Description = node.Description?.Value;
         BuildComplexType(schema, type, node);
+
+        if (IsDeprecated(type.Directives, out var reason))
+        {
+            type.DeprecationReason = reason;
+        }
     }
 
     private static void ExtendObjectType(
         MutableSchemaDefinition schema,
         MutableObjectTypeDefinition type,
         ObjectTypeExtensionNode node)
-        => BuildComplexType(schema, type, node);
+    {
+        BuildComplexType(schema, type, node);
+
+        if (IsDeprecated(type.Directives, out var reason))
+        {
+            type.DeprecationReason = reason;
+        }
+    }
 
     private static void BuildInterfaceType(
         MutableSchemaDefinition schema,
@@ -481,7 +492,6 @@ public static class SchemaParser
 
             if (IsDeprecated(field.Directives, out var reason))
             {
-                field.IsDeprecated = true;
                 field.DeprecationReason = reason;
             }
 
@@ -532,7 +542,6 @@ public static class SchemaParser
 
         if (IsDeprecated(argument.Directives, out var reason))
         {
-            argument.IsDeprecated = true;
             argument.DeprecationReason = reason;
         }
 
@@ -579,15 +588,10 @@ public static class SchemaParser
                     type.Name));
         }
 
-        MergeDirectives(
-            schema,
-            existingField.Directives,
-            fieldNode.Directives,
-            $"{type.Name}.{existingField.Name}");
+        BuildDirectiveCollection(schema, existingField.Directives, fieldNode.Directives);
 
         if (IsDeprecated(existingField.Directives, out var reason))
         {
-            existingField.IsDeprecated = true;
             existingField.DeprecationReason = reason;
         }
 
@@ -665,15 +669,10 @@ public static class SchemaParser
                     $"{field.DeclaringMember?.Name}.{field.Name}"));
         }
 
-        MergeDirectives(
-            schema,
-            existingArg.Directives,
-            argumentNode.Directives,
-            $"{field.DeclaringMember?.Name}.{field.Name}({existingArg.Name}:)");
+        BuildDirectiveCollection(schema, existingArg.Directives, argumentNode.Directives);
 
         if (IsDeprecated(existingArg.Directives, out var reason))
         {
-            existingArg.IsDeprecated = true;
             existingArg.DeprecationReason = reason;
         }
     }
@@ -730,7 +729,6 @@ public static class SchemaParser
 
             if (IsDeprecated(field.Directives, out var reason))
             {
-                field.IsDeprecated = true;
                 field.DeprecationReason = reason;
             }
 
@@ -771,7 +769,6 @@ public static class SchemaParser
 
             if (IsDeprecated(value.Directives, out var reason))
             {
-                value.IsDeprecated = true;
                 value.DeprecationReason = reason;
             }
 
@@ -797,7 +794,26 @@ public static class SchemaParser
 
         foreach (var objectTypeRef in node.Types)
         {
-            var memberType = schema.Types[objectTypeRef.Name.Value];
+            var memberName = objectTypeRef.Name.Value;
+
+            if (!schema.Types.TryGetType(memberName, out var memberType)
+                || memberType is MissingType)
+            {
+                if (SpecScalarNames.IsSpecScalar(memberName))
+                {
+                    throw new SchemaInitializationException(
+                        string.Format(
+                            SchemaParser_InvalidUnionMemberType,
+                            type.Name,
+                            memberName));
+                }
+
+                throw new SchemaInitializationException(
+                    string.Format(
+                        SchemaParser_UnionMemberTypeNotDefined,
+                        type.Name,
+                        memberName));
+            }
 
             if (memberType is not MutableObjectTypeDefinition objectType)
             {
@@ -825,18 +841,18 @@ public static class SchemaParser
         type.Description = node.Description?.Value;
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
 
+        // Parse the type (and pattern) from an explicit @serializeAs directive, if present.
         var serializeAs = type.Directives.FirstOrDefault(BuiltIns.SerializeAs.Name);
+        var serializeAsType = ScalarSerializationType.Undefined;
         if (serializeAs is not null)
         {
             if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Type, out var typeArg)
                 && typeArg is { Kind: SyntaxKind.ListValue or SyntaxKind.EnumValue })
             {
-                var serializationType = ScalarSerializationType.Undefined;
-
                 if (typeArg is EnumValueNode enumValue
                     && Enum.TryParse(enumValue.Value, ignoreCase: true, out ScalarSerializationType parsedValue))
                 {
-                    serializationType |= parsedValue;
+                    serializeAsType |= parsedValue;
                 }
                 else if (typeArg is ListValueNode listValue
                     && listValue.Items.All(t => t.Kind is SyntaxKind.EnumValue))
@@ -845,23 +861,26 @@ public static class SchemaParser
                     {
                         if (Enum.TryParse(item.Value, ignoreCase: true, out parsedValue))
                         {
-                            serializationType |= parsedValue;
+                            serializeAsType |= parsedValue;
                         }
                     }
                 }
 
-                if (serializationType is not ScalarSerializationType.Undefined)
+                if (serializeAsType is not ScalarSerializationType.Undefined
+                    && serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Pattern, out var patternArg)
+                    && patternArg is StringValueNode patternValue)
                 {
-                    type.SerializationType = serializationType;
-
-                    if (serializeAs.Arguments.TryGetValue(BuiltIns.SerializeAs.Pattern, out var patternArg)
-                        && patternArg is StringValueNode patternValue)
-                    {
-                        type.Pattern = patternValue.Value;
-                    }
+                    type.Pattern = patternValue.Value;
                 }
             }
         }
+
+        // The @serializeAs type is primary; otherwise resolve from the @specifiedBy URL or the
+        // spec-scalar name. Resolving here (rather than only when undefined) ensures a @specifiedBy
+        // URL still takes effect for spec scalars that were pre-initialized in the constructor.
+        type.SerializationType = serializeAsType is not ScalarSerializationType.Undefined
+            ? serializeAsType
+            : type.GetScalarSerializationType();
     }
 
     private static void ExtendScalarType(
@@ -906,7 +925,6 @@ public static class SchemaParser
 
         if (IsDeprecated(type.Directives, out var deprecationReason))
         {
-            type.IsDeprecated = true;
             type.DeprecationReason = deprecationReason;
         }
 
@@ -936,7 +954,6 @@ public static class SchemaParser
 
             if (IsDeprecated(argument.Directives, out var reason))
             {
-                argument.IsDeprecated = true;
                 argument.DeprecationReason = reason;
             }
 
@@ -981,11 +998,10 @@ public static class SchemaParser
         MutableDirectiveDefinition type,
         DirectiveExtensionNode node)
     {
-        MergeDirectives(schema, type.Directives, node.Directives, $"@{type.Name}");
+        BuildDirectiveCollection(schema, type.Directives, node.Directives);
 
         if (IsDeprecated(type.Directives, out var reason))
         {
-            type.IsDeprecated = true;
             type.DeprecationReason = reason;
         }
     }
@@ -1011,21 +1027,41 @@ public static class SchemaParser
             switch (operationType.Operation)
             {
                 case OperationType.Query:
-                    schema.QueryType = (MutableObjectTypeDefinition)schema.Types[typeName];
+                    schema.QueryType = ResolveRootType(schema, "query", typeName);
                     break;
 
                 case OperationType.Mutation:
-                    schema.MutationType = (MutableObjectTypeDefinition)schema.Types[typeName];
+                    schema.MutationType = ResolveRootType(schema, "mutation", typeName);
                     break;
 
                 case OperationType.Subscription:
-                    schema.SubscriptionType = (MutableObjectTypeDefinition)schema.Types[typeName];
+                    schema.SubscriptionType = ResolveRootType(schema, "subscription", typeName);
                     break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
+    }
+
+    private static MutableObjectTypeDefinition ResolveRootType(
+        MutableSchemaDefinition schema,
+        string operation,
+        string typeName)
+    {
+        if (!schema.Types.TryGetType(typeName, out var type) || type is MissingType)
+        {
+            throw new SchemaInitializationException(
+                string.Format(SchemaParser_RootTypeNotDefined, operation, typeName));
+        }
+
+        if (type is not MutableObjectTypeDefinition objectType)
+        {
+            throw new SchemaInitializationException(
+                string.Format(SchemaParser_InvalidRootType, operation, typeName));
+        }
+
+        return objectType;
     }
 
     private static void BuildDirectiveCollection(
@@ -1041,32 +1077,6 @@ public static class SchemaParser
                 directiveType,
                 directiveNode.Arguments.Select(t => new ArgumentAssignment(t.Name.Value, t.Value)).ToList());
             directives.Add(directive);
-        }
-    }
-
-    private static void MergeDirectives(
-        MutableSchemaDefinition schema,
-        DirectiveCollection target,
-        IReadOnlyList<DirectiveNode> nodes,
-        string targetName)
-    {
-        foreach (var directiveNode in nodes)
-        {
-            var directiveType = ResolveDirectiveDefinition(schema, directiveNode);
-
-            if (!directiveType.IsRepeatable && target.ContainsName(directiveType.Name))
-            {
-                throw new SchemaInitializationException(
-                    string.Format(
-                        SchemaParser_NonRepeatableDirectiveAlreadyApplied,
-                        directiveType.Name,
-                        targetName));
-            }
-
-            var directive = new Directive(
-                directiveType,
-                directiveNode.Arguments.Select(t => new ArgumentAssignment(t.Name.Value, t.Value)).ToList());
-            target.Add(directive);
         }
     }
 
@@ -1096,15 +1106,7 @@ public static class SchemaParser
                 break;
 
             default:
-                directiveType = new MutableDirectiveDefinition(directiveNode.Name.Value)
-                {
-                    IsRepeatable = true,
-                    Locations = DirectiveLocation.TypeSystem
-                };
-
-                directiveType.Features.Set(
-                    new IncompleteDirectiveDefinitionFeature { IsIncomplete = true });
-
+                directiveType = new MissingDirectiveDefinition(directiveNode.Name.Value);
                 break;
         }
 
@@ -1112,7 +1114,7 @@ public static class SchemaParser
         return directiveType;
     }
 
-    private static bool IsDeprecated(DirectiveCollection directives, out string? reason)
+    private static bool IsDeprecated(DirectiveCollection directives, [NotNullWhen(true)] out string? reason)
     {
         reason = null;
 
@@ -1123,9 +1125,13 @@ public static class SchemaParser
             var reasonArg = deprecated.Arguments.FirstOrDefault(
                 t => t.Name.Equals(DirectiveNames.Deprecated.Arguments.Reason, StringComparison.Ordinal));
 
-            if (reasonArg?.Value is StringValueNode reasonVal)
+            if (reasonArg?.Value is StringValueNode reasonVal && !string.IsNullOrWhiteSpace(reasonVal.Value))
             {
                 reason = reasonVal.Value;
+            }
+            else
+            {
+                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
 
             return true;

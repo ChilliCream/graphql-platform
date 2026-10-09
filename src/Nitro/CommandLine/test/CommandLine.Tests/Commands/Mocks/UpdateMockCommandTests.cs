@@ -197,6 +197,25 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : MocksC
     }
 
     [Fact]
+    public async Task MockSchemaNotFound_ReturnsError()
+    {
+        // arrange
+        SetupUpdateMockMutation(null, null, null, null, CreateUpdateMockNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync("mock", "update", MockSchemaId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Mock schema not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task WithAllOptions_ReturnsSuccess_NonInteractive()
     {
         // arrange
@@ -392,7 +411,6 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : MocksC
     public static TheoryData<IUpdateMockSchema_UpdateMockSchema_Errors, string>
         GetUpdateMockErrors() => new()
     {
-        { CreateUpdateMockNotFoundError(), "Mock schema not found" },
         { CreateUpdateMockNonUniqueNameError(), "Name already in use" },
         { CreateUpdateMockUnauthorizedError(), "Not authorized" },
         { CreateUpdateMockValidationError(), "Validation failed" }

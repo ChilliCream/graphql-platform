@@ -106,7 +106,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Deprecated(string? reason)
     {
-        if (string.IsNullOrEmpty(reason))
+        if (string.IsNullOrWhiteSpace(reason))
         {
             return Deprecated();
         }
@@ -133,6 +133,17 @@ public class DirectiveTypeDescriptor
         descriptor = DirectiveArgumentDescriptor.New(Context, name);
         Arguments.Add(descriptor);
         return descriptor;
+    }
+
+    public IDirectiveTypeDescriptor Argument(
+        string name,
+        Action<IDirectiveArgumentDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var descriptor = Argument(name);
+        configure(descriptor);
+        return this;
     }
 
     public IDirectiveTypeDescriptor Location(DirectiveLocation value)

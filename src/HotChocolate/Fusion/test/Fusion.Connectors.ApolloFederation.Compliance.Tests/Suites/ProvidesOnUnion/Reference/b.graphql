@@ -1,0 +1,20 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@external", "@shareable", "@provides"]
+  )
+
+type Query {
+  media: [Media] @shareable @provides(fields: "... on Book { title }")
+}
+
+union Media = Book | Movie
+
+type Book @key(fields: "id") {
+  id: ID!
+  title: String @external
+}
+
+type Movie @key(fields: "id") {
+  id: ID!
+}

@@ -1,20 +1,60 @@
 {
-  "errors": [
-    {
-      "message": "Unknown type `MultiPolygon`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 10
-        }
+  "data": {
+    "test": {
+      "type": "MultiPolygon",
+      "coordinates": [
+        [
+          [
+            [
+              30,
+              20
+            ],
+            [
+              45,
+              40
+            ],
+            [
+              10,
+              40
+            ],
+            [
+              30,
+              20
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              15,
+              5
+            ],
+            [
+              40,
+              10
+            ],
+            [
+              10,
+              20
+            ],
+            [
+              5,
+              15
+            ],
+            [
+              15,
+              5
+            ]
+          ]
+        ]
       ],
-      "path": [
-        "test"
+      "bbox": [
+        5,
+        5,
+        45,
+        40
       ],
-      "extensions": {
-        "typeCondition": "MultiPolygon",
-        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence"
-      }
+      "crs": 4326
     }
-  ]
+  }
 }

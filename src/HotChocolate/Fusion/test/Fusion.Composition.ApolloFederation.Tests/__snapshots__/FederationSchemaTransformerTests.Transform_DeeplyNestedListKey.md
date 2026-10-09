@@ -46,16 +46,18 @@ directive @link(url: String! import: [String!]) repeatable on SCHEMA
 ## Transformed SDL
 
 ```graphql
-schema @fusion__connector(kind: "Apollo") {
+schema {
   query: Query
 }
 
 type Query {
-  categoryByIdAndTag(id: String!, tag: String!): Category @internal @lookup
-  productByIdAndPidAndCategoryAndIdAndTag(
+  fusion__lookup_categoryByIdAndTag(id: String!, tag: String!): Category
+    @internal
+    @lookup
+  fusion__lookup_productByIdAndPidAndCategoryAndIdAndTag(
     key: ProductByIdAndPidAndCategoryAndIdAndTagInput! @is(field: "{ id, pid, category: category.{ id, tag } }")
   ): Product @internal @lookup
-  productListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndId(
+  fusion__lookup_productListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndId(
     key: ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInput! @is(field: "{ products: products[{ id, pid, category: category.{ id, tag } }], selected: selected.{ id } }")
   ): ProductList @internal @lookup
   topProducts: ProductList!
@@ -108,10 +110,4 @@ input ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInpu
 input ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInput_Selected {
   id: String!
 }
-
-"The @fusion__connector directive declares which connector kind handles this source schema."
-directive @fusion__connector(
-  "The kind of connector that backs this source schema."
-  kind: String!
-) on SCHEMA
 ```

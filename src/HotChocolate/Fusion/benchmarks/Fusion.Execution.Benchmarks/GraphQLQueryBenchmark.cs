@@ -6,18 +6,13 @@ using FusionGraphQLHttpRequest = HotChocolate.Fusion.Transport.Http.GraphQLHttpR
 using TransportClient = HotChocolate.Transport.Http.DefaultGraphQLHttpClient;
 using TransportGraphQLHttpRequest = HotChocolate.Transport.Http.GraphQLHttpRequest;
 using BenchmarkDotNet.Jobs;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Exporters;
 using HotChocolate.Buffers;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Execution;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]
@@ -51,15 +46,15 @@ public class GraphQLQueryBenchmark
         (_server, _app) = await GraphQLServerHelper.CreateTestServer();
         _client = _server.CreateClient();
 
-        var fusionItems = new HotChocolate.Fusion.Transport.OperationRequest(
-            "{ items }",
+        var fusionItems = new Transport.OperationRequest(
+            "{ items }"u8.ToArray(),
             id: null,
             operationName: null,
             onError: null,
             variables: VariableValues.Empty,
             extensions: JsonSegment.Empty);
-        var fusionFewItems = new HotChocolate.Fusion.Transport.OperationRequest(
-            "{ fewItems }",
+        var fusionFewItems = new Transport.OperationRequest(
+            "{ fewItems }"u8.ToArray(),
             id: null,
             operationName: null,
             onError: null,
@@ -108,10 +103,10 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Large_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("items"u8).GetArrayLength();
     }
-
 
     [Benchmark]
     public async Task<int> Send_Small_Request_With_Transport()
@@ -125,7 +120,8 @@ public class GraphQLQueryBenchmark
     public async Task<int> Send_Small_Request_With_Fusion()
     {
         using var result = await _fusionClient.SendAsync(_fusionFewItemsRequest);
-        using var document = await result.ReadAsResultAsync();
+        using var arena = new MemoryArena();
+        using var document = await result.ReadAsResultAsync(arena);
         return document.Root.GetProperty("data"u8).GetProperty("fewItems"u8).GetArrayLength();
     }
 }

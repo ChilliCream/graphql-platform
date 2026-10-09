@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -237,7 +236,7 @@ public sealed partial class SourceResultDocument
                 }
 
                 var toCopy = Math.Min(source.Length, chunkSize - offset);
-                source[..toCopy].CopyTo(current.Span.Slice(offset));
+                source[..toCopy].CopyTo(current.Span[offset..]);
                 source = source[toCopy..];
                 offset += toCopy;
             }
@@ -459,8 +458,7 @@ public sealed partial class SourceResultDocument
                     AppendNumberToken(
                         ref metaDb,
                         location,
-                        tokenLength,
-                        reader);
+                        tokenLength);
                     break;
 
                 case JsonTokenType.True:
@@ -531,41 +529,17 @@ public sealed partial class SourceResultDocument
             tokenType,
             startLocation,
             tokenLength,
-            hasComplexChildren: ContainsEscapeSequences(reader));
+            hasComplexChildren: reader.ValueIsEscaped);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AppendNumberToken(
         ref MetaDb metaDb,
         int startLocation,
-        int tokenLength,
-        Utf8JsonReader reader)
+        int tokenLength)
         => metaDb.Append(
             JsonTokenType.Number,
             startLocation,
             tokenLength,
-            hasComplexChildren: ContainsScientificNotation(reader.ValueSpan));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ContainsEscapeSequences(Utf8JsonReader reader)
-    {
-        if (reader.HasValueSequence)
-        {
-            foreach (var segment in reader.ValueSequence)
-            {
-                if (segment.Span.IndexOf(JsonConstants.BackSlash) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        return reader.ValueSpan.IndexOf(JsonConstants.BackSlash) is not -1;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ContainsScientificNotation(ReadOnlySpan<byte> value)
-        => value.IndexOfAny((byte)'e', (byte)'E') >= 0;
+            hasComplexChildren: false);
 }

@@ -304,6 +304,23 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
+    public void ParentRequires_NonGeneric_Should_SetRequirements_When_FieldIsNamed()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.ParentRequires("Name");
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.True(config.Flags.HasFlag(CoreFieldFlags.WithRequirements));
+        var feature = config.Features.Get<FieldRequirementFeature>();
+        Assert.NotNull(feature);
+        Assert.Equal("Name", feature.Requirements);
+    }
+
+    [Fact]
     public void DeclaringType_Should_BeMemberType_When_FieldInferredFromMember()
     {
         // arrange

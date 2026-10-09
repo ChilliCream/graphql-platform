@@ -31,6 +31,7 @@ public sealed class GraphQLHttpResponse : IDisposable
     private const string EventStreamUtf8ContentType = $"{ContentType.EventStream}; charset={Utf8}";
     private const string GraphQLJsonLineUtf8ContentType = $"{ContentType.GraphQLJsonLine}; charset={Utf8}";
     private const string JsonLineUtf8ContentType = $"{ContentType.JsonLine}; charset={Utf8}";
+    private const int MaxSingleSpanResponseLength = 16 * 1024;
 
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
@@ -335,6 +336,11 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (!TryGetRawMediaTypeAndCharSet(out var mediaType, out var charSet))
         {
+            // A caller cancellation can tear down the response before its content
+            // type is available. Report that as a cancellation rather than the
+            // misleading "unexpected content type" error so the execution node can
+            // treat it as an intentional abort.
+            cancellationToken.ThrowIfCancellationRequested();
             _message.EnsureSuccessStatusCode();
             throw new InvalidOperationException("Received a successful response with an unexpected content type.");
         }
@@ -354,6 +360,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             return ReadAsResultInternalAsync(arena, charSet, cancellationToken);
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         _message.EnsureSuccessStatusCode();
 
         throw new InvalidOperationException("Received a successful response with an unexpected content type.");
@@ -414,17 +421,63 @@ public sealed class GraphQLHttpResponse : IDisposable
         }
 
 #if FUSION
-        // The payload is streamed into the document's own gap-free geometric arena chunks so the
-        // chunk schedule matches the packed data-location encoding.
         var reader = PipeReader.Create(stream, s_options);
-        var chunks = arena.RentSegmentTable(64);
-        var chunkIndex = 0;
-        var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
-        var current = chunks[chunkIndex] = arena.Rent(chunkSize);
-        var currentChunkPosition = 0;
 
         try
         {
+            var contentLength = _message.Content.Headers.ContentLength;
+
+            // A response whose Content-Length fits within MaxSingleSpanResponseLength is filled once
+            // into a single exact-length arena chunk and parsed in place as one span. The payload length
+            // is only trusted after the body completes with exactly the claimed length.
+            if (contentLength is > 0 and <= MaxSingleSpanResponseLength)
+            {
+                while (true)
+                {
+                    var probe = await reader.ReadAsync(ct);
+                    var probeBuffer = probe.Buffer;
+
+                    if (probe.IsCompleted && probeBuffer.Length == contentLength.Value)
+                    {
+                        var length = (int)contentLength.Value;
+                        var chunk = arena.Rent(length);
+                        probeBuffer.CopyTo(chunk.Span);
+                        reader.AdvanceTo(probeBuffer.End);
+
+                        var segments = arena.RentSegmentTable(1);
+                        segments[0] = chunk;
+
+                        return SourceResultDocument.ParseFilled(
+                            arena,
+                            segments,
+                            usedChunks: 1,
+                            lastLength: length);
+                    }
+
+                    if (probe.IsCompleted || probeBuffer.Length > contentLength.Value)
+                    {
+                        // Lying Content-Length: the body completed with fewer bytes than the header
+                        // claimed (short) or already exceeds it (long). Nothing was consumed, so release
+                        // the examined mark and fall back to the geometric path, which re-reads the whole
+                        // body from the start.
+                        reader.AdvanceTo(probeBuffer.Start, probeBuffer.Start);
+                        break;
+                    }
+
+                    // Not enough of the body yet and no lie detected: consume nothing, examine everything,
+                    // and read more.
+                    reader.AdvanceTo(probeBuffer.Start, probeBuffer.End);
+                }
+            }
+
+            // The payload is streamed into the document's own gap-free geometric arena chunks so the
+            // chunk schedule matches the packed data-location encoding.
+            var chunks = arena.RentSegmentTable(64);
+            var chunkIndex = 0;
+            var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+            var current = chunks[chunkIndex] = arena.Rent(chunkSize);
+            var currentChunkPosition = 0;
+
             while (true)
             {
                 var result = await reader.ReadAsync(ct);
@@ -441,7 +494,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                     if (chunkSize - currentChunkPosition >= source.Length)
                     {
-                        source.CopyTo(current.Span.Slice(currentChunkPosition));
+                        source.CopyTo(current.Span[currentChunkPosition..]);
                         currentChunkPosition += source.Length;
                     }
                     else
@@ -455,7 +508,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                             // we copy the data we have into the current chunk.
                             source.Slice(segmentOffset, bytesToCopy)
-                                .CopyTo(current.Span.Slice(currentChunkPosition));
+                                .CopyTo(current.Span[currentChunkPosition..]);
                             currentChunkPosition += bytesToCopy;
                             segmentOffset += bytesToCopy;
 
@@ -496,7 +549,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                             // we copy the data we have into the current chunk.
                             source.Slice(segmentOffset, bytesToCopy)
-                                .CopyTo(current.Span.Slice(currentChunkPosition));
+                                .CopyTo(current.Span[currentChunkPosition..]);
                             currentChunkPosition += bytesToCopy;
                             segmentOffset += bytesToCopy;
 
@@ -569,8 +622,42 @@ public sealed class GraphQLHttpResponse : IDisposable
     public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync(
         IMemoryArenaSource arenaSource,
         bool requireStreaming = false)
+        => ReadAsResultStreamAsync(arenaSource, requireStreaming, Timeout.InfiniteTimeSpan);
+
+    /// <summary>
+    /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/>.
+    /// </summary>
+    /// <param name="arenaSource">The source of arenas that back the produced documents.</param>
+    /// <param name="requireStreaming">
+    /// When <c>true</c>, a response that is not delivered over a streaming transport (Server-Sent Events
+    /// or JSON Lines) is rejected. A subscription requires a streaming response.
+    /// </param>
+    /// <param name="readTimeout">
+    /// The maximum time between two reads of data from a streaming response (Server-Sent Events or
+    /// JSON Lines). Keep-alive messages count as data. <see cref="Timeout.InfiniteTimeSpan"/> disables
+    /// the timeout. A finite value must be between one millisecond and <c>uint.MaxValue - 1</c>
+    /// milliseconds. Non-streaming responses are not affected.
+    /// </param>
+    /// <returns>
+    /// A <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/> that represents the asynchronous
+    /// read operation to read the stream of <see cref="SourceResultDocument"/>s from the underlying
+    /// <see cref="HttpResponseMessage"/>.
+    /// </returns>
+    public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync(
+        IMemoryArenaSource arenaSource,
+        bool requireStreaming,
+        TimeSpan readTimeout)
     {
         ArgumentNullException.ThrowIfNull(arenaSource);
+
+        if (readTimeout != Timeout.InfiniteTimeSpan && !ReadTimeoutStream.IsValidTimeout(readTimeout))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(readTimeout),
+                readTimeout,
+                "The read timeout must be Timeout.InfiniteTimeSpan or between 1 millisecond "
+                + "and uint.MaxValue - 1 milliseconds.");
+        }
 
         if (!TryGetRawMediaTypeAndCharSet(out var mediaType, out var charSet))
         {
@@ -580,13 +667,13 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (mediaType.Equals(ContentType.EventStream, StringComparison.OrdinalIgnoreCase))
         {
-            return new SseReader(_message, arenaSource);
+            return new SseReader(_message, arenaSource, readTimeout);
         }
 
         if (mediaType.Equals(ContentType.GraphQLJsonLine, StringComparison.OrdinalIgnoreCase)
             || mediaType.Equals(ContentType.JsonLine, StringComparison.OrdinalIgnoreCase))
         {
-            return new JsonLinesReader(_message, arenaSource);
+            return new JsonLinesReader(_message, arenaSource, readTimeout);
         }
 
         if (requireStreaming)

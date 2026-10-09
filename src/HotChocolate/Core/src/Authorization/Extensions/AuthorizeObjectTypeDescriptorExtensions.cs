@@ -53,7 +53,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     /// Adds authorization to a type.
     /// </summary>
     /// <param name="descriptor">The type descriptor.</param>
-    /// <param name="roles">The roles for which this field shall be accessible.</param>
+    /// <param name="roles">The roles for which this type shall be accessible.</param>
     /// <returns>
     /// Returns the <see cref="IObjectTypeDescriptor"/> for configuration chaining.
     /// </returns>
@@ -73,9 +73,55 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     /// Adds authorization to a type.
     /// </summary>
     /// <param name="descriptor">The type descriptor.</param>
+    /// <param name="roles">The roles for which this type shall be accessible.</param>
     /// <param name="apply">Defines when the authorization policy is invoked.</param>
     /// <returns>
     /// Returns the <see cref="IObjectTypeDescriptor"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectTypeDescriptor Authorize(
+        this IObjectTypeDescriptor descriptor,
+        IReadOnlyList<string> roles,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        return descriptor.Directive(new AuthorizeDirective(roles, apply));
+    }
+
+    /// <summary>
+    /// Adds authorization to a type.
+    /// </summary>
+    /// <param name="descriptor">The type descriptor.</param>
+    /// <param name="policy">The authorization policy name.</param>
+    /// <param name="roles">The roles for which this type shall be accessible.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectTypeDescriptor"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectTypeDescriptor Authorize(
+        this IObjectTypeDescriptor descriptor,
+        string policy,
+        IReadOnlyList<string> roles,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        return descriptor.Directive(new AuthorizeDirective(policy, roles, apply));
+    }
+
+    /// <summary>
+    /// Adds authorization to a type.
+    /// </summary>
+    /// <param name="descriptor">The type descriptor.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectTypeDescriptor{T}"/> for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="descriptor"/> is <c>null</c>.
@@ -96,7 +142,7 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     /// <param name="policy">The authorization policy name.</param>
     /// <param name="apply">Defines when the authorization policy is invoked.</param>
     /// <returns>
-    /// Returns the <see cref="IObjectTypeDescriptor"/> for configuration chaining.
+    /// Returns the <see cref="IObjectTypeDescriptor{T}"/> for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="descriptor"/> is <c>null</c>.
@@ -115,9 +161,9 @@ public static class AuthorizeObjectTypeDescriptorExtensions
     /// Adds authorization to a type.
     /// </summary>
     /// <param name="descriptor">The type descriptor.</param>
-    /// <param name="roles">The roles for which this field shall be accessible.</param>
+    /// <param name="roles">The roles for which this type shall be accessible.</param>
     /// <returns>
-    /// Returns the <see cref="IObjectTypeDescriptor"/> for configuration chaining.
+    /// Returns the <see cref="IObjectTypeDescriptor{T}"/> for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="descriptor"/> is <c>null</c>.
@@ -129,5 +175,51 @@ public static class AuthorizeObjectTypeDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new AuthorizeDirective(roles));
+    }
+
+    /// <summary>
+    /// Adds authorization to a type.
+    /// </summary>
+    /// <param name="descriptor">The type descriptor.</param>
+    /// <param name="roles">The roles for which this type shall be accessible.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectTypeDescriptor{T}"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectTypeDescriptor<T> Authorize<T>(
+        this IObjectTypeDescriptor<T> descriptor,
+        IReadOnlyList<string> roles,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        return descriptor.Directive(new AuthorizeDirective(roles, apply));
+    }
+
+    /// <summary>
+    /// Adds authorization to a type.
+    /// </summary>
+    /// <param name="descriptor">The type descriptor.</param>
+    /// <param name="policy">The authorization policy name.</param>
+    /// <param name="roles">The roles for which this type shall be accessible.</param>
+    /// <param name="apply">Defines when the authorization policy is invoked.</param>
+    /// <returns>
+    /// Returns the <see cref="IObjectTypeDescriptor{T}"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectTypeDescriptor<T> Authorize<T>(
+        this IObjectTypeDescriptor<T> descriptor,
+        string policy,
+        IReadOnlyList<string> roles,
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        return descriptor.Directive(new AuthorizeDirective(policy, roles, apply));
     }
 }

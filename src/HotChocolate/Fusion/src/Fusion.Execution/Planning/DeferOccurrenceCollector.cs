@@ -58,11 +58,15 @@ internal static class DeferOccurrenceCollector
                 if (fieldNode.SelectionSet is { } childSelectionSet)
                 {
                     // Composite fields define the path for child leaves. Only
-                    // leaf fields contribute to delivery group sets.
+                    // leaf fields contribute to delivery group sets. The active
+                    // type condition is recorded on the segment so the composite
+                    // field can be re-wrapped in an inline fragment when it is
+                    // reconstructed under an abstract-typed parent field.
                     var childPath = parentPath.Add(
                         new FieldPathSegment(
                             fieldNode.Name.Value,
-                            fieldNode.Alias?.Value));
+                            fieldNode.Alias?.Value,
+                            parentTypeCondition?.Name.Value));
 
                     CollectOccurrences(
                         childSelectionSet.Selections,

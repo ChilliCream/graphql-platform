@@ -57,7 +57,7 @@ public class DirectiveTypeConfiguration
     /// <summary>
     /// Defines if this directive is deprecated.
     /// </summary>
-    public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
+    public bool IsDeprecated => !string.IsNullOrWhiteSpace(DeprecationReason);
 
     /// <summary>
     /// Gets the list of directives that are annotated to this directive.

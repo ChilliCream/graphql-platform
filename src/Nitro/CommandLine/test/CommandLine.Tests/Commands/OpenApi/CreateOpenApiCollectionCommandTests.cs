@@ -242,6 +242,25 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupCreateOpenApiCollectionMutation(
+            new CreateOpenApiCollectionCommandMutation_CreateOpenApiCollection_Errors_ApiNotFoundError(
+                "API not found", "ApiNotFoundError", ApiId));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "create", "--api-id", ApiId, "--name", OpenApiCollectionName);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task CreateOpenApiCollectionThrows_ReturnsError()
     {
         // arrange
@@ -273,13 +292,6 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
         CreateMutationErrorCases =>
         new()
         {
-            {
-                new CreateOpenApiCollectionCommandMutation_CreateOpenApiCollection_Errors_ApiNotFoundError(
-                    "API not found", "ApiNotFoundError", "api-1"),
-                """
-                API not found
-                """
-            },
             {
                 new CreateOpenApiCollectionCommandMutation_CreateOpenApiCollection_Errors_UnauthorizedOperation(
                     "Not authorized", "UnauthorizedOperation"),

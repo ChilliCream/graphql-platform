@@ -1,0 +1,9 @@
+{
+  "message": "The default value 'MISSING' of argument 'Foo.field(arg:)' is not defined in the enum 'FooEnum'.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "arg",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+  }
+}
+

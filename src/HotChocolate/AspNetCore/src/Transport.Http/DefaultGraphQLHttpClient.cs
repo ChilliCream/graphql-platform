@@ -1,7 +1,6 @@
 // ReSharper disable IntroduceOptionalParameters.Global
 
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
@@ -15,6 +14,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Transport.Http;
 #else
+using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Transport.Serialization;
 
@@ -163,6 +163,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             }
         }
 
+        if (method == GraphQLHttpMethod.Query)
+        {
+            if (request.Body is not OperationRequest)
+            {
+                throw new InvalidOperationException(
+                    HttpResources.DefaultGraphQLHttpClient_QueryBatchNotAllowed);
+            }
+
+            if (request.EnableFileUploads)
+            {
+                throw new NotSupportedException(
+                    HttpResources.DefaultGraphQLHttpClient_QueryFileUploadNotAllowed);
+            }
+        }
+
         var message = new HttpRequestMessage
         {
             Method = method
@@ -199,7 +214,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             }
             else
             {
-                message.Content = CreatePostContent(arrayWriter, request);
+                message.Content = CreateJsonContent(arrayWriter, request);
             }
 
             message.RequestUri = requestUri;
@@ -207,6 +222,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         else if (method == GraphQLHttpMethod.Get)
         {
             message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
+        }
+        else if (method == GraphQLHttpMethod.Query)
+        {
+            message.Content = CreateJsonContent(arrayWriter, request);
+            message.RequestUri = requestUri;
         }
         else
         {
@@ -223,7 +243,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         return message;
     }
 
-    private static ByteArrayContent CreatePostContent(
+    private static ByteArrayContent CreateJsonContent(
         PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
     {
@@ -259,7 +279,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         if (fileEntries.Count == 0)
         {
             arrayWriter.Reset();
-            return CreatePostContent(arrayWriter, request);
+            return CreateJsonContent(arrayWriter, request);
         }
 
         // Group file entries by key so each physical file is written once.
@@ -291,7 +311,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             var fileContent = new StreamContent(file.OpenReadStream());
             if (!string.IsNullOrEmpty(file.ContentType))
             {
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                fileContent.Headers.TryAddWithoutValidation("Content-Type", file.ContentType);
             }
 
             form.Add(fileContent, i.ToString(), file.Name);
@@ -372,7 +392,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         if (fileInfos.Count == 0)
         {
             arrayWriter.Reset();
-            return CreatePostContent(arrayWriter, request);
+            return CreateJsonContent(arrayWriter, request);
         }
 
         var start = arrayWriter.Length;
@@ -394,7 +414,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             var fileContent = new StreamContent(fileInfo.File.OpenRead());
             if (!string.IsNullOrEmpty(fileInfo.File.ContentType))
             {
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(fileInfo.File.ContentType);
+                fileContent.Headers.TryAddWithoutValidation("Content-Type", fileInfo.File.ContentType);
             }
 
             form.Add(fileContent, fileInfo.Name, fileInfo.File.FileName);
@@ -440,21 +460,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(or.Id!));
+            sb.Append(Uri.EscapeDataString(or.Id));
         }
 
-        if (!string.IsNullOrWhiteSpace(or.Query))
+        if (!or.Query.IsEmpty)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(or.Query!));
+            sb.Append(Uri.EscapeDataString(Encoding.UTF8.GetString(or.Query.Span)));
         }
 
         if (!string.IsNullOrWhiteSpace(or.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(or.OperationName!));
+            sb.Append(Uri.EscapeDataString(or.OperationName));
         }
 
         if (or.OnError is { } errorHandlingMode)
@@ -522,21 +542,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(or.Id!));
+            sb.Append(Uri.EscapeDataString(or.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(or.Query))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(or.Query!));
+            sb.Append(Uri.EscapeDataString(or.Query));
         }
 
         if (!string.IsNullOrWhiteSpace(or.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(or.OperationName!));
+            sb.Append(Uri.EscapeDataString(or.OperationName));
         }
 
         if (or.OnError is { } errorHandlingMode)

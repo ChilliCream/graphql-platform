@@ -30,6 +30,12 @@ internal static class OutputFieldDefinitionExtensions
         public bool HasExternalDirective
             => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasExternalDirective;
 
+        public bool HasEventCursorDirective
+            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasEventCursorDirective;
+
+        public bool HasImplementDirective
+            => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasImplementDirective;
+
         public bool HasInternalDirective
             => outputField.Features.GetRequired<SourceOutputFieldMetadata>().HasInternalDirective;
 

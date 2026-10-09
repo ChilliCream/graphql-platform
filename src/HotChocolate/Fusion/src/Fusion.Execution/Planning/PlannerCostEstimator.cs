@@ -147,7 +147,9 @@ internal static class PlannerCostEstimator
 
                     if (inlineFragmentNode.TypeCondition is not null)
                     {
-                        typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+                        typeCondition = schema.Types.GetType(
+                            inlineFragmentNode.TypeCondition.Name.Value,
+                            allowInaccessibleFields: true);
                     }
 
                     CollectSpilloverSchemas(

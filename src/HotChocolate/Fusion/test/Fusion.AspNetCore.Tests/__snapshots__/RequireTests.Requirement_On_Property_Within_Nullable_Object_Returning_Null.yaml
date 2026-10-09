@@ -36,47 +36,26 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_b05a9c48_3($__fusion_3_id: ID!) {
-                  productById(id: $__fusion_3_id) {
-                    nullableObject {
-                      field
-                    }
-                  }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_b05a9c48_3($__fusion_3_id: ID!) {
+              productById(id: $__fusion_3_id) {
+                nullableObject {
+                  field
                 }
-              variables: |
-                {
-                  "__fusion_3_id": "1"
-                }
-            - document: |
-                query Op_b05a9c48_4($__fusion_4_id: ID!) {
-                  productById(id: $__fusion_4_id) {
-                    id
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_4_id": "1"
-                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "1"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "productById": {
                     "nullableObject": null
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "id": "1"
                   }
                 }
               }
@@ -146,11 +125,11 @@ operationPlan:
             fieldWithNullableRequirement
             id @fusion__requirement
             nullableObject @fusion__requirement {
-              field
+              field @fusion__requirement
             }
           }
         }
-      hash: b05a9c488c79e334decd9cae59fb7892
+      hash: ef5871ef4c5445fe7bcf159492376ab0
       searchSpace: 2
       expandedNodes: 6
   nodes:
@@ -182,6 +161,7 @@ operationPlan:
           selectionMap: >-
             id
       dependencies:
+        - id: 1
         - id: 3
     - id: 3
       type: Operation
@@ -196,27 +176,8 @@ operationPlan:
         }
       source: $.productById
       target: $.productById
-      batchingGroupId: 3
       requirements:
         - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: A
-      operation: |
-        query Op_b05a9c48_4($__fusion_4_id: ID!) {
-          productById(id: $__fusion_4_id) {
-            id
-          }
-        }
-      source: $.productById
-      target: $.productById
-      batchingGroupId: 3
-      requirements:
-        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:

@@ -11,6 +11,9 @@
     <ProjectReference Include="..\..\src\Subscriptions.RabbitMQ\HotChocolate.Subscriptions.RabbitMQ.csproj" />
     <ProjectReference Include="..\Subscriptions.Tests\HotChocolate.Subscriptions.Tests.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
+    <ProjectReference
+      Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.RabbitMQ\CookieCrumble.Resources.RabbitMQ.csproj"
+    />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +27,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Squadron.RabbitMQ" />
   </ItemGroup>
 
 </Project>

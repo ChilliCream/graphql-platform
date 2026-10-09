@@ -13,6 +13,29 @@ namespace HotChocolate.Fusion.Execution;
 public sealed class OperationExecutionNodeTests : FusionTestBase
 {
     [Fact]
+    public async Task ExecuteAsync_Should_Succeed_When_SourceSchemaReturnsNoResults()
+    {
+        // arrange
+        var client = new EmptyQueryClient();
+        var executor = await CreateExecutorAsync(client, SupportedOperationType.Query);
+        var request = CreateQueryRequest();
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Data.HasValue);
+
+        if (operationResult.Errors is { } errors)
+        {
+            Assert.Empty(errors);
+        }
+    }
+
+    [Fact]
     public async Task MoveNextAsync_Should_DisposeEventArena_When_EventFailsAfterArenaMinted()
     {
         // arrange
@@ -28,13 +51,37 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasResult = await enumerator.MoveNextAsync();
+        Assert.True(hasResult);
+        var errorResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
+        var hasNextResult = await enumerator.MoveNextAsync();
 
         // assert
-        var arena = Assert.IsType<MemoryArena>(mintedArena);
-        Assert.False(hasResult);
-        Assert.Throws<ObjectDisposedException>(() => arena.Rent(1));
-        Assert.Equal(0, arena.RentedPageCount);
+        try
+        {
+            // the failure surfaces as one terminal error result and then the stream ends;
+            // the arena minted during the failed iteration was never bound, so the enumerator owns and releases it
+            var arena = (MemoryArena)mintedArena;
+            var exception = errorResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(errorResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasNextResult,
+                        ArenaRentExceptionType = Record.Exception(() => arena.Rent(1))?.GetType().Name,
+                        ArenaRentedPageCount = arena.RentedPageCount
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
+        }
+        finally
+        {
+            await errorResult.DisposeAsync();
+        }
     }
 
     [Fact]
@@ -53,25 +100,45 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasFirstResult = await enumerator.MoveNextAsync();
+        Assert.True(hasFirstResult);
         var firstResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
         var hasSecondResult = await enumerator.MoveNextAsync();
+        Assert.True(hasSecondResult);
+        var secondResult = enumerator.Current;
+        var hasThirdResult = await enumerator.MoveNextAsync();
 
         // assert
         try
         {
-            var firstArena = Assert.IsType<MemoryArena>(mintedArena);
-            Assert.True(hasFirstResult);
-            Assert.False(hasSecondResult);
-            Assert.False(firstArena.IsDisposed);
+            // the delivered event arrives, then one terminal error result, then the stream ends;
+            // the arena bound to the delivered event is still owned by that result
+            var firstArena = (MemoryArena)mintedArena;
+            var exception = secondResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(secondResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasThirdResult,
+                        FirstEventArenaDisposed = firstArena.IsDisposed
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
         }
         finally
         {
             await firstResult.DisposeAsync();
+            await secondResult.DisposeAsync();
         }
     }
 
-    private static async Task<IRequestExecutor> CreateExecutorAsync(ISourceSchemaClient client)
+    private static async Task<IRequestExecutor> CreateExecutorAsync(
+        ISourceSchemaClient client,
+        SupportedOperationType supportedOperations = SupportedOperationType.Subscription)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -97,10 +164,20 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         FusionSetupUtilities.Configure(
             builder,
             setup => setup.ClientConfigurationModifiers.Add(
-                _ => new TestSubscriptionClientConfiguration("events")));
+                _ => new TestSubscriptionClientConfiguration("events", supportedOperations)));
 
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
     }
+
+    private static IOperationRequest CreateQueryRequest()
+        => OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query {
+                  field
+                }
+                """)
+            .Build();
 
     private static IOperationRequest CreateSubscriptionRequest()
         => OperationRequestBuilder.New()
@@ -116,7 +193,7 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
     {
         public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
 
-        public IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+        public virtual IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
             OperationPlanContext context,
             SourceSchemaClientRequest request,
             CancellationToken cancellationToken)
@@ -134,6 +211,24 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             CancellationToken cancellationToken);
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class EmptyQueryClient : TestSubscriptionClient
+    {
+        public override async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            yield break;
+        }
+
+        public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
     }
 
     private sealed class ThrowingSubscriptionClient : TestSubscriptionClient
@@ -196,11 +291,13 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             => client;
     }
 
-    private sealed class TestSubscriptionClientConfiguration(string name)
+    private sealed class TestSubscriptionClientConfiguration(
+        string name,
+        SupportedOperationType supportedOperations)
         : ISourceSchemaClientConfiguration
     {
         public string Name { get; } = name;
 
-        public SupportedOperationType SupportedOperations => SupportedOperationType.Subscription;
+        public SupportedOperationType SupportedOperations { get; } = supportedOperations;
     }
 }

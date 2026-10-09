@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
@@ -8,38 +9,45 @@ using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
 
-internal sealed class ActivityExecutionDiagnosticListener(
-    ActivityEnricher enricher,
-    InstrumentationOptions options) : ExecutionDiagnosticEventListener
+internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
 {
     private const string ResolveFieldSpanKey = "HotChocolate.Diagnostics.ResolveFieldSpan";
 
-    private static readonly AsyncLocal<SubscriptionEventSpan?> s_currentSubscriptionEventSpan =
-        new();
+    private static readonly AsyncLocal<SubscriptionEventSpan?> s_currentSubscriptionEventSpan = new();
+    private readonly ActivityEnricher _enricher;
+    private readonly InstrumentationOptions _options;
 
-    public override bool EnableResolveFieldValue => options.EnableResolveFieldValue;
+    public ActivityExecutionDiagnosticListener(
+        ActivityEnricher enricher,
+        InstrumentationOptions options)
+    {
+        _enricher = enricher;
+        _options = options;
+    }
+
+    public override bool EnableResolveFieldValue => _options.EnableResolveFieldValue;
 
     public override IDisposable ExecuteRequest(RequestContext context)
     {
         Activity? httpContextActivity = null;
 
-        if (options.SkipExecuteRequest)
+        if (_options.SkipExecuteRequest)
         {
-            if (!options.SkipExecuteHttpRequest
-                && context.Features.TryGet<HttpContext>(out var httpContext)
-                && httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
-            {
-                httpContextActivity = httpRequestSpan.Activity;
-            }
-            else
+            if (_options.SkipExecuteHttpRequest
+                || !context.Features.TryGet<HttpContext>(out var httpContext))
             {
                 return EmptyScope;
+            }
+
+            if (httpContext.Features.Get<ExecuteHttpRequestSpan>() is { IsBatch: false } httpRequestSpan)
+            {
+                httpContextActivity = httpRequestSpan.Activity;
             }
         }
 
         var span = httpContextActivity is not null
-            ? new ExecuteRequestSpan(httpContextActivity, context, options, enricher, false)
-            : ExecuteRequestSpan.Start(Source, context, options, enricher);
+            ? new ExecuteRequestSpan(httpContextActivity, context, _options, _enricher, false)
+            : ExecuteRequestSpan.Start(Source, context, _options, _enricher);
 
         if (span is null)
         {
@@ -53,6 +61,18 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
     public override void RequestError(RequestContext context, Exception error)
     {
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) surfaces here as an OperationCanceledException. Per the
+        // OpenTelemetry semantic conventions this is not an error, so the span
+        // is left Unset with no error.type and no exception event. Server-side
+        // execution timeouts never reach RequestError as an exception (the
+        // timeout middleware turns them into an HC0045 result), so only genuine
+        // client cancellations are filtered out here.
+        if (error is OperationCanceledException)
+        {
+            return;
+        }
+
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             var activity = span.Activity;
@@ -61,7 +81,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.AddException(error);
             activity.SetErrorType(error);
 
-            enricher.EnrichRequestError(context, error, activity);
+            _enricher.EnrichRequestError(context, error, activity);
         }
     }
 
@@ -74,30 +94,30 @@ internal sealed class ActivityExecutionDiagnosticListener(
             activity.SetStatus(ActivityStatusCode.Error);
             activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
-            enricher.EnrichRequestError(context, error, activity);
+            _enricher.EnrichRequestError(context, error, activity);
         }
     }
 
     public override IDisposable ParseDocument(RequestContext context)
     {
-        if (options.SkipParseDocument)
+        if (_options.SkipParseDocument)
         {
             return EmptyScope;
         }
 
-        var span = ParsingSpan.Start(Source, context, enricher);
+        var span = ParsingSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
 
     public override IDisposable ValidateDocument(RequestContext context)
     {
-        if (options.SkipValidateDocument)
+        if (_options.SkipValidateDocument)
         {
             return EmptyScope;
         }
 
-        var span = ValidationSpan.Start(Source, context, enricher);
+        var span = ValidationSpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -133,17 +153,17 @@ internal sealed class ActivityExecutionDiagnosticListener(
             }
         }
 
-        enricher.EnrichValidationErrors(context, errors, activity);
+        _enricher.EnrichValidationErrors(context, errors, activity);
     }
 
     public override IDisposable AnalyzeOperationCost(RequestContext context)
     {
-        if (options.SkipAnalyzeComplexity)
+        if (_options.SkipAnalyzeComplexity)
         {
             return EmptyScope;
         }
 
-        var span = AnalyzeOperationComplexitySpan.Start(Source, context, enricher);
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -167,24 +187,39 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
     public override IDisposable CompileOperation(RequestContext context)
     {
-        if (options.SkipCompileOperation)
+        if (_options.SkipCompileOperation)
         {
             return EmptyScope;
         }
 
-        var span = CompileOperationSpan.Start(Source, context, enricher);
+        var span = CompileOperationSpan.Start(Source, context, _enricher);
 
         return span ?? EmptyScope;
     }
 
     public override IDisposable CoerceVariables(RequestContext context)
     {
-        if (options.SkipCoerceVariables)
+        if (_options.SkipCoerceVariables)
         {
             return EmptyScope;
         }
 
-        if (!context.TryGetOperation(out var operation))
+        OperationType operationType;
+        string? operationName;
+
+        if (context.OperationDocumentInfo.NormalizedDocument
+            is { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+        }
+        else if (context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && document.TryGetOperationDefinition(context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
+        }
+        else
         {
             return EmptyScope;
         }
@@ -192,16 +227,16 @@ internal sealed class ActivityExecutionDiagnosticListener(
         var span = VariableCoercionSpan.Start(
             Source,
             context,
-            operation.Kind,
-            operation.Name,
-            enricher);
+            operationType,
+            operationName,
+            _enricher);
 
         return span ?? EmptyScope;
     }
 
     public override IDisposable ExecuteOperation(RequestContext context)
     {
-        if (options.SkipExecuteOperation)
+        if (_options.SkipExecuteOperation)
         {
             return EmptyScope;
         }
@@ -216,19 +251,19 @@ internal sealed class ActivityExecutionDiagnosticListener(
             context,
             operation.Kind,
             operation.Name,
-            enricher);
+            _enricher);
 
         return span ?? EmptyScope;
     }
 
     public override IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
-        if (options.SkipResolveFieldValue)
+        if (_options.SkipResolveFieldValue)
         {
             return EmptyScope;
         }
 
-        var span = ResolveFieldSpan.Start(Source, context, enricher);
+        var span = ResolveFieldSpan.Start(Source, context, _enricher);
 
         if (span is null)
         {
@@ -251,7 +286,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
                 ActivityExtensions.ExecutionErrorType,
                 preferException: true);
 
-            enricher.EnrichResolverError(context, error, span.Activity);
+            _enricher.EnrichResolverError(context, error, span.Activity);
         }
 
         // For subscription operations, the per-event errors are not visible to
@@ -313,7 +348,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        enricher.EnrichOnSubscriptionEvent(context, subscriptionId, span.Activity);
+        _enricher.EnrichOnSubscriptionEvent(context, subscriptionId, span.Activity);
 
         s_currentSubscriptionEventSpan.Value = span;
 
@@ -325,6 +360,26 @@ internal sealed class ActivityExecutionDiagnosticListener(
         ulong subscriptionId,
         Exception exception)
     {
+        // A subscription event can be cancelled for two very different reasons:
+        // the caller intentionally dropped the connection (client abort) or the
+        // event exceeded its server-side execution budget (per-event timeout).
+        // Only the latter is an error.
+        //
+        // Both surface as an OperationCanceledException, but they differ in the
+        // token that fired: a client abort cancels the request itself
+        // (RequestAborted), whereas a per-event timeout cancels an internal,
+        // per-event source while leaving the request abort untouched. Crucially,
+        // the request-level timeout token is released once the subscription
+        // stream is established, so RequestAborted only ever signals a genuine
+        // caller cancellation for a running subscription. We therefore treat a
+        // cancellation as a client abort only when the request was aborted,
+        // leaving the span Unset per the OpenTelemetry semantic conventions.
+        if (exception is OperationCanceledException
+            && context.RequestAborted.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (Activity.Current is { } activity)
         {
             activity.SetStatus(ActivityStatusCode.Error);
@@ -361,7 +416,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
             }
 
             span.Activity.AddEvent(new ActivityEvent(nameof(DocumentNotFoundInStorage), default, tags));
-            enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
+            _enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
         }
     }
 
@@ -370,7 +425,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(UntrustedDocumentRejected)));
-            enricher.EnrichUntrustedDocumentRejected(context, span.Activity);
+            _enricher.EnrichUntrustedDocumentRejected(context, span.Activity);
         }
     }
 
@@ -379,7 +434,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedDocumentToCache)));
-            enricher.EnrichAddedDocumentToCache(context, span.Activity);
+            _enricher.EnrichAddedDocumentToCache(context, span.Activity);
         }
     }
 
@@ -388,7 +443,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedOperationToCache)));
-            enricher.EnrichAddedOperationToCache(context, span.Activity);
+            _enricher.EnrichAddedOperationToCache(context, span.Activity);
         }
     }
 

@@ -1,0 +1,82 @@
+type Query {
+  viewer: Viewer
+  productById(id: ID!): Product
+  products(first: Int, after: String, last: Int, before: String): ProductConnection
+  productBySlug(slug: String!): Product
+  reviewById(id: ID!): Review
+}
+
+type Viewer {
+  displayName: String!
+  reviews(first: Int, after: String, last: Int, before: String): ProductReviewConnection
+}
+
+type Product  {
+  id: ID!
+  name: String!
+  description: String
+  price: Float!
+  dimension: ProductDimension!
+  averageRating: Int!
+  reviews(first: Int, after: String, last: Int, before: String): ProductReviewConnection
+  estimatedDelivery(postCode: String): Int!
+}
+
+type ProductDimension {
+  height: Int!
+  width: Int!
+}
+
+type Review {
+  id: ID!
+  body: String!
+  stars: Int!
+  author: UserProfile
+  product: Product
+}
+
+type UserProfile {
+  id: ID!
+  displayName: String!
+  reviews(first: Int, after: String, last: Int, before: String): UserProfileReviewConnection
+}
+
+type ProductReviewConnection {
+  pageInfo: PageInfo!
+  edges: [ProductReviewEdge!]
+  nodes: [Review!]
+}
+
+type ProductReviewEdge {
+  cursor: String!
+  node: Review!
+}
+
+type UserProfileReviewConnection {
+  pageInfo: PageInfo!
+  edges: [UserProfileReviewEdge!]
+  nodes: [Review!]
+}
+
+type UserProfileReviewEdge {
+  cursor: String!
+  node: Review!
+}
+
+type ProductConnection {
+  pageInfo: PageInfo!
+  edges: [ProductEdge!]
+  nodes: [Product!]
+}
+
+type ProductEdge {
+  cursor: String!
+  node: Product!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}

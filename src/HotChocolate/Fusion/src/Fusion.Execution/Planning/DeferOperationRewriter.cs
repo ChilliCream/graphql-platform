@@ -14,6 +14,20 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal sealed class DeferOperationRewriter
 {
+    /// <summary>
+    /// A <c>__typename</c> placeholder that keeps a selection set valid when all of its
+    /// fields are deferred. The <c>fusion__empty</c> directive marks it as synthetic,
+    /// as opposed to a <c>__typename</c> the client selected.
+    /// </summary>
+    private static readonly FieldNode s_placeholderTypeNameField =
+        new(
+            null,
+            new NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [new DirectiveNode("fusion__empty")],
+            ImmutableArray<ArgumentNode>.Empty,
+            null);
+
     private readonly bool _inlineUnlabeledNestedDefers;
 
     internal DeferOperationRewriter(bool inlineUnlabeledNestedDefers = true)
@@ -186,7 +200,7 @@ internal sealed class DeferOperationRewriter
         return operation.WithSelectionSet(newRoot);
     }
 
-    private SelectionSetNode StripDeferFromSelectionSet(
+    private static SelectionSetNode StripDeferFromSelectionSet(
         SelectionSetNode selectionSet,
         IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment)
     {
@@ -270,7 +284,7 @@ internal sealed class DeferOperationRewriter
 
         if (selections.Count == 0)
         {
-            selections.Add(new FieldNode("__typename"));
+            selections.Add(s_placeholderTypeNameField);
         }
 
         return new SelectionSetNode(selections);
@@ -303,10 +317,119 @@ internal sealed class DeferOperationRewriter
             rootOperation.SelectionSet,
             parentPath: []);
 
+        var usedVariables = new HashSet<string>(StringComparer.Ordinal);
+        CollectUsedVariables(rootSelectionSet, usedVariables);
+
+        var variableDefinitions = rootOperation.VariableDefinitions;
+
+        if (usedVariables.Count == 0)
+        {
+            variableDefinitions = [];
+        }
+        else
+        {
+            var kept = new List<VariableDefinitionNode>(usedVariables.Count);
+
+            foreach (var variableDefinition in rootOperation.VariableDefinitions)
+            {
+                if (usedVariables.Contains(variableDefinition.Variable.Name.Value))
+                {
+                    kept.Add(variableDefinition);
+                }
+            }
+
+            if (kept.Count != rootOperation.VariableDefinitions.Count)
+            {
+                variableDefinitions = kept;
+            }
+        }
+
+        // The incremental plan operation keeps the root operation's own type (Query,
+        // Mutation, or Subscription); it serves only as a result skeleton for
+        // BuildIncrementalPlans and OperationPlanExecutor.CreateDeliveryPath.
         return rootOperation
-            .WithOperation(OperationType.Query)
             .WithDirectives([])
+            .WithVariableDefinitions(variableDefinitions)
             .WithSelectionSet(rootSelectionSet);
+    }
+
+    /// <summary>
+    /// Collects the names of all variables referenced by field arguments and
+    /// directives within <paramref name="selectionSet"/>.
+    /// </summary>
+    private static void CollectUsedVariables(SelectionSetNode selectionSet, HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            switch (selectionSet.Selections[i])
+            {
+                case FieldNode field:
+                    CollectUsedVariables(field.Arguments, usedVariables);
+                    CollectUsedVariables(field.Directives, usedVariables);
+
+                    if (field.SelectionSet is not null)
+                    {
+                        CollectUsedVariables(field.SelectionSet, usedVariables);
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    CollectUsedVariables(inlineFragment.Directives, usedVariables);
+                    CollectUsedVariables(inlineFragment.SelectionSet, usedVariables);
+                    break;
+
+                case FragmentSpreadNode fragmentSpread:
+                    CollectUsedVariables(fragmentSpread.Directives, usedVariables);
+                    break;
+            }
+        }
+    }
+
+    private static void CollectUsedVariables(
+        IReadOnlyList<DirectiveNode> directives,
+        HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            CollectUsedVariables(directives[i].Arguments, usedVariables);
+        }
+    }
+
+    private static void CollectUsedVariables(
+        IReadOnlyList<ArgumentNode> arguments,
+        HashSet<string> usedVariables)
+    {
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            CollectUsedVariables(arguments[i].Value, usedVariables);
+        }
+    }
+
+    private static void CollectUsedVariables(IValueNode value, HashSet<string> usedVariables)
+    {
+        switch (value)
+        {
+            case VariableNode variable:
+                usedVariables.Add(variable.Name.Value);
+                break;
+
+            case ListValueNode listValue:
+                for (var i = 0; i < listValue.Items.Count; i++)
+                {
+                    CollectUsedVariables(listValue.Items[i], usedVariables);
+                }
+
+                break;
+
+            case ObjectValueNode objectValue:
+                for (var i = 0; i < objectValue.Fields.Count; i++)
+                {
+                    CollectUsedVariables(objectValue.Fields[i].Value, usedVariables);
+                }
+
+                break;
+        }
     }
 
     private static SelectionSetNode BuildSelectionSetFromPathNode(
@@ -353,10 +476,7 @@ internal sealed class DeferOperationRewriter
                 }
             }
 
-            foreach (var field in unconditional)
-            {
-                selections.Add(field);
-            }
+            selections.AddRange(unconditional);
 
             foreach (var (_, bucketEntry) in byTypeCondition)
             {
@@ -373,7 +493,7 @@ internal sealed class DeferOperationRewriter
         // syntactically valid query against the root schema.
         foreach (var (segment, childNode) in node.Children)
         {
-            var wrappingField = ResolveWrappingField(originalSelectionSet, segment)
+            var wrappingField = ResolveWrappingField(originalSelectionSet, segment, activeTypeCondition: null)
                 ?? throw new InvalidOperationException(
                     $"Unable to resolve wrapping field for '{segment.ResponseName}' at path '{FormatPath(parentPath)}'.");
 
@@ -384,18 +504,34 @@ internal sealed class DeferOperationRewriter
             var childParentPath = parentPath.Add(segment);
             var nestedSelectionSet = BuildSelectionSetFromPathNode(childNode, childSelectionSet, childParentPath);
 
-            selections.Add(new FieldNode(
+            var childField = new FieldNode(
                 null,
                 wrappingField.Name,
                 wrappingField.Alias,
                 wrappingField.Directives,
                 wrappingField.Arguments,
-                nestedSelectionSet));
+                nestedSelectionSet);
+
+            // A composite field selected under a type condition is re-wrapped in
+            // an `... on Type` inline fragment so the reconstructed operation stays
+            // valid when its enclosing field returns an abstract type.
+            if (segment.TypeCondition is { } typeConditionName)
+            {
+                selections.Add(new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(typeConditionName),
+                    [],
+                    new SelectionSetNode([childField])));
+            }
+            else
+            {
+                selections.Add(childField);
+            }
         }
 
         if (selections.Count == 0)
         {
-            selections.Add(new FieldNode("__typename"));
+            selections.Add(s_placeholderTypeNameField);
         }
 
         return new SelectionSetNode(selections);
@@ -403,8 +539,15 @@ internal sealed class DeferOperationRewriter
 
     private static FieldNode? ResolveWrappingField(
         SelectionSetNode selectionSet,
-        FieldPathSegment segment)
+        FieldPathSegment segment,
+        string? activeTypeCondition)
     {
+        // The segment records the type condition that was active when the field
+        // was collected. Sibling type-condition branches can reuse the same
+        // response name for divergent composite selections, so the wrapping
+        // field is only a match when the type condition it sits under matches
+        // the one recorded on the segment. Matching by response name alone would
+        // resolve against the wrong branch and drop its nested selections.
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
             var selection = selectionSet.Selections[i];
@@ -413,7 +556,8 @@ internal sealed class DeferOperationRewriter
             {
                 var responseName = field.Alias?.Value ?? field.Name.Value;
 
-                if (responseName.Equals(segment.ResponseName, StringComparison.Ordinal))
+                if (responseName.Equals(segment.ResponseName, StringComparison.Ordinal)
+                    && string.Equals(activeTypeCondition, segment.TypeCondition, StringComparison.Ordinal))
                 {
                     return field;
                 }
@@ -421,7 +565,8 @@ internal sealed class DeferOperationRewriter
 
             if (selection is InlineFragmentNode inline)
             {
-                var nested = ResolveWrappingField(inline.SelectionSet, segment);
+                var nestedTypeCondition = inline.TypeCondition?.Name.Value ?? activeTypeCondition;
+                var nested = ResolveWrappingField(inline.SelectionSet, segment, nestedTypeCondition);
 
                 if (nested is not null)
                 {

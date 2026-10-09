@@ -4,6 +4,8 @@ namespace HotChocolate.Fusion.Planning;
 
 internal abstract record WorkItem
 {
+    public SourceSchemaNodePlanningPolicy? SourceSchemaNodePolicy { get; init; }
+
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
     /// <summary>

@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
@@ -42,6 +43,74 @@ public sealed class SourceSchemaParserTests
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
         Assert.Equal("A", result.Value.Name);
+    }
+
+    [Fact]
+    public void Parse_FederationRequiresWithoutDefinition_IsRecognized()
+    {
+        // arrange
+        // a federation subgraph that applies @requires without declaring the directive
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                extend schema
+                    @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+                type Query {
+                    product: Product
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    price: Float @external
+                    shippingEstimate: Float @requires(fields: "price")
+                }
+                """);
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+        var requiresDefinition = result.Value.DirectiveDefinitions["requires"];
+        Assert.IsNotType<MissingDirectiveDefinition>(requiresDefinition);
+    }
+
+    [Fact]
+    public void Parse_NonFederationRequires_ReportsUndefinedDirective()
+    {
+        // arrange
+        // a non-federation source schema that applies @requires must not have it recognized
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    product: Product
+                }
+
+                type Product {
+                    id: ID!
+                    price: Float
+                    shippingEstimate: Float @requires(fields: "price")
+                }
+                """);
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal("HCV0026", entry.Code);
     }
 
     [Fact]
@@ -455,5 +524,149 @@ public sealed class SourceSchemaParserTests
             "The Object type 'Empty' must define one or more fields. (Schema: 'A')",
             entry.Message);
         Assert.Equal("HCV0001", entry.Code);
+    }
+
+    [Fact]
+    public void Parse_Should_ReportUndefinedRootType_When_SchemaDefinitionNamesMissingType()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                schema {
+                    query: Query
+                }
+
+                type Receipt {
+                    id: ID!
+                    total: Int
+                }
+                """);
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(
+            "Invalid GraphQL in source schema. Exception message: "
+            + "The query root type 'Query' is not defined..",
+            entry.Message);
+        Assert.Equal("A", entry.Schema?.Name);
+    }
+
+    [Fact]
+    public void Parse_Should_Succeed_When_EarlierSchemaOnSharedLogFailed()
+    {
+        // arrange
+        var log = new CompositionLog();
+        new SourceSchemaParser(new SourceSchemaText("A", "type Query {"), log).Parse();
+        var parser = new SourceSchemaParser(new SourceSchemaText("B", "type Query { ping: String }"), log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var entry = Assert.Single(log);
+        Assert.Equal("A", entry.Schema?.Name);
+    }
+
+    [Fact]
+    public void Parse_Should_RunSchemaValidation_When_EarlierSchemaOnSharedLogFailed()
+    {
+        // arrange
+        var log = new CompositionLog();
+        new SourceSchemaParser(new SourceSchemaText("A", "type Query {"), log).Parse();
+        var parser = new SourceSchemaParser(new SourceSchemaText("B", "type Empty { }"), log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.Collection(
+            log,
+            entry =>
+            {
+                Assert.Equal("INVALID_GRAPHQL", entry.Code);
+                Assert.Equal("A", entry.Schema?.Name);
+            },
+            entry =>
+            {
+                Assert.Equal("HCV0001", entry.Code);
+                Assert.Equal("B", entry.Schema?.Name);
+                Assert.Equal(
+                    "The Object type 'Empty' must define one or more fields. (Schema: 'B')",
+                    entry.Message);
+            });
+    }
+
+    [Fact]
+    public void Parse_Should_PreserveBlockStringBackslashes_When_DescriptionContainsThem()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """"
+                type Query {
+                    """
+                    Matches ^[A-Z]{2}-\d{4}$
+                    Literal sequences: \n and \\
+                    """
+                    code: String
+                }
+                """");
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+        result.Value.QueryType!.Fields["code"].Description.MatchInlineSnapshot(
+            """
+            Matches ^[A-Z]{2}-\d{4}$
+            Literal sequences: \n and \\
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_ReportUndefinedUnionMemberType_When_UnionNamesMissingType()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    thing: Thing
+                }
+
+                union Thing = Widget
+                """);
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(
+            "Invalid GraphQL in source schema. Exception message: "
+            + "The Union type 'Thing' cannot include the undefined type 'Widget'..",
+            entry.Message);
+        Assert.Equal("A", entry.Schema?.Name);
     }
 }

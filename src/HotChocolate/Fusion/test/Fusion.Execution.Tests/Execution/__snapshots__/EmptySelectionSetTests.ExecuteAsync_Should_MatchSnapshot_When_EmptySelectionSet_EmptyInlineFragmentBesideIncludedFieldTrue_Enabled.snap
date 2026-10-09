@@ -1,0 +1,13 @@
+{
+  "data": {
+    "me": {
+      "name": "Luke"
+    }
+  }
+}
+--- source requests ---
+query Op_ac3bcf2a_1($v: Boolean!) {
+  me {
+    name @include(if: $v)
+  }
+}

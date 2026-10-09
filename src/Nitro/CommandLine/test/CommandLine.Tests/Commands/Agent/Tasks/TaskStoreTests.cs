@@ -1,0 +1,1613 @@
+using System.Data.Common;
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Time.Testing;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
+
+/// <summary>
+/// Tests <see cref="TaskStore"/> queries, state transitions, dependencies,
+/// and audit events against a real SQLite workspace.
+/// </summary>
+public sealed class TaskStoreTests : IAsyncDisposable
+{
+    private readonly DirectoryInfo _tempRoot;
+    private readonly string _workingDirectory;
+    private readonly FakeTimeProvider _timeProvider;
+    private readonly TaskStore _store;
+
+    public TaskStoreTests()
+    {
+        _tempRoot = Directory.CreateTempSubdirectory("nitro-task-store-tests");
+        _workingDirectory = Path.Combine(_tempRoot.FullName, "acme");
+        Directory.CreateDirectory(_workingDirectory);
+
+        _timeProvider = new FakeTimeProvider(
+            new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
+
+        _store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.CompletedTask;
+        _tempRoot.Delete(recursive: true);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_DefaultFilter_ExcludesClosedAndTombstone()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 1);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 0);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Tombstone, priority: 0);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(new TaskFilter(), cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_IncludeAll_ReturnsEverything()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 1);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { IncludeAll = true }, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-2", "acme-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_DefaultFilter_ExcludesArchived()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 1);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Archived, priority: 0);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(new TaskFilter(), cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_IncludeAll_StillExcludesArchived()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 1);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Archived, priority: 0);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { IncludeAll = true }, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-2", "acme-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_IncludeAllAndIncludeArchived_ReturnsArchivedTasks()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 1);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Archived, priority: 0);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { IncludeAll = true, IncludeArchived = true }, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-3", "acme-2", "acme-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_StatusClosed_ExcludesArchived()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Closed, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Archived, priority: 1);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_StatusArchivedExplicit_ReturnsArchivedTasks()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Closed, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Archived, priority: 1);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Archived] }, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-2", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_Labels_MatchesAllGivenLabels()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertLabelAsync(connection, "acme-1", "backend");
+        await InsertLabelAsync(connection, "acme-1", "urgent");
+        await InsertLabelAsync(connection, "acme-2", "backend");
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { Labels = ["backend", "urgent"] }, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_Text_MatchesAcrossTextColumns()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, title: "Fix the parser");
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2, title: "Unrelated");
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { Text = "parser" }, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryTasksAsync_ExcludeBlocked_FiltersInMemoryAndAppliesLimitAfterward()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1", "acme-3", TaskDependencyTypes.Blocks);
+
+        // act
+        var tasks = await _store.QueryTasksAsync(
+            new TaskFilter { ExcludeBlocked = true }, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-2", "acme-3"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task GetStatsAsync_ComputesReadyAndBlockedCounts()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Closed, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1", "acme-2", TaskDependencyTypes.Blocks);
+        await InsertLabelAsync(connection, "acme-1", "backend");
+        await InsertCommentAsync(connection, "acme-1", "note");
+
+        // act
+        var stats = await _store.GetStatsAsync(cancellationToken);
+
+        // assert
+        Assert.Equal(1, stats.ReadyCount);
+        Assert.Equal(["acme-1"], stats.BlockedTaskStatuses.Keys);
+        Assert.Equal(1, stats.LabelCount);
+        Assert.Equal(1, stats.CommentCount);
+    }
+
+    [Fact]
+    public async Task CountTasksByAsync_Priority_GroupsAndFormatsAsPCode()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 0);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 0);
+        await InsertTaskAsync(connection, "acme-3", status: TaskStates.Open, priority: 1);
+
+        // act
+        var counts = await _store.CountTasksByAsync(TaskCountDimension.Priority, cancellationToken);
+
+        // assert
+        Assert.Equal(
+            [new TaskCount("P0", 2), new TaskCount("P1", 1)],
+            counts);
+    }
+
+    [Fact]
+    public async Task GetEpicStatusesAsync_CountsNonTombstoneChildren()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-1.1", status: TaskStates.Closed, priority: 2);
+        await InsertTaskAsync(connection, "acme-1.2", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+        await InsertDependencyAsync(connection, "acme-1.2", "acme-1", TaskDependencyTypes.ParentChild);
+
+        // act
+        var epics = await _store.GetEpicStatusesAsync(cancellationToken);
+
+        // assert
+        var epic = Assert.Single(epics);
+        Assert.Equal("acme-1", epic.Id);
+        Assert.Equal(2, epic.Total);
+        Assert.Equal(1, epic.Closed);
+        Assert.False(epic.IsEligibleForClose);
+    }
+
+    [Fact]
+    public async Task GetDependencyEdgesAsync_ReturnsEveryEdgeWithTimestamp()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1", "acme-2", TaskDependencyTypes.Blocks);
+
+        // act
+        var edges = await _store.GetDependencyEdgesAsync(cancellationToken);
+
+        // assert
+        var edge = Assert.Single(edges);
+        Assert.Equal("acme-1", edge.TaskId);
+        Assert.Equal("acme-2", edge.DependsOnId);
+        Assert.Equal(_timeProvider.GetUtcNow(), edge.CreatedAt);
+    }
+
+    [Fact]
+    public async Task GetCommentsAsync_ParsesTimestampAndOrders()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertCommentAsync(connection, "acme-1", "first");
+        await InsertCommentAsync(connection, "acme-1", "second");
+
+        // act
+        var comments = await _store.GetCommentsAsync("acme-1", cancellationToken);
+
+        // assert
+        Assert.Equal(["first", "second"], comments.Select(c => c.Text));
+        Assert.All(comments, c => Assert.Equal(_timeProvider.GetUtcNow(), c.CreatedAt));
+    }
+
+    [Fact]
+    public async Task GetDependenciesAndDependentsAsync_JoinTargetStatusAndTitle()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, title: "Root");
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 2, title: "Target");
+        await InsertDependencyAsync(connection, "acme-1", "acme-2", TaskDependencyTypes.Blocks);
+
+        // act
+        var dependencies = await _store.GetDependenciesAsync("acme-1", cancellationToken);
+        var dependents = await _store.GetDependentsAsync("acme-2", cancellationToken);
+
+        // assert
+        var dependency = Assert.Single(dependencies);
+        Assert.Equal("acme-2", dependency.DependsOnId);
+        Assert.Equal(TaskStates.Closed, dependency.Status);
+        Assert.Equal("Target", dependency.Title);
+
+        var dependent = Assert.Single(dependents);
+        Assert.Equal("acme-1", dependent.TaskId);
+        Assert.Equal(TaskStates.Open, dependent.Status);
+        Assert.Equal("Root", dependent.Title);
+    }
+
+    [Fact]
+    public async Task GetLabelCountsAsync_CountsAcrossNonTombstoneTasks()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Tombstone, priority: 2);
+        await InsertLabelAsync(connection, "acme-1", "backend");
+        await InsertLabelAsync(connection, "acme-2", "backend");
+
+        // act
+        var counts = await _store.GetLabelCountsAsync(cancellationToken);
+
+        // assert
+        Assert.Equal([new TaskLabelCount("backend", 1)], counts);
+    }
+
+    [Fact]
+    public async Task GetPrefixAndListConfigAsync_ReadWorkspaceConfig()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await ExecuteAsync(
+            connection, "INSERT INTO config (key, value) VALUES ('prefix', 'acme')");
+
+        // act
+        var prefix = await _store.GetPrefixAsync(cancellationToken);
+        var entries = await _store.ListConfigAsync(cancellationToken);
+
+        // assert
+        Assert.Equal("acme", prefix);
+        Assert.Equal([new TaskConfigEntry("prefix", "acme")], entries);
+    }
+
+    [Fact]
+    public async Task CreateTaskAsync_InsertsLabelsDependenciesAndCreatedEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        var creation = new TaskCreation
+        {
+            Title = "New task",
+            Priority = 1,
+            Type = TaskTypes.Task,
+            Labels = ["backend"],
+            DependsOn = [new TaskDependencyRequest("acme-1", TaskDependencyTypes.Blocks)],
+            Actor = "tester"
+        };
+
+        // act
+        var result = await _store.CreateTaskAsync(creation, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1"], result.BlockedBy);
+
+        var task = await _store.GetRequiredTaskAsync(result.Id, cancellationToken);
+        Assert.Equal("New task", task.Title);
+        Assert.Equal(TaskStates.Open, task.Status);
+
+        var labels = await _store.GetLabelsAsync(result.Id, cancellationToken);
+        Assert.Equal(["backend"], labels);
+
+        var dependency = Assert.Single(await _store.GetDependenciesAsync(result.Id, cancellationToken));
+        Assert.Equal("acme-1", dependency.DependsOnId);
+
+        Assert.Equal([TaskEventTypes.Created], await QueryEventTypesAsync(connection, result.Id));
+    }
+
+    [Fact]
+    public async Task UpdateTaskAsync_AppliesGivenFieldsAndRecordsEvents()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.Open, priority: 2, title: "Old title");
+
+        var update = new TaskUpdate
+        {
+            Actor = "tester",
+            Title = "New title",
+            TitleGiven = true,
+            Priority = 0,
+            PriorityGiven = true,
+            Assignee = "alice",
+            AssigneeGiven = true
+        };
+
+        // act
+        var result = await _store.UpdateTaskAsync("acme-1", update, cancellationToken);
+
+        // assert
+        Assert.Equal(["title"], result.ChangedFields);
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal("New title", task.Title);
+        Assert.Equal(0, task.Priority);
+        Assert.Equal("alice", task.Assignee);
+
+        Assert.Equal(
+            [TaskEventTypes.PriorityChanged, TaskEventTypes.AssigneeChanged, TaskEventTypes.Updated],
+            await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task UpdateTaskAsync_SettingClosedStatus_Throws()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        var update = new TaskUpdate
+        {
+            Actor = "tester",
+            Status = TaskStates.Closed,
+            StatusGiven = true
+        };
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UpdateTaskAsync("acme-1", update, cancellationToken));
+    }
+
+    [Fact]
+    public async Task UpdateTaskAsync_SettingArchivedStatus_Throws()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        var update = new TaskUpdate
+        {
+            Actor = "tester",
+            Status = TaskStates.Archived,
+            StatusGiven = true
+        };
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UpdateTaskAsync("acme-1", update, cancellationToken));
+    }
+
+    [Fact]
+    public async Task UpdateTaskAsync_TaskIsArchived_ThrowsOnStatusChange()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2);
+
+        var update = new TaskUpdate
+        {
+            Actor = "tester",
+            Status = TaskStates.Open,
+            StatusGiven = true
+        };
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UpdateTaskAsync("acme-1", update, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReassignAsync_MovesActiveTasksAndRecordsCommentsAndEvents()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        var originalUpdatedAt = _timeProvider.GetUtcNow();
+        await InsertTaskAsync(
+            connection, "acme-2", status: TaskStates.Open, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-3", status: TaskStates.Closed, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-4", status: TaskStates.Archived, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-5", status: TaskStates.Open, priority: 2, assignee: "unrelated");
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+
+        // act
+        var reassigned = await _store.ReassignAsync(
+            "from", "to", "actor", "Reassigned by handoff.", cancellationToken);
+        var audit = await GetReassignmentAuditAsync(
+            connection,
+            ["acme-1", "acme-2", "acme-3", "acme-4", "acme-5"],
+            originalUpdatedAt,
+            cancellationToken);
+        var repeated = await _store.ReassignAsync(
+            "from", "to", "actor", "Reassigned by handoff.", cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1", "acme-2"], reassigned);
+        Assert.Equal(
+            [
+                "acme-1|to|True|Reassigned by handoff.|assignee_changed:actor,commented:actor",
+                "acme-2|to|True|Reassigned by handoff.|assignee_changed:actor,commented:actor",
+                "acme-3|from|False||",
+                "acme-4|from|False||",
+                "acme-5|unrelated|False||"
+            ],
+            audit);
+        Assert.Empty(repeated);
+    }
+
+    [Fact]
+    public async Task ReassignAsync_SourceAndTargetAreEqual_Throws()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReassignAsync("same", "same", "actor", "Comment.", cancellationToken));
+    }
+
+    [Fact]
+    public async Task CloseTaskAsync_AllOrNothing_ThrowsWhenAnyIsAlreadyClosed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Closed, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.CloseTaskAsync(["acme-1", "acme-2"], "reason", "tester", cancellationToken));
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Open, task.Status);
+    }
+
+    [Fact]
+    public async Task CloseTaskAsync_ClosesAndRecordsEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act
+        var closed = await _store.CloseTaskAsync(["acme-1"], "done", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Closed, Assert.Single(closed).Status);
+        Assert.Equal([TaskEventTypes.Closed], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task ReopenTaskAsync_ThrowsWhenNotClosed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReopenTaskAsync("acme-1", "", "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReopenTaskAsync_ReopensAndRecordsEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Closed, priority: 2);
+
+        // act
+        var task = await _store.ReopenTaskAsync("acme-1", "", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Open, task.Status);
+        Assert.Equal([TaskEventTypes.Reopened], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task ReopenTaskAsync_ReopensArchivedTask()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2);
+
+        // act
+        var task = await _store.ReopenTaskAsync("acme-1", "", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Open, task.Status);
+        Assert.Equal([TaskEventTypes.Reopened], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task DeferTaskAsync_ThrowsWhenNotOpenOrInProgress()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Closed, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.DeferTaskAsync(
+                "acme-1", _timeProvider.GetUtcNow().AddDays(1), "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task DeferTaskAsync_DefersAndRecordsEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        var until = _timeProvider.GetUtcNow().AddDays(1);
+
+        // act
+        var task = await _store.DeferTaskAsync("acme-1", until, "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Deferred, task.Status);
+        Assert.Equal(until, task.DeferUntil);
+        Assert.Equal([TaskEventTypes.Deferred], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task UndeferTaskAsync_ThrowsWhenNotDeferred()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.UndeferTaskAsync("acme-1", "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task DeleteTaskAsync_TombstonesAndRecordsEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act
+        var task = await _store.DeleteTaskAsync("acme-1", "no longer needed", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(TaskStates.Tombstone, task.Status);
+        Assert.Equal([TaskEventTypes.Deleted], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task ReleaseAssigneeAsync_Should_ReleaseInProgressTasksAndAppearInReady()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "felix");
+        await InsertTaskAsync(
+            connection, "acme-2", status: TaskStates.InProgress, priority: 2, assignee: "felix");
+        await InsertTaskAsync(
+            connection, "acme-3", status: TaskStates.InProgress, priority: 2, assignee: "oscar");
+
+        // act
+        var count = await _store.ReleaseAssigneeAsync("felix", "agent deleted", cancellationToken);
+        var ready = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Open], ExcludeBlocked = true }, cancellationToken);
+        var untouched = await _store.GetRequiredTaskAsync("acme-3", cancellationToken);
+
+        // assert
+        Snapshot.Create()
+            .Add(count, "Released Count")
+            .Add(
+                ready
+                    .OrderBy(task => task.Id, StringComparer.Ordinal)
+                    .Select(task => new { task.Id, task.Status, task.Assignee }),
+                "Released Tasks")
+            .Add(
+                new { untouched.Id, untouched.Status, untouched.Assignee },
+                "Untouched Task")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ReleaseAssigneeAsync_Should_LeaveOpenTaskAssignedToAgentAlone()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.Open, priority: 2, assignee: "felix");
+
+        // act
+        var count = await _store.ReleaseAssigneeAsync("felix", "agent deleted", cancellationToken);
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+
+        // assert
+        Assert.Equal(0, count);
+        Assert.Equal(TaskStates.Open, task.Status);
+        Assert.Equal("felix", task.Assignee);
+    }
+
+    [Fact]
+    public async Task ReleaseAssigneeAsync_Should_RecordEventsWithReasonAndEmptyActor()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "felix");
+
+        // act
+        await _store.ReleaseAssigneeAsync("felix", "agent deleted", cancellationToken);
+
+        // assert
+        Assert.Equal(
+            [TaskEventTypes.AssigneeChanged, TaskEventTypes.StatusChanged],
+            await QueryEventTypesAsync(connection, "acme-1"));
+        Assert.Equal(
+            [
+                "assignee_changed||felix||agent deleted",
+                "status_changed||in_progress|open|agent deleted"
+            ],
+            await QueryEventDetailsAsync(connection, "acme-1", cancellationToken));
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_ClosesOnlyEpicsWithAllChildrenClosed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-1.1", status: TaskStates.Closed, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-2.1", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-2.1", "acme-2", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        var epic = Assert.Single(closed);
+        Assert.Equal("acme-1", epic.Id);
+        Assert.Equal(TaskStates.Closed, epic.Status);
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Closed, task.Status);
+        var untouched = await _store.GetRequiredTaskAsync("acme-2", cancellationToken);
+        Assert.Equal(TaskStates.Open, untouched.Status);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_AllChildrenClosedOrArchived_ClosesEpic()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-1.1", status: TaskStates.Closed, priority: 2);
+        await InsertTaskAsync(connection, "acme-1.2", status: TaskStates.Archived, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+        await InsertDependencyAsync(connection, "acme-1.2", "acme-1", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        var epic = Assert.Single(closed);
+        Assert.Equal("acme-1", epic.Id);
+        Assert.Equal(TaskStates.Closed, epic.Status);
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Closed, task.Status);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_ArchivedEpic_IsNotReClosed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(connection, "acme-1.1", status: TaskStates.Closed, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        Assert.Empty(closed);
+
+        var task = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Archived, task.Status);
+    }
+
+    [Fact]
+    public async Task CloseTaskAsync_DoesNotArchive_WhenSelectedClosedTaskIsReopened()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var seedConnection = await SeedAsync(cancellationToken);
+        var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
+
+        for (var i = 1; i <= TaskStates.ClosedTaskCap; i++)
+        {
+            await InsertTaskAsync(
+                seedConnection,
+                $"acme-{i}",
+                status: TaskStates.Closed,
+                priority: 2,
+                closedAt: baseTime.AddMinutes(i));
+        }
+
+        await InsertTaskAsync(seedConnection, "acme-101", TaskStates.Open, 2);
+
+        var store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase())
+        {
+            AfterClosedTasksSelectedAsync = (_, connection, transaction, _) => ReopenTaskStateAsync(
+                connection, transaction, "acme-1")
+        };
+
+        // act
+        await store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(
+            TaskStates.Open,
+            (await _store.GetRequiredTaskAsync("acme-1", cancellationToken)).Status);
+        Assert.Empty(await QueryEventTypesAsync(seedConnection, "acme-1"));
+        Assert.Equal(
+            TaskStates.Closed,
+            (await _store.GetRequiredTaskAsync("acme-101", cancellationToken)).Status);
+        Assert.Equal(
+            TaskStates.ClosedTaskCap,
+            (await _store.QueryTasksAsync(
+                new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken)).Count);
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_DoesNotClose_WhenOpenChildIsAddedAfterEligibilityRead()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var seedConnection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(seedConnection, "acme-1", TaskStates.Open, 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(seedConnection, "acme-1.1", TaskStates.Closed, 2);
+        await InsertDependencyAsync(seedConnection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+
+        var store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase())
+        {
+            AfterEligibleEpicsReadAsync = async (connection, transaction, _) =>
+            {
+                await InsertTaskAsync(
+                    connection, "acme-1.2", TaskStates.Open, 2, transaction: transaction);
+                await InsertDependencyAsync(
+                    connection, "acme-1.2", "acme-1", TaskDependencyTypes.ParentChild, transaction);
+            }
+        };
+
+        // act
+        var closed = await store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        Assert.Empty(closed);
+        Assert.Equal(
+            TaskStates.Open,
+            (await _store.GetRequiredTaskAsync("acme-1", cancellationToken)).Status);
+        Assert.Equal(
+            TaskStates.Open,
+            (await _store.GetRequiredTaskAsync("acme-1.2", cancellationToken)).Status);
+        Assert.Empty(await QueryEventTypesAsync(seedConnection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task CloseEligibleEpicsAsync_ClosingPastCap_ArchivesOverflow()
+    {
+        // arrange
+        // Seed the closed-task cap plus a closed child, then close its open epic.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
+
+        for (var i = 1; i <= TaskStates.ClosedTaskCap; i++)
+        {
+            await InsertTaskAsync(
+                connection,
+                $"acme-{i}",
+                status: TaskStates.Closed,
+                priority: 2,
+                closedAt: baseTime.AddMinutes(i));
+        }
+
+        await InsertTaskAsync(connection, "acme-epic", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
+        await InsertTaskAsync(
+            connection,
+            "acme-epic.1",
+            status: TaskStates.Closed,
+            priority: 2,
+            closedAt: baseTime.AddMinutes(TaskStates.ClosedTaskCap + 1));
+        await InsertDependencyAsync(connection, "acme-epic.1", "acme-epic", TaskDependencyTypes.ParentChild);
+
+        // act
+        var closed = await _store.CloseEligibleEpicsAsync("tester", cancellationToken);
+
+        // assert
+        var epic = Assert.Single(closed);
+        Assert.Equal("acme-epic", epic.Id);
+
+        var oldest = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Archived, oldest.Status);
+        Assert.Equal([TaskEventTypes.Archived], await QueryEventTypesAsync(connection, "acme-1"));
+
+        var nextOldest = await _store.GetRequiredTaskAsync("acme-2", cancellationToken);
+        Assert.Equal(TaskStates.Archived, nextOldest.Status);
+
+        var epicTask = await _store.GetRequiredTaskAsync("acme-epic", cancellationToken);
+        Assert.Equal(TaskStates.Closed, epicTask.Status);
+
+        var stillClosed = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken);
+        Assert.Equal(TaskStates.ClosedTaskCap, stillClosed.Count);
+    }
+
+    [Fact]
+    public async Task CloseTaskAsync_ClosingBeyondCap_ArchivesOldestClosedTask()
+    {
+        // arrange
+        // Seed closed tasks with increasing closed_at values before closing one more task.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
+
+        for (var i = 1; i <= TaskStates.ClosedTaskCap; i++)
+        {
+            await InsertTaskAsync(
+                connection,
+                $"acme-{i}",
+                status: TaskStates.Closed,
+                priority: 2,
+                closedAt: baseTime.AddMinutes(i));
+        }
+
+        await InsertTaskAsync(connection, "acme-101", status: TaskStates.Open, priority: 2);
+
+        // act
+        await _store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
+
+        // assert
+        var oldest = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
+        Assert.Equal(TaskStates.Archived, oldest.Status);
+        Assert.Equal(
+            [TaskEventTypes.Archived], await QueryEventTypesAsync(connection, "acme-1"));
+
+        var nextOldest = await _store.GetRequiredTaskAsync("acme-2", cancellationToken);
+        Assert.Equal(TaskStates.Closed, nextOldest.Status);
+
+        var justClosed = await _store.GetRequiredTaskAsync("acme-101", cancellationToken);
+        Assert.Equal(TaskStates.Closed, justClosed.Status);
+        Assert.Equal(
+            [TaskEventTypes.Closed], await QueryEventTypesAsync(connection, "acme-101"));
+
+        var stillClosed = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken);
+        Assert.Equal(TaskStates.ClosedTaskCap, stillClosed.Count);
+
+        var archived = await _store.QueryTasksAsync(
+            new TaskFilter { Statuses = [TaskStates.Archived] }, cancellationToken);
+        var archivedTask = Assert.Single(archived);
+        Assert.Equal("acme-1", archivedTask.Id);
+
+        // the default filter and --status closed both stay archived-free
+        var defaultFiltered = await _store.QueryTasksAsync(new TaskFilter(), cancellationToken);
+        Assert.DoesNotContain(defaultFiltered, t => t.Id == "acme-1");
+
+        var integrity = await _store.CheckIntegrityAsync(cancellationToken);
+        Assert.True(integrity.QuickCheckOk);
+        Assert.Empty(integrity.OrphanDependencies);
+        Assert.Empty(integrity.OrphanLabels);
+        Assert.Empty(integrity.OrphanComments);
+        Assert.Empty(integrity.TombstonedParentEdges);
+    }
+
+    [Fact]
+    public async Task ComputeBlockedAsync_ArchivedBlocker_StillReleasesDependents()
+    {
+        // arrange: acme-1 depends (blocking) on acme-2, which is archived.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Archived, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1", "acme-2", TaskDependencyTypes.Blocks);
+
+        // act
+        var blocked = await _store.ComputeBlockedAsync(cancellationToken);
+
+        // assert: archived is terminal, same as closed, so acme-1 is not blocked.
+        Assert.DoesNotContain("acme-1", blocked.Keys);
+    }
+
+    [Fact]
+    public async Task AddCommentAsync_InsertsCommentAndBumpsUpdatedAt()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act
+        var comment = await _store.AddCommentAsync("acme-1", "Looks good.", "tester", cancellationToken);
+
+        // assert
+        Assert.Equal("Looks good.", comment.Text);
+        Assert.Equal("tester", comment.Author);
+
+        var comments = await _store.GetCommentsAsync("acme-1", cancellationToken);
+        Assert.Equal(["Looks good."], comments.Select(c => c.Text));
+        Assert.Equal([TaskEventTypes.Commented], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task AddCommentAsync_ThrowsOnEmptyText()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.AddCommentAsync("acme-1", "   ", "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task AddLabelAsync_OnlyBumpsUpdatedAtWhenALabelIsNewlyAdded()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertLabelAsync(connection, "acme-1", "backend");
+
+        // act
+        var results = await _store.AddLabelAsync(
+            "acme-1", ["backend", "urgent"], "tester", cancellationToken);
+
+        // assert
+        Assert.Equal(
+            [new TaskLabelChange("backend", false), new TaskLabelChange("urgent", true)],
+            results);
+        Assert.Equal([TaskEventTypes.LabelAdded], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task RemoveLabelAsync_ThrowsWhenLabelIsAbsent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.RemoveLabelAsync("acme-1", "backend", "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task RemoveLabelAsync_RemovesAndRecordsEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertLabelAsync(connection, "acme-1", "backend");
+
+        // act
+        await _store.RemoveLabelAsync("acme-1", "backend", "tester", cancellationToken);
+
+        // assert
+        Assert.Empty(await _store.GetLabelsAsync("acme-1", cancellationToken));
+        Assert.Equal([TaskEventTypes.LabelRemoved], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task AddDependencyAsync_ThrowsWhenDependencyAlreadyExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1", "acme-2", TaskDependencyTypes.Blocks);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.AddDependencyAsync(
+                "acme-1", "acme-2", TaskDependencyTypes.Blocks, "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task AddDependencyAsync_DetectsBlockingCycle_RejectsBeforeCommit()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-2", "acme-1", TaskDependencyTypes.Blocks);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ExitException>(
+            () => _store.AddDependencyAsync(
+                "acme-1", "acme-2", TaskDependencyTypes.Blocks, "tester", cancellationToken));
+
+        // assert
+        Assert.Equal(
+            "Adding this dependency would create a cycle: acme-1 -> acme-2 -> acme-1.",
+            exception.Message);
+        Assert.Empty(await _store.GetDependenciesAsync("acme-1", cancellationToken));
+        Assert.Empty(await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task AddDependencyAsync_InsertsAndRecordsEventWhenNoCycle()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+
+        // act
+        var result = await _store.AddDependencyAsync(
+            "acme-1", "acme-2", TaskDependencyTypes.Blocks, "tester", cancellationToken);
+
+        // assert
+        Assert.Null(result.Cycle);
+        var dependency = Assert.Single(await _store.GetDependenciesAsync("acme-1", cancellationToken));
+        Assert.Equal("acme-2", dependency.DependsOnId);
+        Assert.Equal(
+            [TaskEventTypes.DependencyAdded], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task RemoveDependencyAsync_ThrowsWhenDependencyDoesNotExist()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.RemoveDependencyAsync("acme-1", "acme-2", "tester", cancellationToken));
+    }
+
+    [Fact]
+    public async Task RemoveDependencyAsync_RemovesAndRecordsEvent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await InsertDependencyAsync(connection, "acme-1", "acme-2", TaskDependencyTypes.Blocks);
+
+        // act
+        await _store.RemoveDependencyAsync("acme-1", "acme-2", "tester", cancellationToken);
+
+        // assert
+        Assert.Empty(await _store.GetDependenciesAsync("acme-1", cancellationToken));
+        Assert.Equal(
+            [TaskEventTypes.DependencyRemoved], await QueryEventTypesAsync(connection, "acme-1"));
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_IncludeTask_When_AgentOnlyCommented()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Taking a look.", "felix", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal("acme-1", task.Id);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_ExcludeTask_When_AgentHasNoParticipation()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Taking a look.", "someone-else", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Empty(tasks);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_IncludeTask_When_TaskIsClosed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.CloseTaskAsync(["acme-1"], "Done.", "felix", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        var task = Assert.Single(tasks);
+        Assert.Equal(TaskStates.Closed, task.Status);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_ExcludeTask_When_TaskIsTombstone()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Taking a look.", "felix", cancellationToken);
+        await _store.DeleteTaskAsync("acme-1", "No longer needed.", "felix", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Empty(tasks);
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_RankByUpdatedAt_When_TaskIsAssignedOnly()
+    {
+        // arrange: acme-1 is assigned to felix by oscar, without felix ever acting on it.
+        // acme-2 carries an older comment by felix, so it must rank behind acme-1's
+        // more recent assignment (its updated_at).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-2", "Early look.", "felix", cancellationToken);
+
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.UpdateTaskAsync(
+            "acme-1",
+            new TaskUpdate { Actor = "oscar", Assignee = "felix", AssigneeGiven = true },
+            cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1", "acme-2"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task QueryParticipationAsync_Should_RankByAgentsOwnLatestEvent_When_OthersActOnTaskLater()
+    {
+        // arrange: felix comments on acme-1 first; oscar comments on it again later, which
+        // bumps acme-1's updated_at past acme-2's assignment without felix acting again.
+        // Ranking must follow felix's own latest event on acme-1, not the task's updated_at.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2);
+        await _store.AddCommentAsync("acme-1", "Felix's take.", "felix", cancellationToken);
+
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+        await InsertTaskAsync(connection, "acme-2", status: TaskStates.Open, priority: 2, assignee: "felix");
+
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+        await _store.AddCommentAsync("acme-1", "Oscar's take.", "oscar", cancellationToken);
+
+        // act
+        var tasks = await _store.QueryParticipationAsync("felix", null, cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-2", "acme-1"], tasks.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task SetConfigAsync_UpsertsValue()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+
+        // act
+        await _store.SetConfigAsync("prefix", "acme", cancellationToken);
+        await _store.SetConfigAsync("prefix", "acme2", cancellationToken);
+
+        // assert
+        Assert.Equal("acme2", await _store.GetConfigAsync("prefix", cancellationToken));
+    }
+
+    [Fact]
+    public async Task InitializeWorkspaceAsync_AppliesSchemaAndSetsPrefix()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var freshRoot = Path.Combine(_tempRoot.FullName, "fresh");
+        Directory.CreateDirectory(freshRoot);
+        var store = new TaskStore(new TestFileSystem(freshRoot), _timeProvider, new AgentDatabase());
+        var workspaceDirectory = AgentWorkspace.GetDirectory(freshRoot);
+        Directory.CreateDirectory(workspaceDirectory);
+
+        // act
+        await store.InitializeWorkspaceAsync(workspaceDirectory, "fresh", cancellationToken);
+
+        // assert
+        Assert.Equal("fresh", await store.GetPrefixAsync(cancellationToken));
+    }
+
+    /// <summary>
+    /// Returns the task's audit event types in event-id order, or an empty list
+    /// when it has no events.
+    /// </summary>
+    private static async Task<List<string>> QueryEventTypesAsync(SqliteConnection connection, string taskId)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT event_type FROM events WHERE task_id = @taskId ORDER BY id";
+        command.Parameters.AddWithValue("@taskId", taskId);
+
+        var types = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            types.Add(reader.GetString(0));
+        }
+
+        return types;
+    }
+
+    private async Task<List<string>> GetReassignmentAuditAsync(
+        SqliteConnection connection,
+        IReadOnlyList<string> ids,
+        DateTimeOffset originalUpdatedAt,
+        CancellationToken cancellationToken)
+    {
+        var audit = new List<string>(ids.Count);
+
+        foreach (var id in ids)
+        {
+            var task = await _store.GetTaskAsync(id, cancellationToken)
+                ?? throw new InvalidOperationException($"Task '{id}' was not found.");
+            var comments = await _store.GetCommentsAsync(id, cancellationToken);
+            var events = await QueryEventActorsAsync(connection, id, cancellationToken);
+            audit.Add(
+                $"{task.Id}|{task.Assignee}|{task.UpdatedAt > originalUpdatedAt}|"
+                + $"{string.Join(",", comments.Select(comment => comment.Text))}|"
+                + string.Join(",", events));
+        }
+
+        return audit;
+    }
+
+    private static async Task<List<string>> QueryEventActorsAsync(
+        SqliteConnection connection,
+        string taskId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT event_type, actor FROM events WHERE task_id = @taskId ORDER BY id";
+        command.Parameters.AddWithValue("@taskId", taskId);
+
+        var events = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            events.Add($"{reader.GetString(0)}:{reader.GetString(1)}");
+        }
+
+        return events;
+    }
+
+    /// <summary>
+    /// Returns a task's events, in event-id order, formatted as
+    /// "type|actor|old_value|new_value|comment" with null values as empty strings.
+    /// </summary>
+    private static async Task<List<string>> QueryEventDetailsAsync(
+        SqliteConnection connection,
+        string taskId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "SELECT event_type, actor, old_value, new_value, comment FROM events "
+            + "WHERE task_id = @taskId ORDER BY id";
+        command.Parameters.AddWithValue("@taskId", taskId);
+
+        var events = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            events.Add(
+                $"{reader.GetString(0)}|{reader.GetString(1)}|"
+                + $"{(reader.IsDBNull(2) ? "" : reader.GetString(2))}|"
+                + $"{(reader.IsDBNull(3) ? "" : reader.GetString(3))}|"
+                + $"{(reader.IsDBNull(4) ? "" : reader.GetString(4))}");
+        }
+
+        return events;
+    }
+
+    private async Task<SqliteConnection> SeedAsync(CancellationToken cancellationToken)
+    {
+        var workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
+        Directory.CreateDirectory(workspaceDirectory);
+
+        return await _store.InitializeAsync(workspaceDirectory, cancellationToken);
+    }
+
+    private Task InsertTaskAsync(
+        SqliteConnection connection,
+        string id,
+        string status,
+        int priority,
+        string title = "Task",
+        string type = TaskTypes.Task,
+        DateTimeOffset? closedAt = null,
+        string? assignee = null,
+        DbTransaction? transaction = null)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        return ExecuteAsync(
+            connection,
+            transaction,
+            """
+            INSERT INTO tasks (
+                id, title, status, priority, task_type, assignee, created_at, updated_at, closed_at)
+            VALUES (@id, @title, @status, @priority, @type, @assignee, @now, @now, @closedAt)
+            """,
+            ("@id", id), ("@title", title), ("@status", status),
+            ("@priority", priority), ("@type", type), ("@now", now),
+            ("@closedAt", (object?)closedAt ?? DBNull.Value),
+            ("@assignee", (object?)assignee ?? DBNull.Value));
+    }
+
+    private Task InsertLabelAsync(SqliteConnection connection, string taskId, string label)
+        => ExecuteAsync(
+            connection,
+            "INSERT INTO labels (task_id, label) VALUES (@taskId, @label)",
+            ("@taskId", taskId), ("@label", label));
+
+    private Task InsertDependencyAsync(
+        SqliteConnection connection,
+        string taskId,
+        string dependsOnId,
+        string type,
+        DbTransaction? transaction = null)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        return ExecuteAsync(
+            connection,
+            transaction,
+            """
+            INSERT INTO dependencies (task_id, depends_on_id, dependency_type, created_at)
+            VALUES (@taskId, @dependsOnId, @type, @now)
+            """,
+            ("@taskId", taskId), ("@dependsOnId", dependsOnId), ("@type", type), ("@now", now));
+    }
+
+    private Task InsertCommentAsync(SqliteConnection connection, string taskId, string text)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        return ExecuteAsync(
+            connection,
+            """
+            INSERT INTO comments (task_id, author, text, created_at)
+            VALUES (@taskId, 'test-agent', @text, @now)
+            """,
+            ("@taskId", taskId), ("@text", text), ("@now", now));
+    }
+
+    private static Task ReopenTaskStateAsync(
+        SqliteConnection connection,
+        DbTransaction? transaction,
+        string id)
+        => ExecuteAsync(
+            connection,
+            transaction,
+            """
+            UPDATE tasks
+            SET status = @status,
+                closed_at = NULL,
+                close_reason = ''
+            WHERE id = @id
+            """,
+            ("@id", id), ("@status", TaskStates.Open));
+
+    /// <summary>
+    /// Executes the SQL statement with the supplied named parameter values.
+    /// </summary>
+    private static Task ExecuteAsync(
+        SqliteConnection connection,
+        string sql,
+        params (string Name, object Value)[] parameters)
+        => ExecuteAsync(connection, null, sql, parameters);
+
+    private static async Task ExecuteAsync(
+        SqliteConnection connection,
+        DbTransaction? transaction,
+        string sql,
+        params (string Name, object Value)[] parameters)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Transaction = (SqliteTransaction?)transaction;
+
+        foreach (var (name, value) in parameters)
+        {
+            command.Parameters.AddWithValue(name, value);
+        }
+
+        await command.ExecuteNonQueryAsync();
+    }
+}

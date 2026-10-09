@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Mocha.EntityFrameworkCore;
 using Mocha.Middlewares;
 using Mocha.Utils;
 using Npgsql;
@@ -16,8 +17,8 @@ namespace Mocha.Outbox;
 /// </summary>
 /// <remarks>
 /// When a database transaction is active on the DbContext, the insert participates in that transaction
-/// and the outbox signal is deferred until commit. Without an active transaction, the signal fires
-/// immediately after insert to wake the outbox processor.
+/// and the outbox signal is deferred until commit. Inside an ambient <see cref="System.Transactions.Transaction"/>,
+/// the signal fires when that transaction completes. Otherwise, the signal fires immediately after insert.
 /// </remarks>
 internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 {
@@ -64,8 +65,9 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// Serializes the message envelope and inserts it into the Postgres outbox table.
     /// </summary>
     /// <remarks>
-    /// If no database transaction is active, the outbox signal is raised immediately to wake the
-    /// processor. Otherwise, the signal is deferred to the transaction commit interceptor.
+    /// With an active database transaction, the signal is deferred to the transaction commit interceptor.
+    /// With an ambient <see cref="System.Transactions.Transaction"/>, it is raised when that transaction completes.
+    /// Otherwise, it is raised immediately.
     /// </remarks>
     /// <param name="envelope">The message envelope to persist in the outbox.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
@@ -78,28 +80,32 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
             var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
 
-            if (connection.State != System.Data.ConnectionState.Open)
+            try
             {
-                await connection.OpenAsync(cancellationToken);
+                await _originalDbContext.Database.OpenConnectionAsync(cancellationToken);
+
+                await using var writer = new Utf8JsonWriter(_arrayWriter);
+                writer.WriteEnvelope(envelope);
+                writer.Flush(); // we know it's not async
+
+                // Execute the INSERT command
+                await using var command = connection.CreateCommand();
+                command.CommandText = _insertSql;
+                command.Parameters.AddWithValue("@id", NewVersion());
+                command.Parameters.Add(
+                    new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
+                await command.PrepareAsync(cancellationToken);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
+
+                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                {
+                    _signal.SetAfterAmbientTransaction();
+                }
             }
-
-            await using var writer = new Utf8JsonWriter(_arrayWriter);
-            writer.WriteEnvelope(envelope);
-            writer.Flush(); // we know it's not async
-
-            // Execute the INSERT command
-            await using var command = connection.CreateCommand();
-            command.CommandText = _insertSql;
-            command.Parameters.AddWithValue("@id", NewVersion());
-            command.Parameters.Add(
-                new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
-            await command.PrepareAsync(cancellationToken);
-
-            await command.ExecuteNonQueryAsync(cancellationToken);
-
-            if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+            finally
             {
-                _signal.Set();
+                await _originalDbContext.Database.CloseConnectionAsync();
             }
         }
         finally

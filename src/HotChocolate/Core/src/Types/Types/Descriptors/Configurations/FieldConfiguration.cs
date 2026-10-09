@@ -29,7 +29,7 @@ public abstract class FieldConfiguration
         get => _deprecationReason;
         set
         {
-            if (string.IsNullOrEmpty(value))
+            if (string.IsNullOrWhiteSpace(value))
             {
                 Flags &= ~CoreFieldFlags.Deprecated;
             }
@@ -129,7 +129,7 @@ public abstract class FieldConfiguration
 
     public void SetFieldRequirements(string? requirements, Type? entityType)
     {
-        if (string.IsNullOrEmpty(requirements) || entityType is null)
+        if (string.IsNullOrEmpty(requirements))
         {
             Flags &= ~CoreFieldFlags.WithRequirements;
             Features.Set<FieldRequirementFeature>(null);

@@ -1,10 +1,20 @@
+using HotChocolate.Fusion.Suites.Fed1ExternalExtends.A;
+using HotChocolate.Fusion.Suites.Fed1ExternalExtends.B;
+
 namespace HotChocolate.Fusion.Suites;
 
-public sealed class Fed1ExternalExtendsTests : ComplianceTestBase
+[OfficialV1Suite("fed1-external-extends")]
+public sealed class Fed1ExternalExtendsTests
+    : OfficialV1ComplianceTestBase<Fed1ExternalExtendsTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => throw new NotImplementedException("Subgraphs not yet wired for this suite.");
+        => ComposeOfficialV1Async(
+            (ASubgraph.Name, ASubgraph.BuildAsync),
+            (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact(Skip = "Unsupported: Federation v1 (no @link).")]
-    public Task Pending() => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV1")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV1CaseAsync(caseId);
 }

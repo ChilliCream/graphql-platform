@@ -66,6 +66,12 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual void UntrustedDocumentRejected(RequestContext context) { }
 
     /// <inheritdoc />
+    public virtual IDisposable AnalyzeOperationCost(RequestContext context) => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void OperationCost(RequestContext context, double fieldCost, double typeCost) { }
+
+    /// <inheritdoc />
     public virtual IDisposable PlanOperation(RequestContext context, string operationPlanId)
         => EmptyScope;
 
@@ -94,6 +100,13 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual IDisposable ExecuteApolloOperationExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
     public virtual IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
@@ -101,9 +114,30 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual IDisposable ExecuteApolloOperationBatchExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
     public virtual IDisposable ExecuteSourceSchemaRequest(
         OperationPlanContext context,
         OperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
         string schemaName)
         => EmptyScope;
 
@@ -161,6 +195,15 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         string schemaName,
         ulong subscriptionId)
         => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+    }
 
     /// <inheritdoc />
     public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)

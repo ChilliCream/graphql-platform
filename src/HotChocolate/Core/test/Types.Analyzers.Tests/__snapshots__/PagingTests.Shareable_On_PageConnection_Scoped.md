@@ -139,10 +139,8 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.Description = GetDescription("Identifies the total count of items in the connection.", false, field.Context.Options.UseXmlDocumentation);
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
-                    configuration.ResultType = typeof(int);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.IntType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(int?);
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();

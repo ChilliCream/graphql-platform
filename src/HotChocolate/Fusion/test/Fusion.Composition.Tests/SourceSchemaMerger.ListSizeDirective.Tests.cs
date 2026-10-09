@@ -1,10 +1,220 @@
 using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMergerTestBase
 {
+    [Fact]
+    public void DefaultListSize_Should_Throw_When_Negative()
+    {
+        // arrange
+        var options = new SourceSchemaMergerOptions();
+
+        // act
+        void Act() => options.DefaultListSize = -1;
+
+        // assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(Act);
+        Assert.Equal(nameof(SourceSchemaMergerOptions.DefaultListSize), exception.ParamName);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_AssumedSizeIsNegative()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(assumedSize: -1)
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'assumedSize' of the @listSize directive on field 'Query.field' in schema 'A' must not be negative (-1).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SlicingArgumentDefaultValueIsNegative()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(slicingArgumentDefaultValue: -2)
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'slicingArgumentDefaultValue' of the @listSize directive on field 'Query.field' in schema 'A' must not be negative (-2).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SlicingArgumentsIsBareInt()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(slicingArguments: 1)
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'slicingArguments' of the @listSize directive on field 'Query.field' in schema 'A' has an invalid value (1).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SlicingArgumentsListHasIntItem()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(slicingArguments: ["first", 1])
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'slicingArguments' of the @listSize directive on field 'Query.field' in schema 'A' has an invalid value ([\"first\", 1]).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Merge_Should_PreserveZero_When_ListSizeArgumentsAreZero()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field: [Int]
+                        @listSize(assumedSize: 0, slicingArgumentDefaultValue: 0)
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: [Int]
+                @listSize(assumedSize: 0, slicingArgumentDefaultValue: 0)
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, assumedSize: 0, slicingArgumentDefaultValue: 0)
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
     // Merge @listSize directives when the definitions match the canonical definition.
     [Fact]
     public void Merge_ListSizeDirectives_MatchesSnapshot()
@@ -192,6 +402,35 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
+    [Fact]
+    public void Merge_ListSizeDirectiveSlicingArgumentsSingleton_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(slicingArguments: "first")
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: [Int]
+                @listSize(slicingArguments: ["first"])
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, slicingArguments: ["first"])
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
     // Merge the union of sized fields.
     [Fact]
     public void Merge_ListSizeDirectivesUnionSizedFields_MatchesSnapshot()
@@ -243,6 +482,35 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
                 @fusion__field(schema: B)
                 @fusion__listSize(schema: A, sizedFields: ["edges", "nodes"])
                 @fusion__listSize(schema: B, sizedFields: ["edges", "nodes", "another"])
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
+    public void Merge_ListSizeDirectiveSizedFieldsSingleton_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(sizedFields: "edges")
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: [Int]
+                @listSize(sizedFields: ["edges"])
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, sizedFields: ["edges"])
             }
             """,
             modifySchema: s_removeListSizeDirective);
@@ -365,6 +633,197 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
                 @fusion__listSize(schema: B, slicingArgumentDefaultValue: 5)
             }
             """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
+    public void Merge_ListSizeDirectiveRequireOneSlicingArgument_SourceDefaultAppliesBeforeFold_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+
+                directive @listSize(
+                    assumedSize: Int
+                    slicingArguments: [String!]
+                    sizedFields: [String!]
+                    requireOneSlicingArgument: Boolean = true
+                    slicingArgumentDefaultValue: Int
+                ) on FIELD_DEFINITION
+                """,
+                $$"""
+                # Schema B
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5, requireOneSlicingArgument: false)
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 5, requireOneSlicingArgument: true)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+                @fusion__listSize(
+                  schema: B
+                  assumedSize: 5
+                  requireOneSlicingArgument: false
+                )
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
+    public void Merge_ListSizeDirective_UnannotatedServingSource_DefaultListSizeRaisesFloor_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (declares assumedSize: 5)
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B (serves the field, no @listSize at all)
+                type Query {
+                    field: [Int]
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 10)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+            }
+            """,
+            configure: options => options.DefaultListSize = 10,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
+    public void Merge_ListSizeDirective_UnannotatedServingSource_DeclaredWinsOverLowerDefault_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (declares assumedSize: 5)
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B (serves the field, no @listSize at all)
+                type Query {
+                    field: [Int]
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 5)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+            }
+            """,
+            configure: options => options.DefaultListSize = 3,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
+    public void Merge_ListSizeDirective_UnannotatedServingSource_NoDefaultOmitsAssumedSize_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A (declares assumedSize and slicingArguments)
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5, slicingArguments: ["first"])
+                }
+
+                {{s_listSizeDirective}}
+                """,
+                """
+                # Schema B (serves the field, no @listSize at all)
+                type Query {
+                    field: [Int]
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(slicingArguments: ["first"])
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5, slicingArguments: ["first"])
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
+    public void Merge_ListSizeDirective_AllSourcesAnnotated_DefaultListSizeDoesNotApply_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 5)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+                @fusion__listSize(schema: B, assumedSize: 5)
+            }
+            """,
+            configure: options => options.DefaultListSize = 3,
             modifySchema: s_removeListSizeDirective);
     }
 

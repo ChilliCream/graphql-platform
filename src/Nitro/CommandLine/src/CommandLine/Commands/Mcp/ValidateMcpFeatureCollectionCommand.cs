@@ -94,8 +94,9 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                     {
                         IUnauthorizedOperation err => err.Message,
                         IInvalidSourceMetadataInputError err => err.Message,
-                        IStageNotFoundError err => err.Message,
-                        IMcpFeatureCollectionNotFoundError err => err.Message,
+                        IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IMcpFeatureCollectionNotFoundError err =>
+                            throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

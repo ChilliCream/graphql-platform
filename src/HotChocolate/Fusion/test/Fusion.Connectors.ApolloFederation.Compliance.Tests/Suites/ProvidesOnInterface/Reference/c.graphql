@@ -1,0 +1,32 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+interface Media {
+  id: ID!
+  animals: [Animal]
+}
+
+interface Animal {
+  id: ID!
+  name: String
+}
+
+type Book implements Media @key(fields: "id") {
+  id: ID!
+  animals: [Animal] @shareable
+}
+
+type Dog implements Animal @key(fields: "id") {
+  id: ID!
+  name: String @shareable
+  age: Int
+}
+
+type Cat implements Animal @key(fields: "id") {
+  id: ID!
+  name: String @shareable
+  age: Int
+}

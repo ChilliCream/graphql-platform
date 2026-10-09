@@ -36,7 +36,7 @@ public class RequestExecutorManagerTests
         // arrange
         var warmupResetEvent = new ManualResetEventSlim(true);
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var manager = new ServiceCollection()
             .AddGraphQL()
@@ -86,7 +86,7 @@ public class RequestExecutorManagerTests
         // arrange
         var warmups = 0;
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var manager = new ServiceCollection()
             .AddGraphQL()

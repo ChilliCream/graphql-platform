@@ -404,7 +404,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
     private static class MessageHelper
     {
         private static ReadOnlySpan<byte> NextEvent => "event: next\ndata: "u8;
-        private static ReadOnlySpan<byte> CompleteEvent => "event: complete\n\n"u8;
+        private static ReadOnlySpan<byte> CompleteEvent => "event: complete\ndata:\n\n"u8;
         private static ReadOnlySpan<byte> NewLine2 => "\n\n"u8;
 
         public static void FormatNextMessage(

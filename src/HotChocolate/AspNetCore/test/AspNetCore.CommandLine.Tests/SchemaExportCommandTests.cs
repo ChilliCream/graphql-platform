@@ -132,6 +132,135 @@ public class SchemaExportCommandTests : IDisposable
     }
 
     [Fact]
+    public async Task App_Should_WriteOctober2021Schema_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x =>
+            {
+                x.Name("Query").Tag("schema-export");
+                x.Field("foo").Resolve("bar");
+            });
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --spec-version october-2021",
+            output);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        (await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken))
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task App_Should_AcceptIsoSeptember2025SpecVersion_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --spec-version 2025-09",
+            output);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        Assert.True(File.Exists(tempFile + ".graphqls"));
+    }
+
+    [Fact]
+    public async Task App_Should_ReturnErrorWithoutWritingFile_When_SpecVersionIsUnknown()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var command = new ExportCommand(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var errors = command.Parse("--spec-version foo").Errors;
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --spec-version foo",
+            output);
+
+        // assert
+        Assert.Equal(1, exitCode);
+        Assert.Collection(
+            errors,
+            error => Assert.Equal(
+                "Unknown spec version 'foo'. Supported values: october-2021, september-2025.",
+                error.Message));
+        Assert.False(File.Exists(tempFile + ".graphqls"));
+    }
+
+    [Fact]
+    public async Task App_Should_PreserveSemanticNonNullDirective_When_October2021SpecVersionIsSpecified()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x =>
+            {
+                x.Name("Query").Tag("schema-export");
+                x.Field("foo").Type<NonNullType<StringType>>().Resolve("bar");
+            });
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --semantic-non-null --spec-version october-2021",
+            output);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        (await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken))
+            .MatchSnapshot();
+    }
+
+    [Fact]
     public async Task App_Should_WriteNamedSchemaToOutput_When_SchemaNameIsSpecified()
     {
         // arrange

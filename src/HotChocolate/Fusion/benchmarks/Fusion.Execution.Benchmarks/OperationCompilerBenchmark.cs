@@ -1,14 +1,13 @@
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnostics.dotMemory;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [DotMemoryDiagnoser]
 [MemoryDiagnoser]
@@ -42,19 +41,19 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
     [Benchmark]
     public Operation Compile_Simple_Query_With_Requirements()
     {
-        return _compiler.Compile(Id, Id, _simpleQueryWithRequirements);
+        return _compiler.Compile(Id, Id, Id, _simpleQueryWithRequirements);
     }
 
     [Benchmark]
     public Operation Compile_Complex_Query()
     {
-        return _compiler.Compile(Id, Id, _complexQuery);
+        return _compiler.Compile(Id, Id, Id, _complexQuery);
     }
 
     [Benchmark]
     public Operation Compile_ConditionalRedundancy_Query()
     {
-        return _compiler.Compile(Id, Id, _conditionalRedundancyQuery);
+        return _compiler.Compile(Id, Id, Id, _conditionalRedundancyQuery);
     }
 
     private sealed class NoOpObjectPool<T> : ObjectPool<T> where T : class, new()

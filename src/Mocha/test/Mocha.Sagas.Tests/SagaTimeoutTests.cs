@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
-using Mocha.Features;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;

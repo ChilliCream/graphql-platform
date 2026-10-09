@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
 public class DatabaseContext<T>(
-    PostgreSqlResource<PostgisConfig> resource,
+    PostgisResource resource,
     string databaseName)
     : DbContext
     where T : class

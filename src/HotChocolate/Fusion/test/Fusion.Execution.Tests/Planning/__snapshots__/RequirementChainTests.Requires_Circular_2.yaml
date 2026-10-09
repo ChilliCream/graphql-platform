@@ -6,7 +6,7 @@ operation:
           id @fusion__requirement
           byNovice @fusion__requirement
           author @fusion__requirement {
-            yearsOfExperience
+            yearsOfExperience @fusion__requirement
           }
         }
       }
@@ -45,6 +45,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
+      - id: 1
       - id: 3
   - id: 3
     type: Operation
@@ -52,7 +53,7 @@ nodes:
     operation: |
       query Op_123456789101112_3(
         $__fusion_3_id: ID!
-          $__fusion_4_yearsOfExperience: Int!
+        $__fusion_4_yearsOfExperience: Int!
       ) {
         postById(id: $__fusion_3_id) {
           byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
@@ -60,7 +61,6 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -68,23 +68,5 @@ nodes:
       - name: __fusion_4_yearsOfExperience
         selectionMap: >-
           author.yearsOfExperience
-    dependencies:
-      - id: 1
-  - id: 4
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_5_id: ID!) {
-        postById(id: $__fusion_5_id) {
-          id
-        }
-      }
-    source: $.postById
-    target: $.feed
-    batchingGroupId: 3
-    requirements:
-      - name: __fusion_5_id
-        selectionMap: >-
-          id
     dependencies:
       - id: 1

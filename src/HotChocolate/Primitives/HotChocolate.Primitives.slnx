@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Primitives.Data/HotChocolate.Data.Primitives.csproj" />
     <Project Path="src/Primitives/HotChocolate.Primitives.csproj" />
   </Folder>
   <Folder Name="/test/">

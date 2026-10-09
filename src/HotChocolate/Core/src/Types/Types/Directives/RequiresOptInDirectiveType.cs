@@ -3,8 +3,8 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Indicates that the given field, argument, input field, or enum value requires giving explicit
-/// consent before being used.
+/// Indicates that the given field, argument, input field, enum value, or directive definition
+/// requires giving explicit consent before being used.
 ///
 /// <code>
 /// type Session {
@@ -25,6 +25,7 @@ public sealed class RequiresOptInDirectiveType : DirectiveType<RequiresOptIn>
             .Name(DirectiveNames.RequiresOptIn.Name)
             .Description(TypeResources.RequiresOptInDirectiveType_TypeDescription)
             .Location(DirectiveLocation.ArgumentDefinition)
+            .Location(DirectiveLocation.DirectiveDefinition)
             .Location(DirectiveLocation.EnumValue)
             .Location(DirectiveLocation.FieldDefinition)
             .Location(DirectiveLocation.InputFieldDefinition)

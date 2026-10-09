@@ -14,6 +14,11 @@ fragment ProcessingTimeoutError on ProcessingTimeoutError {
   message
 }
 
+fragment ReadyTimeoutError on ReadyTimeoutError {
+  __typename
+  message
+}
+
 fragment SchemaVersionPublishSuccess on SchemaVersionPublishSuccess {
   __typename
   state
@@ -192,6 +197,7 @@ fragment DirectiveModifiedChange on DirectiveModifiedChange {
     __typename
     ...DirectiveLocationAdded
     ...DirectiveLocationRemoved
+    ...DeprecatedChange
     ...DescriptionChanged
     ...ArgumentRemoved
     ...ArgumentChanged
@@ -536,6 +542,8 @@ fragment FusionConfigurationValidationFailed on FusionConfigurationValidationFai
   failed: __typename
   errors {
     ...UnexpectedProcessingError
+    ...ProcessingTimeoutError
+    ...ReadyTimeoutError
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
     ...InvalidGraphQLSchemaError
@@ -918,4 +926,20 @@ fragment InvalidMcpFeatureCollectionArchiveError on InvalidMcpFeatureCollectionA
 
 fragment McpFeatureCollectionValidationArchiveError on McpFeatureCollectionValidationArchiveError {
   message
+}
+
+fragment ClientVersionProtectedError on ClientVersionProtectedError {
+  __typename
+  message
+  tag
+  protectedBy
+  ...Error
+}
+
+fragment ClientRecentTrafficProtectionNotEvaluableError on ClientRecentTrafficProtectionNotEvaluableError {
+  __typename
+  message
+  tag
+  clientTrafficRequiredWithin
+  ...Error
 }

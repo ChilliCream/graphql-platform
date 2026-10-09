@@ -8,6 +8,9 @@ internal static class ObjectTypeDefinitionExtensions
 {
     extension(IObjectTypeDefinition objectType)
     {
+        public bool HasInterfaceObjectDirective
+            => objectType.Features.GetRequired<SourceObjectTypeMetadata>().HasInterfaceObjectDirective;
+
         public bool HasShareableDirective
             => objectType.Features.GetRequired<SourceObjectTypeMetadata>().HasShareableDirective;
 

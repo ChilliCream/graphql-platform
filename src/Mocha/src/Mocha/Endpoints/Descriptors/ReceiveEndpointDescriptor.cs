@@ -60,6 +60,20 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> BindImplicitly()
+    {
+        Configuration.BindMode = MessagingBindMode.Implicit;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> BindExplicitly()
+    {
+        Configuration.BindMode = MessagingBindMode.Explicit;
+        return this;
+    }
+
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)
     {
         Configuration.Kind = kind;
@@ -72,15 +86,10 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
-    public IReceiveEndpointDescriptor<T> FaultEndpoint(string address)
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> Temporary()
     {
-        Configuration.ErrorEndpoint = new Uri(address);
-        return this;
-    }
-
-    public IReceiveEndpointDescriptor<T> SkippedEndpoint(string address)
-    {
-        Configuration.SkippedEndpoint = new Uri(address);
+        Configuration.IsTemporary = true;
         return this;
     }
 

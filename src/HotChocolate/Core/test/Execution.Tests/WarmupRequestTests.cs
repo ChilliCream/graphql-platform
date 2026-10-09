@@ -21,6 +21,7 @@ public class WarmupRequestTests
         var warmupRequest = OperationRequestBuilder.New()
             .SetDocument("query test($name: String!) { greeting(name: $name) }")
             .SetDocumentId(documentId)
+            .SetVariableValues(new Dictionary<string, object?> { ["name"] = "Warmup" })
             .MarkAsWarmupRequest()
             .Build();
 
@@ -72,6 +73,7 @@ public class WarmupRequestTests
         var warmupRequest = OperationRequestBuilder.New()
             .SetDocument("query test($name: String!) { greeting(name: $name) }")
             .SetDocumentId(documentId)
+            .SetVariableValues(new Dictionary<string, object?> { ["name"] = "Warmup" })
             .MarkAsWarmupRequest()
             .Build();
 

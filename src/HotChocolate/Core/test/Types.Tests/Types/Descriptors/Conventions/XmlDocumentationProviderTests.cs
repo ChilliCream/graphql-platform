@@ -1,4 +1,7 @@
 using System.Drawing;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -136,14 +139,21 @@ public class XmlDocumentationProviderTests
             new NoOpStringBuilderPool());
 
         // act
-        var parameterXml = documentationProvider.GetDescription(
+        var firstDescription = documentationProvider.GetDescription(
+            typeof(ClassWithInheritdoc)
+                .GetMethod(nameof(ClassWithInheritdoc.Bar))!
+                .GetParameters()
+                .Single(p => p.Name == "baz"));
+
+        var secondDescription = documentationProvider.GetDescription(
             typeof(ClassWithInheritdoc)
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))!
                 .GetParameters()
                 .Single(p => p.Name == "baz"));
 
         // assert
-        Assert.Equal("Parameter details.", parameterXml);
+        Assert.Equal("Parameter details.", firstDescription);
+        Assert.Equal("Parameter details.", secondDescription);
     }
 
     [Fact]
@@ -428,5 +438,174 @@ public class XmlDocumentationProviderTests
 
         // assert
         Assert.Equal("This is a method description", methodDescription);
+    }
+
+    [Fact]
+    public void GetDescription_Should_ReturnNull_When_SummaryContainsOnlyWhitespace()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            """
+            <doc>
+              <members>
+                <member name="T:System.Drawing.Point">
+                  <summary>
+
+                  </summary>
+                </member>
+              </members>
+            </doc>
+            """,
+            LoadOptions.PreserveWhitespace);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Point));
+
+        // assert
+        Assert.Null(description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_UseCustomPublicFileResolver()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            """
+            <doc>
+              <members>
+                <member name="T:System.Drawing.Point">
+                  <summary>A point.</summary>
+                </member>
+              </members>
+            </doc>
+            """);
+        IXmlDocumentationFileResolver resolver =
+            new StubXmlDocumentationFileResolver(document);
+        var documentationProvider = new XmlDocumentationProvider(
+            resolver,
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Point));
+
+        // assert
+        Assert.Equal("A point.", description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_ObserveChangesFromCustomPublicFileResolver()
+    {
+        // arrange
+        var resolver = new StubXmlDocumentationFileResolver(null);
+        var documentationProvider = new XmlDocumentationProvider(
+            resolver,
+            new NoOpStringBuilderPool());
+
+        // act and assert
+        Assert.Null(documentationProvider.GetDescription(typeof(Point)));
+
+        resolver.Document = CreatePointDocumentation("First description.");
+        Assert.Equal(
+            "First description.",
+            documentationProvider.GetDescription(typeof(Point)));
+
+        resolver.Document = CreatePointDocumentation("Replacement description.");
+        Assert.Equal(
+            "Replacement description.",
+            documentationProvider.GetDescription(typeof(Point)));
+    }
+
+    [Fact]
+    public void GetDescription_Should_UseFirstMember_When_DocumentContainsDuplicateNames()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            """
+            <doc>
+              <members>
+                <member name="T:System.Drawing.Point">
+                  <summary>First point description.</summary>
+                </member>
+                <member name="T:System.Drawing.Point">
+                  <summary>Second point description.</summary>
+                </member>
+                <member name="T:System.Drawing.Rectangle">
+                  <summary>A rectangle.</summary>
+                </member>
+              </members>
+            </doc>
+            """);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+
+        // act
+        var pointDescription = documentationProvider.GetDescription(typeof(Point));
+        var rectangleDescription = documentationProvider.GetDescription(typeof(Rectangle));
+
+        // assert
+        Assert.Equal("First point description.", pointDescription);
+        Assert.Equal("A rectangle.", rectangleDescription);
+    }
+
+    [Fact]
+    public void GetDescription_Should_ReturnNull_When_ParameterContainsOnlyWhitespace()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            """
+            <doc>
+              <members>
+                <member name="M:HotChocolate.Types.Descriptors.WithParamrefTagInXmlDoc.Foo(System.Int32)">
+                  <param name="id">
+
+                  </param>
+                </member>
+              </members>
+            </doc>
+            """,
+            LoadOptions.PreserveWhitespace);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+        var parameter = typeof(WithParamrefTagInXmlDoc)
+            .GetMethod(nameof(WithParamrefTagInXmlDoc.Foo))!
+            .GetParameters()
+            .Single();
+
+        // act
+        var description = documentationProvider.GetDescription(parameter);
+
+        // assert
+        Assert.Null(description);
+    }
+
+    private static XDocument CreatePointDocumentation(string description) =>
+        XDocument.Parse(
+            $"""
+            <doc>
+              <members>
+                <member name="T:System.Drawing.Point">
+                  <summary>{description}</summary>
+                </member>
+              </members>
+            </doc>
+            """);
+
+    private sealed class StubXmlDocumentationFileResolver(XDocument? document)
+        : IXmlDocumentationFileResolver
+    {
+        public XDocument? Document { get; set; } = document;
+
+        public bool TryGetXmlDocument(
+            Assembly assembly,
+            [NotNullWhen(true)] out XDocument? resolvedDocument)
+        {
+            resolvedDocument = Document;
+            return resolvedDocument is not null;
+        }
     }
 }

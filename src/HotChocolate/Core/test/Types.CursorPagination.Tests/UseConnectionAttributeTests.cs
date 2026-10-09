@@ -130,7 +130,7 @@ public class UseConnectionAttributeTests
         string code)
     {
         var operationResult = executionResult.ExpectOperationResult();
-        var error = Assert.Single(operationResult.Errors!);
+        var error = Assert.Single(operationResult.Errors);
 
         Assert.True(
             error.Code == code,

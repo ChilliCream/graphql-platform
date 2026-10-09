@@ -59,7 +59,14 @@ internal abstract class ExecuteRequestSpanBase(
             Activity.SetTag(GraphQL.Document.Body, documentInfo.Document.Print());
         }
 
-        if (Context.Result is OperationResult result)
+        // An intentional caller cancellation (browser tab closed, connection
+        // dropped) is not an error: per the OpenTelemetry semantic conventions
+        // the span status is left Unset and no error.type or error events are
+        // reported. A server-side execution timeout is not a client cancellation
+        // and keeps the regular error behavior below.
+        var clientCanceled = ClientCancellation.IsClientCanceled(Context);
+
+        if (!clientCanceled && Context.Result is OperationResult result)
         {
             if (result.Errors.Count > 0)
             {
@@ -69,7 +76,11 @@ internal abstract class ExecuteRequestSpanBase(
             EmitErrorEvents(result.Errors, operationTypeValue, operationName, documentInfo);
         }
 
-        if (Context.Result is null or OperationResult { Errors: [_, ..] })
+        if (clientCanceled)
+        {
+            // leave the span Unset (neither Error nor Ok).
+        }
+        else if (Context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(ActivityStatusCode.Error);
 

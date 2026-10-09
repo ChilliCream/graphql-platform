@@ -1,0 +1,25 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "inventory",
+      "AutoProvision": true,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "inventory_error",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "inventory_skipped",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": []
+}

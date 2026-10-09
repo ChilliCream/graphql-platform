@@ -20,6 +20,9 @@ namespace TestNamespace.DataLoaderGen
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.DataLoaderGen.TestClass.GetEntityByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::DataLoaderGen.Result.TestResultClass?>
         , IEntityByIdDataLoader

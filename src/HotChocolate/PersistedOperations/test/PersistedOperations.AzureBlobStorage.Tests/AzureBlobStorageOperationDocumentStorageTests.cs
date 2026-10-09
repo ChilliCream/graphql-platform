@@ -1,12 +1,12 @@
 using Azure.Storage.Blobs;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Squadron;
 
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
-public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<AzureStorageBlobResource>
+public class AzureBlobStorageOperationDocumentStorageTests
 {
     private readonly BlobContainerClient _client;
 

@@ -370,7 +370,7 @@ public sealed partial class SyntaxSerializer
                     writer.Write(", ");
                 }
 
-                VisitArgumentValueDefinition(arguments[i], writer);
+                WriteFlatInputValueDefinition(arguments[i], writer);
             }
 
             writer.Write(")");
@@ -383,16 +383,7 @@ public sealed partial class SyntaxSerializer
             foreach (var argument in arguments)
             {
                 writer.WriteLine();
-                writer.WriteIndent();
-
-                if (argument.Description is { })
-                {
-                    writer.WriteStringValue(argument.Description);
-                    writer.WriteLine();
-                    writer.WriteIndent();
-                }
-
-                WriteInputValueDefinition(argument, writer);
+                VisitInputValueDefinition(argument, writer);
             }
 
             writer.WriteLine();
@@ -558,7 +549,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteIndent();
             writer.WriteMany(
                 directives,
-                (n, w) => WriteDirective(n, w),
+                WriteDirective,
                 w =>
                 {
                     w.WriteLine();
@@ -586,7 +577,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteIndent();
             writer.WriteMany(
                 directives,
-                (n, w) => WriteDirective(n, w),
+                WriteDirective,
                 w =>
                 {
                     w.WriteLine();

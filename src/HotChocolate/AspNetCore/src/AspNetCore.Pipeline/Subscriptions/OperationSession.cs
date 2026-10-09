@@ -40,6 +40,7 @@ internal sealed class OperationSession : IOperationSession
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
         var ct = cts.Token;
         var completeTry = false;
+        var errorSent = false;
 
         try
         {
@@ -52,6 +53,9 @@ internal sealed class OperationSession : IOperationSession
                 case OperationResult queryResult:
                     if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
+                        // an error message terminates the operation, so no complete message
+                        // is sent afterwards.
+                        errorSent = true;
                         await _session.Protocol.SendErrorMessageAsync(
                             _session,
                             Id,
@@ -85,7 +89,7 @@ internal sealed class OperationSession : IOperationSession
             // message again.
             completeTry = true;
 
-            if (!ct.IsCancellationRequested)
+            if (!errorSent && !ct.IsCancellationRequested)
             {
                 await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
             }

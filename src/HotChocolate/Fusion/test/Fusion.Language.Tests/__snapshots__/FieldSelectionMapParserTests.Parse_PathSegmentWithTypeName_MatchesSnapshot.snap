@@ -24,6 +24,7 @@
       },
       "Value": "field1"
     },
+    "Arguments": [],
     "TypeName": {
       "Kind": "Name",
       "Location": {
@@ -52,6 +53,7 @@
         },
         "Value": "field2"
       },
+      "Arguments": [],
       "TypeName": null,
       "PathSegment": null
     }

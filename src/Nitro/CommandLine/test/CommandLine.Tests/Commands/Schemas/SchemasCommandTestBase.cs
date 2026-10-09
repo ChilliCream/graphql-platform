@@ -190,7 +190,7 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
         SchemasClientMock
             .Setup(x => x.DownloadLatestSchemaAsync(
                 ApiId, Stage, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => null);
+            .ThrowsAsync(new NitroClientNotFoundException($"Could not find a published schema on stage '{Stage}'."));
     }
 
     protected void SetupDownloadSchemaException()

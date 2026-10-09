@@ -160,7 +160,7 @@ public class SerializationTests
 
         // assert
         Assert.NotNull(parsed);
-        Assert.Equal("application/msgpack", parsed!.Value);
+        Assert.Equal("application/msgpack", parsed.Value);
     }
 
     [Fact]

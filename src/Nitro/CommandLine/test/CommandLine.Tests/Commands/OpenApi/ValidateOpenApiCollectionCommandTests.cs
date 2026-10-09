@@ -132,6 +132,48 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     }
 
     [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupOpenApiDocument();
+        SetupValidateOpenApiCollectionMutation(
+            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "validate", "--stage", Stage, "--openapi-collection-id", OpenApiCollectionId,
+            "--pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupOpenApiDocument();
+        SetupValidateOpenApiCollectionMutation(
+            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
+                OpenApiCollectionId, "OpenAPI collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "validate", "--stage", Stage, "--openapi-collection-id", OpenApiCollectionId,
+            "--pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            OpenAPI collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task ValidateOpenApiCollectionReturnsNullRequestId_ReturnsError()
     {
         // arrange
@@ -271,23 +313,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
                     "Not authorized to validate."),
                 """
                 Not authorized to validate.
-                """
-            },
-            {
-                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    Stage),
-                """
-                Stage not found.
-                """
-            },
-            {
-                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
-                    OpenApiCollectionId,
-                    "OpenAPI collection not found."),
-                """
-                OpenAPI collection not found.
                 """
             }
         };

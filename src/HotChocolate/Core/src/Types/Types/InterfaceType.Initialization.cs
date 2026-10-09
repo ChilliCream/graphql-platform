@@ -13,7 +13,9 @@ public partial class InterfaceType
     private InterfaceTypeCollection _implements = InterfaceTypeCollection.Empty;
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private Schema _schema = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     protected override InterfaceTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)

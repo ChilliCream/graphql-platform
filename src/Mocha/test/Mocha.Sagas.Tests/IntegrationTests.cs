@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Events;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
@@ -375,6 +376,36 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Saga_Should_ReceiveFault_When_SendUsedWithOnFault()
+    {
+        // A saga that uses .Send to dispatch a request whose handler fails terminally routes the
+        // fault reply back to its OnFault transition, correlated by the saga header the fault reply
+        // carries. Without it the saga waits in its send state until it times out.
+
+        // arrange
+        var handlerFaulted = new TaskCompletionSource();
+        await using var provider = await CreateBusAsync(b =>
+        {
+            b.Services.AddSingleton(handlerFaulted);
+            b.AddRequestHandler<FaultingTriggerRequestHandler>();
+            b.AddSaga<FaultSaga>();
+        });
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act - publish StartFaultEvent to start the saga, which sends FaultingRequest via .Send
+        await bus.PublishAsync(new StartFaultEvent(), CancellationToken.None);
+
+        // assert - the handler ran and threw, proving the request was delivered
+        await handlerFaulted.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert - the fault routed back to the saga and drove its OnFault transition
+        var fault = await FaultSaga.Observed.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        Assert.Equal(ErrorCodes.Exception, fault.ErrorCode);
+    }
+
+    [Fact]
     public async Task Bus_Should_RoundTripReply_When_RequestAsyncUsedDirectly()
     {
         // baseline: a direct bus.RequestAsync sets a CorrelationId and registers a deferred response
@@ -494,6 +525,7 @@ public class IntegrationTests
                 .TransitionTo("AwaitingResponse");
 
             descriptor.During("AwaitingResponse").OnAnyReply().TransitionTo("Completed");
+            descriptor.During("AwaitingResponse").OnFault().TransitionTo("Completed");
 
             descriptor.Finally("Completed");
         }
@@ -516,8 +548,36 @@ public class IntegrationTests
                 .TransitionTo("AwaitingResponse");
 
             descriptor.During("AwaitingResponse").OnAnyReply().TransitionTo("Completed");
+            descriptor.During("AwaitingResponse").OnFault().TransitionTo("Completed");
 
             descriptor.Finally("Completed");
+        }
+    }
+
+    /// <summary>
+    /// Fault saga: StartFaultEvent -> AwaitingResponse (sends FaultingRequest) ->
+    /// OnFault -> Failed (final)
+    /// </summary>
+    public sealed class FaultSaga : Saga<RequestResponseState>
+    {
+        public static TaskCompletionSource<NotAcknowledgedEvent> Observed { get; } = new();
+
+        protected override void Configure(ISagaDescriptor<RequestResponseState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StartFaultEvent>()
+                .StateFactory(_ => new RequestResponseState())
+                .Send((_, _) => new FaultingRequest())
+                .TransitionTo("AwaitingResponse");
+
+            descriptor
+                .During("AwaitingResponse")
+                .OnFault()
+                .Then((_, fault) => Observed.TrySetResult(fault))
+                .TransitionTo("Failed");
+
+            descriptor.Finally("Failed");
         }
     }
 
@@ -555,6 +615,10 @@ public class IntegrationTests
     public sealed class StartRequestEvent;
 
     public sealed class StartSecondRequestEvent;
+
+    public sealed class StartFaultEvent;
+
+    public sealed record FaultingRequest : IEventRequest<TriggerResponse>;
 
     public sealed record TriggerEvent(Guid? CorrelationId) : ICorrelatable;
 
@@ -598,14 +662,23 @@ public class IntegrationTests
         }
     }
 
-    private sealed class SecondTriggerRequestHandler
-        : IEventRequestHandler<SecondTriggerRequest, SecondTriggerResponse>
+    private sealed class SecondTriggerRequestHandler : IEventRequestHandler<SecondTriggerRequest, SecondTriggerResponse>
     {
         public ValueTask<SecondTriggerResponse> HandleAsync(
             SecondTriggerRequest request,
             CancellationToken cancellationToken)
         {
             return new(new SecondTriggerResponse());
+        }
+    }
+
+    private sealed class FaultingTriggerRequestHandler(TaskCompletionSource handlerFaulted)
+        : IEventRequestHandler<FaultingRequest, TriggerResponse>
+    {
+        public ValueTask<TriggerResponse> HandleAsync(FaultingRequest request, CancellationToken cancellationToken)
+        {
+            handlerFaulted.TrySetResult();
+            throw new InvalidOperationException("terminal failure");
         }
     }
 

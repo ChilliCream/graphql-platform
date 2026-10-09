@@ -1,0 +1,18 @@
+{
+  "id": "exact_cases_preserve_signed_type_costs_when_collecting_fields",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\n\nscalar Text @cost(weight: \"5\")\ntype Query @cost(weight: \"0\") { book: Book }\ntype Book @cost(weight: \"-7\") { title: Text, author: Author }\ntype Author { name: Text }\n",
+  "operation": "query Example($a: Boolean!, $b: Boolean!) {\n  book @include(if: $a) { title }\n  book @include(if: $b) { author { name } }\n}\n",
+  "operationName": "Example",
+  "variables": {
+    "a": true,
+    "b": true
+  },
+  "defaultListSize": 10,
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 4,
+    "fieldCost": 2
+  },
+  "notes": "Port of estimator.rs test `exact_cases_preserve_signed_type_costs_when_collecting_fields` at line 881, commit fec57fd7a980b5399637fa464a9bdce0781d91dd."
+}

@@ -144,14 +144,14 @@ operationPlan:
           }
           b: node(id: "RGlzY3Vzc2lvbjoy") {
             __typename @fusion__requirement
-            id @fusion__requirement
             ... on Discussion {
               title
               commentCount
+              id @fusion__requirement
             }
           }
         }
-      hash: a361113ff8d3c2a57d63e65e469e73a7
+      hash: 38ecf45d449470adef90ff47d9518104
       searchSpace: 1
       expandedNodes: 1
   nodes:

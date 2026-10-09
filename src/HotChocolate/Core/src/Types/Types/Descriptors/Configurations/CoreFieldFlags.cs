@@ -48,5 +48,10 @@ internal enum CoreFieldFlags : long
     ImplicitField = 1L << 32,
     BatchResolver = 1L << 33,
     MemberReplacement = 1L << 34,
-    UseV15MutationFieldNameFormat = 1L << 35
+    UseV15MutationFieldNameFormat = 1L << 35,
+    MutationPayload = 1L << 36,
+    HasPureResolver = 1L << 37,
+    AlwaysProjected = 1L << 38,
+    NotProjected = 1L << 39,
+    HasProjectionMiddleware = 1L << 40
 }

@@ -78,8 +78,7 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
 
         unchecked
         {
-            var hashCode = (obj.Type.GetHashCode() * 397)
-               ^ (obj.Kind.GetHashCode() * 397);
+            var hashCode = (obj.Type.GetHashCode() * 397) ^ (obj.Kind.GetHashCode() * 397);
 
             for (var i = 0; i < obj.TypeArguments.Count; i++)
             {

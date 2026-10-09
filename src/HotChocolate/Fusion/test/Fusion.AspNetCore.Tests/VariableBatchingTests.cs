@@ -1,16 +1,22 @@
-using System.Collections.Immutable;
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.Execution;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
+using static System.Net.HttpStatusCode;
+using static HotChocolate.AspNetCore.HttpTransportVersion;
+using VariableBatchRequest = HotChocolate.Transport.VariableBatchRequest;
 
 namespace HotChocolate.Fusion;
 
 public class VariableBatchingTests : FusionTestBase
 {
     [Fact]
-    public async Task Execute_With_Multiple_Variable_Sets_Produces_A_Result_Per_Set()
+    public async Task Execute_Should_ProduceAResultPerVariableSet_When_ServerOptionsAreDefault()
     {
         // arrange
         // Several variable sets run as parallel plan executions over the one shared request arena.
@@ -23,8 +29,7 @@ public class VariableBatchingTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("A", serverA)
-            ],
-            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+            ]);
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
@@ -114,6 +119,118 @@ public class VariableBatchingTests : FusionTestBase
 
         // assert
         Assert.Equal(["first", "second", "third"], [.. values.OrderBy(v => v)]);
+    }
+
+    [Theory]
+    [InlineData("query($input: String!) { field(input: $input) }", Draft20250508, BadRequest)]
+    [InlineData(
+        "query($input: String!) { field(input: $input) }",
+        Draft20260903,
+        UnprocessableContent)]
+    [InlineData("{ __typename }", Draft20250508, BadRequest)]
+    [InlineData("{ __typename }", Draft20260903, UnprocessableContent)]
+    public async Task Execute_Should_ReturnRequestError_When_VariableBatchIsEmpty(
+        string query,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b.AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = transportVersion
+                }));
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(
+            $$"""{ "query": "{{query}}", "variables": [] }""",
+            Encoding.UTF8,
+            "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"A variable batch request must contain at least one variable set.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReturnInternalServerError_When_CoercedVariablesAreMissing()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b.UseRequest(
+                next => context =>
+                {
+                    context.VariableValues = [];
+                    return next(context);
+                },
+                key: "ClearVariableValues",
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
+
+        using var client = gateway.CreateClient();
+
+        const string body =
+            """
+            {
+                "query": "query testQuery($input: String!) { field(input: $input) }",
+                "variables": [{ "input": "first" }]
+            }
+            """;
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: InternalServerError
+                -------------------------->
+                {"errors":[{"message":"Unexpected Execution Error"}]}
+                """);
     }
 
     public static class SourceSchema

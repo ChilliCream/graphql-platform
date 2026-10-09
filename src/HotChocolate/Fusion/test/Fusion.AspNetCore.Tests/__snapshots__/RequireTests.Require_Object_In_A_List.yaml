@@ -324,13 +324,13 @@ operationPlan:
               estimatedDelivery
               id @fusion__requirement
               dimension @fusion__requirement {
-                width
-                height
+                width @fusion__requirement
+                height @fusion__requirement
               }
             }
           }
         }
-      hash: 1f7d64490a0ae4c811ddec3de271b2bd
+      hash: 8dd56ff5d53b655a039067e2d554efbc
       searchSpace: 2
       expandedNodes: 6
   nodes:

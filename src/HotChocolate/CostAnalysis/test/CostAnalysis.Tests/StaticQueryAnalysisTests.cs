@@ -58,6 +58,26 @@ public sealed class StaticQueryAnalysisTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task Execute_Should_ReportZeroCost_When_FieldReturnsScalarList()
+    {
+        // arrange
+        var request = OperationRequestBuilder.New().SetDocument("{ scalarValues }").ReportCost().Build();
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .AddDocumentFromString("type Query { scalarValues: [Int!]! }")
+            .AddResolver("Query", "scalarValues", _ => new[] { 1 })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var operationCost =
+            (IReadOnlyDictionary<string, object?>)response.ExpectOperationResult().Extensions["operationCost"]!;
+
+        // assert
+        Assert.Equal(1, Convert.ToDouble(operationCost["typeCost"]));
+        Assert.Equal(0, Convert.ToDouble(operationCost["fieldCost"]));
+    }
+
     [Theory]
     [MemberData(nameof(ConnectionQueryData))]
     public async Task Execute_ConnectionQuery_ReturnsExpectedResult(
@@ -165,33 +185,43 @@ public sealed class StaticQueryAnalysisTests
                 """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
                 "examples(limit: 10) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (null limit in query).
             {
                 3,
-                """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
+                """
+                examples(limit: Int): [Example!]!
+                    @listSize(slicingArguments: ["limit"], requireOneSlicingArgument: false)
+                """,
                 "examples(limit: null) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (no limit in query).
             {
                 4,
-                """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
+                """
+                examples(limit: Int): [Example!]!
+                    @listSize(slicingArguments: ["limit"], requireOneSlicingArgument: false)
+                """,
                 "examples { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (null limit in query, with assumedSize).
             {
                 5,
                 """
                 examples(limit: Int): [Example!]!
-                    @listSize(slicingArguments: ["limit"], assumedSize: 10)
+                    @listSize(
+                        slicingArguments: ["limit"],
+                        assumedSize: 10,
+                        requireOneSlicingArgument: false
+                    )
                 """,
                 "examples(limit: null) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (no limit in query, with assumedSize).
             {
                 6,
                 """
                 examples(limit: Int): [Example!]!
-                    @listSize(slicingArguments: ["limit"], assumedSize: 10)
+                    @listSize(
+                        slicingArguments: ["limit"],
+                        assumedSize: 10,
+                        requireOneSlicingArgument: false
+                    )
                 """,
                 "examples { field1, field2 }"
             },
@@ -232,6 +262,12 @@ public sealed class StaticQueryAnalysisTests
                         slicingArgumentDefaultValue: 42
                     )
                 """,
+                "examples { field1, field2 }"
+            },
+            // The default requires one slicing argument, but the query supplies none.
+            {
+                10,
+                """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
                 "examples { field1, field2 }"
             }
         };
@@ -282,7 +318,11 @@ public sealed class StaticQueryAnalysisTests
     {
         return new ServiceCollection()
             .AddGraphQLServer()
-            .ModifyCostOptions(o => o.DefaultResolverCost = null)
+            .ModifyCostOptions(o =>
+            {
+                o.DefaultResolverCost = null;
+                o.DefaultListSize = 1;
+            })
             .AddResolver(
                 "Query",
                 "example",

@@ -1,5 +1,12 @@
 {
-  "Headers": [],
+  "Headers": [
+    {
+      "Key": "Vary",
+      "Value": [
+        "Accept"
+      ]
+    }
+  ],
   "ContentHeaders": [
     {
       "Key": "Content-Type",

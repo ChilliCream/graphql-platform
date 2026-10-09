@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.Transport.Sockets.Client;
@@ -72,7 +73,7 @@ public class WebSocketClientBatchTests(TestServerFactory serverFactory, ITestOut
         });
 
     [Fact]
-    public Task ExecuteBatch_Disconnect()
+    public Task ExecuteBatch_Should_Throw_When_Socket_Aborted_Without_Close_Frame()
     {
         return TryTest(async ct =>
         {
@@ -91,14 +92,20 @@ public class WebSocketClientBatchTests(TestServerFactory serverFactory, ITestOut
             // act
             using var socketResult = await client.ExecuteBatchAsync(subscriptionRequest, ct);
 
-            // disconnect
+            // ... abort the client socket without a close frame, simulating abnormal loss
             webSocket.Abort();
 
-            // assert - iterating the aborted stream should complete without results
-            await foreach (var unused in socketResult.ReadResultsAsync().WithCancellation(ct))
+            // assert
+            async Task ReadResults()
             {
-                Assert.Fail("Stream should have been aborted");
+                await foreach (var result in socketResult.ReadResultsAsync().WithCancellation(ct))
+                {
+                    result.Dispose();
+                }
             }
+
+            var error = await Assert.ThrowsAsync<SocketClosedException>(ReadResults);
+            Assert.Equal((WebSocketCloseStatus)1006, error.Reason);
         });
     }
 }

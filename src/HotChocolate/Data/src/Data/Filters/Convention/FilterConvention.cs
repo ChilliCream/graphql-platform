@@ -59,7 +59,7 @@ public class FilterConvention
             context.DescriptorContext,
             context.Scope);
 
-        _configure!(descriptor);
+        _configure(descriptor);
         _configure = null;
 
         return descriptor.CreateConfiguration();

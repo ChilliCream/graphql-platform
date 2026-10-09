@@ -3,8 +3,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
@@ -12,7 +10,6 @@ using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
-using FusionIOperationRequest = HotChocolate.Fusion.Transport.IOperationRequest;
 using FusionOperationRequest = HotChocolate.Fusion.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -72,15 +69,63 @@ public sealed class BatchBufferTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task ExecuteBatchAsync_Should_IsolateFailure_When_OneRequestFailsMidSequence()
+    {
+        // arrange
+        // Capabilities without request batching force the fallback that sends
+        // each request as its own HTTP round-trip, so a single failure must not
+        // abort the batch.
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new SelectiveFailureHandler()),
+            disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(
+            graphQLClient,
+            new HttpSourceSchemaClientConfiguration(
+                "A",
+                new Uri("http://localhost:5000/graphql"),
+                capabilities: SourceSchemaClientCapabilities.None));
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode),
+            CreateRequest(fixture.RootNode),
+            CreateRequest(fixture.RootNode));
+
+        // act
+        var produced = new List<string>();
+        await foreach (var batchResult in client.ExecuteBatchAsync(
+            context,
+            requests,
+            TestContext.Current.CancellationToken))
+        {
+            produced.Add($"{batchResult.RequestIndex}:{batchResult.Result.Data.GetProperty("field").GetString()}");
+            batchResult.Result.Dispose();
+        }
+
+        // assert
+        // The second request fails in transport; the siblings still produce their
+        // data and exactly one cause is recorded against the failing request index.
+        Assert.Equal(new[] { "0:a", "2:c" }, produced);
+        Assert.True(context.TryGetBatchRequestError(fixture.RootNode, 1, out var recordedError));
+        Assert.IsType<HttpRequestException>(recordedError);
+    }
+
     private static SourceSchemaClientRequest CreateRequest(ExecutionNode node)
     {
+        var sourceText = "query { field }"u8.ToArray();
+
         return new SourceSchemaClientRequest
         {
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = "query { field }",
-            OperationHash = 1,
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Query,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
             Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
         };
     }
@@ -88,21 +133,22 @@ public sealed class BatchBufferTests : FusionTestBase
     private static OperationBatchRequest CreateBatchRequest()
     {
         return new OperationBatchRequest(
-            ImmutableArray.Create<FusionIOperationRequest>(
-                new FusionOperationRequest(
-                    "query { field }",
-                    id: null,
-                    operationName: null,
-                    onError: null,
-                    VariableValues.Empty,
-                    JsonSegment.Empty),
-                new FusionOperationRequest(
-                    "query { field }",
-                    id: null,
-                    operationName: null,
-                    onError: null,
-                    VariableValues.Empty,
-                    JsonSegment.Empty)));
+        [
+            new FusionOperationRequest(
+                "query { field }"u8.ToArray(),
+                id: null,
+                operationName: null,
+                onError: null,
+                VariableValues.Empty,
+                JsonSegment.Empty),
+            new FusionOperationRequest(
+                "query { field }"u8.ToArray(),
+                id: null,
+                operationName: null,
+                onError: null,
+                VariableValues.Empty,
+                JsonSegment.Empty)
+        ]);
     }
 
     private sealed class BatchBufferTestFixture : IAsyncDisposable
@@ -202,6 +248,35 @@ public sealed class BatchBufferTests : FusionTestBase
             }
 
             await _services.DisposeAsync();
+        }
+    }
+
+    private sealed class SelectiveFailureHandler : HttpMessageHandler
+    {
+        private int _callCount;
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var call = Interlocked.Increment(ref _callCount);
+
+            if (call == 2)
+            {
+                throw new HttpRequestException(
+                    "The connection was reset while sending the second request.");
+            }
+
+            var field = call == 1 ? "a" : "c";
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    "{\"data\":{\"field\":\"" + field + "\"}}",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            return Task.FromResult(response);
         }
     }
 

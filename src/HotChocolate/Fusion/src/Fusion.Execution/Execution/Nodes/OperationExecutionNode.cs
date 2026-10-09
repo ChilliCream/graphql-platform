@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -17,7 +18,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
-    private readonly ulong _operationHash;
+    private readonly Utf8OperationDocument _operationDocument;
+    private readonly string? _lookupTypeName;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -25,6 +27,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     internal OperationExecutionNode(
         int id,
         OperationSourceText operation,
+        string? lookupTypeName,
         string? schemaName,
         SelectionPath target,
         SelectionPath source,
@@ -36,7 +39,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         Id = id;
         _operation = operation;
-        _operationHash = operation.SourceText.ComputeHash();
+        _operationDocument = Utf8GraphQLOperationParser.Parse(operation.Value, ParserOptions.Trusted);
+        _lookupTypeName = lookupTypeName;
         _schemaName = schemaName;
         _target = target;
         _source = source;
@@ -60,6 +64,17 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the operation definition that this execution node represents.
     /// </summary>
     public OperationSourceText Operation => _operation;
+
+    /// <summary>
+    /// Gets the parsed syntax tree of the operation source text.
+    /// </summary>
+    internal Utf8OperationDocument OperationDocument => _operationDocument;
+
+    /// <summary>
+    /// Gets the name of the type that the body of the operation's single root selection is
+    /// selected on, or <c>null</c> when the operation is not a lookup.
+    /// </summary>
+    internal string? LookupTypeName => _lookupTypeName;
 
     /// <summary>
     /// Gets the result selection set fulfilled by this operation.
@@ -93,6 +108,9 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
+    internal ImmutableArray<string> GetForwardedVariablesArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_forwardedVariables);
+
     /// <summary>
     /// Gets whether this operation contains one or more variables
     /// that contain the Upload scalar.
@@ -119,10 +137,12 @@ public sealed class OperationExecutionNode : ExecutionNode
             Node = this,
             SchemaName = schemaName,
             OperationType = _operation.Type,
-            OperationSourceText = _operation.SourceText,
+            OperationSourceText = _operation,
             Variables = variables,
             RequiresFileUpload = _requiresFileUpload,
-            OperationHash = _operationHash
+            OperationDocument = _operationDocument,
+            LookupTypeName = _lookupTypeName,
+            ForwardedVariables = GetForwardedVariablesArray()
         };
 
         var index = 0;
@@ -202,54 +222,81 @@ public sealed class OperationExecutionNode : ExecutionNode
             return ExecutionStatus.Failed;
         }
 
+        var pendingMerge = default(PendingMerge);
+        var hasPendingMerge = false;
+
         try
         {
             if (buffer is not null)
             {
-                context.AddPartialResults(
+                pendingMerge = PendingMerge.Multiple(
+                    this,
+                    schemaName,
                     _source,
-                    buffer.AsSpan(0, index),
                     _resultSelectionSet,
+                    variables,
+                    buffer,
+                    index,
                     hasSomeErrors);
+                hasPendingMerge = true;
             }
             else if (singleResult is not null)
             {
-                var firstResult = singleResult;
-                context.AddPartialResults(
+                pendingMerge = PendingMerge.Single(
+                    this,
+                    schemaName,
                     _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
                     _resultSelectionSet,
+                    variables,
+                    singleResult,
                     hasSomeErrors);
+                hasPendingMerge = true;
             }
-            else
+
+            if (hasPendingMerge)
             {
-                context.AddPartialResults(
-                    _source,
-                    [],
-                    _resultSelectionSet,
-                    hasSomeErrors);
+                context.EnqueuePendingMerge(pendingMerge);
             }
+
+            buffer = null;
+            singleResult = null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
+            if (hasPendingMerge)
+            {
+                pendingMerge.DisposeUnmerged();
+            }
+
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
-            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, _resultSelectionSet);
-            return ExecutionStatus.Failed;
-        }
-        finally
-        {
-            if (buffer is not null)
+            if (hasPendingMerge)
             {
+                pendingMerge.DisposeUnmerged();
+            }
+            else if (buffer is not null)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    result?.Dispose();
+                }
+
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
+            else
+            {
+                singleResult?.Dispose();
+            }
+
+            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+            context.AddErrors(exception, variables, _resultSelectionSet);
+            return ExecutionStatus.Failed;
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
@@ -274,9 +321,9 @@ public sealed class OperationExecutionNode : ExecutionNode
             Node = this,
             SchemaName = schemaName,
             OperationType = _operation.Type,
-            OperationSourceText = _operation.SourceText,
+            OperationSourceText = _operation,
             Variables = variables,
-            OperationHash = _operationHash
+            OperationDocument = _operationDocument
         };
 
         var subscriptionId = SubscriptionId.Next();
@@ -385,6 +432,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             bool hasResult;
             var received = false;
+            var arenaBound = false;
             IDisposable? scope = null;
             long? start = null;
             var arenaBefore = _eventArenaSource.Arena;
@@ -399,11 +447,11 @@ public sealed class OperationExecutionNode : ExecutionNode
                 // the event arena being bound and registered as the active arena throws, the arena
                 // must be disposed on the failure path below.
                 received = hasResult;
-                scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
-                start = Stopwatch.GetTimestamp();
 
                 if (hasResult)
                 {
+                    scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
+                    start = Stopwatch.GetTimestamp();
                     _resultBuffer[0] = _eventEnumerator.Current;
 
                     // Bind the event arena as the active arena before adding the event's result, so the
@@ -412,6 +460,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     // the try so a failure while binding the arena disposes it on the failure path
                     // instead of leaving it to the finalizer.
                     _context.SetActiveEventArena(_eventArenaSource.Arena);
+                    arenaBound = true;
 
                     _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
 
@@ -436,12 +485,55 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _eventEnumerator.Current.Dispose();
                 }
 
-                // An arena minted during this failed iteration is owned by this enumerator. An
-                // arena carried over from a prior delivered event is still owned by that result.
-                if (!ReferenceEquals(_eventArenaSource.Arena, arenaBefore))
+                // An arena minted during this failed iteration is owned by this enumerator until it
+                // is bound as the active event arena. An arena carried over from a prior delivered
+                // event is still owned by that result.
+                var arena = _eventArenaSource.Arena;
+                var arenaMinted = !ReferenceEquals(arena, arenaBefore);
+
+                // A cancellation signalled on the subscription token while the transport read
+                // was in flight (client abort or shutdown) is the same graceful teardown as
+                // observing the token before the read, not a subscription event error.
+                if (exception is OperationCanceledException
+                    && _cancellationToken.IsCancellationRequested)
                 {
-                    ((IDisposable)_eventArenaSource.Arena).Dispose();
+                    if (arenaMinted)
+                    {
+                        ((IDisposable)arena).Dispose();
+                    }
+
+                    scope?.Dispose();
+                    _completed = true;
+                    Current = null!;
+                    return false;
                 }
+
+                // Any other failure ends the subscription with a single terminal error result. The
+                // error result is built on its own event arena, like every delivered event, so the
+                // arena travels with that result. A minted arena that was never bound is released
+                // and replaced by a fresh one; a bound arena stays the active arena.
+                _completed = true;
+
+                if (!arenaBound)
+                {
+                    if (arenaMinted)
+                    {
+                        ((IDisposable)arena).Dispose();
+                    }
+
+                    _context.SetActiveEventArena(_eventArenaSource.GetNextArena());
+                }
+
+                _context.DiagnosticEvents.SubscriptionEventError(
+                    _context,
+                    _node,
+                    _schemaName,
+                    _subscriptionId,
+                    exception);
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
 
                 Current = new EventMessageResult(
                     _node.Id,
@@ -452,16 +544,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     Stopwatch.GetTimestamp(),
                     Exception: exception,
                     VariableValueSets: _context.GetVariableValueSets(_node));
-
-                var error = ErrorBuilder.FromException(exception).Build();
-                _context.DiagnosticEvents.SubscriptionEventError(
-                    _context,
-                    _node,
-                    _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
-                    _subscriptionId,
-                    exception);
-                _context.AddErrors(error, _node._resultSelectionSet);
-                return false;
+                return true;
             }
 
             _completed = true;
@@ -481,12 +564,5 @@ public sealed class OperationExecutionNode : ExecutionNode
             _subscriptionScope.Dispose();
             await _clientScope.DisposeAsync();
         }
-    }
-
-    private static class SubscriptionId
-    {
-        private static ulong s_subscriptionId;
-
-        public static ulong Next() => Interlocked.Increment(ref s_subscriptionId);
     }
 }

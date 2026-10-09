@@ -36,7 +36,7 @@ internal static class ServiceExpressionHelper
     public static Expression Build(
         ParameterInfo parameter,
         Expression context,
-        string key)
+        object key)
         => BuildDefaultService(parameter, context, key);
 
     [UnconditionalSuppressMessage(
@@ -71,7 +71,7 @@ internal static class ServiceExpressionHelper
         Justification =
             "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
             + "environments.")]
-    private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
+    private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, object key)
     {
         var parameterType = parameter.ParameterType;
         var argumentMethod = s_getKeyedServiceMethod.MakeGenericMethod(parameterType);

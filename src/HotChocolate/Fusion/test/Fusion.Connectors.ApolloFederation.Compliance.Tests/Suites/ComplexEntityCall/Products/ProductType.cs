@@ -18,13 +18,8 @@ public sealed class ProductType : ObjectType<Product>
             .Key("id")
             .ResolveReferenceWith(_ => ResolveById(default!));
 
-        // Apollo Federation would mark this as '@external' (the field is
-        // owned by the link/list/price subgraphs). In the Fusion composite
-        // schema we model the same intent with '@shareable': the field
-        // travels with Product instances returned from this subgraph's root
-        // queries so the planner can use it as the entity-routing key.
         descriptor.Field(p => p.Id)
-            .Shareable()
+            .External()
             .Type<NonNullType<StringType>>();
 
         descriptor.Field("category")

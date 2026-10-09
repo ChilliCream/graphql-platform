@@ -9,7 +9,7 @@ operation:
           shippingEstimateEUR
           isExpensiveCategory
           category @fusion__requirement {
-            averagePrice
+            averagePrice @fusion__requirement
           }
           priceEur @fusion__requirement
           weight @fusion__requirement

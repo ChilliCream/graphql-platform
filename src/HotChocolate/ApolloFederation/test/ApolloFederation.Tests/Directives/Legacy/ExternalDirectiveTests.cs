@@ -31,7 +31,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                         .Resolve(_ => 1);
                     o.Field("idCode")
                         .Type<StringType>()
-                        .Resolve(_ => default!)
+                        .Resolve(_ => default)
                         .External();
                 })
             .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);

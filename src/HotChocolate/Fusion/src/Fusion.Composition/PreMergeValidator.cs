@@ -43,6 +43,8 @@ internal sealed class PreMergeValidator(
             }
         }
 
+        PublishEvent(new SchemaGroupEvent([.. context.SchemaDefinitions]), context);
+
         foreach (var (typeName, typeGroup) in typeGroupByName)
         {
             PublishEvent(new TypeGroupEvent(typeName, [.. typeGroup]), context);

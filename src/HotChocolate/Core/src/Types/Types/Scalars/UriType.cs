@@ -28,7 +28,7 @@ public class UriType : ScalarType<Uri, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

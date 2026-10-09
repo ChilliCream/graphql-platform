@@ -54,7 +54,7 @@ internal sealed class PostgresMessageOutboxQueries
             ProcessEvent = $"""
                 UPDATE {t.QualifiedTableName}
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
-                     "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
+                    "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
                     WHERE "{t.TimesSent}" < 10 AND "{t.CreatedAt}" <= NOW()

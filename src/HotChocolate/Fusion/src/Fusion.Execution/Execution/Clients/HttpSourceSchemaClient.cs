@@ -18,7 +18,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// to a downstream service over HTTP. Supports single requests, Apollo-style request batching,
 /// and variable batching depending on the configured <see cref="HttpSourceSchemaClientConfiguration.Capabilities"/>.
 /// </summary>
-public sealed class HttpSourceSchemaClient : ISourceSchemaClient
+public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 {
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
@@ -27,6 +27,9 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     private readonly HttpSourceSchemaClientConfiguration _configuration;
     private readonly ErrorHandlingMode? _onError;
     private readonly bool _supportsVariableBatching;
+    private readonly bool _useAliasBatchingForVariableSets;
+    private readonly bool _useAliasBatchingForOperationBatches;
+    private readonly bool _annotateOperationKind;
     private bool _disposed;
 
     /// <summary>
@@ -34,9 +37,16 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     /// </summary>
     /// <param name="client">The underlying HTTP client used to send requests.</param>
     /// <param name="configuration">The transport configuration for this source schema.</param>
+    /// <param name="annotateOperationKind">
+    /// Whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP requests via
+    /// <see cref="HttpRequestMessage.Options"/>, so that delegating handlers (such as the
+    /// RequestDeduplicationHandler) can consume it. <c>false</c> by default because materializing the
+    /// request options bag allocates per request.
+    /// </param>
     public HttpSourceSchemaClient(
         GraphQLHttpClient client,
-        HttpSourceSchemaClientConfiguration configuration)
+        HttpSourceSchemaClientConfiguration configuration,
+        bool annotateOperationKind = false)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -44,22 +54,34 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         _client = client;
         _configuration = configuration;
         _onError = configuration.OnError;
+        _annotateOperationKind = annotateOperationKind;
 
         var capabilities = configuration.Capabilities;
 
         Capabilities = capabilities;
 
         _supportsVariableBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching);
+
+        var supportsAliasBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.AliasBatching);
+        var supportsRequestBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching);
+
+        // The many variable sets of one operation are merged into one aliased operation only when
+        // the source schema does not support variable batching.
+        _useAliasBatchingForVariableSets = supportsAliasBatching && !_supportsVariableBatching;
+
+        // The distinct operations of one batch are merged into one aliased operation only when the
+        // source schema does not support request batching.
+        _useAliasBatchingForOperationBatches = supportsAliasBatching && !supportsRequestBatching;
     }
 
     /// <inheritdoc />
     public SourceSchemaClientCapabilities Capabilities { get; }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+    public IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
 
@@ -71,42 +93,61 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
 
         Debug.WriteLine(request.SchemaName);
 
-        ChunkedArrayWriter? buffer = null;
-        GraphQLHttpResponse? httpResponse = null;
-
-        try
+        if (_useAliasBatchingForVariableSets
+            && request.Variables.Length > 1
+            && CanAliasBatch(request, out _, out _))
         {
-            var httpRequest = CreateHttpRequest(context, request, ref buffer);
-            ConfigureCallbacks(httpRequest, context, request.Node);
+            return ExecuteAliasBatchAsync(context, request, cancellationToken);
+        }
 
-            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-            context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
+        return CreateStreamAsync(context, request, cancellationToken);
 
-            var results = ReadAsResultStreamAsync(
-                context,
-                request.Variables,
-                httpResponse,
-                cancellationToken);
+        async IAsyncEnumerable<SourceSchemaResult> CreateStreamAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            ChunkedArrayWriter? buffer = null;
+            GraphQLHttpResponse? httpResponse = null;
 
-            if (_configuration.OnSourceSchemaResult is not null)
+            try
             {
-                results = WithResultCallback(
-                    results,
+                var httpRequest = CreateHttpRequest(context, request, ref buffer);
+                SourceSchemaCallbackHelper.ConfigureCallbacks(
+                    httpRequest,
                     context,
                     request.Node,
-                    _configuration.OnSourceSchemaResult,
-                    cancellationToken);
-            }
+                    _configuration);
 
-            await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
-            {
-                yield return result;
+                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+                context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
+
+                var results = ReadAsResultStreamAsync(
+                    context,
+                    request.Variables,
+                    httpResponse,
+                    cancellationToken);
+
+                if (_configuration.OnSourceSchemaResult is not null)
+                {
+                    results = WithResultCallback(
+                        results,
+                        context,
+                        request.Node,
+                        _configuration.OnSourceSchemaResult,
+                        cancellationToken);
+                }
+
+                await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
+                {
+                    yield return result;
+                }
             }
-        }
-        finally
-        {
-            httpResponse?.Dispose();
-            buffer?.Dispose();
+            finally
+            {
+                httpResponse?.Dispose();
+                buffer?.Dispose();
+            }
         }
     }
 
@@ -125,6 +166,31 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 FusionExecutionResources.HttpSourceSchemaClient_SubscriptionBatchNotSupported);
         }
 
+        if (_useAliasBatchingForOperationBatches)
+        {
+            return ExecuteAliasBatchAsync(context, requests, cancellationToken);
+        }
+
+        return ExecuteBatchWithNativeProtocolAsync(context, requests, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a batch through the protocol extensions that the source schema supports, which is
+    /// either an operation batch or one request per operation.
+    /// </summary>
+    private IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchWithNativeProtocolAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        CancellationToken cancellationToken)
+    {
+        // A source schema that does not support request batching still accepts
+        // each operation on its own, so we fall back to individual requests and
+        // stream the results back in request order.
+        if (!Capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching))
+        {
+            return ExecuteBatchAsSingleRequestsAsync(context, requests, cancellationToken);
+        }
+
         var requiresFileUpload = requests[0].RequiresFileUpload;
         ChunkedArrayWriter? buffer = null;
 
@@ -135,7 +201,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 requests,
                 requiresFileUpload,
                 ref buffer);
-            ConfigureCallbacks(httpRequest, context, requests[0].Node);
+            SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, requests[0].Node, _configuration);
 
             var results = ExecuteBatchStreamAsync(context, requests, httpRequest, buffer, cancellationToken);
 
@@ -172,13 +238,18 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         try
         {
             var httpRequest = CreateHttpRequest(context, request, ref buffer);
-            ConfigureCallbacks(httpRequest, context, request.Node);
+            SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, request.Node, _configuration);
 
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
-            await foreach (var document in httpResponse.ReadAsResultStreamAsync(arenaSource, requireStreaming: true)
-                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            // The read timeout bounds the wait for the next bytes of the event stream, keep-alives included.
+            var documents = httpResponse.ReadAsResultStreamAsync(
+                arenaSource,
+                requireStreaming: true,
+                _configuration.SubscriptionReadTimeout);
+
+            await foreach (var document in documents.WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 var result = new SourceSchemaResult(CompactPath.Root, document);
                 _configuration.OnSourceSchemaResult?.Invoke(context, request.Node, result);
@@ -189,6 +260,72 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         {
             httpResponse?.Dispose();
             buffer?.Dispose();
+        }
+    }
+
+    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsSingleRequestsAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // Each request is its own HTTP round-trip, so a transport failure of one
+        // request must not abort the batch. We isolate each request: if it fails
+        // we record the cause against its index and continue with the next one,
+        // leaving results already produced by sibling requests untouched.
+        for (var i = 0; i < requests.Length; i++)
+        {
+            await foreach (var result in ExecuteIsolatedAsync(context, requests[i], i, cancellationToken)
+                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                yield return result;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes a single request of a batch as its own round-trip. A transport failure of one
+    /// request must not abort the batch, so its cause is recorded against the request's index and
+    /// the results already produced by sibling requests stay untouched.
+    /// </summary>
+    private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteIsolatedAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        int requestIndex,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var enumerator = ExecuteAsync(context, request, cancellationToken)
+            .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
+
+        try
+        {
+            while (true)
+            {
+                try
+                {
+                    if (!await enumerator.MoveNextAsync())
+                    {
+                        break;
+                    }
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Caller-driven cancellation aborts the whole batch.
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    // The consuming node attaches the recorded cause to the
+                    // request that produced no result.
+                    context.TrackBatchRequestError(request.Node, requestIndex, exception);
+                    break;
+                }
+
+                yield return new SourceSchemaBatchResult(requestIndex, enumerator.Current);
+            }
+        }
+        finally
+        {
+            await enumerator.DisposeAsync();
         }
     }
 
@@ -353,7 +490,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         var defaultAcceptHeader = originalRequest.OperationType is OperationType.Subscription
             ? _configuration.SubscriptionAcceptHeaderValue
             : _configuration.DefaultAcceptHeaderValue;
-        var operationSourceText = originalRequest.OperationSourceText;
+        var operationSourceText = originalRequest.OperationSourceText.Value;
 
         GraphQLHttpRequest httpRequest;
 
@@ -400,7 +537,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 break;
         }
 
-        httpRequest.OperationKind = originalRequest.OperationType;
+        httpRequest.OperationKind = GetOperationKindHint(originalRequest.OperationType);
         return httpRequest;
     }
 
@@ -482,7 +619,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
                 EnableFileUploads = true,
-                OperationKind = originalRequests[0].OperationType
+                OperationKind = GetOperationKindHint(originalRequests[0].OperationType)
             };
         }
         else
@@ -514,14 +651,14 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
                         if (_supportsVariableBatching)
                         {
                             batchRequests.Add(CreateVariableBatchRequest(
-                                sourceRequest.OperationSourceText, sourceRequest, _onError));
+                                sourceRequest.OperationSourceText.Value, sourceRequest, _onError));
                         }
                         else
                         {
                             for (var j = 0; j < sourceRequest.Variables.Length; j++)
                             {
                                 batchRequests.Add(new OperationRequest(
-                                    sourceRequest.OperationSourceText,
+                                    sourceRequest.OperationSourceText.Value,
                                     id: null,
                                     operationName: null,
                                     onError: _onError,
@@ -538,10 +675,13 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
             {
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-                OperationKind = originalRequests[0].OperationType
+                OperationKind = GetOperationKindHint(originalRequests[0].OperationType)
             };
         }
     }
+
+    private OperationType? GetOperationKindHint(OperationType operationType)
+        => _annotateOperationKind ? operationType : null;
 
     private static OperationRequest CreateSingleRequest(
         OperationPlanContext context,
@@ -560,7 +700,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
             var (cleanedJson, fileMap) = FileEntryBuilder.Build(writer, variables.Values, fileLookup);
 
             return new OperationRequest(
-                originalRequest.OperationSourceText,
+                originalRequest.OperationSourceText.Value,
                 id: null,
                 operationName: null,
                 onError: onError,
@@ -570,7 +710,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         }
 
         return new OperationRequest(
-            originalRequest.OperationSourceText,
+            originalRequest.OperationSourceText.Value,
             id: null,
             operationName: null,
             onError: onError,
@@ -590,7 +730,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         var cleanedJson = FileEntryBuilder.Build(writer, variables.Values, fileLookup, fileEntries, pathPrefix);
 
         return new OperationRequest(
-            originalRequest.OperationSourceText,
+            originalRequest.OperationSourceText.Value,
             id: null,
             operationName: null,
             onError: onError,
@@ -634,7 +774,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
             for (var i = 0; i < requests.Length; i++)
             {
                 requests[i] = new OperationRequest(
-                    originalRequest.OperationSourceText,
+                    originalRequest.OperationSourceText.Value,
                     id: null,
                     operationName: null,
                     onError: onError,
@@ -647,7 +787,7 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
     }
 
     private static VariableBatchRequest CreateVariableBatchRequest(
-        string operationSourceText,
+        ReadOnlyMemory<byte> operationSourceText,
         SourceSchemaClientRequest originalRequest,
         ErrorHandlingMode? onError)
     {
@@ -774,36 +914,6 @@ public sealed class HttpSourceSchemaClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
-    }
-
-    /// <summary>
-    /// Attaches <see cref="HttpSourceSchemaClientConfiguration.OnBeforeSend"/> and
-    /// <see cref="HttpSourceSchemaClientConfiguration.OnAfterReceive"/> callbacks to
-    /// the HTTP request.
-    /// </summary>
-    private void ConfigureCallbacks(
-        GraphQLHttpRequest request,
-        OperationPlanContext context,
-        ExecutionNode node)
-    {
-        if (_configuration.OnBeforeSend is null && _configuration.OnAfterReceive is null)
-        {
-            return;
-        }
-
-        request.State = new RequestCallbackState(context, node, _configuration);
-
-        if (_configuration.OnBeforeSend is not null)
-        {
-            request.OnMessageCreated += static (_, requestMessage, state) =>
-                state.Configuration.OnBeforeSend!.Invoke(state.Context, state.Node, requestMessage);
-        }
-
-        if (_configuration.OnAfterReceive is not null)
-        {
-            request.OnMessageReceived += static (_, responseMessage, state) =>
-                state.Configuration.OnAfterReceive!.Invoke(state.Context, state.Node, responseMessage);
-        }
     }
 
     private static bool ContainsSubscriptionRequest(

@@ -21,23 +21,6 @@ public class DefaultNamingConventionsTests
         InstanceId = Guid.NewGuid()
     };
 
-    private static readonly HostInfo s_hostWithoutService = new()
-    {
-        MachineName = "test-machine",
-        ProcessName = "test-process",
-        ProcessId = 1,
-        AssemblyName = "TestAssembly",
-        AssemblyVersion = "1.0.0",
-        PackageVersion = "1.0.0",
-        FrameworkVersion = ".NET 11.0",
-        OperatingSystemVersion = "Linux",
-        EnvironmentName = "Test",
-        ServiceName = null,
-        ServiceVersion = null,
-        RuntimeInfo = new TestRuntimeInfo(),
-        InstanceId = Guid.NewGuid()
-    };
-
     [Fact]
     public void GetReceiveEndpointName_Type_Should_ReturnKebabCaseName_When_HandlerSuffix()
     {
@@ -162,6 +145,16 @@ public class DefaultNamingConventionsTests
         var result = sut.GetReceiveEndpointName("  OrderProcessing  ", ReceiveEndpointKind.Default);
 
         Assert.Equal("order-processing", result);
+    }
+
+    [Fact]
+    public void GetReceiveEndpointName_Should_KebabCaseName_When_ErrorQueueLikePascalInput()
+    {
+        var sut = new DefaultNamingConventions(s_hostWithService);
+
+        var result = sut.GetReceiveEndpointName("ErrorQueue", ReceiveEndpointKind.Default);
+
+        Assert.Equal("error-queue", result);
     }
 
     [Fact]
@@ -346,12 +339,6 @@ public class DefaultNamingConventionsTests
 
     private sealed class OrderWorkflow;
 
-    private sealed class CreateOrderCommand;
-
-    private sealed class ProcessPaymentMessage;
-
-    private sealed class OrderCreatedEvent;
-
     private sealed class GenericMessage<T>;
 
     private sealed class GenericMessage<T1, T2>;
@@ -370,3 +357,9 @@ public class DefaultNamingConventionsTests
         public bool DebuggerAttached => false;
     }
 }
+
+internal sealed class CreateOrderCommand;
+
+internal sealed class ProcessPaymentMessage;
+
+internal sealed class OrderCreatedEvent;

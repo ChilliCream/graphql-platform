@@ -18,6 +18,8 @@ public sealed class FusionGatewaySetup
 
     public List<Action<OperationPlannerOptions>> PlannerOptionsModifiers { get; } = [];
 
+    public List<Action<FusionCostOptions>> CostOptionsModifiers { get; } = [];
+
     public List<Action<FusionParserOptions>> ParserOptionsModifiers { get; } = [];
 
     public List<Action<IServiceProvider, IServiceCollection>> SchemaServiceModifiers { get; } = [];

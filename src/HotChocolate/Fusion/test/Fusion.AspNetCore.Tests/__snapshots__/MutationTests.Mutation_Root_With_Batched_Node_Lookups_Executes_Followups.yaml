@@ -211,7 +211,7 @@ operationPlan:
           }
         }
       name: createReview
-      hash: df7efcac5bc495273d4ff34bb964367c
+      hash: 1d762f7cd968a8b20792799166f23f87
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -247,7 +247,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.createReview.product
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -268,7 +268,7 @@ operationPlan:
         }
       source: $.node<Author>
       target: $.createReview.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

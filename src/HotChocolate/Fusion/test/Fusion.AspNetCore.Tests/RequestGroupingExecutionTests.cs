@@ -309,7 +309,7 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
         foreach (var interaction in interactions.Values)
         {
             Assert.NotNull(interaction.Request);
-            var request = interaction.Request!;
+            var request = interaction.Request;
             request.Body.Position = 0;
 
             using var body = JsonDocument.Parse(request.Body);

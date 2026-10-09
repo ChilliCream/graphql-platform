@@ -74,6 +74,26 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
                 => Enter((ObjectFieldSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.ChoiceValueSelection
                 => Enter((ChoiceValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.Argument
+                => Enter((ArgumentNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectField
+                => Enter((ObjectFieldNode)node, context),
+            FieldSelectionMapSyntaxKind.IntValue
+                => Enter((IntValueNode)node, context),
+            FieldSelectionMapSyntaxKind.FloatValue
+                => Enter((FloatValueNode)node, context),
+            FieldSelectionMapSyntaxKind.StringValue
+                => Enter((StringValueNode)node, context),
+            FieldSelectionMapSyntaxKind.BooleanValue
+                => Enter((BooleanValueNode)node, context),
+            FieldSelectionMapSyntaxKind.NullValue
+                => Enter((NullValueNode)node, context),
+            FieldSelectionMapSyntaxKind.EnumValue
+                => Enter((EnumValueNode)node, context),
+            FieldSelectionMapSyntaxKind.ListValue
+                => Enter((ListValueNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectValue
+                => Enter((ObjectValueNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -120,6 +140,56 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
 
     protected virtual ISyntaxVisitorAction Enter(
         ChoiceValueSelectionNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        ArgumentNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        ObjectFieldNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        IntValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        FloatValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        StringValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        BooleanValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        NullValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        EnumValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        ListValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        ObjectValueNode node,
         TContext context) =>
         DefaultAction;
 
@@ -147,6 +217,26 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
                 => Leave((ObjectFieldSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.ChoiceValueSelection
                 => Leave((ChoiceValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.Argument
+                => Leave((ArgumentNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectField
+                => Leave((ObjectFieldNode)node, context),
+            FieldSelectionMapSyntaxKind.IntValue
+                => Leave((IntValueNode)node, context),
+            FieldSelectionMapSyntaxKind.FloatValue
+                => Leave((FloatValueNode)node, context),
+            FieldSelectionMapSyntaxKind.StringValue
+                => Leave((StringValueNode)node, context),
+            FieldSelectionMapSyntaxKind.BooleanValue
+                => Leave((BooleanValueNode)node, context),
+            FieldSelectionMapSyntaxKind.NullValue
+                => Leave((NullValueNode)node, context),
+            FieldSelectionMapSyntaxKind.EnumValue
+                => Leave((EnumValueNode)node, context),
+            FieldSelectionMapSyntaxKind.ListValue
+                => Leave((ListValueNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectValue
+                => Leave((ObjectValueNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -193,6 +283,56 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
 
     protected virtual ISyntaxVisitorAction Leave(
         ChoiceValueSelectionNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        ArgumentNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        ObjectFieldNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        IntValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        FloatValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        StringValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        BooleanValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        NullValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        EnumValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        ListValueNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        ObjectValueNode node,
         TContext context) =>
         DefaultAction;
 
@@ -246,6 +386,26 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
                 => VisitChildren((ObjectFieldSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.ChoiceValueSelection
                 => VisitChildren((ChoiceValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.Argument
+                => VisitChildren((ArgumentNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectField
+                => VisitChildren((ObjectFieldNode)node, context),
+            FieldSelectionMapSyntaxKind.IntValue
+                => DefaultAction,
+            FieldSelectionMapSyntaxKind.FloatValue
+                => DefaultAction,
+            FieldSelectionMapSyntaxKind.StringValue
+                => DefaultAction,
+            FieldSelectionMapSyntaxKind.BooleanValue
+                => DefaultAction,
+            FieldSelectionMapSyntaxKind.NullValue
+                => DefaultAction,
+            FieldSelectionMapSyntaxKind.EnumValue
+                => DefaultAction,
+            FieldSelectionMapSyntaxKind.ListValue
+                => VisitChildren((ListValueNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectValue
+                => VisitChildren((ObjectValueNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -274,6 +434,14 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
         if (Visit(node.FieldName, node, context).IsBreak())
         {
             return Break;
+        }
+
+        foreach (var argument in node.Arguments)
+        {
+            if (Visit(argument, node, context).IsBreak())
+            {
+                return Break;
+            }
         }
 
         if (node.TypeName is not null && Visit(node.TypeName, node, context).IsBreak())
@@ -359,6 +527,14 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
             return Break;
         }
 
+        foreach (var argument in node.Arguments)
+        {
+            if (Visit(argument, node, context).IsBreak())
+            {
+                return Break;
+            }
+        }
+
         if (node.ValueSelection is not null
             && Visit(node.ValueSelection, node, context).IsBreak())
         {
@@ -375,6 +551,70 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
         foreach (var branch in node.Branches)
         {
             if (Visit(branch, node, context).IsBreak())
+            {
+                return Break;
+            }
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        ArgumentNode node,
+        TContext context)
+    {
+        if (Visit(node.Name, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if (Visit(node.Value, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        ObjectFieldNode node,
+        TContext context)
+    {
+        if (Visit(node.Name, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if (Visit(node.Value, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        ListValueNode node,
+        TContext context)
+    {
+        foreach (var item in node.Items)
+        {
+            if (Visit(item, node, context).IsBreak())
+            {
+                return Break;
+            }
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        ObjectValueNode node,
+        TContext context)
+    {
+        foreach (var field in node.Fields)
+        {
+            if (Visit(field, node, context).IsBreak())
             {
                 return Break;
             }

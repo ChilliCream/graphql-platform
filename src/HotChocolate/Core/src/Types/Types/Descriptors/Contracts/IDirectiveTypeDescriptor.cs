@@ -44,6 +44,20 @@ public interface IDirectiveTypeDescriptor
     IDirectiveArgumentDescriptor Argument(string name);
 
     /// <summary>
+    /// Specifies a directive argument and applies the
+    /// <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the argument.
+    /// </param>
+    /// <param name="configure">
+    /// The argument descriptor to specify the argument configuration.
+    /// </param>
+    IDirectiveTypeDescriptor Argument(
+        string name,
+        Action<IDirectiveArgumentDescriptor> configure);
+
+    /// <summary>
     /// Specifies in which location the directive belongs in.
     /// </summary>
     /// <param name="value">The directive location.</param>

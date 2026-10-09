@@ -18,7 +18,7 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
         var directive =
-            schema.DirectiveTypes.OfType<CacheControlDirectiveType>().FirstOrDefault()!;
+            schema.DirectiveTypes.OfType<CacheControlDirectiveType>().FirstOrDefault();
 
         Assert.NotNull(directive);
         Assert.IsType<CacheControlDirectiveType>(directive);

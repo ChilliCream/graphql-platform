@@ -1,10 +1,20 @@
+using HotChocolate.Fusion.Suites.RequiresWithArgumentConflict.A;
+using HotChocolate.Fusion.Suites.RequiresWithArgumentConflict.B;
+
 namespace HotChocolate.Fusion.Suites;
 
-public sealed class RequiresWithArgumentConflictTests : ComplianceTestBase
+[OfficialV2Suite("requires-with-argument-conflict")]
+public sealed class RequiresWithArgumentConflictTests
+    : OfficialV2ComplianceTestBase<RequiresWithArgumentConflictTests>
 {
     protected override Task<FusionGateway> BuildGatewayAsync()
-        => throw new NotImplementedException("Subgraphs not yet wired for this suite.");
+        => ComposeOfficialV2Async(
+            (ASubgraph.Name, ASubgraph.BuildAsync),
+            (BSubgraph.Name, BSubgraph.BuildAsync));
 
-    [Fact(Skip = "Pending: @requires/@provides coverage.")]
-    public Task Pending() => Task.CompletedTask;
+    [Theory]
+    [MemberData(nameof(Cases))]
+    [Trait("Category", "OfficialV2")]
+    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
+        => RunOfficialV2CaseAsync(caseId);
 }

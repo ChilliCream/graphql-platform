@@ -183,6 +183,27 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     }
 
     [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupMcpDefinitionFiles();
+        SetupUploadMcpFeatureCollectionMutation(
+            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                McpFeatureCollectionId, "MCP Feature Collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "upload", "--tag", Tag, "--mcp-feature-collection-id", McpFeatureCollectionId,
+            "--prompt-pattern", "**/*.json", "--tool-pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UploadMcpFeatureCollectionReturnsNullVersion_ReturnsError()
     {
         // arrange
@@ -257,11 +278,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
         return new()
         {
-            {
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    "mcp-1", "MCP Feature Collection not found."),
-                "MCP Feature Collection not found."
-            },
             {
                 new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_UnauthorizedOperation(
                     "UnauthorizedOperation", "Not authorized to upload."),

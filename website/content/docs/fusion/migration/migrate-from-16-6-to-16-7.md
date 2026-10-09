@@ -1,0 +1,148 @@
+---
+title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: account for default cost enforcement, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, configure wide operation limits, review the gateway's refusal of mutations over GET and of incremental delivery without a matching Accept header, review the multipart and request body size limits, and override cost limits per request with FusionRequestCostOptions."
+---
+
+Update every Hot Chocolate Fusion package in the application to version 16.7 before applying these changes.
+
+# Breaking changes
+
+Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
+
+## IServerDiagnosticEvents gained a WebSocket connection initialization event
+
+`IServerDiagnosticEvents` has a new `WebSocketConnectionInitialized` member. The gateway raises it once per WebSocket session, for both the `graphql-transport-ws` and the legacy `graphql-ws` protocol, after the client's connection initialization message has been accepted.
+
+Listeners that derive from `ServerDiagnosticEventListener` need no change, because the base class provides a virtual no-op. Types that implement `IServerDiagnosticEvents` directly have to implement the new member:
+
+```csharp
+public void WebSocketConnectionInitialized(
+    ISocketSession session,
+    IOperationMessagePayload connectionInitMessage)
+{
+}
+```
+
+The payload of `connectionInitMessage` is only valid for the duration of the call. Read out any value that is needed later inside the callback, for example onto `ISocketConnection.Features`.
+
+## Custom request pipelines must add the cost stages
+
+All three predefined Fusion pipelines now coerce variables, check cost, and only then look up or plan the operation. Update custom pipelines to use the same relative order:
+
+```diff
+ builder
+     // ... document cache and parser ...
+     .UseDocumentValidation()
++    .UseOperationVariableCoercion()
++    .UseCostAnalysis()
+     .UseOperationPlanCache()
+-    .UseOperationPlan()
+-    .UseSkipWarmupExecution()
+-    .UseOperationVariableCoercion()
++    .UseOperationPlan()
++    .UseSkipWarmupExecution()
+     .UseConcurrencyGate()
+     .UseOperationExecution();
+```
+
+Document normalization, i.e. inlining fragments into the selected operation, is a lazy service, not a pipeline stage; `OperationVariableCoercion` asks for it on every request and `CostAnalysis` asks for it on a cost-plan cache miss, so nothing needs to be added for it. `OperationVariableCoercion` and `CostAnalysis` now both run before `OperationPlanCache`. Coercion errors therefore precede cost and planning errors, and a cost rejection precedes the operation-plan cache lookup: a rejected request never creates an operation-plan cache entry or an in-flight planning entry. `SkipWarmupExecution` is the only stage that checks whether a request is a warmup request; `OperationVariableCoercion` and `CostAnalysis` coerce and analyze a warmup request exactly like any other request before that stage stops it from executing. `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
+
+## Fusion diagnostic event interface expanded
+
+Direct implementations of `IFusionExecutionDiagnosticEvents` or `IFusionExecutionDiagnosticEventListener` must implement these members:
+
+```diff
+ public interface IFusionExecutionDiagnosticEvents
+ {
++    IDisposable AnalyzeOperationCost(RequestContext context);
++    void OperationCost(
++        RequestContext context,
++        double fieldCost,
++        double typeCost);
+ }
+```
+
+`AnalyzeOperationCost` scopes cost analysis. `OperationCost` reports each evaluated field-cost and type-cost pair inside that scope.
+
+`FusionExecutionDiagnosticEventListener` supplies implementations for both members, so subclasses do not require changes. `FusionActivityScopes.AnalyzeComplexity` now enables the cost-analysis activity span. It is included in `FusionActivityScopes.All`, but not in `FusionActivityScopes.Default`.
+
+## Cost enforcement is enabled by default
+
+Fusion now enforces a maximum field cost of `1,000` and a maximum type cost of `10,000` in every hosting environment. A request that exceeds either limit returns error code `HC0047` before operation planning.
+
+Passing `disableDefaultSecurity: true` disables cost enforcement as part of disabling the gateway's default security. Cost analysis and `GraphQL-Cost` reporting remain available:
+
+```diff
+-services.AddGraphQLGatewayServer();
++services.AddGraphQLGatewayServer(disableDefaultSecurity: true);
+```
+
+The assumed size for a list field that carries no applicable `@listSize` information defaults to unbounded (`Infinity`). With default enforcement enabled, an unannotated, non-paginated composite list is rejected with `HC0047` and a `typeCost` of `"Infinity"`. Annotate the source field with `@listSize(assumedSize:)` so composition carries the bound into the composite directive, or set a finite default on the composer's `SourceSchemaMergerOptions.DefaultListSize`. When set, composition writes it onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there:
+
+```diff
+ var options = new SchemaComposerOptions
+ {
+     Merger =
+     {
++        DefaultListSize = 100
+     }
+ };
+```
+
+See [Composition](../composition.md#default-list-size) for details.
+
+## The gateway refuses operations the request does not allow
+
+The gateway now applies the same request checks as a Hot Chocolate server before it executes an operation:
+
+- A mutation sent over HTTP GET has a `405 Method Not Allowed` status code with `Allow: POST`. Previously the gateway executed it. `AllowedGetOperations` controls which operation kinds GET accepts.
+- A subscription, or an operation that uses `@defer` or `@stream`, whose `Accept` header names no media type that supports incremental delivery has a `406 Not Acceptable` status code. Previously the gateway executed the operation.
+- When `EnableQueryRequests` is `true`, a mutation or subscription sent over HTTP QUERY has a `422 Unprocessable Content` status code.
+
+Send mutations over POST, or set `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation` to keep accepting them over GET. Send an `Accept` header that includes `multipart/mixed` or `text/event-stream` with operations that use incremental delivery.
+
+## Multipart and request body size limits
+
+- A multipart request whose `operations` field exceeds the [maximum request size](../request-limits.md) is rejected with the error code `HC0010`. 16.6 applied only `FormOptions.MultipartBodyLengthLimit` to that field. Raise `maxAllowedRequestSize` if clients send larger operations.
+- A multipart section over `FormOptions.MultipartBodyLengthLimit` is rejected with the error code `HC0135`, which replaces `HC0033`. This includes the `operations` field when `MultipartBodyLengthLimit` is smaller than the maximum request size.
+- A request body over the web server's limit, or over `FormOptions.BufferBodyLengthLimit` when `FormOptions.BufferBody` is set, is rejected with the error code `HC0136`, which replaces `HC0012` for a JSON body and `HC0033` for a multipart body.
+
+These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
+
+# Deprecations
+
+## Raw condition masks replaced by ConditionFlags
+
+Fusion can now compile and execute operations with more than 64 distinct `@skip`/`@include` conditions or `@defer` conditions. `MaxAllowedIncludeConditions` limits the combined `@skip` and `@include` conditions, and `MaxAllowedDeferConditions` limits the `@defer` conditions. Both limits default to **1,024**. An operation that exceeds either limit produces a GraphQL request error during operation compilation.
+
+Configure the limits through `FusionRequestOptions` on the gateway:
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .ModifyRequestOptions(options =>
+    {
+        options.MaxAllowedIncludeConditions = 2_048;
+        options.MaxAllowedDeferConditions = 2_048;
+    });
+```
+
+`ConditionFlags` contains the first 64 evaluated conditions and any remaining conditions. Pass the condition carriers from `OperationPlanContext` to the Fusion `Selection` overloads:
+
+```diff
+- bool included = selection.IsIncluded(context.IncludeFlags);
+- bool deferred = selection.IsDeferred(context.DeferFlags);
++ bool included = selection.IsIncluded(context.IncludeConditionFlags);
++ bool deferred = selection.IsDeferred(context.DeferConditionFlags);
+```
+
+Replace every deprecated Fusion `Selection` overload as follows:
+
+| Deprecated 16.6 member                                   | 16.7 replacement                                                  |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| `Selection.IsIncluded(ulong)`                            | `Selection.IsIncluded(ConditionFlags)`                            |
+| `Selection.IsDeferred(ulong)`                            | `Selection.IsDeferred(ConditionFlags)`                            |
+| `Selection.GetActiveDeliveryGroups(ulong)`               | `Selection.GetActiveDeliveryGroups(ConditionFlags)`               |
+| `Selection.HasActiveDeliveryGroup(ulong, DeliveryGroup)` | `Selection.HasActiveDeliveryGroup(ConditionFlags, DeliveryGroup)` |
+
+The deprecated raw overloads continue to work for operations with at most 64 conditions. When an operation has more than 64 conditions of the corresponding kind, the deprecated raw inclusion overloads throw `InvalidOperationException` for every conditional selection and the deprecated raw defer overloads throw for every deferrable selection, including selections whose own conditions are all among the first 64; raw inclusion evaluation does not throw for an unconditional selection, and raw defer evaluation does not throw for a non-deferrable selection. Releases before 16.7 rejected operations with more than 64 conditions during compilation.

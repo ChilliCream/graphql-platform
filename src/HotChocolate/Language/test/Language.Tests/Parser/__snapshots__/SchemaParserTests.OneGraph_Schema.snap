@@ -69421,10 +69421,10 @@ type GoogleDrive {
     fullText contains '"hello_world"'
     ```
     
-    Search for files with a query containing the "" character (e.g., "\authors")
+    Search for files with a query containing the "" character (e.g., "\\authors")
     
     ```
-    fullText contains '\authors'
+    fullText contains '\\authors'
     ```
     
     Search for files writeable by the user "test@example.org"
@@ -275167,7 +275167,7 @@ type IntercomUser implements IntercomAuthor {
   """
   Data about the last user agent the user was seen using
   
-  To update this value use last\_seen\_user\_agent
+  To update this value use last\\_seen\\_user\\_agent
   """
   userAgentData: String
   """
@@ -292628,7 +292628,7 @@ type SpotifyAlbum {
   """
   releaseDate: String
   """
-  The precision with which release\_date value is known: “year” , “month” , or “day”.
+  The precision with which release\\_date value is known: “year” , “month” , or “day”.
   """
   releaseDatePrecision: String
   """
@@ -292715,7 +292715,7 @@ type SpotifySimplifiedArtist {
 
 type SpotifySimplifiedAlbum {
   """
-  The field is present when getting an artist’s albums. Possible values are “album”, “single”, “compilation”, “appears\_on”. Compare to album\_type this field represents relationship between the artist and the album.
+  The field is present when getting an artist’s albums. Possible values are “album”, “single”, “compilation”, “appears\\_on”. Compare to album\\_type this field represents relationship between the artist and the album.
   """
   albumGroup: String
   """
@@ -293009,7 +293009,7 @@ type SpotifyCurrentUserProfile {
   playlists(limit: Int): [SpotifyPlaylist!]
   player(
     """
-    [Get information about the user’s current playback state, including track, track progress, and active device.](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)
+    [Get information about the user’s current playback state, including track, track progress, and active device.](https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/)\n
     """
     market: String
   ): SpotifyPlayer
@@ -293188,25 +293188,21 @@ type TrelloEnterprise {
   """
   displayName: String
   """
-    JSON Object containing information about the preferences set within the enterprise. Example:
+  JSON Object containing information about the preferences set within the enterprise. Example:
   
-    {
-      "ssoOnly": false,
-      "signup": {
-        "message": "😁 Howdy, friends.",
-        "confirmation": "We're confirming that you are a 💫.",
-        "banner": "Banner Text!",
-        "bannerHtml": "<p>Banner Text!</p>
-  ",
-        "confirmationHtml": "<p>We're confirming that you are a 💫.</p>
-  ",
-        "messageHtml": "<p>😁 Howdy, friends.</p>
-  "
-      },
-      "mandatoryTransferDate": null,
-      "maxMembers": null
-    }
-    
+  {
+    "ssoOnly": false,
+    "signup": {
+      "message": "😁 Howdy, friends.",
+      "confirmation": "We're confirming that you are a 💫.",
+      "banner": "Banner Text!",
+      "bannerHtml": "<p>Banner Text!</p>\n",
+      "confirmationHtml": "<p>We're confirming that you are a 💫.</p>\n",
+      "messageHtml": "<p>😁 Howdy, friends.</p>\n"
+    },
+    "mandatoryTransferDate": null,
+    "maxMembers": null
+  }
   """
   prefs: TrelloEnterprisePrefs
   """

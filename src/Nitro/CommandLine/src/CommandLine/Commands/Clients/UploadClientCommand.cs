@@ -82,7 +82,8 @@ internal sealed class UploadClientCommand : Command
                 var errorMessage = error switch
                 {
                     IUploadClient_UploadClient_Errors_UnauthorizedOperation err => err.Message,
-                    IUploadClient_UploadClient_Errors_ClientNotFoundError err => err.Message,
+                    IUploadClient_UploadClient_Errors_ClientNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IUploadClient_UploadClient_Errors_DuplicatedTagError err => err.Message,
                     IUploadClient_UploadClient_Errors_ConcurrentOperationError err => err.Message,
                     IUploadClient_UploadClient_Errors_InvalidPersistedQueryError err => err.Message,

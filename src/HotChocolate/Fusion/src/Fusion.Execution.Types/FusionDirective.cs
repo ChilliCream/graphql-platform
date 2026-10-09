@@ -22,6 +22,25 @@ public sealed class FusionDirective : IDirective
         ArgumentNullException.ThrowIfNull(definition);
 
         Definition = definition;
+        IsPublic = true;
+        Arguments = new ArgumentAssignmentCollection(arguments);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="FusionDirective"/>.
+    /// </summary>
+    /// <param name="definition">The directive definition.</param>
+    /// <param name="isPublic">Indicates whether the directive is publicly visible.</param>
+    /// <param name="arguments">The arguments applied to the directive.</param>
+    public FusionDirective(
+        FusionDirectiveDefinition definition,
+        bool isPublic,
+        params ImmutableArray<ArgumentAssignment> arguments)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+
+        Definition = definition;
+        IsPublic = isPublic;
         Arguments = new ArgumentAssignmentCollection(arguments);
     }
 
@@ -41,6 +60,12 @@ public sealed class FusionDirective : IDirective
     /// Gets the collection of arguments applied to this directive.
     /// </summary>
     public ArgumentAssignmentCollection Arguments { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the directive is publicly visible through
+    /// the default directive collection view.
+    /// </summary>
+    public bool IsPublic { get; }
 
     /// <summary>
     /// Gets a string that represents the current object.

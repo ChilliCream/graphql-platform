@@ -1,6 +1,10 @@
 using System.Collections.Immutable;
+using System.Text.Json;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,7 +46,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        var field = Assert.Single(context!.GetFields());
+        var field = Assert.Single(context.GetFields());
         Assert.Empty(context.GetOperations());
         var operation = Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
         Assert.Empty(Assert.IsType<FilterInfo>(field.Value).GetFields());
@@ -85,7 +89,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.False(context!.IsDefined);
+        Assert.False(context.IsDefined);
     }
 
     [Fact]
@@ -122,7 +126,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        Assert.True(context!.IsDefined);
+        Assert.True(context.IsDefined);
     }
 
     [Fact]
@@ -210,8 +214,8 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        var operation = Assert.Single(context!.GetOperations());
-        Assert.Empty(context!.GetFields());
+        var operation = Assert.Single(context.GetOperations());
+        Assert.Empty(context.GetFields());
         var valueCollection = Assert.IsType<FilterValueCollection>(operation.Value);
         var field0 = Assert.Single(Assert.IsType<FilterInfo>(valueCollection[0]).GetFields());
         Assert.Equal("title", field0.Field.Name);
@@ -259,7 +263,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        var author = Assert.Single(context!.GetFields());
+        var author = Assert.Single(context.GetFields());
         Assert.Empty(context.GetOperations());
         var name = Assert.Single(Assert.IsType<FilterInfo>(author.Value).GetFields());
         Assert.Empty(Assert.IsType<FilterInfo>(author.Value).GetOperations());
@@ -326,7 +330,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToDictionary().MatchSnapshot();
+        context.ToDictionary().MatchSnapshot();
     }
 
     [Fact]
@@ -375,7 +379,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.False(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
+        Assert.False(localContextData.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
     }
 
     [Fact]
@@ -425,7 +429,7 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.True(localContextData!.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
+        Assert.True(localContextData.ContainsKey(QueryableFilterProvider.SkipFilteringKey));
     }
 
     [Fact]
@@ -496,7 +500,49 @@ public class FilterContextTests
 
         // assert
         Assert.NotNull(context);
-        context!.ToDictionary().MatchSnapshot();
+        context.ToDictionary().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Resolver_Path_When_Filter_Value_Cannot_Be_Parsed()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Avatar>>>()
+                .UseFiltering<AvatarFilterInputType>()
+                .Resolve(ctx =>
+                {
+                    var context = ctx.GetFilterContext()!;
+                    var field = Assert.Single(context.GetFields());
+                    var operation = Assert.Single(Assert.IsType<FilterInfo>(field.Value).GetOperations());
+                    _ = Assert.IsType<FilterValue>(operation.Value).Value;
+                    return Array.Empty<Avatar>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                test(where: { url: { eq: "" } }) {
+                    url
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // the input path is not asserted as FilterValue parses without an input path.
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal("The value is not a valid image data URL.", error.Message);
+        Assert.Equal(["test"], error.Path!.ToList());
+        Assert.Null(error.Locations);
+        Assert.Equal("ImageDataUrl", Assert.Contains("fieldType", error.Extensions!));
     }
 
     public class Book
@@ -521,5 +567,65 @@ public class FilterContextTests
         public int Id { get; set; }
 
         public string? Name { get; set; }
+    }
+
+    public class Avatar
+    {
+        public string? Url { get; set; }
+    }
+
+    public class AvatarFilterInputType : FilterInputType<Avatar>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Avatar> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(t => t.Url).Type<ImageDataUrlOperationFilterInputType>();
+        }
+    }
+
+    public class ImageDataUrlOperationFilterInputType : StringOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.Equals).Type<ImageDataUrlType>();
+        }
+    }
+
+    public class ImageDataUrlType : ScalarType<string, StringValueNode>
+    {
+        public ImageDataUrlType()
+            : base("ImageDataUrl")
+        {
+        }
+
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+        {
+            return Validate(valueLiteral.Value);
+        }
+
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        {
+            return Validate(inputValue.GetString()!);
+        }
+
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        {
+            resultValue.SetStringValue(Validate(runtimeValue));
+        }
+
+        protected override StringValueNode OnValueToLiteral(string runtimeValue)
+        {
+            return new StringValueNode(Validate(runtimeValue));
+        }
+
+        private string Validate(string runtimeValue)
+        {
+            if (!runtimeValue.StartsWith("data:image/", StringComparison.Ordinal))
+            {
+                throw new LeafCoercionException("The value is not a valid image data URL.", this);
+            }
+
+            return runtimeValue;
+        }
     }
 }

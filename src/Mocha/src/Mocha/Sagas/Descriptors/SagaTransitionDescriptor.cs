@@ -67,14 +67,6 @@ public sealed class SagaTransitionDescriptor<TState, TEvent>
     }
 
     /// <inheritdoc />
-    public ISagaTransitionDescriptor<TState, TEvent> AutoProvision(bool autoProvision = true)
-    {
-        Configuration.AutoProvision = autoProvision;
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public ISagaTransitionDescriptor<TState, TEvent> Publish<TMessage>(
         Func<IConsumeContext, TState, TMessage> factory,
         SagaPublishOptions? sagaOptions = null)

@@ -1,0 +1,41 @@
+namespace ChilliCream.Nitro.CommandLine.Services.Mail;
+
+/// <summary>
+/// A message and its recipients. Null <see cref="InReplyTo"/> means the
+/// message starts its own thread.
+/// </summary>
+internal sealed record MailMessage
+{
+    /// <summary>
+    /// The column list matching this type's properties, for use in SELECT
+    /// statements against the messages table.
+    /// </summary>
+    public const string Columns =
+        "id AS Id, thread_id AS ThreadId, in_reply_to AS InReplyTo, sender AS Sender, "
+        + "subject AS Subject, body AS Body, created_at AS CreatedAt";
+
+    public required string Id { get; init; }
+    public required string ThreadId { get; init; }
+    public string? InReplyTo { get; init; }
+    public required string Sender { get; init; }
+    public required string Subject { get; init; }
+    public required string Body { get; init; }
+    public required DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>
+    /// Every recipient, to and cc combined, ordered by ordinal.
+    /// </summary>
+    public IReadOnlyList<MailRecipient> Recipients { get; init; } = [];
+
+    /// <summary>
+    /// Wake generation tokens returned by sends or replies that use
+    /// <see cref="MailWakePolicy.Enqueue"/>. Other operations leave this empty.
+    /// </summary>
+    public IReadOnlyList<MailWakeReceipt> WakeReceipts { get; init; } = [];
+
+    /// <summary>
+    /// Names dropped from a reply-all because the agent is unknown or was deleted.
+    /// Empty for a send, a direct reply, or a reply-all where every participant is usable.
+    /// </summary>
+    public IReadOnlyList<string> Skipped { get; init; } = [];
+}

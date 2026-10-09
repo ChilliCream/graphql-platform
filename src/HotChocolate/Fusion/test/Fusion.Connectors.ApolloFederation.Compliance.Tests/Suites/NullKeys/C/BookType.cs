@@ -21,5 +21,7 @@ public sealed class BookType : ObjectType<Book>
     }
 
     private static Book? ResolveById(string id)
-        => CData.ById.TryGetValue(id, out var b) ? b : null;
+        => CData.ById.TryGetValue(id, out var b)
+            ? b
+            : throw new InvalidOperationException("Invalid reference.");
 }

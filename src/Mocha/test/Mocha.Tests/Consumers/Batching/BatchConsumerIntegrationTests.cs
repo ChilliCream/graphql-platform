@@ -117,6 +117,76 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     }
 
     [Fact]
+    public async Task ConsumePipeline_Should_UseBatchContext_When_BatchDelivered()
+    {
+        // arrange
+        var recorder = new BatchConsumeContextRecorder();
+        await using var provider = await CreateBusAsync(
+            b =>
+            {
+                b.Services.AddSingleton(recorder);
+                b.AddBatchHandler<ContextCapturingBatchHandler>(opts =>
+                {
+                    opts.MaxBatchSize = 2;
+                    opts.BatchTimeout = TimeSpan.FromSeconds(5);
+                });
+                b.ConfigureMessageBus(h =>
+                    h.UseConsume(
+                        new ConsumerMiddlewareConfiguration(
+                            static (_, next) =>
+                                async ctx =>
+                                {
+                                    var recorder = ctx.Services.GetRequiredService<BatchConsumeContextRecorder>();
+                                    recorder.RecordMiddleware(ctx);
+                                    await next(ctx);
+                                },
+                            "BatchContextCapture")));
+            },
+            t => t.Endpoint("batch-ep").Handler<ContextCapturingBatchHandler>().MaxConcurrency(2));
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(
+            new TestBatchEvent { Id = "ctx-1" },
+            new PublishOptions { Headers = new Dictionary<string, object?> { ["x-entry"] = "first" } },
+            CancellationToken.None);
+        await bus.PublishAsync(
+            new TestBatchEvent { Id = "ctx-2" },
+            new PublishOptions { Headers = new Dictionary<string, object?> { ["x-entry"] = "second" } },
+            CancellationToken.None);
+
+        // assert
+        Assert.True(await recorder.WaitForHandlerAsync(Timeout), "Batch handler was not invoked within timeout");
+
+        var middleware = Assert.Single(recorder.MiddlewareSnapshots);
+        Assert.True(middleware.IsBatchContext);
+        Assert.True(middleware.IsTypedBatchContext);
+        Assert.True(middleware.NonGenericMessageIsContextMessage);
+        Assert.Equal(2, middleware.BatchCount);
+        Assert.NotNull(middleware.BatchId);
+        Assert.NotNull(middleware.ItemMessageTypeIdentity);
+        Assert.Null(middleware.MessageId);
+        Assert.Null(middleware.CorrelationId);
+        Assert.Null(middleware.ConversationId);
+        Assert.Null(middleware.CausationId);
+        Assert.Null(middleware.MessageTypeIdentity);
+        Assert.True(middleware.EnvelopeIsNull);
+        Assert.True(middleware.BodyIsEmpty);
+        Assert.Equal(0, middleware.HeaderCount);
+        Assert.Equal(2, middleware.EntryMessageIds.Count);
+        Assert.All(middleware.EntryMessageIds, Assert.NotNull);
+        Assert.Equal(["first", "second"], middleware.EntryHeaderValues.OrderBy(static x => x).ToArray());
+        Assert.All(middleware.EntryMessageTypeIdentities, Assert.NotNull);
+
+        var handler = Assert.Single(recorder.HandlerSnapshots);
+        Assert.True(handler.AccessorContextIsBatchContext);
+        Assert.True(handler.AccessorMessageIsHandlerBatch);
+        Assert.True(handler.NonGenericMessageIsHandlerBatch);
+    }
+
+    [Fact]
     public async Task Handler_Should_ResolveDependencies_When_InvokedThroughDI()
     {
         // arrange
@@ -327,6 +397,18 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         }
     }
 
+    public sealed class ContextCapturingBatchHandler(
+        BatchConsumeContextRecorder recorder,
+        ConsumeContextAccessor accessor)
+        : IBatchEventHandler<TestBatchEvent>
+    {
+        public ValueTask HandleAsync(IMessageBatch<TestBatchEvent> batch, CancellationToken cancellationToken)
+        {
+            recorder.RecordHandler(batch, accessor.Context);
+            return default;
+        }
+    }
+
     public sealed class ThrowingBatchHandler([FromKeyedServices("throwing")] BatchMessageRecorder recorder)
         : IBatchEventHandler<TestBatchEvent>
     {
@@ -344,6 +426,144 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
         {
             recorder.Record(batch);
             return default;
+        }
+    }
+
+    public sealed class BatchConsumeContextRecorder
+    {
+        private readonly object _sync = new();
+        private readonly SemaphoreSlim _handlerSemaphore = new(0);
+        private readonly List<BatchContextSnapshot> _middlewareSnapshots = [];
+        private readonly List<BatchHandlerContextSnapshot> _handlerSnapshots = [];
+
+        public IReadOnlyList<BatchContextSnapshot> MiddlewareSnapshots
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _middlewareSnapshots.ToList();
+                }
+            }
+        }
+
+        public IReadOnlyList<BatchHandlerContextSnapshot> HandlerSnapshots
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _handlerSnapshots.ToList();
+                }
+            }
+        }
+
+        public void RecordMiddleware(IConsumeContext context)
+        {
+            lock (_sync)
+            {
+                _middlewareSnapshots.Add(BatchContextSnapshot.From(context));
+            }
+        }
+
+        public void RecordHandler(IMessageBatch<TestBatchEvent> batch, IConsumeContext? ambientContext)
+        {
+            lock (_sync)
+            {
+                _handlerSnapshots.Add(BatchHandlerContextSnapshot.From(batch, ambientContext));
+            }
+
+            _handlerSemaphore.Release();
+        }
+
+        public async Task<bool> WaitForHandlerAsync(TimeSpan timeout)
+        {
+            return await _handlerSemaphore.WaitAsync(timeout);
+        }
+    }
+
+    public sealed record BatchContextSnapshot(
+        bool IsBatchContext,
+        bool IsTypedBatchContext,
+        bool NonGenericMessageIsContextMessage,
+        int BatchCount,
+        string? BatchId,
+        string? ItemMessageTypeIdentity,
+        string? MessageId,
+        string? CorrelationId,
+        string? ConversationId,
+        string? CausationId,
+        string? MessageTypeIdentity,
+        bool EnvelopeIsNull,
+        bool BodyIsEmpty,
+        int HeaderCount,
+        IReadOnlyList<string?> EntryMessageIds,
+        IReadOnlyList<object?> EntryHeaderValues,
+        IReadOnlyList<string?> EntryMessageTypeIdentities)
+    {
+        public static BatchContextSnapshot From(IConsumeContext context)
+        {
+            var batchContext = context as IBatchConsumeContext;
+            var typedBatchContext = context as IBatchConsumeContext<TestBatchEvent>;
+            var batch = batchContext?.Message;
+            var entryMessageIds = new List<string?>();
+            var entryHeaderValues = new List<object?>();
+            var entryMessageTypeIdentities = new List<string?>();
+
+            if (batch is not null)
+            {
+                for (var i = 0; i < batch.Count; i++)
+                {
+                    var itemContext = batch.GetContext(i);
+                    entryMessageIds.Add(itemContext.MessageId);
+                    entryHeaderValues.Add(itemContext.Headers.GetValue("x-entry"));
+                    entryMessageTypeIdentities.Add(itemContext.MessageType?.Identity);
+                }
+            }
+
+            return new BatchContextSnapshot(
+                batchContext is not null,
+                typedBatchContext is not null,
+                batchContext is IConsumeContext<IMessageBatch> nonGenericContext
+                    && ReferenceEquals(nonGenericContext.Message, batch),
+                batch?.Count ?? 0,
+                batchContext?.BatchId,
+                batchContext?.ItemMessageType?.Identity,
+                context.MessageId,
+                context.CorrelationId,
+                context.ConversationId,
+                context.CausationId,
+                context.MessageType?.Identity,
+                context.Envelope is null,
+                context.Body.IsEmpty,
+                context.Headers.Count(),
+                entryMessageIds,
+                entryHeaderValues,
+                entryMessageTypeIdentities);
+        }
+    }
+
+    public sealed record BatchHandlerContextSnapshot(
+        bool AccessorContextIsBatchContext,
+        bool AccessorMessageIsHandlerBatch,
+        bool NonGenericMessageIsHandlerBatch)
+    {
+        public static BatchHandlerContextSnapshot From(
+            IMessageBatch<TestBatchEvent> batch,
+            IConsumeContext? ambientContext)
+        {
+            var batchContext = ambientContext as IBatchConsumeContext<TestBatchEvent>;
+            IMessageBatch? nonGenericMessage = null;
+
+            if (batchContext is not null)
+            {
+                nonGenericMessage = ((IConsumeContext<IMessageBatch>)batchContext).Message;
+            }
+
+            return new BatchHandlerContextSnapshot(
+                batchContext is not null,
+                batchContext is not null && ReferenceEquals(batchContext.Message, batch),
+                ReferenceEquals(nonGenericMessage, batch));
         }
     }
 }

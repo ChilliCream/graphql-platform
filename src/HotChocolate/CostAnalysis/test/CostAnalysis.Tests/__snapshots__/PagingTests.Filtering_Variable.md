@@ -16,7 +16,7 @@ query($where: BookFilterInput) {
 
 ```json
 {
-  "fieldCost": 10,
+  "fieldCost": 32,
   "typeCost": 12
 }
 ```
@@ -32,7 +32,7 @@ query($where: BookFilterInput) {
   },
   "extensions": {
     "operationCost": {
-      "fieldCost": 901,
+      "fieldCost": 32,
       "typeCost": 12
     }
   }

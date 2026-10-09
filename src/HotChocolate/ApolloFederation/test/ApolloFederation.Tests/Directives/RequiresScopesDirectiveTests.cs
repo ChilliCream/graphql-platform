@@ -74,7 +74,7 @@ public class RequiresScopesDirectiveTests : FederationTypesTestBase
         }
 
         Assert.Fail("No requires scopes directive found.");
-        return null!;
+        return null;
     }
 
     private static void CheckQueryType(Schema schema)

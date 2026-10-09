@@ -104,10 +104,20 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             var inMemory = IsInMemoryQuery<TEntityType>(input);
 
+            var runtimeType = context.Selection.Type.UnwrapRuntimeType();
+
+            // Explicit union fields can unwrap to object even if the resolver returns
+            // a concrete base type (e.g. IQueryable<Base>). Use the resolver element
+            // type to keep the projection lambda parameter type stable.
+            if (runtimeType == typeof(object) && typeof(TEntityType) != typeof(object))
+            {
+                runtimeType = typeof(TEntityType);
+            }
+
             var visitorContext = new QueryableProjectionContext(
                 context,
                 context.ObjectType,
-                context.Selection.Type.UnwrapRuntimeType(),
+                runtimeType,
                 inMemory);
 
             var visitor = new QueryableProjectionVisitor();

@@ -195,7 +195,10 @@ public readonly partial struct ResultElement
     }
 
     /// <summary>
-    /// Gets a value indicating whether this element is nullable according to the GraphQL type system.
+    /// Gets a value indicating whether this element is nullable. An element is nullable if its
+    /// GraphQL type is nullable, or if it represents an internal selection. Internal selections
+    /// are excluded from the client-facing result, so they are treated as nullable to ensure a
+    /// null or an error on them is contained to the element and never propagates into the response.
     /// </summary>
     public bool IsNullable
     {
@@ -208,7 +211,7 @@ public readonly partial struct ResultElement
                 return false;
             }
 
-            return Type?.IsNullableType() ?? true;
+            return _parent.IsInternalProperty(_cursor) || (Type?.IsNullableType() ?? true);
         }
     }
 

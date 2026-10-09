@@ -35,13 +35,13 @@ directive @link(url: String! import: [String!]) repeatable on SCHEMA
 ## Transformed SDL
 
 ```graphql
-schema @fusion__connector(kind: "Apollo") {
+schema {
   query: Query
 }
 
 type Query {
-  productById(id: ID!): Product @internal @lookup
-  productListByProductsAndId(
+  fusion__lookup_productById(id: ID!): Product @internal @lookup
+  fusion__lookup_productListByProductsAndId(
     key: ProductListByProductsAndIdInput! @is(field: "{ products: products[{ id }] }")
   ): ProductList @internal @lookup
   topProducts: ProductList!
@@ -62,10 +62,4 @@ input ProductListByProductsAndIdInput {
 input ProductListByProductsAndIdInput_Products {
   id: ID!
 }
-
-"The @fusion__connector directive declares which connector kind handles this source schema."
-directive @fusion__connector(
-  "The kind of connector that backs this source schema."
-  kind: String!
-) on SCHEMA
 ```

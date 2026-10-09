@@ -11,12 +11,12 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config = new InMemoryTopicConfiguration { Name = "test-topic" };
 
         // act
-        var topic = topology!.AddTopic(config);
+        var topic = topology.AddTopic(config);
 
         // assert
         Assert.Equal("test-topic", topic.Name);
@@ -24,22 +24,25 @@ public class InMemoryMessagingTopologyTests
     }
 
     [Fact]
-    public void AddTopic_Should_Throw_When_DuplicateName()
+    public void AddTopic_Should_ReturnExisting_When_DuplicateName()
     {
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config1 = new InMemoryTopicConfiguration { Name = "duplicate-topic" };
         var config2 = new InMemoryTopicConfiguration { Name = "duplicate-topic" };
 
-        topology!.AddTopic(config1);
+        var first = topology.AddTopic(config1);
+        var countAfterFirst = topology.Topics.Count;
 
-        // act & assert
-        var exception = Assert.Throws<InvalidOperationException>(() => topology.AddTopic(config2));
-        Assert.Contains("duplicate-topic", exception.Message);
-        Assert.Contains("already exists", exception.Message);
+        // act
+        var second = topology.AddTopic(config2);
+
+        // assert
+        Assert.Same(first, second);
+        Assert.Equal(countAfterFirst, topology.Topics.Count);
     }
 
     [Fact]
@@ -48,12 +51,12 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config = new InMemoryQueueConfiguration { Name = "test-queue" };
 
         // act
-        var queue = topology!.AddQueue(config);
+        var queue = topology.AddQueue(config);
 
         // assert
         Assert.Equal("test-queue", queue.Name);
@@ -61,22 +64,25 @@ public class InMemoryMessagingTopologyTests
     }
 
     [Fact]
-    public void AddQueue_Should_Throw_When_DuplicateName()
+    public void AddQueue_Should_ReturnExisting_When_DuplicateName()
     {
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         var config1 = new InMemoryQueueConfiguration { Name = "duplicate-queue" };
         var config2 = new InMemoryQueueConfiguration { Name = "duplicate-queue" };
 
-        topology!.AddQueue(config1);
+        var first = topology.AddQueue(config1);
+        var countAfterFirst = topology.Queues.Count;
 
-        // act & assert
-        var exception = Assert.Throws<InvalidOperationException>(() => topology.AddQueue(config2));
-        Assert.Contains("duplicate-queue", exception.Message);
-        Assert.Contains("already exists", exception.Message);
+        // act
+        var second = topology.AddQueue(config2);
+
+        // assert
+        Assert.Same(first, second);
+        Assert.Equal(countAfterFirst, topology.Queues.Count);
     }
 
     [Fact]
@@ -85,9 +91,9 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
-        topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
+        topology.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
         topology.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
 
         var bindingConfig = new InMemoryBindingConfiguration
@@ -111,14 +117,43 @@ public class InMemoryMessagingTopologyTests
     }
 
     [Fact]
+    public void Describe_Should_UseAddressBasedIds_When_TopologyHasEntitiesAndLinks()
+    {
+        // arrange
+        var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+
+        var topic = topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
+        var queue = topology.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
+        var binding = topology.AddBinding(new InMemoryBindingConfiguration
+        {
+            Source = "source-topic",
+            Destination = "destination-queue",
+            DestinationKind = InMemoryDestinationKind.Queue
+        });
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        var describedTopic = description.Topology!.Entities.Single(e => e.Address == topic.Address.ToString());
+        var describedQueue = description.Topology.Entities.Single(e => e.Address == queue.Address.ToString());
+        var describedBinding = description.Topology.Links.Single();
+        Assert.Equal($"urn:mocha:topology:{topic.Address}", describedTopic.Id);
+        Assert.Equal($"urn:mocha:topology:{queue.Address}", describedQueue.Id);
+        Assert.Equal($"urn:mocha:link:{binding.Address}", describedBinding.Id);
+    }
+
+    [Fact]
     public void AddBinding_Should_ConnectTopicToTopic_When_TopicDestination()
     {
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
-        topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
+        topology.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
         topology.AddTopic(new InMemoryTopicConfiguration { Name = "destination-topic" });
 
         var bindingConfig = new InMemoryBindingConfiguration
@@ -147,9 +182,9 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
-        topology!.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
+        topology.AddQueue(new InMemoryQueueConfiguration { Name = "destination-queue" });
 
         var bindingConfig = new InMemoryBindingConfiguration
         {
@@ -170,9 +205,9 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
-        topology!.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
+        topology.AddTopic(new InMemoryTopicConfiguration { Name = "source-topic" });
 
         var bindingConfig = new InMemoryBindingConfiguration
         {
@@ -193,10 +228,10 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         // act
-        var topic = topology!.GetTopic("nonexistent-topic");
+        var topic = topology.GetTopic("nonexistent-topic");
 
         // assert
         Assert.Null(topic);
@@ -208,9 +243,9 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
-        var addedTopic = topology!.AddTopic(new InMemoryTopicConfiguration { Name = "my-topic" });
+        var addedTopic = topology.AddTopic(new InMemoryTopicConfiguration { Name = "my-topic" });
 
         // act
         var foundTopic = topology.GetTopic("my-topic");
@@ -226,10 +261,10 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         // act
-        var queue = topology!.GetQueue("nonexistent-queue");
+        var queue = topology.GetQueue("nonexistent-queue");
 
         // assert
         Assert.Null(queue);
@@ -241,9 +276,9 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
-        var addedQueue = topology!.AddQueue(new InMemoryQueueConfiguration { Name = "my-queue" });
+        var addedQueue = topology.AddQueue(new InMemoryQueueConfiguration { Name = "my-queue" });
 
         // act
         var foundQueue = topology.GetQueue("my-queue");
@@ -259,10 +294,10 @@ public class InMemoryMessagingTopologyTests
         // arrange
         var runtime = new ServiceCollection().AddMessageBus().AddInMemory().BuildRuntime();
         var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        var topology = transport.Topology as InMemoryMessagingTopology;
+        var topology = (InMemoryMessagingTopology)transport.Topology;
 
         // Record initial state - the runtime may pre-create some resources
-        var initialTopicCount = topology!.Topics.Count;
+        var initialTopicCount = topology.Topics.Count;
         var initialQueueCount = topology.Queues.Count;
 
         const int operationCount = 100;

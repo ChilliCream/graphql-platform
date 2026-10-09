@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 
 namespace Mocha.Sagas;
 
@@ -7,8 +6,13 @@ namespace Mocha.Sagas;
 /// A consumer that routes incoming messages to the appropriate saga state machine for processing.
 /// </summary>
 /// <param name="saga">The saga definition that this consumer handles.</param>
-public sealed class SagaConsumer(Saga saga) : Consumer
+public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
 {
+    /// <summary>
+    /// Gets the saga definition that this consumer handles.
+    /// </summary>
+    public Saga Saga => saga;
+
     /// <inheritdoc />
     protected override void Configure(IConsumerDescriptor descriptor)
     {
@@ -52,11 +56,11 @@ public sealed class SagaConsumer(Saga saga) : Consumer
         // so the route never selects a non saga (RPC) reply on the shared reply endpoint.
         var sagaId = new HeaderPresentCondition<string>(SagaContextData.SagaId);
 
-        // OnAnyReply (OnReply<object>) routes every saga-id reply from the endpoint to the saga
-        // consumer, which then correlates by id.
+        // OnAnyReply routes successful replies to the saga consumer. Fault notifications are
+        // selected only by an explicit OnFault route.
         if (eventType == typeof(object))
         {
-            return sagaId;
+            return AndCondition.Create(sagaId, NotFaultCondition.Instance);
         }
 
         // A typed OnReply<T> requires the saga-id and, when the received message resolves a message
@@ -69,18 +73,13 @@ public sealed class SagaConsumer(Saga saga) : Consumer
     public override ConsumerDescription Describe()
     {
         return new ConsumerDescription(
+            Urn,
             Name,
             DescriptionHelpers.GetTypeName(Identity),
             Identity.FullName,
             saga.Name,
-            false);
-    }
-
-    /// <inheritdoc />
-    protected override void OnAfterInitialize(IMessagingSetupContext context)
-    {
-        base.OnAfterInitialize(context);
-        SetIdentity(saga.GetType());
+            false,
+            Configuration?.Source ?? saga.Configuration?.Source);
     }
 
     /// <inheritdoc />

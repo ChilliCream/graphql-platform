@@ -3,6 +3,7 @@ using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.ApolloFederation.TestHelper;
@@ -242,6 +243,100 @@ public class EntitiesResolverForObjectTests
         Assert.Equal("testId", obj.Detail!.Id);
     }
 
+    [Fact]
+    public async Task ResolveAsync_Should_NotFaultClonedContext_When_EntitiesResolvedConcurrently()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddType<AsyncEntity>()
+            .AddQueryType()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var executor = schema.MakeExecutable();
+
+        const string request =
+            """
+            query {
+                _entities(representations: [
+                    { id: "1", __typename: "AsyncEntity" }
+                ]) {
+                    ... on AsyncEntity { id }
+                }
+            }
+            """;
+
+        // The entities resolver clones the resolver context per representation and completes each
+        // clone as a cleanup task on the shared operation context. When that completion observes
+        // the operation context after it has been recycled, it throws an ObjectDisposedException.
+        // The faulted completion is never awaited, so it only surfaces through the unobserved task
+        // exception event when the faulted task is finalized.
+        var unobservedExceptions = new List<Exception>();
+        void OnUnobserved(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            lock (unobservedExceptions)
+            {
+                unobservedExceptions.AddRange(e.Exception.Flatten().InnerExceptions);
+            }
+
+            e.SetObserved();
+        }
+
+        TaskScheduler.UnobservedTaskException += OnUnobserved;
+
+        try
+        {
+            // act
+            var deadline = DateTimeOffset.UtcNow.AddSeconds(8);
+            var workers = new Task[256];
+
+            for (var i = 0; i < workers.Length; i++)
+            {
+                workers[i] = Task.Run(
+                    async () =>
+                    {
+                        while (DateTimeOffset.UtcNow < deadline && HasNoFault(unobservedExceptions))
+                        {
+                            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+                        }
+                    },
+                    TestContext.Current.CancellationToken);
+            }
+
+            // periodically force finalization so the faulted completion tasks surface quickly.
+            while (DateTimeOffset.UtcNow < deadline && HasNoFault(unobservedExceptions))
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                await Task.Delay(25, TestContext.Current.CancellationToken);
+            }
+
+            await Task.WhenAll(workers);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= OnUnobserved;
+        }
+
+        // assert
+        // Resolving entities concurrently must never fault a cloned entity context by observing the
+        // shared operation context after it has been recycled back to the pool.
+        Assert.Empty(
+            unobservedExceptions.Select(ex => $"{ex.GetType().Name}: {ex.Message}"));
+    }
+
+    private static bool HasNoFault(List<Exception> exceptions)
+    {
+        lock (exceptions)
+        {
+            return exceptions.Count == 0;
+        }
+    }
+
     public class Query
     {
         public ForeignType ForeignType { get; set; } = null!;
@@ -265,6 +360,32 @@ public class EntitiesResolverForObjectTests
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
             return new TypeWithReferenceResolver { Id = "1", SomeField = "SomeField" };
+        }
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(Get))]
+    public sealed class AsyncEntity
+    {
+        [Key]
+        public string Id { get; set; } = null!;
+
+        public string SomeField { get; set; } = null!;
+
+        public static async Task<AsyncEntity> Get(IResolverContext context, string id)
+        {
+            // Yielding forces the reference resolver to complete asynchronously, which is what
+            // opens the window for the shared operation context to be recycled before the cloned
+            // entity context is completed.
+            await Task.Yield();
+
+            // Registering an asynchronous cleanup task on the cloned entity context mirrors what
+            // resolver-scoped services do (for example disposing an async dependency injection
+            // scope). The cleanup runs while the cloned context is being completed, suspending the
+            // parent completion long enough for the shared operation context to be recycled on
+            // another thread.
+            ((IMiddlewareContext)context).RegisterForCleanup(static async () => await Task.Yield());
+
+            return new AsyncEntity { Id = id, SomeField = "SomeField" };
         }
     }
 

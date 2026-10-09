@@ -43,7 +43,7 @@ internal static class TypeInferencePathBuilder
         var leafType = unresolved is ExtendedTypeReference extendedRef
             ? extendedRef.Type.Type
             : null;
-        var leafText = leafType is null ? unresolved.ToString()! : null;
+        var leafText = leafType is null ? unresolved.ToString() : null;
 
         // the first hop locates the member whose type is the unresolved reference.
         if (!TryFindOwner(typeRegistry, unresolved, out var owner, out var segment))

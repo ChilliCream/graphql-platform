@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -335,7 +336,8 @@ internal sealed class FieldCollector
 
         public FieldFlags Flags => FieldFlags.Introspection | FieldFlags.TypeNameIntrospectionField;
 
-        public bool IsDeprecated => false;
+        [MemberNotNullWhen(true, nameof(DeprecationReason))]
+        public bool IsDeprecated => DeprecationReason is not null;
 
         public string? DeprecationReason => null;
 

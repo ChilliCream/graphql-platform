@@ -1,4 +1,6 @@
 using System.Text;
+using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Serialization;
@@ -23,6 +25,95 @@ public class SchemaFormatterTests
 
         // assert
         Assert.Throws<ArgumentNullException>(Act);
+    }
+
+    [Fact]
+    public void Format_Should_Run_SpecVersion_Rewriter_After_Document_Formatter()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              hello: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        schema.Features.Set<ISchemaDocumentFormatter>(new AppendDirectiveFormatter());
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { SpecVersion = GraphQLSpecVersion.October2021 });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              hello: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_Preserve_PostProcessed_Document_Instance_When_SpecVersion_IsNull()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              hello: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        DocumentNode? postProcessedDocument = null;
+        schema.Features.Set<ISchemaDocumentFormatter>(
+            new CaptureDocumentFormatter(document => postProcessedDocument = document));
+
+        // act
+        var result = SchemaFormatter.FormatAsDocument(schema, new SchemaFormatterOptions { SpecVersion = null });
+
+        // assert
+        Assert.Same(postProcessedDocument, result);
+    }
+
+    [Fact]
+    public void Format_Should_Preserve_SemanticNonNull_When_Combined_With_October2021()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              value: String!
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions
+            {
+                RewriteToSemanticNonNull = true,
+                SpecVersion = GraphQLSpecVersion.October2021
+            });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              value: String @semanticNonNull
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
+            """);
     }
 
     [Fact]
@@ -136,6 +227,124 @@ public class SchemaFormatterTests
             """);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Format_IntrospectionOnlyQuery_OmitsQuery(bool orderTypesByName)
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+              query: RootQuery
+              mutation: Mutation
+            }
+
+            type RootQuery {
+              __typename: String
+            }
+
+            type Mutation {
+              doThing: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["RootQuery"])
+            .Fields["__typename"]
+            .IsIntrospectionField = true;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { OrderTypesByName = orderTypesByName });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              mutation: Mutation
+            }
+
+            type Mutation {
+              doThing: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_IntrospectionOnlyQueryWithDescription_OmitsEmptySchemaBlock()
+    {
+        // arrange
+        const string sdl =
+            """
+            "Schema description."
+            schema {
+              query: Query
+            }
+
+            type Query {
+              __typename: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["Query"])
+            .Fields["__typename"]
+            .IsIntrospectionField = true;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot("");
+    }
+
+    [Fact]
+    public void Format_QueryWithRealFields_PrintsQuery()
+    {
+        // arrange
+        const string sdl =
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              __typename: String
+              normal: String
+              secret: String @inaccessible
+            }
+
+            extend type Query {
+              extended: String
+            }
+
+            directive @inaccessible on FIELD_DEFINITION
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["Query"])
+            .Fields["__typename"]
+            .IsIntrospectionField = true;
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              extended: String
+              normal: String
+              secret: String @inaccessible
+            }
+
+            directive @inaccessible on FIELD_DEFINITION
+            """);
+    }
+
     [Fact]
     public void Format_Two_Object_Extensions_Into_One()
     {
@@ -243,6 +452,52 @@ public class SchemaFormatterTests
 
             extend type Product {
               price: Float!
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Single_Object_Type_Deprecated()
+    {
+        // arrange
+        // the deprecation state is set programmatically, so the formatter synthesizes @deprecated
+        const string sdl =
+            """
+            type Query {
+              foo: Foo
+            }
+
+            type Foo implements Bar {
+              id: ID
+            }
+
+            interface Bar {
+              id: ID
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["Foo"]).DeprecationReason = "Use Bar.";
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              foo: Foo
+            }
+
+            type Foo implements Bar @deprecated(reason: "Use Bar.") {
+              id: ID
+            }
+
+            interface Bar {
+              id: ID
             }
             """);
     }
@@ -620,5 +875,32 @@ public class SchemaFormatterTests
               foo: String
             }
             """);
+    }
+
+    private sealed class AppendDirectiveFormatter : ISchemaDocumentFormatter
+    {
+        public DocumentNode Format(ISchemaDefinition schema, DocumentNode schemaDocument)
+        {
+            var definitions = schemaDocument.Definitions.ToList();
+            definitions.Add(
+                new DirectiveDefinitionNode(
+                    null,
+                    new NameNode("onlyOnDirective"),
+                    null,
+                    false,
+                    [],
+                    new[] { new NameNode("DIRECTIVE_DEFINITION") }));
+            return new DocumentNode(null, definitions);
+        }
+    }
+
+    private sealed class CaptureDocumentFormatter(Action<DocumentNode> capture)
+        : ISchemaDocumentFormatter
+    {
+        public DocumentNode Format(ISchemaDefinition schema, DocumentNode schemaDocument)
+        {
+            capture(schemaDocument);
+            return schemaDocument;
+        }
     }
 }

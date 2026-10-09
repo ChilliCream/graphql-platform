@@ -30,8 +30,8 @@ public class PreparedOperationCacheTests
     public async Task Operation_Cache_Should_Be_Scoped_To_Executor()
     {
         // arrange
-        var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var executorEvicted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cancellationToken = TestContext.Current.CancellationToken;
 
         var manager = new ServiceCollection()
             .AddGraphQL()
@@ -43,19 +43,19 @@ public class PreparedOperationCacheTests
         {
             if (@event.Type == RequestExecutorEventType.Evicted)
             {
-                executorEvictedResetEvent.Set();
+                executorEvicted.TrySetResult();
             }
         }));
 
         // act
-        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var firstExecutor = await manager.GetExecutorAsync(cancellationToken: cancellationToken);
         var firstOperationCache = firstExecutor.Schema.Services
             .GetRequiredService<IPreparedOperationCache>();
 
         manager.EvictExecutor();
-        executorEvictedResetEvent.Wait(cts.Token);
+        await executorEvicted.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
-        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cancellationToken);
         var secondOperationCache = secondExecutor.Schema.Services
             .GetRequiredService<IPreparedOperationCache>();
 

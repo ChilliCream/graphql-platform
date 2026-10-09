@@ -5,11 +5,12 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Indicates that the given field, argument, input field, or enum value requires giving explicit
-/// consent before being used.
+/// Indicates that the given directive definition, field, argument, input field, or enum value
+/// requires giving explicit consent before being used.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Field // Required for enum values
+    AttributeTargets.Class // Required for directive definitions
+    | AttributeTargets.Field // Required for enum values
     | AttributeTargets.Method
     | AttributeTargets.Parameter
     | AttributeTargets.Property,
@@ -47,6 +48,10 @@ public sealed class RequiresOptInAttribute : DescriptorAttribute
                 break;
 
             case IArgumentDescriptor desc:
+                desc.RequiresOptIn(Feature);
+                break;
+
+            case IDirectiveTypeDescriptor desc:
                 desc.RequiresOptIn(Feature);
                 break;
 

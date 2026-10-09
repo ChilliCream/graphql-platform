@@ -420,6 +420,183 @@ public class InputParserTests
     }
 
     [Fact]
+    public void Parse_ListOfInputObjects_WithoutRuntimeBinding_ReturnsRuntimeList()
+    {
+        // arrange
+        // LinkInput is bound to the runtime type Link but its fields are not bound
+        // to CLR properties, so each element is materialized as a dictionary.
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Link>(d =>
+            {
+                d.Name("LinkInput");
+                d.BindFieldsExplicitly();
+                d.Field("url").Type<StringType>();
+            })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var listData = new ListValueNode(
+            new ObjectValueNode(new ObjectFieldNode("url", "https://a")),
+            new ObjectValueNode(new ObjectFieldNode("url", "https://b")));
+
+        // act
+        var parser = new InputParser();
+        var runtimeValue = parser.ParseLiteral(listData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Link>>(runtimeValue),
+            t => Assert.Equal("https://a", t.Url),
+            t => Assert.Equal("https://b", t.Url));
+    }
+
+    [Fact]
+    public void Deserialize_ListOfInputObjects_WithoutRuntimeBinding_ReturnsRuntimeList()
+    {
+        // arrange
+        // LinkInput is bound to the runtime type Link but its fields are not bound
+        // to CLR properties, so each element is materialized as a dictionary.
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Link>(d =>
+            {
+                d.Name("LinkInput");
+                d.BindFieldsExplicitly();
+                d.Field("url").Type<StringType>();
+            })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var inputValue = JsonDocument.Parse(
+            """
+            [{ "url": "https://a" }, { "url": "https://b" }]
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseInputValue(
+            inputValue.RootElement, type, context.Object, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Link>>(runtimeValue),
+            t => Assert.Equal("https://a", t.Url),
+            t => Assert.Equal("https://b", t.Url));
+    }
+
+    [Fact]
+    public void Parse_SingleInputObject_CoercedIntoList_WithoutRuntimeBinding()
+    {
+        // arrange
+        // A single object value (not wrapped in a list) is coerced into a one-element list.
+        var schema = SchemaBuilder.New()
+            .AddType<LinkInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var singleData = new ObjectValueNode(new ObjectFieldNode("url", "https://a"));
+
+        // act
+        var parser = new InputParser();
+        var runtimeValue = parser.ParseLiteral(singleData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Link>>(runtimeValue),
+            t => Assert.Equal("https://a", t.Url));
+    }
+
+    [Fact]
+    public void Deserialize_SingleInputObject_CoercedIntoList_WithoutRuntimeBinding()
+    {
+        // arrange
+        // A single JSON object is coerced into a one-element list.
+        var schema = SchemaBuilder.New()
+            .AddType<LinkInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var inputValue = JsonDocument.Parse(
+            """
+            { "url": "https://a" }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseInputValue(
+            inputValue.RootElement, type, context.Object, Path.Root.Append("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<List<Link>>(runtimeValue),
+            t => Assert.Equal("https://a", t.Url));
+    }
+
+    [Fact]
+    public void Parse_ListOfInputObjects_WithoutField_SurfacesConversionError()
+    {
+        // arrange
+        // No field context (the IType overload) and the converter fails the
+        // dictionary -> Link conversion. The real conversion error must surface
+        // instead of a misleading IList.Add type-mismatch error.
+        var schema = SchemaBuilder.New()
+            .AddType<LinkInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = new ListType(schema.Types.GetType<InputObjectType>("LinkInput"));
+
+        var listData = new ListValueNode(
+            new ObjectValueNode(new ObjectFieldNode("url", "https://a")));
+
+        var parser = new InputParser(new ThrowingTypeConverter());
+
+        // act
+        void Act() => parser.ParseLiteral(listData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.Equal("conversion boom", Assert.Throws<InvalidOperationException>(Act).Message);
+    }
+
+    [Fact]
+    public void Parse_ListOfInputObjects_WithField_ReportsCoercionError_OnConversionFailure()
+    {
+        // arrange
+        // With a field context the failed conversion is reported as a coercion error.
+        var schema = SchemaBuilder.New()
+            .AddType<LinkContainerInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var container = schema.Types.GetType<InputObjectType>("LinkContainerInput");
+        var linksField = container.Fields["links"];
+
+        var listData = new ListValueNode(
+            new ObjectValueNode(new ObjectFieldNode("url", "https://a")));
+
+        var parser = new InputParser(new ThrowingTypeConverter());
+
+        // act
+        void Act() => parser.ParseLiteral(listData, linksField);
+
+        // assert
+        Assert.IsType<LeafCoercionException>(Assert.ThrowsAny<Exception>(Act));
+    }
+
+    [Fact]
     public async Task Integration_InputObjectDefaultValue_ValueIsInitialized()
     {
         // arrange
@@ -519,6 +696,157 @@ public class InputParserTests
         // act
         var runtimeValue =
             parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        runtimeValue.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseLiteral_Should_ThrowOneOfNoFieldSet_When_OnlyIgnoredFieldsAreSupplied()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("unknown", "abc"));
+
+        // act
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseLiteral_Should_UseTheDefinedField_When_AdditionalFieldsAreIgnored()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("unknown", "abc"),
+            new ObjectFieldNode("b", 123));
+
+        // act
+        var runtimeValue = parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        runtimeValue.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseLiteral_Should_ThrowOneOfMoreThanOneFieldSet_When_AdditionalFieldsAreIgnored()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("unknown", "abc"),
+            new ObjectFieldNode("a", "abc"),
+            new ObjectFieldNode("b", 123));
+
+        // act
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseInputValue_Should_ThrowOneOfNoFieldSet_When_OnlyIgnoredFieldsAreSupplied()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = JsonDocument.Parse("""{ "unknown": "abc" }""");
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        void Fail()
+            => parser.ParseInputValue(
+                data.RootElement,
+                oneOfInput,
+                context.Object,
+                Path.Root.Append("root"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseInputValue_Should_UseTheDefinedField_When_AdditionalFieldsAreIgnored()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = JsonDocument.Parse("""{ "unknown": "abc", "b": 123 }""");
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var runtimeValue = parser.ParseInputValue(
+            data.RootElement,
+            oneOfInput,
+            context.Object,
+            Path.Root.Append("root"));
 
         // assert
         runtimeValue.MatchSnapshot();
@@ -762,5 +1090,55 @@ public class InputParserTests
             descriptor.Field("int").Type<IntType>();
             descriptor.Field("bool").Type<BooleanType>();
         }
+    }
+
+    public class Link
+    {
+        public string? Url { get; set; }
+    }
+
+    public class LinkInput : InputObjectType<Link>
+    {
+        protected override void Configure(IInputObjectTypeDescriptor<Link> descriptor)
+        {
+            descriptor.Name("LinkInput");
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field("url").Type<StringType>();
+        }
+    }
+
+    public class LinkContainer
+    {
+        public List<Link>? Links { get; set; }
+    }
+
+    public class LinkContainerInput : InputObjectType<LinkContainer>
+    {
+        protected override void Configure(IInputObjectTypeDescriptor<LinkContainer> descriptor)
+        {
+            descriptor.Name("LinkContainerInput");
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(t => t.Links).Type<ListType<LinkInput>>();
+        }
+    }
+
+    private sealed class ThrowingTypeConverter : ITypeConverter
+    {
+        public bool TryConvert(
+            Type from,
+            Type to,
+            object? source,
+            out object? converted,
+            out Exception? conversionException)
+        {
+            converted = null;
+            conversionException = to == typeof(Link)
+                ? new InvalidOperationException("conversion boom")
+                : null;
+            return false;
+        }
+
+        public object? Convert(Type from, Type to, object? source)
+            => throw new NotSupportedException();
     }
 }

@@ -1,10 +1,10 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [ShortRunJob(RuntimeMoniker.Net10_0)]

@@ -21,10 +21,12 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
+        HttpClient? httpClient = null,
         bool isOffline = false,
         bool isTimingOut = false,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -54,12 +56,14 @@ public abstract partial class FusionTestBase
                     opt.IsOffline = isOffline;
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
+                    opt.HttpClient = httpClient;
                     opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
                     opt.OnError = onError;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
+                    opt.SubscriptionReadTimeout = subscriptionReadTimeout;
                 });
             },
             configureApplication);
@@ -72,8 +76,9 @@ public abstract partial class FusionTestBase
         bool isTimingOut = false,
         Action<HttpClient>? configureHttpClient = null,
         HttpClient? httpClient = null,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -104,6 +109,7 @@ public abstract partial class FusionTestBase
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                     opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
+                    opt.SubscriptionReadTimeout = subscriptionReadTimeout;
                 });
             },
             app =>
@@ -134,6 +140,8 @@ public abstract partial class FusionTestBase
                 yield return typeInspector.GetTypeRef(typeof(Composite.Is));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Provides));
                 yield return typeInspector.GetTypeRef(typeof(Composite.Shareable));
+                yield return typeInspector.GetTypeRef(typeof(Composite.InterfaceObject));
+                yield return typeInspector.GetTypeRef(typeof(Composite.External));
 
                 _registeredTypes = true;
             }

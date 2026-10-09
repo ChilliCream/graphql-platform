@@ -1,6 +1,26 @@
+using System.Diagnostics;
+using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
+using HotChocolate.Transport.Sockets;
+using HotChocolate.Transport.Sockets.Client;
+using HotChocolate.Types;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -12,6 +32,7 @@ namespace HotChocolate.Fusion.Diagnostics;
 public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
+    private static readonly Uri s_webSocketUrl = new("ws://localhost:5000/graphql");
 
     [Fact]
     public async Task Http_Post_Single_Request_Default()
@@ -62,6 +83,153 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             // act
             using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_BatchRequest_Should_Give_Every_Item_Its_Own_Request_Span_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b
+                    .ModifyServerOptions(o => o.Batching = AllowedBatching.All)
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            const string batch =
+                """
+                [{"query":"query A { sayHello }"},
+                 {"query":"query B { greeting(name: \"x\") }"}]
+                """;
+
+            // act
+            using var content = new StringContent(batch, Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_OperationBatchRequest_Should_Give_Every_Item_Its_Own_Request_Span_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b
+                    .ModifyServerOptions(o => o.Batching = AllowedBatching.All)
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            const string request =
+                """
+                {"query":"query A { sayHello } query B { greeting(name: \"x\") }"}
+                """;
+
+            // act
+            using var content = new StringContent(request, Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql?batchOperations=[A,B]",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_PersistedOperationEndpoint_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var storage = new OperationStorage();
+            storage.AddOperation("f743cef3f2cab195023341bebed276d2", "query SayHello { sayHello }");
+
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureApplication: MapPersistedOperationEndpoint,
+                configureGatewayBuilder: b => b
+                    .ConfigureSchemaServices((_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                    .UsePersistedOperationPipeline()
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            // act
+            using var content = new StringContent("{ }", Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql/persisted/f743cef3f2cab195023341bebed276d2/SayHello",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Get_PersistedOperationEndpoint_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var storage = new OperationStorage();
+            storage.AddOperation("f743cef3f2cab195023341bebed276d2", "query SayHello { sayHello }");
+
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureApplication: MapPersistedOperationEndpoint,
+                configureGatewayBuilder: b => b
+                    .ConfigureSchemaServices((_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                    .UsePersistedOperationPipeline()
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            // act
+            using var response = await client.GetAsync(
+                "/graphql/persisted/f743cef3f2cab195023341bebed276d2/SayHello",
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -414,6 +582,837 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task ExecuteHttpRequest_Should_TagSchemaName_When_GatewayIsNamed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(),
+                gatewayName: "b");
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            // act
+            using var result = await client.PostAsync(
+                new OperationRequest("{ sayHello }"),
+                s_url,
+                TestContext.Current.CancellationToken);
+            await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            var span = Assert.Single(
+                activities.Settled,
+                a => a.OperationName == "ExecuteHttpRequest");
+            Assert.Equal("b", span.GetTagItem("graphql.schema.name"));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Request_Should_Be_Unset_When_Client_Disconnects()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new BlockingSignal();
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>(),
+                configureServices: s => s.AddSingleton(signal));
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b.AddInstrumentation(
+                    o => o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+            var request = new OperationRequest("{ blockUntilCancelled }");
+
+            // act
+            // start the request, wait until the source resolver is actually executing, then
+            // drop the connection by cancelling the client token (a dropped browser tab)
+            var postTask = PostAndIgnoreCancellationAsync(client, request, requestCts.Token);
+            await signal.Entered.Task.WaitAsync(guard.Token);
+            await requestCts.CancelAsync();
+            await postTask;
+
+            // assert
+            // the snapshot records every span status for a client disconnect mid execution
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Request_Should_Be_Error_When_Timeout()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a tiny execution timeout combined with a resolver that blocks until the
+            // request token fires forces a server-side execution timeout (HC0045)
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b
+                    .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(200)));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest("{ blockUntilTimeout }");
+
+            // act
+            using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
+            using var operationResult = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            // the timeout actually triggered (scenario guard); the snapshot records the
+            // resulting span statuses
+            var code = operationResult.Errors[0].GetProperty("extensions").GetProperty("code").GetString();
+            Assert.Equal(ErrorCodes.Execution.Timeout, code);
+
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Subscription_Should_Be_Ok_When_Server_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.PostAsync(request, s_url, guard.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream, so receive the
+            // single event and then drain the stream so the gateway closes the SSE
+            // response gracefully (no exception, no abort)
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            // the snapshot records the gateway request and subscription event span
+            // status for a graceful close
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Subscription_Should_Be_Unset_When_Client_Disconnects()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+            var request = new OperationRequest("subscription OnIdleMessageSubscription { onIdleMessage }");
+
+            using var result = await client.PostAsync(request, s_url, requestCts.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(requestCts.Token);
+
+            try
+            {
+                // receive one event successfully while the connection is alive
+                Assert.True(await results.MoveNextAsync());
+
+                // act
+                // the subscription is now idle, waiting for the next event.
+                // drop the connection (close the tab) by cancelling the client token,
+                // which fires the gateway's HttpContext.RequestAborted.
+                var next = results.MoveNextAsync().AsTask();
+                await requestCts.CancelAsync();
+
+                // tear down must complete promptly; guard against a hang
+                var completed = await Task.WhenAny(next, Task.Delay(2000, guard.Token));
+                Assert.Same(next, completed);
+                await IgnoreCancellationAsync(next);
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            // the snapshot records the subscription event span status for a client
+            // abort while the subscription is idle
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Subscription_Should_Be_Unset_When_Client_Disconnects_During_Event()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a cross-schema subscription: source "a" emits a book event whose author
+            // name is fetched from source "b". The downstream lookup blocks, so the
+            // event is genuinely in flight when the connection drops.
+            var signal = new BlockingSubscriptionSignal();
+
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<BookQuery>()
+                    .AddSubscriptionType<BookSubscription>());
+
+            using var server2 = CreateSourceSchema(
+                "b",
+                b => b.AddQueryType<AuthorQuery>(),
+                configureServices: s => s.AddSingleton(signal));
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+            using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+            var request = new OperationRequest(
+                "subscription OnBookCreatedSubscription { onBookCreated { author { name } } }");
+
+            using var result = await client.PostAsync(request, s_url, requestCts.Token);
+            var results = result.ReadAsResultStreamAsync().GetAsyncEnumerator(requestCts.Token);
+
+            try
+            {
+                // start processing the event; the downstream author lookup blocks, so
+                // the event is in flight when we abort
+                var next = results.MoveNextAsync().AsTask();
+
+                // wait until the downstream lookup actually started
+                await signal.Entered.Task.WaitAsync(guard.Token);
+
+                // act
+                // drop the connection (close the tab) while the event is in flight by
+                // cancelling the client token, which fires HttpContext.RequestAborted.
+                await requestCts.CancelAsync();
+
+                // tear down must complete promptly; guard against a hang
+                var completed = await Task.WhenAny(next, Task.Delay(2000, guard.Token));
+                Assert.Same(next, completed);
+                await IgnoreCancellationAsync(next);
+            }
+            finally
+            {
+                await IgnoreCancellationAsync(results.DisposeAsync().AsTask());
+            }
+
+            // assert
+            // the snapshot records the subscription event span status for a client
+            // abort while an event is in flight
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes_Default()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation());
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            // the session encloses every span, so close it before the trace is read
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            // the session encloses every span, so close it before the trace is read
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Closes_Connection()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnIdleMessageSubscription { onIdleMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            Assert.True(await results.MoveNextAsync());
+
+            // act
+            // close the connection without unsubscribing, so the gateway has to tear the
+            // still-running subscription down with the session
+            await CloseWebSocketAsync(webSocket, guard.Token);
+            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Header_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // non-browser clients can send the tenant as a handshake header instead
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .AddApplicationService<FusionActivityEnricher>()
+                .Services.AddSingleton<FusionActivityEnricher, TenantActivityEnricher>());
+
+            using var webSocket = await ConnectWebSocketAsync(
+                gateway,
+                guard.Token,
+                r => r.Headers[TenantHeaderName] = "acme-42");
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .AddApplicationService<FusionActivityEnricher>()
+                .Services.AddSingleton<FusionActivityEnricher, TenantActivityEnricher>());
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            var payload = JsonSerializer.SerializeToElement(new { tenant = "acme-42" });
+            await using var client = await SocketClient.ConnectAsync(webSocket, payload, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private const string TenantHeaderName = "X-Tenant";
+
+    public sealed record TenantFeature(string Tenant);
+
+    public sealed class TenantActivityEnricher(InstrumentationOptions options)
+        : FusionActivityEnricher(options)
+    {
+        /// <summary>
+        /// Stores the tenant on the connection so it outlives the connection
+        /// initialization message, which is only valid during this call.
+        /// </summary>
+        public override void OnWebSocketConnectionInitialized(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage)
+        {
+            if (connectionInitMessage.Payload is { ValueKind: JsonValueKind.Object } payload
+                && payload.TryGetProperty("tenant", out var tenant)
+                && tenant.ValueKind is JsonValueKind.String)
+            {
+                session.Connection.Features.Set(new TenantFeature(tenant.GetString()!));
+            }
+        }
+
+        public override void EnrichExecuteRequest(RequestContext context, Activity activity)
+        {
+            base.EnrichExecuteRequest(context, activity);
+            SetTenantTag(context, activity);
+        }
+
+        public override void EnrichOnSubscriptionEvent(
+            OperationPlanContext context,
+            ExecutionNode node,
+            string schemaName,
+            ulong subscriptionId,
+            Activity activity)
+        {
+            base.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, activity);
+            SetTenantTag(context.RequestContext, activity);
+        }
+
+        private static void SetTenantTag(RequestContext context, Activity activity)
+        {
+            if (ResolveTenant(context) is { } tenant)
+            {
+                activity.SetTag("test.tenant", tenant);
+            }
+        }
+
+        private static string? ResolveTenant(RequestContext context)
+        {
+            if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
+                && value is ISocketSession session
+                && session.Connection.Features.Get<TenantFeature>() is { } tenant)
+            {
+                return tenant.Tenant;
+            }
+
+            if (context.Features.Get<HttpContext>() is { } httpContext
+                && httpContext.Request.Headers.TryGetValue(TenantHeaderName, out var header))
+            {
+                return header.ToString();
+            }
+
+            return null;
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Apollo_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // the legacy apollo protocol raises the event from its own protocol handler
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .AddApplicationService<FusionActivityEnricher>()
+                .Services.AddSingleton<FusionActivityEnricher, TenantActivityEnricher>());
+
+            var webSocketClient = gateway.CreateWebSocketClient();
+            webSocketClient.ConfigureRequest =
+                r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_WS;
+            using var webSocket = await webSocketClient.ConnectAsync(s_webSocketUrl, guard.Token);
+
+            await SendApolloMessageAsync(
+                webSocket,
+                """{"type":"connection_init","payload":{"tenant":"acme-42"}}""",
+                guard.Token);
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "connection_ack", guard.Token));
+
+            // act
+            // the subgraph emits one event then completes its stream
+            await SendApolloMessageAsync(
+                webSocket,
+                """
+                {"type":"start","id":"1","payload":{"query":"subscription OnMessageSubscription { onMessage }"}}
+                """,
+                guard.Token);
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "data", guard.Token));
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "complete", guard.Token));
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task SendApolloMessageAsync(
+        WebSocket webSocket,
+        string message,
+        CancellationToken cancellationToken)
+        => await webSocket.SendAsync(
+            Encoding.UTF8.GetBytes(message),
+            WebSocketMessageType.Text,
+            true,
+            cancellationToken);
+
+    private static async Task<JsonDocument?> WaitForApolloMessageAsync(
+        WebSocket webSocket,
+        string type,
+        CancellationToken cancellationToken)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var combined =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        var buffer = new byte[4096];
+
+        try
+        {
+            while (!combined.Token.IsCancellationRequested)
+            {
+                await using var stream = new MemoryStream();
+                WebSocketReceiveResult result;
+
+                do
+                {
+                    result = await webSocket.ReceiveAsync(
+                        new ArraySegment<byte>(buffer),
+                        combined.Token);
+                    stream.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage);
+
+                if (stream.Length == 0)
+                {
+                    continue;
+                }
+
+                var message = JsonDocument.Parse(stream.ToArray());
+
+                if (message.RootElement.GetProperty("type").GetString() == type)
+                {
+                    return message;
+                }
+
+                message.Dispose();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: no matching message arrived within the timeout
+        }
+
+        return null;
+    }
+
+    private static async Task<WebSocket> ConnectWebSocketAsync(
+        Gateway gateway,
+        CancellationToken cancellationToken,
+        Action<HttpRequest>? configureRequest = null)
+    {
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest = r =>
+        {
+            r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+            configureRequest?.Invoke(r);
+        };
+        return await webSocketClient.ConnectAsync(s_webSocketUrl, cancellationToken);
+    }
+
+    private static async Task CloseWebSocketAsync(
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await webSocket.CloseOutputAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "done",
+                cancellationToken);
+        }
+        catch (Exception ex) when (ex is WebSocketException or IOException or ObjectDisposedException)
+        {
+            // the gateway can end the session before the close frame is sent
+        }
+    }
+
+    private static async Task IgnoreSocketTeardownAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was aborted by the client
+        }
+        catch (IOException)
+        {
+            // expected: aborting an in-flight read can surface as an I/O failure
+        }
+        catch (WebSocketException)
+        {
+            // expected: the socket was closed while a read was in flight
+        }
+        catch (SocketClosedException)
+        {
+            // expected: the client dropped the connection without a close frame
+        }
+    }
+
+    private static async Task IgnoreCancellationAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was aborted by the client
+        }
+        catch (IOException)
+        {
+            // expected: aborting an in-flight SSE read can surface as an I/O failure
+        }
+    }
+
+    private static async Task PostAndIgnoreCancellationAsync(
+        GraphQLHttpClient client,
+        OperationRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var result = await client.PostAsync(request, s_url, cancellationToken);
+            await result.ReadAsResultAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the caller aborted the in-flight request
+        }
+        catch (InvalidOperationException)
+        {
+            // expected: the aborted request yields an empty response that cannot be
+            // read as a GraphQL result
+        }
+    }
+
+    private static void MapPersistedOperationEndpoint(IApplicationBuilder app)
+    {
+        app.UseRouting();
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQLPersistedOperations();
+            endpoints.MapGraphQL();
+        });
+    }
+
+    private sealed class OperationStorage : IOperationDocumentStorage
+    {
+        private readonly Dictionary<string, OperationDocument> _cache = new(StringComparer.Ordinal);
+
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+            => _cache.TryGetValue(documentId.Value, out var value)
+                ? new ValueTask<IOperationDocument?>(value)
+                : new ValueTask<IOperationDocument?>(default(IOperationDocument));
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public void AddOperation(string key, string sourceText)
+            => _cache.Add(key, new OperationDocument(Utf8GraphQLParser.Parse(sourceText)));
+    }
+
     public class Query
     {
         public string SayHello() => "hello";
@@ -429,6 +1428,31 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                     .Build());
 
         public Deep Deep() => new();
+
+        public async Task<string> BlockUntilCancelled(
+            [Service] BlockingSignal signal,
+            CancellationToken cancellationToken)
+        {
+            // signal that execution has actually reached the resolver, then block until
+            // the connection drops (the request abort token fires)
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return "unreachable";
+        }
+
+        public async Task<string> BlockUntilTimeout(CancellationToken cancellationToken)
+        {
+            // block until the execution timeout cancels the (combined) request token,
+            // producing an HC0045 (timeout) result
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return "unreachable";
+        }
+    }
+
+    public sealed class BlockingSignal
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     public class Deep
@@ -444,4 +1468,84 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 
         public Deep[] Deeps() => [new Deep()];
     }
+
+    public class Subscription
+    {
+        public async IAsyncEnumerable<string> OnMessageStream()
+        {
+            yield return "hello";
+            await Task.CompletedTask;
+        }
+
+        [Subscribe(With = nameof(OnMessageStream))]
+        public string OnMessage([EventMessage] string message) => message;
+
+        public async IAsyncEnumerable<string> OnIdleMessageStream(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            // deliver one event, then stay open and idle until the connection drops
+            yield return "hello";
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+
+        [Subscribe(With = nameof(OnIdleMessageStream))]
+        public string OnIdleMessage([EventMessage] string message) => message;
+    }
+
+    public sealed class BlockingSubscriptionSignal
+    {
+        public TaskCompletionSource Entered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    [GraphQLName("Query")]
+    public class BookQuery
+    {
+        public string SayHello() => "hello";
+    }
+
+    [GraphQLName("Subscription")]
+    public class BookSubscription
+    {
+        public async IAsyncEnumerable<Book> OnBookCreatedStream()
+        {
+            yield return new Book(1, new Author(1));
+            await Task.CompletedTask;
+        }
+
+        [Subscribe(With = nameof(OnBookCreatedStream))]
+        public Book OnBookCreated([EventMessage] Book book) => book;
+    }
+
+    public record Book([property: ID] int Id, [property: Shareable] Author Author);
+
+    [EntityKey("id")]
+    public record Author([property: ID] int Id);
+
+    [GraphQLName("Query")]
+    public class AuthorQuery
+    {
+        [Internal]
+        public AuthorLookups Lookups { get; } = new();
+    }
+
+    [Internal]
+    public class AuthorLookups
+    {
+        [Lookup]
+        public async Task<AuthorWithName?> GetAuthorById(
+            [ID] int id,
+            [Service] BlockingSubscriptionSignal signal,
+            CancellationToken cancellationToken)
+        {
+            // block while the event is in flight so the connection can be dropped
+            // before the author name is delivered
+            signal.Entered.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return new AuthorWithName(id, "JRR Tolkien");
+        }
+    }
+
+    [GraphQLName("Author")]
+    public record AuthorWithName([property: ID] int Id, string Name);
 }

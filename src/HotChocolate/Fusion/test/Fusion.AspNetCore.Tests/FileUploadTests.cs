@@ -59,6 +59,54 @@ public class FileUploadTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Upload_Single_File_Should_Forward_Parameterized_ContentType()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var stream = new MemoryStream("abc"u8.ToArray());
+
+        var operation = new OperationRequest(
+            """
+            query ($file: Upload!) {
+              singleUpload(file: $file) {
+                fileName
+                contentType
+                content
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["file"] = new FileReference(() => stream, "test.txt", "text/plain; charset=utf-8")
+            });
+
+        RawRequest? rawRequest = null;
+        var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Post,
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
+        };
+
+        // act
+        var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
+    }
+
+    [Fact]
     public async Task Upload_Single_File_In_Input_Object()
     {
         // arrange

@@ -122,6 +122,48 @@ internal sealed class FusionConfigurationClient(
         return OperationResultHelper.EnsureData(result).ValidateFusionConfigurationComposition;
     }
 
+    public async Task<IValidateFusionConfiguration_ValidateFusionConfiguration> StartFusionConfigurationValidationAsync(
+        string apiId,
+        string stageName,
+        Stream archive,
+        SourceMetadata? source,
+        CancellationToken cancellationToken)
+    {
+        var input = new ValidateFusionConfigurationInput
+        {
+            ApiId = apiId,
+            Stage = stageName,
+            Configuration = new Upload(archive, "gateway.far"),
+            Source = SourceMetadataMapper.Map(source)
+        };
+
+        var result = await apiClient.ValidateFusionConfiguration.ExecuteAsync(input, cancellationToken);
+
+        return OperationResultHelper.EnsureData(result).ValidateFusionConfiguration;
+    }
+
+    public async IAsyncEnumerable<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate>
+        SubscribeToFusionConfigurationValidationAsync(
+            string requestId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        using var stopSignal = new ReplaySubject<Unit>(1);
+        await using var _ = cancellationToken.Register(stopSignal);
+
+        var subscription = apiClient.OnFusionConfigurationValidationUpdated
+            .Watch(requestId, ExecutionStrategy.NetworkOnly)
+            .TakeUntil(stopSignal);
+
+        // The cancellation token is intentionally not passed to ToAsyncEnumerable() to avoid
+        // an OperationCanceledException. Cancellation is handled via the stop signal above,
+        // which completes the sequence cleanly.
+        await foreach (var @event in subscription.ToAsyncEnumerable())
+        {
+            var data = OperationResultHelper.EnsureData(@event);
+            yield return data.OnFusionConfigurationValidationUpdate;
+        }
+    }
+
     public async Task<IUploadFusionSubgraph_UploadFusionSubgraph> UploadFusionSubgraphAsync(
         string apiId,
         string tag,
@@ -142,7 +184,7 @@ internal sealed class FusionConfigurationClient(
         return OperationResultHelper.EnsureData(result).UploadFusionSubgraph;
     }
 
-    public async Task<Stream?> DownloadSourceSchemaArchiveAsync(
+    public async Task<Stream> DownloadSourceSchemaArchiveAsync(
         string apiId,
         string sourceSchemaName,
         string sourceSchemaVersion,
@@ -154,7 +196,8 @@ internal sealed class FusionConfigurationClient(
 
         if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NitroClientNotFoundException(
+                $"Could not find source schema '{sourceSchemaName}' with version '{sourceSchemaVersion}'.");
         }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -173,7 +216,7 @@ internal sealed class FusionConfigurationClient(
         return memoryStream;
     }
 
-    public async Task<Stream?> DownloadLatestFusionArchiveAsync(
+    public async Task<Stream> DownloadLatestFusionArchiveAsync(
         string apiId,
         string stageName,
         string archiveVersion,
@@ -187,7 +230,8 @@ internal sealed class FusionConfigurationClient(
 
         if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            return null;
+            throw new NitroClientNotFoundException(
+                $"Could not find a Fusion configuration for stage '{stageName}' that supports version '{archiveVersion}'.");
         }
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -204,6 +248,36 @@ internal sealed class FusionConfigurationClient(
         await response.Content.CopyToAsync(memoryStream, cancellationToken);
         memoryStream.Position = 0;
         return memoryStream;
+    }
+
+    public async Task<StageCompositionSettings?> GetStageCompositionSettingsAsync(
+        string apiId,
+        string stageName,
+        CancellationToken cancellationToken)
+    {
+        var result = await apiClient.FusionStageCompositionSettings.ExecuteAsync(apiId, stageName, cancellationToken);
+
+        var data = OperationResultHelper.EnsureData(result);
+
+        if (data.Node is not IFusionStageCompositionSettings_Node_Api api)
+        {
+            return null;
+        }
+
+        if (api.Stage?.CompositionSettings is not { } compositionSettings)
+        {
+            return null;
+        }
+
+        return new StageCompositionSettings
+        {
+            CacheControlMergeBehavior = compositionSettings.CacheControlMergeBehavior,
+            EnableGlobalObjectIdentification = compositionSettings.EnableGlobalObjectIdentification,
+            ExcludeByTag = compositionSettings.ExcludeByTag,
+            RemoveUnreferencedDefinitions = compositionSettings.RemoveUnreferencedDefinitions,
+            TagMergeBehavior = compositionSettings.TagMergeBehavior,
+            NodeResolution = compositionSettings.NodeResolution
+        };
     }
 
     private static HttpRequestMessage CreateDownloadLatestFusionArchiveRequest(

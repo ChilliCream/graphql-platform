@@ -1,0 +1,319 @@
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Hook;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
+
+/// <summary>
+/// Covers the command's wiring and the response it writes to stdout, plus the queue call
+/// <c>notify</c> makes (its own stdout carries nothing).
+/// </summary>
+public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
+{
+    private const string SessionId = "session-1";
+
+    [Fact]
+    public async Task SessionStart_Should_WriteTheActorContext_ToStdout()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        SetupHookPayload();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot(
+            """{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Your Nitro actor name is \u0022maya\u0022. Pass this name to the \u0060--actor\u0060 option to act under this actor explicitly."}}""");
+    }
+
+    [Fact]
+    public async Task SessionStart_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        SetupSessionlessHookPayload();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task UserPromptSubmit_Should_WriteNeutralResponse_When_NoMailIsUnread()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        SetupHookPayload();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "user-prompt-submit");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot(
+            """{}""");
+    }
+
+    [Fact]
+    public async Task UserPromptSubmit_Should_WriteNeutralResponse_When_NoSessionResolves()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        SetupHookPayload();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "user-prompt-submit");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task SessionEnd_Should_StampEndedAtAndKeepTheRow_When_ThePayloadNamesASession()
+    {
+        // arrange
+        // A presence row this same generation created on SessionStart.
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        SetupHookPayload();
+        await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
+        SetupHookPayload();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "session-end");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.NotNull(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'maya'"));
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task SessionEnd_Should_LeaveTheRowUnaffected_When_ThePayloadNamesNoSession()
+    {
+        // arrange
+        // Start the session, then submit an event without a session id.
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        SetupHookPayload();
+        await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
+        SetupSessionlessHookPayload();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "session-end");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Null(await QueryScalarAsync("SELECT ended_at FROM agents WHERE name = 'maya'"));
+        Assert.Equal("1", await QueryScalarAsync("SELECT COUNT(*) FROM agents WHERE name = 'maya'"));
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task Notify_Should_QueueTheDigest_When_TheThreadHasUnreadMail()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        var message = await SeedMailAsync();
+        SetupHermeticSidecar();
+        var queueClient = new FakeCodexQueueClient();
+        SetupCodexQueueClient(queueClient);
+        SetupHookPayload();
+        await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "notify", NotifyPayload());
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(result.StdOut);
+        var call = Assert.Single(queueClient.Calls);
+        Assert.Equal(SessionId, call.ThreadId);
+        call.Message.Replace(message.Id, "<id>").MatchInlineSnapshot(
+            """
+            You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor maya --body "..."` or ack with `nitro agent mail ack --message <id> --actor maya`; anything not shown is in `nitro agent mail inbox --unread --actor maya`.
+            {
+              "items": [
+                {
+                  "id": "<id>",
+                  "threadId": "<id>",
+                  "inReplyTo": null,
+                  "from": "bob",
+                  "to": [
+                    "maya"
+                  ],
+                  "cc": [],
+                  "subject": "status",
+                  "body": "please check",
+                  "createdAt": "2026-01-01T00:00:00+00:00",
+                  "read": false,
+                  "archived": false,
+                  "takeovers": []
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Notify_Should_QueueNothing_When_ThePayloadNamesNoThread()
+    {
+        // arrange
+        // Seed unread mail and a session before sending a notify payload without a thread id.
+        await InitWorkspaceAsync();
+        await SeedCodexIdentityAsync();
+        await SeedMailAsync();
+        SetupHermeticSidecar();
+        var queueClient = new FakeCodexQueueClient();
+        SetupCodexQueueClient(queueClient);
+        SetupHookPayload();
+        await ExecuteCommandAsync("agent", "hook", "codex", "session-start");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "notify", SessionlessNotifyPayload());
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(result.StdOut);
+        Assert.Empty(queueClient.Calls);
+    }
+
+    [Fact]
+    public async Task HookHelp_StaysHidden()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("agent", "hook", "--help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(result.StdOut);
+        Assert.Empty(result.StdErr);
+    }
+
+    [Fact]
+    public async Task CodexHelp_Should_ListTheHookEvents_When_HelpIsRequested()
+    {
+        // arrange
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Adapt Codex CLI turn-boundary hook and notify events.
+
+            Usage:
+              nitro agent hook codex [command] [options]
+
+            Options:
+              -?, -h, --help  Show help and usage information
+
+            Commands:
+              session-start       Adapt Codex CLI's SessionStart hook: upsert this session's presence row.
+              user-prompt-submit  Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.
+              session-end         Adapt Codex CLI's SessionEnd hook: mark this session's agent row as ended.
+              notify <payload>    Adapt Codex CLI's notify program: queue the unread-mail digest into the thread's next turn, then exec any wrapped foreign notify program.
+            """);
+    }
+
+    [Theory]
+    [InlineData("session-start", "Adapt Codex CLI's SessionStart hook: upsert this session's presence row.")]
+    [InlineData("user-prompt-submit", "Adapt Codex CLI's UserPromptSubmit hook: inject the unread-mail digest.")]
+    [InlineData("session-end", "Adapt Codex CLI's SessionEnd hook: mark this session's agent row as ended.")]
+    public async Task EventHelp_Should_PrintTheEventDescription_When_HelpIsRequested(string eventName, string description)
+    {
+        // arrange
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", eventName, "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            $"""
+            Description:
+              {description}
+
+            Usage:
+              nitro agent hook codex {eventName} [options]
+
+            Options:
+              -?, -h, --help  Show help and usage information
+            """);
+    }
+
+    [Fact]
+    public async Task NotifyHelp_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("agent", "hook", "codex", "notify", "--help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("payload", result.StdOut);
+    }
+
+    private Task SeedCodexIdentityAsync()
+        => BindAgentSessionAsync("maya", SessionId, AgentSessionHarness.Codex);
+
+    /// <summary>
+    /// Redirects <c>notify</c> sidecar lookup to the test directory, which has no sidecar.
+    /// </summary>
+    private void SetupHermeticSidecar()
+        => SetupGlobalConfigDirectory(WorkingDirectory);
+
+    /// <summary>
+    /// Feeds one <c>hooks.json</c> event payload to stdin. Every command run
+    /// consumes the reader, so a test invoking two events calls this again
+    /// before the second.
+    /// </summary>
+    private void SetupHookPayload()
+        => SetupStandardInput(
+            $$"""{"session_id":"{{SessionId}}","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+
+    private void SetupSessionlessHookPayload()
+        => SetupStandardInput(
+            $$"""{"cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+
+    private string SessionlessNotifyPayload()
+        => $$"""{"type":"agent-turn-complete","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""";
+
+    private string NotifyPayload()
+        => $$"""{"type":"agent-turn-complete","thread-id":"{{SessionId}}","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""";
+
+    /// <summary>
+    /// Sends one message to the seeded actor directly against the store, so
+    /// the digest has content without a second command run pushing it.
+    /// </summary>
+    private async Task<MailMessage> SeedMailAsync()
+    {
+        await SeedAgentAsync("bob");
+
+        var store = new MailStore(
+            new TestFileSystem(WorkingDirectory),
+            FakeTime,
+            new AgentDatabase(),
+            new AgentStore(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase()));
+
+        return await store.SendMessageAsync(
+            new MailMessageCreation
+            {
+                Sender = "bob",
+                Subject = "status",
+                Body = "please check",
+                To = ["maya"]
+            },
+            TestContext.Current.CancellationToken);
+    }
+}

@@ -10,12 +10,18 @@ namespace Mocha.Analyzers;
 /// The simple type name of the response, or <see langword="null"/> if the handler returns no response.
 /// </param>
 /// <param name="Kind">The kind of handler.</param>
+/// <param name="XmlDocumentation">The XML documentation captured from the handler declaration.</param>
+/// <param name="Location">
+/// The equatable source location of the handler type declaration, or <see langword="null"/> if unavailable.
+/// </param>
 public sealed record HandlerInfo(
     string HandlerTypeName,
     string HandlerNamespace,
     string MessageTypeName,
     string? ResponseTypeName,
-    HandlerKind Kind) : SyntaxInfo
+    HandlerKind Kind,
+    string? XmlDocumentation,
+    LocationInfo? Location) : SyntaxInfo
 {
     /// <inheritdoc />
     public override string OrderByKey => $"{Kind}:{MessageTypeName}";

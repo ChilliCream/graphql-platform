@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Media_Animals_With_Id_And_Name",
+    "query": "query { media { id animals { id name } } }",
+    "expectedData": {
+      "media": {
+        "id": "m1",
+        "animals": [
+          { "id": "a1", "name": "Fido" },
+          { "id": "a2", "name": "Whiskers" }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Media_Animals_With_Cat_Age",
+    "query": "query { media { id animals { id name ... on Cat { age } } } }",
+    "expectedData": {
+      "media": {
+        "id": "m1",
+        "animals": [
+          { "id": "a1", "name": "Fido" },
+          { "id": "a2", "name": "Whiskers", "age": 6 }
+        ]
+      }
+    }
+  }
+]

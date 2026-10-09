@@ -4,10 +4,10 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Types.Directives;
 
 /*
-   directive @fusion__implements(
-     schema: fusion__Schema!
-     interface: String!
-   ) repeatable on OBJECT | INTERFACE
+directive @fusion__implements(
+    schema: fusion__Schema!
+    interface: String!
+) repeatable on OBJECT | INTERFACE
 */
 internal static class ImplementsDirectiveParser
 {

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Info;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Events;
 
@@ -36,6 +37,9 @@ internal record OutputFieldGroupEvent(
 internal record ScalarTypeGroupEvent(
     string TypeName,
     ImmutableArray<ScalarTypeInfo> TypeGroup) : IEvent;
+
+internal record SchemaGroupEvent(
+    ImmutableArray<MutableSchemaDefinition> Schemas) : IEvent;
 
 internal record TypeGroupEvent(
     string TypeName,

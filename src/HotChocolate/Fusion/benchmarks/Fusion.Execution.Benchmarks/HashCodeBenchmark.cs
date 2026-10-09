@@ -1,10 +1,9 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using BenchmarkDotNet.Attributes;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
 [InProcess]

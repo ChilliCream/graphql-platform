@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Instrumentation.ServerDiagnosticEventListener;
 
@@ -40,6 +42,12 @@ internal sealed class NoopServerDiagnosticEventListener : IServerDiagnosticEvent
     public IDisposable FormatHttpResponse(HttpContext context, OperationResult result) => EmptyScope;
 
     public IDisposable WebSocketSession(HttpContext context) => EmptyScope;
+
+    public void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+    {
+    }
 
     public void WebSocketSessionError(HttpContext context, Exception exception)
     {

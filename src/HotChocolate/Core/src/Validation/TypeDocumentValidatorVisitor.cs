@@ -29,6 +29,13 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
         VariableDefinitionNode node,
         DocumentValidatorContext context)
     {
+        // The variables a fragment declares are scoped to that fragment and are brought into
+        // scope when it is entered, so they must not register as operation variables here.
+        if (context.Path.Peek() is FragmentDefinitionNode)
+        {
+            return Continue;
+        }
+
         context.Variables[node.Variable.Name.Value] = node;
         return Continue;
     }
@@ -63,6 +70,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
             out var namedOutputType))
         {
             context.Types.Push(namedOutputType);
+            context.EnterFragmentVariableScope(node);
             return Continue;
         }
 
@@ -71,8 +79,8 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
     }
 
     protected override ISyntaxVisitorAction Leave(
-       OperationDefinitionNode node,
-       DocumentValidatorContext context)
+        OperationDefinitionNode node,
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.Variables.Clear();
@@ -95,6 +103,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
         FragmentDefinitionNode node,
         DocumentValidatorContext context)
     {
+        context.LeaveFragmentVariableScope();
         context.Types.Pop();
         return Continue;
     }

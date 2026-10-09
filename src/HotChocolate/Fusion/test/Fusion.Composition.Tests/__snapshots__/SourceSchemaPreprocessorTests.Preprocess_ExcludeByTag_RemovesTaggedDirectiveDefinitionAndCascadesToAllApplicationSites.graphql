@@ -1,0 +1,33 @@
+schema {
+  query: Query
+}
+
+type Query {
+  field(argument: Int): Int
+}
+
+input Input1 {
+  field1: ID!
+  field2: Int
+}
+
+enum Enum1 {
+  VALUE1
+  VALUE2
+}
+
+directive @keep(argument: Int) on FIELD_DEFINITION
+
+directive @tag(name: String!) repeatable on
+  | SCHEMA
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | INTERFACE
+  | UNION
+  | ENUM
+  | ENUM_VALUE
+  | INPUT_OBJECT
+  | INPUT_FIELD_DEFINITION
+  | DIRECTIVE_DEFINITION

@@ -1,0 +1,15 @@
+{
+  "message": "The following variables of fragment \u0060unusedVariable\u0060 were not used: atOtherHomes.",
+  "locations": [
+    {
+      "line": 7,
+      "column": 1
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variables-Used"
+  }
+}

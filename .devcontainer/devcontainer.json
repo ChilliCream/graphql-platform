@@ -1,0 +1,80 @@
+{
+  "name": "ChilliCream Fullstack",
+  "build": {
+    "dockerfile": "dockerfile",
+    "context": "."
+  },
+  "runArgs": ["--shm-size=512m"],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": "true",
+      "moby": "true"
+    }
+  },
+  "forwardPorts": [3002, 6006],
+  "portsAttributes": {
+    "3002": {
+      "label": "Next.js dev server",
+      "onAutoForward": "notify"
+    },
+    "6006": {
+      "label": "Storybook",
+      "onAutoForward": "silent"
+    }
+  },
+  "containerEnv": {
+    "DOTNET_LOCAL_DEV": "${localEnv:DOTNET_LOCAL_DEV:1}",
+    "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "${localEnv:DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK:0}",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "HISTFILE": "/home/vscode/.commandhistory/.zsh_history"
+  },
+  "mounts": [
+    "source=claude-config-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=codex-config-${devcontainerId},target=/home/vscode/.codex,type=volume",
+    "source=copilot-config-${devcontainerId},target=/home/vscode/.copilot,type=volume",
+    "source=shell-history-${devcontainerId},target=/home/vscode/.commandhistory,type=volume"
+  ],
+  "postCreateCommand": "./init.sh && cd website && npx playwright install chromium",
+  "postStartCommand": "bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/setup-git-signing.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "bradlc.vscode-tailwindcss",
+        "davidanson.vscode-markdownlint",
+        "dbaeumer.vscode-eslint",
+        "EditorConfig.EditorConfig",
+        "esbenp.prettier-vscode",
+        "github.copilot",
+        "github.copilot-chat",
+        "graphql.vscode-graphql",
+        "jock.svg",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "ms-playwright.playwright",
+        "openai.chatgpt",
+        "streetsidesoftware.code-spell-checker",
+        "unifiedjs.vscode-mdx"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "src/All.slnx",
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "eslint.workingDirectories": [{ "mode": "auto" }],
+        "prettier.requireConfig": true,
+        "[javascript][javascriptreact][typescript][typescriptreact]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "[css][json][jsonc][markdown][mdx][yaml]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  }
+}

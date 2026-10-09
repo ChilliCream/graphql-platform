@@ -60,12 +60,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `any` of type ListFilterInputTypeOfBarFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 44
-        }
-      ],
       "path": [
         "root"
       ],

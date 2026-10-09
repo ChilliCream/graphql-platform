@@ -45,6 +45,11 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
                 var requirements = feature.Requirements;
                 var entityType = runtimeType ?? feature.EntityType;
 
+                if (entityType is null)
+                {
+                    continue;
+                }
+
                 var propertyNodes = PropertyTreeBuilder.Build(
                     fieldCoordinate,
                     entityType,

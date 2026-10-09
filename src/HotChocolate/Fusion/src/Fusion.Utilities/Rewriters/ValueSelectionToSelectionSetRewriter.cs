@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -156,7 +157,12 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             ]);
         }
 
-        return new FieldNode(pathSegment.FieldName.Value, selectionSet);
+        return new FieldNode(
+            new HotChocolate.Language.NameNode(pathSegment.FieldName.Value),
+            null,
+            [],
+            FieldSelectionMapValueNodeConverter.Convert(pathSegment.Arguments),
+            selectionSet);
 
         static SelectionSetNode? CreateSelectionSetNode(ISelectionNode? selection)
             => selection is null ? null : new SelectionSetNode([selection]);
@@ -176,7 +182,13 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         {
             if (field.ValueSelection is null)
             {
-                selections.Add(new FieldNode(field.Name.Value));
+                selections.Add(
+                    new FieldNode(
+                        new HotChocolate.Language.NameNode(field.Name.Value),
+                        null,
+                        [],
+                        FieldSelectionMapValueNodeConverter.Convert(field.Arguments),
+                        null));
             }
             else
             {

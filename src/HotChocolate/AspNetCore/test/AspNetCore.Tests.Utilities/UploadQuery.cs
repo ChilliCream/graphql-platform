@@ -90,7 +90,7 @@ public class UploadQuery
 public class InputWithOptionalFile
 {
     [GraphQLType(typeof(UploadType))]
-    public Optional<IFile> File { get; set; } = default!;
+    public Optional<IFile> File { get; set; }
 }
 
 public class InputWithFile

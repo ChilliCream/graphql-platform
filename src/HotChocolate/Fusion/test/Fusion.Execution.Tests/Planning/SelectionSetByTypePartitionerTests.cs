@@ -1,7 +1,7 @@
 using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning.Partitioners;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -275,6 +275,284 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
     }
 
     [Fact]
+    public void Selections_On_Interface_Skips_Implementors_That_Are_Not_Possible_Types()
+    {
+        // arrange
+        var source1 = new TestSourceSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                draft: Draft
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            interface Votable {
+              viewerHasUpvoted: Boolean!
+            }
+
+            type Discussion implements Node & Votable {
+              id: ID!
+              title: String!
+              viewerHasUpvoted: Boolean!
+            }
+
+            type Draft implements Votable {
+              name: String!
+              viewerHasUpvoted: Boolean!
+            }
+            """);
+        var schema = ComposeSchema(source1);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($id: ID!) {
+                node(id: $id) {
+                    ... on Votable {
+                        viewerHasUpvoted
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: null
+
+            Discussion: {
+              viewerHasUpvoted
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Partition_Should_PruneNonNodeMember_When_UnionFragmentIsInNodeSelectionSet(
+        bool includeSharedSelections)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        var sharedSelections = includeSharedSelections ? "id" : "";
+        var doc = Utf8GraphQLParser.Parse(
+            $$"""
+            {
+                node(id: "test-id") {
+                    {{sharedSelections}}
+                    ... on CommunityContributor {
+                        ... on User { name }
+                        ... on FormerUser { name }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            includeSharedSelections
+                ? """
+                Shared: {
+                  id
+                }
+
+                User: {
+                  id
+                  name
+                }
+                """
+                : """
+                Shared: null
+
+                User: {
+                  name
+                }
+                """);
+    }
+
+    [Fact]
+    public void Partition_Should_PruneNodeImplementor_When_EnclosingUnionExcludesIt()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type OtherUser implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                node(id: "test-id") {
+                    id
+                    ... on CommunityContributor {
+                        ... on Node {
+                            ... on User { name }
+                            ... on OtherUser { name }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: {
+              id
+            }
+
+            User: {
+              id
+              name
+            }
+            """);
+    }
+
+    [Fact]
+    public void Partition_Should_PreserveDirectives_When_PruningNonNodeUnionMember()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!, $include: Boolean!) {
+                node(id: "test-id") {
+                    id
+                    ... on CommunityContributor @skip(if: $skip) {
+                        ... on User @include(if: $include) { name }
+                        ... on FormerUser { name }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: {
+              id
+            }
+
+            User: {
+              id
+              ... @skip(if: $skip) {
+                ... @include(if: $include) {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Partition_Should_PruneNonNodeMember_When_InterfaceSelectionsAreWithinConcreteUnionMember()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            interface Contributor { name: String }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node & Contributor { id: ID! name: String }
+            type FormerUser implements Contributor { name: String }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                node(id: "test-id") {
+                    id
+                    ... on CommunityContributor {
+                        ... on User {
+                            ... on Contributor { name }
+                        }
+                        ... on FormerUser {
+                            ... on Contributor { name }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: {
+              id
+            }
+
+            User: {
+              id
+              name
+            }
+            """);
+    }
+
+    [Fact]
     public void Concrete_Type_Selections_Within_Interface()
     {
         // arrange
@@ -395,6 +673,71 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
 
             Author: {
               viewerHasUpvoted
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Interface_Selections_Skip_Implementors_Outside_Outer_Interface()
+    {
+        // arrange
+        // Announcement is a Node and Commentable, but not Votable, so the nested Commentable
+        // fragment must not produce an Announcement branch.
+        var source1 = new TestSourceSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            interface Votable {
+              viewerHasUpvoted: Boolean!
+            }
+
+            interface Commentable {
+              commentCount: Int!
+            }
+
+            type Discussion implements Node & Votable & Commentable {
+              id: ID!
+              viewerHasUpvoted: Boolean!
+              commentCount: Int!
+            }
+
+            type Announcement implements Node & Commentable {
+              id: ID!
+              commentCount: Int!
+            }
+            """);
+        var schema = ComposeSchema(source1);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($id: ID!) {
+                node(id: $id) {
+                    ... on Votable {
+                        ... on Commentable {
+                            commentCount
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: null
+
+            Discussion: {
+              commentCount
             }
             """);
     }
@@ -673,7 +1016,9 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-    private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
+    private static SelectionSetByTypePartitionerResult Partition(
+        FusionSchemaDefinition schema,
+        DocumentNode document)
     {
         var rewriter = new DocumentRewriter(schema);
         var operation = rewriter.RewriteDocument(document).Definitions

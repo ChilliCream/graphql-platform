@@ -116,6 +116,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.BindMemberAttribute("DoesNotExist"));
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetBrandAsync_product(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 
@@ -170,6 +175,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.BindMemberAttribute("CategoryId"));
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetCategoryAsync_product(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 

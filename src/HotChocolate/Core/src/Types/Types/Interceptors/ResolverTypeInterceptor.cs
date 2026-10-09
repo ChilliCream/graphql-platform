@@ -245,7 +245,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 initialized = true;
             }
 
-            if (field.Member is null
+            if (!HasOwnResolution(field)
                 && context.Members.TryGetValue(field.Name, out var member))
             {
                 field.Member = member;
@@ -286,6 +286,14 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         TypeMemHelper.Return(map);
         context.Members.Clear();
     }
+
+    // True if the field already resolves itself, so it must not be rebound to a
+    // same-named source member that would silently shadow it.
+    private static bool HasOwnResolution(ObjectFieldConfiguration field)
+        => field.Resolvers.HasResolvers
+            || field.ResolverMember is not null
+            || field.Member is not null
+            || field.Expression is not null;
 
     private void ApplyInputSourceMembers(
         CompletionContext context,
@@ -340,10 +348,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 initialized = true;
             }
 
-            (object Value, MemberInfo Member) info;
             if (enumValue.Member is null
                 && (enumValue.BindTo is null
-                && context.Values.TryGetValue(enumValue.Name, out info)
+                && context.Values.TryGetValue(enumValue.Name, out (object Value, MemberInfo Member) info)
                 || enumValue.BindTo is { } b
                 && context.ValuesToName.TryGetValue(b, out info)))
             {

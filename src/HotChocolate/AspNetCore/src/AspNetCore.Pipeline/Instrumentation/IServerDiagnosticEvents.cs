@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Instrumentation;
@@ -137,6 +139,21 @@ public interface IServerDiagnosticEvents
     /// session is closed.
     /// </returns>
     IDisposable WebSocketSession(HttpContext context);
+
+    /// <summary>
+    /// Called within the <see cref="WebSocketSession"/> scope once the client's connection
+    /// initialization message has been accepted.
+    /// </summary>
+    /// <param name="session">
+    /// The GraphQL socket session.
+    /// </param>
+    /// <param name="connectionInitMessage">
+    /// The connection initialization message sent by the client. Its payload is only valid
+    /// for the duration of this call.
+    /// </param>
+    void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage);
 
     /// <summary>
     /// Called within the <see cref="WebSocketSession"/> scope and signals

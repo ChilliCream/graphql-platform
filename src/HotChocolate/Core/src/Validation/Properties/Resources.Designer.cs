@@ -134,6 +134,12 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_NoSelectionOnCompositeField", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_NoSelectionOnFragment {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSelectionOnFragment", resourceCulture);
+            }
+        }
         
         internal static string ErrorHelper_NoSelectionOnRootType {
             get {
@@ -192,6 +198,12 @@ namespace HotChocolate.Validation.Properties {
         internal static string ErrorHelper_FragmentOnlyCompositeType {
             get {
                 return ResourceManager.GetString("ErrorHelper_FragmentOnlyCompositeType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_FragmentVariableNotUsed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_FragmentVariableNotUsed", resourceCulture);
             }
         }
         

@@ -13,7 +13,7 @@ public class PostgresMessageTypeExtensionTests
 
         // assert
         Assert.NotNull(descriptor.DestinationUri);
-        Assert.Equal("postgres", descriptor.DestinationUri!.Scheme);
+        Assert.Equal("postgres", descriptor.DestinationUri.Scheme);
         Assert.Contains("q/my-queue", descriptor.DestinationUri.OriginalString);
     }
 
@@ -28,7 +28,7 @@ public class PostgresMessageTypeExtensionTests
 
         // assert
         Assert.NotNull(descriptor.DestinationUri);
-        Assert.Equal("custom", descriptor.DestinationUri!.Scheme);
+        Assert.Equal("custom", descriptor.DestinationUri.Scheme);
         Assert.Contains("q/my-queue", descriptor.DestinationUri.OriginalString);
     }
 
@@ -43,7 +43,7 @@ public class PostgresMessageTypeExtensionTests
 
         // assert
         Assert.NotNull(descriptor.DestinationUri);
-        Assert.Equal("postgres", descriptor.DestinationUri!.Scheme);
+        Assert.Equal("postgres", descriptor.DestinationUri.Scheme);
         Assert.Contains("t/my-topic", descriptor.DestinationUri.OriginalString);
     }
 
@@ -58,7 +58,7 @@ public class PostgresMessageTypeExtensionTests
 
         // assert
         Assert.NotNull(descriptor.DestinationUri);
-        Assert.Equal("custom", descriptor.DestinationUri!.Scheme);
+        Assert.Equal("custom", descriptor.DestinationUri.Scheme);
         Assert.Contains("t/my-topic", descriptor.DestinationUri.OriginalString);
     }
 

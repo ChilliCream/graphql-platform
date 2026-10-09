@@ -4,6 +4,16 @@
     <Project Path="src/CookieCrumble.Fusion/CookieCrumble.Fusion.csproj" />
     <Project Path="src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
     <Project Path="src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj" />
+    <Project Path="src/CookieCrumble.Resources/CookieCrumble.Resources.csproj" />
+    <Project Path="src/CookieCrumble.Resources.AzureStorage/CookieCrumble.Resources.AzureStorage.csproj" />
+    <Project Path="src/CookieCrumble.Resources.Kafka/CookieCrumble.Resources.Kafka.csproj" />
+    <Project Path="src/CookieCrumble.Resources.Mongo/CookieCrumble.Resources.Mongo.csproj" />
+    <Project Path="src/CookieCrumble.Resources.Nats/CookieCrumble.Resources.Nats.csproj" />
+    <Project Path="src/CookieCrumble.Resources.PostgreSql/CookieCrumble.Resources.PostgreSql.csproj" />
+    <Project Path="src/CookieCrumble.Resources.RabbitMQ/CookieCrumble.Resources.RabbitMQ.csproj" />
+    <Project Path="src/CookieCrumble.Resources.RavenDB/CookieCrumble.Resources.RavenDB.csproj" />
+    <Project Path="src/CookieCrumble.Resources.Redis/CookieCrumble.Resources.Redis.csproj" />
+    <Project Path="src/CookieCrumble.Resources.SqlServer/CookieCrumble.Resources.SqlServer.csproj" />
     <Project Path="src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
     <Project Path="src/CookieCrumble.Xunit3/CookieCrumble.Xunit3.csproj" />
     <Project Path="src/CookieCrumble/CookieCrumble.csproj" />

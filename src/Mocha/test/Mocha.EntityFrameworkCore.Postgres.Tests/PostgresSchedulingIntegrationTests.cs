@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -80,14 +79,17 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
         services.AddSingleton<ISchedulerSignal>(new ResilientSchedulerSignal());
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
         builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+
+        // Use the in-memory transport without its native scheduling store so the EF Core
+        // Postgres fallback (UsePostgresScheduling) is the store that handles scheduled dispatch.
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -130,9 +132,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
         finally
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await hostedServices[i].StopAsync(TestContext.Current.CancellationToken);
             }
 
             // Allow in-flight processor transactions to drain (see TestEnvironment comment)
@@ -497,8 +500,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(connectionString)
-                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
 
         // Register the resilient signal BEFORE UsePostgresScheduling() so that
         // TryAddSingleton<ISchedulerSignal> in UseSchedulerCore() is a no-op.
@@ -509,7 +511,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
         builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+
+        // Use the in-memory transport without its native scheduling store so the EF Core
+        // Postgres fallback (UsePostgresScheduling) is the store that handles scheduled dispatch.
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         configure?.Invoke(builder);
 
@@ -684,9 +690,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
         public async ValueTask DisposeAsync()
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(default);
+                await hostedServices[i].StopAsync(default);
             }
 
             // ContinuousTask.DisposeAsync cancels but doesn't await the background

@@ -1,5 +1,7 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
@@ -26,10 +28,18 @@ internal sealed class TypeKindMismatchRule : IEventHandler<TypeGroupEvent>
     {
         var (_, typeGroup) = @event;
 
-        for (var i = 0; i < typeGroup.Length - 1; i++)
+        // An @interfaceObject stand-in is a deliberate object-for-interface substitution, so it is
+        // excluded from the kind-consistency check. A same-named object type that is not annotated
+        // with @interfaceObject remains an ordinary kind mismatch.
+        var consideredTypes = typeGroup
+            .Where(i => i.Type is not MutableObjectTypeDefinition o
+                || !o.Directives.ContainsName(WellKnownDirectiveNames.InterfaceObject))
+            .ToImmutableArray();
+
+        for (var i = 0; i < consideredTypes.Length - 1; i++)
         {
-            var typeInfoA = typeGroup[i];
-            var typeInfoB = typeGroup[i + 1];
+            var typeInfoA = consideredTypes[i];
+            var typeInfoB = consideredTypes[i + 1];
             var typeKindA = typeInfoA.Type.Kind;
             var typeKindB = typeInfoB.Type.Kind;
 
