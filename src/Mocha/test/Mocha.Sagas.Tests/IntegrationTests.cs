@@ -210,11 +210,17 @@ public class IntegrationTests
     }
 
     [Fact]
-    public async Task Saga_Should_SupportRequestResponse()
+    public async Task Saga_Should_ReceiveReply_When_SendUsedWithOnReply()
     {
+        // A saga that uses .Send to dispatch a request and .OnReply (or .OnAnyReply) to handle the
+        // response routes the reply back to its own durable endpoint and correlates it by the saga
+        // header, even though the reply type does not match any subscribed route. This test isolates
+        // the reply leg: the handler runs, the reply is routed to the saga, and the saga finalizes.
+
         // arrange
         var recorder = new MessageRecorder();
-        var replyGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var replyGate = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
         await using var provider = await CreateBusAsync(b =>
         {
             b.Services.AddSingleton(recorder);
@@ -232,13 +238,13 @@ public class IntegrationTests
 
         try
         {
-            // the handler parks on the reply gate, holding the saga in AwaitingResponse so the test
-            // can observe its persisted state before releasing the reply to finalize the saga
+            // assert - the handler runs, proving the request was delivered (this isolates the reply
+            // leg); it parks on the reply gate, holding the saga in AwaitingResponse
             Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
 
-            // wait until the held saga's state is persisted, and assert it actually appeared
-            var appearDeadline = DateTime.UtcNow + s_timeout;
-            while (storage.Count == 0 && DateTime.UtcNow < appearDeadline)
+            // wait until the held saga's state is persisted, so the reply finds the stored instance
+            var persistDeadline = DateTime.UtcNow + s_timeout;
+            while (storage.Count == 0 && DateTime.UtcNow < persistDeadline)
             {
                 await Task.Delay(50, TestContext.Current.CancellationToken);
             }
@@ -247,48 +253,10 @@ public class IntegrationTests
         }
         finally
         {
-            // release the reply so it routes back via OnAnyReply and finalizes the saga, and so the
-            // handler never stays parked when an assertion above fails
+            // release the reply so it routes back to the saga and finalizes it, and so the handler
+            // never stays parked when an assertion above fails
             replyGate.TrySetResult();
         }
-
-        // wait for the reply to finalize the saga and delete its state
-        var deadline = DateTime.UtcNow + s_timeout;
-        while (storage.Count != 0 && DateTime.UtcNow < deadline)
-        {
-            await Task.Delay(50, TestContext.Current.CancellationToken);
-        }
-
-        // assert - saga should be deleted from store after reaching final state
-        Assert.Equal(0, storage.Count);
-    }
-
-    [Fact]
-    public async Task Saga_Should_ReceiveReply_When_SendUsedWithOnReply()
-    {
-        // A saga that uses .Send to dispatch a request and .OnReply (or .OnAnyReply) to handle the
-        // response routes the reply back to its own durable endpoint and correlates it by the saga
-        // header, even though the reply type does not match any subscribed route. This test isolates
-        // the reply leg: the handler runs, the reply is routed to the saga, and the saga finalizes.
-
-        // arrange
-        var recorder = new MessageRecorder();
-        await using var provider = await CreateBusAsync(b =>
-        {
-            b.Services.AddSingleton(recorder);
-            b.AddRequestHandler<RecordingTriggerRequestHandler>();
-            b.AddSaga<RequestResponseSaga>();
-        });
-
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var storage = provider.GetRequiredService<InMemorySagaStateStorage>();
-
-        // act - publish StartRequestEvent to start the saga, which sends TriggerRequest via .Send
-        await bus.PublishAsync(new StartRequestEvent(), CancellationToken.None);
-
-        // assert - the handler runs, proving the request was delivered (this isolates the reply leg)
-        Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
 
         // give the reply time to route back to the saga and finalize it
         var deadline = DateTime.UtcNow + s_timeout;
@@ -314,10 +282,13 @@ public class IntegrationTests
 
         // arrange
         var recorder = new MessageRecorder();
+        var replyGate = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
         await using var provider = await CreateBusAsync(b =>
         {
             b.Services.AddSingleton(recorder);
-            b.AddRequestHandler<RecordingTriggerRequestHandler>();
+            b.Services.AddSingleton(replyGate);
+            b.AddRequestHandler<GatedTriggerRequestHandler>();
             b.AddSaga<TypedReplySaga>();
         });
 
@@ -328,8 +299,27 @@ public class IntegrationTests
         // act - publish StartRequestEvent to start the saga, which sends TriggerRequest via .Send
         await bus.PublishAsync(new StartRequestEvent(), CancellationToken.None);
 
-        // assert - the handler runs, proving the request was delivered
-        Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
+        try
+        {
+            // assert - the handler runs, proving the request was delivered; it parks on the reply
+            // gate, holding the saga in AwaitingResponse
+            Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
+
+            // wait until the held saga's state is persisted, so the reply finds the stored instance
+            var persistDeadline = DateTime.UtcNow + s_timeout;
+            while (storage.Count == 0 && DateTime.UtcNow < persistDeadline)
+            {
+                await Task.Delay(50, TestContext.Current.CancellationToken);
+            }
+
+            Assert.True(storage.Count > 0, "saga state was not persisted while the reply was held");
+        }
+        finally
+        {
+            // release the typed reply so it routes back to the saga and finalizes it, and so the
+            // handler never stays parked when an assertion above fails
+            replyGate.TrySetResult();
+        }
 
         // give the typed reply time to route back to the saga and finalize it
         var deadline = DateTime.UtcNow + s_timeout;
@@ -354,10 +344,15 @@ public class IntegrationTests
         // phantom create. Both sagas reach their final state and the store ends empty.
 
         // arrange
+        var recorder = new MessageRecorder();
+        var replyGate = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
         await using var provider = await CreateBusAsync(b =>
         {
-            b.AddRequestHandler<TriggerRequestHandler>();
-            b.AddRequestHandler<SecondTriggerRequestHandler>();
+            b.Services.AddSingleton(recorder);
+            b.Services.AddSingleton(replyGate);
+            b.AddRequestHandler<GatedTriggerRequestHandler>();
+            b.AddRequestHandler<GatedSecondTriggerRequestHandler>();
             b.AddSaga<RequestResponseSaga>();
             b.AddSaga<SecondRequestResponseSaga>();
         });
@@ -369,6 +364,29 @@ public class IntegrationTests
         // act - start both sagas; each sends its own request and awaits its own reply
         await bus.PublishAsync(new StartRequestEvent(), CancellationToken.None);
         await bus.PublishAsync(new StartSecondRequestEvent(), CancellationToken.None);
+
+        try
+        {
+            // both handlers park on the reply gate, holding both sagas in AwaitingResponse
+            Assert.True(
+                await recorder.WaitAsync(s_timeout, expectedCount: 2),
+                "request handlers never executed");
+
+            // wait until both held sagas are persisted, so each reply finds its stored instance
+            var persistDeadline = DateTime.UtcNow + s_timeout;
+            while (storage.Count < 2 && DateTime.UtcNow < persistDeadline)
+            {
+                await Task.Delay(50, TestContext.Current.CancellationToken);
+            }
+
+            Assert.Equal(2, storage.Count);
+        }
+        finally
+        {
+            // release both replies so each routes back to its own saga, and so the handlers never
+            // stay parked when an assertion above fails
+            replyGate.TrySetResult();
+        }
 
         var deadline = DateTime.UtcNow + s_timeout;
         while (storage.Count != 0 && DateTime.UtcNow < deadline)
@@ -694,16 +712,6 @@ public class IntegrationTests
         }
     }
 
-    private sealed class SecondTriggerRequestHandler : IEventRequestHandler<SecondTriggerRequest, SecondTriggerResponse>
-    {
-        public ValueTask<SecondTriggerResponse> HandleAsync(
-            SecondTriggerRequest request,
-            CancellationToken cancellationToken)
-        {
-            return new(new SecondTriggerResponse());
-        }
-    }
-
     private sealed class FaultingTriggerRequestHandler(TaskCompletionSource handlerFaulted)
         : IEventRequestHandler<FaultingRequest, TriggerResponse>
     {
@@ -735,6 +743,23 @@ public class IntegrationTests
             recorder.Record(request);
             await replyGate.Task.WaitAsync(cancellationToken);
             return new TriggerResponse();
+        }
+    }
+
+    // The SecondTriggerRequest counterpart of GatedTriggerRequestHandler.
+    private sealed class GatedSecondTriggerRequestHandler(
+        MessageRecorder recorder,
+        TaskCompletionSource replyGate)
+        : IEventRequestHandler<SecondTriggerRequest, SecondTriggerResponse>
+    {
+        public async ValueTask<SecondTriggerResponse> HandleAsync(
+            SecondTriggerRequest request,
+            CancellationToken cancellationToken)
+        {
+            recorder.Record(request);
+            await replyGate.Task.WaitAsync(cancellationToken);
+
+            return new SecondTriggerResponse();
         }
     }
 
