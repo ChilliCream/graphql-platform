@@ -1792,15 +1792,15 @@ AddErrors_Next:
                 break;
 
             case StringValueNode sv:
-                _jsonWriter.WriteStringValue(sv.Value);
+                _jsonWriter.WriteStringValue(sv.AsSpan());
                 break;
 
             case IntValueNode iv:
-                WriteRawAscii(iv.Value);
+                _jsonWriter.WriteRawValue(iv.AsSpan());
                 break;
 
             case FloatValueNode fv:
-                WriteRawAscii(fv.Value);
+                _jsonWriter.WriteRawValue(fv.AsSpan());
                 break;
 
             case BooleanValueNode bv:
@@ -1808,7 +1808,7 @@ AddErrors_Next:
                 break;
 
             case EnumValueNode ev:
-                _jsonWriter.WriteStringValue(ev.Value);
+                _jsonWriter.WriteStringValue(ev.AsSpan());
                 break;
 
             case ObjectValueNode ov:
@@ -1834,13 +1834,6 @@ AddErrors_Next:
                 _jsonWriter.WriteNullValue();
                 break;
         }
-    }
-
-    private void WriteRawAscii(string value)
-    {
-        Span<byte> buffer = stackalloc byte[value.Length];
-        Encoding.UTF8.GetBytes(value.AsSpan(), buffer);
-        _jsonWriter.WriteRawValue(buffer);
     }
 
     private void WriteCompositeResultValue(CompositeResultElement value)

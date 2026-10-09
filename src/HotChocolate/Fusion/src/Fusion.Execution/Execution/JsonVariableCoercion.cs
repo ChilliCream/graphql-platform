@@ -454,21 +454,37 @@ internal ref struct JsonVariableCoercion
             return false;
         }
 
-        var enumValue = element.GetString()!;
+        var utf8Name = GetRawStringContent(element);
 
-        if (!enumType.Values.ContainsName(enumValue))
+        if (enumType.Values.ContainsName(utf8Name))
         {
-            value = null;
-            error = ErrorBuilder.New()
-                .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", enumValue, enumType.Name)
-                .SetExtension("variable", $"{BuildPath()}")
-                .Build();
-            return false;
+            value = new EnumValueNode(WriteValue(utf8Name));
+            error = null;
+            return true;
         }
 
-        value = new EnumValueNode(enumValue);
-        error = null;
-        return true;
+        if (utf8Name.IndexOf((byte)'\\') != -1)
+        {
+            // the JSON string escapes characters of the name, so we look it up unescaped.
+            var name = element.GetString()!;
+
+            if (enumType.Values.ContainsName(name))
+            {
+                value = new EnumValueNode(name);
+                error = null;
+                return true;
+            }
+        }
+
+        value = null;
+        error = ErrorBuilder.New()
+            .SetMessage(
+                "The value `{0}` is not a valid value for the enum type `{1}`.",
+                element.GetString(),
+                enumType.Name)
+            .SetExtension("variable", $"{BuildPath()}")
+            .Build();
+        return false;
     }
 
     private readonly IValueNode ParseLiteral(JsonElement element, int depth)
@@ -490,8 +506,7 @@ internal ref struct JsonVariableCoercion
                 return BooleanValueNode.False;
 
             case JsonValueKind.String:
-                var stringValue = element.GetString()!;
-                return new StringValueNode(null, stringValue, false);
+                return new StringValueNode(null, WriteStringValue(element), false);
 
             case JsonValueKind.Number:
                 var span = JsonMarshal.GetRawUtf8Value(element);
@@ -582,6 +597,33 @@ internal ref struct JsonVariableCoercion
     {
         _memory ??= new Utf8MemoryBuilder();
         return _memory.Write(value);
+    }
+
+    private readonly ReadOnlyMemorySegment WriteStringValue(JsonElement element)
+    {
+        var content = GetRawStringContent(element);
+
+        if (content.IndexOf((byte)'\\') == -1)
+        {
+            return WriteValue(content);
+        }
+
+        var reader = new Utf8JsonReader(JsonMarshal.GetRawUtf8Value(element));
+        reader.Read();
+
+        // the unescaped value is never longer than the escaped value.
+        _memory ??= new Utf8MemoryBuilder();
+        var start = _memory.NextIndex;
+        var written = reader.CopyString(_memory.GetSpan(content.Length));
+        _memory.Advance(written);
+        return _memory.GetMemorySegment(start, written);
+    }
+
+    private static ReadOnlySpan<byte> GetRawStringContent(JsonElement element)
+    {
+        // the raw value of a JSON string includes the surrounding quotes.
+        var raw = JsonMarshal.GetRawUtf8Value(element);
+        return raw[1..^1];
     }
 
     private void PushPathSegment(string name)

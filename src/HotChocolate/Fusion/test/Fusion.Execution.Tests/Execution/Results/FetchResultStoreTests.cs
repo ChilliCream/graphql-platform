@@ -4,6 +4,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -2116,6 +2117,70 @@ public sealed class FetchResultStoreTests : FusionTestBase
             }
             """);
 
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariablesAsUtf8_When_ValuesAreEscapedOrNonAscii()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(text: String, plain: String, color: Color, plainColor: Color, count: Int, ratio: Float): String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            VariableDefinition("text", "String"),
+            VariableDefinition("plain", "String"),
+            VariableDefinition("color", "Color"),
+            VariableDefinition("plainColor", "Color"),
+            VariableDefinition("count", "Int"),
+            VariableDefinition("ratio", "Float")
+        };
+        using var variables = JsonDocument.Parse(
+            """
+            {
+              "text": "café \"quoted\" \\ \n 😀 über",
+              "plain": "plain",
+              "color": "GREEN",
+              "plainColor": "RED",
+              "count": 42,
+              "ratio": 1.5e3
+            }
+            """);
+        Assert.True(
+            VariableCoercionHelper.TryCoerceVariableValues(
+                new FeatureProvider(),
+                schema,
+                variableDefinitions,
+                variables.RootElement,
+                ignoreAdditionalInputFields: false,
+                out var coercedVariableValues,
+                out var error),
+            error?.Message);
+        using var store = new FetchResultStore();
+
+        // act
+        var result = store.CreateVariableValueSets(
+            CompactPath.Root,
+            variableDefinitions
+                .Select(t => Field(t.Variable.Name.Value, coercedVariableValues[t.Variable.Name.Value].Value))
+                .ToArray());
+
+        // assert
+        var json = Encoding.UTF8.GetString(result.Values.AsSequence());
+        json.MatchInlineSnapshot(
+            """
+            {"text":"caf\u00E9 \u0022quoted\u0022 \\ \n \uD83D\uDE00 \u00FCber","plain":"plain","color":"GREEN","plainColor":"RED","count":42,"ratio":1.5e3}
+            """);
+        using var forwarded = JsonDocument.Parse(json);
+        Assert.True(JsonElement.DeepEquals(variables.RootElement, forwarded.RootElement));
+    }
+
     private static VariableValues CreateVariableValues(
         FetchResultStore store,
         CompactPath path,
@@ -2129,6 +2194,14 @@ public sealed class FetchResultStoreTests : FusionTestBase
         {
             AdditionalPaths = new CompactPathSegment(additionalPaths, 0, additionalPaths.Length)
         };
+
+    private static VariableDefinitionNode VariableDefinition(string name, string typeName)
+        => new(null, new VariableNode(name), description: null, new NamedTypeNode(typeName), null, []);
+
+    private sealed class FeatureProvider : IFeatureProvider
+    {
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+    }
 
     private static ObjectFieldNode Field(string name, IValueNode value)
         => new(name, value);
