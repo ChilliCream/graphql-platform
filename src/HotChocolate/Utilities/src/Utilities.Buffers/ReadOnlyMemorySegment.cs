@@ -1,6 +1,6 @@
 using System.Buffers;
-#if NET8_0_OR_GREATER
-#endif
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Buffers;
 
@@ -10,8 +10,8 @@ namespace HotChocolate.Buffers;
 /// </summary>
 public readonly struct ReadOnlyMemorySegment
 {
-    private readonly IMemoryOwner<byte>? _owner;
-    private readonly ReadOnlyMemory<byte> _memory;
+    // either null, a byte[] or an IMemoryOwner<byte>.
+    private readonly object? _source;
     private readonly int _start;
     private readonly int _length;
 
@@ -53,9 +53,31 @@ public readonly struct ReadOnlyMemorySegment
         // we have start and length here so that we can lazily slice the memory.
         // this allows us in combination with the Utf8MemoryBuilder to create
         // a memory segment before the memory is actually written to.
-        _owner = owner;
+        _source = owner;
         _start = start;
         _length = length;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/> that refers to
+    /// the whole <paramref name="array"/>.
+    /// </summary>
+    /// <param name="array">
+    /// The array the segment refers to.
+    /// </param>
+    public ReadOnlyMemorySegment(byte[] array)
+    {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(array);
+#else
+        if (array is null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+#endif
+
+        _source = array;
+        _length = array.Length;
     }
 
     /// <summary>
@@ -67,14 +89,29 @@ public readonly struct ReadOnlyMemorySegment
     /// </param>
     public ReadOnlyMemorySegment(ReadOnlyMemory<byte> memory)
     {
-        _memory = memory;
+        if (memory.Equals(default))
+        {
+            return;
+        }
+
+        if (MemoryMarshal.TryGetArray(memory, out var segment))
+        {
+            _source = segment.Array;
+            _start = segment.Offset;
+        }
+        else if (MemoryMarshal.TryGetMemoryManager(memory, out MemoryManager<byte>? manager, out var start, out _))
+        {
+            _source = manager;
+            _start = start;
+        }
+
         _length = memory.Length;
     }
 
     /// <summary>
     /// Gets a value indicating whether the segment has no backing memory.
     /// </summary>
-    public bool IsEmpty => _owner is null && _memory.Equals(default);
+    public bool IsEmpty => _source is null;
 
     /// <summary>
     /// Gets the length of the memory segment.
@@ -88,9 +125,19 @@ public readonly struct ReadOnlyMemorySegment
     {
         get
         {
-            return _owner is not null
-                ? _owner.Memory.Slice(_start, _length)
-                : _memory;
+            var source = _source;
+
+            if (source is byte[] array)
+            {
+                return new ReadOnlyMemory<byte>(array, _start, _length);
+            }
+
+            if (source is null)
+            {
+                return default;
+            }
+
+            return Unsafe.As<IMemoryOwner<byte>>(source).Memory.Slice(_start, _length);
         }
     }
 
@@ -101,9 +148,26 @@ public readonly struct ReadOnlyMemorySegment
     {
         get
         {
-            return _owner is not null
-                ? _owner.Memory.Span.Slice(_start, _length)
-                : _memory.Span;
+            var source = _source;
+
+            if (source is byte[] array)
+            {
+#if NET8_0_OR_GREATER
+                // start and length were validated against the array when the segment was created.
+                return MemoryMarshal.CreateReadOnlySpan(
+                    ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(array), _start),
+                    _length);
+#else
+                return new ReadOnlySpan<byte>(array, _start, _length);
+#endif
+            }
+
+            if (source is null)
+            {
+                return default;
+            }
+
+            return Unsafe.As<IMemoryOwner<byte>>(source).Memory.Span.Slice(_start, _length);
         }
     }
 }

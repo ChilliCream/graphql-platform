@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Buffers;
 
 public class ReadOnlyMemorySegmentTests
@@ -78,5 +80,51 @@ public class ReadOnlyMemorySegmentTests
         Assert.False(segment.IsEmpty);
         Assert.Equal(0, segment.Length);
         Assert.Empty(segment.Span.ToArray());
+    }
+
+    [Fact]
+    public void IsEmpty_Should_BeTrue_When_ConstructedFromDefaultMemory()
+    {
+        // act
+        var segment = new ReadOnlyMemorySegment(default(ReadOnlyMemory<byte>));
+
+        // assert
+        Assert.True(segment.IsEmpty);
+        Assert.Equal(0, segment.Length);
+        Assert.True(segment.Memory.IsEmpty);
+    }
+
+    [Fact]
+    public void Span_Should_ReturnCarvedBytes_When_ConstructedFromMemoryManagerMemory()
+    {
+        // arrange
+        using var manager = new TestMemoryManager([1, 2, 3, 4, 5, 6, 7, 8]);
+
+        // act
+        var segment = new ReadOnlyMemorySegment(manager.Memory.Slice(2, 3));
+
+        // assert
+        Assert.False(segment.IsEmpty);
+        Assert.Equal([3, 4, 5], segment.Span.ToArray());
+        Assert.Equal([3, 4, 5], segment.Memory.ToArray());
+    }
+
+    private sealed class TestMemoryManager(byte[] buffer) : MemoryManager<byte>
+    {
+        public override Span<byte> GetSpan() => buffer;
+
+        public override MemoryHandle Pin(int elementIndex = 0) => throw new NotSupportedException();
+
+        public override void Unpin() => throw new NotSupportedException();
+
+        protected override bool TryGetArray(out ArraySegment<byte> segment)
+        {
+            segment = default;
+            return false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+        }
     }
 }
