@@ -2,8 +2,11 @@ namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// Fluent descriptor for configuring a RabbitMQ queue and its receive endpoint.
+/// Receive configuration callbacks apply to the queue's receive endpoint.
 /// </summary>
-public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDescriptorConfiguration>
+public interface IRabbitMQQueueDescriptor
+    : IMessagingDescriptor<RabbitMQQueueDescriptorConfiguration>
+    , IConfigurable<IReceiveMiddlewareProvider>
 {
     /// <summary>
     /// Sets whether the backing queue survives broker restarts.

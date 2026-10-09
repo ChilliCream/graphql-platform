@@ -321,6 +321,66 @@ public class RabbitMQUnifiedQueueTests
         Assert.True(queue.AutoDelete);
     }
 
+    [Fact]
+    public void Queue_Should_ConfigureEndpointReceiveFeatures_When_ResilienceConfiguredOnQueue()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .AddResilience(p => p.On<InvalidOperationException>().Discard())
+                    .AddCircuitBreaker(o => o.FailureRatio = 0.5)
+                    .AddConcurrencyLimiter(o => o.MaxConcurrency = 4);
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert
+        Type[] expectedRules = [typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
+        Assert.Equal(0.5, endpoint.Features.Get<CircuitBreakerFeature>()?.FailureRatio);
+        Assert.Equal(4, endpoint.Features.Get<ConcurrencyLimiterFeature>()?.MaxConcurrency);
+    }
+
+    [Fact]
+    public void Queue_Should_CombineExceptionPolicies_When_EndpointWithSameNameConfiguresResilience()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .AddResilience(p => p.On<InvalidOperationException>().Discard());
+                t.Endpoint("orders").AddResilience(p => p.On<TimeoutException>().Discard());
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert
+        // endpoint callbacks run first, queue callbacks replay onto the same feature afterwards
+        Type[] expectedRules = [typeof(TimeoutException), typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
+    }
+
     private static MessagingRuntime CreateRuntime(
         Action<IMessageBusHostBuilder> configureBuilder,
         Action<IRabbitMQMessagingTransportDescriptor> configureTransport)
