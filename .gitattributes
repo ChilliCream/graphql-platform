@@ -1,5 +1,5 @@
-# Normalize to LF on commit; checkout follows local Git config
-* text=auto
+# Normalize to LF on commit and checkout
+* text=auto text eol=lf
 
 # Scripts with interpreter lines must have LF
 *.sh        text eol=lf
