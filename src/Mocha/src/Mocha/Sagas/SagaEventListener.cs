@@ -40,9 +40,10 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
 
                     if (transitionKind == SagaTransitionKind.Reply)
                     {
-                        // A reply lands on the shared reply endpoint alongside non saga (RPC) replies.
-                        // The saga-id header marks replies to the saga's own requests, so the route
-                        // selects only those. A typed reply additionally narrows by its message type.
+                        // A reply lands on the saga's reply endpoint, or on the shared reply endpoint
+                        // alongside non saga (RPC) replies. The saga-id header marks replies to the
+                        // saga's own requests, so the route selects only those. A typed reply
+                        // additionally narrows by its message type.
                         r.Condition(CreateReplyCondition(eventType));
                     }
                 });

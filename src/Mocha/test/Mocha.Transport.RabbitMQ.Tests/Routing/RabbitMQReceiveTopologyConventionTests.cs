@@ -154,9 +154,7 @@ public class RabbitMQReceiveTopologyConventionTests
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = (RabbitMQMessagingTopology)transport.Topology;
-        var replyEndpoint = transport.ReceiveEndpoints
-            .OfType<RabbitMQReceiveEndpoint>()
-            .Single(e => e.Kind == ReceiveEndpointKind.Reply);
+        var replyEndpoint = (RabbitMQReceiveEndpoint)transport.ReplyReceiveEndpoint!;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == replyEndpoint.Queue.Name);
@@ -164,6 +162,41 @@ public class RabbitMQReceiveTopologyConventionTests
         // assert
         Assert.False(queue.Durable);
         Assert.True(queue.AutoDelete);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_MaterializeDurableQueue_When_SagaReplyEndpoint()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddInMemorySagas();
+        var builder = services.AddMessageBus();
+        builder.AddSaga<StockCheckSaga>();
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                t.BindImplicitly();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var sagaReplyEndpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Kind == ReceiveEndpointKind.Reply && e != transport.ReplyReceiveEndpoint);
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == sagaReplyEndpoint.Queue.Name);
+
+        // assert
+        new { queue.Name, queue.Durable, queue.AutoDelete }.MatchInlineSnapshot(
+            """
+            {
+              "Name": "mocha.transport.rabbit-m-q.tests.stock-check-saga_reply",
+              "Durable": true,
+              "AutoDelete": false
+            }
+            """);
     }
 
     [Fact]

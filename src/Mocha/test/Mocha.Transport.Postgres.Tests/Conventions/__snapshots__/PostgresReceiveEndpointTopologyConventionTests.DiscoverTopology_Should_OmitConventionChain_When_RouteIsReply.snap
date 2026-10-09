@@ -15,6 +15,12 @@
     },
     {
       "Kind": "queue",
+      "Name": "mocha.transport.postgres.tests.order-stock-check-saga_reply",
+      "AutoDelete": false,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
       "Name": "mocha.transport.postgres.tests.order-stock-check-saga_skipped",
       "Origin": "endpoint"
     },
