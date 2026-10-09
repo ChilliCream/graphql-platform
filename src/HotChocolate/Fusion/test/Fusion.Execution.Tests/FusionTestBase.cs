@@ -418,6 +418,11 @@ public abstract class FusionTestBase : IDisposable
 
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
+        => ComposeSchema(NodeResolution.Gateway, schemas);
+
+    protected static FusionSchemaDefinition ComposeSchema(
+        NodeResolution nodeResolution,
+        [StringSyntax("graphql")] params string[] schemas)
     {
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
@@ -426,7 +431,8 @@ public abstract class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = true
+                EnableGlobalObjectIdentification = true,
+                NodeResolution = nodeResolution
             }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);

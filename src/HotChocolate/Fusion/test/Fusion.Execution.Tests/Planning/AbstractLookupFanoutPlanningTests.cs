@@ -150,6 +150,218 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_PruneNonNodeMember_When_UnionFragmentInNodeSelectionSetRequiresLookup()
+    {
+        // arrange
+        // User.email is only resolvable through the accounts lookup.
+        var schema = ComposeSchema(
+            """
+            # name: contributors
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """,
+            """
+            # name: accounts
+            schema { query: Query }
+
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+            }
+
+            type User @key(fields: "id") { id: ID! email: String }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              node(id: "test-id") {
+                id
+                ... on CommunityContributor {
+                  ... on User { name email }
+                  ... on FormerUser { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_PruneNonNodeMember_When_NonNodeMemberHasIdField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: contributors
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { id: ID! name: String }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              node(id: "test-id") {
+                id
+                ... on CommunityContributor {
+                  ... on User { name }
+                  ... on FormerUser { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_PruneNonNodeMember_When_NonNodeMemberHasIdLookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: contributors
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+              formerUserById(id: ID!): FormerUser @lookup
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { id: ID! name: String }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              node(id: "test-id") {
+                id
+                ... on CommunityContributor {
+                  ... on User { name }
+                  ... on FormerUser { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ConditionMemberLookups_When_UnionFragmentInNodeSelectionSetHasInclude()
+    {
+        // arrange
+        var schema = CreateContributorAccountsSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query($include: Boolean!) {
+              node(id: "test-id") {
+                id
+                ... on CommunityContributor @include(if: $include) {
+                  ... on User { email }
+                  ... on Bot { owner }
+                  ... on FormerUser { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_PruneNonNodeMember_When_NodeResolutionIsSourceSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            NodeResolution.SourceSchema,
+            """
+            # name: contributors
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """,
+            """
+            # name: accounts
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              userById(id: ID!): User @lookup @internal
+            }
+
+            interface Node { id: ID! }
+
+            type User implements Node @key(fields: "id") { id: ID! email: String }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              node(id: "test-id") {
+                id
+                ... on CommunityContributor {
+                  ... on User { name email }
+                  ... on FormerUser { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Merge_Nested_Lookups_Across_Union_Members_When_Sibling_Asset_Selections_Differ()
     {
         // arrange
@@ -380,6 +592,38 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
 
         return ids;
     }
+
+    // User and Bot are Node implementors with fields in "accounts", FormerUser is not a Node.
+    private static FusionSchemaDefinition CreateContributorAccountsSchema()
+        => ComposeSchema(
+            """
+            # name: contributors
+            schema { query: Query }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser | Bot
+
+            type User implements Node @key(fields: "id") { id: ID! name: String }
+            type Bot implements Node @key(fields: "id") { id: ID! name: String }
+            type FormerUser { name: String }
+            """,
+            """
+            # name: accounts
+            schema { query: Query }
+
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+              botById(id: ID! @is(field: "id")): Bot @lookup @internal
+            }
+
+            type User @key(fields: "id") { id: ID! email: String }
+            type Bot @key(fields: "id") { id: ID! owner: String }
+            """);
 
     // sku is co-located with the products root in "a", reviews in "r", Book-only title in "books".
     private static FusionSchemaDefinition CreateProductTitleSchema()
