@@ -48,13 +48,22 @@ public class IntegrationTests
         var testMessage = Assert.Single(recorder.Messages);
         var sagaId = Assert.IsType<TestMessage>(testMessage).Id;
 
+        // wait until the saga instance is persisted (state == "Started") before sending the first
+        // event, so the TriggerEvent is applied to the stored instance
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var sagaName = runtime.Naming.GetSagaName(typeof(StepThroughSaga));
+        var persistDeadline = DateTime.UtcNow + s_timeout;
+        while (storage.Load<StepThroughState>(sagaName, sagaId)?.State != "Started"
+            && DateTime.UtcNow < persistDeadline)
+        {
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
         // send first TriggerEvent to transition Started -> Triggered
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
         // wait until the first transition is persisted (state == "Triggered") before sending the
         // second event, so the two events are applied to the saga in order
-        var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var sagaName = runtime.Naming.GetSagaName(typeof(StepThroughSaga));
         var transitionDeadline = DateTime.UtcNow + s_timeout;
         while (storage.Load<StepThroughState>(sagaName, sagaId)?.State != "Triggered"
             && DateTime.UtcNow < transitionDeadline)
