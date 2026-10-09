@@ -32,7 +32,6 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed partial class FetchResultStore : IDisposable
 {
     private const int MaxRetainedDataElementStagingLength = 1024;
-    private const int MaxRetainedForwardedVariableCapacity = 16 * 1024;
     private const int MaxStackAllocPathSegments = 32;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
@@ -47,9 +46,9 @@ internal sealed partial class FetchResultStore : IDisposable
 #endif
     private readonly List<IDisposable> _memory = [];
     private readonly ChunkedArrayWriter _variableWriter = new();
+    private readonly PooledArrayWriter _forwardedVariableWriter = new();
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
-    private PooledArrayWriter _forwardedVariableWriter = new();
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -1774,8 +1773,6 @@ AddErrors_Next:
         _jsonWriter.WriteRawValue(value.ToArray());
     }
 
-    // Caller must hold _lock. The returned span is valid until the next call and is empty
-    // when a single entity writes the forwarded variables directly.
     private ReadOnlySpan<byte> SerializeForwardedVariables(
         IReadOnlyList<ObjectFieldNode> requestVariables,
         int entityCount)
@@ -1799,7 +1796,6 @@ AddErrors_Next:
         _jsonWriter.WriteEndObject();
         _jsonWriter.Reset(_variableWriter);
 
-        // strip the enclosing braces so the properties splice into another object.
         return _forwardedVariableWriter.WrittenSpan[1..^1];
     }
 
