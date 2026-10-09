@@ -1,4 +1,5 @@
 using System.Buffers.Text;
+using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
@@ -29,6 +30,9 @@ namespace HotChocolate.Language;
 public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
 {
     private readonly ReadOnlyMemorySegment _memorySegment;
+    private readonly Number _number;
+    private readonly NumberKind _kind;
+    private byte[]? _formatted;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FloatValueNode"/>
@@ -54,7 +58,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         Location = location;
         Format = FloatFormat.FixedPoint;
-        _memorySegment = FormatValue(value);
+        _number = new Number(value);
+        _kind = NumberKind.Double;
     }
 
     /// <summary>
@@ -81,7 +86,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         Location = location;
         Format = FloatFormat.FixedPoint;
-        _memorySegment = FormatValue(value);
+        _number = new Number(value);
+        _kind = NumberKind.Decimal;
     }
 
     /// <summary>
@@ -124,6 +130,16 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         Format = format;
     }
 
+    private FloatValueNode(Location? location, FloatValueNode original)
+    {
+        Location = location;
+        Format = original.Format;
+        _memorySegment = original._memorySegment;
+        _number = original._number;
+        _kind = original._kind;
+        _formatted = original._formatted;
+    }
+
     /// <inheritdoc />
     public SyntaxKind Kind => SyntaxKind.FloatValue;
 
@@ -146,7 +162,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         get
         {
-            return Encoding.UTF8.GetString(_memorySegment.Span);
+            return Encoding.UTF8.GetString(AsSpan());
         }
     }
 
@@ -181,6 +197,15 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public float ToSingle()
     {
+        switch (_kind)
+        {
+            case NumberKind.Double:
+                return (float)_number.Double;
+
+            case NumberKind.Decimal:
+                return (float)_number.Decimal;
+        }
+
         if (!Utf8Parser.TryParse(_memorySegment.Span, out float value, out _))
         {
             throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "float");
@@ -194,6 +219,15 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public double ToDouble()
     {
+        switch (_kind)
+        {
+            case NumberKind.Double:
+                return _number.Double;
+
+            case NumberKind.Decimal:
+                return (double)_number.Decimal;
+        }
+
         if (!Utf8Parser.TryParse(_memorySegment.Span, out double value, out _))
         {
             throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "double");
@@ -207,6 +241,15 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public decimal ToDecimal()
     {
+        switch (_kind)
+        {
+            case NumberKind.Double:
+                return (decimal)_number.Double;
+
+            case NumberKind.Decimal:
+                return _number.Decimal;
+        }
+
         if (!Utf8Parser.TryParse(_memorySegment.Span, out decimal value, out _))
         {
             throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "decimal");
@@ -220,7 +263,23 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public ReadOnlySpan<byte> AsSpan() => AsMemorySegment().Span;
 
-    public ReadOnlyMemorySegment AsMemorySegment() => _memorySegment;
+    public ReadOnlyMemorySegment AsMemorySegment()
+    {
+        if (_kind == NumberKind.Parsed)
+        {
+            return _memorySegment;
+        }
+
+        var formatted = _formatted;
+
+        if (formatted is null)
+        {
+            formatted = FormatValue(_number, _kind);
+            _formatted = formatted;
+        }
+
+        return new ReadOnlyMemorySegment(formatted);
+    }
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -233,7 +292,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public FloatValueNode WithLocation(Location? location)
-        => new(location, _memorySegment, Format);
+        => new(location, this);
 
     /// <summary>
     /// Creates a new node from the current instance and replaces the
@@ -277,25 +336,53 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     public FloatValueNode WithValue(ReadOnlyMemorySegment value, FloatFormat format)
         => new(Location, value, format);
 
-    private static ReadOnlyMemorySegment FormatValue(double value)
+    private static byte[] FormatValue(Number number, NumberKind kind)
     {
         Span<byte> buffer = stackalloc byte[32];
-        Utf8Formatter.TryFormat(value, buffer, out var written);
+        int written;
+
+        if (kind == NumberKind.Double)
+        {
+            Utf8Formatter.TryFormat(number.Double, buffer, out written);
+        }
+        else
+        {
+            Utf8Formatter.TryFormat(number.Decimal, buffer, out written);
+        }
+
 #if NET8_0_OR_GREATER
-        return new ReadOnlyMemorySegment(buffer[..written].ToArray());
+        return buffer[..written].ToArray();
 #else
-        return new ReadOnlyMemorySegment(buffer.Slice(0, written).ToArray());
+        return buffer.Slice(0, written).ToArray();
 #endif
     }
 
-    private static ReadOnlyMemorySegment FormatValue(decimal value)
+    [StructLayout(LayoutKind.Explicit)]
+    private readonly struct Number
     {
-        Span<byte> buffer = stackalloc byte[32];
-        Utf8Formatter.TryFormat(value, buffer, out var written);
-#if NET8_0_OR_GREATER
-        return new ReadOnlyMemorySegment(buffer[..written].ToArray());
-#else
-        return new ReadOnlyMemorySegment(buffer.Slice(0, written).ToArray());
-#endif
+        [FieldOffset(0)]
+        public readonly double Double;
+
+        [FieldOffset(0)]
+        public readonly decimal Decimal;
+
+        public Number(double value)
+        {
+            Decimal = default;
+            Double = value;
+        }
+
+        public Number(decimal value)
+        {
+            Double = default;
+            Decimal = value;
+        }
+    }
+
+    private enum NumberKind : byte
+    {
+        Parsed,
+        Double,
+        Decimal
     }
 }

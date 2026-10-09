@@ -412,4 +412,31 @@ public class FloatValueNodeTests
         // assert
         Assert.Equal(0.1, result);
     }
+
+    [Fact]
+    public void ToSingle_Should_ReturnCastValue_When_CreatedFromDouble()
+    {
+        // arrange
+        var node = new FloatValueNode(0.1);
+
+        // act
+        var result = node.ToSingle();
+
+        // assert
+        Assert.Equal((float)0.1, result);
+    }
+
+    [Fact]
+    public void WithLocation_Should_KeepValue_When_CreatedFromDecimal()
+    {
+        // arrange
+        var node = new FloatValueNode(1.50m);
+
+        // act
+        var result = node.WithLocation(new Location(1, 2, 3, 4));
+
+        // assert
+        Assert.Equal(1.50m, result.ToDecimal());
+        Assert.Equal("1.50", result.Value);
+    }
 }

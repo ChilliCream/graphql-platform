@@ -10,9 +10,9 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class StringValueNode : IValueNode<string>, IHasSpan
 {
-    private readonly ReadOnlyMemorySegment _memorySegment;
+    private ReadOnlyMemorySegment _memorySegment;
     private string? _value;
-    private byte[]? _encoded;
+    private volatile bool _hasMemorySegment;
 
     /// <summary>
     /// Initializes a new instance of the
@@ -65,6 +65,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     {
         Location = location;
         _memorySegment = value;
+        _hasMemorySegment = !value.IsEmpty;
         Block = block;
     }
 
@@ -143,20 +144,17 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
 
     public ReadOnlyMemorySegment AsMemorySegment()
     {
-        if (!_memorySegment.IsEmpty || _value is null)
+        if (_hasMemorySegment || _value is null)
         {
             return _memorySegment;
         }
 
-        var encoded = _encoded;
-
-        if (encoded is null)
-        {
-            encoded = Encoding.UTF8.GetBytes(_value!);
-            _encoded = encoded;
-        }
-
-        return new ReadOnlyMemorySegment(encoded);
+        // Concurrent writers store segments with the same start, length and content,
+        // so interleaved writes still leave a valid segment once the flag is published.
+        var memorySegment = new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes(_value));
+        _memorySegment = memorySegment;
+        _hasMemorySegment = true;
+        return memorySegment;
     }
 
     public StringValueNode WithLocation(Location? location)
