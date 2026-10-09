@@ -165,6 +165,14 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
+    }
+
+    /// <inheritdoc />
     public IRabbitMQQueueDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);

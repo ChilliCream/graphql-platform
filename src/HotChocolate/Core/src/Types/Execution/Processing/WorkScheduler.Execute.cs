@@ -208,6 +208,8 @@ RESTART:
 
     private void TryDispatchOrCompleteUnsafe(bool isWaitingForTaskCompletion)
     {
+        AssertLockHeld();
+
         if (_isCompleted)
         {
             return;

@@ -193,6 +193,13 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
+    }
+
     public IAzureServiceBusQueueDescriptor FaultEndpoint(Uri address)
     {
         EnsureAbsoluteAddress(address);
