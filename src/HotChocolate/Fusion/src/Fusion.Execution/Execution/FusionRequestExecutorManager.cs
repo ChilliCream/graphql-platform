@@ -25,6 +25,7 @@ using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -161,6 +162,7 @@ internal sealed class FusionRequestExecutorManager
 
         var executor = CreateRequestExecutor(schemaName, configuration);
 
+        await ValidateAuthorizationAsync(executor, cancellationToken).ConfigureAwait(false);
         await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
 
         return new RequestExecutorRegistration(
@@ -188,6 +190,7 @@ internal sealed class FusionRequestExecutorManager
         var requestOptions = CreateRequestOptions(setup);
         var plannerOptions = CreatePlannerOptions(setup, options);
         var costOptions = CreateCostOptions(setup);
+        var authorizationOptions = CreateAuthorizationOptions(setup);
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
@@ -201,7 +204,8 @@ internal sealed class FusionRequestExecutorManager
             options,
             requestOptions,
             plannerOptions,
-            costOptions);
+            costOptions,
+            authorizationOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         _ = schemaServices.GetRequiredService<CostSchemaIndex>();
@@ -213,6 +217,20 @@ internal sealed class FusionRequestExecutorManager
         requestExecutorAccessor.RequestExecutor = executor;
 
         return executor;
+    }
+
+    private static ValueTask ValidateAuthorizationAsync(
+        FusionRequestExecutor executor,
+        CancellationToken cancellationToken)
+    {
+        var services = executor.Schema.Services;
+
+        return AuthorizationStartupValidator.ValidateAsync(
+            executor.Schema.Features.Get<FusionAuthorizationUsage>(),
+            services.GetRequiredService<FusionAuthorizationOptions>(),
+            services.GetRequiredService<AuthenticationSchemeResolver>(),
+            services.GetRequiredService<IPolicyResolver>(),
+            cancellationToken);
     }
 
     private static async Task WarmupExecutorAsync(
@@ -311,6 +329,20 @@ internal sealed class FusionRequestExecutorManager
         return costOptions;
     }
 
+    private static FusionAuthorizationOptions CreateAuthorizationOptions(FusionGatewaySetup setup)
+    {
+        var authorizationOptions = new FusionAuthorizationOptions();
+
+        foreach (var configure in setup.AuthorizationOptionsModifiers)
+        {
+            configure.Invoke(authorizationOptions);
+        }
+
+        authorizationOptions.MakeReadOnly();
+
+        return authorizationOptions;
+    }
+
     private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)
     {
         var options = new FusionParserOptions();
@@ -395,7 +427,8 @@ internal sealed class FusionRequestExecutorManager
         FusionOptions options,
         FusionRequestOptions requestOptions,
         OperationPlannerOptions plannerOptions,
-        FusionCostOptions costOptions)
+        FusionCostOptions costOptions,
+        FusionAuthorizationOptions authorizationOptions)
     {
         var schemaServices = new ServiceCollection();
 
@@ -405,7 +438,8 @@ internal sealed class FusionRequestExecutorManager
             schemaServices,
             options,
             requestOptions,
-            costOptions);
+            costOptions,
+            authorizationOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices, options);
@@ -425,7 +459,8 @@ internal sealed class FusionRequestExecutorManager
         IServiceCollection services,
         FusionOptions options,
         FusionRequestOptions requestOptions,
-        FusionCostOptions costOptions)
+        FusionCostOptions costOptions,
+        FusionAuthorizationOptions authorizationOptions)
     {
         services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
@@ -452,6 +487,23 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
         services.AddSingleton(costOptions);
+        services.AddSingleton(authorizationOptions);
+        services.AddSingleton(
+            static sp => new AuthenticationSchemeResolver(
+                sp.GetRequiredService<FusionAuthorizationOptions>(),
+                sp.GetService<IAuthenticationSchemeLookup>()));
+        services.TryAddSingleton<IPolicyResolver>(
+            static sp =>
+            {
+                var authorization = sp.GetRequiredService<FusionAuthorizationOptions>();
+
+                return new PolicyResolver(
+                    new BuiltInPolicyProvider(
+                        new RequiresScopesPolicy(
+                            authorization.ScopeClaimName,
+                            authorization.ScopeClaimFormat)),
+                    sp.GetServices<IPolicyProvider>());
+            });
         services.AddSingleton(
             static sp =>
             {
@@ -546,11 +598,6 @@ internal sealed class FusionRequestExecutorManager
             });
 
         services.AddSingleton(plannerOptions);
-
-        services.TryAddSingleton<IPolicyResolver>(
-            static sp => new PolicyResolver(
-                new BuiltInPolicyProvider(),
-                sp.GetServices<IPolicyProvider>()));
 
         services.AddSingleton(
             static sp => new OperationPlanner(
@@ -766,6 +813,7 @@ internal sealed class FusionRequestExecutorManager
                 var previousConfiguration = _currentConfiguration;
                 var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
 
+                await ValidateAuthorizationAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
                 await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
 
                 Executor = nextExecutor;

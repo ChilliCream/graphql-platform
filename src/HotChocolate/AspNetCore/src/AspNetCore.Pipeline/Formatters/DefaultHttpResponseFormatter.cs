@@ -389,6 +389,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     response.Headers.Vary = varyHeaderValue;
                 }
 
+                if (statusCode is (int)HttpStatusCode.Unauthorized
+                    && result.ContextData.TryGetValue(
+                        ExecutionContextData.WwwAuthenticateHeaderValue,
+                        out var challengeValue)
+                    && challengeValue is string challengeHeaderValue)
+                {
+                    response.Headers.WWWAuthenticate = challengeHeaderValue;
+                }
+
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
                 await format.Formatter.FormatAsync(

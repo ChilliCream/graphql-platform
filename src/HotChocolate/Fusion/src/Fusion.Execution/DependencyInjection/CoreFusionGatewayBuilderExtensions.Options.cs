@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
@@ -83,5 +84,24 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return FusionSetupUtilities.Configure(
             builder,
             options => options.CostOptionsModifiers.Add(configure));
+    }
+
+    /// <summary>
+    /// Registers a callback to modify the <see cref="FusionAuthorizationOptions"/>
+    /// (deny handling, request rejection, authentication schemes, scope claim, etc.).
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="configure">A delegate that configures the authorization options.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    public static IFusionGatewayBuilder ModifyAuthorizationOptions(
+        this IFusionGatewayBuilder builder,
+        Action<FusionAuthorizationOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            options => options.AuthorizationOptionsModifiers.Add(configure));
     }
 }

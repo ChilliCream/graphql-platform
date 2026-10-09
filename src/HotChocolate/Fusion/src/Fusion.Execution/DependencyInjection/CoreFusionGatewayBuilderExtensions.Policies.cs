@@ -37,10 +37,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
             {
                 sc.AddSingleton<IPolicyProvider>(
                     policies.Build(sp.GetRequiredService<InMemoryPolicyRecorder>()));
-                sc.TryAddSingleton<IPolicyResolver>(
-                    static sp => new PolicyResolver(
-                        new BuiltInPolicyProvider(),
-                        sp.GetServices<IPolicyProvider>()));
             });
     }
 }

@@ -8,15 +8,16 @@ namespace HotChocolate.Fusion.Authorization;
 /// </summary>
 public sealed class RequiresScopesPolicy : IPolicy
 {
-    private const string DefaultScopeClaimType = "scope";
+    internal const string DefaultScopeClaimType = "scope";
 
     private readonly string _scopeClaimType;
+    private readonly ScopeClaimFormat _scopeClaimFormat;
 
     /// <summary>
     /// Initializes a new instance of <see cref="RequiresScopesPolicy"/> that reads the
     /// space delimited <c>scope</c> claim.
     /// </summary>
-    public RequiresScopesPolicy() : this(DefaultScopeClaimType)
+    public RequiresScopesPolicy() : this(DefaultScopeClaimType, ScopeClaimFormat.SpaceSeparated)
     {
     }
 
@@ -24,12 +25,16 @@ public sealed class RequiresScopesPolicy : IPolicy
     /// Initializes a new instance of <see cref="RequiresScopesPolicy"/>.
     /// </summary>
     /// <param name="scopeClaimType">
-    /// The claim type whose space delimited values are the scopes of the principal.
+    /// The claim type whose values are the scopes of the principal.
     /// </param>
-    public RequiresScopesPolicy(string scopeClaimType)
+    /// <param name="scopeClaimFormat">
+    /// How the scopes are stored in the values of the claim.
+    /// </param>
+    public RequiresScopesPolicy(string scopeClaimType, ScopeClaimFormat scopeClaimFormat)
     {
         ArgumentException.ThrowIfNullOrEmpty(scopeClaimType);
         _scopeClaimType = scopeClaimType;
+        _scopeClaimFormat = scopeClaimFormat;
     }
 
     /// <inheritdoc />
@@ -72,6 +77,12 @@ public sealed class RequiresScopesPolicy : IPolicy
 
         foreach (var claim in context.User.FindAll(_scopeClaimType))
         {
+            if (_scopeClaimFormat is ScopeClaimFormat.Array)
+            {
+                granted.Add(claim.Value);
+                continue;
+            }
+
             foreach (var scope in claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             {
                 granted.Add(scope);

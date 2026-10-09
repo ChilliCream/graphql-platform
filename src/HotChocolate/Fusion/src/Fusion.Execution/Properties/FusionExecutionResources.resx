@@ -156,4 +156,25 @@
   <data name="Operation_AuthorizationAlreadySet" xml:space="preserve">
     <value>The authorization of the operation was already set and cannot be set again.</value>
   </data>
+  <data name="FusionAuthorizationOptions_ReadOnly" xml:space="preserve">
+    <value>The authorization options are read-only.</value>
+  </data>
+  <data name="FusionAuthorizationOptions_SchemeChallengeEmpty" xml:space="preserve">
+    <value>The WWW-Authenticate challenge of the authentication scheme '{0}' must not be null, empty or whitespace.</value>
+  </data>
+  <data name="AuthorizationValidation_SchemeNotRegistered" xml:space="preserve">
+    <value>The authentication scheme '{0}' of the authorization options is not registered. Register it, remove it from the schemes, or disable the authorization validation.</value>
+  </data>
+  <data name="AuthorizationValidation_NoSchemeRegistered" xml:space="preserve">
+    <value>The schema uses authorization directives but no authentication scheme is registered. Register an authentication scheme, or disable the authorization validation.</value>
+  </data>
+  <data name="AuthorizationValidation_NoSchemeLookup" xml:space="preserve">
+    <value>The schema uses authorization directives but the host exposes no authentication schemes. Add the gateway through HotChocolate.Fusion.AspNetCore, or set DisableAuthorizationValidation.</value>
+  </data>
+  <data name="AuthorizationValidation_SchemesEmpty" xml:space="preserve">
+    <value>The Schemes list is empty; omit it to use every registered scheme or list at least one.</value>
+  </data>
+  <data name="AuthorizationValidation_SchemesWithoutLookup" xml:space="preserve">
+    <value>The Schemes option lists authentication schemes but the host exposes no authentication schemes. Register the authentication scheme lookup through HotChocolate.Fusion.AspNetCore, or do not set Schemes.</value>
+  </data>
 </root>

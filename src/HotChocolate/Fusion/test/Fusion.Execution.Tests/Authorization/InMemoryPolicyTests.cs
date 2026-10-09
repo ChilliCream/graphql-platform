@@ -128,15 +128,15 @@ public class InMemoryPolicyTests : FusionTestBase
         IServiceProvider serviceProvider = services.BuildServiceProvider();
         var executor = await serviceProvider.GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
         var resolver = executor.Schema.Services.GetRequiredService<IPolicyResolver>();
 
+        // act
+        var authenticated = resolver.Resolve("p", DirectiveNames.Authenticated.Name);
+        var policy = resolver.Resolve("p", DirectiveNames.Policy.Name);
+
         // assert
-        Assert.Same(
-            AuthenticatedPolicy.Instance,
-            resolver.Resolve("p", DirectiveNames.Authenticated.Name));
-        Assert.Null(resolver.Resolve("p", DirectiveNames.Policy.Name));
+        Assert.Same(AuthenticatedPolicy.Instance, authenticated);
+        Assert.Null(policy);
     }
 
     private async Task<(IPolicyResolver Resolver, InMemoryPolicyRecorder Recorder)> CreateResolverAsync(

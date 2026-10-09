@@ -93,7 +93,7 @@ public class BuiltInPolicyTests
     {
         // arrange
         var selections = CreateSelections();
-        var policy = new RequiresScopesPolicy("scp");
+        var policy = new RequiresScopesPolicy("scp", ScopeClaimFormat.SpaceSeparated);
         var context = CreateContext(
             Authenticated(new Claim("scope", "read"), new Claim("scp", "write")),
             CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null, [["write"]]),
@@ -104,6 +104,62 @@ public class BuiltInPolicyTests
 
         // assert
         Assert.Equal([PolicyOutcome.Allowed, PolicyOutcome.Denied], Outcomes(context));
+    }
+
+    [Fact]
+    public async Task RequiresScopesPolicy_Should_ReadOneScopePerClaim_When_FormatIsArray()
+    {
+        // arrange
+        var selections = CreateSelections();
+        var policy = new RequiresScopesPolicy("scp", ScopeClaimFormat.Array);
+        var context = CreateContext(
+            Authenticated(new Claim("scp", "read"), new Claim("scp", "write")),
+            CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null, [["read", "write"]]),
+            CreateEntry(selections[2], policy, DirectiveNames.RequiresScopes.Name, null, [["read"], ["admin"]]),
+            CreateEntry(selections[0], policy, DirectiveNames.RequiresScopes.Name, null, [["admin"]]));
+
+        // act
+        await policy.EvaluateAsync(context, CancellationToken.None);
+
+        // assert
+        Assert.Equal(
+            [PolicyOutcome.Allowed, PolicyOutcome.Allowed, PolicyOutcome.Denied],
+            Outcomes(context));
+    }
+
+    [Fact]
+    public async Task RequiresScopesPolicy_Should_NotSplitClaimValues_When_FormatIsArray()
+    {
+        // arrange
+        var selections = CreateSelections();
+        var policy = new RequiresScopesPolicy("scp", ScopeClaimFormat.Array);
+        var context = CreateContext(
+            Authenticated(new Claim("scp", "read write")),
+            CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null, [["read"]]),
+            CreateEntry(selections[2], policy, DirectiveNames.RequiresScopes.Name, null, [["read write"]]));
+
+        // act
+        await policy.EvaluateAsync(context, CancellationToken.None);
+
+        // assert
+        Assert.Equal([PolicyOutcome.Denied, PolicyOutcome.Allowed], Outcomes(context));
+    }
+
+    [Fact]
+    public async Task RequiresScopesPolicy_Should_SplitClaimValues_When_FormatIsSpaceSeparated()
+    {
+        // arrange
+        var selections = CreateSelections();
+        var policy = new RequiresScopesPolicy("scp", ScopeClaimFormat.SpaceSeparated);
+        var context = CreateContext(
+            Authenticated(new Claim("scp", "read write")),
+            CreateEntry(selections[1], policy, DirectiveNames.RequiresScopes.Name, null, [["read", "write"]]));
+
+        // act
+        await policy.EvaluateAsync(context, CancellationToken.None);
+
+        // assert
+        Assert.Equal([PolicyOutcome.Allowed], Outcomes(context));
     }
 
     [Fact]

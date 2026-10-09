@@ -1095,7 +1095,10 @@ public class AuthorizationPlanningTests : FusionTestBase
         services
             .AddGraphQLGateway()
             .AddInMemoryPolicies(policies => policies.Allow("p"))
-            .AddInMemoryConfiguration(schemaDocument);
+            .AddInMemoryConfiguration(schemaDocument)
+            .ConfigureSchemaServices(
+                (_, sc) => sc.AddSingleton<IAuthenticationSchemeLookup>(
+                    new TestAuthenticationSchemeLookup("Bearer")));
         IServiceProvider serviceProvider = services.BuildServiceProvider();
         var executor = await serviceProvider.GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);

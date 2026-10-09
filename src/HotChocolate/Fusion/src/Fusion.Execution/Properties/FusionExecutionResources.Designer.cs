@@ -320,5 +320,47 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("Operation_AuthorizationAlreadySet", resourceCulture);
             }
         }
+
+        internal static string FusionAuthorizationOptions_ReadOnly {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationOptions_ReadOnly", resourceCulture);
+            }
+        }
+
+        internal static string FusionAuthorizationOptions_SchemeChallengeEmpty {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationOptions_SchemeChallengeEmpty", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_SchemeNotRegistered {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_SchemeNotRegistered", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_NoSchemeRegistered {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_NoSchemeRegistered", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_NoSchemeLookup {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_NoSchemeLookup", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_SchemesEmpty {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_SchemesEmpty", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_SchemesWithoutLookup {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_SchemesWithoutLookup", resourceCulture);
+            }
+        }
     }
 }

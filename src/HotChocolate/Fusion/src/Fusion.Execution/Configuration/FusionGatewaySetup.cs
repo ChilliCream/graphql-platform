@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Planning;
@@ -21,6 +22,8 @@ public sealed class FusionGatewaySetup
     public List<Action<FusionCostOptions>> CostOptionsModifiers { get; } = [];
 
     public List<Action<FusionParserOptions>> ParserOptionsModifiers { get; } = [];
+
+    public List<Action<FusionAuthorizationOptions>> AuthorizationOptionsModifiers { get; } = [];
 
     public List<Action<IServiceProvider, IServiceCollection>> SchemaServiceModifiers { get; } = [];
 
