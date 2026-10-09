@@ -957,4 +957,64 @@ public class JsonWriterTests
             """;
         Assert.Equal(expected, result);
     }
+
+    [Fact]
+    public void WriteRawProperties_Should_WriteWithoutSeparator_When_PropertiesAreFirstInObject()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act
+        writer.WriteStartObject();
+        writer.WriteRawProperties("\"a\":1,\"b\":\"x\""u8);
+        writer.WritePropertyName("c");
+        writer.WriteBooleanValue(true);
+        writer.WriteEndObject();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("""{"a":1,"b":"x","c":true}""", result);
+    }
+
+    [Fact]
+    public void WriteRawProperties_Should_WriteSeparator_When_ObjectAlreadyHasProperties()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act
+        writer.WriteStartObject();
+        writer.WritePropertyName("a");
+        writer.WriteNumberValue(1);
+        writer.WriteRawProperties("\"b\":2"u8);
+        writer.WriteEndObject();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("""{"a":1,"b":2}""", result);
+    }
+
+    [Fact]
+    public void WriteRawProperties_Should_WriteNothing_When_PropertiesAreEmpty()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act
+        writer.WriteStartObject();
+        writer.WriteRawProperties([]);
+        writer.WritePropertyName("a");
+        writer.WriteNumberValue(1);
+        writer.WriteEndObject();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("""{"a":1}""", result);
+    }
 }

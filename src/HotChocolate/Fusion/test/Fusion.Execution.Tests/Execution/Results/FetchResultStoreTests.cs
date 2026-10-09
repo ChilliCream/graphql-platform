@@ -1592,6 +1592,127 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariables_When_RequestHasSingleEntity()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [
+                Field("first", new IntValueNode(10)),
+                Field("filter", new ObjectValueNode(Field("name", new StringValueNode("a\"b"))))
+            ],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"1"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariablesForRemainingEntities_When_FirstEntityFailsRequirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":null},{"id":"2"},{"id":"3"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [Field("first", new IntValueNode(10))],
+            [Requirement(schema, "__fusion_1_id", "id", new NonNullTypeNode(new NamedTypeNode("ID")))]);
+
+        // assert
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"__fusion_1_id":"2"}
+                """,
+                """
+                {"first":10,"__fusion_1_id":"3"}
+                """
+            ]);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_WriteForwardedVariablesForEveryEntry_When_MultipleEntriesAreImported()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+        var third = CreateVariableValues(source, Path(3), Field("__fusion_1_id", new StringValueNode("3")));
+
+        // act
+        var result = target.CreateVariableValueSetsFromSnapshot(
+            [first, second, third],
+            ImportedKeys("__fusion_1_id"),
+            [
+                Field("first", new IntValueNode(10)),
+                Field("filter", new ObjectValueNode(Field("name", new StringValueNode("a\"b"))))
+            ],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"1"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"2"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"3"}
+                """
+            ]);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ResolveInvariantNames_When_SelectionSetOrdinalsDiffer()
     {
         // arrange
