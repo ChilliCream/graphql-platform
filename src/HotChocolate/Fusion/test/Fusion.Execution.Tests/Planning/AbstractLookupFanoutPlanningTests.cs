@@ -312,7 +312,11 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
     {
         // arrange
         var schema = ComposeSchema(
-            NodeResolution.SourceSchema,
+            options =>
+            {
+                options.Merger.EnableGlobalObjectIdentification = true;
+                options.Merger.NodeResolution = NodeResolution.SourceSchema;
+            },
             """
             # name: contributors
             schema { query: Query }
