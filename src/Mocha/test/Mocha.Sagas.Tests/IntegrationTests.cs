@@ -84,7 +84,9 @@ public class IntegrationTests
 
         // wait until the saga has consumed the first event and committed its transition before
         // sending the second, so the two events are applied to the saga in order
-        await consumedTriggers.WaitAsync(s_timeout);
+        Assert.True(
+            await consumedTriggers.WaitAsync(s_timeout),
+            "Saga did not finish consuming the first TriggerEvent within timeout");
 
         // fail fast if the first transition never happened, rather than sending the second event blindly
         Assert.Equal("Triggered", storage.Load<StepThroughState>(sagaName, sagaId)?.State);
