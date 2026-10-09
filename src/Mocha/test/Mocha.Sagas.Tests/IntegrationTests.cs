@@ -59,6 +59,9 @@ public class IntegrationTests
             await Task.Delay(50, TestContext.Current.CancellationToken);
         }
 
+        // fail fast if the saga was never persisted, so the first event targets the stored instance
+        Assert.Equal("Started", storage.Load<StepThroughState>(sagaName, sagaId)?.State);
+
         // send first TriggerEvent to transition Started -> Triggered
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
@@ -213,21 +216,27 @@ public class IntegrationTests
         // act - publish StartRequestEvent to start the saga, which sends TriggerRequest via .Send
         await bus.PublishAsync(new StartRequestEvent(), CancellationToken.None);
 
-        // the handler parks on the reply gate, holding the saga in AwaitingResponse so the test can
-        // observe its persisted state before releasing the reply to finalize the saga
-        Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
-
-        // wait until the held saga's state is persisted, and assert it actually appeared
-        var appearDeadline = DateTime.UtcNow + s_timeout;
-        while (storage.Count == 0 && DateTime.UtcNow < appearDeadline)
+        try
         {
-            await Task.Delay(50, TestContext.Current.CancellationToken);
+            // the handler parks on the reply gate, holding the saga in AwaitingResponse so the test
+            // can observe its persisted state before releasing the reply to finalize the saga
+            Assert.True(await recorder.WaitAsync(s_timeout), "request handler never executed");
+
+            // wait until the held saga's state is persisted, and assert it actually appeared
+            var appearDeadline = DateTime.UtcNow + s_timeout;
+            while (storage.Count == 0 && DateTime.UtcNow < appearDeadline)
+            {
+                await Task.Delay(50, TestContext.Current.CancellationToken);
+            }
+
+            Assert.True(storage.Count > 0, "saga state was not persisted while the reply was held");
         }
-
-        Assert.True(storage.Count > 0, "saga state was not persisted while the reply was held");
-
-        // release the reply so it routes back via OnAnyReply and finalizes the saga
-        replyGate.SetResult();
+        finally
+        {
+            // release the reply so it routes back via OnAnyReply and finalizes the saga, and so the
+            // handler never stays parked when an assertion above fails
+            replyGate.TrySetResult();
+        }
 
         // wait for the reply to finalize the saga and delete its state
         var deadline = DateTime.UtcNow + s_timeout;
