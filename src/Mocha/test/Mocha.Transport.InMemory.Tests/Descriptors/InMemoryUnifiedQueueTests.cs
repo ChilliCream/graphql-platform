@@ -67,6 +67,63 @@ public class InMemoryUnifiedQueueTests
         Assert.Contains(topology.Queues, q => q.Name == "dispatch-target");
     }
 
+    [Fact]
+    public void Queue_Should_ConfigureEndpointReceiveFeatures_When_ResilienceConfiguredOnQueue()
+    {
+        // arrange
+        var runtime = InMemoryBusFixture.CreateRuntimeWithTransport(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .AddResilience(p => p.On<InvalidOperationException>().Discard())
+                    .AddCircuitBreaker(o => o.FailureRatio = 0.5)
+                    .AddConcurrencyLimiter(o => o.MaxConcurrency = 4);
+            });
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert
+        Type[] expectedRules = [typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
+        Assert.Equal(0.5, endpoint.Features.Get<CircuitBreakerFeature>()?.FailureRatio);
+        Assert.Equal(4, endpoint.Features.Get<ConcurrencyLimiterFeature>()?.MaxConcurrency);
+    }
+
+    [Fact]
+    public void Queue_Should_CombineExceptionPolicies_When_EndpointWithSameNameConfiguresResilience()
+    {
+        // arrange
+        var runtime = InMemoryBusFixture.CreateRuntimeWithTransport(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders").AddResilience(p => p.On<InvalidOperationException>().Discard());
+                t.Endpoint("orders").AddResilience(p => p.On<TimeoutException>().Discard());
+            });
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<InMemoryReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert
+        // endpoint callbacks run first, queue callbacks replay onto the same feature afterwards
+        Type[] expectedRules = [typeof(TimeoutException), typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
+    }
+
     public sealed class OrderSpyConsumer(MessageRecorder recorder) : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
