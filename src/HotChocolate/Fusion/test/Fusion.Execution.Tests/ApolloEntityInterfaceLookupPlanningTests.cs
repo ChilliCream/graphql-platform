@@ -1,9 +1,7 @@
 using System.Text;
-using HotChocolate.Features;
-using HotChocolate.Fusion.Execution;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
-using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
@@ -510,9 +508,7 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
     public void Plan_Should_UseSafeSource_When_LocalFieldRequiresSourceExternalField()
     {
         // arrange
-        var schema = CreateNodeSchema(
-            new SourceSchemaText("a", RequiredNodeSchemaA),
-            new SourceSchemaText("b", RequiredNodeSchemaB));
+        var schema = CreateNodeSchema(RequiredNodeSchemaA, RequiredNodeSchemaB);
         var account = schema.Types.GetType<FusionObjectTypeDefinition>("Account");
 
         Assert.True(account.Fields["id"].Sources["a"].IsSourceExternal);
@@ -548,9 +544,7 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
     public void Plan_Should_UseSource_When_FieldRequirementIsLocallyResolvable()
     {
         // arrange
-        var schema = CreateNodeSchema(
-            new SourceSchemaText("a", LocallyRequiredNodeSchemaA),
-            new SourceSchemaText("b", LocallyRequiredNodeSchemaB));
+        var schema = CreateNodeSchema(LocallyRequiredNodeSchemaA, LocallyRequiredNodeSchemaB);
         var account = schema.Types.GetType<FusionObjectTypeDefinition>("Account");
 
         Assert.False(account.Fields["id"].Sources["a"].IsSourceExternal);
@@ -637,39 +631,28 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
     }
 
     private static FusionSchemaDefinition CreateCorruptedNodeSchema()
-        => CreateNodeSchema(
-            new SourceSchemaText("a", CorruptedNodeSchemaA),
-            new SourceSchemaText("b", CorruptedNodeSchemaB));
+        => CreateNodeSchema(CorruptedNodeSchemaA, CorruptedNodeSchemaB);
 
-    private static FusionSchemaDefinition CreateNodeSchema(params SourceSchemaText[] sources)
-    {
-        var options = new SchemaComposerOptions();
-        options.Merger.EnableGlobalObjectIdentification = true;
-        options.Merger.NodeResolution = NodeResolution.SourceSchema;
-
-        foreach (var source in sources)
-        {
-            options.SourceSchemas[source.Name] = new SourceSchemaOptions
+    private static FusionSchemaDefinition CreateNodeSchema(
+        [StringSyntax("graphql")] string schemaA,
+        [StringSyntax("graphql")] string schemaB)
+        => ComposeSchema(
+            options =>
             {
-                Preprocessor = new SourceSchemaPreprocessorOptions
-                {
-                    InferKeysFromLookups = false
-                }
-            };
-        }
+                options.Merger.EnableGlobalObjectIdentification = true;
+                options.Merger.NodeResolution = NodeResolution.SourceSchema;
+                options.SourceSchemas["a"] = CreateSourceSchemaOptions();
+                options.SourceSchemas["b"] = CreateSourceSchemaOptions();
+            },
+            schemaA,
+            schemaB);
 
-        var result = new SchemaComposer(sources, options, new CompositionLog()).Compose();
-        if (!result.IsSuccess)
+    private static SourceSchemaOptions CreateSourceSchemaOptions()
+        => new()
         {
-            throw new InvalidOperationException(result.Errors[0].Message);
-        }
-
-        var features = new FeatureCollection();
-        var fusionOptions = new FusionOptions();
-        features.Set(fusionOptions);
-        features.Set<IFusionSchemaOptions>(fusionOptions);
-        return FusionSchemaDefinition.Create(
-            result.Value.ToSyntaxNode(),
-            features: features);
-    }
+            Preprocessor = new SourceSchemaPreprocessorOptions
+            {
+                InferKeysFromLookups = false
+            }
+        };
 }

@@ -1,0 +1,193 @@
+title: Node_Should_ResolveLookupField_When_UnionFragmentHasNonNodeMember
+request:
+  document: |
+    {
+      node(id: "VXNlcjox") {
+        id
+        ... on CommunityContributor {
+          ... on User {
+            name
+            email
+          }
+          ... on FormerUser {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "id": "VXNlcjox",
+          "name": "User: VXNlcjox",
+          "email": "User: VXNlcjox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: CONTRIBUTORS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        contributors: [CommunityContributor!]!
+      }
+
+      type FormerUser {
+        name: String
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      union CommunityContributor = User | FormerUser
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0211fc79_3 {
+              node(id: "VXNlcjox") {
+                __typename
+                ... on User {
+                  __typename
+                  id
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "id": "VXNlcjox",
+                    "name": "User: VXNlcjox"
+                  }
+                }
+              }
+  - name: ACCOUNTS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0211fc79_4($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "VXNlcjox") {
+            __typename @fusion__requirement
+            id
+            ... on CommunityContributor {
+              ... on User {
+                name
+                email
+              }
+              ... on FormerUser {
+                name
+              }
+            }
+            ... on User {
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: ba741afe233242691e18f411421b356e
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "VXNlcjox"
+      responseName: node
+      branches:
+        - User: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_0211fc79_2 {
+          node(id: "VXNlcjox") {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: CONTRIBUTORS
+      operation: |
+        query Op_0211fc79_3 {
+          node(id: "VXNlcjox") {
+            __typename
+            ... on User {
+              __typename
+              id
+              name
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: ACCOUNTS
+      operation: |
+        query Op_0211fc79_4($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            email
+          }
+        }
+      source: $.userById
+      target: $.node<User>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3

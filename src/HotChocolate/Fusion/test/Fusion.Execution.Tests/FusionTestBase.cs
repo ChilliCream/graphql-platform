@@ -418,17 +418,19 @@ public abstract class FusionTestBase : IDisposable
 
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
+        => ComposeSchema(
+            options => options.Merger.EnableGlobalObjectIdentification = true,
+            schemas);
+
+    protected static FusionSchemaDefinition ComposeSchema(
+        Action<SchemaComposerOptions> configure,
+        [StringSyntax("graphql")] params string[] schemas)
     {
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions
-        {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = true
-            }
-        };
+        var composerOptions = new SchemaComposerOptions();
+        configure(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
