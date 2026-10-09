@@ -153,25 +153,5 @@ file static class Extensions
     /// Endpoint -> Transport -> Bus.
     /// </summary>
     public static ExceptionPolicyFeature? GetExceptionPolicyFeature(this ReceiveMiddlewareFactoryContext context)
-    {
-        var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
-
-        // Endpoint -> Transport -> Bus (most specific first).
-        if (context.Endpoint.Features.TryGet(out ExceptionPolicyFeature? endpointFeature))
-        {
-            return endpointFeature;
-        }
-
-        if (context.Transport.Features.TryGet(out ExceptionPolicyFeature? transportFeature))
-        {
-            return transportFeature;
-        }
-
-        if (busFeatures.TryGet(out ExceptionPolicyFeature? busFeature))
-        {
-            return busFeature;
-        }
-
-        return null;
-    }
+        => ExceptionPolicyResolver.Resolve(context.Services, context.Endpoint);
 }
