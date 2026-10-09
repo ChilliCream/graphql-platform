@@ -562,6 +562,59 @@ public class VariableCoercionHelperTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryCoerceVariableValues_Should_CoerceInputFields_When_FieldNamesAreEscaped(
+        bool ignoreAdditionalInputFields)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: SearchInput!): String
+            }
+
+            input SearchInput {
+              a: Int
+              b: Int
+              c: Int
+              d: Int
+              e: Int
+              f: Int
+              g: Int
+              h: Int
+              id: Int!
+              name: String
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("SearchInput")));
+        using var variableValues = JsonDocument.Parse(
+            """
+            {"input":{"a":0,"\u0069d":1,"n\u0061me":"escaped"}}
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            variableValues.RootElement,
+            ignoreAdditionalInputFields,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        coercedVariableValues["input"].Value.ToString().MatchInlineSnapshot(
+            """
+            { a: 0, id: 1, name: "escaped" }
+            """);
+    }
+
     [Fact]
     public void TryCoerceVariableValues_Should_StillRequireDefinedFields_When_AdditionalInputFieldsAreIgnored()
     {

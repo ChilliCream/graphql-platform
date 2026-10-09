@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -31,7 +30,7 @@ public sealed class FusionEnumValueCollection
         _map = values.ToFrozenDictionary(t => t.Name);
         _values = values;
         _values.PartitionByAccessibility(out _length);
-        _utf8AccessibleNames = BuildUtf8AccessibleNames(_values, _length);
+        _utf8AccessibleNames = Utf8NameIndex.Create(_values, _length, static v => v.Name);
     }
 
     /// <summary>
@@ -276,76 +275,7 @@ public sealed class FusionEnumValueCollection
     /// specified name; otherwise, <c>false</c>.
     /// </returns>
     public bool ContainsName(ReadOnlySpan<byte> utf8Name)
-    {
-        var utf8Names = _utf8AccessibleNames;
-        var count = utf8Names.Length;
-
-        if (count <= 8)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                if (utf8Name.SequenceEqual(utf8Names[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        var low = 0;
-        var high = count - 1;
-
-        while (low <= high)
-        {
-            var mid = low + ((high - low) >> 1);
-            var comparison = CompareLengthThenBytes(utf8Names[mid], utf8Name);
-
-            if (comparison == 0)
-            {
-                return true;
-            }
-
-            if (comparison < 0)
-            {
-                low = mid + 1;
-            }
-            else
-            {
-                high = mid - 1;
-            }
-        }
-
-        return false;
-    }
-
-    private static byte[][] BuildUtf8AccessibleNames(FusionEnumValue[] values, int length)
-    {
-        var utf8Names = new byte[length][];
-
-        for (var i = 0; i < length; i++)
-        {
-            utf8Names[i] = Encoding.UTF8.GetBytes(values[i].Name);
-        }
-
-        // Sorted by length ascending then lexicographic byte order so the span
-        // lookup can binary search with a length-first comparison.
-        Array.Sort(utf8Names, static (a, b) => CompareLengthThenBytes(a, b));
-
-        return utf8Names;
-    }
-
-    private static int CompareLengthThenBytes(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
-    {
-        var lengthComparison = x.Length - y.Length;
-
-        if (lengthComparison != 0)
-        {
-            return lengthComparison;
-        }
-
-        return x.SequenceCompareTo(y);
-    }
+        => Utf8NameIndex.IndexOf(_utf8AccessibleNames, utf8Name) != -1;
 
     /// <summary>
     /// Returns an enumerator for the enum values in the collection.

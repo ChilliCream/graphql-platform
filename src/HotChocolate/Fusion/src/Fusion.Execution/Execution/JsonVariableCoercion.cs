@@ -233,7 +233,7 @@ internal ref struct JsonVariableCoercion
             foreach (var property in element.EnumerateObject())
             {
                 if (_ignoreAdditionalInputFields
-                    && !inputObjectType.Fields.ContainsName(property.Name))
+                    && !TryGetInputField(inputObjectType, property, out _))
                 {
                     continue;
                 }
@@ -286,7 +286,7 @@ internal ref struct JsonVariableCoercion
         {
             foreach (var property in element.EnumerateObject())
             {
-                if (!inputObjectType.Fields.TryGetField(property.Name, out var fieldDefinition))
+                if (!TryGetInputField(inputObjectType, property, out var fieldDefinition))
                 {
                     if (_ignoreAdditionalInputFields)
                     {
@@ -326,7 +326,7 @@ internal ref struct JsonVariableCoercion
                     ArrayPool<ObjectFieldNode>.Shared.Return(temp);
                 }
 
-                PushPathSegment(property.Name);
+                PushPathSegment(fieldDefinition.Name);
 
                 try
                 {
@@ -341,7 +341,7 @@ internal ref struct JsonVariableCoercion
                         return false;
                     }
 
-                    buffer[count++] = new ObjectFieldNode(property.Name, fieldValue);
+                    buffer[count++] = new ObjectFieldNode(null, fieldDefinition.NameNode, fieldValue);
                     processed[fieldDefinition.Index] = true;
                     processedCount++;
                 }
@@ -388,6 +388,28 @@ internal ref struct JsonVariableCoercion
                 ArrayPool<bool>.Shared.Return(processedBuffer);
             }
         }
+    }
+
+    private static bool TryGetInputField(
+        FusionInputObjectTypeDefinition inputObjectType,
+        JsonProperty property,
+        [NotNullWhen(true)] out FusionInputFieldDefinition? field)
+    {
+#if NET9_0_OR_GREATER
+        var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
+
+        if (inputObjectType.Fields.TryGetField(utf8Name, out field))
+        {
+            return true;
+        }
+
+        if (utf8Name.IndexOf((byte)'\\') == -1)
+        {
+            return false;
+        }
+#endif
+
+        return inputObjectType.Fields.TryGetField(property.Name, out field);
     }
 
     private readonly bool TryParseScalar(

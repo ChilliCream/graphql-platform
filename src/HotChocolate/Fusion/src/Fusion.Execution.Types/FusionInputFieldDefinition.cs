@@ -26,6 +26,7 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
 
         Index = index;
         Name = name;
+        NameNode = new NameNode(name);
         Description = description;
         DefaultValue = defaultValue;
         DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
@@ -42,6 +43,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
     public int Index { get; }
 
     public string Name { get; }
+
+    internal NameNode NameNode { get; }
 
     public string? Description { get; }
 
