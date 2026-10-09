@@ -32,6 +32,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed partial class FetchResultStore : IDisposable
 {
     private const int MaxRetainedDataElementStagingLength = 1024;
+    private const int MaxRetainedForwardedVariableCapacity = 16 * 1024;
     private const int MaxStackAllocPathSegments = 32;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
@@ -46,7 +47,7 @@ internal sealed partial class FetchResultStore : IDisposable
 #endif
     private readonly List<IDisposable> _memory = [];
     private readonly ChunkedArrayWriter _variableWriter = new();
-    private readonly PooledArrayWriter _forwardedVariableWriter = new();
+    private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
     private FusionSchemaDefinition _schema = default!;
@@ -1782,8 +1783,9 @@ AddErrors_Next:
             return [];
         }
 
-        _forwardedVariableWriter.Reset();
-        _jsonWriter.Reset(_forwardedVariableWriter);
+        var writer = _forwardedVariableWriter ??= new PooledArrayWriter();
+        writer.Reset();
+        _jsonWriter.Reset(writer);
         _jsonWriter.WriteStartObject();
 
         for (var i = 0; i < requestVariables.Count; i++)
@@ -1796,7 +1798,7 @@ AddErrors_Next:
         _jsonWriter.WriteEndObject();
         _jsonWriter.Reset(_variableWriter);
 
-        return _forwardedVariableWriter.WrittenSpan[1..^1];
+        return writer.WrittenSpan[1..^1];
     }
 
     private void WriteForwardedVariables(
@@ -2532,7 +2534,7 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
-        _forwardedVariableWriter.Dispose();
+        _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }
 
