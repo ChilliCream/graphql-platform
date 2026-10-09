@@ -127,6 +127,15 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        Configuration.Queue.Durable = false;
+        Configuration.Queue.AutoDelete = true;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQQueueDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
@@ -209,6 +218,20 @@ internal sealed class RabbitMQQueueDescriptor
         ArgumentNullException.ThrowIfNull(source);
         Configuration.SourceBindings.Add(
             new RabbitMQQueueSourceBindingConfiguration { Source = source, RoutingKey = routingKey });
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.SourceBindings.Add(
+            new RabbitMQQueueSourceBindingConfiguration
+            {
+                Source = source,
+                RoutingKey = routingKey,
+                AutoProvision = autoProvision
+            });
         return this;
     }
 

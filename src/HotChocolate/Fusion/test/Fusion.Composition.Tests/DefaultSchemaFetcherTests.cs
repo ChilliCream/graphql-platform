@@ -36,13 +36,14 @@ public sealed class DefaultSchemaFetcherTests
         using var client = CreateClient(
             _ => Task.FromResult(Response(HttpStatusCode.ServiceUnavailable, "unavailable")));
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        var exception = await Assert.ThrowsAsync<SchemaFetchRequestException>(
             () => DefaultSchemaFetcher.FetchAsync(
                 client,
                 "Products",
                 new Uri("https://products.example.com/graphql/schema.graphql"),
                 TestContext.Current.CancellationToken));
 
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         Assert.Equal(
             "Source schema 'Products' returned HTTP 503 (Service Unavailable) while downloading its schema.",
             exception.Message);

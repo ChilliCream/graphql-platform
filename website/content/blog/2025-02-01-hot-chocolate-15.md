@@ -1,6 +1,7 @@
 ---
 date: "2025-02-01"
 title: "What's new for Hot Chocolate 15"
+description: "Hot Chocolate 15 updates the type system and supported .NET versions, and adds new projection, filtering, sorting, pagination, and DataLoader capabilities."
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 category: "Release"
 featuredImage: "hot-chocolate-15.png"

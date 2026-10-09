@@ -186,7 +186,7 @@ public class Utf8GraphQLRequestParserTests
     }
 
     [Fact]
-    public void Parse_Unknown_Property_Throws()
+    public void Parse_Unknown_Property_Is_Ignored()
     {
         // arrange
         var request = new CustomGraphQLRequestDto(
@@ -196,10 +196,38 @@ public class Utf8GraphQLRequestParserTests
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(request).NormalizeLineBreaks());
 
-        // act & assert
-        var exception = Assert.Throws<InvalidGraphQLRequestException>(
-            () => Utf8GraphQLRequestParser.Parse(source));
-        Assert.Contains("CustomProperty", exception.Message);
+        // act
+        var batch = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var r = Assert.Single(batch);
+        Assert.Null(r.OperationName);
+        Assert.Null(r.DocumentId);
+        Assert.Null(r.Variables);
+        Assert.Null(r.Extensions);
+        r.Document.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData("\"a string\"")]
+    [InlineData("42")]
+    [InlineData("true")]
+    [InlineData("null")]
+    // A nested "query" must not be mistaken for the request's own.
+    [InlineData("""{ "nested": { "deep": [1, 2] }, "query": "{ decoy }" }""")]
+    [InlineData("""[1, { "query": "{ decoy }" }, null]""")]
+    public void Parse_Unknown_Property_Of_Any_Json_Shape_Is_Ignored(string value)
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            $$"""{ "unknownProperty": {{value}}, "query": "{ __typename }" }""");
+
+        // act
+        var batch = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var r = Assert.Single(batch);
+        Assert.Equal("{ __typename }", r.Document!.ToString(indented: false));
     }
 
     [Fact]

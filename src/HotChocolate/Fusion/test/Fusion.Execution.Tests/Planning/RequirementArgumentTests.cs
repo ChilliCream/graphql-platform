@@ -259,6 +259,27 @@ public class RequirementArgumentTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Succeed_When_Require_Only_Input_Type_And_Upload_Scalar_Exist()
+    {
+        // arrange
+        var schema = CreateRequireOnlyInputTypeWithUploadSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                discountedPrice
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateSimpleRequiresArgsSchema()
     {
         return ComposeSchema(
@@ -515,6 +536,59 @@ public class RequirementArgumentTests : FusionTestBase
             type Category @key(fields: "id") {
               id: ID!
               averagePrice: Int
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateRequireOnlyInputTypeWithUploadSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+              mutation: Mutation
+            }
+
+            type Query {
+              products: [Product]
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Mutation {
+              uploadProductPicture(file: Upload!): Boolean
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              variants: [Variant]
+            }
+
+            type Variant {
+              price: Float!
+            }
+
+            scalar Upload
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice(
+                prices: [PriceInput!]!
+                  @require(field: "variants[{ price: price }]")): Float!
+            }
+
+            input PriceInput {
+              price: Float!
             }
             """);
     }

@@ -225,7 +225,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 4ba127aba8ffc260347c8622a2df5d92
+      hash: de4ef66fda388602b63306049fa5c673
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -261,7 +261,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.postEdges.node<Discussion>.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -279,7 +279,7 @@ operationPlan:
         }
       source: $.productById
       target: $.postEdges.node<Photo>.product
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

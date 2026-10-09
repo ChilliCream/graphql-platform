@@ -1,4 +1,3 @@
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -16,9 +15,9 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 [Config(typeof(InProcessConfig))]
 public class CorpusParsingBenchmark
 {
-    private static readonly string SchemaPath = CorpusPaths.SchemaPath;
-    private static readonly string Query1Path = CorpusPaths.Query1Path;
-    private static readonly string Query2Path = CorpusPaths.Query2Path;
+    private static readonly string s_schemaPath = CorpusPaths.SchemaPath;
+    private static readonly string s_query1Path = CorpusPaths.Query1Path;
+    private static readonly string s_query2Path = CorpusPaths.Query2Path;
 
     private byte[] _schemaSdl = null!;
     private byte[] _query1 = null!;
@@ -27,9 +26,9 @@ public class CorpusParsingBenchmark
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _schemaSdl = File.ReadAllBytes(SchemaPath);
-        _query1 = File.ReadAllBytes(Query1Path);
-        _query2 = File.ReadAllBytes(Query2Path);
+        _schemaSdl = File.ReadAllBytes(s_schemaPath);
+        _query1 = File.ReadAllBytes(s_query1Path);
+        _query2 = File.ReadAllBytes(s_query2Path);
     }
 
     [Benchmark]

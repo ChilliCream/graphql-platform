@@ -1,5 +1,6 @@
 ---
 title: "Object Types"
+metaTitle: "GraphQL Object Types in Hot Chocolate"
 description: "Define GraphQL object types in Hot Chocolate with the [ObjectType<T>] attribute, adding fields, resolvers, and type extensions to build your schema graph."
 ---
 

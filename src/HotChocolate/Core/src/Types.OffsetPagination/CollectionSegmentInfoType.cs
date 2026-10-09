@@ -1,3 +1,5 @@
+using HotChocolate.Types.Composite;
+
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -7,6 +9,11 @@ public class CollectionSegmentInfoType : ObjectType<CollectionSegmentInfo>
 {
     protected override void Configure(IObjectTypeDescriptor<CollectionSegmentInfo> descriptor)
     {
+        if (descriptor.Extend().Context.Options.ApplyShareableToCollectionSegmentInfo)
+        {
+            descriptor.Directive(Shareable.Instance);
+        }
+
         descriptor
             .Name("CollectionSegmentInfo")
             .Description("Information about the offset pagination.")

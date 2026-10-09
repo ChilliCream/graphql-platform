@@ -9,7 +9,6 @@ namespace Mocha.Utils;
 public sealed class PooledArrayWriter : IWritableMemory
 {
     private const int InitialBufferSize = 4096;
-    private const int LargeAllocationThreshold = 1024 * 1024; // 1MB
 
     private byte[] _buffer;
     private int _capacity;
@@ -253,7 +252,6 @@ public sealed class PooledArrayWriter : IWritableMemory
         {
             // if we need to expand the buffer, we first capture the original buffer.
             var buffer = _buffer;
-            var oldSize = buffer.Length;
 
             // next we determine the new size of the buffer, we at least double the size to avoid
             // expanding the buffer too often.
@@ -269,7 +267,6 @@ public sealed class PooledArrayWriter : IWritableMemory
             // next we will rent a new array from the array pool that supports
             // the new capacity requirements.
             _buffer = BufferPools.Rent(newSize);
-            var actualNewSize = _buffer.Length;
 
             // the rented array might have a larger size than the necessary capacity,
             // so we will take the buffer length and calculate from that the free capacity.
@@ -292,7 +289,6 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// </summary>
     public void Reset()
     {
-        var previousLength = _start;
         _capacity = _buffer.Length;
         _start = 0;
     }

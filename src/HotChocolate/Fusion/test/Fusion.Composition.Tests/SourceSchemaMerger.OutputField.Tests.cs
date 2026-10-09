@@ -417,10 +417,10 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             """);
     }
 
-    // If an output field is deprecated without a deprecation reason, a default reason is inserted
-    // to be compatible with the latest spec.
+    // If an output field is deprecated without a deprecation reason, the merged schema prints
+    // @deprecated without arguments.
     [Fact]
-    public void Merge_DeprecatedOutputFieldsWithoutReasonInsertsDefaultReason_MatchesSnapshot()
+    public void Merge_DeprecatedOutputFieldsWithoutReason_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -439,10 +439,7 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             ],
             """
             type Product @fusion__type(schema: A) @fusion__type(schema: B) {
-              name: String
-                @fusion__field(schema: A)
-                @fusion__field(schema: B)
-                @deprecated(reason: "No longer supported.")
+              name: String @fusion__field(schema: A) @fusion__field(schema: B) @deprecated
             }
             """);
     }

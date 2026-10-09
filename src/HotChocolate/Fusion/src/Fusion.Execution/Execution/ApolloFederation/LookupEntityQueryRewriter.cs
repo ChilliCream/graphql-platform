@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
@@ -42,7 +43,7 @@ internal static class LookupEntityQueryRewriter
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        var document = Utf8GraphQLParser.Parse(operation.SourceText);
+        var document = Utf8GraphQLParser.Parse(operation.Value.Span, ParserOptions.Trusted);
         var operationDefinition = GetOperationDefinition(document);
         var lookupField = GetLookupField(operationDefinition);
         var lookup = ResolveLookup(schema, schemaName, lookupField);
@@ -68,13 +69,18 @@ internal static class LookupEntityQueryRewriter
             strippedSelections = FlattenConcreteTypeConditions(strippedSelections);
         }
 
-        var text = BuildEntitiesDocument(
-            entityTypeName,
-            strippedSelections,
-            operationDefinition.VariableDefinitions);
+        var value = Encoding.UTF8.GetBytes(
+            BuildEntitiesDocument(
+                entityTypeName,
+                strippedSelections,
+                operationDefinition.VariableDefinitions));
 
         return new RewrittenOperation(
-            new OperationSourceText(operation.Name, operation.Type, text, operation.Hash),
+            new OperationSourceText(
+                operation.Name,
+                operation.Type,
+                value,
+                OperationSourceTextHash.Compute(value)),
             entityTypeName,
             lookupField);
     }

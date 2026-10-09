@@ -121,4 +121,37 @@ public class SyntaxRewriterTests
         // assert
         Assert.Equal("extend directive @foo @b", document?.ToString(indented: false));
     }
+
+    [Fact]
+    public void Rewrite_Should_PreserveFragmentSpreadArguments_When_SpreadIsUnchanged()
+    {
+        // arrange
+        var document = Parse(
+            "{ ...Foo(bar: 1) }",
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // act
+        var rewriter = SyntaxRewriter.Create(static node => node);
+        var rewritten = (DocumentNode?)rewriter.Rewrite(document, context: null);
+
+        // assert
+        Assert.Equal("{ ...Foo(bar: 1) }", rewritten?.Print(indented: false));
+    }
+
+    [Fact]
+    public void Rewrite_Should_RewriteFragmentSpreadArguments_When_ArgumentValueChanges()
+    {
+        // arrange
+        var document = Parse(
+            "{ ...Foo(bar: 1) }",
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // act
+        var rewriter = SyntaxRewriter.Create(
+            static node => node is IntValueNode ? new IntValueNode(2) : node);
+        var rewritten = (DocumentNode?)rewriter.Rewrite(document, context: null);
+
+        // assert
+        Assert.Equal("{ ...Foo(bar: 2) }", rewritten?.Print(indented: false));
+    }
 }

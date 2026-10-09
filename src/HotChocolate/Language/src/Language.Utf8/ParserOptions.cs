@@ -48,9 +48,63 @@ public sealed class ParserOptions
         int maxAllowedFields = 2048,
         int maxAllowedDirectives = 4,
         int maxAllowedRecursionDepth = 200)
+        : this(
+            new ParserOptionsExperimental(allowFragmentVariables),
+            noLocations,
+            maxAllowedNodes,
+            maxAllowedTokens,
+            maxAllowedFields,
+            maxAllowedDirectives,
+            maxAllowedRecursionDepth)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ParserOptions"/>.
+    /// </summary>
+    /// <param name="experimental">
+    /// The experimental parser options.
+    /// </param>
+    /// <param name="noLocations">
+    /// Defines that the parse shall not preserve syntax node locations.
+    /// </param>
+    /// <param name="maxAllowedNodes">
+    /// Parser CPU and memory usage is linear to the number of nodes in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    ///
+    /// To prevent this you can set a maximum number of nodes allowed within a document.
+    /// </param>
+    /// <param name="maxAllowedTokens">
+    /// Parser CPU and memory usage is linear to the number of tokens in a document
+    /// however in extreme cases it becomes quadratic due to memory exhaustion.
+    /// Parsing happens before validation so even invalid queries can burn lots of
+    /// CPU time and memory.
+    ///
+    /// To prevent this you can set a maximum number of tokens allowed within a document.
+    /// </param>
+    /// <param name="maxAllowedFields">
+    /// The maximum number of fields allowed within a query document.
+    /// </param>
+    /// <param name="maxAllowedDirectives">
+    /// The maximum number of directives allowed per location (e.g. per field, per operation).
+    /// </param>
+    /// <param name="maxAllowedRecursionDepth">
+    /// The maximum allowed recursion depth when parsing a document.
+    /// This prevents stack overflow from deeply nested queries.
+    /// </param>
+    public ParserOptions(
+        ParserOptionsExperimental experimental,
+        bool noLocations = false,
+        int maxAllowedNodes = int.MaxValue,
+        int maxAllowedTokens = int.MaxValue,
+        int maxAllowedFields = 2048,
+        int maxAllowedDirectives = 4,
+        int maxAllowedRecursionDepth = 200)
     {
         NoLocations = noLocations;
-        Experimental = new(allowFragmentVariables);
+        Experimental = experimental ?? throw new ArgumentNullException(nameof(experimental));
         MaxAllowedTokens = maxAllowedTokens;
         MaxAllowedNodes = maxAllowedNodes;
         MaxAllowedFields = maxAllowedFields;
@@ -124,4 +178,16 @@ public sealed class ParserOptions
     /// Gets the default parser options with the locations switched of.
     /// </summary>
     public static ParserOptions NoLocation { get; } = new(noLocations: true);
+
+    /// <summary>
+    /// Gets parser options for documents from a trusted source, such as persisted operation
+    /// documents or documents the server produced itself. The limits that bound untrusted
+    /// request parsing are lifted while the recursion depth guard remains.
+    /// Never use these options to parse text received from a client.
+    /// </summary>
+    public static ParserOptions Trusted { get; } = new(
+        maxAllowedNodes: int.MaxValue,
+        maxAllowedTokens: int.MaxValue,
+        maxAllowedFields: int.MaxValue,
+        maxAllowedDirectives: int.MaxValue);
 }

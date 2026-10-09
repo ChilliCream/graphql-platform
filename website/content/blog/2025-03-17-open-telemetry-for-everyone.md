@@ -1,6 +1,7 @@
 ---
 date: "2025-03-17"
 title: "Open Telemetry for All Your Services"
+description: "Send OpenTelemetry logs and traces from GraphQL APIs, REST services, and background workers to Nitro, with PAT and CLI automation updates."
 tags: ["nitro", "open-telemetry", "dotnet", "aspnetcore"]
 author: Pascal Senn
 featuredImage: "header.png"

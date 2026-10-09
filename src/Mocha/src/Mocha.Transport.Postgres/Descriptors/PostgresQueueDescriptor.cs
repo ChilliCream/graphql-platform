@@ -9,8 +9,7 @@ internal sealed class PostgresQueueDescriptor
     : MessagingDescriptorBase<PostgresQueueDescriptorConfiguration>
     , IPostgresQueueDescriptor
 {
-    private PostgresQueueDescriptor(IMessagingConfigurationContext context, string name)
-        : base(context)
+    private PostgresQueueDescriptor(IMessagingConfigurationContext context, string name) : base(context)
     {
         Configuration = new PostgresQueueDescriptorConfiguration(name);
     }
@@ -28,6 +27,13 @@ internal sealed class PostgresQueueDescriptor
     public IPostgresQueueDescriptor AutoDelete(bool autoDelete = true)
     {
         Configuration.Queue.AutoDelete = autoDelete;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
         return this;
     }
 
@@ -118,7 +124,7 @@ internal sealed class PostgresQueueDescriptor
     {
         if (before is not null && after is not null)
         {
-            throw ThrowHelper.BeforeAndAfterConflict();
+            throw Mocha.ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
@@ -192,7 +198,17 @@ internal sealed class PostgresQueueDescriptor
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        Configuration.SourceBindings.Add(source);
+        Configuration.SourceBindings.Add(new PostgresQueueSourceBindingConfiguration { Source = source });
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IPostgresQueueDescriptor BindFrom(Uri source, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        Configuration.SourceBindings.Add(
+            new PostgresQueueSourceBindingConfiguration { Source = source, AutoProvision = autoProvision });
         return this;
     }
 

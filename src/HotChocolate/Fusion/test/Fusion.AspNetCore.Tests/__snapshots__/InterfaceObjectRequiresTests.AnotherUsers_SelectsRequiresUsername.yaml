@@ -260,7 +260,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: def11e8ef61b4f475c70501ad6f43705
+      hash: e85b72131304a72502c93163f9022ab9
       searchSpace: 2
       expandedNodes: 7
   nodes:
@@ -292,7 +292,7 @@ operationPlan:
           selectionMap: >-
             id
       dependencies:
-        - id: 3
+        - id: 6
     - id: 3
       type: OperationBatch
       schema: A
@@ -307,7 +307,7 @@ operationPlan:
       targets:
         - $.anotherUsers
         - $.anotherUsers
-      batchingGroupId: 3
+      batchingGroupId: 6
       requirements:
         - name: __fusion_3_id
           selectionMap: >-
@@ -326,7 +326,7 @@ operationPlan:
         }
       source: $.nodeById
       target: $.anotherUsers
-      batchingGroupId: 3
+      batchingGroupId: 6
       requirements:
         - name: __fusion_4_id
           selectionMap: >-

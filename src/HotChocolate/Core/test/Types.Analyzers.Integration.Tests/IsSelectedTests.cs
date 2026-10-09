@@ -6,6 +6,40 @@ namespace HotChocolate.Types;
 public class IsSelectedTests
 {
     [Fact]
+    public async Task BuildSchemaAsync_Should_RejectInvalidIsSelectedPattern_When_ResolverIsSourceGenerated()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .AddGlobalObjectIdentification()
+            .AddTypeExtension(
+                new ObjectTypeExtension(
+                    descriptor => descriptor
+                        .Name(nameof(IsSelectedNode))
+                        .Field("description")
+                        .Ignore()));
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaException>(
+            async () => await builder.BuildSchemaAsync(
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // assert
+        exception.Errors.Single().Message.MatchInlineSnapshot(
+            """
+            The specified pattern on field `Query.isSelectedPatternTest` is invalid:
+            `{
+              name
+              description
+            }`
+
+            The field `description` does not exist on type `IsSelectedNode`.
+            """);
+    }
+
+    [Fact]
     public async Task IsSelected_Should_ReturnTrue_When_FieldIsSelected()
     {
         // arrange

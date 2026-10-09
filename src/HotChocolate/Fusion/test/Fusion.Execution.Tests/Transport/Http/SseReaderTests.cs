@@ -90,7 +90,7 @@ public class SseReaderTests
         {
             Content = new ByteArrayContent(Encoding.UTF8.GetBytes(responseBody))
         };
-        var reader = new SseReader(message, arenaSource);
+        var reader = new SseReader(message, arenaSource, Timeout.InfiniteTimeSpan);
         var values = new List<string>();
 
         await foreach (var document in reader.WithCancellation(TestContext.Current.CancellationToken))

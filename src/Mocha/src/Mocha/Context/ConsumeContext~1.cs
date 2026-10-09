@@ -143,6 +143,9 @@ internal sealed class ConsumeContext<TMessage> : IConsumeContext<TMessage>, IDis
         set => Inner.Services = value;
     }
 
+    public IConsumeContext Clone(IServiceProvider services)
+        => new ConsumeContext<TMessage>(Inner.Clone(services));
+
     public void Dispose()
     {
         _inner = null;

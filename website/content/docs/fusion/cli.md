@@ -415,16 +415,18 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                        |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key            |
-| `global-object-identification`           | `true`, `false`                        | Enable Relay-style node queries                                    |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
+| Setting                                  | Values                                   | Description                                                        |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                          | Allow Apollo interface objects without a resolvable key            |
+| `global-object-identification`           | `true`, `false`                          | Enable Relay-style node queries                                    |
+| `include-satisfiability-paths`           | `true`, `false`                          | Include paths in satisfiability diagnostics                        |
+| `node-resolution`                        | `gateway`, `source-schema`               | Choose who resolves `Query.node` IDs                               |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`   | Choose routing for type-conditioned selections on shareable fields |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`   | How to merge `@cacheControl` directives                            |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                | How to merge enum values across source schemas                     |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`   | How to merge `@tag` directives                                     |
+| `exclude-by-tag`                         | Comma-separated tags                     | Exclude fields/types by tag                                        |
+| `default-list-size`                      | Non-negative integer, or `null` to unset | Assumed size for lists without `@listSize` metadata                |
 
 ## Examples
 
@@ -564,7 +566,7 @@ Each source schema requires a `schema-settings.json` file alongside its `.graphq
 
 **Type:** `string` (required)
 
-The unique source schema name used in composition. Must match the name used in `builder.AddGraphQL("products-api")`.
+The unique source schema name used in composition. Must match the name used in `#!csharp builder.AddGraphQL("products-api")`.
 
 ### `transports.http.url`
 
@@ -572,11 +574,39 @@ The unique source schema name used in composition. Must match the name used in `
 
 The URL template for the subgraph's GraphQL endpoint. Use `{{VARIABLE_NAME}}` for environment-specific substitution.
 
+### `transports.http.devUrl`
+
+**Type:** `string` (optional)
+
+The URL a local development environment reaches this source schema at. It supports the same `{{VARIABLE_NAME}}` substitution as `url`.
+
+`devUrl` is only consulted for source schemas that do not run in the local AppHost when composing for a local [Aspire](./local-development.md) run. Every other composition ignores it, including `nitro fusion compose`, `publish`, and `upload`. It never survives composition either: the composed configuration always carries a `url` only.
+
+```json
+{
+  "name": "products-api",
+  "transports": {
+    "http": {
+      "url": "https://products.example.com/graphql",
+      "devUrl": "http://localhost:5110/graphql"
+    }
+  }
+}
+```
+
+When such a source schema defines no `devUrl`, composition falls back to its `url` and logs the warning `SOURCE_SCHEMA_DEV_URL_MISSING`, because a deployed URL is often not reachable from a developer machine. When the URL that is selected for such a source schema references a variable that its environment does not define, composition logs the warning `SOURCE_SCHEMA_URL_VARIABLE_UNRESOLVED`, falls back from an unresolvable `devUrl` to the `url`, and composes an unresolvable `url` as it is. Neither case fails the composition.
+
+### `transports.websockets.devUrl`
+
+**Type:** `string` (optional)
+
+The same as `transports.http.devUrl`, for the WebSocket URL of the source schema. A source schema that does not run in the local AppHost and defines no `devUrl` here keeps its configured `transports.websockets.url` without a warning.
+
 ### `transports.http.clientName`
 
 **Type:** `string` (optional, defaults to `"fusion"`)
 
-The named HTTP client the gateway uses to communicate with this subgraph. Must match what the gateway configures via `builder.Services.AddHttpClient("fusion")`.
+The named HTTP client the gateway uses to communicate with this subgraph. Must match what the gateway configures via `#!csharp builder.Services.AddHttpClient("fusion")`.
 
 ### `transports.subscriptions.transport`
 

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -6,13 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Filters;
 
 public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
-    public RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
+    public RavenDBResource Resource { get; } = new();
 
     public ValueTask InitializeAsync() => Resource.InitializeAsync();
 
@@ -36,6 +36,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var builder = new ServiceCollection()
             .AddSingleton(documentStore)
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddRavenFiltering()
             .AddRavenPagingProviders()
             .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)

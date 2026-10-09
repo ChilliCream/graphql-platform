@@ -1,27 +1,57 @@
 import { HelpClosing } from "@/src/components/help/HelpClosing";
-import { HelpFaq } from "@/src/components/help/HelpFaq";
+import { HELP_FAQ_ITEMS, HelpFaq } from "@/src/components/help/HelpFaq";
 import { HelpHero } from "@/src/components/help/HelpHero";
-import { HelpTiers } from "@/src/components/help/HelpTiers";
+import { HELP_TIERS, HelpTiers } from "@/src/components/help/HelpTiers";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { SelfServeGrid } from "@/src/components/help/SelfServeGrid";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import {
+  createFaqNode,
+  createItemListNode,
+  schemaId,
+  schemaRef,
+} from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
-  title: "Get GraphQL help fast",
+const PAGE = {
+  title: "GraphQL Help for Hot Chocolate and Fusion",
   description:
-    "Stuck on GraphQL? Get help from the ChilliCream community, book an expert consultancy session, or pick a support plan. Pick the path that fits the urgency.",
+    "Find GraphQL help for Hot Chocolate, Fusion, and Nitro through documentation, the ChilliCream community, an advisory engagement, or a support plan.",
   keywords: [
     "GraphQL help",
-    "ChilliCream support",
-    "Hot Chocolate consultancy",
-    "GraphQL Slack community",
-    "GraphQL support plan",
+    "Hot Chocolate help",
+    "Fusion help",
+    "Nitro help",
+    "ChilliCream community",
+    "GraphQL documentation",
   ],
   path: "/help",
-});
+} as const;
+
+export const metadata = pageMetadata(PAGE);
+
+const ITEM_LIST = createItemListNode(
+  PAGE.path,
+  "Ways to get GraphQL help",
+  HELP_TIERS.map((tier) => ({
+    name: tier.title,
+    url: tier.callToAction.link,
+    description: tier.description,
+    itemType: "Service",
+  })),
+);
+const FAQ = createFaqNode(PAGE.path, HELP_FAQ_ITEMS);
 
 export default function HelpPage() {
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Help" }]}
+        mainEntity={schemaRef(schemaId(PAGE.path, "item-list"))}
+        additionalNodes={[ITEM_LIST, FAQ]}
+      />
       <HelpHero />
       <HelpTiers />
       <SelfServeGrid />

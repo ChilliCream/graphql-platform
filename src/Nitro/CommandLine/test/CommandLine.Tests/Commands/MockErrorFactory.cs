@@ -242,7 +242,7 @@ internal static class MockErrorFactory
             .SetupGet(x => x.Changes)
             .Returns(changes
                 .Select(c =>
-                    (IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes)
+                    (IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_Changes)
                     c.Object)
                 .ToArray());
 
@@ -337,7 +337,7 @@ internal static class MockErrorFactory
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
             MockBehavior.Strict);
         change
-            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+            .As<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_Changes>();
         change.As<IDirectiveModifiedChange>()
             .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
         change.As<IDirectiveModifiedChange>()
@@ -399,7 +399,7 @@ internal static class MockErrorFactory
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
             MockBehavior.Strict);
         change
-            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+            .As<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_Changes>();
         change.As<IObjectModifiedChange>()
             .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
         change.As<IObjectModifiedChange>()
@@ -453,7 +453,7 @@ internal static class MockErrorFactory
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
             MockBehavior.Strict);
         change
-            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+            .As<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_Changes>();
         change.As<IEnumModifiedChange>()
             .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Dangerous);
         change.As<IEnumModifiedChange>()
@@ -476,7 +476,7 @@ internal static class MockErrorFactory
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
             MockBehavior.Strict);
         change
-            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+            .As<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_Changes>();
         change.As<ITypeSystemMemberAddedChange>()
             .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
         change.As<ITypeSystemMemberAddedChange>()
@@ -497,7 +497,7 @@ internal static class MockErrorFactory
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
             MockBehavior.Strict);
         change
-            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+            .As<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_Changes>();
         change.As<ITypeSystemMemberRemovedChange>()
             .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
         change.As<ITypeSystemMemberRemovedChange>()

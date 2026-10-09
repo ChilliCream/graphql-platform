@@ -15,8 +15,10 @@ internal sealed class PingPongJob(ISocketSession session, GraphQLSocketOptions o
             await Task.Delay(options.ConnectionInitializationTimeout, cancellationToken);
 
             // if after the timeout no connection initialization was sent by the client, we will
-            // close the connection.
-            if (!connection.IsConnected)
+            // close the connection. We check that the init message was received rather than that
+            // the connection was fully accepted, so a slow OnConnectAsync does not trigger a
+            // spurious timeout for a client that initialized in time.
+            if (!connection.ConnectionInitReceived)
             {
                 await session.Protocol.OnConnectionInitTimeoutAsync(session, cancellationToken);
                 return;

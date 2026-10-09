@@ -337,17 +337,20 @@ export function IconSpinner({
       height={size}
       viewBox="0 0 16 16"
       fill={color ?? "currentColor"}
-      className={className}
+      className={["nitro-icon-spinner", className].filter(Boolean).join(" ")}
       style={{
         flex: "0 0 auto",
-        animation: "nitro-spin 1s linear infinite",
         ...style,
       }}
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
     >
       {title ? <title>{title}</title> : null}
-      <style>{"@keyframes nitro-spin{to{transform:rotate(360deg)}}"}</style>
+      <style>
+        {
+          "@keyframes nitro-spin{to{transform:rotate(360deg)}}.nitro-icon-spinner{animation:nitro-spin 1s linear infinite}@media (prefers-reduced-motion:reduce){.nitro-icon-spinner{animation:none!important}}"
+        }
+      </style>
       <path
         fillRule="evenodd"
         clipRule="evenodd"

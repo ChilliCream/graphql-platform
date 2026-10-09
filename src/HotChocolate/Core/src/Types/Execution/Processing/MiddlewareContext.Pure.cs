@@ -68,6 +68,8 @@ internal partial class MiddlewareContext
 
         public ulong IncludeFlags => parentContext.IncludeFlags;
 
+        public ConditionFlags IncludeConditionFlags => parentContext.IncludeConditionFlags;
+
         public CancellationToken RequestAborted => parentContext.RequestAborted;
 
         public void ReportError(string errorMessage)

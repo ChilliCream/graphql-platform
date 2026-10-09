@@ -56,6 +56,12 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
     public ushort? MaxPrefetch { get; set; }
 
     /// <summary>
+    /// Gets or sets whether this queue's receive endpoint is temporary, scoping its infrastructure
+    /// to the lifetime of the consuming process.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
     /// Gets the receive middleware configurations applied when this queue materializes an endpoint.
     /// </summary>
     public List<ReceiveMiddlewareConfiguration> ReceiveMiddlewares { get; } = [];
@@ -69,20 +75,4 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
     /// Gets the source exchange bindings declared from this queue descriptor.
     /// </summary>
     public List<RabbitMQQueueSourceBindingConfiguration> SourceBindings { get; } = [];
-}
-
-/// <summary>
-/// Configuration for a source exchange binding declared from a queue descriptor.
-/// </summary>
-public sealed class RabbitMQQueueSourceBindingConfiguration
-{
-    /// <summary>
-    /// Gets or sets the source address.
-    /// </summary>
-    public Uri Source { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the optional routing key.
-    /// </summary>
-    public string? RoutingKey { get; set; }
 }

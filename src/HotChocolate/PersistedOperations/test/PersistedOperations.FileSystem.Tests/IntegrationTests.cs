@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Execution;
@@ -36,14 +38,20 @@ public class IntegrationTests
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequest.FromId(documentId),
-            TestContext.Current.CancellationToken);
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequest.FromId(documentId),
+                TestContext.Current.CancellationToken);
 
-        // assert
-        File.Delete(cachedOperation);
-        result.MatchSnapshot();
+            // assert
+            result.MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(cachedOperation);
+        }
     }
 
     [Fact]
@@ -74,14 +82,68 @@ public class IntegrationTests
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequest.FromId("does_not_exist"),
-            TestContext.Current.CancellationToken);
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequest.FromId("does_not_exist"),
+                TestContext.Current.CancellationToken);
 
-        // assert
-        File.Delete(cachedOperation);
-        result.MatchSnapshot();
+            // assert
+            result.MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(cachedOperation);
+        }
+    }
+
+    [Fact]
+    public async Task ExecutePersistedOperation_Should_Succeed_When_Fields_Exceed_Request_Parser_Limit()
+    {
+        // arrange
+        // 2100 aliased fields exceed the request parser limit of 2048
+        var documentId = Guid.NewGuid().ToString("N");
+        var cacheDirectory = IO.Path.GetTempPath();
+        var cachedOperation = IO.Path.Combine(cacheDirectory, documentId + ".graphql");
+
+        const int fieldCount = 2_100;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < fieldCount; i++)
+        {
+            sb.Append($" a{i}: a");
+        }
+
+        sb.Append(" }");
+
+        await File.WriteAllTextAsync(cachedOperation, sb.ToString(), TestContext.Current.CancellationToken);
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
+                .UsePersistedOperationPipeline()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequest.FromId(documentId),
+                TestContext.Current.CancellationToken);
+
+            // assert
+            using var json = JsonDocument.Parse(result.ToJson());
+            Assert.False(json.RootElement.TryGetProperty("errors", out _));
+            Assert.Equal(fieldCount, json.RootElement.GetProperty("data").EnumerateObject().Count());
+        }
+        finally
+        {
+            File.Delete(cachedOperation);
+        }
     }
 
     [Fact]
@@ -109,29 +171,34 @@ public class IntegrationTests
                 .UseAutomaticPersistedOperationPipeline()
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        // act
-        var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.New()
-                .SetDocumentId(documentHash)
-                .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
-                .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
-                .SetExtensions(new Dictionary<string, object?>
-                {
+        try
+        {
+            // act
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocumentId(documentHash)
+                    .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
+                    .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
+                    .SetExtensions(new Dictionary<string, object?>
                     {
-                        "persistedQuery",
-                        new Dictionary<string, object?>
                         {
-                            { "version", 1 },
-                            { "md5Hash", documentHash }
+                            "persistedQuery",
+                            new Dictionary<string, object?>
+                            {
+                                { "version", 1 },
+                                { "md5Hash", documentHash }
+                            }
                         }
-                    }
-                })
-                .Build(),
-            TestContext.Current.CancellationToken);
+                    })
+                    .Build(),
+                TestContext.Current.CancellationToken);
 
-        File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
-
-        // assert
-        result.MatchSnapshot();
+            // assert
+            result.MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
+        }
     }
 }

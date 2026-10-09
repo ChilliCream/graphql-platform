@@ -447,11 +447,13 @@ public partial class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddCostAnalyzer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddMutationType<SimpleMutationPayloadOverrideWithError>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
+        Assert.Equal("Query", schema.QueryType.Name);
         schema.MatchSnapshot();
     }
 

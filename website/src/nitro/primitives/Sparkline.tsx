@@ -17,6 +17,7 @@ export interface SparklineProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -34,11 +35,12 @@ export function Sparkline({
   progress,
   playWindow,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: SparklineProps): React.JSX.Element {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
   const clipId = useId().replace(/:/g, "");
 
   const plotTop = PAD_Y;

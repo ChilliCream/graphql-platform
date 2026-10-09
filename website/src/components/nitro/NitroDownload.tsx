@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { SolidButton } from "@/src/design-system/Button";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { CircleArrowDownIcon } from "@/src/icons/CircleArrowDown";
 
@@ -392,6 +393,22 @@ interface ActiveDownload {
   readonly filename?: string;
 }
 
+type DownloadChannel = "stable" | "insider";
+
+function reportDownload(
+  channel: DownloadChannel,
+  platform: OS,
+  source: "primary" | "matrix",
+) {
+  sendAnalyticsEvent("nitro_download", {
+    distribution: "desktop",
+    release_channel: channel,
+    platform,
+    source,
+    page_path: window.location.pathname,
+  });
+}
+
 // Maps the fetch status to what the split button shows: the resolved download
 // link, a link-less shell while the detected OS's manifest is still loading,
 // or null when only the web fallback can be offered.
@@ -409,16 +426,26 @@ function resolveActiveDownload(
 
 interface DownloadAppLinkProps {
   readonly filename: string;
+  readonly channel: DownloadChannel;
+  readonly platform: OS;
   readonly onClick?: () => void;
 }
 
-function DownloadAppLink({ filename, onClick }: DownloadAppLinkProps) {
+function DownloadAppLink({
+  filename,
+  channel,
+  platform,
+  onClick,
+}: DownloadAppLinkProps) {
   return (
     <a
       href={DOWNLOAD_BASE_URL + filename}
       download={filename}
       rel="noopener noreferrer nofollow"
-      onClick={onClick}
+      onClick={() => {
+        reportDownload(channel, platform, "matrix");
+        onClick?.();
+      }}
       className="text-cc-ink hover:text-cc-white flex items-center justify-center py-1"
       aria-label={"Download " + filename}
     >
@@ -433,27 +460,51 @@ function DownloadAppLink({ filename, onClick }: DownloadAppLinkProps) {
 const MATRIX_ROWS: {
   readonly os: string;
   readonly type: string;
+  readonly platform: OS;
   readonly pick: (variant: AppInfoVariant) => string;
   readonly groupStart?: boolean;
 }[] = [
   {
     os: "macOS 64",
     type: "Universal",
+    platform: "mac",
     pick: (v) => v.macOS.universal.filename,
   },
-  { os: "", type: "Silicon", pick: (v) => v.macOS.silicon.filename },
-  { os: "", type: "Intel", pick: (v) => v.macOS.intel.filename },
+  {
+    os: "",
+    type: "Silicon",
+    platform: "mac",
+    pick: (v) => v.macOS.silicon.filename,
+  },
+  {
+    os: "",
+    type: "Intel",
+    platform: "mac",
+    pick: (v) => v.macOS.intel.filename,
+  },
   {
     os: "Windows 64",
     type: "Universal",
+    platform: "windows",
     pick: (v) => v.windows.universal.filename,
     groupStart: true,
   },
-  { os: "", type: "arm64", pick: (v) => v.windows.arm64.filename },
-  { os: "", type: "x64", pick: (v) => v.windows.x64.filename },
+  {
+    os: "",
+    type: "arm64",
+    platform: "windows",
+    pick: (v) => v.windows.arm64.filename,
+  },
+  {
+    os: "",
+    type: "x64",
+    platform: "windows",
+    pick: (v) => v.windows.x64.filename,
+  },
   {
     os: "Linux x64",
     type: "AppImage",
+    platform: "linux",
     pick: (v) => v.linux.appImage.filename,
     groupStart: true,
   },
@@ -501,7 +552,7 @@ export function NitroDownload() {
   const active = resolveActiveDownload(activeStatus);
 
   if (active === null) {
-    return <SolidButton href={WEB_STABLE_URL}>Open Web Version</SolidButton>;
+    return <SolidButton href={WEB_STABLE_URL}>Open the Web App</SolidButton>;
   }
 
   return (
@@ -510,6 +561,14 @@ export function NitroDownload() {
         href={active.url}
         download={active.filename}
         rel="noopener noreferrer nofollow"
+        onClick={() => {
+          if (
+            activeStatus.state === "ready" &&
+            activeStatus.activeStable !== undefined
+          ) {
+            reportDownload("stable", activeStatus.activeStable.os, "primary");
+          }
+        }}
         className="bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex cursor-pointer flex-col items-center justify-center rounded-l-full py-1.5 pr-4 pl-7 text-sm leading-tight font-medium no-underline transition-colors"
       >
         {active.text}
@@ -567,12 +626,16 @@ export function NitroDownload() {
                     <td className="px-3 py-1.5 text-center">
                       <DownloadAppLink
                         filename={row.pick(matrix.stable)}
+                        channel="stable"
+                        platform={row.platform}
                         onClick={() => setOpen(false)}
                       />
                     </td>
                     <td className="px-3 py-1.5 text-center">
                       <DownloadAppLink
                         filename={row.pick(matrix.insider)}
+                        channel="insider"
+                        platform={row.platform}
                         onClick={() => setOpen(false)}
                       />
                     </td>
@@ -606,7 +669,7 @@ export function NitroDownload() {
                     onClick={() => setOpen(false)}
                     className="text-cc-ink hover:text-cc-white"
                   >
-                    Open Web Version
+                    Open the Web App
                   </a>
                   <span className="text-cc-ink-dim mx-2">|</span>
                   <a

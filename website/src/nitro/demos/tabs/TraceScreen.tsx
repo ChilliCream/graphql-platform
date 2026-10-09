@@ -1707,7 +1707,7 @@ function OperationScreen() {
               Latency Distribution
             </span>
             <span style={{ fontSize: 11.5, color: token.textSecondary }}>
-              Total operations: {DIST.total.toLocaleString()}
+              Total operations: {DIST.total.toLocaleString("en-US")}
             </span>
             <span
               style={{ marginLeft: "auto", fontSize: 11, color: token.textDim }}

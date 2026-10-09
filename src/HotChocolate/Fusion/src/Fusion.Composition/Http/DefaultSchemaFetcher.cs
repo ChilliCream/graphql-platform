@@ -22,12 +22,13 @@ internal static class DefaultSchemaFetcher
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException(
+            throw new SchemaFetchRequestException(
                 string.Format(
                     DefaultSchemaFetcher_RequestFailed,
                     sourceSchemaName,
                     (int)response.StatusCode,
-                    response.ReasonPhrase));
+                    response.ReasonPhrase),
+                response.StatusCode);
         }
 
         var sourceText = await SchemaHttpResponseReader.ReadAsStringAsync(

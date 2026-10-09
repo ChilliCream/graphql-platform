@@ -40,7 +40,11 @@ internal sealed record CompositionSettings
 
         public DirectiveMergeBehavior? CacheControlMergeBehavior { get; set; }
 
+        public int? DefaultListSize { get; set; }
+
         public bool? EnableGlobalObjectIdentification { get; set; }
+
+        public EnumValuesMergeBehavior? EnumValuesMergeBehavior { get; set; }
 
         public NodeResolution? NodeResolution { get; set; }
 

@@ -1,6 +1,3 @@
-using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.A;
 using HotChocolate.Fusion.Suites.NonResolvableInterfaceObject.B;
 

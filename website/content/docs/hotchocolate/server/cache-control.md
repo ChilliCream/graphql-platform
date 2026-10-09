@@ -111,7 +111,7 @@ public static class Query
 
 Hot Chocolate computes one effective response policy by traversing the selected query fields. It reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections.
 
-All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated.
+All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated. Every GraphQL response already lists `Accept` in `Vary`, and the merged `vary` names are added to it. Some CDNs, Akamai by default, do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Configure the CDN to cache it anyway, or remove `Accept` from `Vary` in a [custom formatter](./http-transport.md#adding-selecting-headers-to-vary).
 
 Hot Chocolate computes cache constraints only for query operations. Introspection requests and operations for which no selected field contributes `maxAge` or `sharedMaxAge` do not produce a cache policy. `UseQueryCache()` writes the final headers only when the executed result has no GraphQL errors and the request has not opted out of cache-control header generation.
 
@@ -119,7 +119,7 @@ Hot Chocolate computes cache constraints only for query operations. Introspectio
 
 Install the package first:
 
-```bash
+```shell
 dotnet add package HotChocolate.Caching
 ```
 

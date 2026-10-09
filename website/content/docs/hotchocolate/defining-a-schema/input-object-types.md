@@ -1,5 +1,6 @@
 ---
 title: "Input Object Types"
+metaTitle: "GraphQL Input Object Types in Hot Chocolate"
 description: "Define GraphQL input object types in Hot Chocolate to pass structured arguments, with records, default values, optional properties, and @oneOf inputs."
 ---
 
@@ -245,6 +246,8 @@ public class PetInputType : InputObjectType<PetInput>
 </ExampleTabs>
 
 All fields on a `@oneOf` input must be nullable. Hot Chocolate validates at runtime that exactly one field is provided.
+
+A `@oneOf` input must also have at least one field that can hold a finite value, that is, a scalar, an enum, a list, or an input object that is itself finite. `#!sdl input A @oneOf { self: A }` is rejected when the schema is built.
 
 # Next Steps
 

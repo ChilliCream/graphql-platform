@@ -32,12 +32,9 @@ public interface IMutableFieldDefinition : IFieldDefinition
     new DirectiveCollection Directives { get; }
 
     /// <summary>
-    /// Defines if this <see cref="ITypeSystemMember"/> is deprecated.
-    /// </summary>
-    new bool IsDeprecated { get; set; }
-
-    /// <summary>
-    /// Gets the deprecation reason of this <see cref="ITypeSystemMember"/>.
+    /// Gets or sets the deprecation reason of this <see cref="ITypeSystemMember"/>,
+    /// or <c>null</c> if this field is not deprecated.
+    /// Setting an empty or white-space value is equivalent to setting <c>null</c>.
     /// </summary>
     new string? DeprecationReason { get; set; }
 

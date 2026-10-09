@@ -244,6 +244,7 @@ public interface IClientsClient
         string clientId,
         string stageName,
         string tag,
+        bool force,
         CancellationToken cancellationToken);
 
     /// <summary>

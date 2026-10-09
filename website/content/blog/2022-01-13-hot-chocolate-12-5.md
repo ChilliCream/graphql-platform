@@ -1,6 +1,7 @@
 ---
 date: "2022-01-13"
 title: "Pushing ahead with Hot Chocolate 12.5"
+description: "Hot Chocolate 12.5 adds Banana Cake Pop themes, OpenTelemetry instrumentation, oneOf input objects, and client-controlled nullability."
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 category: "Release"
 featuredImage: "hot-chocolate-12-5-banner.png"

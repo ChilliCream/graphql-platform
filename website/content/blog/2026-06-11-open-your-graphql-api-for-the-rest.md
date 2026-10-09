@@ -86,7 +86,7 @@ fragment Product on Product {
 
 Install the `HotChocolate.Adapters.OpenApi` NuGet package into your GraphQL server project, or `HotChocolate.Fusion.Adapters.OpenApi` if your server is a Fusion gateway:
 
-```bash
+```shell
 dotnet add package HotChocolate.Adapters.OpenApi
 ```
 
@@ -139,7 +139,7 @@ Endpoint definitions are plain GraphQL files, and Nitro treats them like any oth
 
 Create a collection once with `nitro openapi create`, then upload your documents as a tagged version and publish that tag to a stage:
 
-```bash
+```shell
 nitro openapi upload \
   --openapi-collection-id "<collection-id>" \
   --tag "v1" \
@@ -163,4 +163,4 @@ There is also a dedicated dashboard that shows all of your adapter endpoints and
 
 So the next time someone asks you for a REST endpoint, ask yourself: can my graph already provide this? If it can, don't go off and build a separate API. Plug in the OpenAPI adapter, author an endpoint document, and let your graph do the rest.
 
-If you want to go deeper, check out the [OpenAPI Adapter guide](../docs/hotchocolate/build/adapters/openapi.md).
+If you want to go deeper, check out the [OpenAPI Adapter guide](../docs/hotchocolate/adapters/openapi.md).

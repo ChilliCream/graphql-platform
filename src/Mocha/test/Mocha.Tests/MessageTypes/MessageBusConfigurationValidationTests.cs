@@ -93,6 +93,24 @@ public sealed class MessageBusConfigurationValidationTests
         exception.Message.MatchSnapshot();
     }
 
+    [Fact]
+    public void Build_Should_NameBothTypes_When_TwoMessageTypesShareAnIdentity()
+    {
+        // arrange & act
+        var exception = BuildThrows(builder =>
+        {
+            builder.AddMessage<OrderCreated>(d => d.Extend().Configuration.Identity = "urn:message:shared");
+            builder.AddMessage<ItemShipped>(d => d.Extend().Configuration.Identity = "urn:message:shared");
+            builder.AddInMemory();
+        });
+
+        // assert
+        exception.Message.MatchInlineSnapshot(
+            """
+            The message type 'Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+ItemShipped' has the identity 'urn:message:shared', which is already used by the message type 'Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+OrderCreated'. Each message type must have a unique identity.
+            """);
+    }
+
     private static InvalidOperationException BuildThrows(
         Action<IMessageBusHostBuilder> configure,
         Action<IServiceCollection>? configureServices = null)
@@ -103,7 +121,7 @@ public sealed class MessageBusConfigurationValidationTests
         configure(builder);
 
         using var provider = services.BuildServiceProvider();
-        return Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<IMessagingRuntime>());
+        return Assert.Throws<InvalidOperationException>(provider.GetRequiredService<IMessagingRuntime>);
     }
 
     private static async Task InspectRuntimeAsync(

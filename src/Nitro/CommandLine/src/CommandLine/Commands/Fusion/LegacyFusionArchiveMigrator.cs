@@ -8,7 +8,7 @@ internal static class LegacyFusionArchiveMigrator
 {
     public static async Task<CompositionSettings?> MergeIntoAsync(
         MemoryStream legacyBuffer,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
+        Dictionary<string, LocalSourceSchema> sourceSchemas,
         IReadOnlyCollection<string> explicitNames,
         CancellationToken cancellationToken)
     {
@@ -56,8 +56,10 @@ internal static class LegacyFusionArchiveMigrator
 
             var migratedDoc = FusionMigrationHelpers.MigrateSubgraphConfig(rawBytes.Value);
 
-            sourceSchemas[configuration.Name] =
-                (new SourceSchemaText(configuration.Name, configuration.Schema), migratedDoc);
+            sourceSchemas[configuration.Name] = new LocalSourceSchema(
+                new SourceSchemaText(configuration.Name, configuration.Schema),
+                migratedDoc,
+                urlOverride: null);
         }
 
         CompositionSettings? migratedSettings = null;

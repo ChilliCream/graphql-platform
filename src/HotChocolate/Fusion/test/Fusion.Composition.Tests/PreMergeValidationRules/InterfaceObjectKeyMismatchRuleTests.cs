@@ -34,6 +34,37 @@ public sealed class InterfaceObjectKeyMismatchRuleTests : RuleTestBase
         ]);
     }
 
+    // The stand-in repeats the interface key with the fields in a different order and spacing,
+    // which is the same key structurally.
+    [Fact]
+    public void Validate_StandInKeyDiffersOnlyInFieldOrder_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            # Schema A
+            interface Media @key(fields: "id sku") {
+                id: ID!
+                sku: String!
+                title: String!
+            }
+            """,
+            """
+            # Schema B
+            type Media @interfaceObject @key(fields: "sku   id") {
+                sku: String!
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                rating: Int!
+            }
+            """
+        ]);
+    }
+
     // The stand-in keys on "upc", but the "Media" interface declares no key with that field.
     [Fact]
     public void Validate_StandInKeyNotOnInterface_Fails()

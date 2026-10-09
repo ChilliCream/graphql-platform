@@ -1,6 +1,7 @@
 ---
 date: "2023-02-08"
 title: "What's new for Hot Chocolate 13"
+description: "Hot Chocolate 13 improves GraphQL over HTTP, developer experience, authorization, subscriptions, data access, performance, and Strawberry Shake."
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 category: "Release"
 featuredImage: "hot-chocolate-13-banner.png"
@@ -73,7 +74,7 @@ We now have implemented the GraphQL cache-control feature, which allows you to s
 
 To enable Cache-Control, you will need to install the package `HotChocolate.Caching`.
 
-```bash
+```shell
 dotnet add package HotChocolate.Caching
 ```
 
@@ -537,7 +538,7 @@ See [IAuthorizationHandler.cs](https://github.com/ChilliCream/graphql-platform/b
 
 Out of the box, we support Microsoft's authorization policies that come with ASP.NET Core and OPA (Open Policy Agent). OPA is getting increasingly popular and can be applied to things from Kubernetes to your database, and it is now just one package away from your favorite GraphQL server.
 
-```bash
+```shell
 dotnet install HotChocolate.AspNetCore.Authorization.Opa
 ```
 
@@ -560,7 +561,7 @@ Here is an example of how easy it is now to integrate RavenDB with Hot Chocolate
 
 1. Install the RavenDB provider to your project.
 
-```bash
+```shell
 dotnet install HotChocolate.Data.Raven
 ```
 
@@ -605,7 +606,7 @@ public class Query
 
 The Marten integration works very similarly. The main difference here is that you have to install a different package.
 
-```bash
+```shell
 dotnet install HotChocolate.Data.Marten
 ```
 
@@ -615,13 +616,13 @@ With version 12, we introduced the Azure Functions integration but only targeted
 
 1. Install the HotChocolate Templates.
 
-   ```bash
+   ```shell
    dotnet new install HotChocolate.templates
    ```
 
 2. Chose your template to install or take a spin with both.
 
-   ```bash
+   ```shell
    dotnet new graphql-azf --output .\hc-graphql-azf
    dotnet new graphql-azf-ip --output .\hc-graphql-azf-ip
    ```
@@ -656,20 +657,20 @@ Here is a basic flow to initialize a project with a Strawberry Shake client.
 
 1. Create your project.
 
-   ```bash
+   ```shell
    dotnet new blazorwasm
    ```
 
 2. Add client tooling to manage the GraphQL schema.
 
-   ```bash
+   ```shell
    dotnet new tool-manifest
    dotnet tool install StrawberryShake.Tools
    ```
 
 3. Register GraphQL service with your application.
 
-   ```bash
+   ```shell
    dotnet add package StrawberryShake.Blazor
    dotnet graphql init https://api-crypto-workshop.chillicream.com/graphql -n CryptoClient
    ```
@@ -705,7 +706,7 @@ If you need a deep dive into the setup of persisted queries with Strawberry Shak
 
 # Banana Cake Pop
 
-With version 13, we are also releasing Banana Cake Pop 4, which packs many new features. You can read all about this [here](https://chillicream.com/blog/2023/02/07/new-in-banana-cake-pop-4).
+With version 13, we are also releasing Banana Cake Pop 4, which packs many new features. You can read all about this in the [Banana Cake Pop 4 announcement](./2023-02-07-new-in-banana-cake-pop-4.md).
 
 # Outlook
 

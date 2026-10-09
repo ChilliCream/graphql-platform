@@ -177,10 +177,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var type = new FusionScalarTypeDefinition(name, GetSpecScalarDescription(name), isInaccessible: false);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
         type.Complete(new CompositeScalarTypeCompletionContext(
-            default,
             FusionDirectiveCollection.Empty,
             specifiedBy: null,
-            serializationType: GetSpecScalarSerializationType(name),
+            serializationType: ScalarSerializationType.Undefined,
             pattern: null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
@@ -203,19 +202,6 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             SpecScalarNames.ID.Name =>
                 "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
             _ => null
-        };
-
-    private static ScalarSerializationType GetSpecScalarSerializationType(string name)
-        => name switch
-        {
-            SpecScalarNames.String.Name => ScalarSerializationType.String,
-            SpecScalarNames.Int.Name => ScalarSerializationType.Int,
-            SpecScalarNames.Float.Name => ScalarSerializationType.Float,
-            SpecScalarNames.Boolean.Name => ScalarSerializationType.Boolean,
-            SpecScalarNames.ID.Name => ScalarSerializationType.String | ScalarSerializationType.Int,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(name),
-                $"The specified name `{name}` is not a valid spec scalar name.")
         };
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition compositeNamedType)
@@ -279,14 +265,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             DirectiveNames.Skip.Arguments.If,
             "Skips this field or fragment when the condition is true.",
             defaultValue: null,
-            isDeprecated: false,
             deprecationReason: null,
             isInaccessible: false);
 
         var skipDirective = new FusionDirectiveDefinition(
             DirectiveNames.Skip.Name,
             "Directs the executor to skip this field or fragment when the `if` argument is true.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([ifField]),
@@ -325,14 +309,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             DirectiveNames.Include.Arguments.If,
             "Includes this field or fragment when the condition is true.",
             defaultValue: null,
-            isDeprecated: false,
             deprecationReason: null,
             isInaccessible: false);
 
         var includeDirective = new FusionDirectiveDefinition(
             DirectiveNames.Include.Name,
             "Directs the executor to include this field or fragment when the `if` argument is true.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([ifField]),
@@ -371,14 +353,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             DirectiveNames.SpecifiedBy.Arguments.Url,
             "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
             defaultValue: null,
-            isDeprecated: false,
             deprecationReason: null,
             isInaccessible: false);
 
         var specifiedByDirective = new FusionDirectiveDefinition(
             DirectiveNames.SpecifiedBy.Name,
             "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([urlField]),
@@ -413,7 +393,6 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         var oneOfDirective = new FusionDirectiveDefinition(
             DirectiveNames.OneOf.Name,
             "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object.",
-            isDeprecated: false,
             deprecationReason: null,
             isRepeatable: false,
             new FusionInputFieldDefinitionCollection([]),

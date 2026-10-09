@@ -38,6 +38,21 @@ internal static class ErrorHelper
                 .Build();
         }
 
+        public IError FragmentVariableNotUsed(
+            FragmentDefinitionNode node,
+            IEnumerable<string> unusedVariables)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_FragmentVariableNotUsed,
+                    node.Name.Value,
+                    string.Join(", ", unusedVariables))
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SpecifiedBy("sec-All-Variables-Used")
+                .Build();
+        }
+
         public IError VariableNotDeclared(
             OperationDefinitionNode node,
             IEnumerable<string> usedVariables)
@@ -257,6 +272,19 @@ internal static class ErrorHelper
                 .Build();
         }
 
+        public IError NoSelectionOnFragment(SelectionSetNode node, IType typeCondition)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_NoSelectionOnFragment,
+                    typeCondition.NamedType().Name)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("type", typeCondition.NamedType().Name)
+                .SpecifiedBy("sec-Field-Selections")
+                .Build();
+        }
+
         public IError FieldIsRequiredButNull(ISyntaxNode node, string fieldName)
         {
             return ErrorBuilder.New()
@@ -470,7 +498,8 @@ internal static class ErrorHelper
         public IError ArgumentNotUnique(
             ArgumentNode node,
             SchemaCoordinate? field = null,
-            IDirectiveDefinition? directive = null)
+            IDirectiveDefinition? directive = null,
+            string? fragment = null)
         {
             var builder = ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_ArgumentNotUnique)
@@ -489,6 +518,11 @@ internal static class ErrorHelper
                 builder.SetExtension("directive", directive.Name);
             }
 
+            if (fragment is not null)
+            {
+                builder.SetExtension("fragment", fragment);
+            }
+
             return builder
                 .SetExtension("argument", node.Name.Value)
                 .SpecifiedBy("sec-Argument-Uniqueness")
@@ -499,7 +533,8 @@ internal static class ErrorHelper
             ISyntaxNode node,
             string argumentName,
             SchemaCoordinate? field = null,
-            IDirectiveDefinition? directive = null)
+            IDirectiveDefinition? directive = null,
+            string? fragment = null)
         {
             var builder = ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_ArgumentRequired, argumentName)
@@ -518,6 +553,11 @@ internal static class ErrorHelper
                 builder.SetExtension("directive", directive.Name);
             }
 
+            if (fragment is not null)
+            {
+                builder.SetExtension("fragment", fragment);
+            }
+
             return builder
                 .SetExtension("argument", argumentName)
                 .SpecifiedBy("sec-Required-Arguments")
@@ -527,7 +567,8 @@ internal static class ErrorHelper
         public IError ArgumentDoesNotExist(
             ArgumentNode node,
             SchemaCoordinate? field = null,
-            IDirectiveDefinition? directive = null)
+            IDirectiveDefinition? directive = null,
+            string? fragment = null)
         {
             var builder = ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_ArgumentDoesNotExist, node.Name.Value)
@@ -546,9 +587,14 @@ internal static class ErrorHelper
                 builder.SetExtension("directive", directive.Name);
             }
 
+            if (fragment is not null)
+            {
+                builder.SetExtension("fragment", fragment);
+            }
+
             return builder
                 .SetExtension("argument", node.Name.Value)
-                .SpecifiedBy("sec-Required-Arguments")
+                .SpecifiedBy("sec-Argument-Names")
                 .Build();
         }
 

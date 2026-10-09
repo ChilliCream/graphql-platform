@@ -1,0 +1,172 @@
+{
+  "data": {
+    "included": {
+      "types": [
+        {
+          "name": "__Directive"
+        },
+        {
+          "name": "__DirectiveLocation"
+        },
+        {
+          "name": "__EnumValue"
+        },
+        {
+          "name": "__Field"
+        },
+        {
+          "name": "__InputValue"
+        },
+        {
+          "name": "__Schema"
+        },
+        {
+          "name": "__Type"
+        },
+        {
+          "name": "__TypeKind"
+        },
+        {
+          "name": "__SearchResult"
+        },
+        {
+          "name": "__SchemaDefinition"
+        },
+        {
+          "name": "Int"
+        },
+        {
+          "name": "Float"
+        },
+        {
+          "name": "Query"
+        },
+        {
+          "name": "Animal"
+        },
+        {
+          "name": "Dog"
+        },
+        {
+          "name": "Dragon"
+        },
+        {
+          "name": "String"
+        },
+        {
+          "name": "Boolean"
+        }
+      ]
+    },
+    "excluded": {
+      "types": [
+        {
+          "name": "__Directive"
+        },
+        {
+          "name": "__DirectiveLocation"
+        },
+        {
+          "name": "__EnumValue"
+        },
+        {
+          "name": "__Field"
+        },
+        {
+          "name": "__InputValue"
+        },
+        {
+          "name": "__Schema"
+        },
+        {
+          "name": "__Type"
+        },
+        {
+          "name": "__TypeKind"
+        },
+        {
+          "name": "__SearchResult"
+        },
+        {
+          "name": "__SchemaDefinition"
+        },
+        {
+          "name": "Int"
+        },
+        {
+          "name": "Float"
+        },
+        {
+          "name": "Query"
+        },
+        {
+          "name": "Animal"
+        },
+        {
+          "name": "Dog"
+        },
+        {
+          "name": "String"
+        },
+        {
+          "name": "Boolean"
+        }
+      ]
+    },
+    "omitted": {
+      "types": [
+        {
+          "name": "__Directive"
+        },
+        {
+          "name": "__DirectiveLocation"
+        },
+        {
+          "name": "__EnumValue"
+        },
+        {
+          "name": "__Field"
+        },
+        {
+          "name": "__InputValue"
+        },
+        {
+          "name": "__Schema"
+        },
+        {
+          "name": "__Type"
+        },
+        {
+          "name": "__TypeKind"
+        },
+        {
+          "name": "__SearchResult"
+        },
+        {
+          "name": "__SchemaDefinition"
+        },
+        {
+          "name": "Int"
+        },
+        {
+          "name": "Float"
+        },
+        {
+          "name": "Query"
+        },
+        {
+          "name": "Animal"
+        },
+        {
+          "name": "Dog"
+        },
+        {
+          "name": "String"
+        },
+        {
+          "name": "Boolean"
+        }
+      ]
+    }
+  }
+}

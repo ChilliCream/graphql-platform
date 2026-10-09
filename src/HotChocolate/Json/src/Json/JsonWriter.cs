@@ -505,6 +505,13 @@ public sealed partial class JsonWriter
     }
 
     /// <summary>
+    /// Gets the buffer writer this writer emits to. Valid between
+    /// <see cref="WriteRawValueStart"/> and <see cref="WriteRawValueEnd()"/>, where it lets a
+    /// producer place the bytes of an open raw value directly into the output.
+    /// </summary>
+    internal IBufferWriter<byte> InnerWriter => _writer;
+
+    /// <summary>
     /// Continues writing raw bytes for a value started with <see cref="WriteRawValueStart"/>.
     /// Does not write separators or update token state.
     /// </summary>

@@ -68,14 +68,14 @@ export function Offering({
       )}
 
       {price && (
-        <div className="mt-5 flex items-baseline gap-2">
-          <span className="font-heading text-cc-heading text-h3 font-semibold">
+        <div className="mt-5">
+          <p className="font-heading text-cc-heading text-h4 font-semibold">
             {price}
-          </span>
+          </p>
           {priceNote && (
-            <span className="text-cc-ink-dim font-mono text-xs">
+            <p className="text-cc-ink-dim mt-1 font-mono text-xs">
               {priceNote}
-            </span>
+            </p>
           )}
         </div>
       )}

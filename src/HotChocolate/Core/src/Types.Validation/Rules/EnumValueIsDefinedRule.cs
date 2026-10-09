@@ -10,41 +10,28 @@ namespace HotChocolate.Rules;
 /// Checks that enum values used in default values and assignments are defined in the enum type.
 /// </summary>
 public sealed class EnumValueIsDefinedRule
-    : IValidationEventHandler<ArgumentEvent>
-    , IValidationEventHandler<InputFieldEvent>
+    : IValidationEventHandler<DefaultValueNodeEvent>
     , IValidationEventHandler<DirectiveArgumentAssignmentEvent>
 {
     /// <summary>
-    /// Checks that enum values used in argument default values are defined in the enum type.
+    /// Checks that enum values used in default values are defined in the enum type,
+    /// at any depth within the default value.
     /// </summary>
-    public void Handle(ArgumentEvent @event, ValidationContext context)
+    public void Handle(DefaultValueNodeEvent @event, ValidationContext context)
     {
-        var argument = @event.Argument;
-        var argumentType = argument.Type.AsTypeDefinition();
+        var (value, type, _, root) = @event;
 
-        if (argumentType is IEnumTypeDefinition enumType
-            && argument.DefaultValue is EnumValueNode enumValue
+        // Only the enum position itself is checked; a wrapping list is validated at its element event.
+        if (type.NullableType().Kind is TypeKind.Enum
+            && value is EnumValueNode enumValue
+            && type.NamedType() is IEnumTypeDefinition enumType
             && !enumType.Values.ContainsName(enumValue.Value))
         {
-            context.Log.Write(
-                UndefinedArgumentDefaultEnumValue(enumValue.Value, argument, enumType.Name));
-        }
-    }
+            var entry = root.DeclaringMember is IInputObjectTypeDefinition
+                ? UndefinedInputFieldDefaultEnumValue(enumValue.Value, root, enumType.Name)
+                : UndefinedArgumentDefaultEnumValue(enumValue.Value, root, enumType.Name);
 
-    /// <summary>
-    /// Checks that enum values used in input field default values are defined in the enum type.
-    /// </summary>
-    public void Handle(InputFieldEvent @event, ValidationContext context)
-    {
-        var inputField = @event.InputField;
-        var fieldType = inputField.Type.AsTypeDefinition();
-
-        if (fieldType is IEnumTypeDefinition enumType
-            && inputField.DefaultValue is EnumValueNode enumValue
-            && !enumType.Values.ContainsName(enumValue.Value))
-        {
-            context.Log.Write(
-                UndefinedInputFieldDefaultEnumValue(enumValue.Value, inputField, enumType.Name));
+            context.Log.Write(entry);
         }
     }
 

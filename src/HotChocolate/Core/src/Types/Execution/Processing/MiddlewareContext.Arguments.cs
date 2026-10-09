@@ -28,9 +28,8 @@ internal partial class MiddlewareContext
         }
         catch (LeafCoercionException ex)
         {
-            var syntaxNode = Selection.Arguments[argument.Name].ValueLiteral;
             throw new LeafCoercionException(
-                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(syntaxNode).Build(),
+                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).Build(),
                 ex.Type,
                 Path);
         }

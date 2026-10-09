@@ -21,16 +21,33 @@ public abstract class DocumentValidatorVisitorTestBase
 
     protected ISchemaDefinition StarWars { get; }
 
+    /// <summary>
+    /// Parser options that enable the experimental fragment spread arguments syntax.
+    /// </summary>
+    protected static ParserOptions FragmentArgumentParserOptions { get; } =
+        new(new ParserOptionsExperimental(allowFragmentArguments: true));
+
     protected void ExpectValid(
         [StringSyntax("graphql")] string sourceText)
-        => ExpectValid(null, sourceText);
+        => ExpectValid(null, sourceText, ParserOptions.Default);
+
+    protected void ExpectValid(
+        [StringSyntax("graphql")] string sourceText,
+        ParserOptions parserOptions)
+        => ExpectValid(null, sourceText, parserOptions);
 
     protected void ExpectValid(
         ISchemaDefinition? schema,
         [StringSyntax("graphql")] string sourceText)
+        => ExpectValid(schema, sourceText, ParserOptions.Default);
+
+    protected void ExpectValid(
+        ISchemaDefinition? schema,
+        [StringSyntax("graphql")] string sourceText,
+        ParserOptions parserOptions)
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse(sourceText);
+        var document = Utf8GraphQLParser.Parse(sourceText, parserOptions);
         var context = ValidationUtils.CreateContext(document, schema);
 
         // act
@@ -44,15 +61,28 @@ public abstract class DocumentValidatorVisitorTestBase
     protected void ExpectErrors(
         [StringSyntax("graphql")] string sourceText,
         params Action<IError>[] elementInspectors)
-        => ExpectErrors(null, sourceText, elementInspectors);
+        => ExpectErrors(null, sourceText, ParserOptions.Default, elementInspectors);
+
+    protected void ExpectErrors(
+        [StringSyntax("graphql")] string sourceText,
+        ParserOptions parserOptions,
+        params Action<IError>[] elementInspectors)
+        => ExpectErrors(null, sourceText, parserOptions, elementInspectors);
 
     protected void ExpectErrors(
         ISchemaDefinition? schema,
         [StringSyntax("graphql")] string sourceText,
         params Action<IError>[] elementInspectors)
+        => ExpectErrors(schema, sourceText, ParserOptions.Default, elementInspectors);
+
+    protected void ExpectErrors(
+        ISchemaDefinition? schema,
+        [StringSyntax("graphql")] string sourceText,
+        ParserOptions parserOptions,
+        params Action<IError>[] elementInspectors)
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse(sourceText);
+        var document = Utf8GraphQLParser.Parse(sourceText, parserOptions);
         var context = ValidationUtils.CreateContext(
             document,
             schema,

@@ -1,20 +1,46 @@
 import { CardGrid } from "@/src/components/CardGrid";
 import { LinkCard } from "@/src/components/LinkCard";
 import { PageHero } from "@/src/components/PageHero";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { Section } from "@/src/components/Section";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import {
+  createItemListNode,
+  schemaId,
+  schemaRef,
+} from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
-  title: "Resources",
-  description: "ChilliCream brand resources and downloads.",
+const PAGE = {
+  title: "Company Resources",
+  description:
+    "Find ChilliCream contact details, GraphQL services, Nitro pricing, commercial license terms, company policies, and official merchandise in one place.",
   path: "/resources",
-});
+  keywords: [
+    "ChilliCream resources",
+    "ChilliCream contact",
+    "ChilliCream policies",
+    "ChilliCream license",
+    "ChilliCream shop",
+  ],
+} as const;
+
+export const metadata = pageMetadata(PAGE);
 
 const COMPANY_LINKS = [
   {
     href: "/services/support/contact",
-    title: "Contact",
-    description: "Get in touch with the team.",
+    title: "Contact ChilliCream",
+    description: "Discuss Nitro, GraphQL services, training, or support.",
+  },
+  {
+    href: "/services",
+    title: "GraphQL services",
+    description: "Compare advisory, support, and team training.",
+  },
+  {
+    href: "/pricing",
+    title: "Nitro pricing",
+    description: "Compare shared-cloud, dedicated, and self-hosted plans.",
   },
   {
     href: "https://store.chillicream.com",
@@ -49,14 +75,36 @@ const COMPANY_LINKS = [
   },
 ];
 
+const ITEM_LIST = createItemListNode(
+  PAGE.path,
+  "ChilliCream company links and policies",
+  COMPANY_LINKS.map((link) => ({
+    name: link.title,
+    url: link.href,
+    description: link.description,
+    itemType: "WebPage",
+  })),
+  { order: "https://schema.org/ItemListUnordered" },
+);
+
 export default function ResourcesPage() {
   return (
     <>
-      <PageHero
-        title="Company"
-        teaser="Everything you need to know about ChilliCream — contact us, legal terms, and more."
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        pageType="CollectionPage"
+        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Resources" }]}
+        mainEntity={schemaRef(schemaId(PAGE.path, "item-list"))}
+        additionalNodes={[ITEM_LIST]}
       />
-      <Section title="Resources">
+      <PageHero
+        eyebrow="Resources"
+        title="ChilliCream company resources."
+        teaser="Contact the team, compare commercial options, review our policies and license terms, or visit the official ChilliCream shop."
+      />
+      <Section title="Company links and policies">
         <CardGrid cols={3} step="progressive">
           {COMPANY_LINKS.map((link) => (
             <LinkCard

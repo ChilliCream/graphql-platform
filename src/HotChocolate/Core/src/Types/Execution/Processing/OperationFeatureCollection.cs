@@ -87,26 +87,53 @@ public sealed partial class OperationFeatureCollection : IFeatureCollection
         return (TFeature?)this[typeof(TFeature)];
     }
 
+    /// <summary>
+    /// Gets an existing feature or creates and sets a new instance using the default constructor.
+    /// </summary>
+    /// <typeparam name="TFeature">The type of the feature.</typeparam>
+    /// <returns>The existing or newly created feature instance.</returns>
+    /// <remarks>
+    /// This method is thread-safe. Under contention more than one instance can be created,
+    /// but only one instance is stored and every caller observes that instance.
+    /// </remarks>
     public TFeature GetOrSetSafe<TFeature>() where TFeature : new()
         => GetOrSetSafe(static () => new TFeature());
 
+    /// <summary>
+    /// Gets an existing feature or creates and sets a new instance using the
+    /// specified <paramref name="factory"/>.
+    /// </summary>
+    /// <typeparam name="TFeature">The type of the feature.</typeparam>
+    /// <param name="factory">The factory that creates the feature instance.</param>
+    /// <returns>The existing or newly created feature instance.</returns>
+    /// <remarks>
+    /// This method is thread-safe. Under contention the <paramref name="factory"/> can be
+    /// invoked more than once, but only one instance is stored and every caller observes
+    /// that instance.
+    /// </remarks>
     public TFeature GetOrSetSafe<TFeature>(Func<TFeature> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        if (!TryGet<TFeature>(out var feature))
+        if (TryGet<TFeature>(out var feature))
         {
-            lock (_writeLock)
-            {
-                if (!TryGet(out feature))
-                {
-                    feature = factory();
-                    this[typeof(TFeature)] = feature;
-                }
-            }
+            return feature;
         }
 
-        return feature;
+        // The factory is invoked outside of the write lock, feature factories can reach back
+        // into the operation and take the operation lock to compile selection sets.
+        var created = factory();
+
+        lock (_writeLock)
+        {
+            if (TryGet<TFeature>(out var existing))
+            {
+                return existing;
+            }
+
+            this[typeof(TFeature)] = created;
+            return created;
+        }
     }
 
     internal TFeature GetOrSetSafe<TFeature, TContext>(
@@ -115,19 +142,23 @@ public sealed partial class OperationFeatureCollection : IFeatureCollection
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        if (!TryGet<TFeature>(out var feature))
+        if (TryGet<TFeature>(out var feature))
         {
-            lock (_writeLock)
-            {
-                if (!TryGet(out feature))
-                {
-                    feature = factory(context);
-                    this[typeof(TFeature)] = feature;
-                }
-            }
+            return feature;
         }
 
-        return feature;
+        var created = factory(context);
+
+        lock (_writeLock)
+        {
+            if (TryGet<TFeature>(out var existing))
+            {
+                return existing;
+            }
+
+            this[typeof(TFeature)] = created;
+            return created;
+        }
     }
 
     /// <inheritdoc />

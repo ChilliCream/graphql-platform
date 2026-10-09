@@ -24,6 +24,7 @@ public sealed class CompositionApiTests
             HotChocolate.Fusion.Logging.LogSeverity
             HotChocolate.Fusion.Options.ApolloFederationCompatibilityOptions
             HotChocolate.Fusion.Options.DirectiveMergeBehavior
+            HotChocolate.Fusion.Options.EnumValuesMergeBehavior
             HotChocolate.Fusion.Options.SatisfiabilityOptions
             HotChocolate.Fusion.Options.SchemaComposerOptions
             HotChocolate.Fusion.Options.SourceSchemaMergerOptions

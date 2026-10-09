@@ -323,18 +323,16 @@ export const schemaData = {
         "Cart",
         "Money",
         "Brand",
-      ].map(
-        (name): SchemaRow => ({
-          name,
-          kind:
-            name === "Query"
-              ? "query"
-              : name === "Mutation"
-                ? "mutation"
-                : "object",
-          drillable: true,
-        }),
-      ),
+      ].map((name): SchemaRow => ({
+        name,
+        kind:
+          name === "Query"
+            ? "query"
+            : name === "Mutation"
+              ? "mutation"
+              : "object",
+        drillable: true,
+      })),
     },
     {
       group: "Inputs",
@@ -344,9 +342,11 @@ export const schemaData = {
     },
     {
       group: "Enums",
-      rows: ["OrderStatus", "Currency"].map(
-        (name): SchemaRow => ({ name, kind: "enum", drillable: true }),
-      ),
+      rows: ["OrderStatus", "Currency"].map((name): SchemaRow => ({
+        name,
+        kind: "enum",
+        drillable: true,
+      })),
     },
     {
       group: "Scalars",

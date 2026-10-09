@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 /// <summary>

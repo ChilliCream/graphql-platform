@@ -4,12 +4,24 @@ using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using static HotChocolate.Types.Analyzers.Helpers.GeneratorUtils;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class DataLoaderFileBuilder : IDisposable
 {
+    private static readonly SymbolDisplayFormat s_crefTypeFormat =
+        new(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions:
+                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers
+                | SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+                | SymbolDisplayMiscellaneousOptions.ExpandNullable
+                | SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
+
     private StringBuilder _sb;
     private CodeWriter _writer;
     private bool _disposed;
@@ -78,13 +90,14 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public void WriteBeginDataLoaderClass(
         string name,
-        string interfaceName,
+        string? interfaceName,
+        IMethodSymbol method,
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
-        ITypeSymbol value,
-        bool withInterface)
+        ITypeSymbol value)
     {
+        WriteDataLoaderDocumentation(method);
         _writer.WriteIndentedLine(
             "{0} sealed partial class {1}",
             isPublic
@@ -98,7 +111,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualifiedWithNullRefQualifier(),
             value.ToFullyQualifiedWithNullRefQualifier());
-        if (withInterface)
+        if (interfaceName is not null)
         {
             _writer.WriteIndentedLine(", {0}", interfaceName);
         }
@@ -112,6 +125,63 @@ public sealed class DataLoaderFileBuilder : IDisposable
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("}");
     }
+
+    private void WriteDataLoaderDocumentation(IMethodSymbol method)
+    {
+        _writer.WriteIndentedLine("/// <summary>");
+        _writer.WriteIndentedLine(
+            "/// A DataLoader generated from <see cref=\"{0}\"/>.",
+            CreateCref(method));
+        _writer.WriteIndentedLine("/// </summary>");
+    }
+
+    private static string CreateCref(IMethodSymbol method)
+    {
+        if (method.Parameters.Any(p => p.Type is IFunctionPointerTypeSymbol))
+        {
+            return EscapeXmlAttribute(DocumentationCommentId.CreateDeclarationId(method)!);
+        }
+
+        var builder = new StringBuilder();
+        builder.Append(method.ContainingType.ToDisplayString(s_crefTypeFormat));
+        builder.Append('.');
+        builder.Append(EscapeIdentifier(method.Name));
+        builder.Append('(');
+
+        for (var i = 0; i < method.Parameters.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(method.Parameters[i].RefKind switch
+            {
+                RefKind.Ref => "ref ",
+                RefKind.Out => "out ",
+                RefKind.In => "in ",
+                RefKind.RefReadOnlyParameter => "ref readonly ",
+                _ => string.Empty
+            });
+            builder.Append(method.Parameters[i].Type.ToDisplayString(s_crefTypeFormat));
+        }
+
+        builder.Append(')');
+        return EscapeXmlAttribute(builder.ToString());
+    }
+
+    private static string EscapeIdentifier(string identifier)
+        => SyntaxFacts.GetKeywordKind(identifier) is not SyntaxKind.None
+            || SyntaxFacts.GetContextualKeywordKind(identifier) is not SyntaxKind.None
+                ? "@" + identifier
+                : identifier;
+
+    private static string EscapeXmlAttribute(string value)
+        => value
+            .Replace("&", "&amp;")
+            .Replace("\"", "&quot;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;");
 
     public void WriteDataLoaderConstructor(
         string name,
@@ -269,11 +339,24 @@ public sealed class DataLoaderFileBuilder : IDisposable
             {
                 if (parameter.Kind is DataLoaderParameterKind.Service)
                 {
-                    _writer.WriteIndentedLine(
-                        "var {0} = {1}.GetRequiredService<{2}>();",
-                        parameter.VariableName,
-                        isScoped ? "scope.ServiceProvider" : "_services",
-                        parameter.Type.ToFullyQualifiedWithNullRefQualifier());
+                    if (parameter.Key is { } serviceKey)
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = {1}.{2}<{3}>({4});",
+                            parameter.VariableName,
+                            isScoped ? "scope.ServiceProvider" : "_services",
+                            parameter.IsNullable ? "GetKeyedService" : "GetRequiredKeyedService",
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
+                            serviceKey);
+                    }
+                    else
+                    {
+                        _writer.WriteIndentedLine(
+                            "var {0} = {1}.GetRequiredService<{2}>();",
+                            parameter.VariableName,
+                            isScoped ? "scope.ServiceProvider" : "_services",
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier());
+                    }
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
                 {

@@ -9,8 +9,7 @@ const FUN_FACTS = [
   "Pair and group exercises",
   "Real schemas, not lorem ipsum",
   "Questions welcome, including the basic ones",
-  "Working sessions on your real codebase",
-  "Optional recap doc after the week",
+  "Optional work in your codebase",
 ];
 
 const FUN_AVOID = [
@@ -22,8 +21,7 @@ const FUN_AVOID = [
 ];
 
 /**
- * The honesty band: the warm pitch for how the sessions actually feel on the
- * left, and a short list of what we will not do on the right.
+ * The workshop-style training pitch and a short list of formats we avoid.
  */
 export function FunBand() {
   return (

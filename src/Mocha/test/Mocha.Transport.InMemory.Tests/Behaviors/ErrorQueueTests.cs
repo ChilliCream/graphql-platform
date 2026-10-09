@@ -39,12 +39,9 @@ public class ErrorQueueTests
         // assert - faulted message lands in error queue with fault headers
         Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
-        Assert.True(headers.TryGetValue("fault-exception-type", out var exType));
-        Assert.Contains("InvalidOperationException", (string?)exType);
-        Assert.True(headers.TryGetValue("fault-message", out var faultMsg));
-        Assert.Equal("Handler failed deliberately", (string?)faultMsg);
-        Assert.True(headers.ContainsKey("fault-stack-trace"));
-        Assert.True(headers.ContainsKey("fault-timestamp"));
+        Assert.Equal(FaultHeaders.ExpectedShape(), FaultHeaders.Shape(headers));
+        Assert.Contains("InvalidOperationException", (string?)headers[FaultHeaders.ExceptionType]);
+        Assert.Equal("Handler failed deliberately", headers[FaultHeaders.Message]);
     }
 
     [Fact]
@@ -80,7 +77,7 @@ public class ErrorQueueTests
         // assert - faulted message lands in error queue
         Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
-        Assert.True(headers.TryGetValue("fault-exception-type", out var exType));
+        Assert.True(headers.TryGetValue(FaultHeaders.ExceptionType, out var exType));
         Assert.Contains("InvalidOperationException", (string?)exType);
     }
 

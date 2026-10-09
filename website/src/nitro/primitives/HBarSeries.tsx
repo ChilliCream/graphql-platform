@@ -23,6 +23,7 @@ export interface HBarSeriesProps {
   playWindow?: [number, number];
   rowStagger?: number;
   durationMs?: number;
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -44,11 +45,12 @@ export function HBarSeries({
   playWindow,
   rowStagger = 0.12,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: HBarSeriesProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const rows = (items ?? clients?.map(toItem) ?? [])
     .slice()

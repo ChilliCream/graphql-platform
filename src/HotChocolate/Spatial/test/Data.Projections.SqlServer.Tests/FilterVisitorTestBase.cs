@@ -3,11 +3,10 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
-public class ProjectionVisitorTestBase(PostgreSqlResource<PostgisConfig> resource)
+public class ProjectionVisitorTestBase(PostgisResource resource)
 {
     private async Task<Func<IResolverContext, IEnumerable<T>>> BuildResolverAsync<T>(
         params T[] results)

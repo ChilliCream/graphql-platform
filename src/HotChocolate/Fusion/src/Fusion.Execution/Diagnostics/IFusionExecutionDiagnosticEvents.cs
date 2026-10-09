@@ -13,6 +13,31 @@ namespace HotChocolate.Fusion.Diagnostics;
 public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
 {
     /// <summary>
+    /// Called while the operation cost is analyzed.
+    /// </summary>
+    /// <param name="context">
+    /// The GraphQL request context.
+    /// </param>
+    /// <returns>
+    /// A scope that is disposed when cost analysis is complete.
+    /// </returns>
+    IDisposable AnalyzeOperationCost(RequestContext context);
+
+    /// <summary>
+    /// Reports an evaluated operation cost within the analysis scope.
+    /// </summary>
+    /// <param name="context">
+    /// The GraphQL request context.
+    /// </param>
+    /// <param name="fieldCost">
+    /// The evaluated field cost.
+    /// </param>
+    /// <param name="typeCost">
+    /// The evaluated type cost.
+    /// </param>
+    void OperationCost(RequestContext context, double fieldCost, double typeCost);
+
+    /// <summary>
     /// Called when the operation is being planned.
     /// </summary>
     /// <param name="context">
@@ -384,6 +409,29 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// A scope that will be disposed when the subscription event execution has completed.
     /// </returns>
     IDisposable OnSubscriptionEvent(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId);
+
+    /// <summary>
+    /// Called when a subscription event result has been fully written to the client.
+    /// A client disconnect that happens after this call must not change the recorded
+    /// outcome of the event.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The execution node.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema.
+    /// </param>
+    /// <param name="subscriptionId">
+    /// An internal identifier for the subscription instance.
+    /// </param>
+    void SubscriptionEventDelivered(
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,

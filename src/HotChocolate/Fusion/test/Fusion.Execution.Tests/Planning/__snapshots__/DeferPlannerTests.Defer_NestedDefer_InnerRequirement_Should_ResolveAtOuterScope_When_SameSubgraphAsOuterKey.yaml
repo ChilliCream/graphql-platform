@@ -41,7 +41,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_2($__fusion_1_id: ID!) {
+          query Op_defer_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               email
             }
@@ -58,7 +58,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_1 {
+          query Op_defer_5 {
             user(id: "1") {
               id
               preferences
@@ -68,30 +68,30 @@ incrementalPlans:
       - 1
     parentNodeId: 1
     requirements:
-      - name: __fusion_1_id
-        selectionMap: >-
-          id
       - name: __fusion_2_preferences
         selectionMap: >-
           preferences
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
     nodes:
       - id: 1
         type: Operation
         schema: c
         operation: |
-          query Op_defer_2($__fusion_1_id: ID!, $__fusion_2_preferences: String!) {
-            userById(id: $__fusion_1_id) {
+          query Op_defer_2($__fusion_2_preferences: String!, $__fusion_3_id: ID!) {
+            userById(id: $__fusion_3_id) {
               customized(preferences: $__fusion_2_preferences)
             }
           }
         source: $.userById
         target: $.user
         requirements:
-          - name: __fusion_1_id
-            selectionMap: >-
-              id
           - name: __fusion_2_preferences
             selectionMap: >-
               preferences
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
         dependencies:
           - parentNodeId: 2

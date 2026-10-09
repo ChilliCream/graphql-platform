@@ -1,0 +1,57 @@
+title: RejectedInfiniteRequest_Should_ReportInfinityAsString
+request:
+  document: |
+    {
+      unannotatedItems {
+        value
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The maximum allowed field cost was exceeded.",
+          "extensions": {
+            "code": "HC0047",
+            "fieldCost": "Infinity",
+            "maxFieldCost": 1000
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        unannotatedItems: [Item]
+        expensive: Expensive
+      }
+
+      type Expensive @cost(weight: "2000") {
+        value: String
+      }
+
+      type Item {
+        value: Int @cost(weight: "5")
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION
+
+      directive @listSize(
+        assumedSize: Int
+        slicingArguments: [String!]
+        sizedFields: [String!]
+        requireOneSlicingArgument: Boolean = true
+      ) on FIELD_DEFINITION

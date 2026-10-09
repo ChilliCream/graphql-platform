@@ -1,5 +1,6 @@
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Resolvers;
 
@@ -7,13 +8,14 @@ public sealed class ParameterBindingResolver
 {
     private readonly IParameterBindingFactory[] _bindings;
     private readonly IParameterBindingFactory _defaultBinding;
+    private readonly IParameterDescriptorFieldConfiguration[] _fieldConfigurations;
 
     public ParameterBindingResolver(
         IServiceProvider applicationServices,
         IEnumerable<IParameterExpressionBuilder>? customBindingFactories)
     {
         var serviceInspector = applicationServices.GetService<IServiceProviderIsService>();
-        var factories = customBindingFactories?.OfType<IParameterBindingFactory>().ToArray() ?? [];
+        var custom = customBindingFactories?.ToArray() ?? [];
 
         // explicit internal expression builders will be added first.
         var bindingFactories = new List<IParameterBindingFactory>
@@ -27,39 +29,110 @@ public sealed class ParameterBindingResolver
             new IsSelectedParameterExpressionBuilder(),
             new EventMessageParameterExpressionBuilder()
         };
+        var fieldConfigurations = bindingFactories
+            .OfType<IParameterDescriptorFieldConfiguration>()
+            .ToList();
 
-        if (customBindingFactories is not null)
+        if (custom.Length > 0)
         {
             // then we will add custom parameter expression builder and
             // give the user a chance to override our implicit expression builder.
-            bindingFactories.AddRange(factories.Where(t => !t.IsDefaultHandler));
+            foreach (var builder in custom)
+            {
+                if (!builder.IsDefaultHandler)
+                {
+                    if (builder is IParameterBindingFactory bindingFactory)
+                    {
+                        bindingFactories.Add(bindingFactory);
+                    }
+
+                    if (builder is IParameterDescriptorFieldConfiguration configuration)
+                    {
+                        fieldConfigurations.Add(configuration);
+                    }
+                }
+            }
         }
 
         if (serviceInspector is not null)
         {
-            bindingFactories.Add(new InferredServiceParameterExpressionBuilder(serviceInspector));
+            AddBindingFactory(
+                bindingFactories,
+                fieldConfigurations,
+                new InferredServiceParameterExpressionBuilder(serviceInspector));
         }
 
-        bindingFactories.Add(new DocumentParameterExpressionBuilder());
-        bindingFactories.Add(new CancellationTokenParameterExpressionBuilder());
-        bindingFactories.Add(new ResolverContextParameterExpressionBuilder());
-        bindingFactories.Add(new SchemaParameterExpressionBuilder());
-        bindingFactories.Add(new SelectionParameterExpressionBuilder());
-        bindingFactories.Add(new ObjectTypeParameterExpressionBuilder());
-        bindingFactories.Add(new OperationDefinitionParameterExpressionBuilder());
-        bindingFactories.Add(new OperationParameterExpressionBuilder());
-        bindingFactories.Add(new FieldParameterExpressionBuilder());
-        bindingFactories.Add(new ClaimsPrincipalParameterExpressionBuilder());
-        bindingFactories.Add(new PathParameterExpressionBuilder());
-        bindingFactories.Add(new ConnectionFlagsParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new DocumentParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new CancellationTokenParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new ResolverContextParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new SchemaParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new SelectionParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new ObjectTypeParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new OperationDefinitionParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new OperationParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new FieldParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new ClaimsPrincipalParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new PathParameterExpressionBuilder());
+        AddBindingFactory(
+            bindingFactories,
+            fieldConfigurations,
+            new ConnectionFlagsParameterExpressionBuilder());
 
-        if (customBindingFactories is not null)
+        if (custom.Length > 0)
         {
-            bindingFactories.AddRange(factories.Where(t => t.IsDefaultHandler));
+            foreach (var builder in custom)
+            {
+                if (builder.IsDefaultHandler)
+                {
+                    if (builder is IParameterBindingFactory bindingFactory)
+                    {
+                        bindingFactories.Add(bindingFactory);
+                    }
+
+                    if (builder is IParameterDescriptorFieldConfiguration configuration)
+                    {
+                        fieldConfigurations.Add(configuration);
+                    }
+                }
+            }
         }
 
         _bindings = [.. bindingFactories];
         _defaultBinding = new ArgumentParameterExpressionBuilder();
+        _fieldConfigurations = [.. fieldConfigurations];
     }
 
     public IParameterBinding GetBinding(ParameterDescriptor parameter)
@@ -97,6 +170,35 @@ public sealed class ParameterBindingResolver
         }
 
         return (_defaultBinding.Kind, _defaultBinding.IsPure);
+    }
+
+    public void ApplyConfiguration(
+        ParameterDescriptor parameter,
+        ObjectFieldDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        foreach (var configuration in _fieldConfigurations)
+        {
+            if (configuration.CanHandle(parameter))
+            {
+                configuration.ApplyConfiguration(parameter, descriptor);
+                break;
+            }
+        }
+    }
+
+    private static void AddBindingFactory(
+        List<IParameterBindingFactory> bindingFactories,
+        List<IParameterDescriptorFieldConfiguration> fieldConfigurations,
+        IParameterBindingFactory bindingFactory)
+    {
+        bindingFactories.Add(bindingFactory);
+
+        if (bindingFactory is IParameterDescriptorFieldConfiguration configuration)
+        {
+            fieldConfigurations.Add(configuration);
+        }
     }
 
     private static void EnsureParameterInfoNotRequired(

@@ -1,0 +1,8 @@
+{
+  "message": "Input Object 'A' cannot be provided a finite value because it references itself through fields: 'A.b', 'B.c', 'C.a'.",
+  "type": "A",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1211"
+  }
+}
+

@@ -131,6 +131,11 @@ namespace TestNamespace
                         configuration.Member,
                         new global::HotChocolate.Types.Composite.LookupAttribute(),
                         new global::HotChocolate.Types.Composite.InternalAttribute());
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductById_id(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 

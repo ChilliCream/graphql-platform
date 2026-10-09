@@ -1,8 +1,12 @@
+import fs from "node:fs/promises";
 import path from "node:path";
+import matter from "gray-matter";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocPageMeta } from "@/src/components/DocPageMeta";
 import { EditOnGitHub } from "@/src/components/EditOnGitHub";
+import { HeadingTags } from "@/src/components/HeadingTags";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { TableOfContents } from "@/src/components/TableOfContents";
 import { Typography } from "@/src/design-system/Typography";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
@@ -16,11 +20,20 @@ import {
   NOT_FOUND_SEGMENT,
   resolveFile,
 } from "@/src/helpers/docsParams";
-import { getGitMetadata } from "@/src/helpers/gitMetadata";
+import {
+  getGitMetadata,
+  getLastModifiedFromGit,
+} from "@/src/helpers/gitMetadata";
 import { githubEditUrl } from "@/src/helpers/githubEditUrl";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
-import { SITE_URL, toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import {
+  ORGANIZATION_ID,
+  schemaId,
+  schemaRef,
+  type JsonLdNode,
+} from "@/src/helpers/structuredData";
 
 type Params = {
   slug: string[];
@@ -61,6 +74,15 @@ function notFoundSecondary(
   return { href: "/docs", label: "Browse the docs" };
 }
 
+function isHumanContributor(author: string): boolean {
+  return (
+    author !== "Unknown" &&
+    !/(?:\[bot\]|\bbot\b|automation|github actions|dependabot|renovate)/i.test(
+      author,
+    )
+  );
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -78,7 +100,9 @@ export async function generateMetadata({
   const docTags = Array.isArray(tags)
     ? tags.filter((t): t is string => typeof t === "string" && t.length > 0)
     : [];
-  const gitMeta = await getGitMetadata(path.join(CONTENT_ROOT, rel));
+  const lastModified = await getLastModifiedFromGit(
+    path.join(CONTENT_ROOT, rel),
+  );
 
   // Surface the product in the title tag ("OpenAPI Adapter - Hot Chocolate"),
   // since searches almost always include the product name. Skip the suffix on
@@ -116,7 +140,7 @@ export async function generateMetadata({
       description,
       images: [ogImage],
       url: canonical,
-      modifiedTime: gitMeta.isoDate,
+      modifiedTime: lastModified?.toISOString(),
       tags: docTags.length > 0 ? docTags : undefined,
     },
     twitter: {
@@ -144,8 +168,18 @@ export default async function DocPage({ params }: PageProps) {
   }
 
   const absolutePath = path.join(CONTENT_ROOT, rel);
-  const { content, frontmatter, toc } = await compileDoc(absolutePath);
+  const fallbackMarkdownBody =
+    process.env.NODE_ENV === "development"
+      ? matter(await fs.readFile(absolutePath, "utf8")).content.trim()
+      : undefined;
+  const {
+    content,
+    frontmatter,
+    toc,
+    tags: pageTags,
+  } = await compileDoc(absolutePath);
   const gitMeta = await getGitMetadata(absolutePath);
+  const lastModified = await getLastModifiedFromGit(absolutePath);
 
   const pageHref = `/docs/${slug.join("/")}`;
   const crumbs = [
@@ -160,59 +194,102 @@ export default async function DocPage({ params }: PageProps) {
       href: pageHref,
     });
   }
-  const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "TechArticle",
-      headline: frontmatter.title,
-      ...(frontmatter.description
-        ? { description: frontmatter.description }
-        : {}),
-      dateModified: gitMeta.isoDate,
-      publisher: { "@id": `${SITE_URL}/#organization` },
-      mainEntityOfPage: toAbsoluteUrl(`/docs/${slug.join("/")}`),
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: crumbs.map((c, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        name: c.name,
-        ...(c.href && i < crumbs.length - 1
-          ? { item: toAbsoluteUrl(c.href) }
-          : {}),
-      })),
-    },
+  const title = frontmatter.title ?? slug[slug.length - 1];
+  const fallbackMarkdown =
+    fallbackMarkdownBody === undefined
+      ? undefined
+      : `# ${title}\n\n${fallbackMarkdownBody}`.trim();
+  const description = frontmatter.description;
+  const articleId = schemaId(pageHref, "article");
+  const imageId = schemaId(pageHref, "primary-image");
+  const imageUrl = toAbsoluteUrl(
+    `/docs-og/${encodeDocId(slug)}/opengraph-image`,
+  );
+  const article: JsonLdNode = {
+    "@type": ["TechArticle", "Article"],
+    "@id": articleId,
+    url: toAbsoluteUrl(pageHref),
+    headline: title,
+    ...(description ? { description } : {}),
+    ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
+    image: schemaRef(imageId),
+    author: schemaRef(ORGANIZATION_ID),
+    ...(gitMeta && isHumanContributor(gitMeta.author)
+      ? {
+          contributor: {
+            "@type": "Person",
+            name: gitMeta.author,
+          },
+        }
+      : {}),
+    publisher: schemaRef(ORGANIZATION_ID),
+    mainEntityOfPage: schemaRef(schemaId(pageHref, "webpage")),
+    inLanguage: "en",
+    isAccessibleForFree: true,
+  };
+  const image: JsonLdNode = {
+    "@type": "ImageObject",
+    "@id": imageId,
+    url: imageUrl,
+    contentUrl: imageUrl,
+    width: 1200,
+    height: 630,
+    caption: `${title} documentation`,
+  };
+  const structuredBreadcrumbs = [
+    { name: "Home", path: "/" },
+    ...crumbs.map((crumb, index) => ({
+      name: crumb.name,
+      ...(crumb.href && index < crumbs.length - 1 ? { path: crumb.href } : {}),
+    })),
   ];
 
   return (
     <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
       <main className="min-w-0 px-5 py-8 sm:px-12">
-        <script
-          type="application/ld+json"
-          // Escape `<` so content text can never close the script tag (XSS).
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-          }}
+        <PageStructuredData
+          title={title}
+          description={description}
+          dateModified={lastModified?.toISOString()}
+          path={pageHref}
+          breadcrumbs={structuredBreadcrumbs}
+          mainEntity={schemaRef(articleId)}
+          additionalNodes={[article, image]}
         />
         <article className="mx-auto max-w-5xl">
           {frontmatter.title ? (
-            <Typography variant="h1">{frontmatter.title}</Typography>
+            <Typography
+              variant="h1"
+              className={
+                (pageTags.since ?? pageTags.requiresNitro)
+                  ? "flex flex-wrap items-center"
+                  : ""
+              }
+              adornment={<HeadingTags {...pageTags} />}
+            >
+              {frontmatter.title}
+            </Typography>
           ) : null}
 
           {content}
 
           <EditOnGitHub href={githubEditUrl(`content/docs/${rel}`)} />
 
-          <DocPageMeta
-            isoDate={gitMeta.isoDate}
-            displayDate={gitMeta.displayDate}
-            author={gitMeta.author}
-          />
+          {gitMeta ? (
+            <DocPageMeta
+              isoDate={gitMeta.isoDate}
+              displayDate={gitMeta.displayDate}
+              author={gitMeta.author}
+            />
+          ) : null}
         </article>
       </main>
-      <TableOfContents items={toc} />
+      <TableOfContents
+        fallbackMarkdown={fallbackMarkdown}
+        items={toc}
+        markdownUrl={`${pageHref}.md`}
+        title={title}
+      />
     </div>
   );
 }

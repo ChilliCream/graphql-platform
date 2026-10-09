@@ -43,7 +43,7 @@ const PRODUCTS = [
   {
     label: "Mocha",
     role: "Messaging & Mediator",
-    href: "/docs/mocha",
+    href: "/products/mocha",
     Icon: Mocha,
   },
 ] as const;

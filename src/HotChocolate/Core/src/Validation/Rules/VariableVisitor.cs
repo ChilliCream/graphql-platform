@@ -88,17 +88,91 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     }
 
     protected override ISyntaxVisitorAction Enter(
+        FragmentDefinitionNode node,
+        DocumentValidatorContext context)
+    {
+        var result = base.Enter(node, context);
+
+        // A frame is only pushed when the fragment is entered, because Skip also skips Leave.
+        if (result.IsContinue())
+        {
+            PushFragmentVariableFrame(context);
+        }
+
+        return result;
+    }
+
+    protected override ISyntaxVisitorAction Leave(
+        FragmentDefinitionNode node,
+        DocumentValidatorContext context)
+    {
+        var frame = PeekFragmentVariableFrame(context);
+        List<string>? unused = null;
+
+        if (frame is not null)
+        {
+            foreach (var declared in frame.Declared)
+            {
+                if (!frame.Used.Contains(declared))
+                {
+                    (unused ??= []).Add(declared);
+                }
+            }
+
+            context.Features.GetRequired<VariableVisitorFeature>().FragmentVariableDepth--;
+        }
+
+        if (unused is not null)
+        {
+            unused.Sort(StringComparer.Ordinal);
+            context.ReportError(context.FragmentVariableNotUsed(node, unused));
+        }
+
+        return base.Leave(node, context);
+    }
+
+    private static VariableVisitorFeature.FragmentVariableFrame PushFragmentVariableFrame(
+        DocumentValidatorContext context)
+    {
+        var feature = context.Features.GetRequired<VariableVisitorFeature>();
+
+        if (feature.FragmentVariableDepth == feature.FragmentVariableFrames.Count)
+        {
+            feature.FragmentVariableFrames.Add(new VariableVisitorFeature.FragmentVariableFrame());
+        }
+
+        var frame = feature.FragmentVariableFrames[feature.FragmentVariableDepth++];
+        frame.Declared.Clear();
+        frame.Used.Clear();
+        return frame;
+    }
+
+    private static VariableVisitorFeature.FragmentVariableFrame? PeekFragmentVariableFrame(
+        DocumentValidatorContext context)
+    {
+        var feature = context.Features.GetRequired<VariableVisitorFeature>();
+
+        return feature.FragmentVariableDepth == 0
+            ? null
+            : feature.FragmentVariableFrames[feature.FragmentVariableDepth - 1];
+    }
+
+    protected override ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
         DocumentValidatorContext context)
     {
         var feature = context.Features.GetRequired<VariableVisitorFeature>();
+        var isFragmentVariable = context.Path.Peek() is FragmentDefinitionNode;
 
         base.Enter(node, context);
 
         var variableName = node.Variable.Name.Value;
 
-        feature.Unused.Add(variableName);
-        feature.Declared.Add(variableName);
+        if (!isFragmentVariable)
+        {
+            feature.Unused.Add(variableName);
+            feature.Declared.Add(variableName);
+        }
 
         if (context.Schema.Types.TryGetType<ITypeDefinition>(
             node.Type.NamedType().Name.Value, out var type)
@@ -107,7 +181,13 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             context.ReportError(context.VariableNotInputType(node, variableName));
         }
 
-        if (!feature.VariableNames.Add(variableName))
+        // Uniqueness applies per operation or per fragment, so a fragment may declare a
+        // variable whose name an enclosing operation also declares.
+        var variableNames = isFragmentVariable
+            ? PeekFragmentVariableFrame(context)?.Declared ?? feature.VariableNames
+            : feature.VariableNames;
+
+        if (!variableNames.Add(variableName))
         {
             context.ReportError(context.VariableNameNotUnique(node, variableName));
         }
@@ -184,6 +264,23 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         DocumentValidatorContext context)
     {
+        // An argument of a fragment spread is declared by a variable definition of the
+        // fragment it targets, not by a field or a directive.
+        if (context.Path.Peek() is FragmentSpreadNode spread)
+        {
+            if (FragmentArguments.TryGetArgumentType(
+                context,
+                spread,
+                node.Name.Value,
+                out var argumentType))
+            {
+                context.Types.Push(argumentType);
+                return Continue;
+            }
+
+            return Skip;
+        }
+
         if (context.Directives.TryPeek(out var directive))
         {
             if (directive.Arguments.TryGetField(node.Name.Value, out var argument))
@@ -214,6 +311,12 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         DocumentValidatorContext context)
     {
+        if (context.Path.Peek() is FragmentSpreadNode)
+        {
+            context.Types.Pop();
+            return Continue;
+        }
+
         context.InputFields.Pop();
         context.Types.Pop();
         return Continue;
@@ -248,13 +351,21 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         VariableNode node,
         DocumentValidatorContext context)
     {
-        context.Features.GetRequired<VariableVisitorFeature>().Used.Add(node.Name.Value);
+        // A usage that a fragment's own declaration satisfies neither needs an operation
+        // variable to declare it, nor counts towards the usages of one it shadows.
+        if (!context.IsFragmentVariable(node.Name.Value))
+        {
+            context.Features.GetRequired<VariableVisitorFeature>().Used.Add(node.Name.Value);
+        }
+
+        // A usage only counts for the fragment it appears in, not for one that spreads it.
+        PeekFragmentVariableFrame(context)?.Used.Add(node.Name.Value);
 
         var parent = context.Path.Peek();
 
         var defaultValue = parent.Kind switch
         {
-            SyntaxKind.Argument => context.InputFields.Peek().DefaultValue,
+            SyntaxKind.Argument => GetArgumentDefaultValue(context, (ArgumentNode)parent),
             SyntaxKind.ObjectField => context.InputFields.Peek().DefaultValue,
             _ => null
         };
@@ -298,6 +409,26 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     {
         context.Types.Pop();
         return Continue;
+    }
+
+    private static IValueNode? GetArgumentDefaultValue(
+        DocumentValidatorContext context,
+        ArgumentNode argument)
+    {
+        // An argument of a fragment spread takes its default from the variable definition of
+        // the fragment it targets.
+        if (context.Path.Count > 1
+            && context.Path[^2] is FragmentSpreadNode spread
+            && FragmentArguments.TryGetVariableDefinition(
+                context,
+                spread,
+                argument.Name.Value,
+                out var variableDefinition))
+        {
+            return variableDefinition.DefaultValue;
+        }
+
+        return context.InputFields.Peek().DefaultValue;
     }
 
     // http://facebook.github.io/graphql/June2018/#IsVariableUsageAllowed()
@@ -386,6 +517,10 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     {
         public HashSet<string> VariableNames { get; } = [];
 
+        public List<FragmentVariableFrame> FragmentVariableFrames { get; } = [];
+
+        public int FragmentVariableDepth { get; set; }
+
         public HashSet<string> Used { get; } = [];
 
         public HashSet<string> Declared { get; } = [];
@@ -395,9 +530,26 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         protected internal override void Reset()
         {
             VariableNames.Clear();
+            FragmentVariableDepth = 0;
+
+            // The frames themselves are kept for reuse, only their contents are released.
+            for (var i = 0; i < FragmentVariableFrames.Count; i++)
+            {
+                var frame = FragmentVariableFrames[i];
+                frame.Declared.Clear();
+                frame.Used.Clear();
+            }
+
             Used.Clear();
             Declared.Clear();
             Unused.Clear();
+        }
+
+        public sealed class FragmentVariableFrame
+        {
+            public HashSet<string> Declared { get; } = [];
+
+            public HashSet<string> Used { get; } = [];
         }
     }
 }

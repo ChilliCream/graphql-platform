@@ -109,6 +109,7 @@ public sealed class InMemoryConnectorTests
             .AddSourceSchemaDefaults();
 
         services.AddGraphQLGateway()
+            .ModifyInMemoryCompositionOptions(o => o.Merger.DefaultListSize = 1)
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 

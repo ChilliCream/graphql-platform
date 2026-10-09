@@ -154,7 +154,7 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: 033679a6deb9150ce9d5cd47bd725497
+      hash: 6e39c6ae9d8057659a564f40b857725b
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -214,7 +214,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_2($__fusion_1_id: ID!) {
+            query GetUser_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 reviews {
                   title

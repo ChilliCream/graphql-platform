@@ -506,6 +506,38 @@ public class SchemaFirstTests
     }
 
     [Fact]
+    public async Task Ensure_Nested_Default_Values_Are_Applied_When_Argument_Default_Is_Used()
+    {
+        // arrange & act
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    example(input: ExampleInput! = {}): Int!
+                }
+
+                input ExampleInput {
+                    number: Int! = 3
+                }
+                """)
+            .AddResolver<QueryWithExampleInput>("Query")
+            .ExecuteRequestAsync(
+                "{ example }",
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "example": 3
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Ensure_Input_Only_Enums_Are_Correctly_Bound_When_Using_BindRuntimeType()
     {
         await new ServiceCollection()
@@ -810,6 +842,78 @@ public class SchemaFirstTests
         exception.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task SchemaFirst_ObjectTypeDeprecated_ReasonIsReadFromSdl()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { foo: Foo @deprecated(reason: "Use bar.") }
+
+            type Foo @deprecated(reason: "Use Bar.") { id: ID }
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(next => next)
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("Use Bar.", schema.Types.GetType<ObjectType>("Foo").DeprecationReason);
+    }
+
+    [Fact]
+    public async Task SchemaFirst_ExtendObjectTypeDeprecated_ReasonIsReadFromSdl()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { foo: Foo @deprecated(reason: "Use bar.") }
+
+            type Foo { id: ID }
+
+            extend type Foo @deprecated(reason: "Use Bar.")
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(next => next)
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("Use Bar.", schema.Types.GetType<ObjectType>("Foo").DeprecationReason);
+    }
+
+    [Fact]
+    public async Task SchemaFirst_ObjectTypeDeprecated_IsIgnoredWhenOptionIsDisabled()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query { foo: Foo }
+
+            type Foo @deprecated(reason: "Use Bar.") { id: ID }
+            """;
+
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var fooType = schema.Types.GetType<ObjectType>("Foo");
+        Assert.False(fooType.IsDeprecated);
+        Assert.Null(fooType.DeprecationReason);
+    }
+
     public class Query
     {
         public string Hello() => "World";
@@ -914,4 +1018,14 @@ public class QueryWithFooInput
 public class Foo(string bar)
 {
     public string Bar { get; } = bar;
+}
+
+public class QueryWithExampleInput
+{
+    public int GetExample(ExampleInput input) => input.Number;
+}
+
+public class ExampleInput(int number)
+{
+    public int Number { get; } = number;
 }

@@ -1,5 +1,6 @@
 ---
 title: Introspection
+metaTitle: "GraphQL Introspection in Hot Chocolate"
 description: "Control GraphQL introspection in Hot Chocolate: disable __schema and __type fields in production and selectively allow requests with AllowIntrospection."
 ---
 

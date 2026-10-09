@@ -121,7 +121,24 @@ public interface ISelection
     /// <remarks>
     /// For non-conditional selections, this always returns <c>true</c>.
     /// </remarks>
+    [Obsolete("Use IsIncluded(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     bool IsIncluded(ulong includeFlags);
+
+    /// <summary>
+    /// Determines whether this selection should be included based on conditional flags
+    /// for operations with more than 64 include conditions.
+    /// </summary>
+    /// <param name="includeFlags">
+    /// The conditional inclusion flags.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if this selection should be executed given the current
+    /// variable values; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// For non-conditional selections, this always returns <c>true</c>.
+    /// </remarks>
+    bool IsIncluded(ConditionFlags includeFlags);
 
     /// <summary>
     /// Determines whether this selection is deferred based on the <c>@defer</c> directive flags.
@@ -148,5 +165,22 @@ public interface ISelection
     /// for the initial result.
     /// </para>
     /// </remarks>
+    [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     bool IsDeferred(ulong deferFlags);
+
+    /// <summary>
+    /// Determines whether this selection is deferred based on the <c>@defer</c> directive flags
+    /// for operations with more than 64 defer conditions.
+    /// </summary>
+    /// <param name="deferFlags">
+    /// The defer condition flags.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if this selection should be deferred and delivered incrementally
+    /// in a subsequent payload; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// For selections without any <c>@defer</c> directive, this always returns <c>false</c>.
+    /// </remarks>
+    bool IsDeferred(ConditionFlags deferFlags);
 }

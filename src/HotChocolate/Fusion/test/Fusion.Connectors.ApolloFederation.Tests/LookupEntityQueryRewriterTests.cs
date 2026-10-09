@@ -1,10 +1,11 @@
+using System.Collections.Immutable;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using NameNode = HotChocolate.Language.NameNode;
@@ -203,7 +204,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -215,6 +216,30 @@ public class LookupEntityQueryRewriterTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_HashTheRewrittenOperation_When_LookupIsRewritten()
+    {
+        // arrange
+        var schema = ComposeSchema(CatalogSchema);
+        var operation = CreateOperation(
+            """
+            query GetProduct($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "catalog", operation);
+
+        // assert
+        Assert.NotEqual(operation.Hash, rewritten.SourceText.Hash);
+        Assert.Equal(
+            OperationSourceTextHash.Compute(rewritten.SourceText.Value.Span),
+            rewritten.SourceText.Hash);
     }
 
     [Fact]
@@ -237,7 +262,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -268,7 +293,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -304,7 +329,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "inested", operation);
 
         // assert
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -340,7 +365,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        rewritten.Operation.SourceText.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -455,7 +480,14 @@ public class LookupEntityQueryRewriterTests
     // GraphQL), so the multi-candidate tie-break cannot be constructed realistically here.
 
     private static OperationSourceText CreateOperation(string sourceText)
-        => new("Op", OperationType.Query, sourceText, "hash");
+    {
+        var value = Encoding.UTF8.GetBytes(sourceText);
+        return new OperationSourceText(
+            "Op",
+            OperationType.Query,
+            value,
+            OperationSourceTextHash.Compute(value));
+    }
 
     private static OperationRequirement CreateRequirement(
         FusionSchemaDefinition schema,
@@ -497,7 +529,7 @@ public class LookupEntityQueryRewriterTests
             $"The argument '{argumentName}' carries no requirement.");
     }
 
-    private static SelectionSetNode RenderShape(List<RepresentationShapeNode> level)
+    private static SelectionSetNode RenderShape(ImmutableArray<RepresentationShapeNode> level)
         => new(level.Select(RenderShapeNode).ToList<ISelectionNode>());
 
     private static FieldNode RenderShapeNode(RepresentationShapeNode node)
@@ -507,7 +539,7 @@ public class LookupEntityQueryRewriterTests
             alias: null,
             directives: [],
             arguments: [],
-            node.Children is null ? null : RenderShape(node.Children));
+            node.Nodes.IsDefault ? null : RenderShape(node.Nodes));
 
     private static FusionSchemaDefinition ComposeSchema(params string[] schemas)
     {

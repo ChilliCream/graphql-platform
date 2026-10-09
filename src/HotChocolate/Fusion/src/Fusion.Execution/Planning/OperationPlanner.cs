@@ -56,6 +56,8 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
+    public static Version Version { get; } = new(2, 1, 0);
+
     internal OperationPlannerOptions Options => _options;
 
     /// <summary>
@@ -88,6 +90,7 @@ public sealed partial class OperationPlanner
         var operationType = operationDefinition.Operation.ToString();
         var rootSelectionCount = operationDefinition.SelectionSet.Selections.Count;
         var startedAt = eventSourceEnabled ? Stopwatch.GetTimestamp() : 0L;
+        var budget = new PlanningBudget(_options, eventSourceEnabled);
         var searchSpace = 0;
         var expandedNodes = 0;
         var stepCount = 0;
@@ -129,7 +132,7 @@ public sealed partial class OperationPlanner
                 // Path and IfVariable populated). The rewriter consumes the
                 // same instances so its per-set grouping and the compiler's
                 // later Selection._deliveryGroups entries share object identity.
-                var deferConditions = new DeferConditionCollection();
+                var deferConditions = new DeferConditionCollection(_operationCompiler.MaxAllowedDeferConditions);
                 partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
                 var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
@@ -172,7 +175,7 @@ public sealed partial class OperationPlanner
                         id,
                         node,
                         subscriptionField,
-                        eventSourceEnabled,
+                        budget,
                         cancellationToken);
 
                     internalOperationDefinition = eventStreamPlan.InternalOperationDefinition;
@@ -206,7 +209,7 @@ public sealed partial class OperationPlanner
                     }
 
                     // Now that we have seeded the possible plans we can start planning.
-                    var plan = Plan(id, possiblePlans, eventSourceEnabled, cancellationToken);
+                    var plan = Plan(id, possiblePlans, budget, cancellationToken);
 
                     if (!plan.HasValue)
                     {
@@ -244,7 +247,7 @@ public sealed partial class OperationPlanner
                     id,
                     deferSplit.Value,
                     deferContextGraph,
-                    eventSourceEnabled,
+                    budget,
                     cancellationToken);
 
                 // Any parent-scope transformations applied while routing
@@ -253,16 +256,45 @@ public sealed partial class OperationPlanner
                 // the execution tree builder consume below.
                 planSteps = deferContextGraph.RootSteps;
                 internalOperationDefinition = deferContextGraph.RootInternalOperation;
+
+                // A descriptor whose deferred output turned out to be fully redundant with
+                // data the enclosing scope already fetches is routed without producing an
+                // incremental plan (see TryAbsorbFullyRedundantDefer); its own delivery
+                // group(s) must not surface as a pending entry with nothing to complete it.
+                if (deferRoutingStates.Length < deferSplit.Value.IncrementalPlanDescriptors.Length)
+                {
+                    var usedDeliveryGroupIds = new HashSet<int>();
+                    foreach (var routingState in deferRoutingStates)
+                    {
+                        foreach (var group in routingState.Descriptor.DeliveryGroupSet)
+                        {
+                            usedDeliveryGroupIds.Add(group.Id);
+                        }
+                    }
+
+                    var filteredDeliveryGroups = ImmutableArray.CreateBuilder<DeliveryGroup>(
+                        usedDeliveryGroupIds.Count);
+                    foreach (var group in deliveryGroups)
+                    {
+                        if (usedDeliveryGroupIds.Contains(group.Id))
+                        {
+                            filteredDeliveryGroups.Add(group);
+                        }
+                    }
+
+                    deliveryGroups = filteredDeliveryGroups.ToImmutable();
+                }
             }
 
             // Use the latest root operation definition after deferred planning.
-            var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+            var operation = _operationCompiler.Compile(id, hash, shortHash, internalOperationDefinition);
 
             if (deferContextGraph is not null)
             {
                 incrementalPlans = BuildIncrementalPlans(
                     id,
                     hash,
+                    shortHash,
                     deferRoutingStates,
                     deferContextGraph,
                     cancellationToken);
@@ -276,6 +308,7 @@ public sealed partial class OperationPlanner
                 incrementalPlans,
                 searchSpace,
                 expandedNodes,
+                planSteps.NextId(),
                 cancellationToken);
 
             if (eventSourceEnabled)
@@ -389,17 +422,16 @@ public sealed partial class OperationPlanner
     private PlanResult? Plan(
         string operationId,
         PlanQueue possiblePlans,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         var eventSource = PlannerEventSource.Log;
+        var emitPlannerEvents = budget.EmitPlannerEvents;
         var searchSpace = possiblePlans.Count;
         var expandedNodes = 0;
-        var maxPlanningTime = _options.MaxPlanningTime;
-        var maxExpandedNodes = _options.MaxExpandedNodes;
-        var maxQueueSize = _options.MaxQueueSize;
-        var maxGeneratedOptionsPerWorkItem = _options.MaxGeneratedOptionsPerWorkItem;
-        var planningStartedAt = maxPlanningTime.HasValue ? Stopwatch.GetTimestamp() : 0L;
+
+        // The seeded queue is checked before any plan is expanded.
+        budget.EnsureQueueSize(operationId, searchSpace);
 
         // TryBuildGreedyCompletePlan quickly builds one full plan by always choosing the currently
         // cheapest next option at each step.
@@ -407,7 +439,7 @@ public sealed partial class OperationPlanner
         // It gives the planner an initial best known complete cost, so the main search can skip branches
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
-        var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, cancellationToken);
+        var bestCompletePlan = TryBuildGreedyCompletePlan(operationId, possiblePlans, budget, cancellationToken);
 
         // A plan whose step-dependency graph is cyclic cannot be scheduled, so it must never win.
         // We discard a cyclic greedy plan here and reject cyclic candidates during the search below.
@@ -417,6 +449,7 @@ public sealed partial class OperationPlanner
         }
 
         var bestCompletePlanCost = bestCompletePlan?.PathCost ?? double.PositiveInfinity;
+        var bestSurvivingStepCount = -1;
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
@@ -429,10 +462,8 @@ public sealed partial class OperationPlanner
             searchSpace = Math.Max(possiblePlansCount, searchSpace);
 
             // before we get into another planning iteration, we check if we have
-            // exceeded any of the configured guardrails and throw if so.
-            EnsurePlanningTimeGuardrail();
-            EnsureExpandedNodesGuardrail(expandedNodes);
-            EnsureQueueSizeGuardrail(possiblePlansCount);
+            // exceeded the planning time or expanded node guardrail and throw if so.
+            budget.CountExpansion(operationId);
 
             var backlog = current.Backlog;
 
@@ -446,10 +477,9 @@ public sealed partial class OperationPlanner
                     current.SchemaName);
             }
 
-            // If the current plan is already at least as expensive as the
-            // best complete plan, we can skip it and don't need to evaluate
-            // it any further.
-            if (current.BestCaseCost >= bestCompletePlanCost)
+            // Skip plans whose best-case cost exceeds the best complete plan.
+            // Plans of equal cost continue to the tie-break.
+            if (current.BestCaseCost > bestCompletePlanCost)
             {
                 continue;
             }
@@ -469,10 +499,11 @@ public sealed partial class OperationPlanner
                 if (completeCost < bestCompletePlanCost
                     || (completeCost.Equals(bestCompletePlanCost)
                         && bestCompletePlan is not null
-                        && ComparePlansForTieBreak(current, bestCompletePlan) < 0))
+                        && ComparePlansForTieBreak(current, bestCompletePlan, ref bestSurvivingStepCount) < 0))
                 {
                     bestCompletePlan = current;
                     bestCompletePlanCost = completeCost;
+                    bestSurvivingStepCount = -1;
                 }
 
                 continue;
@@ -526,10 +557,11 @@ public sealed partial class OperationPlanner
 
             // after we have expanded the current plan node into possible next steps,
             // we check how many new plans we have created and if we have exceeded
-            // the guardrail for generated options per work item.
+            // the guardrails for generated options per work item and queue size.
             var queueCountAfterExpansion = possiblePlans.Count;
             searchSpace = Math.Max(queueCountAfterExpansion, searchSpace);
-            EnsureGeneratedOptionsGuardrail(queueCountBeforeExpansion, queueCountAfterExpansion);
+            budget.EnsureGeneratedOptions(operationId, queueCountAfterExpansion - queueCountBeforeExpansion);
+            budget.EnsureQueueSize(operationId, queueCountAfterExpansion);
         }
 
         if (bestCompletePlan is null)
@@ -556,99 +588,13 @@ public sealed partial class OperationPlanner
                 NodeLookupWorkItem => "NodeLookupBound",
                 _ => "Unknown"
             };
-
-        void EnsurePlanningTimeGuardrail()
-        {
-            if (maxPlanningTime is not { } planningTimeLimit)
-            {
-                return;
-            }
-
-            var elapsed = Stopwatch.GetElapsedTime(planningStartedAt);
-            if (elapsed < planningTimeLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxPlanningTimeExceeded,
-                ToGuardrailMilliseconds(planningTimeLimit),
-                ToGuardrailMilliseconds(elapsed));
-        }
-
-        void EnsureExpandedNodesGuardrail(int currentExpandedNodes)
-        {
-            if (maxExpandedNodes is not { } expandedNodesLimit
-                || currentExpandedNodes <= expandedNodesLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxExpandedNodesExceeded,
-                expandedNodesLimit,
-                currentExpandedNodes);
-        }
-
-        void EnsureQueueSizeGuardrail(int queueSize)
-        {
-            if (maxQueueSize is not { } queueSizeLimit
-                || queueSize <= queueSizeLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxQueueSizeExceeded,
-                queueSizeLimit,
-                queueSize);
-        }
-
-        void EnsureGeneratedOptionsGuardrail(int queueCountBeforeExpansion, int queueCountAfterExpansion)
-        {
-            if (maxGeneratedOptionsPerWorkItem is not { } generatedOptionsLimit)
-            {
-                return;
-            }
-
-            var generatedOptions = queueCountAfterExpansion - queueCountBeforeExpansion;
-            if (generatedOptions <= generatedOptionsLimit)
-            {
-                return;
-            }
-
-            ThrowGuardrailExceeded(
-                OperationPlannerGuardrailReason.MaxGeneratedOptionsPerWorkItemExceeded,
-                generatedOptionsLimit,
-                generatedOptions);
-        }
-
-        void ThrowGuardrailExceeded(
-            OperationPlannerGuardrailReason reason,
-            long limit,
-            long observed)
-        {
-            if (emitPlannerEvents)
-            {
-                eventSource.PlanGuardrailExceeded(
-                    operationId,
-                    reason.ToString(),
-                    limit,
-                    observed);
-            }
-
-            throw new OperationPlannerGuardrailException(
-                operationId,
-                reason,
-                limit,
-                observed);
-        }
-
-        static long ToGuardrailMilliseconds(TimeSpan value)
-            => checked((long)Math.Ceiling(value.TotalMilliseconds));
     }
 
-    private PlanNode? TryBuildGreedyCompletePlan(PlanQueue possiblePlans, CancellationToken cancellationToken)
+    private PlanNode? TryBuildGreedyCompletePlan(
+        string operationId,
+        PlanQueue possiblePlans,
+        PlanningBudget budget,
+        CancellationToken cancellationToken)
     {
         if (!possiblePlans.TryPeek(out var current, out _))
         {
@@ -667,6 +613,8 @@ public sealed partial class OperationPlanner
             {
                 return current;
             }
+
+            budget.CountExpansion(operationId);
 
             backlog = backlog.Pop(out var workItem);
 
@@ -710,6 +658,8 @@ public sealed partial class OperationPlanner
                         "The work item type is not supported.");
             }
 
+            budget.EnsureGeneratedOptions(operationId, candidates.Count);
+
             if (!candidates.TryDequeue(out current, out _))
             {
                 return null;
@@ -745,8 +695,26 @@ public sealed partial class OperationPlanner
             ? stepDepth
             : 1;
 
-    private static int ComparePlansForTieBreak(PlanNode left, PlanNode right)
+    /// <summary>
+    /// Orders two complete plans of equal cost: fewer operation steps that survive the plan step
+    /// transforms first, then fewer operation steps, then step ids and schema names.
+    /// </summary>
+    internal static int ComparePlansForTieBreak(
+        PlanNode left,
+        PlanNode right,
+        ref int rightSurvivingStepCount)
     {
+        if (rightSurvivingStepCount < 0)
+        {
+            rightSurvivingStepCount = CountSurvivingOperationSteps(right.Steps);
+        }
+
+        var survivingStepComparison = CountSurvivingOperationSteps(left.Steps).CompareTo(rightSurvivingStepCount);
+        if (survivingStepComparison != 0)
+        {
+            return survivingStepComparison;
+        }
+
         var stepCountComparison = left.OperationStepCount.CompareTo(right.OperationStepCount);
         if (stepCountComparison != 0)
         {
@@ -870,7 +838,7 @@ public sealed partial class OperationPlanner
         string operationId,
         PlanNode seed,
         SubscriptionField subscriptionField,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         var possiblePlans = new PlanQueue(_schema);
@@ -882,7 +850,7 @@ public sealed partial class OperationPlanner
                 ResolutionCost = 0
             });
 
-        var plan = Plan(operationId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(operationId, possiblePlans, budget, cancellationToken);
 
         if (!plan.HasValue)
         {
@@ -1045,6 +1013,7 @@ public sealed partial class OperationPlanner
             workItem.Conditions,
             workItem.AllowSourceSchemaReentry,
             workItem.SourceSchemaNodePolicy,
+            consumerStep: null,
             out var unresolvedRequirements);
 
         // A self-cyclic lookup can proceed only when an existing step supplies its key.
@@ -1095,7 +1064,10 @@ public sealed partial class OperationPlanner
                     workItem.SelectionSet.Node,
                     current.EventStreamDirective!)
                 : null,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            // At a lookup entry root a sourceExternal field can only echo the key the lookup
+            // was entered with; root work items keep today's permissive behavior.
+            EntryKeyCoverage = lookup?.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -1119,10 +1091,13 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        // Steps that depend on this work item's data also depend on the parts that
+        // this step could not resolve, so the child lookups inherit its dependents.
         backlog = backlog.PushUnresolvable(
             unresolvable,
             current.SchemaName,
             stepDepth,
+            dependents: workItem.Dependents,
             allowSourceSchemaReentry: isEventStreamRoot,
             sourceSchemaNodePolicy: workItem.SourceSchemaNodePolicy is null
                 ? null
@@ -1246,6 +1221,7 @@ public sealed partial class OperationPlanner
         ExecutionNodeCondition[]? conditions,
         bool allowSourceSchemaReentry,
         SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy,
+        OperationPlanStep? consumerStep,
         out SelectionSetNode? unresolvedRequirements)
     {
         var processed = new HashSet<string>();
@@ -1291,10 +1267,16 @@ public sealed partial class OperationPlanner
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
             // A step can only carry a requirement that lives within the data it produces.
-            // Abstract branches share a selection set id, so a candidate can match by id yet
-            // resolve a sibling concrete type (e.g. a Magazine lookup for a Book requirement);
-            // inlining there would emit an invalid cross-type fragment.
+            // Match the candidate's response scope so a requirement cannot be inlined into
+            // a step producing the same logical selection at a different path.
             if (!step.Target.IsParentOfOrSame(workItemSelectionSet.Path))
+            {
+                continue;
+            }
+
+            // The lookup step inherits the dependents of the step that consumes its field, so
+            // a step that already depends on the consumer cannot provide the lookup's key.
+            if (consumerStep is not null && step.DependsOn(consumerStep, steps))
             {
                 continue;
             }
@@ -1308,9 +1290,8 @@ public sealed partial class OperationPlanner
             var relativePath = workItemSelectionSet.Path.RelativeTo(step.Target);
 
             // A lookup key can already be present in this step because an ancestor @provides
-            // scope selected the concrete runtime field. Match the actual operation path so
-            // sibling abstract branches that share a selection-set id cannot satisfy each
-            // other's requirements.
+            // scope selected the concrete runtime field. Match the actual operation path to
+            // verify that this response scope already contains the requirement.
             if (ContainsSelectionsAtPath(
                 step.Definition.SelectionSet,
                 relativePath,
@@ -1328,10 +1309,14 @@ public sealed partial class OperationPlanner
                 SchemaName = schemaName,
                 SelectionSet = workItemSelectionSet with { Node = selectionSet },
                 SelectionSetIndex = index,
-                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null
+                TreatSourceExternalAsUnresolvable = sourceSchemaNodePolicy is not null,
+                EntryKeyCoverage =
+                    step.Lookup is not null && workItemSelectionSet.Id == step.RootSelectionSetId
+                        ? step.Lookup.Requirements
+                        : null
             };
 
-            var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
+            var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
 
             if (resolvable is { Selections.Count: > 0 })
             {
@@ -1360,6 +1345,14 @@ public sealed partial class OperationPlanner
 
                 selectionSet = null;
 
+                // fields of the inlined requirement that carry their own requirements are not
+                // resolvable in the step yet, so they are planned on behalf of the step.
+                backlog = backlog.PushRequirements(
+                    fieldsWithRequirements,
+                    new StepConsumer(step.Id),
+                    GetOperationStepDepth(current, step.Id),
+                    descendantPolicy);
+
                 if (!unresolvable.IsEmpty)
                 {
                     var top = unresolvable.Peek();
@@ -1386,13 +1379,15 @@ public sealed partial class OperationPlanner
 
         // Fallback: if no candidate step was found via exact selection set ID match,
         // walk the internal operation AST to find the nearest ancestor step and the
-        // correct wrapping structure (preserving inline fragments with directives).
+        // complete connector chain to the target selection set.
         if (selectionSet is not null
             && TryFindAncestorStepForRequirement(
                 internalOperation,
                 steps,
                 index,
-                workItemSelectionSet.Id) is { } ancestorMatch
+                workItemSelectionSet.Id,
+                workItemSelectionSet.Path) is { } ancestorMatch
+            && (consumerStep is null || !ancestorMatch.Step.DependsOn(consumerStep, steps))
             && processed.Add(ancestorMatch.Step.SchemaName!)
             && (allowSourceSchemaReentry || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)))
         {
@@ -1404,14 +1399,21 @@ public sealed partial class OperationPlanner
                 index,
                 ref steps,
                 out var unresolvable,
+                out var ancestorFieldsWithRequirements,
                 treatSourceExternalAsUnresolvable: sourceSchemaNodePolicy is not null))
             {
                 selectionSet = null;
 
+                backlog = backlog.PushRequirements(
+                    ancestorFieldsWithRequirements,
+                    new StepConsumer(ancestorMatch.Step.Id),
+                    GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                    descendantPolicy);
+
                 if (!unresolvable.IsEmpty)
                 {
                     var top = unresolvable.Peek();
-                    if (top.SelectionSet.Id == ancestorMatch.SelectionSetId)
+                    if (top.SelectionSet.Id == workItemSelectionSet.Id)
                     {
                         unresolvable = unresolvable.Pop(out top);
                         selectionSet = top.SelectionSet.Node;
@@ -1662,7 +1664,7 @@ public sealed partial class OperationPlanner
             InlineSelections(
                 currentStep.Definition,
                 index,
-                currentStep.Type,
+                workItem.Selection.Field.DeclaringType,
                 workItem.Selection.SelectionSetId,
                 new SelectionSetNode(
                     [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]));
@@ -1768,6 +1770,7 @@ public sealed partial class OperationPlanner
                 workItem.Conditions,
                 allowSourceSchemaReentry: false,
                 workItem.SourceSchemaNodePolicy,
+                currentStep,
                 out _);
             backlog = current.Backlog;
 
@@ -1791,9 +1794,9 @@ public sealed partial class OperationPlanner
         var leftoverRequirements =
             TryInlineFieldRequirements(
                 workItem,
-                stepConsumer.StepId,
+                stepId,
                 ref current,
-                currentStep,
+                mergeWithExistingStep ? existingStep : currentStep,
                 indexBuilder,
                 ref backlog,
                 ref steps,
@@ -1823,7 +1826,11 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
+#if NET10_0_OR_GREATER
+            : [];
+#else
             : ImmutableDictionary<string, OperationRequirement>.Empty;
+#endif
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
@@ -1872,17 +1879,40 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 workItem.SourceSchemaNodePolicy);
 
-        var selectionSetNode = new SelectionSetNode(
-            [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
-        indexBuilder.Register(workItem.Selection.SelectionSetId, selectionSetNode);
+        var selectionNode =
+            workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections);
+        OperationPlanStep? refreshedExistingStep = null;
 
         if (mergeWithExistingStep)
         {
-            if (steps[existingStepIndex] is not OperationPlanStep refreshedExistingStep)
+            if (steps[existingStepIndex] is not OperationPlanStep refreshedStep)
             {
                 return;
             }
 
+            refreshedExistingStep = refreshedStep;
+
+            // Two merged lookups that select the same response name with different
+            // argument variables must not share a response key in the merged document.
+            var existingSelectionSet = FindSelectionSet(
+                refreshedExistingStep.Definition.SelectionSet,
+                indexBuilder,
+                refreshedExistingStep.RootSelectionSetId);
+
+            if (existingSelectionSet is not null
+                && HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+            {
+                selectionNode = CreateFieldWithAlias(
+                    selectionNode,
+                    requirementAliases.MintAlias(selectionNode));
+            }
+        }
+
+        var selectionSetNode = new SelectionSetNode([selectionNode]);
+        indexBuilder.Register(workItem.Selection.SelectionSetId, selectionSetNode);
+
+        if (refreshedExistingStep is not null)
+        {
             var operation = InlineSelections(
                 refreshedExistingStep.Definition,
                 indexBuilder,
@@ -2081,7 +2111,8 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             SelectionSet = workItem.SelectionSet,
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null
+            TreatSourceExternalAsUnresolvable = workItem.SourceSchemaNodePolicy is not null,
+            EntryKeyCoverage = lookup.Requirements
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -2325,18 +2356,34 @@ public sealed partial class OperationPlanner
                     branch => branch.Type.Name,
                     StringComparer.Ordinal);
                 var branchBuilder = ImmutableArray.CreateBuilder<SelectionSetByType>();
+                var branchIndexBuilder = index.ToBuilder();
 
                 foreach (var possibleType in _schema.GetPossibleTypes(
                     abstractType,
                     includeInaccessible: true).OrderBy(type => type.Name, StringComparer.Ordinal))
                 {
-                    branchBuilder.Add(
-                        branchesByType.TryGetValue(possibleType.Name, out var branch)
-                            ? branch
-                            : new SelectionSetByType(possibleType, sharedSelectionSet!));
+                    if (branchesByType.TryGetValue(possibleType.Name, out var branch))
+                    {
+                        branchBuilder.Add(branch);
+                    }
+                    else
+                    {
+                        var sharedOnlyBranch = new SelectionSetNode(
+                            sharedSelectionSet!.Selections);
+                        branchIndexBuilder.RegisterConcreteBranch(
+                            selectionSet.Id,
+                            possibleType.Name,
+                            sharedOnlyBranch);
+
+                        branchBuilder.Add(
+                            new SelectionSetByType(
+                                possibleType,
+                                sharedOnlyBranch));
+                    }
                 }
 
                 branches = branchBuilder.ToImmutable();
+                index = branchIndexBuilder;
             }
         }
 
@@ -2770,7 +2817,7 @@ public sealed partial class OperationPlanner
         // inlining performs must happen up front here.
         RegisterRequirementSelectionSets(requirements, index);
 
-        foreach (var (step, stepIndex, _) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
             if (currentStep.Id == step.Id)
             {
@@ -2786,6 +2833,14 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            if (schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
+            {
+                // the required data is not natively resolvable in the requiring field's schema
+                // (composition forbids declaring the required leaves there), so a step of that
+                // schema could only carry the path, adding a dead selection and a spurious dependency.
+                continue;
+            }
+
             if (!TryInlineSelectionSetIntoStep(
                 step,
                 workItem.Selection.SelectionSetId,
@@ -2797,6 +2852,7 @@ public sealed partial class OperationPlanner
                 requirementAliases,
                 out var updatedStep,
                 out var unresolvable,
+                out var nestedFieldsWithRequirements,
                 treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
             {
                 // if we cannot resolve any selection with the current source we cannot inline the
@@ -2806,6 +2862,16 @@ public sealed partial class OperationPlanner
 
             steps = steps.SetItem(stepIndex, updatedStep);
             requirements = null;
+
+            // fields of the inlined requirement that carry their own requirements are not
+            // resolvable in the step yet, so they are planned on behalf of the step.
+            backlog = backlog.PushRequirements(
+                nestedFieldsWithRequirements,
+                new StepConsumer(step.Id),
+                GetOperationStepDepth(current, step.Id),
+                workItem.SourceSchemaNodePolicy is null
+                    ? null
+                    : SourceSchemaNodePlanningPolicy.Descendant);
 
             if (!unresolvable.IsEmpty)
             {
@@ -2828,6 +2894,9 @@ public sealed partial class OperationPlanner
                             entry.SelectionSet,
                             FromSchema: current.SchemaName)
                         {
+                            // the requiring step also depends on the lookups that
+                            // resolve the parts this step could not inline.
+                            Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                             ParentDepth = GetOperationStepDepth(current, step.Id),
                             Conditions = entry.Conditions,
                             SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
@@ -2859,23 +2928,34 @@ public sealed partial class OperationPlanner
 
         // Fallback: if no candidate step was found via exact selection set ID match,
         // walk the internal operation AST to find the nearest ancestor step and the
-        // correct wrapping structure (preserving inline fragments with directives).
+        // complete connector chain to the target selection set. An ancestor step of the
+        // requiring field's schema is skipped for the same reason as in the candidate loop.
         if (requirements is not null
             && TryFindAncestorStepForRequirement(
                 current.InternalOperationDefinition,
                 steps,
                 index,
-                workItem.Selection.SelectionSetId) is { } ancestorMatch
+                workItem.Selection.SelectionSetId,
+                workItem.Selection.Path) is { } ancestorMatch
             && currentStep.Id != ancestorMatch.Step.Id
-            && !ancestorMatch.Step.DependsOn(currentStep, steps))
+            && !ancestorMatch.Step.DependsOn(currentStep, steps)
+            && !string.Equals(ancestorMatch.Step.SchemaName, current.SchemaName, StringComparison.Ordinal))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch, requirements, workItem.Selection.Path,
                 dependentStepId, index, ref steps, out var unresolvable,
-                resolvableRegistrationId: workItem.Selection.SelectionSetId,
+                out var nestedAncestorFieldsWithRequirements,
                 treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
             {
                 requirements = null;
+
+                backlog = backlog.PushRequirements(
+                    nestedAncestorFieldsWithRequirements,
+                    new StepConsumer(ancestorMatch.Step.Id),
+                    GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                    workItem.SourceSchemaNodePolicy is null
+                        ? null
+                        : SourceSchemaNodePlanningPolicy.Descendant);
 
                 if (!unresolvable.IsEmpty)
                 {
@@ -2894,6 +2974,7 @@ public sealed partial class OperationPlanner
                                 entry.SelectionSet,
                                 FromSchema: current.SchemaName)
                             {
+                                Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                                 ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
                                 Conditions = entry.Conditions,
                                 SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
@@ -2919,6 +3000,7 @@ public sealed partial class OperationPlanner
         RequirementAliasContext requirementAliases,
         out OperationPlanStep updatedStep,
         out ImmutableStack<ConditionedSelectionSet> unresolvable,
+        out ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         bool treatSourceExternalAsUnresolvable = false)
     {
         index.Register(targetSelectionSetId, requirementSelections);
@@ -2932,17 +3014,27 @@ public sealed partial class OperationPlanner
                 selectionSetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                step.Lookup is not null && targetSelectionSetId == step.RootSelectionSetId
+                    ? step.Lookup.Requirements
+                    : null
         };
 
-        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+        var (resolvable, partitionUnresolvable, partitionFieldsWithRequirements, _) =
+            _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 })
         {
             updatedStep = step;
             unresolvable = [];
+            fieldsWithRequirements = [];
             return false;
         }
+
+        fieldsWithRequirements = partitionFieldsWithRequirements;
 
         var existingSelectionSet = FindSelectionSet(
             step.Definition.SelectionSet,
@@ -3053,56 +3145,56 @@ public sealed partial class OperationPlanner
 
         unresolvable = partitionUnresolvable;
         return true;
+    }
 
-        static SelectionSetNode? FindSelectionSet(
-            SelectionSetNode selectionSet,
-            SelectionSetIndexBuilder index,
-            uint targetSelectionSetId)
+    private static SelectionSetNode? FindSelectionSet(
+        SelectionSetNode selectionSet,
+        SelectionSetIndexBuilder index,
+        uint targetSelectionSetId)
+    {
+        if (index.IsRegistered(selectionSet)
+            && index.GetId(selectionSet) == targetSelectionSetId)
         {
-            if (index.IsRegistered(selectionSet)
-                && index.GetId(selectionSet) == targetSelectionSetId)
-            {
-                return selectionSet;
-            }
+            return selectionSet;
+        }
 
-            foreach (var selection in selectionSet.Selections)
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
             {
-                switch (selection)
+                case FieldNode { SelectionSet: not null } field:
                 {
-                    case FieldNode { SelectionSet: not null } field:
+                    var result = FindSelectionSet(
+                        field.SelectionSet,
+                        index,
+                        targetSelectionSetId);
+
+                    if (result is not null)
                     {
-                        var result = FindSelectionSet(
-                            field.SelectionSet,
-                            index,
-                            targetSelectionSetId);
-
-                        if (result is not null)
-                        {
-                            return result;
-                        }
-
-                        break;
+                        return result;
                     }
 
-                    case InlineFragmentNode inlineFragment:
+                    break;
+                }
+
+                case InlineFragmentNode inlineFragment:
+                {
+                    var result = FindSelectionSet(
+                        inlineFragment.SelectionSet,
+                        index,
+                        targetSelectionSetId);
+
+                    if (result is not null)
                     {
-                        var result = FindSelectionSet(
-                            inlineFragment.SelectionSet,
-                            index,
-                            targetSelectionSetId);
-
-                        if (result is not null)
-                        {
-                            return result;
-                        }
-
-                        break;
+                        return result;
                     }
+
+                    break;
                 }
             }
-
-            return null;
         }
+
+        return null;
     }
 
     private static FieldNode CreateFieldWithAlias(FieldNode field, string internalAlias)
@@ -3395,6 +3487,24 @@ public sealed partial class OperationPlanner
         if (index.TryGetOriginalIdFromCloned(targetSelectionSetId, out var originalId))
         {
             targetSelectionSetId = originalId;
+        }
+
+        if (index.TryTakeConcreteBranchScope(
+            targetSelectionSetId,
+            out var branchScope))
+        {
+            index.Register(targetSelectionSetId, selectionsToInline);
+
+            selectionsToInline = new SelectionSetNode(
+            [
+                new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(branchScope.TypeCondition),
+                    [],
+                    selectionsToInline)
+            ]);
+
+            targetSelectionSetId = branchScope.ParentSelectionSetId;
         }
 
         return InlineSelections(
@@ -3897,30 +4007,34 @@ public sealed partial class OperationPlanner
         OperationDefinitionNode internalOperation,
         ImmutableList<PlanStep> steps,
         SelectionSetIndexBuilder index,
-        uint targetSelectionSetId)
+        uint targetSelectionSetId,
+        SelectionPath targetPath)
     {
         // Walk the internal operation AST depth-first, tracking:
-        // - A stack of (SelectionSetNode, ISelectionNode?, ITypeDefinition) from root to current
+        // - A stack of (SelectionSetNode, ISelectionNode, ITypeDefinition) from root to current
         // - The current type at each level
-        var path = new List<(SelectionSetNode SelectionSet, ISelectionNode? ConnectingNode, ITypeDefinition Type)>();
+        var path = new List<(SelectionSetNode SelectionSet, ISelectionNode ConnectingNode, ITypeDefinition Type)>();
         var rootType = _schema.GetOperationType(internalOperation.Operation);
 
         return WalkSelectionSet(
             internalOperation.SelectionSet, rootType, path,
-            _schema, steps, index, targetSelectionSetId);
+            SelectionPath.Root, _schema, steps, index, targetSelectionSetId, targetPath);
 
         static AncestorStepMatch? WalkSelectionSet(
             SelectionSetNode selectionSet,
             ITypeDefinition currentType,
-            List<(SelectionSetNode SelectionSet, ISelectionNode? ConnectingNode, ITypeDefinition Type)> path,
+            List<(SelectionSetNode SelectionSet, ISelectionNode ConnectingNode, ITypeDefinition Type)> path,
+            SelectionPath currentPath,
             FusionSchemaDefinition schema,
             ImmutableList<PlanStep> steps,
             SelectionSetIndexBuilder index,
-            uint targetSelectionSetId)
+            uint targetSelectionSetId,
+            SelectionPath targetPath)
         {
             var selectionSetId = index.GetId(selectionSet);
 
-            if (selectionSetId == targetSelectionSetId)
+            if (selectionSetId == targetSelectionSetId
+                && currentPath.Equals(targetPath))
             {
                 // Found the target. Trace back to find the deepest ancestor SS ID
                 // that exists in any step's SelectionSets.
@@ -3928,8 +4042,7 @@ public sealed partial class OperationPlanner
                 {
                     var entry = path[i];
 
-                    // If a FieldNode is the connecting node, this is a different nesting level
-                    if (entry.ConnectingNode is FieldNode)
+                    if (entry.ConnectingNode is not InlineFragmentNode)
                     {
                         continue;
                     }
@@ -3940,19 +4053,27 @@ public sealed partial class OperationPlanner
                     {
                         if (steps[s] is OperationPlanStep step
                             && step.SelectionSets.Contains(candidateSelectionSetId)
-                            && !string.IsNullOrEmpty(step.SchemaName))
+                            && step.Target.IsParentOfOrSame(targetPath)
+                            && !string.IsNullOrEmpty(step.SchemaName)
+                            && IsConnectorChainResolvable(path, i, currentType, step.SchemaName))
                         {
-                            // Collect intermediate InlineFragmentNodes between ancestor and target
-                            var ancestorFragments = new List<InlineFragmentNode>();
-                            for (var j = i + 1; j < path.Count; j++)
+                            var connectors = new List<AncestorConnector>(path.Count - i);
+                            for (var j = i; j < path.Count; j++)
                             {
-                                if (path[j].ConnectingNode is InlineFragmentNode fragment)
-                                {
-                                    ancestorFragments.Add(fragment);
-                                }
+                                connectors.Add(
+                                    new AncestorConnector(
+                                        index.GetId(path[j].SelectionSet),
+                                        path[j].ConnectingNode));
                             }
 
-                            return new AncestorStepMatch(step, s, candidateSelectionSetId, entry.Type, ancestorFragments);
+                            return new AncestorStepMatch(
+                                step,
+                                s,
+                                candidateSelectionSetId,
+                                entry.Type,
+                                targetSelectionSetId,
+                                currentType,
+                                connectors);
                         }
                     }
                 }
@@ -3974,8 +4095,15 @@ public sealed partial class OperationPlanner
                             var fieldType = field.Type.NamedType();
                             path.Add((selectionSet, fieldNode, currentType));
                             var result = WalkSelectionSet(
-                                fieldNode.SelectionSet, fieldType, path,
-                                schema, steps, index, targetSelectionSetId);
+                                fieldNode.SelectionSet,
+                                fieldType,
+                                path,
+                                currentPath.AppendField(fieldNode.Alias?.Value ?? fieldNode.Name.Value),
+                                schema,
+                                steps,
+                                index,
+                                targetSelectionSetId,
+                                targetPath);
                             if (result is not null)
                             {
                                 return result;
@@ -3992,9 +4120,19 @@ public sealed partial class OperationPlanner
                             : currentType;
 
                         path.Add((selectionSet, inlineFragment, currentType));
+                        var fragmentPath = inlineFragment.TypeCondition is null
+                            ? currentPath
+                            : currentPath.AppendFragment(inlineFragment.TypeCondition.Name.Value);
                         var fragmentResult = WalkSelectionSet(
-                            inlineFragment.SelectionSet, fragmentType, path,
-                            schema, steps, index, targetSelectionSetId);
+                            inlineFragment.SelectionSet,
+                            fragmentType,
+                            path,
+                            fragmentPath,
+                            schema,
+                            steps,
+                            index,
+                            targetSelectionSetId,
+                            targetPath);
                         if (fragmentResult is not null)
                         {
                             return fragmentResult;
@@ -4008,6 +4146,61 @@ public sealed partial class OperationPlanner
         }
     }
 
+    /// <summary>
+    /// Determines whether the source schema <paramref name="schemaName"/> resolves every
+    /// connector of <paramref name="path"/> from <paramref name="startIndex"/> down to the
+    /// requirement target, whose type is <paramref name="targetType"/>.
+    /// </summary>
+    /// <remarks>
+    /// 1. When the planner wants to fold a requirement (like an entity key) into an already-planned fetch,
+    ///    it has to wrap that requirement in all the intermediate fields and fragments that lead down to it.
+    ///    This method checks that the chosen source schema actually declares every one of those intermediate steps.
+    /// 2. It walks the recorded path entry by entry: for each field connector,
+    ///    the field must exist on its declaring type in that specific schema (and not be @external);
+    ///    for each inline-fragment connector, the type condition must exist in that schema.
+    /// 3. If any link in the chain fails, the whole ancestor step is rejected,
+    ///    so the planner falls back to sourcing the requirement from a step that genuinely owns the path
+    ///    (instead of emitting a document the subgraph would reject).
+    /// </remarks>
+    private static bool IsConnectorChainResolvable(
+        List<(SelectionSetNode SelectionSet, ISelectionNode ConnectingNode, ITypeDefinition Type)> path,
+        int startIndex,
+        ITypeDefinition targetType,
+        string schemaName)
+    {
+        for (var i = startIndex; i < path.Count; i++)
+        {
+            switch (path[i].ConnectingNode)
+            {
+                case FieldNode fieldNode:
+                    if (path[i].Type is not FusionComplexTypeDefinition complexType
+                        || !complexType.Fields.TryGetField(
+                            fieldNode.Name.Value,
+                            allowInaccessibleFields: true,
+                            out var field)
+                        || !field.Sources.TryGetMember(schemaName, out var source)
+                        || source.IsExternal)
+                    {
+                        return false;
+                    }
+                    break;
+
+                case InlineFragmentNode { TypeCondition: not null }:
+                    // a connector's own type is the declaring type of the next connector,
+                    // and for the last connector it is the type of the requirement target.
+                    var typeCondition = i + 1 < path.Count ? path[i + 1].Type : targetType;
+
+                    if (!typeCondition.ExistsInSchema(schemaName))
+                    {
+                        return false;
+                    }
+                    break;
+            }
+        }
+
+        return true;
+    }
+
     private bool TryInlineIntoAncestorStep(
         AncestorStepMatch match,
         SelectionSetNode requirements,
@@ -4016,51 +4209,52 @@ public sealed partial class OperationPlanner
         SelectionSetIndexBuilder index,
         ref ImmutableList<PlanStep> steps,
         out ImmutableStack<ConditionedSelectionSet> unresolvable,
-        uint? resolvableRegistrationId = null,
+        out ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         bool treatSourceExternalAsUnresolvable = false)
     {
         unresolvable = [];
-
-        var wrappedSelections = WrapSelectionsInFragments(match.AncestorFragments, requirements);
-
-        // Register the wrapped selection set nodes in the index before partitioning,
-        // so the partitioner can resolve their IDs via GetId.
-        if (wrappedSelections != requirements)
-        {
-            index.Register(match.SelectionSetId, wrappedSelections);
-            EnsureAllSelectionSetsRegistered(wrappedSelections, index);
-        }
+        fieldsWithRequirements = [];
 
         var input = new SelectionSetPartitionerInput
         {
             SchemaName = match.Step.SchemaName!,
             SelectionSet = new SelectionSet(
-                match.SelectionSetId,
-                wrappedSelections,
-                match.Type,
+                match.TargetSelectionSetId,
+                requirements,
+                match.TargetType,
                 path),
             SelectionSetIndex = index,
-            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable
+            TreatSourceExternalAsUnresolvable = treatSourceExternalAsUnresolvable,
+            // Only the step's entity entry root is constrained by the entering lookup's key;
+            // nested positions stay permissive.
+            EntryKeyCoverage =
+                match.Step.Lookup is not null
+                    && match.TargetSelectionSetId == match.Step.RootSelectionSetId
+                    ? match.Step.Lookup.Requirements
+                    : null
         };
 
-        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+        var (resolvable, partitionUnresolvable, partitionFieldsWithRequirements, _) =
+            _partitioner.Partition(input);
 
         if (resolvable is not { Selections.Count: > 0 })
         {
             return false;
         }
 
-        if (resolvableRegistrationId is { } registrationId && resolvable != requirements)
+        if (resolvable != requirements)
         {
-            index.Register(registrationId, resolvable);
+            index.Register(match.TargetSelectionSetId, resolvable);
         }
+
+        var wrappedSelections = WrapSelectionsInConnectors(match.Connectors, resolvable, index);
 
         var operation = InlineSelections(
             match.Step.Definition,
             index,
             match.Type,
             match.SelectionSetId,
-            resolvable);
+            wrappedSelections);
 
         EnsureAllSelectionSetsRegistered(operation.SelectionSet, index);
 
@@ -4073,27 +4267,34 @@ public sealed partial class OperationPlanner
 
         steps = steps.SetItem(match.StepIndex, updatedStep);
         unresolvable = partitionUnresolvable;
+        fieldsWithRequirements = partitionFieldsWithRequirements;
 
         return true;
     }
 
-    private static SelectionSetNode WrapSelectionsInFragments(
-        List<InlineFragmentNode> ancestorFragments,
-        SelectionSetNode requirements)
+    private static SelectionSetNode WrapSelectionsInConnectors(
+        List<AncestorConnector> connectors,
+        SelectionSetNode selections,
+        SelectionSetIndexBuilder index)
     {
-        var current = requirements;
+        var current = selections;
 
-        for (var i = ancestorFragments.Count - 1; i >= 0; i--)
+        for (var i = connectors.Count - 1; i >= 0; i--)
         {
-            var wrapper = ancestorFragments[i];
+            var connector = connectors[i];
+            ISelectionNode wrappedSelection = connector.Node switch
+            {
+                FieldNode field => field.WithSelectionSet(current),
+                InlineFragmentNode fragment => fragment.WithSelectionSet(current),
+                _ => throw new InvalidOperationException(
+                    $"Unsupported ancestor connector '{connector.Node.Kind}'.")
+            };
+
             current = new SelectionSetNode(
             [
-                new InlineFragmentNode(
-                    null,
-                    wrapper.TypeCondition,
-                    wrapper.Directives,
-                    current)
+                wrappedSelection
             ]);
+            index.Register(connector.SelectionSetId, current);
         }
 
         return current;
@@ -4139,7 +4340,13 @@ public sealed partial class OperationPlanner
         int StepIndex,
         uint SelectionSetId,
         ITypeDefinition Type,
-        List<InlineFragmentNode> AncestorFragments);
+        uint TargetSelectionSetId,
+        ITypeDefinition TargetType,
+        List<AncestorConnector> Connectors);
+
+    private readonly record struct AncestorConnector(
+        uint SelectionSetId,
+        ISelectionNode Node);
 
     private readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,

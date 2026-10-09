@@ -18,9 +18,15 @@ internal static class SettingsExtensions
                     CacheControlMergeBehavior =
                         compositionSettings.Merger.CacheControlMergeBehavior
                         ?? settings.Merger.CacheControlMergeBehavior,
+                    DefaultListSize =
+                        compositionSettings.Merger.DefaultListSize
+                        ?? settings.Merger.DefaultListSize,
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
+                    EnumValuesMergeBehavior =
+                        compositionSettings.Merger.EnumValuesMergeBehavior
+                        ?? settings.Merger.EnumValuesMergeBehavior,
                     NodeResolution =
                         compositionSettings.Merger.NodeResolution
                         ?? settings.Merger.NodeResolution,
@@ -108,9 +114,19 @@ internal static class SettingsExtensions
                 mergerOptions.CacheControlMergeBehavior = cacheControlMergeBehavior;
             }
 
+            if (mergerSettings.DefaultListSize is { } defaultListSize)
+            {
+                mergerOptions.DefaultListSize = defaultListSize;
+            }
+
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)
             {
                 mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            }
+
+            if (mergerSettings.EnumValuesMergeBehavior is { } enumValuesMergeBehavior)
+            {
+                mergerOptions.EnumValuesMergeBehavior = enumValuesMergeBehavior;
             }
 
             if (mergerSettings.NodeResolution is { } nodeResolution)

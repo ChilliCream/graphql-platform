@@ -1,5 +1,6 @@
-using System.Text;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
+using HotChocolate.Language;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -23,7 +24,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             Options:
               --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -a, --archive <archive>                        The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
               --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
@@ -216,8 +217,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -237,7 +238,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUpload(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUpload(schema);
     }
 
     [Fact]
@@ -249,8 +251,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupEnvironmentVariable(EnvironmentVariables.FusionConfigFile, ArchiveFile);
 
         SetupArchiveFile();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -264,18 +266,19 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUpload(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUpload(schema);
     }
 
     [Theory]
-    [MemberData(nameof(GetValidateSchemaVersionErrors))]
-    public async Task WithArchive_ValidateSchemaVersionHasErrors_ReturnsError(
-        IValidateSchemaVersion_ValidateSchema_Errors error,
+    [MemberData(nameof(GetStartValidationErrors))]
+    public async Task WithArchive_StartValidationHasErrors_ReturnsError(
+        IValidateFusionConfiguration_ValidateFusionConfiguration_Errors error,
         string expectedErrorMessage)
     {
         // arrange
         SetupArchiveFile();
-        SetupSchemaValidationMutation(error);
+        SetupStartFusionConfigurationValidationMutation(error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -302,7 +305,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task ApiNotFound_WithArchive_ReturnsError()
     {
         SetupArchiveFile();
-        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        SetupStartFusionConfigurationValidationMutation(CreateStartValidationApiNotFoundError());
         var result = await ExecuteCommandAsync(
             "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
 
@@ -316,45 +319,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
-    public async Task StageNotFound_WithArchive_ReturnsError()
-    {
-        SetupArchiveFile();
-        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
-        var result = await ExecuteCommandAsync(
-            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
-
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Stage 'dev' was not found.
-            This may mean the entity does not exist, or that you do not have permission to view it.
-            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task SchemaNotFound_WithArchive_ReturnsError()
-    {
-        SetupArchiveFile();
-        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
-        var result = await ExecuteCommandAsync(
-            "fusion", "validate", "--api-id", ApiId, "--stage", Stage, "--archive", ArchiveFile);
-
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Schema not found.
-            This may mean the entity does not exist, or that you do not have permission to view it.
-            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task WithArchive_ValidateSchemaVersionThrows_ReturnsError()
+    public async Task WithArchive_StartValidationThrows_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
-        SetupSchemaValidationMutationException();
+        SetupStartFusionConfigurationValidationMutationException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -385,11 +354,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription(
-            CreateSchemaVersionOperationInProgressEvent(),
-            CreateSchemaVersionValidationInProgressEvent(),
-            CreateSchemaVersionValidationFailedEventWithErrors());
+        SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription(
+            CreateValidationUpdateOperationInProgressEvent(),
+            CreateValidationUpdateValidationInProgressEvent(),
+            CreateValidationUpdateFailedEventWithErrors());
 
         // act
         var result = await ExecuteCommandAsync(
@@ -437,7 +406,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
                 │   └── Tool 'Fail'
                 │       └── The field `person` does not exist on the type `Query`. (1:14)
-                └── An unexpected error occurred.
+                ├── An unexpected error occurred.
+                ├── The validation timed out.
+                └── The request did not become ready in time.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -507,9 +478,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -533,7 +505,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUploadAfterCompose(schema);
     }
 
     [Fact]
@@ -541,10 +514,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -570,7 +544,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUploadAfterCompose(schema);
     }
 
     [Fact]
@@ -612,10 +587,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -641,7 +617,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertMigratedSchemaUploadAfterCompose(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertMigratedSchemaUploadAfterCompose(schema);
     }
 
     [Fact]
@@ -652,10 +629,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -681,7 +659,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertOverriddenSchemaUpload(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertOverriddenSchemaUpload(schema);
     }
 
     [Fact]
@@ -689,10 +668,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -718,7 +698,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertMigratedSchemaUploadAfterCompose(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertMigratedSchemaUploadAfterCompose(schema);
     }
 
     [Fact]
@@ -729,10 +710,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             SourceSchemaReviewsFile,
             SourceSchemaReviewsSettingsFile,
             SourceSchemaReviews);
+        SetupStageCompositionSettings();
         SetupLegacyArchiveFile();
         SetupMissingFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -758,7 +740,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertOverriddenSchemaUpload(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertOverriddenSchemaUpload(schema);
     }
 
     [Fact]
@@ -769,9 +752,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
 
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
-        var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -791,19 +775,21 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             └── ✓ Fusion configuration passed validation.
             """);
-        AssertSchemaUploadAfterCompose(capturedStream);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUploadAfterCompose(schema);
     }
 
     [Theory]
-    [MemberData(nameof(GetValidateSchemaVersionErrors))]
-    public async Task WithSourceSchemaFile_ValidateSchemaVersionHasErrors_ReturnsError(
-        IValidateSchemaVersion_ValidateSchema_Errors error,
+    [MemberData(nameof(GetStartValidationErrors))]
+    public async Task WithSourceSchemaFile_StartValidationHasErrors_ReturnsError(
+        IValidateFusionConfiguration_ValidateFusionConfiguration_Errors error,
         string expectedErrorMessage)
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
-        SetupSchemaValidationMutation(error);
+        SetupStartFusionConfigurationValidationMutation(error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -834,8 +820,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task ApiNotFound_WithSourceSchema_ReturnsError()
     {
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
-        SetupSchemaValidationMutation(CreateValidateSchemaVersionApiNotFoundError());
+        SetupStartFusionConfigurationValidationMutation(CreateStartValidationApiNotFoundError());
         var result = await ExecuteCommandAsync(
             "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
             "--source-schema-file", SourceSchemaFile);
@@ -850,50 +837,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     [Fact]
-    public async Task StageNotFound_WithSourceSchema_ReturnsError()
-    {
-        SetupSourceSchemaFile();
-        SetupFusionConfigurationDownload();
-        SetupSchemaValidationMutation(CreateValidateSchemaVersionStageNotFoundError());
-        var result = await ExecuteCommandAsync(
-            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
-            "--source-schema-file", SourceSchemaFile);
-
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Stage 'dev' was not found.
-            This may mean the entity does not exist, or that you do not have permission to view it.
-            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task SchemaNotFound_WithSourceSchema_ReturnsError()
-    {
-        SetupSourceSchemaFile();
-        SetupFusionConfigurationDownload();
-        SetupSchemaValidationMutation(CreateValidateSchemaVersionSchemaNotFoundError());
-        var result = await ExecuteCommandAsync(
-            "fusion", "validate", "--api-id", ApiId, "--stage", Stage,
-            "--source-schema-file", SourceSchemaFile);
-
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Schema not found.
-            This may mean the entity does not exist, or that you do not have permission to view it.
-            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_ValidateSchemaVersionThrows_ReturnsError()
+    public async Task WithSourceSchemaFile_StartValidationThrows_ReturnsError()
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
-        SetupSchemaValidationMutationException();
+        SetupStartFusionConfigurationValidationMutationException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -928,12 +878,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
-        SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription(
-            CreateSchemaVersionOperationInProgressEvent(),
-            CreateSchemaVersionValidationInProgressEvent(),
-            CreateSchemaVersionValidationFailedEventWithErrors());
+        SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription(
+            CreateValidationUpdateOperationInProgressEvent(),
+            CreateValidationUpdateValidationInProgressEvent(),
+            CreateValidationUpdateFailedEventWithErrors());
 
         // act
         var result = await ExecuteCommandAsync(
@@ -985,9 +936,199 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
                 │   └── Tool 'Fail'
                 │       └── The field `person` does not exist on the type `Query`. (1:14)
-                └── An unexpected error occurred.
+                ├── An unexpected error occurred.
+                ├── The validation timed out.
+                └── The request did not become ready in time.
             """);
         Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_NullStageCompositionSettings_ArchiveSettingsPreserved()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings();
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "tag1"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Ignore",
+                "enableGlobalObjectIdentification": false,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              }
+            }
+            """);
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUploadWithArchiveSettingsPreserved(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_PartialStageCompositionSettings_OnlyOverridesProvidedSettings()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                ExcludeByTag = ["tag2"],
+                TagMergeBehavior = CompositionDirectiveMergeBehavior.IncludePrivate
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": [
+                  "tag1"
+                ]
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": "Ignore",
+                "enableGlobalObjectIdentification": false,
+                "removeUnreferencedDefinitions": false,
+                "tagMergeBehavior": "Include"
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              }
+            }
+            """);
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUploadWithPartialStageSettings(schema);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to download the composition settings from stage 'dev': Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to download the composition settings from stage 'dev'.
+            └── ✕ Failed to validate the Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettingsPersistedOperationRejected_ProducesWarning()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownload();
+        SetupStageCompositionSettingsPersistedOperationRejected();
+        var capturedStream = SetupStartFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationUpdatedSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   ├── ! Failed to download the composition settings from stage 'dev': If you are targeting a self-hosted instance, make sure it's running the latest version.
+            │   └── ✓ Composed new configuration.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Fusion configuration passed validation.
+            """);
+        var schema = await GetFusionSchemaAsync(capturedStream);
+        AssertSchemaUploadAfterCompose(schema);
     }
 
     [Fact]
@@ -1028,6 +1169,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupSourceSchemaFileWithInvalidSchema();
+        SetupStageCompositionSettings();
         SetupFusionConfigurationDownload();
 
         // act
@@ -1064,10 +1206,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
     #endregion
 
-    private static void AssertSchemaUpload(MemoryStream stream)
+    private static void AssertSchemaUpload(string schema)
     {
-        var str = Encoding.UTF8.GetString(stream.ToArray());
-        str.MatchInlineSnapshot(
+        schema.MatchInlineSnapshot(
             """
             schema {
               query: Query
@@ -1153,10 +1294,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
     }
 
-    private static void AssertOverriddenSchemaUpload(MemoryStream stream)
+    private static void AssertOverriddenSchemaUpload(string schema)
     {
-        var str = Encoding.UTF8.GetString(stream.ToArray());
-        str.MatchInlineSnapshot(
+        schema.MatchInlineSnapshot(
             """
             schema
               @fusion__execution(
@@ -1210,6 +1350,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1352,10 +1494,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
     }
 
-    private static void AssertSchemaUploadAfterCompose(MemoryStream stream)
+    private static void AssertSchemaUploadAfterCompose(string schema)
     {
-        var str = Encoding.UTF8.GetString(stream.ToArray());
-        str.MatchInlineSnapshot(
+        schema.MatchInlineSnapshot(
             """
             schema
               @fusion__execution(
@@ -1444,6 +1585,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
               "The name of the source schema that provides the specified enum value."
@@ -1585,10 +1728,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
     }
 
-    private static void AssertMigratedSchemaUploadAfterCompose(MemoryStream stream)
+    private static void AssertMigratedSchemaUploadAfterCompose(string schema)
     {
-        var str = Encoding.UTF8.GetString(stream.ToArray());
-        str.MatchInlineSnapshot(
+        schema.MatchInlineSnapshot(
             """
             schema
               @fusion__execution(
@@ -1686,6 +1828,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
               "The name of the source schema that provides the specified enum value."
@@ -1827,13 +1971,49 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
     }
 
+    private static void AssertSchemaUploadWithArchiveSettingsPreserved(string schema)
+    {
+        GetQueryType(schema).ToString().MatchInlineSnapshot(
+            """
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
+              cachedField: String @fusion__field(schema: REVIEWS)
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
+              tag2Field: String @fusion__field(schema: REVIEWS)
+            }
+            """);
+    }
+
+    private static void AssertSchemaUploadWithPartialStageSettings(string schema)
+    {
+        GetQueryType(schema).ToString().MatchInlineSnapshot(
+            """
+            type Query @fusion__type(schema: PRODUCTS) @fusion__type(schema: REVIEWS) {
+              cachedField: String @fusion__field(schema: REVIEWS)
+              field: String! @fusion__field(schema: PRODUCTS)
+              node(id: ID! @fusion__inputField(schema: REVIEWS)): Node
+                @fusion__field(schema: REVIEWS)
+              tag1Field: String @fusion__field(schema: REVIEWS)
+            }
+            """);
+    }
+
+    private static ObjectTypeDefinitionNode GetQueryType(string schema)
+    {
+        return Utf8GraphQLParser.Parse(schema).Definitions
+            .OfType<ObjectTypeDefinitionNode>()
+            .Single(type => type.Name.Value == "Query");
+    }
+
     #region Error Theory Data
 
     public static TheoryData<
-        IValidateSchemaVersion_ValidateSchema_Errors,
-        string> GetValidateSchemaVersionErrors() => new()
+        IValidateFusionConfiguration_ValidateFusionConfiguration_Errors,
+        string> GetStartValidationErrors() => new()
     {
-        { CreateValidateSchemaVersionUnauthorizedError(), "Unauthorized." }
+        { CreateStartValidationUnauthorizedError(), "Unauthorized." },
+        { CreateStartValidationInvalidSourceMetadataError(), "Invalid source metadata input." }
     };
 
     #endregion

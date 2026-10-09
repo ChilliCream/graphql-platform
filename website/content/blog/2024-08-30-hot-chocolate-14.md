@@ -1,6 +1,7 @@
 ---
 date: "2024-08-30"
 title: "What's new for Hot Chocolate 14"
+description: "Hot Chocolate 14 introduces simpler dependency injection, query inspection, source-generated DataLoaders, pagination improvements, and stronger security."
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 category: "Release"
 featuredImage: "hot-chocolate-14.png"

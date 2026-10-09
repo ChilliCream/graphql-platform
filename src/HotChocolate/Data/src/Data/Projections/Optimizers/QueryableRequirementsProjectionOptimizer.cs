@@ -92,8 +92,9 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
                         responseName,
                         SelectionPath.Root,
                         field,
-                        [new FieldSelectionNode(fieldNode, 0)],
+                        [new FieldSelectionNode(fieldNode, default(ConditionFlags))],
                         [],
+                        isProjectionRequirement: true,
                         isInternal: true,
                         resolverPipeline: resolverPipeline));
             }
@@ -107,8 +108,9 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
                 responseName,
                 SelectionPath.Root,
                 field,
-                [new FieldSelectionNode(fieldNode, 0)],
+                [new FieldSelectionNode(fieldNode, default(ConditionFlags))],
                 [],
+                isProjectionRequirement: true,
                 isInternal: true,
                 resolverPipeline: resolverPipeline));
     }

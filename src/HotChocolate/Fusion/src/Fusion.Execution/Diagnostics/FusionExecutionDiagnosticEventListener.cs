@@ -66,6 +66,12 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual void UntrustedDocumentRejected(RequestContext context) { }
 
     /// <inheritdoc />
+    public virtual IDisposable AnalyzeOperationCost(RequestContext context) => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void OperationCost(RequestContext context, double fieldCost, double typeCost) { }
+
+    /// <inheritdoc />
     public virtual IDisposable PlanOperation(RequestContext context, string operationPlanId)
         => EmptyScope;
 
@@ -189,6 +195,15 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         string schemaName,
         ulong subscriptionId)
         => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+    }
 
     /// <inheritdoc />
     public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)

@@ -36,7 +36,7 @@ const CHANNELS: readonly Channel[] = [
   },
   {
     title: "Slack",
-    copy: "Live conversation with maintainers and 7000+ developers.",
+    copy: "Public, best-effort help from maintainers and other users.",
     href: SLACK,
     external: true,
     icon: <ChatIcon />,
@@ -50,7 +50,7 @@ const CHANNELS: readonly Channel[] = [
   },
   {
     title: "GitHub",
-    copy: "Source, issues, and discussions for graphql-platform.",
+    copy: "Source code, tracked issues, and technical discussions.",
     href: GITHUB,
     external: true,
     icon: <BranchIcon />,
@@ -58,9 +58,8 @@ const CHANNELS: readonly Channel[] = [
 ];
 
 /**
- * The self-serve channels: five linked cards (docs, blog, and the community
- * channels) to try before booking a session, rendered with the shared
- * `IconFeatureCard`.
+ * The self-serve channels: five linked cards for documentation, articles, and
+ * community support.
  */
 export function SelfServeGrid() {
   return (

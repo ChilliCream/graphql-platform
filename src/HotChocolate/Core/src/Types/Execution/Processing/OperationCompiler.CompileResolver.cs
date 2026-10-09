@@ -72,22 +72,10 @@ public sealed partial class OperationCompiler
             if (schema.DirectiveTypes.TryGetDirective(directiveNode.Name.Value, out var directiveType)
                 && directiveType.Middleware is not null)
             {
-                Directive directive;
-                try
-                {
-                    directive = new Directive(
-                        directiveType,
-                        directiveNode,
-                        directiveType.Parse(directiveNode));
-                }
-                catch (LeafCoercionException ex)
-                {
-                    throw new LeafCoercionException(
-                        ErrorBuilder.FromError(ex.Errors[0])
-                            .TryAddLocation(directiveNode)
-                            .Build(),
-                        ex.Type);
-                }
+                var directive = new Directive(
+                    directiveType,
+                    directiveNode,
+                    directiveType.Parse(directiveNode));
 
                 var directiveMiddleware = directiveType.Middleware;
                 pipelineComponents.Add(next => directiveMiddleware(next, directive));

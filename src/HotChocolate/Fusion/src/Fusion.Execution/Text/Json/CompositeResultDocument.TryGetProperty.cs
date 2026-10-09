@@ -367,6 +367,37 @@ public sealed partial class CompositeResultDocument
         return false;
     }
 
+    /// <summary>
+    /// Classifies the element at <paramref name="startCursor"/> in one step. Returns
+    /// <c>false</c> for an undefined slot that still needs to be initialized, returns
+    /// <c>true</c> with the object context for an object, and throws for any other
+    /// value kind.
+    /// </summary>
+    internal bool TryGetObjectContext(Cursor startCursor, out CompositeObjectContext objectContext)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.GetValue(ref startCursor);
+
+        if (row.TokenType is ElementTokenType.None)
+        {
+            objectContext = default;
+            return false;
+        }
+
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        SelectionSet? selectionSet = null;
+
+        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        {
+            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+        }
+
+        objectContext = new CompositeObjectContext(this, startCursor, selectionSet, row.NumberOfRows);
+        return true;
+    }
+
     internal CompositeObjectContext GetObjectContext(Cursor startCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);

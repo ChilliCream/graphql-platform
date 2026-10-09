@@ -84,25 +84,6 @@ internal sealed class InterfaceObjectKeyMismatchRule : IEventHandler<TypeGroupEv
             return null;
         }
 
-        try
-        {
-            return Canonicalize(Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{ {fields.Value} }}"));
-        }
-        catch (SyntaxException)
-        {
-            return null;
-        }
-    }
-
-    private static string Canonicalize(SelectionSetNode selectionSet)
-    {
-        var parts = selectionSet.Selections
-            .OfType<FieldNode>()
-            .Select(f => f.SelectionSet is null
-                ? f.Name.Value
-                : $"{f.Name.Value}{{{Canonicalize(f.SelectionSet)}}}")
-            .OrderBy(p => p, StringComparer.Ordinal);
-
-        return string.Join(" ", parts);
+        return FieldSelection.Normalize(fields.Value);
     }
 }

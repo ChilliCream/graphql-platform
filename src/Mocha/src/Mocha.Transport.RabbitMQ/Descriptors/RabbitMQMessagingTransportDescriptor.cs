@@ -279,6 +279,10 @@ public sealed class RabbitMQMessagingTransportDescriptor
 
             DeclareExchange(exchangeName);
             var descriptor = DeclareBinding(exchangeName, configuration.Name!);
+
+            // Take AutoProvision from BindFrom, otherwise from the queue.
+            descriptor.Extend().Configuration.AutoProvision = binding.AutoProvision ?? configuration.Queue.AutoProvision;
+
             if (binding.RoutingKey is not null)
             {
                 descriptor.RoutingKey(binding.RoutingKey);
@@ -309,6 +313,11 @@ public sealed class RabbitMQMessagingTransportDescriptor
         if (configuration.MaxPrefetch is not null)
         {
             target.MaxPrefetch = configuration.MaxPrefetch.Value;
+        }
+
+        if (configuration.IsTemporary)
+        {
+            target.IsTemporary = true;
         }
 
         target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);

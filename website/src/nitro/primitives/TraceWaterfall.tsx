@@ -12,6 +12,7 @@ export interface TraceWaterfallProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  once?: boolean;
   ariaLabel?: string;
   className?: string;
   style?: CSSProperties;
@@ -33,22 +34,34 @@ const KIND_ICON: Record<SpanKindWf, string> = {
 const fmtDur = (d: number) =>
   d >= 1 ? `${d.toFixed(1)} ms` : `${Math.round(d * 1000)} µs`;
 
+const niceStep = (raw: number) => {
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  for (const m of [1, 2, 5]) {
+    if (m * mag >= raw) {
+      return m * mag;
+    }
+  }
+  return 10 * mag;
+};
+
 export function TraceWaterfall({
   trace,
   rowHeight = 34,
   progress,
   playWindow,
   durationMs,
+  once,
   ariaLabel,
   className,
   style,
 }: TraceWaterfallProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
   const total = trace.totalMs;
-  const ticks = Array.from(
-    { length: Math.floor(total) + 1 },
-    (_, i) => i,
-  ).filter((tk) => tk / total < 0.97);
+  const step = total <= 12 ? 1 : niceStep(total / 5);
+  const ticks: number[] = [];
+  for (let tk = 0; tk / total < 0.9; tk += step) {
+    ticks.push(tk);
+  }
   const n = trace.spans.length;
   const label =
     ariaLabel ?? `Trace waterfall: ${n} spans over ${fmtDur(total)}`;
@@ -165,7 +178,9 @@ function Span({
       <motion.div
         style={{
           position: "absolute",
-          left: `${left}%`,
+          ...(left > 62
+            ? { right: `${Math.max(0, 100 - left - width)}%` }
+            : { left: `${left}%` }),
           top: 16,
           fontSize: 11,
           color: token.text,

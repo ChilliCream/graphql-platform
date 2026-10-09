@@ -1,3 +1,4 @@
+import { DocsPageActions } from "./DocsPageActions";
 import { TocActive } from "./TocActive";
 import { TocDrawer } from "./TocDrawer";
 
@@ -17,12 +18,21 @@ export type TocSection = {
   subtree: SubtreeNode[];
 };
 
-type TableOfContentsProps = {
-  items: HeadingItem[];
-};
+interface TableOfContentsProps {
+  readonly fallbackMarkdown?: string;
+  readonly items: HeadingItem[];
+  readonly markdownUrl?: string;
+  readonly title?: string;
+}
 
-export function TableOfContents({ items }: TableOfContentsProps) {
-  if (items.length === 0) {
+export function TableOfContents({
+  fallbackMarkdown,
+  items,
+  markdownUrl,
+  title,
+}: TableOfContentsProps) {
+  const hasActions = markdownUrl !== undefined && title !== undefined;
+  if (items.length === 0 && !hasActions) {
     return null;
   }
 
@@ -32,20 +42,48 @@ export function TableOfContents({ items }: TableOfContentsProps) {
     <>
       <aside className="cc-content-dark hidden 2xl:block">
         <div className="sticky top-18 flex max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] flex-col px-5 pt-8">
-          <TocHeader />
-          <div
-            data-toc-scroll
-            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
-          >
-            <TocNav sections={sections} />
-          </div>
+          {hasActions ? (
+            <div className="border-cc-card-border mb-5 border-b pb-5">
+              <DocsPageActions
+                fallbackMarkdown={fallbackMarkdown}
+                markdownUrl={markdownUrl}
+                title={title}
+              />
+            </div>
+          ) : null}
+          {sections.length > 0 ? (
+            <>
+              <TocHeader />
+              <div
+                data-toc-scroll
+                className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-8"
+              >
+                <TocNav sections={sections} />
+              </div>
+            </>
+          ) : null}
         </div>
       </aside>
       <TocDrawer>
-        <TocHeader />
-        <TocNav sections={sections} />
+        {hasActions ? (
+          <div className="border-cc-card-border mb-5 border-b pb-5">
+            <DocsPageActions
+              fallbackMarkdown={fallbackMarkdown}
+              markdownUrl={markdownUrl}
+              title={title}
+            />
+          </div>
+        ) : null}
+        {sections.length > 0 ? (
+          <>
+            <TocHeader />
+            <TocNav sections={sections} />
+          </>
+        ) : null}
       </TocDrawer>
-      <TocActive sections={sections.map(toSectionMap)} />
+      {sections.length > 0 ? (
+        <TocActive sections={sections.map(toSectionMap)} />
+      ) : null}
     </>
   );
 }

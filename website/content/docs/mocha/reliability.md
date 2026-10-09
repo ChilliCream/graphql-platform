@@ -685,7 +685,7 @@ See [Transactional Outbox](https://microservices.io/patterns/data/transactional-
 
 **1. Add the NuGet packages.**
 
-```bash
+```shell
 dotnet add package Mocha.EntityFrameworkCore
 dotnet add package Mocha.EntityFrameworkCore.Postgres
 ```
@@ -779,7 +779,7 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
+The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
 
 The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processor retries on the next signal. Messages are deleted from the outbox table after successful dispatch.
 
@@ -835,7 +835,7 @@ See [Idempotent Consumer](https://microservices.io/patterns/communication-style/
 
 **1. Add the NuGet packages.**
 
-```bash
+```shell
 dotnet add package Mocha.EntityFrameworkCore
 dotnet add package Mocha.EntityFrameworkCore.Postgres
 ```
@@ -962,7 +962,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-`UseConsume(..., before: "Inbox")` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
+`#!csharp UseConsume(..., before: "Inbox")` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
 
 ## How the inbox cleanup worker works
 

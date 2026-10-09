@@ -1327,8 +1327,7 @@ public class ObjectTypeTests : TypeTestBase
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithIntArg>(
                 t => t
-                    .Field(f => f.GetBar(1))
-                    .Argument("foo", a => a.DefaultValue(null)))
+                    .Field(f => f.GetBar(1)))
             .Create();
 
         // assert
@@ -1810,6 +1809,7 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<ResolveWithCollisionQuery>()
             .AddType<BookWithChaptersType>()
             .AddType(new AnyType("JSON", "Arbitrary JSON.", BindingBehavior.Explicit))
@@ -2041,6 +2041,23 @@ public class ObjectTypeTests : TypeTestBase
         // assert
         var ex = await Assert.ThrowsAsync<SchemaException>(call);
         ex.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task CodeFirst_DeprecatedObjectType_Should_BeDeprecated()
+    {
+        // arrange & act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithDeprecatedType>()
+            .AddType<DeprecatedTypeDescriptor>()
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var objectType = schema.Types.GetType<ObjectType>("Foo");
+        Assert.True(objectType.IsDeprecated);
+        Assert.Equal("Use Bar.", objectType.DeprecationReason);
     }
 
     [Fact]
@@ -2416,7 +2433,7 @@ public class ObjectTypeTests : TypeTestBase
             string b = "abc") => null;
 
         public string? Field2(
-            [DefaultValue(null)] string a,
+            [DefaultValue(null)] string? a,
             [DefaultValue("abc")] string b) => null;
     }
 
@@ -2571,6 +2588,21 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithDeprecatedArgumentsIllegal
     {
         public string Field([GraphQLDeprecated("Not longer allowed")] int deprecated) => "";
+    }
+
+    public class QueryWithDeprecatedType
+    {
+        [GraphQLDeprecated("Use bar.")]
+        public Foo? Foo => null;
+    }
+
+    public class DeprecatedTypeDescriptor : ObjectType<Foo>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Name("Foo");
+            descriptor.Deprecated("Use Bar.");
+        }
     }
 
     public class WithStaticField

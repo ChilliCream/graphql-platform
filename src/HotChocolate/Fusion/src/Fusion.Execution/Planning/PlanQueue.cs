@@ -140,13 +140,24 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 type);
         }
 
+        // Materialized once so both this check and the self-reentry exclusion below
+        // share the same candidate set.
+        var candidateSchemas = schema.GetPossibleSchemas(workItem.SelectionSet).ToArray();
+
+        // True only when the sole schema able to serve this selection is also the one
+        // the self-reentry rule excludes, leaving zero candidate plans otherwise.
+        var onlyCandidateIsExcludedSelf = !workItem.AllowSourceSchemaReentry
+            && candidateSchemas is [(var soleSchema, _)]
+            && soleSchema.Equals(workItem.FromSchema, StringComparison.Ordinal);
+
         // Each branch starts from the same popped template and mutates a local copy
         // of backlog state. This avoids recomputing backlog shape from collections
         // for every candidate.
-        foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (toSchema, resolutionCost) in candidateSchemas)
         {
             if (!workItem.AllowSourceSchemaReentry
-                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal)
+                && !onlyCandidateIsExcludedSelf)
             {
                 continue;
             }

@@ -1,0 +1,66 @@
+{
+  "data": {
+    "__schema": {
+      "queryType": {
+        "name": "Query"
+      },
+      "mutationType": null,
+      "subscriptionType": null,
+      "types": [{
+          "kind": "OBJECT",
+          "name": "Query",
+          "description": null,
+          "fields": [{
+              "name": "field",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "String",
+          "description": "Built-in String",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        }
+      ],
+      "directives": [{
+          "name": "obsolete",
+          "description": null,
+          "locations": ["FIELD"],
+          "args": [{
+              "name": "obsoleteArg",
+              "description": null,
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null,
+              "isDeprecated": true,
+              "deprecationReason": "Argument no longer supported."
+            }
+          ],
+          "isRepeatable": false,
+          "isDeprecated": true,
+          "deprecationReason": "Directive no longer supported."
+        }
+      ]
+    }
+  }
+}

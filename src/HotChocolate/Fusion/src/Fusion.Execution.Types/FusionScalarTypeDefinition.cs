@@ -103,11 +103,6 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     public string? Pattern { get; private set; }
 
     /// <summary>
-    /// Gets the value kind that this scalar type can represent.
-    /// </summary>
-    public ScalarValueKind ValueKind { get; private set; }
-
-    /// <summary>
     /// Gets the feature collection associated with this scalar type.
     /// </summary>
     public IFeatureCollection Features
@@ -130,25 +125,14 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
         }
 
         Directives = context.Directives;
-        ValueKind = context.ValueKind;
         SpecifiedBy = context.SpecifiedBy;
 
-        // if the value kind is any, we need to determine the value kind based on the name
-        // for the spec scalars.
-        if (ValueKind is ScalarValueKind.Any)
-        {
-            ValueKind = Name switch
-            {
-                "ID" => ScalarValueKind.String | ScalarValueKind.Integer,
-                "String" => ScalarValueKind.String,
-                "Int" => ScalarValueKind.Integer,
-                "Float" => ScalarValueKind.Float,
-                "Boolean" => ScalarValueKind.Boolean,
-                _ => ScalarValueKind.Any
-            };
-        }
-
-        SerializationType = context.SerializationType;
+        // The explicit @serializeAs directive (carried on the context) is the primary source of
+        // the serialization type; otherwise it is resolved from the @specifiedBy URL or the
+        // spec-scalar name, or remains undefined (which accepts any literal).
+        SerializationType = context.SerializationType is not ScalarSerializationType.Undefined
+            ? context.SerializationType
+            : this.GetScalarSerializationType();
         Pattern = context.Pattern;
 
         _completed = true;
@@ -165,32 +149,6 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
         }
 
         return false;
-    }
-
-    /// <inheritdoc />
-    public bool IsValueCompatible(IValueNode valueLiteral)
-    {
-        ArgumentNullException.ThrowIfNull(valueLiteral);
-
-        if (ValueKind == ScalarValueKind.Any)
-        {
-            return true;
-        }
-
-        return valueLiteral.Kind switch
-        {
-            SyntaxKind.NullValue => true,
-            SyntaxKind.EnumValue => false,
-            SyntaxKind.StringValue => ValueKind.HasFlag(ScalarValueKind.String),
-            SyntaxKind.IntValue =>
-                ValueKind.HasFlag(ScalarValueKind.Integer)
-                || ValueKind.HasFlag(ScalarValueKind.Float),
-            SyntaxKind.FloatValue => ValueKind.HasFlag(ScalarValueKind.Float),
-            SyntaxKind.BooleanValue => ValueKind.HasFlag(ScalarValueKind.Boolean),
-            SyntaxKind.ListValue => ValueKind.HasFlag(ScalarValueKind.List),
-            SyntaxKind.ObjectValue => ValueKind.HasFlag(ScalarValueKind.Object),
-            _ => false
-        };
     }
 
     /// <inheritdoc />

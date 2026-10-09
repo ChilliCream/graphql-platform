@@ -25,9 +25,11 @@ nodes:
     type: ApolloOperation
     schema: b
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        fusion__lookup_nodeById(id: $__fusion_1_id) {
-          field
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Node {
+            field
+          }
         }
       }
     source: $._entities

@@ -8,6 +8,7 @@ namespace GreenDonut;
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract class BatchDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
+    , IBatchDataLoader<TKey, TValue>
     where TKey : notnull
 {
     /// <summary>
@@ -83,6 +84,7 @@ public abstract class BatchDataLoader<TKey, TValue>
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract class StatefulBatchDataLoader<TKey, TValue>
     : DataLoaderBase<TKey, TValue>
+    , IBatchDataLoader<TKey, TValue>
     where TKey : notnull
 {
     /// <summary>

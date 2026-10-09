@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Linq.Expressions;
 using GreenDonut;
 using GreenDonut.Data;
@@ -8,7 +9,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
@@ -815,6 +815,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<BrandsQuery>()
             .AddTypeExtension(typeof(BrandListExtensions))
             .ExecuteRequestAsync(
@@ -849,6 +850,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .AddScoped(_ => queries)
             .AddTransient(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<ProductsWithNullPropertyQuery>()
             .ExecuteRequestAsync(
                 """

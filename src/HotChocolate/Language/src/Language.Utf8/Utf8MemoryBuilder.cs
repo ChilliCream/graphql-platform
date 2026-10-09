@@ -101,6 +101,7 @@ internal sealed class Utf8MemoryBuilder : IWritableMemory
             : [];
         ArrayPool<byte>.Shared.Return(_buffer);
         _buffer = finalArray;
+        _written = -1;
     }
 
     public void Abandon()
@@ -112,6 +113,7 @@ internal sealed class Utf8MemoryBuilder : IWritableMemory
 
         ArrayPool<byte>.Shared.Return(_buffer);
         _buffer = [];
+        _written = -1;
     }
 
     private void EnsureCapacity(int length)

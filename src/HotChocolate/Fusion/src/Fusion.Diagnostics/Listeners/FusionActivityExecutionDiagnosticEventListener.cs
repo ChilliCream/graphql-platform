@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -21,15 +22,15 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         if (options.SkipExecuteRequest)
         {
-            if (!options.SkipExecuteHttpRequest
-                && context.Features.TryGet<HttpContext>(out var httpContext)
-                && httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
-            {
-                httpContextActivity = httpRequestSpan.Activity;
-            }
-            else
+            if (options.SkipExecuteHttpRequest
+                || !context.Features.TryGet<HttpContext>(out var httpContext))
             {
                 return EmptyScope;
+            }
+
+            if (httpContext.Features.Get<ExecuteHttpRequestSpan>() is { IsBatch: false } httpRequestSpan)
+            {
+                httpContextActivity = httpRequestSpan.Activity;
             }
         }
 
@@ -136,6 +137,33 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         enricher.EnrichValidationErrors(context, errors, activity);
     }
 
+    public override IDisposable AnalyzeOperationCost(RequestContext context)
+    {
+        if (options.SkipAnalyzeComplexity)
+        {
+            return EmptyScope;
+        }
+
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context, enricher);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
+    }
+
+    public override void OperationCost(RequestContext context, double fieldCost, double typeCost)
+    {
+        if (context.Features.TryGet<AnalyzeOperationComplexitySpan>(out var span))
+        {
+            span.SetCost(fieldCost, typeCost);
+        }
+    }
+
     public override IDisposable PlanOperation(RequestContext context, string operationPlanId)
     {
         if (options.SkipPlanOperation)
@@ -155,7 +183,27 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        if (context.GetOperationPlan() is not { } plan)
+        OperationType operationType;
+        string? operationName;
+
+        if (context.GetOperationPlan() is { } plan)
+        {
+            operationType = plan.Operation.Definition.Operation;
+            operationName = plan.OperationName;
+        }
+        else if (context.OperationDocumentInfo.NormalizedDocument is
+        { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+        }
+        else if (context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && document.TryGetOperationDefinition(context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
+        }
+        else
         {
             return EmptyScope;
         }
@@ -163,8 +211,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         var span = VariableCoercionSpan.Start(
             Source,
             context,
-            plan.Operation.Definition.Operation,
-            plan.OperationName,
+            operationType,
+            operationName,
             enricher);
 
         return span ?? EmptyScope;
@@ -346,7 +394,25 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         enricher.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, span.Activity);
 
+        // The span is tracked on the request so that SubscriptionEventDelivered can
+        // mark it once the event result has been written to the client. Events of a
+        // subscription are processed strictly sequentially, so at most one event span
+        // is live per request at any time.
+        context.RequestContext.Features.Set(span);
+
         return span;
+    }
+
+    public override void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+        if (context.RequestContext.Features.TryGet<SubscriptionEventSpan>(out var span))
+        {
+            span.SetDelivered();
+        }
     }
 
     public override void SubscriptionEventError(

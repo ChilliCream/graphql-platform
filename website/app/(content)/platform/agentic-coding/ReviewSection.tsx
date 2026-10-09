@@ -8,6 +8,7 @@ import { SectionHeading } from "@/src/components/SectionHeading";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
+import { SpinnerGlyph } from "@/src/icons/SpinnerGlyph";
 
 interface HunkRun {
   readonly t: string;
@@ -72,12 +73,15 @@ interface TimeBar {
   readonly fill: string;
 }
 
-// Write is short because the agent did it. Review is short because the change
-// has one shape. The ghosted bar is the review you used to pay for.
+// A qualitative comparison of review effort when agents follow a known pattern
+// instead of introducing an unfamiliar structure.
 const TIME_BARS: readonly TimeBar[] = [
-  { label: "write", width: 22, fill: "rgba(245, 241, 234, 0.42)" },
-  { label: "review", width: 18, fill: "var(--color-cc-accent)" },
-  { label: "usual review", width: 84, fill: "rgba(245, 241, 234, 0.13)" },
+  { label: "patterned change", width: 24, fill: "var(--color-cc-accent)" },
+  {
+    label: "invented structure",
+    width: 84,
+    fill: "rgba(245, 241, 234, 0.13)",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -243,31 +247,19 @@ function CursorGlyph({ className }: { readonly className?: string }) {
   );
 }
 
-/** Amber spinner, GitHub-style, for a check that is still running: a
- * three-quarter circle arc rotating in place. */
+/** Amber spinner, GitHub-style, for a check that is still running. */
 function PendingSpinner() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      className="size-3.5 shrink-0 animate-spin"
-    >
-      <circle
-        cx="8"
-        cy="8"
-        r="5"
-        stroke="#d9a441"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeDasharray="23.5"
-      />
-    </svg>
+    <SpinnerGlyph className="size-3.5 shrink-0 animate-spin text-[#d9a441] motion-reduce:animate-none" />
   );
 }
 
+interface StatusBadgeProps {
+  readonly status: DemoStatus;
+}
+
 /** The PR status badge in the title bar: In Review -> Approved -> Merged. */
-function StatusBadge({ status }: { readonly status: DemoStatus }) {
+function StatusBadge({ status }: StatusBadgeProps) {
   if (status === "approved") {
     return (
       <span className="border-cc-success/40 bg-cc-success/10 text-cc-success ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-[0.1em] uppercase">
@@ -300,30 +292,27 @@ function StatusBadge({ status }: { readonly status: DemoStatus }) {
         background: "rgba(217, 164, 65, 0.1)",
       }}
     >
-      <span className="size-1.5 animate-pulse rounded-full bg-current" />
+      <span className="size-1.5 animate-pulse rounded-full bg-current motion-reduce:animate-none" />
       In Review
     </span>
   );
 }
 
-/** One file in the PR: GitHub-dark file box with header strip, added-line
- * green wash, and the Viewed checkbox the pointer ticks. */
-function FileCard({
-  hunk,
-  viewed,
-  pressed,
-  checkboxRef,
-}: {
+interface FileCardProps {
   readonly hunk: Hunk;
   readonly viewed: boolean;
   readonly pressed: boolean;
   readonly checkboxRef: (el: HTMLElement | null) => void;
-}) {
+}
+
+/** One file in the PR: GitHub-dark file box with header strip, added-line
+ * green wash, and the Viewed checkbox the pointer ticks. */
+function FileCard({ hunk, viewed, pressed, checkboxRef }: FileCardProps) {
   return (
     <div className="border-cc-card-border overflow-hidden rounded-lg border select-none">
       <div className="border-cc-card-border flex items-center gap-2 border-b bg-white/[0.03] px-3 py-2">
         <FileGlyph />
-        <span className="text-cc-nav-label min-w-0 truncate font-mono text-xs">
+        <span className="text-cc-ink-dim min-w-0 truncate font-mono text-xs">
           {hunk.file}
         </span>
         <span className="flex shrink-0 items-center gap-1.5 font-mono text-[0.6rem]">
@@ -464,11 +453,11 @@ export function ReviewSection() {
         align="center"
         eyebrow="Review"
         title="Review stays fast because changes stay uniform."
-        description="Every change an agent produces on this platform is the same small, uniform shape, so review stays a glance instead of an investigation. That matters because writing code is cheap now; reviewing it is where your time actually goes."
+        description="When agents fill the same patterns, changes come back in a familiar shape. Review stays a glance instead of an architectural investigation. Writing code is cheap now; reviewing it is where your time actually goes."
       />
 
-      {/* The figure: the PR window replaying the review on the left, the
-          time-to-ship payoff beside it. */}
+      {/* The figure: the PR window replaying the review on the left, with an
+          illustrative comparison of review effort beside it. */}
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
         <div ref={windowRef} className="lg:col-span-2">
           <MockWindowChrome
@@ -482,7 +471,7 @@ export function ReviewSection() {
                   <span className="text-cc-ink font-mono text-sm">
                     feat: add product reviews
                   </span>
-                  <Eyebrow as="span" size="2xs">
+                  <Eyebrow as="span" size="2xs" color="ink-dim">
                     3 files changed
                   </Eyebrow>
                   <span className="font-mono text-[0.65rem]">
@@ -510,7 +499,7 @@ export function ReviewSection() {
               {/* CI results under the diff: the platform's schema check runs
                 beside the usual build and tests. */}
               <Card className="p-4 select-none">
-                <Eyebrow as="p" className="text-[0.6rem]">
+                <Eyebrow as="p" color="ink-dim" className="text-[0.6rem]">
                   Checks
                 </Eyebrow>
                 <ul className="mt-2.5 space-y-1.5">
@@ -576,13 +565,13 @@ export function ReviewSection() {
           </MockWindowChrome>
         </div>
 
-        {/* The payoff, plain beside the window. */}
+        {/* Qualitative review-effort comparison beside the window. */}
         <div className="flex flex-col justify-center lg:px-2">
           <Eyebrow as="p" size="2xs">
-            time to ship
+            review effort
           </Eyebrow>
           <p className="font-heading text-cc-heading text-h5 mt-2 leading-tight font-semibold">
-            reviewed in seconds
+            uniform changes, faster reviews
           </p>
           <div className="mt-5 space-y-3" aria-hidden="true">
             {TIME_BARS.map((bar) => (

@@ -137,27 +137,6 @@
                   "event": []
                 },
                 {
-                  "OperationName": "GraphQL Complexity Analysis",
-                  "DisplayName": "GraphQL Complexity Analysis",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
-                    },
-                    {
-                      "Key": "graphql.operation.fieldCost",
-                      "Value": 1.0
-                    },
-                    {
-                      "Key": "graphql.operation.typeCost",
-                      "Value": 2.0
-                    }
-                  ],
-                  "event": []
-                },
-                {
                   "OperationName": "GraphQL Operation Planning",
                   "DisplayName": "GraphQL Operation Planning",
                   "Kind": "Internal",
@@ -174,6 +153,27 @@
                     {
                       "Key": "graphql.operation.type",
                       "Value": "query"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:acb8d5d513c260b3cef3e3a12b0e29af"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 1.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 2.0
                     }
                   ],
                   "event": []

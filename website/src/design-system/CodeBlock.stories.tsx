@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import type { ReactElement } from "react";
+import { expect, fn, userEvent, within } from "storybook/test";
 import { CodeBlock } from "./CodeBlock";
 import { CodeStep } from "./CodeStep";
 import { renderBlock } from "./codeBlockStoryUtils";
@@ -30,6 +31,60 @@ export const WithFilename: Story = {
     }),
   ],
   render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+};
+
+export const CopiesExactSource: Story = {
+  loaders: [
+    async () => ({
+      rendered: await renderBlock("tsx", tsxSample, 'filename="Counter.tsx"'),
+    }),
+  ],
+  render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+  play: async ({ canvasElement }) => {
+    const writeText = fn();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const canvas = within(canvasElement);
+    const copyButton = canvas.getByRole("button", { name: "Copy code" });
+
+    await userEvent.tab();
+    expect(copyButton).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+
+    expect(writeText).toHaveBeenCalledWith(tsxSample);
+    expect(canvas.getByRole("button", { name: "Code copied" })).toHaveAttribute(
+      "data-copy-status",
+      "copied",
+    );
+  },
+};
+
+export const ShowsClipboardError: Story = {
+  loaders: [
+    async () => ({
+      rendered: await renderBlock("tsx", tsxSample, 'filename="Counter.tsx"'),
+    }),
+  ],
+  render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+  play: async ({ canvasElement }) => {
+    const writeText = fn(() =>
+      Promise.reject(new Error("Clipboard unavailable")),
+    );
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByRole("button", { name: "Copy code" }));
+
+    expect(writeText).toHaveBeenCalledWith(tsxSample);
+    expect(
+      canvas.getByRole("button", { name: "Could not copy code" }),
+    ).toHaveAttribute("data-copy-status", "error");
+  },
 };
 
 export const WithLineHighlights: Story = {

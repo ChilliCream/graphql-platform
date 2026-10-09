@@ -90,12 +90,13 @@ internal sealed class SatisfiabilityFactsBuilder
                 var requirements = field.GetFusionRequiresRequirements(schemaName);
 
                 if (requirements is not null
-                    && !CanResolveSelectionSet(
-                        requirements,
-                        type,
-                        fromSchema: schemaName,
-                        excludeSchema: schemaName,
-                        SelectionSetResolutionMode.FieldRequire))
+                    && (!CanResolveSelectionSet(
+                            requirements,
+                            type,
+                            fromSchema: schemaName,
+                            excludeSchema: schemaName,
+                            SelectionSetResolutionMode.FieldRequire)
+                        || !CanReenterSchema(type, schemaName)))
                 {
                     continue;
                 }
@@ -106,6 +107,34 @@ internal sealed class SatisfiabilityFactsBuilder
         }
 
         return changed;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> can be re-entered at <paramref name="type"/>
+    /// once requirement data has been fetched from other schemas, that is the schema declares a
+    /// lookup for the type whose key is resolvable while the type is held on the schema.
+    /// </summary>
+    private bool CanReenterSchema(MutableObjectTypeDefinition type, string schemaName)
+    {
+        if (_schema.IsRootOperationType(type))
+        {
+            return true;
+        }
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
+        {
+            if (CanResolveSelectionSet(
+                GetLookupKeySelectionSet(lookup),
+                type,
+                fromSchema: schemaName,
+                excludeSchema: null,
+                SelectionSetResolutionMode.LookupKey))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool DeriveTransitions(MutableObjectTypeDefinition type, string fromSchema)
@@ -242,7 +271,7 @@ internal sealed class SatisfiabilityFactsBuilder
         SelectionSetNode selectionSet,
         MutableObjectTypeDefinition contextType,
         string fromSchema,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         foreach (var selection in selectionSet.Selections)
@@ -260,7 +289,7 @@ internal sealed class SatisfiabilityFactsBuilder
         ISelectionNode selection,
         MutableObjectTypeDefinition contextType,
         string fromSchema,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         switch (selection)
@@ -303,7 +332,7 @@ internal sealed class SatisfiabilityFactsBuilder
         FieldNode fieldNode,
         MutableObjectTypeDefinition contextType,
         string fromSchema,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         if (!contextType.Fields.TryGetField(fieldNode.Name.Value, out var field))
@@ -341,7 +370,7 @@ internal sealed class SatisfiabilityFactsBuilder
         MutableOutputFieldDefinition field,
         string schemaName,
         SelectionSetNode selectionSet,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         var fieldType = field.Type.AsTypeDefinition();
@@ -364,7 +393,7 @@ internal sealed class SatisfiabilityFactsBuilder
 
     private static IEnumerable<string> GetCandidateSchemaNames(
         MutableOutputFieldDefinition field,
-        string excludeSchema,
+        string? excludeSchema,
         FieldNode fieldNode,
         SelectionSetResolutionMode mode)
     {

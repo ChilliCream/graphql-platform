@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -33,6 +34,10 @@ public sealed partial class OperationPlanContext
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
     {
+        _activeNodeSlotCount = 0;
+        _usesDynamicSchemaNames = true;
+        _usesBatchNodes = true;
+
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
         ArgumentNullException.ThrowIfNull(operationPlan);
@@ -49,25 +54,41 @@ public sealed partial class OperationPlanContext
 
         Variables = variables;
         OperationPlan = operationPlan;
-        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
-        DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
+
+        switch (operationPlan)
+        {
+            case OperationPlan plan:
+                _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
+                _usesBatchNodes = plan.UsesBatchNodes;
+                break;
+
+            case IncrementalPlan plan:
+                _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
+                _usesBatchNodes = plan.UsesBatchNodes;
+                break;
+        }
+
+        IncludeConditionFlags = operationPlan.Operation.CreateIncludeConditionFlags(variables);
+        DeferConditionFlags = operationPlan.Operation.CreateDeferConditionFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
         _resultStore.Initialize(
             Memory,
-            requestContext.Schema,
+            (FusionSchemaDefinition)requestContext.Schema,
             _errorHandler,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
-            IncludeFlags,
-            DeferFlags,
+            IncludeConditionFlags,
+            DeferConditionFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
 
-        EnsureNodeArrayCapacity(operationPlan.MaxNodeId);
+        var maxNodeId = operationPlan.MaxNodeId;
+        EnsureNodeArrayCapacity(maxNodeId);
+        _activeNodeSlotCount = maxNodeId + 1;
     }
 
     /// <summary>
@@ -106,18 +127,35 @@ public sealed partial class OperationPlanContext
     /// </summary>
     internal void Clean()
     {
-        DisposeNodeState();
+        var activeNodeSlotCount = _activeNodeSlotCount;
 
-        if (_nodeSlotCapacity > 0)
+        if (activeNodeSlotCount > 0)
         {
-            Array.Clear(_nodesToComplete, 0, _nodeSlotCapacity);
-            Array.Clear(_schemaNames, 0, _nodeSlotCapacity);
-            Array.Clear(_skippedDefinitions, 0, _nodeSlotCapacity);
-            Array.Clear(_batchRequestErrors, 0, _nodeSlotCapacity);
-            Array.Clear(_variableValueSets, 0, _nodeSlotCapacity);
-            Array.Clear(_transportUris, 0, _nodeSlotCapacity);
-            Array.Clear(_transportContentTypes, 0, _nodeSlotCapacity);
+            DisposeNodeState(activeNodeSlotCount);
+            Array.Clear(_nodesToComplete, 0, activeNodeSlotCount);
+
+            if (_usesDynamicSchemaNames)
+            {
+                Array.Clear(_schemaNames, 0, activeNodeSlotCount);
+            }
+
+            if (_usesBatchNodes)
+            {
+                Array.Clear(_skippedDefinitions, 0, activeNodeSlotCount);
+                Array.Clear(_batchRequestErrors, 0, activeNodeSlotCount);
+            }
+
+            if (_collectTelemetry)
+            {
+                Array.Clear(_variableValueSets, 0, activeNodeSlotCount);
+                Array.Clear(_transportUris, 0, activeNodeSlotCount);
+                Array.Clear(_transportContentTypes, 0, activeNodeSlotCount);
+            }
         }
+
+        _activeNodeSlotCount = 0;
+        _usesDynamicSchemaNames = true;
+        _usesBatchNodes = true;
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();
@@ -128,7 +166,8 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
-        DeferFlags = 0;
+        IncludeConditionFlags = default;
+        DeferConditionFlags = default;
         // if a custom scope is used we cannot reuse it and have to null it.
         if (_clientScope is not DefaultSourceSchemaClientScope)
         {

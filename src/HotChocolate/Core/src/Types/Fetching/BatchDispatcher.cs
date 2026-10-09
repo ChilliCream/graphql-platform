@@ -20,6 +20,8 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public sealed partial class BatchDispatcher : IBatchDispatcher
 {
+    private const long MinEscalationThresholdUs = 2_000;
+
     private readonly AsyncAutoResetEvent _signal = new();
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
@@ -33,8 +35,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private List<Task>? _dispatchTasks;
     private List<Task>? _inFlightDispatches;
     private int _openBatches;
-    private long _lastSubscribed;
-    private long _lastEnqueued;
     private int _isCoordinatorRunning;
     private ImmutableArray<ExecutorSession> _sessions = [];
     private bool _disposed;
@@ -47,15 +47,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _diagnosticEvents = diagnosticEvents;
-
-        // Guard against `default(BatchDispatcherOptions)` which zeroes all fields,
-        // bypassing the struct's field initializers and silently disabling age-based
-        // forced dispatch.
-        if (options.MaxBatchWaitTimeUs == 0)
-        {
-            options.MaxBatchWaitTimeUs = 50_000;
-        }
-
         _options = options;
         _coordinatorCts.Token.Register(_signal.Set);
     }
@@ -145,7 +136,13 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         List<Task> inFlightDispatches,
         CancellationToken stoppingToken)
     {
-        var idleCycles = 0;
+        // Stopwatch timestamp marking the start of the current streak of
+        // evaluation rounds without a dispatch. A value of 0 means no streak is active.
+        long noDispatchSince = 0;
+
+        // The escalation threshold is twice the settle time floored at 2 ms.
+        var batchSettleTimeUs = _options.BatchSettleTimeUs;
+        var escalationThresholdUs = Math.Max(2 * batchSettleTimeUs, MinEscalationThresholdUs);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -156,11 +153,10 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             {
                 _diagnosticEvents.BatchDispatched(completedDispatches);
                 Send(BatchDispatchEventType.Dispatched);
-                idleCycles = 0;
+                noDispatchSince = 0;
             }
 
             var openBatches = Volatile.Read(ref _openBatches);
-            long lastModified = 0;
 
             // If we have no open batches to evaluate and all in-flight dispatches
             // are completed, we can stop and wait for another signal.
@@ -175,32 +171,38 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             backlog.Clear();
             dispatchTasks.Clear();
 
-            EvaluateOpenBatches(ref lastModified, backlog, dispatchTasks);
+            EvaluateOpenBatches(backlog, dispatchTasks);
 
             // If the evaluation selected batches for dispatch, we register them
             // as in-flight and continue evaluation without waiting for completion.
             if (dispatchTasks.Count > 0)
             {
                 RegisterInFlightDispatches(dispatchTasks, inFlightDispatches);
-                idleCycles = 0;
+                noDispatchSince = 0;
+                await Task.Yield();
                 continue;
             }
 
-            // Signal that we have evaluated all enqueued tasks without dispatching any.
-            _diagnosticEvents.BatchEvaluated(openBatches);
-            Send(BatchDispatchEventType.Evaluated);
-
-            // Spin-wait briefly to give executing resolvers time to add more
-            // data requirements to the open batches.
-            await WaitForMoreBatchActivityAsync(lastModified);
-
-            // After 10 cycles without dispatch, insert a delay to avoid busy-spinning.
-            // The first 10 cycles run tight (only the conditional yield in
-            // WaitForMoreBatchActivityAsync) to give resolvers time to fill batches.
-            if (idleCycles++ >= 10)
+            // Signal once per no-dispatch streak that we have evaluated all
+            // enqueued batches without dispatching any.
+            if (noDispatchSince == 0)
             {
-                await Task.Delay(10, stoppingToken);
-                idleCycles = 0;
+                noDispatchSince = Stopwatch.GetTimestamp();
+                _diagnosticEvents.BatchEvaluated(openBatches);
+                Send(BatchDispatchEventType.Evaluated);
+            }
+
+            // Yield between evaluation rounds so executing resolvers get time
+            // to add more data requirements to the open batches. Under load the
+            // yield queues behind real work, which widens the aggregation window.
+            await Task.Yield();
+
+            // If we have gone a long stretch without any dispatch, back off with
+            // a real delay to avoid busy-spinning while resolvers are stalled.
+            var noDispatchStreakUs = TicksToUs(Stopwatch.GetTimestamp() - noDispatchSince);
+            if (noDispatchStreakUs > escalationThresholdUs)
+            {
+                await Task.Delay(1, stoppingToken);
             }
         }
     }
@@ -247,7 +249,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     }
 
     private void EvaluateOpenBatches(
-        ref long lastModified,
         PriorityQueue<Batch, long> backlog,
         List<Task> dispatchTasks)
     {
@@ -274,7 +275,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
         // In each evaluation round, we try to touch all batches in the backlog.
         // If a batch has had no interaction with a DataLoader since the last evaluation
-        // (i.e., we can touch it twice without the DataLoader resetting its status),
+        // (i.e., we can touch it twice without the DataLoader resetting its status)
+        // and it has received no new items for at least the configured settle time,
         // we complete the batch by dispatching it.
         //
         // Additionally, if a batch has been waiting longer than maxBatchAgeUs,
@@ -285,30 +287,27 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         if (singleBatch is not null)
         {
             // we have an optimized path if there is only a single batch to evaluate.
-            EvaluateSingleOpenBatches(ref lastModified, singleBatch, dispatchTasks);
+            EvaluateSingleOpenBatches(singleBatch, dispatchTasks);
         }
         else
         {
-            EvaluateMultipleOpenBatches(ref lastModified, backlog, dispatchTasks);
+            EvaluateMultipleOpenBatches(backlog, dispatchTasks);
         }
     }
 
     private void EvaluateMultipleOpenBatches(
-        ref long lastModified,
         PriorityQueue<Batch, long> backlog,
         List<Task> dispatchTasks)
     {
         var now = Stopwatch.GetTimestamp();
         var maxBatchAgeUs = _options.MaxBatchWaitTimeUs;
+        var batchSettleTimeUs = _options.BatchSettleTimeUs;
 
         while (backlog.TryDequeue(out var batch, out _))
         {
-            if (lastModified < batch.ModifiedTimestamp)
-            {
-                lastModified = batch.ModifiedTimestamp;
-            }
-
-            var shouldDispatch = batch.Touch();
+            var shouldDispatch =
+                batch.Touch()
+                && TicksToUs(now - batch.ModifiedTimestamp) >= batchSettleTimeUs;
 
             if (!shouldDispatch && maxBatchAgeUs != 0)
             {
@@ -329,19 +328,16 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     }
 
     private void EvaluateSingleOpenBatches(
-        ref long lastModified,
         Batch batch,
         List<Task> dispatchTasks)
     {
         var now = Stopwatch.GetTimestamp();
-
-        if (lastModified < batch.ModifiedTimestamp)
-        {
-            lastModified = batch.ModifiedTimestamp;
-        }
-
         var maxBatchAgeUs = _options.MaxBatchWaitTimeUs;
-        var shouldDispatch = batch.Touch();
+        var batchSettleTimeUs = _options.BatchSettleTimeUs;
+
+        var shouldDispatch =
+            batch.Touch()
+            && TicksToUs(now - batch.ModifiedTimestamp) >= batchSettleTimeUs;
 
         if (!shouldDispatch && maxBatchAgeUs != 0)
         {
@@ -357,30 +353,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
             Interlocked.Decrement(ref _openBatches);
             dispatchTasks.Add(batch.DispatchAsync());
-        }
-    }
-
-    private async Task WaitForMoreBatchActivityAsync(long lastModified)
-    {
-        const int maxSpinUs = 50;
-
-        var lastSubscribed = Volatile.Read(ref _lastSubscribed);
-        var lastEnqueued = Volatile.Read(ref _lastEnqueued);
-
-        if (lastSubscribed > lastModified)
-        {
-            lastModified = lastSubscribed;
-        }
-
-        if (lastEnqueued > lastModified)
-        {
-            lastModified = lastEnqueued;
-        }
-
-        var ageUs = TicksToUs(Stopwatch.GetTimestamp() - lastModified);
-        if (ageUs <= maxSpinUs)
-        {
-            await Task.Yield();
         }
     }
 

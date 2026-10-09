@@ -16,7 +16,7 @@ public class PaymentCompletedEventHandler(
         logger.LogInformation("Payment completed for order {OrderId}, creating shipment", message.OrderId);
 
         // Request product details from Catalog service
-        var productResponse = await messageBus.RequestAsync(
+        await messageBus.RequestAsync(
             new GetProductRequest { ProductId = Guid.Empty }, // We'd need the product ID from the order
             cancellationToken);
 

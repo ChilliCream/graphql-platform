@@ -1,7 +1,7 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
-using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Spatial.Filters;
 
@@ -34,7 +34,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
         new() { Id = 2, Bar = s_falsePolygon }
     ];
 
-    public QueryableFilterVisitorWithinTests(PostgreSqlResource<PostgisConfig> resource)
+    public QueryableFilterVisitorWithinTests(PostgisResource resource)
         : base(resource)
     {
     }
@@ -104,10 +104,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync(TestContext.Current.CancellationToken);

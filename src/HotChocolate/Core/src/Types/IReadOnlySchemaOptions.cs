@@ -87,6 +87,11 @@ public interface IReadOnlySchemaOptions
     bool EnableDirectiveIntrospection { get; }
 
     /// <summary>
+    /// Defines if the experimental object type deprecation feature shall be enabled.
+    /// </summary>
+    bool EnableObjectDeprecation { get; }
+
+    /// <summary>
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
@@ -167,6 +172,19 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables merging of fields whose return types differ only in nullability,
+    /// as proposed in GraphQL specification PR 883; defaults to <c>false</c>.
+    /// When disabled, such fields are a field selection merging validation error.
+    /// </summary>
+    bool EnableCovariantFieldMerging { get; }
+
+    /// <summary>
+    /// Enables empty selection sets according to GraphQL specification PR 1227; defaults to <c>false</c>.
+    /// When disabled, an empty selection set is a validation error, and an empty subscription root is invalid in either state.
+    /// </summary>
+    bool EnableEmptySelectionSets { get; }
+
+    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }
@@ -235,10 +253,26 @@ public interface IReadOnlySchemaOptions
     bool ApplyShareableToConnections { get; }
 
     /// <summary>
+    /// Applies the @shareable directive to all collection segment types.
+    /// </summary>
+    bool ApplyShareableToCollectionSegments { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the CollectionSegmentInfo type.
+    /// </summary>
+    bool ApplyShareableToCollectionSegmentInfo { get; }
+
+    /// <summary>
     /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
     /// field when Global Object Identification is turned on.
     /// </summary>
     bool ApplyShareableToNodeFields { get; }
+
+    /// <summary>
+    /// Applies the @inaccessible directive to the `node(id)` and `nodes(ids)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyInaccessibleToNodeFields { get; }
 
     /// <summary>
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.

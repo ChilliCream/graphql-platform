@@ -43,16 +43,16 @@ input CreateBookInput {
 
 This example presents queries, mutations, object types, input types, and scalar values. Each part of the schema plays a specific role in shaping how clients interact with your API. The table below breaks down these elements and explains their purpose within the type system.
 
-| SDL part                    | Type system member  | What it means                     | Learn more                                 |
-| --------------------------- | ------------------- | --------------------------------- | ------------------------------------------ |
-| `Query`                     | Operation root type | Entry point for read operations.  | [Queries](./queries)                       |
-| `Mutation`                  | Operation root type | Entry point for write operations. | [Mutations](./mutations)                   |
-| `bookById` and `createBook` | Fields              | Selectable members on a type.     | [Object Types](./object-types)             |
-| `id` and `input`            | Arguments           | Values supplied to a field.       | [Arguments](./arguments)                   |
-| `Book` and `Author`         | Object types        | Returned data shapes.             | [Object Types](./object-types)             |
-| `CreateBookInput`           | Input object type   | Structured data sent by a client. | [Input Object Types](./input-object-types) |
-| `ID` and `String`           | Scalars             | Leaf values with no subfields.    | [Scalars](./scalars)                       |
-| `!` and `[]`                | Type modifiers      | Non-null and list wrappers.       | [Lists and Non-Null](./lists)              |
+| SDL part                    | Type system member  | What it means                     | Learn more                                    |
+| --------------------------- | ------------------- | --------------------------------- | --------------------------------------------- |
+| `Query`                     | Operation root type | Entry point for read operations.  | [Queries](./queries.md)                       |
+| `Mutation`                  | Operation root type | Entry point for write operations. | [Mutations](./mutations.md)                   |
+| `bookById` and `createBook` | Fields              | Selectable members on a type.     | [Object Types](./object-types.md)             |
+| `id` and `input`            | Arguments           | Values supplied to a field.       | [Arguments](./arguments.md)                   |
+| `Book` and `Author`         | Object types        | Returned data shapes.             | [Object Types](./object-types.md)             |
+| `CreateBookInput`           | Input object type   | Structured data sent by a client. | [Input Object Types](./input-object-types.md) |
+| `ID` and `String`           | Scalars             | Leaf values with no subfields.    | [Scalars](./scalars.md)                       |
+| `!` and `[]`                | Type modifiers      | Non-null and list wrappers.       | [Lists and Non-Null](./lists.md)              |
 
 If you are unsure how to identify the parts of your schema, start by looking at the SDL. Elements that a client can select in a query are fields. Values that a client supplies to those fields are arguments or input fields. When you see `!` or `[]` wrapping another type, these are type modifiers that indicate non-nullability or lists.
 
@@ -120,32 +120,32 @@ The following map helps you select the next detailed page without needing to lea
 
 GraphQL defines a single root type for each operation kind. In C#, you can organize root fields across multiple semantic classes, and Hot Chocolate will merge them into the final root type.
 
-| Element      | Purpose                                                                                | Authoring cue                                  | Learn more                       |
-| ------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------- |
-| Query        | Read entry point. Query fields should be side-effect-free and may execute in parallel. | `[QueryType]` or `AddQueryType`.               | [Queries](./queries)             |
-| Mutation     | Write entry point. Top-level mutation fields execute serially.                         | `[MutationType]` or `AddMutationType`.         | [Mutations](./mutations)         |
-| Subscription | Event stream entry point.                                                              | `[SubscriptionType]` or `AddSubscriptionType`. | [Subscriptions](./subscriptions) |
+| Element      | Purpose                                                                                | Authoring cue                                  | Learn more                          |
+| ------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------- |
+| Query        | Read entry point. Query fields should be side-effect-free and may execute in parallel. | `[QueryType]` or `AddQueryType`.               | [Queries](./queries.md)             |
+| Mutation     | Write entry point. Top-level mutation fields execute serially.                         | `[MutationType]` or `AddMutationType`.         | [Mutations](./mutations.md)         |
+| Subscription | Event stream entry point.                                                              | `[SubscriptionType]` or `AddSubscriptionType`. | [Subscriptions](./subscriptions.md) |
 
 ## Output Types
 
 Output types describe the shapes of data that clients can select after a field resolves.
 
-| Element     | Use it for                                                                                                  | Learn more                     |
-| ----------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| Object type | Normal returned data shapes, such as `Book` or `Author`.                                                    | [Object Types](./object-types) |
-| Scalar      | Leaf values such as `String`, `Int`, `Boolean`, `ID`, `UUID`, `URI`, `DateTime`, `Any`, and custom scalars. | [Scalars](./scalars)           |
-| Enum        | A closed set of symbolic values in input or output positions.                                               | [Enums](./enums)               |
-| Interface   | Polymorphic output types that share fields.                                                                 | [Interfaces](./interfaces)     |
-| Union       | Polymorphic output types that do not need shared fields.                                                    | [Unions](./unions)             |
+| Element     | Use it for                                                                                                  | Learn more                        |
+| ----------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Object type | Normal returned data shapes, such as `Book` or `Author`.                                                    | [Object Types](./object-types.md) |
+| Scalar      | Leaf values such as `String`, `Int`, `Boolean`, `ID`, `UUID`, `URI`, `DateTime`, `Any`, and custom scalars. | [Scalars](./scalars.md)           |
+| Enum        | A closed set of symbolic values in input or output positions.                                               | [Enums](./enums.md)               |
+| Interface   | Polymorphic output types that share fields.                                                                 | [Interfaces](./interfaces.md)     |
+| Union       | Polymorphic output types that do not need shared fields.                                                    | [Unions](./unions.md)             |
 
 ## Fields and Arguments
 
 Fields and arguments define how clients interact with your schema. Fields are selectable members on types, while arguments allow clients to supply values to those fields.
 
-| Element  | Purpose                                                                                                             | Learn more                                                                     |
-| -------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Field    | A selectable member on a root type or object type. Root fields start operations. Nested fields shape returned data. | [Queries](./queries), [Mutations](./mutations), [Object Types](./object-types) |
-| Argument | A value supplied to a field. Common uses include lookup IDs, filters, paging arguments, and mutation payloads.      | [Arguments](./arguments)                                                       |
+| Element  | Purpose                                                                                                             | Learn more                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Field    | A selectable member on a root type or object type. Root fields start operations. Nested fields shape returned data. | [Queries](./queries.md), [Mutations](./mutations.md), [Object Types](./object-types.md) |
+| Argument | A value supplied to a field. Common uses include lookup IDs, filters, paging arguments, and mutation payloads.      | [Arguments](./arguments.md)                                                             |
 
 Not every C# method parameter becomes an argument. Service parameters, parent values, cancellation tokens, and resolver context parameters are resolver concerns.
 
@@ -153,10 +153,10 @@ Not every C# method parameter becomes an argument. Service parameters, parent va
 
 Input types define the shapes of data that clients can send to your API, such as arguments and input objects for mutations and queries.
 
-| Element           | Use it for                                                                  | Learn more                                 |
-| ----------------- | --------------------------------------------------------------------------- | ------------------------------------------ |
-| Argument          | A scalar, enum, ID, list, or input object supplied to a field.              | [Arguments](./arguments)                   |
-| Input object type | Structured payloads for mutations, filters, and other complex field inputs. | [Input Object Types](./input-object-types) |
+| Element           | Use it for                                                                  | Learn more                                    |
+| ----------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| Argument          | A scalar, enum, ID, list, or input object supplied to a field.              | [Arguments](./arguments.md)                   |
+| Input object type | Structured payloads for mutations, filters, and other complex field inputs. | [Input Object Types](./input-object-types.md) |
 
 GraphQL separates input and output type systems. Input objects can use defaults, `Optional<T>`, and `@oneOf`, but those rules are detailed on the input pages.
 
@@ -164,11 +164,11 @@ GraphQL separates input and output type systems. Input objects can use defaults,
 
 Type modifiers such as non-null and list indicate whether a field or argument is required or can accept multiple values.
 
-| Modifier                | Example    | What it says                                            | Learn more                    |
-| ----------------------- | ---------- | ------------------------------------------------------- | ----------------------------- |
-| Non-null                | `String!`  | The field or argument must not be null in the contract. | [Lists and Non-Null](./lists) |
-| List                    | `[Book]`   | The value is a collection.                              | [Lists and Non-Null](./lists) |
-| List plus item non-null | `[Book!]!` | The list is required, and every item is required.       | [Lists and Non-Null](./lists) |
+| Modifier                | Example    | What it says                                            | Learn more                       |
+| ----------------------- | ---------- | ------------------------------------------------------- | -------------------------------- |
+| Non-null                | `String!`  | The field or argument must not be null in the contract. | [Lists and Non-Null](./lists.md) |
+| List                    | `[Book]`   | The value is a collection.                              | [Lists and Non-Null](./lists.md) |
+| List plus item non-null | `[Book!]!` | The list is required, and every item is required.       | [Lists and Non-Null](./lists.md) |
 
 Input optionality, default values, and output nullability are related but not identical. Refer to the type modifier and input object pages when the distinction matters.
 
@@ -176,28 +176,28 @@ Input optionality, default values, and output nullability are related but not id
 
 Organize your schema for maintainability and support advanced modeling scenarios using type extensions, Relay helpers, and dynamic schemas.
 
-| Topic           | Use it for                                                                                               | Learn more                           |
-| --------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| Type extensions | Split large object or root type definitions across classes. Extensions are merged into the final schema. | [Object Types](./object-types)       |
-| Relay helpers   | Use stable IDs, global object identification, `node`, `nodes`, `[ID]`, `[Node]`, and `[NodeResolver]`.   | [Relay](./relay)                     |
-| Dynamic schemas | Generate types from CMS, multi-tenant, or configuration-driven metadata with `ITypeModule`.              | [Dynamic Schemas](./dynamic-schemas) |
+| Topic           | Use it for                                                                                               | Learn more                              |
+| --------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Type extensions | Split large object or root type definitions across classes. Extensions are merged into the final schema. | [Object Types](./object-types.md)       |
+| Relay helpers   | Use stable IDs, global object identification, `node`, `nodes`, `[ID]`, `[Node]`, and `[NodeResolver]`.   | [Relay](./relay.md)                     |
+| Dynamic schemas | Generate types from CMS, multi-tenant, or configuration-driven metadata with `ITypeModule`.              | [Dynamic Schemas](./dynamic-schemas.md) |
 
 ## Contract Metadata and Lifecycle
 
 Metadata and lifecycle features help you document, annotate, and evolve your schema safely over time.
 
-| Topic                     | Use it for                                                                          | Learn more                                |
-| ------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------- |
-| Descriptions              | Add schema documentation from XML comments, `[GraphQLDescription]`, or descriptors. | [Documentation Comments](./documentation) |
-| Directives                | Add schema metadata or executable behavior, depending on the directive kind.        | [Directives](./directives)                |
-| Deprecation and evolution | Communicate lifecycle changes and plan compatible schema updates.                   | [Versioning](./versioning)                |
+| Topic                     | Use it for                                                                          | Learn more                                   |
+| ------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------- |
+| Descriptions              | Add schema documentation from XML comments, `[GraphQLDescription]`, or descriptors. | [Documentation Comments](./documentation.md) |
+| Directives                | Add schema metadata or executable behavior, depending on the directive kind.        | [Directives](./directives.md)                |
+| Deprecation and evolution | Communicate lifecycle changes and plan compatible schema updates.                   | [Versioning](./versioning.md)                |
 
 Use type extensions for static modularity. Choose dynamic schemas only when the schema must change based on external metadata or runtime configuration.
 
 # Next steps
 
-- Build a read entry point with [Queries](./queries).
-- Learn how returned shapes are inferred and configured in [Object Types](./object-types).
-- Add field inputs with [Arguments](./arguments) and [Input Object Types](./input-object-types).
-- Strengthen the contract with [Lists and Non-Null](./lists).
-- Move to runtime behavior with [Resolvers](../resolvers/resolvers) and [DataLoader](../fetching-data/batching/dataloader) after the schema shape is clear.
+- Build a read entry point with [Queries](./queries.md).
+- Learn how returned shapes are inferred and configured in [Object Types](./object-types.md).
+- Add field inputs with [Arguments](./arguments.md) and [Input Object Types](./input-object-types.md).
+- Strengthen the contract with [Lists and Non-Null](./lists.md).
+- Move to runtime behavior with [Resolvers](../resolvers/index.md) and [DataLoader](../fetching-data/batching/dataloader.md) after the schema shape is clear.

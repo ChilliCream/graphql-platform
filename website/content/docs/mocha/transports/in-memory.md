@@ -9,48 +9,46 @@ The InMemory transport routes messages through in-process topics and queues with
 
 **1.** Install the package:
 
-```bash
+```shell
 dotnet add package Mocha.Transport.InMemory
 ```
 
 **2.** Register the transport:
 
 ```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Mocha;
 using Mocha.Transport.InMemory;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
     .AddInMemory(); // One line - no configuration needed
 
-var app = builder.Build();
-app.Run();
+using var host = builder.Build();
+
+await host.StartAsync();
+
+var bus = host.Services.GetRequiredService<IMessageBus>();
+
+await bus.PublishAsync(
+    new OrderPlacedEvent
+    {
+        OrderId = Guid.NewGuid(),
+        CustomerId = "customer-1",
+        TotalAmount = 99.99m
+    },
+    CancellationToken.None);
 ```
 
 `.AddInMemory()` registers the transport with default conventions. Topics, queues, and bindings are created automatically based on your registered handlers and message types.
 
 # Verify it works
 
-Add an endpoint that publishes through the bus and check that your handler receives it:
-
-```csharp
-app.MapPost("/orders", async (IMessageBus bus) =>
-{
-    await bus.PublishAsync(new OrderPlacedEvent
-    {
-        OrderId = Guid.NewGuid(),
-        CustomerId = "customer-1",
-        TotalAmount = 99.99m
-    }, CancellationToken.None);
-
-    return Results.Ok();
-});
-```
-
-Send a POST request to `/orders`. Because the InMemory transport dispatches within the same process, delivery is near-instantaneous and your handler's logic executes before the HTTP response returns.
+Run the application and check that your handler receives the event. `StartAsync()` starts the message bus runtime before the event is published. Because the InMemory transport dispatches within the same process, delivery is near-instantaneous and completes before `PublishAsync` returns.
 
 # How the in-process topology works
 
@@ -95,6 +93,8 @@ Calling `Queue("name")` without `Handler<T>()`, `Consumer<T>()`, or `Receives<T>
 transport.Queue("audit")
     .Receives<OrderPlacedEvent>();
 ```
+
+`Queue(...)` and `Endpoint(...)` descriptors accept `Temporary()`. InMemory has no broker-side entity to auto-delete: a temporary queue lives exactly as long as any other InMemory queue, for the lifetime of the hosting process. Its lifecycle boundary is the runtime's own disposal, not a broker-managed idle timeout or lease.
 
 # Declare topology resources
 
@@ -163,6 +163,25 @@ builder.Services
 // OrderPlacedEventHandler → RabbitMQ (default)
 // AuditHandler → InMemory (claimed)
 ```
+
+# Scheduled delivery
+
+`AddInMemory()` registers a scheduled message store and a background worker for the transport, so scheduling messages for future delivery works with no extra setup:
+
+```csharp
+var result = await bus.SchedulePublishAsync(
+    new PaymentReminderEvent { OrderId = orderId },
+    DateTimeOffset.UtcNow.AddHours(24),
+    cancellationToken);
+```
+
+The background worker holds scheduled messages in process memory and dispatches each one once its scheduled time arrives. Cancel a pending message with the token returned in `SchedulingResult`:
+
+```csharp
+await bus.CancelScheduledMessageAsync(result.Token!, cancellationToken);
+```
+
+Scheduled messages live only in process memory. They are not persisted to disk, so any message still pending when the process stops is lost. See [Scheduling](../scheduling.md) for the full scheduling API and how it behaves across transports.
 
 # Next steps
 

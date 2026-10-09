@@ -1,5 +1,6 @@
 ---
-title: "Getting started with GraphQL in .NET Core"
+title: "Getting Started with GraphQL in .NET"
+metaTitle: "GraphQL .NET Tutorial with Hot Chocolate"
 description: "In this tutorial, you will walk through the basics of creating a GraphQL server with Hot Chocolate."
 ---
 
@@ -13,7 +14,7 @@ By the end of this guide, you will have a running GraphQL server that responds t
 
 Install the Hot Chocolate templates.
 
-```bash
+```shell
 dotnet new install HotChocolate.Templates
 ```
 
@@ -22,7 +23,7 @@ Create a new project from the template.
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet new graphql --name GettingStarted
 ```
 
@@ -93,7 +94,7 @@ app.RunWithGraphQLCommands(args)
 
 `RunWithGraphQLCommands` works like `Run()` but adds developer commands. For example, you can export the schema as SDL.
 
-```bash
+```shell
 dotnet run -- schema export
 ```
 
@@ -104,7 +105,7 @@ This writes a `schema.graphqls` file to your project directory.
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
 
-```bash
+```shell
 dotnet run
 ```
 

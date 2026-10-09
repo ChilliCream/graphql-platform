@@ -202,6 +202,44 @@ public class ObjectTypeExtensionTests
     }
 
     [Fact]
+    public async Task ObjectTypeExtension_DeprecateType_With_Reason()
+    {
+        // arrange & act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<FooType>()
+            .AddTypeExtension(new ObjectTypeExtension(d => d
+                .Name("Foo")
+                .Deprecated("Foo")))
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var type = schema.Types.GetType<ObjectType>("Foo");
+        Assert.True(type.IsDeprecated);
+        Assert.Equal("Foo", type.DeprecationReason);
+    }
+
+    [Fact]
+    public async Task ObjectTypeExtension_DeprecateType_KeepsExistingReason()
+    {
+        // arrange & act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<DeprecatedFooType>()
+            .AddTypeExtension(new ObjectTypeExtension(d => d
+                .Name("Foo")
+                .Deprecated("Extension reason")))
+            .ModifyOptions(o => o.EnableObjectDeprecation = true)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var type = schema.Types.GetType<ObjectType>("Foo");
+        Assert.True(type.IsDeprecated);
+        Assert.Equal("Base reason", type.DeprecationReason);
+    }
+
+    [Fact]
     public async Task ObjectTypeExtension_SetTypeContextData()
     {
         var schema = await new ServiceCollection()
@@ -750,6 +788,15 @@ public class ObjectTypeExtensionTests
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.Description);
+        }
+    }
+
+    public class DeprecatedFooType : ObjectType<Foo>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Field(t => t.Description);
+            descriptor.Deprecated("Base reason");
         }
     }
 

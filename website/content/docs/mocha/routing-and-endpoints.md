@@ -29,7 +29,8 @@ That registration produces:
 - A **dispatch endpoint** for sending `GetOrderStatusRequest`
 - A **reply receive endpoint** for inbound responses
 - A **reply dispatch endpoint** for outbound responses
-- **Error endpoints** (`_error` suffix) for each receive endpoint
+- **Error endpoints** (`_error` suffix) for each receive endpoint - destination of the `Fault` middleware when a handler throws
+- **Skipped endpoints** (`_skipped` suffix) for each receive endpoint - destination of the `DeadLetter` middleware when no consumer matched the message
 
 All derived from your handler types and message types through naming conventions.
 
@@ -156,7 +157,12 @@ For publish (fan-out) endpoints, the name includes the message namespace in keba
 | Skipped queue | `{endpoint}_skipped` | `catalog.order-placed-event_skipped`        |
 | Reply queue   | `response-{guid:N}`  | `response-3f2504e04f8911d39a0c0305e82c3301` |
 
-Error queues receive messages that failed processing. Skipped queues receive messages that no consumer could handle. Reply queues are temporary, per-instance queues used for request/reply correlation.
+The two failure-side endpoints are populated by different middlewares:
+
+- **Error queue (`_error`)** receives messages whose handler threw an exception. The `Fault` middleware (`ReceiveFaultMiddleware`) catches the exception, attaches `fault-*` headers (exception type, message, stack trace, timestamp), and forwards the original envelope to the configured `ErrorEndpoint`.
+- **Skipped queue (`_skipped`)** receives messages that completed the pipeline without any consumer marking them as consumed. The `DeadLetter` middleware (`ReceiveDeadLetterMiddleware`) re-dispatches the original envelope to the configured `SkippedEndpoint`.
+
+Reply queues are temporary, per-instance queues used for request/reply correlation.
 
 # Customize outbound routes
 
@@ -189,11 +195,11 @@ builder.Services
 
 Use these extension methods to target specific destination types when configuring outbound routes:
 
-| Method             | URI Scheme  | Example                           |
-| ------------------ | ----------- | --------------------------------- |
-| `ToQueue(name)`    | `queue:`    | `r.ToQueue("payment-queue")`      |
-| `ToExchange(name)` | `exchange:` | `r.ToExchange("events-exchange")` |
-| `ToTopic(name)`    | `topic:`    | `r.ToTopic("orders.placed")`      |
+| Method             | URI Scheme  | Example                                    |
+| ------------------ | ----------- | ------------------------------------------ |
+| `ToQueue(name)`    | `queue:`    | `#!csharp r.ToQueue("payment-queue")`      |
+| `ToExchange(name)` | `exchange:` | `#!csharp r.ToExchange("events-exchange")` |
+| `ToTopic(name)`    | `topic:`    | `#!csharp r.ToTopic("orders.placed")`      |
 
 The URI schemes (`queue:`, `exchange:`, `topic:`) tell Mocha what kind of transport entity to target. `queue:` addresses a point-to-point queue directly. `exchange:` addresses a fan-out exchange (RabbitMQ) or equivalent. `topic:` addresses a topic-based routing entity. The transport interprets these schemes and maps them to its native concepts.
 
@@ -208,10 +214,12 @@ await bus.SendAsync(new ReserveInventoryCommand
 },
 new SendOptions
 {
-    Endpoint = new Uri("rabbitmq://custom-inventory-queue")
+    Endpoint = new Uri("queue:custom-inventory-queue")
 },
 cancellationToken);
 ```
+
+The queue does not have to be declared by the host. On RabbitMQ, `queue:<name>` or the transport form `rabbitmq:q/<name>` reaches a queue the host never declared, for example a queue another service owns. Under explicit binding, the host records that queue in its topology with auto-provisioning disabled and never declares, binds, or consumes it. A message the broker cannot route, for example because the queue does not exist, is dropped.
 
 # Customize queues and binding
 
@@ -396,6 +404,35 @@ builder.Services
 ```
 
 A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing - it avoids `BindExplicitly()` and keeps the configuration minimal.
+
+## Temporary endpoints and per-instance identity
+
+Call `Temporary()` on a receive endpoint or queue descriptor to scope its underlying infrastructure to the lifetime of the consuming process instead of provisioning it durably:
+
+```csharp
+transport.Queue($"tenant-events-{instanceId}")
+    .Temporary()
+    .Receives<TenantEvent>();
+```
+
+`instanceId` here is a value your host or application supplies - a process GUID, a pod name, an assigned worker ID. Mocha does not generate or append an instance identity to endpoint or queue names on your behalf. `Queue(name)` always uses the complete string you pass as the endpoint name and as the broker entity name; `GetReceiveEndpointName` applies the same naming conventions described above regardless of `Temporary()`, and never appends an instance segment.
+
+`Temporary()` is a lifecycle intent, not a message setting. It controls how long the endpoint's backing queue exists, not how long an individual message on that queue lives - do not confuse it with a message TTL.
+
+A uniquely named temporary queue binds to its publish topic or exchange the same way any other subscribe endpoint does. If every running instance calls `#!csharp Queue($"tenant-events-{instanceId}")` with its own `instanceId`, each instance gets its own queue bound to the same source, so every live instance receives a copy of every published message. If two instances instead pass the same queue name, they share one queue and become competing consumers on it - each message goes to only one of them.
+
+Each transport maps `Temporary()` to a different native mechanism:
+
+| Transport         | Mapping                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| Azure Service Bus | `AutoDeleteOnIdle` on the queue (24-hour default, `Temporary(TimeSpan)` for a custom idle window) |
+| RabbitMQ          | A non-durable, auto-delete queue                                                                  |
+| PostgreSQL        | `AutoDelete` on the queue row, cascaded from the owning consumer's heartbeat and expiry           |
+| InMemory          | API parity only - a temporary queue's lifetime is the hosting process's own runtime disposal      |
+
+See the transport pages under [Transports](./transports/index.md) for the full mapping, defaults, and conflict-detection behavior for each transport.
+
+## Dispatch endpoints
 
 For outbound endpoints, use `DispatchEndpoint("name")`:
 

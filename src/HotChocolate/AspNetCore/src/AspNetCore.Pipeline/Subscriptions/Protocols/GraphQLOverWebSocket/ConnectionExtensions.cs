@@ -60,10 +60,19 @@ public static class ConnectionExtensions
 
     public static ValueTask CloseConnectionRefusedAsync(
         this ISocketConnection connection,
+        string message,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
-            "Connection refused.",
-            CloseReasons.Unauthorized,
+            message,
+            CloseReasons.Forbidden,
+            cancellationToken);
+
+    public static ValueTask CloseInvalidMessageAsync(
+        this ISocketConnection connection,
+        CancellationToken cancellationToken)
+        => connection.CloseAsync(
+            "The message must be valid JSON.",
+            CloseReasons.ProtocolError,
             cancellationToken);
 
     public static ValueTask CloseToManyInitializationsAsync(

@@ -20,7 +20,7 @@ type Query {
 
 # Deprecation
 
-You can deprecate output fields, input fields, arguments, and enum values. Deprecated elements remain functional but are flagged in introspection, warning consumers to migrate.
+You can deprecate output fields, input fields, arguments, and enum values without any extra configuration. Object types can be deprecated too, but only once you enable a separate opt-in option (see [Deprecating Object Types](#deprecating-object-types)). Deprecated elements remain functional but are flagged in introspection, warning consumers to migrate.
 
 <ExampleTabs>
 <Implementation>
@@ -42,7 +42,7 @@ public static partial class BookQueries
 }
 ```
 
-The .NET `[Obsolete("reason")]` attribute works the same way as `[GraphQLDeprecated("reason")]`.
+The .NET `[Obsolete("reason")]` attribute works the same way as `[GraphQLDeprecated("reason")]` for fields, arguments, input fields, and enum values. Deprecating an object type itself is different: see [Deprecating Object Types](#deprecating-object-types).
 
 </Implementation>
 <Code>
@@ -70,6 +70,110 @@ public class BookQueriesType : ObjectType
 
 > [!WARNING]
 > You cannot deprecate non-null arguments or input fields that have no default value. Deprecating a required field would silently break queries that depend on it.
+
+## Deprecating Object Types
+
+Deprecating an object type is not yet part of the released GraphQL specification. It tracks [graphql-spec RFC #997](https://github.com/graphql/graphql-spec/pull/997), which is still open, so its final shape could still change. Enable it deliberately, and treat it as subject to change until the RFC is merged.
+
+Enable it in your schema options:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyOptions(o => o.EnableObjectDeprecation = true);
+```
+
+Once enabled, `@deprecated` becomes valid on object types:
+
+<ExampleTabs>
+<Implementation>
+
+```csharp
+[GraphQLDeprecated("No longer known to exist.")]
+public class Baiji
+{
+    public string? Name { get; set; }
+}
+```
+
+</Implementation>
+<Code>
+
+```csharp
+public class BaijiType : ObjectType<Baiji>
+{
+    protected override void Configure(IObjectTypeDescriptor<Baiji> descriptor)
+    {
+        descriptor.Deprecated("No longer known to exist.");
+    }
+}
+```
+
+</Code>
+<Schema>
+
+```graphql
+type Baiji @deprecated(reason: "No longer known to exist.") {
+  name: String
+}
+```
+
+</Schema>
+</ExampleTabs>
+
+> [!NOTE]
+> The .NET `[Obsolete]` attribute does not deprecate an object type; only `[GraphQLDeprecated]` on the class does. Every other deprecatable member honors both attributes identically, but honoring `[Obsolete]` on a class would silently deprecate types across existing codebases the moment this option was enabled, which is a schema-build failure for a field that returns such a type without itself being deprecated. Unifying the two attributes for object types is deferred to a future major version.
+
+A field that is not itself deprecated cannot return a deprecated object type. Reaching a deprecated type indirectly is fine, so the following schema is valid even though `Baiji` is deprecated:
+
+```graphql
+type Query {
+  animals: [Animal]
+}
+
+interface Animal {
+  name: String
+}
+
+type Dog implements Animal {
+  name: String
+}
+
+type Baiji implements Animal @deprecated(reason: "No longer known to exist.") {
+  name: String
+}
+```
+
+`animals` returns the interface `Animal`, not `Baiji` directly, so no field needs deprecating. Contrast a field that returns `Baiji` directly:
+
+```graphql
+type Query {
+  baiji: Baiji
+}
+
+type Baiji @deprecated(reason: "No longer known to exist.") {
+  name: String
+}
+```
+
+> [!WARNING]
+> `Query.baiji` is not deprecated but returns the deprecated `Baiji` type, so building the schema fails. Deprecate the field, or change its return type.
+
+A deprecated object type remains a valid union member and interface implementation. Only the field returning it is checked.
+
+Introspection exposes object type deprecation through `__Type.isDeprecated` and `__Type.deprecationReason`. Deprecated object types are hidden from `__schema.types` and `__Type.possibleTypes` by default:
+
+```graphql
+{
+  __schema {
+    types(includeDeprecated: true) {
+      name
+      isDeprecated
+      deprecationReason
+    }
+  }
+}
+```
 
 # Opt-In Features
 

@@ -13,13 +13,13 @@
     <ProjectReference Include="..\..\src\Fusion.Subscriptions.NATS\HotChocolate.Fusion.Subscriptions.NATS.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Nats\CookieCrumble.Resources.Nats.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="NATS.Client.Core" />
     <PackageReference Include="NATS.Client.JetStream" />
-    <PackageReference Include="Testcontainers" />
   </ItemGroup>
 
   <ItemGroup>

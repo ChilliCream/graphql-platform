@@ -8,7 +8,9 @@ agrc
 Alderaan
 ALPN
 Andi
+annotatable
 anthropics
+Antiforgery
 apphost
 appsettings
 ASPDEPR004
@@ -21,6 +23,7 @@ autonumber
 backplane
 backpressure
 Badurina
+Baiji
 bananacakepop
 basicsaga
 bbox
@@ -51,6 +54,7 @@ codestudio
 colocated
 combinators
 commandcode
+CONNECTIONSTRING
 contentfiles
 Contoso
 conv
@@ -61,10 +65,12 @@ creds
 csclient
 CUST
 dataloaders
+datetimeoffset
 debuggable
 decompile
 deepagents
 depersist
+deprecatable
 deprioritization
 deprioritized
 dexto
@@ -72,6 +78,7 @@ Diagnoser
 Dispatchable
 DOCKERHUB
 drawio
+emulatorhealth
 enisdenjo
 entityframework
 EPSG
@@ -90,6 +97,7 @@ forgecode
 fricking
 frontends
 frontmatter
+FULLYQUALIFIEDNAMESPACE
 Fzzz
 GEOGCS
 geolocation
@@ -100,11 +108,13 @@ GraphiQL
 graphqlconf
 graphqlconfig
 graphqlrc
+GraphQLResponse
 graphqls
 graphyne
 greendonut
 Hasura
 HCXXXX
+healthcheck
 hhmm
 HHmmssfffffff
 Hmac
@@ -134,12 +144,15 @@ Linq
 Liquibase
 longpaths
 lscache
+mapfile
 Marek
 marocchino
 matchesBrics
 maxage
+maxAllowedResponseSize
 MCPEXP
 mcpjam
+mdns
 MediatR
 Memberwise
 mercurius
@@ -175,12 +188,14 @@ ntouches
 NUGETAPIKEY
 nwithin
 oncall
+oneline
 openclaw
 opencode
 opencover
 openhands
 OpenIddict
 opensgid
+operationCost
 OPTOUT
 overfetching
 OWIN
@@ -236,6 +251,7 @@ runbooks
 sandboxed
 SASL
 Satisfiability
+seekable
 Senn
 servicebus
 shoooe
@@ -244,6 +260,7 @@ Silmarillion
 skillz
 skybridge
 Skywalker
+slicingArgumentDefaultValue
 slnx
 snapshooter
 snupkg
@@ -259,6 +276,7 @@ starwars
 Storeless
 strawberryshake
 streamable
+strikethrough
 Structs
 subfolders
 subgraphs
@@ -292,6 +310,7 @@ Unsubscriber
 unsupplied
 uppercased
 Upsert
+upserts
 upvote
 URQL
 Usercentrics

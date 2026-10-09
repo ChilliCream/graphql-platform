@@ -1,6 +1,6 @@
+using CookieCrumble.Resources;
 using GreenDonut.Data.TestContext;
 using Microsoft.EntityFrameworkCore;
-using Squadron;
 
 namespace GreenDonut.Data;
 

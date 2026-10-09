@@ -5,6 +5,7 @@ import type { VFile } from "vfile";
 import { rehypePlugins, remarkPlugins } from "@/src/mdx-plugins";
 import { useMDXComponents as getMDXComponents } from "@/mdx-components";
 import type { HeadingItem } from "@/src/components/TableOfContents";
+import type { PageTags } from "@/src/components/HeadingTags";
 
 type Frontmatter = {
   title?: string;
@@ -16,6 +17,7 @@ export type CompiledDoc<T extends Frontmatter = Frontmatter> = {
   content: React.ReactElement;
   frontmatter: T;
   toc: HeadingItem[];
+  tags: PageTags;
 };
 
 export async function compileDoc<T extends Frontmatter = Frontmatter>(
@@ -28,11 +30,15 @@ export async function compileDoc<T extends Frontmatter = Frontmatter>(
     /<!--[\s\S]*?-->/g,
     "",
   );
-  const captured: { toc: HeadingItem[] } = { toc: [] };
+  const captured: { toc: HeadingItem[]; tags: PageTags } = {
+    toc: [],
+    tags: {},
+  };
 
-  const captureToc = () => (_tree: unknown, file: VFile) => {
-    const data = file.data as { toc?: HeadingItem[] };
+  const capturePageData = () => (_tree: unknown, file: VFile) => {
+    const data = file.data as { toc?: HeadingItem[]; headingTags?: PageTags };
     captured.toc = data.toc ?? [];
+    captured.tags = data.headingTags ?? {};
   };
 
   // compileMDX builds the VFile from a raw string, so it has no path. Inject
@@ -48,12 +54,12 @@ export async function compileDoc<T extends Frontmatter = Frontmatter>(
       parseFrontmatter: true,
       blockJS: false,
       mdxOptions: {
-        remarkPlugins: [setSourcePath, ...remarkPlugins, captureToc],
+        remarkPlugins: [setSourcePath, ...remarkPlugins, capturePageData],
         rehypePlugins: [...rehypePlugins],
       },
     },
     components: getMDXComponents(),
   });
 
-  return { content, frontmatter, toc: captured.toc };
+  return { content, frontmatter, toc: captured.toc, tags: captured.tags };
 }

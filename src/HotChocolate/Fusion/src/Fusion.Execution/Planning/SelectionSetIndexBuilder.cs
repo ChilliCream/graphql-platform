@@ -10,17 +10,20 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
     private ImmutableDictionary<SelectionSetNode, uint> _selectionSets;
     private readonly ImmutableDictionary<uint, SelectionSetNode>.Builder _selectionSetById;
     private ImmutableDictionary<uint, uint> _clonedToOriginalMap;
+    private ImmutableDictionary<uint, ConcreteBranchScope> _concreteBranchScopes;
     private uint _nextId;
 
     internal SelectionSetIndexBuilder(
         ImmutableDictionary<SelectionSetNode, uint> selectionSets,
         ImmutableDictionary<uint, SelectionSetNode> selectionSetById,
         ImmutableDictionary<uint, uint> clonedToOriginalMap,
+        ImmutableDictionary<uint, ConcreteBranchScope> concreteBranchScopes,
         uint nextId)
     {
         _selectionSets = selectionSets;
         _selectionSetById = selectionSetById.ToBuilder();
         _clonedToOriginalMap = clonedToOriginalMap;
+        _concreteBranchScopes = concreteBranchScopes;
         _nextId = nextId;
     }
 
@@ -75,6 +78,39 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
         }
 
         _clonedToOriginalMap = _clonedToOriginalMap.SetItem(clonedId, originalId);
+    }
+
+    internal void RegisterConcreteBranch(
+        uint parentSelectionSetId,
+        string typeCondition,
+        SelectionSetNode branch)
+    {
+        while (_clonedToOriginalMap.TryGetValue(
+            parentSelectionSetId,
+            out var originalSelectionSetId))
+        {
+            parentSelectionSetId = originalSelectionSetId;
+        }
+
+        Register(branch);
+
+        _concreteBranchScopes = _concreteBranchScopes.SetItem(
+            GetId(branch),
+            new ConcreteBranchScope(parentSelectionSetId, typeCondition));
+    }
+
+    internal bool TryTakeConcreteBranchScope(
+        uint branchSelectionSetId,
+        out ConcreteBranchScope scope)
+    {
+        if (_concreteBranchScopes.TryGetValue(branchSelectionSetId, out scope))
+        {
+            _concreteBranchScopes =
+                _concreteBranchScopes.Remove(branchSelectionSetId);
+            return true;
+        }
+
+        return false;
     }
 
     public void OnMerge(FieldNode field1, FieldNode field2)
@@ -251,6 +287,7 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
             _selectionSets,
             _selectionSetById.ToImmutable(),
             _clonedToOriginalMap,
+            _concreteBranchScopes,
             _nextId);
 
     public SelectionSetIndexBuilder ToBuilder()

@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Suites.PartialUnionComplex.A;
 using HotChocolate.Fusion.Suites.PartialUnionComplex.B;
 

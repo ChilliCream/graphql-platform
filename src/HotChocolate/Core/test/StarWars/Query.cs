@@ -25,7 +25,7 @@ public class Query
     }
 
     /// <summary>
-    /// Retrieve a hero by a particular their traits.
+    /// Retrieve a hero by their traits.
     /// </summary>
     /// <param name="traits">The traits to look up by.</param>
     /// <returns>The character.</returns>
@@ -35,10 +35,10 @@ public class Query
     }
 
     /// <summary>
-    /// Retrieve a heros by a particular Star Wars episodes.
+    /// Retrieve heroes by particular Star Wars episodes.
     /// </summary>
-    /// <param name="episodes">The episode to look up by.</param>
-    /// <returns>The character.</returns>
+    /// <param name="episodes">The episodes to look up by.</param>
+    /// <returns>The characters.</returns>
     public IReadOnlyList<ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
     {
         var list = new List<ICharacter>();

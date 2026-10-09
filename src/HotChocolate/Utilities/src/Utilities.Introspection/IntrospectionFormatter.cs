@@ -201,7 +201,9 @@ internal static class IntrospectionFormatter
             null,
             new NameNode(type.Name),
             CreateDescription(type.Description),
-            [],
+            CreateDeprecatedDirective(
+                type.IsDeprecated ?? false,
+                type.DeprecationReason),
             CreateNamedTypeRefs(type.Interfaces),
             CreateFields(type.Fields)
         );
@@ -267,7 +269,9 @@ internal static class IntrospectionFormatter
             CreateDescription(directive.Description),
             directive.IsRepeatable ?? false,
             CreateInputValues(directive.Args),
-            [],
+            CreateDeprecatedDirective(
+                directive.IsDeprecated,
+                directive.DeprecationReason),
             locations
         );
     }
@@ -323,15 +327,21 @@ internal static class IntrospectionFormatter
         bool isDeprecated,
         string deprecationReason)
     {
-        const string defaultReason = "No longer supported.";
-
-        if (string.IsNullOrEmpty(deprecationReason))
+        if (string.IsNullOrWhiteSpace(deprecationReason))
         {
-            deprecationReason = defaultReason;
+            deprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
         }
 
         if (isDeprecated)
         {
+            if (string.Equals(
+                deprecationReason,
+                DirectiveNames.Deprecated.Arguments.DefaultReason,
+                StringComparison.Ordinal))
+            {
+                return new List<DirectiveNode> { new(DirectiveNames.Deprecated.Name) };
+            }
+
             return new List<DirectiveNode>
             {
                 new DirectiveNode

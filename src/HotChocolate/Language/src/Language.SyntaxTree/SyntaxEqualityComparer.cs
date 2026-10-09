@@ -236,6 +236,7 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
 
     private bool Equals(FragmentSpreadNode x, FragmentSpreadNode y)
         => Equals(x.Name, y.Name)
+            && Equals(x.Arguments, y.Arguments)
             && Equals(x.Directives, y.Directives);
 
     private bool Equals(InlineFragmentNode x, InlineFragmentNode y)
@@ -867,6 +868,12 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
         hashCode.Add(GetHashCode(node.Name));
+
+        for (var i = 0; i < node.Arguments.Count; i++)
+        {
+            var argument = node.Arguments[i];
+            hashCode.Add(GetHashCode(argument));
+        }
 
         for (var i = 0; i < node.Directives.Count; i++)
         {

@@ -14,11 +14,11 @@ export function ClosingCta() {
         align="center"
         size="lg"
         title="Ready when you are."
-        description="Join the community Slack to talk to other ChilliCream users, or get in touch to size a paid plan for your team."
+        description="Join the public Slack for best-effort community help, or tell us which products, teams, and incident response needs a paid plan should cover."
       />
       <ButtonRow align="center" className="mt-8">
-        <SolidButton href="/services/support/contact">
-          Contact sales
+        <SolidButton href="/services/support/contact?subject=Pricing%20%26%20Plans&context=GraphQL%20Support">
+          Discuss a support plan
         </SolidButton>
         <OutlineButton href="https://slack.chillicream.com/">
           Join community Slack

@@ -18,6 +18,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     type Query {
                         field: String
@@ -83,6 +84,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     type Query {
                         field: String
@@ -151,6 +153,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     schema @optInFeatureStability(feature: "experimental", stability: "EXPERIMENTAL") {
                         query: Query
@@ -274,7 +277,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
                     "type": "__Type",
                     "field": "fields",
                     "argument": "includeOptIn",
-                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Names"
                   }
                 }
               ]
@@ -409,6 +412,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     type Query {
                         field: String
@@ -482,6 +486,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     type Query {
                         hero: Episode
@@ -555,6 +560,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     type Query {
                         field(input: ExampleInput): String
@@ -628,6 +634,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    defaultListSize: 1,
                     """
                     type Query {
                         field(

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Properties;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -21,6 +23,16 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
+    public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
+        => new($"No plan was found for the @defer fragment at path '{path}'.");
+
+    public static OperationPlannerGuardrailException PlanningGuardrailExceeded(
+        string operationId,
+        OperationPlannerGuardrailReason reason,
+        long limit,
+        long observed)
+        => new(operationId, reason, limit, observed);
+
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(
             FusionExecutionResources.OperationBatchExecutionNode_MissingBatchResult,
@@ -34,6 +46,11 @@ internal static class ThrowHelper
     public static InvalidOperationException SingleOperationRequired()
         => new(FusionExecutionResources.JsonOperationPlanParser_SingleOperationRequired);
 
+    public static InvalidOperationException InvalidAliasBatchResponse(string schemaName)
+        => new(string.Format(
+            FusionExecutionResources.HttpSourceSchemaClient_InvalidAliasBatchResponse,
+            schemaName));
+
     public static InvalidOperationException RequestIndexOutOfRange(int requestIndex)
         => new(string.Format(
             FusionExecutionResources.HttpSourceSchemaClient_InvalidRequestIndex,
@@ -46,6 +63,23 @@ internal static class ThrowHelper
 
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
+
+    public static InvalidOperationException CostOptionsAreReadOnly()
+        => new("The cost options are read-only.");
+
+    public static InvalidOperationException OperationDocumentNotAvailable()
+        => new("The operation document is not available in the context.");
+
+    public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
+        => new("The operation plan task completed without a result.");
+
+    public static ArgumentOutOfRangeException InvalidCostOptionValue(
+        string optionName,
+        double value)
+        => new(
+            optionName,
+            value,
+            "The value must be a non-negative finite number or positive infinity.");
 
     public static InvalidOperationException InvalidTargetValueKind(
         SelectionPath selectionPath,
@@ -74,4 +108,117 @@ internal static class ThrowHelper
             sourcePath,
             actualCount,
             expectedCount));
+
+    public static GraphQLException VariableNotFound(
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                "The variable with the name `{0}` does not exist.",
+                variableName)
+            .Build());
+
+    public static GraphQLException VariableNotOfType(
+        string variableName,
+        Type type) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                "The variable with the name `{0}` is not of the requested type `{1}`.",
+                variableName,
+                type.FullName ?? string.Empty)
+            .Build());
+
+    public static GraphQLException NonNullVariableIsNull(
+        VariableDefinitionNode variableDefinition)
+    {
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    "Variable `{0}` is required.",
+                    variableDefinition.Variable.Name.Value)
+                .SetCode(ErrorCodes.Execution.NonNullViolation)
+                .SetExtension("variable", variableDefinition.Variable.Name.Value)
+                .AddLocation(variableDefinition)
+                .Build());
+    }
+
+    public static GraphQLException VariableIsNotAnInputType(
+        VariableDefinitionNode variableDefinition)
+    {
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    "Variable `{0}` is not an input type.",
+                    variableDefinition.Variable.Name.Value)
+                .SetCode(ErrorCodes.Execution.MustBeInputType)
+                .SetExtension("variable", variableDefinition.Variable.Name.Value)
+                .SetExtension("type", variableDefinition.Type.ToString())
+                .AddLocation(variableDefinition)
+                .Build());
+    }
+
+    public static GraphQLException FieldDoesNotExistOnType(
+        FieldNode fieldNode,
+        string typeName)
+    {
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    FusionExecutionResources.DocumentRewriter_FieldDoesNotExistOnType,
+                    fieldNode.Name.Value,
+                    typeName)
+                .SetCode(ErrorCodes.Validation.FieldDoesNotExist)
+                .SetExtension("type", typeName)
+                .SetExtension("field", fieldNode.Name.Value)
+                .AddLocation(fieldNode)
+                .Build());
+    }
+
+    public static GraphQLException InvalidTypeConditionOnInlineFragment(
+        InlineFragmentNode inlineFragment,
+        string parentTypeName)
+    {
+        var typeName = inlineFragment.TypeCondition!.Name.Value;
+
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    FusionExecutionResources.DocumentRewriter_InvalidTypeConditionOnInlineFragment,
+                    parentTypeName,
+                    typeName)
+                .SetCode(ErrorCodes.Validation.FragmentTypeConditionUnknown)
+                .SetExtension("typeCondition", typeName)
+                .AddLocation(inlineFragment)
+                .Build());
+    }
+
+    public static GraphQLException InvalidTypeConditionOnFragment(
+        FragmentSpreadNode fragmentSpread,
+        string typeName)
+    {
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    FusionExecutionResources.DocumentRewriter_InvalidTypeConditionOnFragment,
+                    fragmentSpread.Name.Value,
+                    typeName)
+                .SetCode(ErrorCodes.Validation.FragmentTypeConditionUnknown)
+                .SetExtension("fragment", fragmentSpread.Name.Value)
+                .SetExtension("typeCondition", typeName)
+                .AddLocation(fragmentSpread)
+                .Build());
+    }
+
+    public static GraphQLException FragmentDoesNotExist(
+        FragmentSpreadNode fragmentSpread)
+    {
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    FusionExecutionResources.DocumentRewriter_FragmentDoesNotExist,
+                    fragmentSpread.Name.Value)
+                .SetCode(ErrorCodes.Validation.FragmentDoesNotExist)
+                .SetExtension("fragment", fragmentSpread.Name.Value)
+                .AddLocation(fragmentSpread)
+                .Build());
+    }
 }

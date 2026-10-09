@@ -46,7 +46,7 @@ public class XmlDocumentationFileResolver
 
     private XmlDocumentation? GetXmlDocumentation(Assembly assembly)
     {
-        var fullName = assembly.GetName().FullName!;
+        var fullName = assembly.GetName().FullName;
 
         if (!_cache.TryGetValue(fullName, out var documentation))
         {

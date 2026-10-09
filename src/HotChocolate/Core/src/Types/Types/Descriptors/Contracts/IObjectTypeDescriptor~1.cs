@@ -33,6 +33,17 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     IObjectTypeDescriptor<TRuntimeType> Description(string? value);
 
     /// <summary>
+    /// Deprecates the object type.
+    /// </summary>
+    /// <param name="reason">The reason why this object type is deprecated.</param>
+    IObjectTypeDescriptor<TRuntimeType> Deprecated(string? reason);
+
+    /// <summary>
+    /// Deprecates the object type.
+    /// </summary>
+    IObjectTypeDescriptor<TRuntimeType> Deprecated();
+
+    /// <summary>
     /// Defines the field binding behavior.
     ///
     /// The default binding behavior is set to

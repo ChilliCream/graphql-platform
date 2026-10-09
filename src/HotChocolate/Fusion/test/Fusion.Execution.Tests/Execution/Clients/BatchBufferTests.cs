@@ -3,8 +3,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
@@ -12,7 +10,6 @@ using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
-using FusionIOperationRequest = HotChocolate.Fusion.Transport.IOperationRequest;
 using FusionOperationRequest = HotChocolate.Fusion.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -116,13 +113,19 @@ public sealed class BatchBufferTests : FusionTestBase
 
     private static SourceSchemaClientRequest CreateRequest(ExecutionNode node)
     {
+        var sourceText = "query { field }"u8.ToArray();
+
         return new SourceSchemaClientRequest
         {
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = "query { field }",
-            OperationHash = 1,
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Query,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
             Variables = [new VariableValues(CompactPath.Root, JsonSegment.Empty)]
         };
     }
@@ -130,21 +133,22 @@ public sealed class BatchBufferTests : FusionTestBase
     private static OperationBatchRequest CreateBatchRequest()
     {
         return new OperationBatchRequest(
-            ImmutableArray.Create<FusionIOperationRequest>(
-                new FusionOperationRequest(
-                    "query { field }",
-                    id: null,
-                    operationName: null,
-                    onError: null,
-                    VariableValues.Empty,
-                    JsonSegment.Empty),
-                new FusionOperationRequest(
-                    "query { field }",
-                    id: null,
-                    operationName: null,
-                    onError: null,
-                    VariableValues.Empty,
-                    JsonSegment.Empty)));
+        [
+            new FusionOperationRequest(
+                "query { field }"u8.ToArray(),
+                id: null,
+                operationName: null,
+                onError: null,
+                VariableValues.Empty,
+                JsonSegment.Empty),
+            new FusionOperationRequest(
+                "query { field }"u8.ToArray(),
+                id: null,
+                operationName: null,
+                onError: null,
+                VariableValues.Empty,
+                JsonSegment.Empty)
+        ]);
     }
 
     private sealed class BatchBufferTestFixture : IAsyncDisposable

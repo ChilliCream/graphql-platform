@@ -1,21 +1,16 @@
 using Microsoft.Extensions.Hosting;
 using Mocha.Threading;
-using Npgsql;
 
 namespace Mocha.Outbox;
 
 /// <summary>
 /// A hosted service that manages the lifecycle of the Postgres outbox processor,
-/// opening a dedicated Npgsql connection and running the processing loop as a continuous background task.
+/// running the processing loop as a continuous background task.
 /// </summary>
-/// <param name="options">The outbox options containing the Postgres connection string.</param>
 /// <param name="processor">The outbox processor that performs the message dispatch loop.</param>
-internal sealed class PostgresMessageBusOutboxWorker(
-    PostgresMessageOutboxOptions options,
-    PostgresOutboxProcessor processor) : IHostedService
+internal sealed class PostgresMessageBusOutboxWorker(PostgresOutboxProcessor processor) : IHostedService
 {
     private readonly object _lock = new();
-    private NpgsqlDataSource? _dataSource;
     private ContinuousTask? _task;
 
     /// <summary>
@@ -33,12 +28,7 @@ internal sealed class PostgresMessageBusOutboxWorker(
                 return Task.CompletedTask;
             }
 
-            // The loop captures its own data source rather than reading the field, so that
-            // StopAsync (or a concurrent restart) can clear and dispose the field without
-            // affecting an already-running loop.
-            var dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-            _task = new ContinuousTask(token => ProcessAsync(dataSource, token));
-            _dataSource = dataSource;
+            _task = new ContinuousTask(processor.ProcessAsync);
         }
 
         return Task.CompletedTask;
@@ -51,14 +41,11 @@ internal sealed class PostgresMessageBusOutboxWorker(
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         ContinuousTask? task;
-        NpgsqlDataSource? dataSource;
 
         lock (_lock)
         {
             task = _task;
-            dataSource = _dataSource;
             _task = null;
-            _dataSource = null;
         }
 
         if (task is null)
@@ -66,25 +53,6 @@ internal sealed class PostgresMessageBusOutboxWorker(
             return;
         }
 
-        // Dispose the data source even if the loop fails to shut down cleanly, so the
-        // underlying connection pool is always released.
-        try
-        {
-            await task.DisposeAsync();
-        }
-        finally
-        {
-            if (dataSource is not null)
-            {
-                await dataSource.DisposeAsync();
-            }
-        }
-    }
-
-    private async Task ProcessAsync(NpgsqlDataSource dataSource, CancellationToken stoppingToken)
-    {
-        await using var connection = await dataSource.OpenConnectionAsync(stoppingToken);
-
-        await processor.ProcessAsync(connection, stoppingToken);
+        await task.DisposeAsync();
     }
 }

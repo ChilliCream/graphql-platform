@@ -20,10 +20,12 @@ export function HelpClosing() {
         size="lg"
         title="Still not sure where to start?"
         titleId="help-closing-heading"
-        description="Explore our advisory engagements for hands-on help, or a support plan if you need a long-term partner. If we are not the right help, we will say so."
+        description="Explore advisory for a scoped GraphQL problem or compare support plans when your production team needs ongoing channels and response terms. If we are not the right help, we will say so."
       />
       <ButtonRow align="center" className="mt-8">
-        <SolidButton href="/services/advisory">Explore advisory</SolidButton>
+        <SolidButton href="/services/advisory">
+          Explore GraphQL advisory
+        </SolidButton>
         <OutlineButton href="/services/support">
           Explore support plans
         </OutlineButton>

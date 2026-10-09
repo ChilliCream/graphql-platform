@@ -83,8 +83,7 @@ public class FloatValueNodeTests
         Assert.Equal(expected, floatValueNode.ToDouble());
     }
 
-    [InlineData("1.568", 1.568)]
-    [InlineData("2.0", 2.0)]
+    [MemberData(nameof(DecimalValues))]
     [Theory]
     public void ToDecimal(string value, decimal expected)
     {
@@ -323,4 +322,10 @@ public class FloatValueNodeTests
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
     }
+
+    public static TheoryData<string, decimal> DecimalValues => new()
+    {
+        { "1.568", 1.568m },
+        { "2.0", 2.0m }
+    };
 }

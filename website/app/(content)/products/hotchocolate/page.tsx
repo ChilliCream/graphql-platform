@@ -1,61 +1,107 @@
 import { CardGrid } from "@/src/components/CardGrid";
 import { ContentSection } from "@/src/components/ContentSection";
 import { PageHero } from "@/src/components/PageHero";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { Section } from "@/src/components/Section";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import {
+  ORGANIZATION_ID,
+  schemaId,
+  schemaRef,
+} from "@/src/helpers/structuredData";
 
-export const metadata = pageMetadata({
-  title: "Hot Chocolate",
+const PAGE = {
+  title: "Hot Chocolate: GraphQL Server for .NET",
   description:
-    "Hot Chocolate is the GraphQL server for .NET: build type-safe APIs with DataLoader batching, subscriptions, OpenTelemetry, and federation via Fusion.",
+    "Hot Chocolate is the GraphQL server for .NET: build type-safe APIs with C# schema authoring, DataLoader, subscriptions, security, OpenTelemetry, and Fusion.",
   path: "/products/hotchocolate",
-});
+  keywords: [
+    "GraphQL server for .NET",
+    "ASP.NET Core GraphQL",
+    "C# GraphQL API",
+    "Hot Chocolate GraphQL",
+    "GraphQL federation .NET",
+  ],
+} as const;
+
+export const metadata = pageMetadata(PAGE);
+
+const SOFTWARE_ID = schemaId(PAGE.path, "software");
+const SOFTWARE = {
+  "@type": "SoftwareSourceCode",
+  "@id": SOFTWARE_ID,
+  name: "Hot Chocolate",
+  description: PAGE.description,
+  url: toAbsoluteUrl(PAGE.path),
+  codeRepository: "https://github.com/ChilliCream/graphql-platform",
+  programmingLanguage: {
+    "@type": "ComputerLanguage",
+    name: "C#",
+  },
+  runtimePlatform: ".NET and ASP.NET Core",
+  license: "https://opensource.org/license/mit",
+  creator: schemaRef(ORGANIZATION_ID),
+  publisher: schemaRef(ORGANIZATION_ID),
+} as const;
 
 const FEATURES = [
   {
-    title: "Compile-time Composition",
+    title: "C# Schema Authoring",
     description:
-      "Fusion composes subgraph schemas at planning time, not runtime. The gateway stays fast and queries stay typed end-to-end.",
-  },
-  {
-    title: "Code-first or Schema-first",
-    description:
-      "Author your GraphQL schema however your team prefers. Hot Chocolate supports both styles with full type safety.",
+      "Define the schema from your C# implementation or use fluent descriptors when you need precise control. Mix both approaches in the same app.",
   },
   {
     title: "DataLoader Batching",
     description:
-      "Green Donut batches loads at the federation layer so cross-service N+1 disappears automatically.",
+      "Batch and cache related data fetches to reduce backend requests and address N+1 query patterns.",
   },
   {
     title: "Realtime Subscriptions",
     description:
-      "Server-sent events and WebSocket subscriptions are first-class — no extra wiring required.",
+      "Serve GraphQL over HTTP and deliver real-time results over WebSockets or Server-Sent Events from ASP.NET Core.",
   },
   {
     title: "OpenTelemetry Built In",
     description:
-      "Traces, errors, and per-resolver latency wire into your existing OTel backend (Jaeger, Tempo, Datadog, Honeycomb).",
+      "Emit GraphQL request, resolver, and DataLoader spans through the built-in OpenTelemetry integration.",
+  },
+  {
+    title: "Cost Analysis and Trusted Documents",
+    description:
+      "Set operation cost budgets for open APIs or limit first-party apps to pre-registered documents.",
   },
   {
     title: "Federation-ready",
     description:
-      "Compose with other Hot Chocolate services via Fusion or with Apollo subgraphs via the Federation spec.",
+      "Start with one Hot Chocolate server, then compose services behind Fusion when teams need independent ownership and deployment.",
   },
 ];
 
 export default function HotChocolatePage() {
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        pageType="ItemPage"
+        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Hot Chocolate" }]}
+        mainEntity={schemaRef(SOFTWARE_ID)}
+        about={schemaRef(SOFTWARE_ID)}
+        additionalNodes={[SOFTWARE]}
+      />
       <PageHero
         eyebrow="GraphQL Server for .NET"
         title="Hot Chocolate"
         teaser="The fastest way to build production GraphQL APIs in .NET. Type-safe end to end, federation-ready, and battle-tested at scale."
       />
       <div className="flex flex-wrap justify-center gap-4">
-        <SolidButton href="/docs/hotchocolate">Get Started</SolidButton>
+        <SolidButton href="/docs/hotchocolate/get-started-with-graphql-in-net-core">
+          Build Your First GraphQL API
+        </SolidButton>
         <OutlineButton href="https://github.com/ChilliCream/graphql-platform">
           View on GitHub
         </OutlineButton>
@@ -78,8 +124,14 @@ export default function HotChocolatePage() {
 
       <ContentSection
         title="MIT Licensed, Free to Use"
-        text="Hot Chocolate is open source under the MIT license. Use it in any project — commercial or otherwise — with no strings attached."
+        text="Use, modify, and distribute Hot Chocolate in commercial or private projects under the terms of the MIT license. The source is available in the ChilliCream GraphQL Platform repository."
       />
+      <div className="flex flex-wrap justify-center gap-4">
+        <OutlineButton href="/products/strawberryshake">
+          Add a Type-Safe .NET Client
+        </OutlineButton>
+        <OutlineButton href="/docs/fusion">Scale Out with Fusion</OutlineButton>
+      </div>
     </>
   );
 }

@@ -36,6 +36,9 @@ public interface IPostgresReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.MaxConcurrency(int)"/>
     new IPostgresReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Temporary"/>
+    new IPostgresReceiveEndpointDescriptor Temporary();
+
     /// <summary>
     /// Sets the address of the fault endpoint where failed messages are forwarded.
     /// </summary>

@@ -28,7 +28,10 @@ public static class TestServerHelper
                     .ConfigureServices(
                         services =>
                         {
-                            var builder = services.AddRouting().AddGraphQLServer();
+                            var builder = services
+                                .AddRouting()
+                                .AddGraphQLServer()
+                                .ModifyCostOptions(o => o.DefaultListSize = 1);
 
                             configure(builder);
 

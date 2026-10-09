@@ -13,6 +13,7 @@ public static class WellKnownAttributes
     public const string MutationTypeAttribute = "HotChocolate.Types.MutationTypeAttribute";
     public const string SubscriptionTypeAttribute = "HotChocolate.Types.SubscriptionTypeAttribute";
     public const string DataLoaderAttribute = "GreenDonut.DataLoaderAttribute";
+    public const string GenericDataLoaderAttribute = "GreenDonut.DataLoaderAttribute`1";
     public const string DataLoaderModuleAttribute = "GreenDonut.DataLoaderModuleAttribute";
     public const string DataLoaderDefaultsAttribute = "GreenDonut.DataLoaderDefaultsAttribute";
     public const string DataLoaderStateAttribute = "GreenDonut.DataLoaderStateAttribute";
@@ -24,6 +25,7 @@ public static class WellKnownAttributes
     public const string ParentAttribute = "HotChocolate.ParentAttribute";
     public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
     public const string ServiceAttribute = "HotChocolate.ServiceAttribute";
+    public const string FromKeyedServicesAttribute = "Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute";
     public const string ArgumentAttribute = "HotChocolate.ArgumentAttribute";
     public const string BindMemberAttribute = "HotChocolate.Types.BindMemberAttribute";
     public const string BindFieldAttribute = "HotChocolate.Types.BindFieldAttribute";

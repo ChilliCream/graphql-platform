@@ -320,7 +320,7 @@ async function ensureShareVariant(
     } catch {
       // best-effort
     }
-    const { shareSrc, shareHash: _stale, ...rest } = entry;
+    const { shareSrc: _shareSrc, shareHash: _shareHash, ...rest } = entry;
     return rest;
   }
 

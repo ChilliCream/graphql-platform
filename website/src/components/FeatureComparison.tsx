@@ -49,7 +49,12 @@ export function FeatureComparison({
       />
 
       <Card variant="panel" className="mt-10">
-        <div className="overflow-x-auto">
+        <div
+          role="region"
+          aria-labelledby={`${id}-heading`}
+          tabIndex={0}
+          className="focus-visible:ring-cc-accent/40 overflow-x-auto focus-visible:ring-2 focus-visible:outline-none"
+        >
           <table className="w-full min-w-[820px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-cc-card-border border-b">

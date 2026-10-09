@@ -121,6 +121,26 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public IDisposable AnalyzeOperationCost(RequestContext context)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].AnalyzeOperationCost(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public void OperationCost(RequestContext context, double fieldCost, double typeCost)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].OperationCost(context, fieldCost, typeCost);
+        }
+    }
+
     public IDisposable PlanOperation(RequestContext context, string operationPlanId)
     {
         var scopes = new IDisposable[listeners.Length];
@@ -370,6 +390,22 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
 
         return new AggregateActivityScope(scopes);
+    }
+
+    public void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].SubscriptionEventDelivered(
+                context,
+                node,
+                schemaName,
+                subscriptionId);
+        }
     }
 
     public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)

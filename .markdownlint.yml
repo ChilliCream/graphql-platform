@@ -13,12 +13,14 @@ MD033:
     - a
     - br
     - Code
+    - CSharp
     - em
     - ExampleTabs
     - FusionSubscriptionsDiagram
     - img
     - Implementation
     - InputChoiceTabs
+    - LanguageTabs
     - List
     - MochaTopologyVisualization
     - PackageInstallation
@@ -28,6 +30,7 @@ MD033:
     - span
     - strong
     - style
+    - TypeScript
 MD036: false # Rationale: Possibly too strict, used frequently in documentation.
 MD059: false # Rationale: Already used in many places in the documentation.
 MD060:

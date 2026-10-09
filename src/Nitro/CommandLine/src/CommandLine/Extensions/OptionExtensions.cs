@@ -83,7 +83,7 @@ internal static class OptionExtensions
     {
         option.DefaultValueFactory = _ =>
         {
-            var provider = CommandExecutionContext.s_services.Value!
+            var provider = CommandExecutionContext.Services
                 .GetRequiredService<IEnvironmentVariableProvider>();
             var value = s_prefixes
                 .Select(prefix => provider.GetEnvironmentVariable(prefix + name))

@@ -1,4 +1,6 @@
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Aspire;
 
@@ -7,6 +9,60 @@ namespace HotChocolate.Fusion.Aspire;
 /// </summary>
 public static class GraphQLResourceBuilderExtensions
 {
+    /// <summary>
+    /// Marks a resource as exposing a GraphQL endpoint over HTTP.
+    /// </summary>
+    /// <param name="builder">The resource builder</param>
+    /// <param name="path">
+    /// The path of the GraphQL endpoint that the resource serves. It must start with '/'.
+    /// </param>
+    /// <param name="schemaPath">
+    /// The path the schema document is downloaded from. It must start with '/' and must not be
+    /// <c>null</c> unless the source schema uses Apollo Federation, which serves its schema
+    /// through the GraphQL endpoint at <paramref name="path"/> and ignores this path.
+    /// </param>
+    /// <param name="endpointName">The endpoint name to use (defaults to "http")</param>
+    /// <param name="sourceSchemaName">
+    /// An optional source schema name assertion. When specified, it must exactly match the
+    /// <c>name</c> in <c>schema-settings.json</c>.
+    /// </param>
+    /// <returns>The resource builder for chaining</returns>
+    [AspireExport]
+    public static IResourceBuilder<T> WithGraphQLHttpEndpoint<T>(
+        this IResourceBuilder<T> builder,
+        string path = "/graphql",
+        string? schemaPath = "/graphql/schema.graphql",
+        string endpointName = "http",
+        string? sourceSchemaName = null)
+        where T : IResourceWithEndpoints
+    {
+        if (!path.StartsWith('/'))
+        {
+            throw new ArgumentException(
+                "The GraphQL endpoint path must start with '/'.",
+                nameof(path));
+        }
+
+        if (schemaPath?.StartsWith('/') is false)
+        {
+            throw new ArgumentException(
+                "The GraphQL schema endpoint path must start with '/'.",
+                nameof(schemaPath));
+        }
+
+        builder.WithAnnotation(
+            new GraphQLSourceSchemaAnnotation
+            {
+                SourceSchemaName = sourceSchemaName,
+                EndpointName = endpointName,
+                SchemaPath = schemaPath,
+                GraphQLPath = path,
+                Location = SourceSchemaLocationType.SchemaEndpoint
+            });
+
+        return builder;
+    }
+
     /// <summary>
     /// Marks a resource as having a GraphQL schema endpoint.
     /// </summary>
@@ -22,6 +78,10 @@ public static class GraphQLResourceBuilderExtensions
     /// <c>name</c> in <c>schema-settings.json</c>.
     /// </param>
     /// <returns>The resource builder for chaining</returns>
+    [Obsolete(
+        "Use WithGraphQLHttpEndpoint instead, which declares the GraphQL route of the resource "
+        + "in addition to the schema download path.")]
+    [AspireExportIgnore(Reason = "Superseded by WithGraphQLHttpEndpoint.")]
     public static IResourceBuilder<T> WithGraphQLSchemaEndpoint<T>(
         this IResourceBuilder<T> builder,
         string? path = null,
@@ -52,9 +112,13 @@ public static class GraphQLResourceBuilderExtensions
     /// Marks a resource as having a GraphQL schema file in its project directory.
     /// </summary>
     /// <param name="builder">The resource builder</param>
-    /// <param name="fileName">The schema file name (defaults to "schema.graphql")</param>
+    /// <param name="fileName">The schema file name (defaults to "schema.graphqls")</param>
     /// <param name="sourceSchemaName">The source schema name (defaults to the resource name)</param>
     /// <returns>The resource builder for chaining</returns>
+    [Obsolete(
+        "File based source schemas are being retired. Use WithGraphQLHttpEndpoint instead, "
+        + "which fetches the source schema from the endpoint of the resource.")]
+    [AspireExportIgnore(Reason = "Superseded by WithGraphQLHttpEndpoint.")]
     public static IResourceBuilder<T> WithGraphQLSchemaFile<T>(
         this IResourceBuilder<T> builder,
         string fileName = "schema.graphqls",
@@ -76,13 +140,58 @@ public static class GraphQLResourceBuilderExtensions
     /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
     /// </summary>
     /// <param name="builder">The resource builder</param>
-    /// <param name="outputFileName">The output schema file name (defaults to "gateway.fgp")</param>
-    /// <param name="settings">The composition settings.</param>
+    /// <param name="disableValidation">
+    /// A value indicating whether Nitro schema validation shall be disabled.
+    /// </param>
+    /// <param name="outputFileName">The output archive file name.</param>
     /// <returns>The resource builder for chaining</returns>
+    [AspireExport]
+    public static IResourceBuilder<T> WithNitroComposition<T>(
+        this IResourceBuilder<T> builder,
+        bool disableValidation = false,
+        string outputFileName = "gateway.far")
+        where T : IResourceWithEndpoints
+        => builder.WithNitroComposition(
+            new GraphQLCompositionSettings
+            {
+                DisableSchemaValidation = disableValidation
+            },
+            outputFileName);
+
+    /// <summary>
+    /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
+    /// </summary>
+    /// <param name="builder">The resource builder.</param>
+    /// <param name="settings">
+    /// The composition settings. Composition settings normally come from Nitro and the settings
+    /// given here override them locally.
+    /// </param>
+    /// <param name="outputFileName">The output archive file name.</param>
+    /// <returns>The resource builder for chaining.</returns>
+    [Obsolete("Use WithNitroComposition instead.")]
+    [AspireExportIgnore(Reason = "Obsolete alias for WithNitroComposition.")]
     public static IResourceBuilder<T> WithGraphQLSchemaComposition<T>(
         this IResourceBuilder<T> builder,
-        string outputFileName = "gateway.far",
-        GraphQLCompositionSettings settings = default)
+        GraphQLCompositionSettings settings,
+        string outputFileName = "gateway.far")
+        where T : IResourceWithEndpoints
+        => builder.WithNitroComposition(settings, outputFileName);
+
+    /// <summary>
+    /// Marks a resource as needing GraphQL schema composition from its referenced subgraphs.
+    /// </summary>
+    /// <param name="builder">The resource builder.</param>
+    /// <param name="settings">
+    /// The composition settings. Composition settings normally come from Nitro and the settings
+    /// given here override them locally.
+    /// </param>
+    /// <param name="outputFileName">The output archive file name.</param>
+    /// <returns>The resource builder for chaining.</returns>
+    [AspireExportIgnore(Reason = "Composition settings are provided by Nitro.")]
+    public static IResourceBuilder<T> WithNitroComposition<T>(
+        this IResourceBuilder<T> builder,
+        GraphQLCompositionSettings settings,
+        string outputFileName = "gateway.far")
         where T : IResourceWithEndpoints
     {
         builder.WithAnnotation(
@@ -91,6 +200,36 @@ public static class GraphQLResourceBuilderExtensions
                 OutputFileName = outputFileName,
                 Settings = settings
             });
+
+        NitroExtensions.TryAddAutoUpdateCommands(builder);
+
+        if (!builder.Resource.Annotations
+            .OfType<ResourceCommandAnnotation>()
+            .Any(command => command.Name == "recompose"))
+        {
+            var resourceName = builder.Resource.Name;
+
+            builder.WithCommand(
+                "recompose",
+                "Recompose",
+                context => context.ServiceProvider
+                    .GetService<GatewayCompositionCommandCoordinator>()?
+                    .ExecuteAsync(resourceName, context.CancellationToken)
+                        ?? Task.FromResult(CommandResults.Failure("Schema composition is not ready.")),
+                new CommandOptions
+                {
+                    Description = "Recompose and install the gateway schema.",
+                    IconName = "ArrowSync",
+                    UpdateState = context =>
+                    {
+                        var state = context.ResourceSnapshot.State?.Text;
+                        return state == KnownResourceStates.Running
+                            || state == KnownResourceStates.RuntimeUnhealthy
+                                ? ResourceCommandState.Enabled
+                                : ResourceCommandState.Disabled;
+                    }
+                });
+        }
 
         return builder;
     }
@@ -103,8 +242,7 @@ public static class GraphQLResourceBuilderExtensions
 
     internal static string? GetGraphQLSchemaUrl(
         this IResourceWithEndpoints resource,
-        string defaultPath,
-        string? endpointName = null)
+        string path)
     {
         var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
         if (annotation is not { Location: SourceSchemaLocationType.SchemaEndpoint })
@@ -112,23 +250,27 @@ public static class GraphQLResourceBuilderExtensions
             return null;
         }
 
-        var targetEndpointName = endpointName ?? annotation.EndpointName;
-        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == targetEndpointName);
+        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == annotation.EndpointName);
         if (endpoint?.Url == null)
         {
             return null;
         }
 
-        var baseUrl = endpoint.Url.TrimEnd('/');
-        return baseUrl + resource.GetGraphQLSchemaPath(defaultPath);
+        return endpoint.Url.TrimEnd('/') + path;
     }
 
-    internal static string? GetGraphQLSchemaPath(
-        this IResource resource,
-        string? defaultPath = null)
+    internal static string? GetAllocatedHttpEndpointUrl(this IResourceWithEndpoints resource)
     {
         var annotation = resource.Annotations.OfType<GraphQLSourceSchemaAnnotation>().FirstOrDefault();
-        return annotation?.SchemaPath ?? defaultPath;
+        var endpointName = annotation?.EndpointName ?? "http";
+        var endpoint = resource.GetEndpoints().FirstOrDefault(e => e.EndpointName == endpointName);
+
+        if (endpoint is not { IsAllocated: true })
+        {
+            return null;
+        }
+
+        return endpoint.Url;
     }
 
     internal static bool HasGraphQLSchema(this IResource resource)

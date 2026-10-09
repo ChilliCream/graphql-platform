@@ -175,7 +175,10 @@ export function FusionScreen({ progress }: FusionScreenProps) {
         </motion.div>
       )}
 
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <div
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+      >
         <Stage
           width={W}
           height={H}

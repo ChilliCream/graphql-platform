@@ -53,13 +53,14 @@ public sealed class ApolloFederationSchemaFetcherTests
         using var client = CreateClient(
             _ => Task.FromResult(Response(HttpStatusCode.ServiceUnavailable, "unavailable")));
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        var exception = await Assert.ThrowsAsync<SchemaFetchRequestException>(
             () => ApolloFederationSchemaFetcher.FetchAsync(
                 client,
                 "Products",
                 new Uri("https://products.example.com/graphql"),
                 TestContext.Current.CancellationToken));
 
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         Assert.Equal(
             "Source schema 'Products' returned HTTP 503 (Service Unavailable) for the _service query.",
             exception.Message);

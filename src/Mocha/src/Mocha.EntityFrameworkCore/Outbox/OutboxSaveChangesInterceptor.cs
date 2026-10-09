@@ -28,7 +28,7 @@ internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveC
 
         if (context.Database.CurrentTransaction is null)
         {
-            signal.Set();
+            signal.SetAfterAmbientTransaction();
         }
 
         return result;

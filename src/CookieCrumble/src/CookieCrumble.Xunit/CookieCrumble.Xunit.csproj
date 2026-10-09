@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>CookieCrumble.Xunit</AssemblyName>
     <RootNamespace>CookieCrumble.Xunit</RootNamespace>
-    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

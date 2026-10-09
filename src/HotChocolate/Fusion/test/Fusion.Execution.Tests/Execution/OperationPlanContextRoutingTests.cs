@@ -5,7 +5,6 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
@@ -23,8 +22,6 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContextRoutingTests : FusionTestBase
 {
-    private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
-
     [Fact]
     public async Task CreateVariableValueSets_Should_RouteThroughResultStore_When_RequirementKeysIsNull()
     {
@@ -249,13 +246,19 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             GraphQLHttpClient.Create(new HttpClient()),
             new HttpSourceSchemaClientConfiguration("a", new Uri("http://localhost:5000/graphql")));
 
+        var sourceText = "subscription { field }"u8.ToArray();
+
         var request = new SourceSchemaClientRequest
         {
             Node = fixture.GetRootNode(),
             SchemaName = "a",
             OperationType = OperationType.Subscription,
-            OperationSourceText = "subscription { field }",
-            OperationHash = 0
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Subscription,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText)
         };
 
         // act
@@ -332,7 +335,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 .BuildServiceProvider();
 
             var executor = await services.GetRequestExecutorAsync();
-            var schema = (Fusion.Types.FusionSchemaDefinition)executor.Schema;
+            var schema = (FusionSchemaDefinition)executor.Schema;
             var operationPlan = PlanOperation(
                 schema,
                 """

@@ -5,8 +5,9 @@ Usage:
   graphql schema export [options]
 
 Options:
-  --output <output>            The path to the file where the schema should be exported to. If no output path is specified the schema will be printed to the console.
-  --schema-name <schema-name>  The name of the schema that should be exported. If no schema name is specified the default schema will be exported.
-  --semantic-non-null          Rewrite the exported schema to strip non-null wrappers from output fields and apply the @semanticNonNull directive instead.
-  -?, -h, --help               Show help and usage information
+  --output <output>              The path to the file where the schema should be exported to. If no output path is specified the schema will be printed to the console.
+  --schema-name <schema-name>    The name of the schema that should be exported. If no schema name is specified the default schema will be exported.
+  --semantic-non-null            Rewrite the exported schema to strip non-null wrappers from output fields and apply the @semanticNonNull directive instead.
+  --spec-version <spec-version>  Downgrade the exported schema to the SDL grammar of a GraphQL specification edition. Supported values: october-2021, september-2025.
+  -?, -h, --help                 Show help and usage information
 

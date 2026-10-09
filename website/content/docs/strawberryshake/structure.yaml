@@ -4,6 +4,8 @@ items:
     title: Introduction
   - path: get-started
     title: Get Started
+  - path: configuration
+    title: Configuration
   - path: subscriptions
     title: Subscriptions
   - path: tooling

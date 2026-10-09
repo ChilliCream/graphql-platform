@@ -346,13 +346,13 @@ type Product @key(fields: "id") {
 public sealed record Product([property: ID<Product>] int Id);
 ```
 
-The `@key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful when key identity should be declared explicitly instead of inferred from lookup arguments.
+The `#!sdl @key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful when key identity should be declared explicitly instead of inferred from lookup arguments.
 
 `@key` declares identity. It does not replace lookup paths. If a subgraph contributes fields and needs to be entered during planning, it still needs a compatible lookup route.
 
 The `fields` value uses GraphQL field names, not C# member names.
 
-Key fields may supply constant arguments to select a specific variant of a field. For example, `@key(fields: "id(scope: LOCAL)")` selects the `id` field with the constant argument `scope: LOCAL`. Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied.
+Key fields may supply constant arguments to select a specific variant of a field. For example, `#!sdl @key(fields: "id(scope: LOCAL)")` selects the `id` field with the constant argument `scope: LOCAL`. Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied.
 
 An entity can have multiple keys. Each `@key` directive on a type represents one key.
 
@@ -404,6 +404,17 @@ If you are using Hot Chocolate as a subgraph, set `MarkNodeFieldAsLookup` and Ho
 builder
     .AddGraphQL()
     .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true);
+```
+
+Set `ApplyInaccessibleToNodeFields` if you want the generated `node` and `nodes` fields to remain in your source schema while being hidden from the client-facing composite schema. They are marked `@inaccessible` and `@shareable`, since several source schemas can contribute them, and `node` keeps working as a lookup for entity resolution. This hides them under standard composition settings, while a composition with global object identification enabled keeps the gateway's own `node` field.
+
+**C# configuration**
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
+    .ModifyOptions(o => o.ApplyInaccessibleToNodeFields = true);
 ```
 
 > If GraphQL Global Object Identification is enabled at the gateway level, every entity resolvable through the `node` field becomes a public entry point. Use explicit internal lookups for entities you do not want exposed as public entry points.

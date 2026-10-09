@@ -9,13 +9,13 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 export function TrainingHero() {
   return (
     <MarketingHero
-      eyebrow="ChilliCream Training"
+      eyebrow="GraphQL training for teams"
       title={<>Beginner team. Advanced team. Mixed team. Don&apos;t panic.</>}
       lead={
         <>
-          Our GraphQL curriculum is designed to teach in depth and works really
-          well. It also isn&apos;t set in stone, so we shape every engagement to
-          the team in the room.
+          Our GraphQL, Hot Chocolate, and Fusion curriculum teaches in depth and
+          works really well. It also isn&apos;t set in stone, so we shape every
+          engagement to the team in the room.
         </>
       }
       actions={

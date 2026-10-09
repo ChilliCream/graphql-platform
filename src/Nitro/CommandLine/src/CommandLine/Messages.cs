@@ -1,4 +1,6 @@
+using System.Globalization;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -30,6 +32,14 @@ internal static class Messages
     public static string SourceSchemaUrlInvalid()
         => $"The value for '{OptionalSourceSchemaUrlListOption.OptionName}' must be an absolute HTTP URL without user information or a fragment.";
 
+    public static string TransportUrlInvalid(string optionName)
+        => $"The value for '{optionName}' must be an absolute HTTP URL without user information or a fragment, "
+            + "or reference an environment variable such as '{{API_URL}}'.";
+
+    public static string SourceSchemaSettingsFileNotAnObject(string path)
+        => $"Source schema settings file '{path}' does not contain a JSON object. "
+            + $"Remove it or write to a different path with '{OptionalSettingsFileOption.OptionName}'.";
+
     public static string SourceSchemaUrlSettingsCountMismatch()
         => $"The options '{OptionalSourceSchemaUrlListOption.OptionName}' and "
             + $"'{OptionalSourceSchemaSettingsFileListOption.OptionName}' must be specified the same number of times.";
@@ -56,6 +66,11 @@ internal static class Messages
     public static string FailedToOpenLegacyArchive(string filePath, string detail)
         => $"Failed to open legacy v1 archive '{filePath}': {detail}";
 
+    public static string FailedToDownloadCompositionSettings(string stageName, string? detail = null)
+        => detail is null
+            ? $"Failed to download the composition settings from stage '{stageName}'."
+            : $"Failed to download the composition settings from stage '{stageName}': {detail}";
+
     public static string LegacyArchiveRequiredForFgpStage(string stageName)
         => $"Stage '{stageName.EscapeMarkup()}' currently has a Fusion v1 archive but no '{OptionalLegacyFusionArchiveFileOption.OptionName}' was provided. "
             + "The server-stored Fusion v1 archive may be outdated and cannot be used as the composition base. "
@@ -79,6 +94,69 @@ internal static class Messages
 
     public const string ForcePushEnabled = "Force push is enabled.";
 
+    public const string ForceUnpublishEnabled = "Force unpublish is enabled.";
+
+    public static string ClientVersionProtected(
+        string tag,
+        IReadOnlyList<ClientUnpublishProtectionRuleKind> protectedBy)
+    {
+        var reasons = protectedBy.Count == 0
+            ? "."
+            : $": {string.Join(", ", protectedBy.Select(ProtectionReason))}.";
+
+        return $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish "
+            + $"is marked as protected{reasons} "
+            + $"Use '{ClientForceUnpublishOption.OptionName}' to unpublish it anyway.";
+    }
+
+    public static string ClientRecentTrafficProtectionNotEvaluable(
+        string tag,
+        TimeSpan clientTrafficRequiredWithin)
+        => $"The client version '{tag.EscapeMarkup()}' you are trying to unpublish is protected "
+            + "by a rule that checks that the version no longer receives traffic. The rule could "
+            + $"not be evaluated for the required window of {FormatDuration(clientTrafficRequiredWithin)}. "
+            + $"Use '{ClientForceUnpublishOption.OptionName}' to unpublish it anyway.";
+
+    private static string ProtectionReason(ClientUnpublishProtectionRuleKind kind)
+        => kind switch
+        {
+            ClientUnpublishProtectionRuleKind.MinAge
+                => "it has not yet reached the minimum age",
+            ClientUnpublishProtectionRuleKind.NewestVersions
+                => "it is among the newest published versions",
+            ClientUnpublishProtectionRuleKind.RecentTraffic
+                => "it has received traffic recently",
+            _ => "it is protected by a rule this CLI does not know about"
+        };
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.Ticks % TimeSpan.TicksPerDay == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerDay, "day");
+        }
+
+        if (duration.Ticks % TimeSpan.TicksPerHour == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerHour, "hour");
+        }
+
+        if (duration.Ticks % TimeSpan.TicksPerMinute == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerMinute, "minute");
+        }
+
+        if (duration.Ticks % TimeSpan.TicksPerSecond == 0)
+        {
+            return Pluralize(duration.Ticks / TimeSpan.TicksPerSecond, "second");
+        }
+
+        return $"{duration.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture)} seconds";
+    }
+
+    private static string Pluralize(long value, string unit)
+        => value == 1 ? $"{value} {unit}" : $"{value} {unit}s";
+
     public const string Validating = "Validating...";
 
     public const string ValidationPassed = "Passed validation.";
@@ -96,6 +174,9 @@ internal static class Messages
 
     public const string RequestApproved =
         "Your request has been approved.";
+
+    public const string SelfHostLatestVersionReminder =
+        "If you are targeting a self-hosted instance, make sure it's running the latest version.";
 
     public static string QueuedAtPosition(int position)
         => $"Your request is queued at position {position}.";

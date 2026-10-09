@@ -5,9 +5,9 @@ import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 const REGULATED_POINTS: readonly string[] = [
-  "Procurement, MSA, and security review",
-  "BYOC or fully on-prem deployments",
-  "Dedicated onboarding & runbooks",
+  "Procurement and security requirements",
+  "Dedicated, BYOC, or on-prem deployment",
+  "Data location and network constraints",
 ];
 
 /**
@@ -24,15 +24,15 @@ export function RegulatedBand() {
         <div>
           <SectionHeading
             titleId="regulated-heading"
-            eyebrow="Regulated & on-prem"
+            eyebrow="Private deployment"
             title="Regulated industry or air-gapped?"
-            description="We work directly with platform teams on procurement, data residency review, and dedicated onboarding. Bring us a constraint, we'll come back with an architecture."
+            description="Bring us your infrastructure, network, data-location, and procurement constraints. We will help map them to the right Nitro deployment architecture and commercial plan."
           />
           <ButtonRow align="start" className="mt-6">
-            <SolidButton href="/services/support/contact?subject=Sales">
-              Talk to Sales
+            <SolidButton href="/services/support/contact?subject=Sales&context=Private%20Nitro%20Deployment">
+              Discuss deployment requirements
             </SolidButton>
-            <OutlineButton href="/platform">See the platform</OutlineButton>
+            <OutlineButton href="/platform">Explore the platform</OutlineButton>
           </ButtonRow>
         </div>
       }

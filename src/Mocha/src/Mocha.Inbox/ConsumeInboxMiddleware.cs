@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 
 namespace Mocha.Inbox;
 

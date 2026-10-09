@@ -41,7 +41,7 @@ With Nitro you can automate this process. You can configure your gateway to auto
 
 To configure your Fusion gateway to pull the configuration from Nitro, you need to install the `ChilliCream.Nitro` and `ChilliCream.Nitro.Fusion` packages. You can do this by running the following commands in your project's root directory:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.Fusion
 ```
@@ -89,7 +89,7 @@ To set up your subgraphs to be linked with your gateway, you need to follow thes
 
 First, ensure that the `ChilliCream.Nitro` and `ChilliCream.Nitro.HotChocolate` packages are installed in your subgraph projects. If not, you can install them by running the following commands in the root directory of each subgraph project:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.HotChocolate
 ```
@@ -159,14 +159,14 @@ This process links your subgraph with the gateway, ensuring a cohesive GraphQL a
 
 The deployment of a subgraph is a multi step process. To integrate Nitro into this process you need to install the Nitro CLI. You can find more information about Nitro CLI in the [Nitro CLI Documentation](../cli/installation.md).
 
-```bash
+```shell
 dotnet new tool-manifest
 dotnet tool install ChilliCream.Nitro.CLI
 ```
 
 You will also need the [Command Line Tools](https://www.nuget.org/packages/HotChocolate.Fusion.CommandLine) for packing and composing your subgraph.
 
-```bash
+```shell
 dotnet tool install HotChocolate.Fusion.CommandLine
 ```
 
@@ -176,7 +176,7 @@ All changes to the gateway originate from a subgraph. Once the subgraph is ready
 
 To easily access the newest schema and extensions, you can use the `schema export` command from the [Command Line Extension](../../hotchocolate/server/command-line.md). This command exports your current schema into a specified output file.
 
-```bash
+```shell
 dotnet run -- schema export --output schema.graphql
 dotnet fusion subgraph pack
 ```
@@ -189,7 +189,7 @@ Once your changes are ready to be deployed, you need to wait for a deployment sl
 
 Nitro helps you coordinate your subgraph deployments. You register for a deployment by calling:
 
-```bash
+```shell
 dotnet nitro fusion-configuration publish begin \
   --stage <<stage-id>> \
   --tag <<tag>> \
@@ -204,7 +204,7 @@ This command will complete once your turn has come and you can start deploying y
 
 Once you have a deployment slot, you need to notify Nitro that you are still interested in the slot. You do this by calling:
 
-```bash
+```shell
 dotnet nitro fusion-configuration publish start --api-key <<your-fusion-api-key>>
 ```
 
@@ -212,7 +212,7 @@ dotnet nitro fusion-configuration publish start --api-key <<your-fusion-api-key>
 
 As most likely, your connection information is different from environment to environment, you need to configure the url of your subgraph. You can do this by calling:
 
-```bash
+```shell
 dotnet fusion subgraph config set http \
   --url <<url>>
   -c path/to/your/subgraph/config.fsp
@@ -222,7 +222,7 @@ dotnet fusion subgraph config set http \
 
 To compose the subgraph, you first need to fetch the latest configuration from Nitro. You can do this by calling:
 
-```bash
+```shell
 dotnet nitro fusion-configuration download \
   --api-id <<your-fusion-api-id>> \
   --stage <<name-of-the-stage>> \
@@ -234,7 +234,7 @@ This will download the latest configuration from Nitro and save it to the specif
 
 Now you can compose the subgraph by calling:
 
-```bash
+```shell
 dotnet fusion compose -p ./gateway.fgp -s path/to/your/subgraph/config.fsp
 ```
 
@@ -242,13 +242,13 @@ dotnet fusion compose -p ./gateway.fgp -s path/to/your/subgraph/config.fsp
 
 If you want to make sure that your subgraph is compatible with the schema and client registry, you can validate it by calling:
 
-```bash
+```shell
 dotnet nitro fusion-configuration publish validate --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
 ```
 
 In case the validation fails, you will get an error message. You have to cancel the deployment manually though. You can add deployment step to your CI/CD pipeline which will cancel the deployment if the validation fails by calling:
 
-```bash
+```shell
 dotnet nitro fusion-configuration publish cancel --api-key <<your-fusion-api-key>>
 ```
 
@@ -262,7 +262,7 @@ To complete the deployment, you need to commit the deployment. This will notify 
 
 You can commit the deployment by calling:
 
-```bash
+```shell
 dotnet nitro fusion-configuration publish commit --configuration ./gateway.fgp --api-key <<your-fusion-api-key>>
 ```
 
@@ -364,7 +364,7 @@ This cache stores your data in Azure Blob Storage.
 
 You need to install the `ChilliCream.Nitro.Azure` package:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro.Azure
 ```
 

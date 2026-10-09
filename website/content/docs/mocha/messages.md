@@ -73,6 +73,33 @@ await bus.SendAsync(
 
 The bus merges your headers into the envelope's header collection before dispatching.
 
+## Message headers
+
+A header value must map to one of these portable representations: `null`, a boolean, a string, a
+number, an object with string keys, or an array. You can set headers with the following CLR values;
+Mocha converts them as shown:
+
+| Value supplied                                                         | Header value                                         |
+| ---------------------------------------------------------------------- | ---------------------------------------------------- |
+| `null`, `bool`, `string`                                               | `null`, boolean, or string                           |
+| `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`     | integer number                                       |
+| `float`, `double`, `decimal`                                           | number                                               |
+| `char`                                                                 | one-character string                                 |
+| `Guid`                                                                 | GUID string                                          |
+| `Uri`                                                                  | original URI string                                  |
+| an enum                                                                | member name                                          |
+| `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`                   | ISO 8601 string                                      |
+| `TimeSpan`                                                             | constant-format (`c`) string                         |
+| `byte[]`, `ArraySegment<byte>`, `ReadOnlyMemory<byte>`, `Memory<byte>` | base64 string                                        |
+| a JSON scalar                                                          | the corresponding `null`, boolean, string, or number |
+| a JSON object, nested headers, or a dictionary with string keys        | object whose values are mapped recursively           |
+| a JSON array or sequence                                               | array whose values are mapped recursively            |
+
+Dictionary keys must be strings, and every value in a dictionary or sequence must itself be a
+supported header value. Use a string when the exact text representation matters, such as for a
+high-precision decimal or an application-specific identifier. Other CLR types are not supported as
+header values.
+
 ## Access envelope metadata in a handler
 
 `IEventHandler<T>` receives the deserialized message and a cancellation token - that is all. To read message IDs, correlation IDs, timestamps, or custom headers, implement `IConsumer<T>` instead. The `IConsumeContext<T>` parameter gives you both the deserialized message and all envelope fields:

@@ -14,6 +14,7 @@ COPY ./out /usr/share/nginx/html
 RUN find /usr/share/nginx/html -type f \
         \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.mjs' \
            -o -name '*.json' -o -name '*.svg' -o -name '*.xml' -o -name '*.txt' \
+           -o -name '*.md' \
            -o -name '*.map' -o -name '*.ico' -o -name '*.webmanifest' \) \
         -size +1024c \
         -exec gzip -9 -k -f {} \;

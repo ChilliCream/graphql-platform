@@ -1,16 +1,19 @@
+import Link from "next/link";
 import { Picture } from "@/src/design-system/Picture";
 
-type BlogMetadataProps = {
-  author?: string;
-  authorUrl?: string;
-  authorImageUrl?: string;
-  date?: string;
-  readingTime?: string;
-};
+interface BlogMetadataProps {
+  readonly author?: string;
+  readonly authorUrl?: string;
+  readonly authorProfileHref?: string;
+  readonly authorImageUrl?: string;
+  readonly date?: string;
+  readonly readingTime?: string;
+}
 
 export function BlogMetadata({
   author,
   authorUrl,
+  authorProfileHref,
   authorImageUrl,
   date,
   readingTime,
@@ -24,30 +27,48 @@ export function BlogMetadata({
     readingTime ? <span key="rt">{readingTime}</span> : null,
   ].filter(Boolean);
 
-  // TODO: Fix image and custom link
+  const authorHref = authorProfileHref ?? authorUrl;
+  const isExternalAuthorHref = authorHref?.startsWith("http") ?? false;
+  const authorContent = (
+    <>
+      {authorImageUrl ? (
+        <Picture
+          src={authorImageUrl}
+          alt={`${author}'s avatar`}
+          width={30}
+          height={30}
+          sizes="30px"
+          className="mr-2 h-[30px] w-[30px] rounded-full object-cover"
+        />
+      ) : null}
+      <span>{author}</span>
+    </>
+  );
+
   return (
     <div className="text-cc-ink-dim flex flex-row items-center gap-2 text-sm">
       {author ? (
-        <a
-          href={authorUrl || "#"}
-          className="text-cc-ink-dim hover:text-cc-accent flex items-center no-underline"
-          target={authorUrl?.startsWith("http") ? "_blank" : undefined}
-          rel={
-            authorUrl?.startsWith("http") ? "noopener noreferrer" : undefined
-          }
-        >
-          {authorImageUrl ? (
-            <Picture
-              src={authorImageUrl}
-              alt={`${author}'s avatar`}
-              width={30}
-              height={30}
-              sizes="30px"
-              className="mr-2 h-[30px] w-[30px] rounded-full object-cover"
-            />
-          ) : null}
-          <span>{author}</span>
-        </a>
+        authorHref ? (
+          isExternalAuthorHref ? (
+            <a
+              href={authorHref}
+              className="text-cc-ink-dim hover:text-cc-accent flex items-center no-underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {authorContent}
+            </a>
+          ) : (
+            <Link
+              href={authorHref}
+              className="text-cc-ink-dim hover:text-cc-accent flex items-center no-underline"
+            >
+              {authorContent}
+            </Link>
+          )
+        ) : (
+          <span className="flex items-center">{authorContent}</span>
+        )
       ) : null}
       {parts.map((part, i) => (
         <span key={i} className="flex items-center gap-2">

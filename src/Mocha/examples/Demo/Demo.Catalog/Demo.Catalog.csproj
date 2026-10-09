@@ -2,7 +2,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Demo.Catalog</AssemblyName>
     <RootNamespace>HotChocolate.Demo.Catalog</RootNamespace>
-    <TargetFramework>net11.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />

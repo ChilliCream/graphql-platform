@@ -28,13 +28,20 @@ internal sealed class __Schema : ObjectType
         var optInFeatureStabilityListType = Parse($"[{nameof(__OptInFeatureStability)}!]!");
 
         var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+        var objectDeprecationEnabled = context.DescriptorContext.Options.EnableObjectDeprecation;
 
         var def = new ObjectTypeConfiguration(Names.__Schema, Schema_Description, typeof(ISchemaDefinition))
         {
             Fields =
                 {
                     new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                    new(Names.Types, Schema_Types, typeListType, pureResolver: Resolvers.Types),
+                    new(
+                        Names.Types,
+                        Schema_Types,
+                        typeListType,
+                        pureResolver: objectDeprecationEnabled
+                            ? Resolvers.TypesWithDeprecation
+                            : Resolvers.Types),
                     new(Names.QueryType,
                         Schema_QueryType,
                         nonNullTypeType,
@@ -91,6 +98,17 @@ internal sealed class __Schema : ObjectType
                 pureResolver: Resolvers.OptInFeatureStability));
         }
 
+        if (objectDeprecationEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.Types)
+                .Arguments
+                .Add(new(Names.IncludeDeprecated, type: nonNullBooleanType)
+                {
+                    DefaultValue = BooleanValueNode.False,
+                    RuntimeDefaultValue = false
+                });
+        }
+
         return def;
     }
 
@@ -101,6 +119,15 @@ internal sealed class __Schema : ObjectType
 
         public static object Types(IResolverContext context)
             => context.Parent<ISchemaDefinition>().Types;
+
+        public static object TypesWithDeprecation(IResolverContext context)
+        {
+            var types = context.Parent<ISchemaDefinition>().Types;
+
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? types
+                : types.Where(t => t is not IObjectTypeDefinition o || !o.IsDeprecated);
+        }
 
         public static object QueryType(IResolverContext context)
             => context.Parent<ISchemaDefinition>().QueryType;

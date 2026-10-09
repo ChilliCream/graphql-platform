@@ -1,5 +1,6 @@
 ---
 title: Filtering
+metaTitle: "GraphQL Filtering in Hot Chocolate"
 description: "Generate filter input types from .NET models with the [UseFiltering] attribute in Hot Chocolate, translating client filters into native database queries."
 ---
 

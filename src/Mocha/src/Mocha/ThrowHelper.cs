@@ -1,15 +1,47 @@
+using System.Text.Json;
 using Mocha.Scheduling;
 
 namespace Mocha;
 
 internal static class ThrowHelper
 {
+    public static Exception HeaderDictionaryKeyMustBeString(string headerKey, object? dictionaryKey)
+    {
+        var keyType = dictionaryKey?.GetType().FullName ?? "null";
+
+        return new JsonException(
+            $"The header '{headerKey}' holds a dictionary keyed by '{keyType}' that cannot be "
+                + "written as JSON. Use string keys.");
+    }
+
+    public static Exception HeaderValueNotSupported(
+        string headerKey,
+        object value,
+        NotSupportedException innerException)
+        => new JsonException(
+            $"The header '{headerKey}' holds a value of type '{value.GetType().FullName}' that cannot be "
+                + "written as JSON. Set the header to a supported value type, or register JSON type "
+                + "metadata for it.",
+            innerException);
+
     public static Exception BeforeAndAfterConflict()
         => new ArgumentException(
             "Only one of 'before' or 'after' can be specified at the same time.");
 
     public static Exception MiddlewareKeyNotFound(string key)
         => new InvalidOperationException($"Middleware with key {key} not found");
+
+    public static Exception MessageTypeNotRegistered(Type messageType)
+        => new InvalidOperationException(
+            $"Message type '{messageType.FullName}' was not registered at startup. "
+            + "Register it via the source generator or AddMessage<T>(). "
+            + "Set IsAotCompatible = false to allow runtime type registration.");
+
+    public static Exception DuplicateMessageIdentity(string identity, Type messageType, Type existingMessageType)
+        => new InvalidOperationException(
+            $"The message type '{messageType.FullName}' has the identity '{identity}', which is already "
+            + $"used by the message type '{existingMessageType.FullName}'. Each message type must have a "
+            + "unique identity.");
 
     public static Exception RouteEndpointNotConnected(InboundRoute route)
     {

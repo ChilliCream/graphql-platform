@@ -12,10 +12,12 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Type : ITypeResolverInterceptor
 {
+    private readonly bool _enableObjectDeprecation;
     private readonly bool _enableOptInFeatures;
 
-    public __Type(bool enableOptInFeatures = false)
+    public __Type(bool enableObjectDeprecation, bool enableOptInFeatures)
     {
+        _enableObjectDeprecation = enableObjectDeprecation;
         _enableOptInFeatures = enableOptInFeatures;
     }
 
@@ -51,7 +53,14 @@ internal sealed class __Type : ITypeResolverInterceptor
                 break;
 
             case "possibleTypes":
-                features.Set(new ResolveFieldValue(PossibleTypes));
+                if (_enableObjectDeprecation)
+                {
+                    features.Set(new ResolveFieldValue(PossibleTypesWithDeprecation));
+                }
+                else
+                {
+                    features.Set(new ResolveFieldValue(PossibleTypes));
+                }
                 break;
 
             case "enumValues":
@@ -82,6 +91,14 @@ internal sealed class __Type : ITypeResolverInterceptor
 
             case "isOneOf":
                 features.Set(new ResolveFieldValue(IsOneOf));
+                break;
+
+            case "isDeprecated" when _enableObjectDeprecation:
+                features.Set(new ResolveFieldValue(IsDeprecated));
+                break;
+
+            case "deprecationReason" when _enableObjectDeprecation:
+                features.Set(new ResolveFieldValue(DeprecationReason));
                 break;
 
             case "specifiedByURL":
@@ -170,7 +187,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -213,7 +230,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -230,7 +247,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             {
                 var type = complexType.Implements[index++];
                 context.AddRuntimeResult(type);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                element.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -248,7 +265,38 @@ internal sealed class __Type : ITypeResolverInterceptor
             {
                 var type = possibleTypes[index++];
                 context.AddRuntimeResult(type);
-                element.CreateObjectValue(context.Selection, context.IncludeFlags);
+                element.CreateObjectValue(context.Selection);
+            }
+        }
+    }
+
+    public static void PossibleTypesWithDeprecation(FieldContext context)
+    {
+        if (context.Parent<IType>() is ITypeDefinition nt && nt.IsAbstractType())
+        {
+            var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+            var schema = Unsafe.As<FusionSchemaDefinition>(context.Schema);
+            var possibleTypes = schema.GetPossibleTypes(nt);
+            var count = includeDeprecated
+                ? possibleTypes.Length
+                : possibleTypes.Count(t => !t.IsDeprecated);
+            using var list = context.FieldResult.CreateListValue(count).EnumerateArray().GetEnumerator();
+
+            foreach (var type in possibleTypes)
+            {
+                if (!includeDeprecated && type.IsDeprecated)
+                {
+                    continue;
+                }
+
+                if (!list.MoveNext())
+                {
+                    Debug.Fail("Expected enumerator of list value to be able to advance");
+                    break;
+                }
+
+                context.AddRuntimeResult(type);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -277,7 +325,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -312,7 +360,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -341,7 +389,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -376,7 +424,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.Current.CreateObjectValue(context.Selection, context.IncludeFlags);
+                list.Current.CreateObjectValue(context.Selection);
             }
         }
     }
@@ -386,12 +434,12 @@ internal sealed class __Type : ITypeResolverInterceptor
         switch (context.Parent<IType>())
         {
             case ListType lt:
-                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+                context.FieldResult.CreateObjectValue(context.Selection);
                 context.AddRuntimeResult(lt.ElementType);
                 break;
 
             case NonNullType nnt:
-                context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+                context.FieldResult.CreateObjectValue(context.Selection);
                 context.AddRuntimeResult(nnt.NullableType);
                 break;
         }
@@ -402,6 +450,23 @@ internal sealed class __Type : ITypeResolverInterceptor
         if (context.Parent<IType>() is IInputObjectTypeDefinition iot)
         {
             context.WriteValue(iot.Directives.ContainsName(DirectiveNames.OneOf.Name));
+        }
+    }
+
+    public static void IsDeprecated(FieldContext context)
+    {
+        if (context.Parent<IType>() is IObjectTypeDefinition objectType)
+        {
+            context.WriteValue(objectType.IsDeprecated);
+        }
+    }
+
+    public static void DeprecationReason(FieldContext context)
+    {
+        if (context.Parent<IType>() is
+            IObjectTypeDefinition { DeprecationReason: not null } objectType)
+        {
+            context.WriteValue(objectType.DeprecationReason);
         }
     }
 

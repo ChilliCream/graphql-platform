@@ -1,0 +1,30 @@
+[
+  {
+    "id": 2,
+    "type": "ApolloOperation",
+    "schema": "b",
+    "operation": {
+      "name": "Op_123456789101112_2",
+      "kind": "Query",
+      "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      name\n    }\n  }\n}",
+      "hash": "3d0199cf8fe29364979b8f9ecf1412eda2cc9b8c55ddfbfd2e25875498f5d7a3",
+      "shortHash": "3d0199cf",
+      "xxHash": 8835176348033008527
+    },
+    "entityType": "Product",
+    "resultSelectionSet": "{ name }",
+    "source": "$._entities",
+    "target": "$.products",
+    "requirements": [
+      {
+        "name": "__fusion_1_id",
+        "type": "ID!",
+        "path": "$.products",
+        "selectionMap": "id"
+      }
+    ],
+    "dependencies": [
+      1
+    ]
+  }
+]

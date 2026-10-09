@@ -259,6 +259,47 @@ public class QueryParserTests
     }
 
     [Fact]
+    public void Parse_Should_Succeed_When_Trusted_Options_And_Fields_Exceed_Default_Limit()
+    {
+        // arrange
+        // 2100 aliased fields exceed the default limit of 2048
+        const int fieldCount = 2_100;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < fieldCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        // act
+        var document = Utf8GraphQLParser.Parse(sb.ToString(), ParserOptions.Trusted);
+
+        // assert
+        Assert.Equal(fieldCount, document.FieldsCount);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_SyntaxException_When_Trusted_Options_And_Depth_Exceeds_Default_Limit()
+    {
+        // arrange
+        // 250 nested selection sets exceed the default recursion depth of 200
+        const int depth = 250;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        // act
+        var exception = Assert.Throws<SyntaxException>(
+            () => Utf8GraphQLParser.Parse(query, ParserOptions.Trusted));
+
+        // assert
+        exception.Message.MatchInlineSnapshot(
+            "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
     public void ParseSimpleShortHandFormQuery()
     {
         // arrange
@@ -725,11 +766,11 @@ public class QueryParserTests
         document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
-    [Fact(Skip = "Implement Parse Variable Directives")]
+    [Fact]
     public void ParseVariablesWithDirective()
     {
         // arrange
-        var sourceText = @"query ($a: String! @foo) a(a: $a)"u8.ToArray();
+        var sourceText = "query ($a: String! @foo) { a(a: $a) }"u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -738,5 +779,74 @@ public class QueryParserTests
 
         // assert
         document.ToString().MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public void Parse_Should_ReadSpreadArguments_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        const string query = "{ ...Bar(baz: 1) }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // assert
+        var operation = (OperationDefinitionNode)document.Definitions[0];
+        var spread = (FragmentSpreadNode)operation.SelectionSet.Selections[0];
+        var argument = Assert.Single(spread.Arguments);
+        Assert.Equal("baz: 1", argument.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_ReadVariableDefinitions_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        const string query = "fragment Bar($baz: Int!) on Foo { id }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // assert
+        var fragment = (FragmentDefinitionNode)document.Definitions[0];
+        var variableDefinition = Assert.Single(fragment.VariableDefinitions);
+        Assert.Equal("$baz: Int!", variableDefinition.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_ReadEmptyArguments_When_SpreadHasNoArguments()
+    {
+        // arrange
+        const string query = "{ ...Bar }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // assert
+        var operation = (OperationDefinitionNode)document.Definitions[0];
+        var spread = (FragmentSpreadNode)operation.SelectionSet.Selections[0];
+        Assert.Empty(spread.Arguments);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_SpreadHasArgumentsAndFragmentArgumentsNotAllowed()
+    {
+        // arrange
+        const string query = "{ ...Bar(baz: 1) }";
+
+        // act
+        static void Action() => Utf8GraphQLParser.Parse(query);
+
+        // assert
+        Assert
+            .Throws<SyntaxException>(Action)
+            .Message
+            .MatchInlineSnapshot(
+                "Expected a `Name`-token, but found a `LeftParenthesis`-token.");
     }
 }

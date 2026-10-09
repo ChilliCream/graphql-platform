@@ -1,5 +1,6 @@
 ---
 title: Resolvers
+metaTitle: "GraphQL Resolvers in Hot Chocolate"
 description: "Introduction to resolvers in Hot Chocolate: how the resolver tree executes a query, defining resolver methods, accessing arguments, and injecting services."
 ---
 

@@ -158,6 +158,144 @@ public class RequirementCrossEntityTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_Resolve_Subtotal_When_Require_Traverses_Connection_With_Nested_Require()
+    {
+        // arrange
+        // cart owns items and subtotal; subtotal requires items(first: 50).nodes[product.discountedPrice].
+        // discountedPrice is owned by promotions and itself requires price, which is owned by products.
+        // The list element is not an entity, so the leaf is reached through the product lookup
+        // spawned from the cart lookup that fetches the list; subtotal must depend on that lookup.
+        var schema = CreateCartSchema(
+            """
+            items(first: Int, after: String): CartItemsConnection
+            subtotal(lines: [Float!] @require(field: "items(first: 50).nodes[product.discountedPrice]")): Float!
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              viewer {
+                cart {
+                  subtotal
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Subtotal_When_Require_Traverses_Connection_With_Input_Object_List_Form()
+    {
+        // arrange
+        // same topology, the requirement uses the input object list form.
+        var schema = CreateCartSchema(
+            """
+            items(first: Int, after: String): CartItemsConnection
+            subtotal(lines: [CartLineInput] @require(field: "items(first: 50).nodes[{ unitPrice: product.discountedPrice }]")): Float!
+            """,
+            cartTypes:
+            """
+            input CartLineInput {
+              unitPrice: Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              viewer {
+                cart {
+                  subtotal
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Subtotal_When_Connection_Leaf_Has_No_Nested_Require()
+    {
+        // arrange
+        // control: the leaf (price) is owned by products and has no requirement of its own.
+        var schema = CreateCartSchema(
+            """
+            items(first: Int, after: String): CartItemsConnection
+            subtotal(lines: [Float!] @require(field: "items(first: 50).nodes[product.price]")): Float!
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              viewer {
+                cart {
+                  subtotal
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Subtotal_When_Requiring_Field_Is_On_Other_Schema_Than_Connection()
+    {
+        // arrange
+        // subtotal is owned by checkout while the items connection stays on cart, so the
+        // requirement is inlined into the cart step and only the nested product leaf is
+        // resolved by lookups spawned from that inlining.
+        var schema = CreateCartSchema(
+            """
+            items(first: Int, after: String): CartItemsConnection
+            """,
+            additionalSchemas:
+            """
+            # name: checkout
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cartById(id: ID! @is(field: "id")): Cart @lookup @internal
+            }
+
+            type Cart @key(fields: "id") {
+              id: ID!
+              subtotal(lines: [Float!] @require(field: "items(first: 50).nodes[product.discountedPrice]")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              viewer {
+                cart {
+                  subtotal
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Resolve_ByNovice_When_Require_Is_Single_Provider()
     {
         // arrange
@@ -195,6 +333,112 @@ public class RequirementCrossEntityTests : FusionTestBase
             {
               feed {
                 needsFlag
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice_Next_To_Required_Parent()
+    {
+        // arrange
+        // unitPrice requires product.discountedPrice, which is owned by promotions, so the
+        // requirement crosses the entity boundary of product. Selecting unitPrice under two
+        // response names next to a client selection of product must plan like a single one.
+        var schema = CreateNestedRequireSelectedTwiceSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              item {
+                unitPrice
+                u2: unitPrice
+                product {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice_Next_To_Required_Parent_Under_Interface()
+    {
+        // arrange
+        // same topology, but item is exposed as the Item interface so the requiring field
+        // sits under an inline fragment and requirement inlining takes the ancestor path.
+        var schema = CreateNestedRequireSelectedTwiceUnderInterfaceSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              item {
+                ... on CartItem {
+                  unitPrice
+                  u2: unitPrice
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice()
+    {
+        // arrange
+        // same topology without the client selection of product. Both response names of
+        // unitPrice must get their price from the promotions step.
+        var schema = CreateNestedRequireSelectedTwiceSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              item {
+                unitPrice
+                u2: unitPrice
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Requiring_Type_Has_Lookup()
+    {
+        // arrange
+        // the Product key comes from cart itself, so once promotions has delivered discountedPrice
+        // the planner re-enters cart at CartItem through cartItemById to pass the value.
+        var schema = CreateCartPricingSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              cart {
+                items {
+                  unitPrice
+                }
               }
             }
             """);
@@ -493,6 +737,220 @@ public class RequirementCrossEntityTests : FusionTestBase
             type Post @key(fields: "id") {
               id: ID!
               flag: Boolean!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateCartSchema(
+        string cartFields,
+        string cartTypes = "",
+        params string[] additionalSchemas)
+    {
+        var cartSchema =
+            $$"""
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              viewer: Viewer
+              cartById(id: ID! @is(field: "id")): Cart @lookup @internal
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Viewer {
+              cart: Cart
+            }
+
+            type Cart @key(fields: "id") {
+              id: ID!
+              {{cartFields}}
+            }
+
+            type CartItemsConnection {
+              nodes: [CartItem!]
+            }
+
+            type CartItem {
+              id: ID!
+              quantity: Int!
+              product: Product!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+
+            {{cartTypes}}
+            """;
+
+        const string productsSchema =
+            """
+            # name: products
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              price: Float!
+            }
+            """;
+
+        const string promotionsSchema =
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice(price: Float! @require(field: "price")): Float!
+            }
+            """;
+
+        return ComposeSchema([cartSchema, productsSchema, promotionsSchema, .. additionalSchemas]);
+    }
+
+    private static FusionSchemaDefinition CreateNestedRequireSelectedTwiceSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              item: CartItem!
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            type CartItem @key(fields: "id") {
+              id: ID!
+              product: Product!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice: Float!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateCartPricingSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cart: Cart
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Cart {
+              id: ID!
+              items: [CartItem!]
+            }
+
+            type CartItem {
+              id: ID!
+              product: Product!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice: Float!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateNestedRequireSelectedTwiceUnderInterfaceSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: cart
+            schema {
+              query: Query
+            }
+
+            type Query {
+              item: Item!
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            interface Item {
+              id: ID!
+            }
+
+            type CartItem implements Item @key(fields: "id") {
+              id: ID!
+              product: Product!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: promotions
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              discountedPrice: Float!
             }
             """);
     }

@@ -21,7 +21,7 @@ public class QueryableStringNotStartsWithHandler : QueryableStringOperationHandl
     {
         if (parsedValue is null)
         {
-            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, context));
         }
 
         var property = context.GetInstance();

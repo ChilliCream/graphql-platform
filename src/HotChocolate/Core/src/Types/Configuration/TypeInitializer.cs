@@ -22,6 +22,7 @@ internal sealed class TypeInitializer
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObject, RootTypeKind> _getTypeKind;
+    private readonly IReadOnlySchemaOptions _options;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -46,6 +47,7 @@ internal sealed class TypeInitializer
         _typeRegistry = typeRegistry ?? throw new ArgumentNullException(nameof(typeRegistry));
         var initialTypes1 = initialTypes ?? throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ?? throw new ArgumentNullException(nameof(getTypeKind));
+        _options = options;
 
         _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
 
@@ -129,6 +131,8 @@ internal sealed class TypeInitializer
             throw new SchemaException(errors);
         }
 
+        EnsureQueryType();
+
         // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
@@ -189,6 +193,30 @@ internal sealed class TypeInitializer
                 }
             }
         }
+    }
+
+    private void EnsureQueryType()
+    {
+        if (_options.StrictValidation)
+        {
+            return;
+        }
+
+        var queryTypeName = _options.QueryTypeName ?? OperationTypeNames.Query;
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (_getTypeKind(registeredType.Type) is RootTypeKind.Query
+                || registeredType.Type is ITypeDefinition type
+                    && type.Name.EqualsOrdinal(queryTypeName))
+            {
+                return;
+            }
+        }
+
+        InitializeType(
+            new ObjectType(
+                descriptor => descriptor.Name(queryTypeName)));
     }
 
     private List<RegisteredType> GetTypesWithRuntimeType(

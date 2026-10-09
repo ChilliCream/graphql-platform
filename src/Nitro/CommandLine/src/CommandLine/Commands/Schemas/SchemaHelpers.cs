@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -113,18 +112,4 @@ internal static class SchemaHelpers
 
         throw new ExitException(Messages.UnknownServerResponse);
     }
-}
-
-internal abstract record SchemaValidationResult
-{
-    public sealed record Success : SchemaValidationResult
-    {
-        public static readonly Success Instance = new();
-
-        private Success()
-        {
-        }
-    }
-
-    public sealed record Failed(IRenderable Details) : SchemaValidationResult;
 }

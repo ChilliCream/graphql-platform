@@ -9,7 +9,7 @@ const meta = {
   decorators: [
     (Story) => (
       <div className="cc-content-dark p-10">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <Story />
         </div>
       </div>
@@ -20,6 +20,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// The three cloud tiers as Offering cards with the self-hosted strip below.
+// All four tiers as Offering cards in one row, Self-Hosted included as a peer.
 // Dedicated is highlighted with the rainbow gradient border ("Most Popular").
 export const Default: Story = {};

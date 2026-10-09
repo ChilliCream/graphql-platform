@@ -180,7 +180,7 @@ serviceCollection.AddSerializer<PositiveIntSerializer>();
 > [!WARNING]
 > When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.<br />
 > This is not required for intrinsic primitive value types already supported as built-in scalars by Strawberry Shake (e.g., `int`, `float`, `bool`).<br />
-> Example: `@serializationType(name: "global::System.Numerics.Vector2", valueType: true)`
+> Example: `#!sdl @serializationType(name: "global::System.Numerics.Vector2", valueType: true)`
 
 ### Any or JSON
 

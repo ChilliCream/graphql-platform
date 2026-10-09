@@ -5,7 +5,8 @@ namespace HotChocolate.Fusion.Suites.Mutations.B;
 
 /// <summary>
 /// Root <c>Query</c> placeholder for the <c>b</c> subgraph. The subgraph
-/// declares no user-facing query fields; <see cref="ApolloFederationObjectTypeDescriptorExtensions.ExtendServiceType"/>
+/// declares no user-facing query fields;
+/// <see cref="ExtendServiceTypeDescriptorExtensions.ExtendServiceType(IObjectTypeDescriptor)"/>
 /// marks this type as extending the federated <c>Query</c>.
 /// </summary>
 public sealed class QueryType : ObjectType

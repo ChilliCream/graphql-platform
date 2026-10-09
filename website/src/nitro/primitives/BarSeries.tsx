@@ -18,6 +18,7 @@ export interface BarSeriesProps {
   progress?: MotionValue<number>;
   playWindow?: [number, number];
   durationMs?: number;
+  once?: boolean;
   className?: string;
   style?: CSSProperties;
   ariaLabel?: string;
@@ -35,11 +36,12 @@ export function BarSeries({
   progress,
   playWindow,
   durationMs,
+  once,
   className,
   style,
   ariaLabel,
 }: BarSeriesProps) {
-  const { ref, t } = useChartClock({ progress, playWindow, durationMs });
+  const { ref, t } = useChartClock({ progress, playWindow, durationMs, once });
 
   const n = values.length;
   const dMin = domain ? domain[0] : 0;

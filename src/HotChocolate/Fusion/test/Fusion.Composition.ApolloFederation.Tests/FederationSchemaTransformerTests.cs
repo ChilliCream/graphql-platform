@@ -172,6 +172,198 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
+    public void Transform_Should_GenerateSingleLookup_When_SameKeyIsRepeatedOnTypeAndExtension()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Item @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            extend type Item @key(fields: "id") {
+              quantity: Int
+            }
+
+            type Query {
+              item(id: ID!): Item
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Item
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Transform_Should_GenerateSingleLookup_When_KeysDifferOnlyInWhitespaceOrFieldOrder()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "sku package") @key(fields: "sku      package") @key(fields: "package sku") {
+              sku: String!
+              package: String!
+              name: String
+            }
+
+            type Order @key(fields: "meta { id region }") @key(fields: "meta { region id }") {
+              meta: OrderMeta!
+              total: Int
+            }
+
+            type OrderMeta {
+              id: ID!
+              region: String!
+            }
+
+            type Query {
+              products: [Product]
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product | Order
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Transform_Should_KeepBothKeys_When_SameFieldsDifferOnlyInResolvable()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Item @key(fields: "a b", resolvable: false) @key(fields: "b a") {
+              a: ID!
+              b: String!
+              name: String
+            }
+
+            type Query {
+              items: [Item]
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Item
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Transform_Should_GenerateSingleLookup_When_ListSegmentKeyIsRepeated()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Item @key(fields: "products { id }") @key(fields: "products { id }") {
+              id: ID!
+              products: [Product!]!
+            }
+
+            type Product {
+              id: ID!
+            }
+
+            type Query {
+              items: [Item]
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Item
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public void Transform_RequiresDirective()
     {
         // arrange

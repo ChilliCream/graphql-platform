@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
@@ -414,6 +413,8 @@ public sealed class SagaStateMachineTests
                 x.Initially().OnEvent<Start>().StateFactory(_ => new TestState()).TransitionTo("Started");
 
                 x.During("Started").OnAnyReply().TransitionTo("Triggered");
+
+                x.During("Started").OnFault().TransitionTo("Ended");
 
                 x.During("Triggered").OnEvent<End>().TransitionTo("Ended");
 

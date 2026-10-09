@@ -296,6 +296,31 @@ public class RabbitMQUnifiedQueueTests
         Assert.False(feature?.IsDisabled ?? false);
     }
 
+    [Fact]
+    public void Queue_Should_MaterializeNonDurableAutoDeleteQueue_When_TemporaryCalled()
+    {
+        // arrange
+        // Temporary() on the Queue() descriptor must produce a non-durable, auto-delete queue,
+        // matching the lifecycle contract of a directly-declared temporary receive endpoint.
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("temp-audit").Temporary();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.SingleOrDefault(q => q.Name == "temp-audit");
+
+        // assert
+        Assert.NotNull(queue);
+        Assert.False(queue.Durable);
+        Assert.True(queue.AutoDelete);
+    }
+
     private static MessagingRuntime CreateRuntime(
         Action<IMessageBusHostBuilder> configureBuilder,
         Action<IRabbitMQMessagingTransportDescriptor> configureTransport)

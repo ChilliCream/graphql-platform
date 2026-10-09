@@ -4,6 +4,7 @@ using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
@@ -31,6 +32,7 @@ internal sealed partial class SourceSchemaPreprocessor(
     bool isApolloFederationV1 = false)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
+    private readonly ScopedCompositionLog _log = new(log);
 
     public CompositionResult Preprocess()
     {
@@ -40,7 +42,7 @@ internal sealed partial class SourceSchemaPreprocessor(
 
         var isFederationSchema = isApolloFederationV1
             || (FederationSchemaTransformer.IsFederationSchema(schema)
-                && FederationSchemaAnalyzer.Validate(schema, log));
+                && FederationSchemaAnalyzer.Validate(schema, _log));
 
         if (isFederationSchema)
         {
@@ -98,7 +100,7 @@ internal sealed partial class SourceSchemaPreprocessor(
             var validationLog = new ValidationLog();
             if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
             {
-                log.WriteValidationLog(
+                _log.WriteValidationLog(
                     validationLog, schema, invalidFieldDeprecationSeverity);
             }
         }
@@ -109,7 +111,7 @@ internal sealed partial class SourceSchemaPreprocessor(
             RemoveEmptyQueryRoot.Apply(schema);
         }
 
-        return log.HasErrors
+        return _log.HasErrors
             ? ErrorHelper.SourceSchemaPreprocessingFailed()
             : CompositionResult.Success();
     }
@@ -385,7 +387,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                     }
 
                     if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal)
-                        || field.Directives.ContainsName(WellKnownDirectiveNames.External)
+                        || field.Directives.ContainsName(External)
                         || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
@@ -393,7 +395,7 @@ internal sealed partial class SourceSchemaPreprocessor(
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
                         || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
-                        || otherField.Directives.ContainsName(WellKnownDirectiveNames.External)
+                        || otherField.Directives.ContainsName(External)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;

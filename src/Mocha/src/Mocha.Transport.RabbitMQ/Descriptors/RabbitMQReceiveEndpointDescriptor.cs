@@ -97,6 +97,14 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IRabbitMQReceiveEndpointDescriptor Temporary()
+    {
+        base.Temporary();
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);

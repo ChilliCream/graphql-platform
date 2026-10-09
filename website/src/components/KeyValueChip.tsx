@@ -62,7 +62,7 @@ export function KeyValueChip({
 
   const labelNode = (
     <span
-      className={`text-cc-nav-label font-mono text-[0.55rem] ${LABEL_TRACKING_CLASSES[labelTracking]} uppercase ${labelSizingClass}`.trim()}
+      className={`text-cc-ink-dim font-mono text-[0.55rem] ${LABEL_TRACKING_CLASSES[labelTracking]} uppercase ${labelSizingClass}`.trim()}
       style={labelWidth ? { width: labelWidth } : undefined}
     >
       {label}

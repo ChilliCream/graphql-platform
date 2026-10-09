@@ -1,9 +1,9 @@
+using CookieCrumble.Resources;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -20,6 +20,7 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
         await using var services = new ServiceCollection()
             .AddDbContext<EventContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddSorting()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .AddQueryType(

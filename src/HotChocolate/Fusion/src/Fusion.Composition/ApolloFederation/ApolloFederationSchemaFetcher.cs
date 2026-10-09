@@ -33,12 +33,13 @@ internal static class ApolloFederationSchemaFetcher
         {
             if (!response.IsSuccessStatusCode)
             {
-                throw new InvalidOperationException(
+                throw new SchemaFetchRequestException(
                     string.Format(
                         ApolloFederationSchemaFetcher_RequestFailed,
                         sourceSchemaName,
                         (int)response.StatusCode,
-                        response.ReasonPhrase));
+                        response.ReasonPhrase),
+                    response.StatusCode);
             }
 
             var responseBody = await SchemaHttpResponseReader.ReadAsStringAsync(

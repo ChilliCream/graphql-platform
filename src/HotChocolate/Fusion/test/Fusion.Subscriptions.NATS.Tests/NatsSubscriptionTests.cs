@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
@@ -10,11 +11,10 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
-using Squadron;
 
 namespace HotChocolate.Fusion.Subscriptions.NATS;
 
-public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
+public sealed class NatsSubscriptionTests
 {
     private readonly NatsResource _natsResource;
 
@@ -189,7 +189,7 @@ public sealed class NatsSubscriptionTests : IClassFixture<NatsResource>
 
     private static string GetRootResponseName(SourceSchemaClientRequest request)
     {
-        var document = Utf8GraphQLParser.Parse(request.OperationSourceText);
+        var document = Utf8GraphQLParser.Parse(request.OperationSourceText.Value.Span);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var field = operation.SelectionSet.Selections.OfType<FieldNode>().Single();
 

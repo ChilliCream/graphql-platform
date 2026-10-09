@@ -46,15 +46,18 @@ public class Utf8HelperTests
             Encoding.UTF8.GetString(output.ToArray()));
     }
 
-    [InlineData("\\b", "\b")]
-    [InlineData("\\f", "\f")]
-    [InlineData("\\n", "\n")]
-    [InlineData("\\r", "\r")]
-    [InlineData("\\t", "\t")]
-    [InlineData("\\\"\"\"", "\"\"\"")]
+    [InlineData("\\d")]
+    [InlineData("\\`")]
+    [InlineData("\\{")]
+    [InlineData("\\$")]
+    [InlineData("\\\"")]
+    [InlineData("\\\"\"")]
+    [InlineData("\\n")]
+    [InlineData("\\\\")]
+    [InlineData("\\u0041")]
     [Theory]
-    public void Unescape_BlockStringEscapeChars_OutputIsUnescaped(
-        string escaped, string unescaped)
+    public void Unescape_Should_KeepBackslashLiteral_When_BlockStringHasNoTripleQuoteEscape(
+        string escaped)
     {
         // arrange
         var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
@@ -67,34 +70,63 @@ public class Utf8HelperTests
         Utf8Helper.Unescape(in input, ref output, true);
 
         // assert
-        Assert.Equal("hello_123_" + unescaped,
+        Assert.Equal("hello_123_" + escaped,
             Encoding.UTF8.GetString(output.ToArray()));
     }
 
-    [InlineData("\\\"\"")]
-    [InlineData("\\\"")]
-    [Theory]
-    public void Unescape_BlockStringInvalidEscapeChars_Exception(
-        string escaped)
+    [Fact]
+    public void Unescape_Should_WriteTripleQuote_When_BlockStringEscapesTripleQuote()
     {
         // arrange
-        var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
+        var inputData = "hello_123_\\\"\"\"_end"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
         var output = new Span<byte>(outputBuffer);
 
         // act
-        try
-        {
-            Utf8Helper.Unescape(in input, ref output, true);
+        Utf8Helper.Unescape(in input, ref output, true);
 
-            // assert
-            Assert.Fail("The unescape method should fail.");
-        }
-        catch
-        {
-        }
+        // assert
+        Assert.Equal("hello_123_\"\"\"_end",
+            Encoding.UTF8.GetString(output.ToArray()));
+    }
+
+    [Fact]
+    public void Unescape_Should_WriteTripleQuote_When_BlockStringEscapeFollowsLiteralBackslash()
+    {
+        // arrange
+        // the tokenizer treats the second backslash as the start of the `\"""` escape.
+        var inputData = "hello_123_\\\\\"\"\"_end"u8.ToArray();
+        var outputBuffer = new byte[inputData.Length];
+
+        var input = new ReadOnlySpan<byte>(inputData);
+        var output = new Span<byte>(outputBuffer);
+
+        // act
+        Utf8Helper.Unescape(in input, ref output, true);
+
+        // assert
+        Assert.Equal("hello_123_\\\"\"\"_end",
+            Encoding.UTF8.GetString(output.ToArray()));
+    }
+
+    [Fact]
+    public void Unescape_Should_KeepTrailingBackslash_When_IsBlockString()
+    {
+        // arrange
+        var inputData = "hello_123_\\"u8.ToArray();
+        var outputBuffer = new byte[inputData.Length];
+
+        var input = new ReadOnlySpan<byte>(inputData);
+        var output = new Span<byte>(outputBuffer);
+
+        // act
+        Utf8Helper.Unescape(in input, ref output, true);
+
+        // assert
+        Assert.Equal("hello_123_\\",
+            Encoding.UTF8.GetString(output.ToArray()));
     }
 
     [InlineData("\\u0024", "$")]

@@ -1,5 +1,5 @@
+using CookieCrumble.Resources;
 using GreenDonut.Data.TestContext;
-using Squadron;
 using Record = GreenDonut.Data.TestContext.Record;
 
 namespace GreenDonut.Data;
@@ -8,7 +8,7 @@ namespace GreenDonut.Data;
 public class PagingHelperSqlServerNullableTests(SqlServerResource resource)
 {
     private string CreateConnectionString()
-        => resource.CreateConnectionString($"db_{Guid.NewGuid():N}");
+        => resource.GetConnectionString($"db_{Guid.NewGuid():N}");
 
     [Fact]
     public async Task Paging_Nullable_Ascending_Cursor_Value_NonNull()

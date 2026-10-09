@@ -11,11 +11,14 @@ export function DocPageMeta({
 }: DocPageMetaProps) {
   return (
     <footer className="text-cc-ink-dim mt-12 text-right text-sm">
-      Last updated on{" "}
-      <time dateTime={isoDate}>
-        <strong>{displayDate}</strong>
-      </time>{" "}
-      by <strong>{author}</strong>
+      <span>Maintained by ChilliCream. </span>
+      <span>
+        Last updated on{" "}
+        <time dateTime={isoDate}>
+          <strong>{displayDate}</strong>
+        </time>{" "}
+        by <strong>{author}</strong>
+      </span>
     </footer>
   );
 }

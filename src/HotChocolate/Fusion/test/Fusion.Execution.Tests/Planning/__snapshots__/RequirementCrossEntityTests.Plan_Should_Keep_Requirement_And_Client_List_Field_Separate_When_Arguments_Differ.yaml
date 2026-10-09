@@ -28,46 +28,6 @@ nodes:
           id
         }
       }
-  - id: 2
-    type: Operation
-    schema: d
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        postById(id: $__fusion_1_id) {
-          comments(limit: 1) {
-            id
-          }
-        }
-      }
-    source: $.postById
-    target: $.feed
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_1_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 5
-    type: Operation
-    schema: d
-    operation: |
-      query Op_123456789101112_5($__fusion_5_id: ID!) {
-        postById(id: $__fusion_5_id) {
-          fusion__requirement_comments_0: comments(limit: 3) {
-            id
-          }
-        }
-      }
-    source: $.postById
-    target: $.feed
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_5_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
   - id: 3
     type: Operation
     schema: d
@@ -113,4 +73,44 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 2
+      - id: 6
+  - id: 2
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        postById(id: $__fusion_1_id) {
+          comments(limit: 1) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
+        postById(id: $__fusion_5_id) {
+          fusion__requirement_comments_0: comments(limit: 3) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

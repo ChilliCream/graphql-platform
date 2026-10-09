@@ -192,6 +192,38 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Coerce_Nullable_String_Variable_With_Null_Default_Where_Value_Is_Not_Provided()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("abc"),
+                description: null,
+                new NamedTypeNode("String"),
+                NullValueNode.Default,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, default, coercedValues, featureProvider);
+
+        // assert
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        Assert.Null(entry.Value.RuntimeValue);
+        Assert.IsType<NullValueNode>(entry.Value.ValueLiteral);
+    }
+
+    [Fact]
     public void Coerce_Nullable_String_Variable_With_Default_Where_Value_Is_Provided()
     {
         // arrange
@@ -477,9 +509,12 @@ public class VariableCoercionHelperTests
                 "errors": [
                   {
                     "message": "String cannot coerce the given value JSON element of type `Number` to a runtime value.",
-                    "path": [
-                      "abc"
-                    ]
+                    "extensions": {
+                      "inputPath": [
+                        "abc"
+                      ],
+                      "fieldType": "String"
+                    }
                   }
                 ]
                 """);
@@ -645,10 +680,13 @@ public class VariableCoercionHelperTests
                 "errors": [
                   {
                     "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
-                    "path": [
-                      "abc",
-                      0
-                    ]
+                    "extensions": {
+                      "inputPath": [
+                        "abc",
+                        0
+                      ],
+                      "fieldType": "Int"
+                    }
                   }
                 ]
                 """);

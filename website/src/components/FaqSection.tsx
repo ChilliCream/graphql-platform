@@ -2,6 +2,7 @@
 
 import { Card } from "@/src/design-system/Card";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { sendAnalyticsEvent } from "@/src/helpers/analytics";
 
 interface FaqSectionProps {
   readonly id: string;
@@ -38,7 +39,7 @@ export function FaqSection({
 
       <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4">
         {items.map((item) => (
-          <FaqItem key={item.question} item={item} />
+          <FaqItem key={item.question} sectionId={id} item={item} />
         ))}
       </div>
     </section>
@@ -46,13 +47,28 @@ export function FaqSection({
 }
 
 function FaqItem({
+  sectionId,
   item,
 }: {
+  readonly sectionId: string;
   readonly item: { readonly question: string; readonly answer: string };
 }) {
   return (
     <Card className="bg-cc-card-bg/60" hoverBorder>
-      <details className="group">
+      <details
+        className="group"
+        onToggle={(event) => {
+          if (!event.currentTarget.open) {
+            return;
+          }
+
+          sendAnalyticsEvent("faq_open", {
+            faq_section: sectionId,
+            faq_question: item.question,
+            page_path: window.location.pathname,
+          });
+        }}
+      >
         <summary className="text-cc-heading font-heading flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-base font-semibold">
           <span>{item.question}</span>
           <span

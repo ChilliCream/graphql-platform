@@ -1,0 +1,4 @@
+$ nitro agent
+$ echo "agent-root-flow: back at the shell"
+agent-root-flow: back at the shell
+$

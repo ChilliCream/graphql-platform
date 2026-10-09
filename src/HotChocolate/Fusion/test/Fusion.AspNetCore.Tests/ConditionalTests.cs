@@ -669,6 +669,210 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Root_Fields_Of_Same_Source_Schema_With_Differing_Conditions_Are_Fetched()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              a: String
+              b: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($f: Boolean!) {
+              a @skip(if: $f)
+              b @include(if: $f)
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["f"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Root_Fields_With_Conditions_On_Different_Variables_Are_Fetched()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              x: String
+              y: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($a: Boolean!, $b: Boolean!) {
+              x @skip(if: $a)
+              y @include(if: $b)
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["a"] = false, ["b"] = false });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Root_Common_Condition_Is_Hoisted_And_Other_Condition_Stays_Inline()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              a: String
+              b: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($s: Boolean!, $x: Boolean!) {
+              a @skip(if: $s) @include(if: $x)
+              b @skip(if: $s)
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["s"] = false, ["x"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Root_Condition_On_Subset_Of_Fields_Is_Not_Hoisted()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              a: String
+              b: String
+              c: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($s: Boolean!, $x: Boolean!) {
+              a @skip(if: $s)
+              b @skip(if: $s)
+              c @include(if: $x)
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["s"] = false, ["x"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Root_Fields_In_Fragment_With_Differing_Conditions_Are_Fetched()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              a: String
+              b: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($s: Boolean!, $x: Boolean!, $y: Boolean!) {
+              ... @skip(if: $s) {
+                a @include(if: $x)
+                b @include(if: $y)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["s"] = false,
+                ["x"] = true,
+                ["y"] = false
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     #endregion
 
     #region Lookup
@@ -1080,6 +1284,191 @@ public class ConditionalTests : FusionTestBase
             }
             """,
             variables: new Dictionary<string, object?> { ["skip"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Fields_With_Differing_Conditions_Are_Fetched()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($f: Boolean!) {
+              thing {
+                delta @skip(if: $f)
+                epsilon @include(if: $f)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["f"] = false });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_With_Path_And_Common_Condition_Is_Hoisted()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              lookups: Lookups!
+            }
+
+            type Lookups {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($s: Boolean!, $x: Boolean!) {
+              thing {
+                delta @skip(if: $s) @include(if: $x)
+                epsilon @skip(if: $s)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["s"] = false, ["x"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_With_Path_And_Differing_Conditions_Are_Fetched()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              lookups: Lookups!
+            }
+
+            type Lookups {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($f: Boolean!) {
+              thing {
+                delta @skip(if: $f)
+                epsilon @include(if: $f)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["f"] = false });
 
         using var result = await client.PostAsync(
             request,

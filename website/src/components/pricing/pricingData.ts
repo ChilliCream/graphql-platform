@@ -14,16 +14,22 @@ export interface Tier {
   readonly id: TierId;
   readonly name: string;
   readonly tagline: string;
-  /** Display price, e.g. "$0", "$20", "from $400", "Custom". */
+  /** Display price, e.g. "$0", "$20", "From $400", "Custom". */
   readonly price: string;
   /** Small note under the price, e.g. "forever", "per month", "talk to us". */
-  readonly priceNote: string;
+  readonly priceNote?: string;
+  /** Exact recurring monthly price when the plan has one. */
+  readonly monthlyPrice?: number;
+  /** Public minimum monthly price when the plan is advertised as "from". */
+  readonly minimumMonthlyPrice?: number;
   /** Headline bullets for the plan card. */
   readonly features: readonly string[];
   readonly cta: string;
   readonly ctaHref: string;
   /** The highlighted / recommended tier. */
   readonly popular?: boolean;
+  /** Label shown on the highlighted tier. */
+  readonly popularLabel?: string;
 }
 
 export const TIERS: readonly Tier[] = [
@@ -32,7 +38,7 @@ export const TIERS: readonly Tier[] = [
     name: "Free",
     tagline: "Shared cloud, fully managed.",
     price: "$0",
-    priceNote: "",
+    monthlyPrice: 0,
     features: [
       "Shared multi-tenant cloud",
       "Schemas & environments included",
@@ -41,7 +47,7 @@ export const TIERS: readonly Tier[] = [
       "3-day log & trace retention",
       "Community support",
     ],
-    cta: "Start for Free",
+    cta: "Start Nitro for Free",
     ctaHref: "https://nitro.chillicream.com",
   },
   {
@@ -50,6 +56,7 @@ export const TIERS: readonly Tier[] = [
     tagline: "Shared cloud, usage based.",
     price: "$20",
     priceNote: "per month",
+    monthlyPrice: 20,
     features: [
       "Shared multi-tenant cloud",
       "5M operations included, then $2 / million",
@@ -57,15 +64,16 @@ export const TIERS: readonly Tier[] = [
       "60-day log & trace retention",
       "Email support",
     ],
-    cta: "Start for Free",
+    cta: "Start Nitro for Free",
     ctaHref: "https://nitro.chillicream.com",
   },
   {
     id: "dedicated",
     name: "Dedicated",
     tagline: "Single-tenant, volume based.",
-    price: "from $400",
+    price: "From $400",
     priceNote: "per month",
+    minimumMonthlyPrice: 400,
     features: [
       "Single-tenant cloud or BYOC",
       "Priced by instance size",
@@ -73,16 +81,17 @@ export const TIERS: readonly Tier[] = [
       "Private networking",
       "SSO, audit log, role-based access",
     ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact?subject=Sales",
+    cta: "Discuss Dedicated",
+    ctaHref:
+      "/services/support/contact?subject=Sales&context=Dedicated%20Nitro%20Deployment",
     popular: true,
+    popularLabel: "Dedicated Deployment",
   },
   {
     id: "self",
     name: "Self-Hosted",
     tagline: "Your infrastructure.",
     price: "Custom",
-    priceNote: "talk to us",
     features: [
       "Run on your own infrastructure",
       "Air-gapped & on-prem supported",
@@ -90,7 +99,8 @@ export const TIERS: readonly Tier[] = [
       "Priority engineering support",
       "Long-term release channel",
     ],
-    cta: "Talk to Us",
-    ctaHref: "/services/support/contact?subject=Sales",
+    cta: "Discuss Self-Hosted",
+    ctaHref:
+      "/services/support/contact?subject=Sales&context=Self-Hosted%20Nitro",
   },
 ];

@@ -33,5 +33,52 @@ public interface IScalarTypeDefinition
     /// <returns>
     /// <c>true</c> if the value literal is compatible with this type; otherwise, <c>false</c>.
     /// </returns>
-    bool IsValueCompatible(IValueNode valueLiteral);
+    bool IsValueCompatible(IValueNode valueLiteral)
+    {
+        ArgumentNullException.ThrowIfNull(valueLiteral);
+
+        // A scalar whose serialization type is unknown cannot reject any literal.
+        if (SerializationType is ScalarSerializationType.Undefined)
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
+            && valueLiteral is { Kind: SyntaxKind.StringValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Int) == ScalarSerializationType.Int
+            && valueLiteral is { Kind: SyntaxKind.IntValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
+            && valueLiteral is { Kind: SyntaxKind.FloatValue or SyntaxKind.IntValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Boolean) == ScalarSerializationType.Boolean
+            && valueLiteral is { Kind: SyntaxKind.BooleanValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.List) == ScalarSerializationType.List
+            && valueLiteral is { Kind: SyntaxKind.ListValue })
+        {
+            return true;
+        }
+
+        if ((SerializationType & ScalarSerializationType.Object) == ScalarSerializationType.Object
+            && valueLiteral is { Kind: SyntaxKind.ObjectValue })
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

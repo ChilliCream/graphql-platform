@@ -1,0 +1,44 @@
+title: Fixture_Should_ReportExpectedCost_When_Validated
+request:
+  document: |
+    query Zero($n: Int!) {
+      items(limit: $n) {
+        value
+      }
+    }
+  variables: |
+    {
+      "n": 0
+    }
+response:
+  body: |
+    {}
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items(limit: Int!): [Item] @listSize(slicingArguments: ["limit"])
+      }
+
+      type Item {
+        value: Int @cost(weight: "3")
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION
+
+      directive @listSize(
+        assumedSize: Int
+        slicingArguments: [String!]
+        sizedFields: [String!]
+        requireOneSlicingArgument: Boolean = true
+      ) on FIELD_DEFINITION

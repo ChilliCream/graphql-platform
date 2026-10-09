@@ -52,8 +52,6 @@ public interface IDirectiveDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => EmptyCollections.Directives;
 
-    bool IDeprecationProvider.IsDeprecated => false;
-
     string? IDeprecationProvider.DeprecationReason => null;
 
     /// <summary>

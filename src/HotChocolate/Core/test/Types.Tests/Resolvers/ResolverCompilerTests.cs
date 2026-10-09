@@ -9,8 +9,8 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using Moq;
+using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 
 namespace HotChocolate.Resolvers;
 
@@ -485,8 +485,9 @@ public class ResolverCompilerTests
             "abc",
             SelectionPath.Root,
             schema.Types.GetType<ObjectType>("Query").Fields["abc"],
-            [new FieldSelectionNode(fieldSyntax, 1)],
-            []);
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
+            [],
+            isProjectionRequirement: false);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -528,8 +529,9 @@ public class ResolverCompilerTests
             "abc",
             SelectionPath.Root,
             schema.Types.GetType<ObjectType>("Query").Fields["abc"],
-            [new FieldSelectionNode(fieldSyntax, 1)],
-            []);
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
+            [],
+            isProjectionRequirement: false);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -629,8 +631,9 @@ public class ResolverCompilerTests
             "a",
             SelectionPath.Root,
             queryType.Fields.First(),
-            [new FieldSelectionNode(fieldSyntax, 1)],
-            []);
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
+            [],
+            isProjectionRequirement: false);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -673,8 +676,9 @@ public class ResolverCompilerTests
             "a",
             SelectionPath.Root,
             queryType.Fields.First(),
-            [new FieldSelectionNode(fieldSyntax, 1)],
-            []);
+            [new FieldSelectionNode(fieldSyntax, new ConditionFlags(1))],
+            [],
+            isProjectionRequirement: false);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());

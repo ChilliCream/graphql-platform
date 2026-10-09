@@ -162,9 +162,59 @@ public class MediatorDispatchTests
             () => mediator.SendAsync(new DispatchCommand("missing"), TestContext.Current.CancellationToken).AsTask());
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => mediator.QueryAsync(new DispatchQuery(1), TestContext.Current.CancellationToken).AsTask());
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.PublishAsync(new DispatchNotification("missing"), TestContext.Current.CancellationToken)
-                .AsTask());
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_Complete_When_NoNotificationHandlerRegistered()
+    {
+        // arrange
+        var sp = DispatchTestHelper.BuildProvider((_, _) => { });
+        using var scope = sp.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        // act
+        var task = mediator.PublishAsync(new DispatchNotification("unhandled"), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(task.IsCompletedSuccessfully);
+        await task;
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_Complete_When_UntypedNotificationHasNoHandler()
+    {
+        // arrange
+        var sp = DispatchTestHelper.BuildProvider((_, _) => { });
+        using var scope = sp.CreateScope();
+        var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
+
+        // act
+        var task = publisher.PublishAsync(
+            (object)new DispatchNotification("unhandled"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(task.IsCompletedSuccessfully);
+        await task;
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_ThrowArgumentException_When_ObjectIsNotANotification()
+    {
+        // arrange
+        var sp = DispatchTestHelper.BuildProvider((_, _) => { });
+        using var scope = sp.CreateScope();
+        var publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => publisher.PublishAsync(new DispatchVoidCommand("x"), TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        Assert.Equal(
+            "Type 'Mocha.Mediator.Tests.DispatchVoidCommand' does not implement INotification. "
+            + "If this is a command or query, use SendAsync or QueryAsync instead. (Parameter 'notification')",
+            exception.Message);
     }
 
     [Fact]

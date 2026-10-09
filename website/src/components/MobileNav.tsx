@@ -85,7 +85,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
               Contact Us
             </Link>
             <SolidButton href={nitroHref} className="h-10 py-0">
-              Launch
+              Launch Nitro
             </SolidButton>
           </li>
         </ol>

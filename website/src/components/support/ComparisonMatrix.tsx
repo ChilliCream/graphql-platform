@@ -12,7 +12,7 @@ const COMPARISON = [
     title: "Response & incidents",
     rows: [
       {
-        title: "Critical Incidents",
+        title: "Critical incidents",
         values: [
           false,
           "2 (next business day)",
@@ -21,8 +21,13 @@ const COMPARISON = [
         ],
       },
       {
-        title: "Non-critical Incidents",
-        values: [false, false, "5 (3 business days)", "10 (next business day)"],
+        title: "Non-critical incidents",
+        values: [
+          false,
+          false,
+          "Included (3 business days)",
+          "10 (next business day)",
+        ],
       },
     ],
   },
@@ -30,23 +35,23 @@ const COMPARISON = [
     title: "Channels",
     rows: [
       {
-        title: "Public Slack Channel",
+        title: "Public Slack channel",
         values: [true, true, true, true],
       },
       {
-        title: "Private Slack Channel",
+        title: "Private Slack channel",
         values: [false, true, true, true],
       },
       {
-        title: "Private Issue Tracking Board",
+        title: "Private issue tracking board",
         values: [false, false, true, true],
       },
       {
-        title: "Email Support",
+        title: "Email support",
         values: [false, false, true, true],
       },
       {
-        title: "Phone Support",
+        title: "Phone support",
         values: [false, false, false, true],
       },
     ],
@@ -55,11 +60,11 @@ const COMPARISON = [
     title: "Strategic",
     rows: [
       {
-        title: "Dedicated Account Manager",
+        title: "Dedicated account manager",
         values: [false, false, false, true],
       },
       {
-        title: "Status Reviews",
+        title: "Status reviews",
         hint: "Recurring check-ins on roadmap, upgrades, and posture.",
         values: [false, false, false, true],
       },
@@ -85,7 +90,7 @@ export function ComparisonMatrix() {
       id="compare"
       className="py-16"
       eyebrow="Compare plans"
-      heading="Feature comparison"
+      heading="Compare GraphQL support coverage"
       columns={PLAN_NAMES}
       groups={groups}
     />

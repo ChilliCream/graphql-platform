@@ -113,6 +113,11 @@ namespace TestNamespace
                         new global::HotChocolate.Data.UseProjectionAttribute(12),
                         new global::HotChocolate.Data.UseFilteringAttribute(null, 13),
                         new global::HotChocolate.Data.UseSortingAttribute(null, 14));
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProducts_productService(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 

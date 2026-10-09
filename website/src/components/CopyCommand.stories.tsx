@@ -12,7 +12,7 @@ const meta = {
     size: { control: "select", options: ["sm", "md"] },
   },
   args: {
-    command: "dnx skillz add chillicream/agent-skills",
+    command: "dnx skills add chillicream/agent-skills",
     className: "bg-cc-surface max-w-md",
   },
   decorators: [
@@ -33,7 +33,7 @@ export const Small: Story = {
   args: {
     size: "sm",
     command:
-      "dnx skillz add chillicream/agent-skills --skill graphql-schema-design",
+      "dnx skills add chillicream/agent-skills --skill graphql-schema-design",
     className: "bg-cc-surface max-w-sm",
   },
 };

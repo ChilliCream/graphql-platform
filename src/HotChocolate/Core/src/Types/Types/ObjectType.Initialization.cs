@@ -61,6 +61,10 @@ public partial class ObjectType
     {
         base.OnCompleteType(context, configuration);
 
+        DeprecationReason = string.IsNullOrWhiteSpace(configuration.DeprecationReason)
+            ? null
+            : configuration.DeprecationReason;
+
         if (ValidateFields(context, configuration))
         {
             _isOfType = configuration.IsOfType;

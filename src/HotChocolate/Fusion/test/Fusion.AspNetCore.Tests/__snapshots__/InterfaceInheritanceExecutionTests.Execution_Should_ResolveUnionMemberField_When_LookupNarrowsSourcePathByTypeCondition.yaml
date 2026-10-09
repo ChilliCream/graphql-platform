@@ -135,7 +135,7 @@ operationPlan:
             }
           }
         }
-      hash: 36f2cac230747a195d060d87c0dcb2c8
+      hash: 6714e255ec92b6aad2b30846e2dcc96d
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -168,7 +168,7 @@ operationPlan:
         }
       source: $.searchResultById<Movie>
       target: $.search<Movie>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -189,7 +189,7 @@ operationPlan:
         }
       source: $.searchResultById<Book>
       target: $.search<Book>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

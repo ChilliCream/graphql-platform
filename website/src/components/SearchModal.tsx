@@ -1,6 +1,6 @@
 "use client";
 
-import "@docsearch/css";
+import "@docsearch/css/dist/style.css";
 import { DocSearchModal } from "@docsearch/react";
 import type { ComponentProps } from "react";
 

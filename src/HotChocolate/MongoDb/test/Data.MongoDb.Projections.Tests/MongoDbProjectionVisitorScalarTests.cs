@@ -1,12 +1,12 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionVisitorScalarTests : IClassFixture<MongoResource>
+public class MongoDbProjectionVisitorScalarTests
 {
     private static readonly Foo[] s_fooEntities =
     [

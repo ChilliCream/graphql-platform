@@ -19,7 +19,7 @@ export function GrabADrink() {
       </p>
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
         <SolidButton href="https://nitro.chillicream.com">
-          Start for Free
+          Start Nitro for Free
         </SolidButton>
         <OutlineButton href="/services/support/contact">
           Talk to Us

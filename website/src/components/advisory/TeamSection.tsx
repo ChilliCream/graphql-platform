@@ -23,11 +23,11 @@ const CREDENTIALS = [
   },
   {
     title: "How we work",
-    body: "In your repo, in your channels, in your timezone window. Written status every week. Honest answers when something is not the right fit, even when that means a smaller engagement.",
+    body: "The proposal defines the codebase, channels, checkpoints, and deliverables for the engagement, so your team knows how the work will run before it starts.",
     bullets: [
-      "Embedded in your codebase",
-      "Written weekly status reports",
-      "We will say no when no is the right answer",
+      "Work tied to your code and architecture",
+      "Shared delivery checkpoints",
+      "Defined written deliverables",
     ],
   },
 ];

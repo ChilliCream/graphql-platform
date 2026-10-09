@@ -1,0 +1,18 @@
+{
+  "errors": [
+    {
+      "message": "Operation `Q` has an empty selection set. Root types without selections are disallowed.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "extensions": {
+        "operation": "Q",
+        "type": "Query",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+      }
+    }
+  ]
+}

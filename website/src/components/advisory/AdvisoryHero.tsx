@@ -15,11 +15,15 @@ export function AdvisoryHero() {
     <MarketingHero
       eyebrow="ChilliCream Advisory"
       title="Talk to the engineers who built your GraphQL stack."
-      lead="Consulting in packages of hours, or full contracting engagements, delivered by the team behind Hot Chocolate, Fusion, and Nitro. Bring a question, a design, or a deadline. We meet you where the work is."
+      lead="Get focused consulting in packages of hours, or bring in the team behind Hot Chocolate, Fusion, and Nitro for a scoped implementation. Bring a question, a design, or a deadline. We meet you where the work is."
       actions={
         <ButtonRow align="center">
-          <SolidButton href={CONTACT_FORM}>Talk to us</SolidButton>
-          <OutlineButton href={CONSULTING_MAILTO}>Email us</OutlineButton>
+          <SolidButton href={CONTACT_FORM}>
+            Discuss your GraphQL project
+          </SolidButton>
+          <OutlineButton href={CONSULTING_MAILTO}>
+            Email the advisory team
+          </OutlineButton>
         </ButtonRow>
       }
     />

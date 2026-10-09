@@ -52,7 +52,7 @@ export function SectionHeading({
       </h2>
       {description && (
         <p
-          className={`text-cc-ink mt-4 max-w-xl text-pretty ${DESCRIPTION_SIZE[size]} ${
+          className={`text-cc-ink mt-4 max-w-3xl text-pretty ${DESCRIPTION_SIZE[size]} ${
             centered ? "mx-auto" : ""
           }`}
         >

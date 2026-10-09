@@ -99,6 +99,88 @@ public sealed class EnumValueIsDefinedRuleTests : RuleTestBase<EnumValueIsDefine
     }
 
     [Fact]
+    public void Validate_NestedListDefaultEnumValueIsUndefined_Fails()
+    {
+        AssertInvalid(
+            """
+            type FooObject {
+                field(arg: [FooEnum] = [MISSING]): Int
+            }
+
+            enum FooEnum {
+                VALUE
+            }
+            """,
+            """
+            {
+                "message": "The default value 'MISSING' of argument 'FooObject.field(arg:)' is not defined in the enum 'FooEnum'.",
+                "code": "HCV0023",
+                "severity": "Error",
+                "coordinate": "FooObject.field(arg:)",
+                "member": "arg",
+                "extensions": {}
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_SingletonListDefaultEnumValueIsUndefined_Fails()
+    {
+        AssertInvalid(
+            """
+            type FooObject {
+                field(arg: [FooEnum] = MISSING): Int
+            }
+
+            enum FooEnum {
+                VALUE
+            }
+            """,
+            """
+            {
+                "message": "The default value 'MISSING' of argument 'FooObject.field(arg:)' is not defined in the enum 'FooEnum'.",
+                "code": "HCV0023",
+                "severity": "Error",
+                "coordinate": "FooObject.field(arg:)",
+                "member": "arg",
+                "extensions": {}
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_NestedInputObjectDefaultEnumValueIsUndefined_Fails()
+    {
+        AssertInvalid(
+            """
+            type Query { stub: Int }
+
+            input FooInput {
+                field: FooEnum = VALUE
+                other: FooEnum
+            }
+
+            input BarInput {
+                nested: FooInput = { field: MISSING }
+            }
+
+            enum FooEnum {
+                VALUE
+            }
+            """,
+            """
+            {
+                "message": "The default value 'MISSING' of field 'BarInput.nested' is not defined in the enum 'FooEnum'.",
+                "code": "HCV0024",
+                "severity": "Error",
+                "coordinate": "BarInput.nested",
+                "member": "nested",
+                "extensions": {}
+            }
+            """);
+    }
+
+    [Fact]
     public void Validate_ArgumentAssignedEnumValueIsUndefined_Fails()
     {
         AssertInvalid(
@@ -121,6 +203,49 @@ public sealed class EnumValueIsDefinedRuleTests : RuleTestBase<EnumValueIsDefine
                 "coordinate": "FooObject",
                 "member": "FooObject",
                 "extensions": {}
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_NonNullArgumentDefaultEnumValueIsUndefined_Fails()
+    {
+        AssertInvalid(
+            """
+            type FooObject {
+                field(arg: FooEnum! = MISSING): Int
+            }
+
+            enum FooEnum {
+                VALUE
+            }
+            """,
+            """
+            {
+                "message": "The default value 'MISSING' of argument 'FooObject.field(arg:)' is not defined in the enum 'FooEnum'.",
+                "code": "HCV0023",
+                "severity": "Error",
+                "coordinate": "FooObject.field(arg:)",
+                "member": "arg",
+                "extensions": {}
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_WrongKindEnumDefault_NotReported()
+    {
+        // A non-enum literal on an enum-typed argument is a kind mismatch, which is owned by
+        // ValidDefaultValueRule. This rule only reports enum names that are not defined, so it
+        // stays silent here.
+        AssertValid(
+            """
+            type FooObject {
+                field(arg: FooEnum = 5): Int
+            }
+
+            enum FooEnum {
+                VALUE
             }
             """);
     }

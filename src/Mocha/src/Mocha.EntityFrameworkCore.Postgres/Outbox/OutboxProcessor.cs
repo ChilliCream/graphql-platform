@@ -18,7 +18,7 @@ public sealed class PostgresOutboxProcessor
     private readonly IMessagingRuntime _runtime;
     private readonly IOutboxSignal _signal;
     private readonly ObjectPool<DispatchContext> _contextPool;
-    private readonly PostgresMessageOutboxQueries _queries;
+    private readonly PostgresMessageOutboxOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -38,8 +38,8 @@ public sealed class PostgresOutboxProcessor
     /// <param name="signal">
     /// The signal used to wake the processor when new outbox messages are enqueued.
     /// </param>
-    /// <param name="queries">
-    /// The SQL query definitions for Postgres outbox table operations.
+    /// <param name="options">
+    /// The outbox options containing the SQL queries and connection factory.
     /// </param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
@@ -47,65 +47,42 @@ public sealed class PostgresOutboxProcessor
         IMessagingRuntime runtime,
         IMessagingPools pools,
         IOutboxSignal signal,
-        PostgresMessageOutboxQueries queries)
+        PostgresMessageOutboxOptions options)
     {
         _logger = logger;
         _services = services;
         _runtime = runtime;
         _signal = signal;
         _contextPool = pools.DispatchContext;
-        _queries = queries;
+        _options = options;
     }
 
     /// <summary>
-    /// Runs the outbox processing loop, dispatching one message per iteration and sleeping
+    /// Runs the outbox processing loop, dispatching pending messages and waiting
     /// until the next message is due or a signal is received.
     /// </summary>
-    /// <remarks>
-    /// The loop continues until <paramref name="cancellationToken"/> is cancelled. Each iteration
-    /// locks a single outbox row using <c>FOR UPDATE SKIP LOCKED</c>, dispatches the envelope,
-    /// and deletes the row on success. Messages that fail are retried with exponential backoff
-    /// up to 10 attempts before being dropped.
-    /// </remarks>
-    /// <param name="connection">An open Postgres connection to use for outbox queries.</param>
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
-    public async Task ProcessAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
+    public async Task ProcessAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var activity = OpenTelemetry.Source.StartActivity(
-                "Process Message Outbox",
-                ActivityKind.Consumer,
-                new ActivityContext());
-
             using var joinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             try
             {
                 var signaled = _signal.WaitAsync(joinedCts.Token);
 
-                var result = await ProcessEventAsync(connection, cancellationToken);
+                var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
 
-                if (!result)
+                if (nextPollingInterval is not null)
                 {
-                    var nextPollingInterval = await GetNextPollingIntervalAsync(connection, cancellationToken);
+                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
 
-                    activity?.Dispose();
-
-                    if (nextPollingInterval is not null)
-                    {
-                        _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
-
-                        await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
-                    }
-                    else
-                    {
-                        await signaled;
-                    }
+                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
                 }
                 else
                 {
-                    activity?.Dispose();
+                    await signaled;
                 }
             }
             catch (OperationCanceledException)
@@ -120,12 +97,34 @@ public sealed class PostgresOutboxProcessor
         }
     }
 
+    private async ValueTask<TimeSpan?> ProcessPendingAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = _services.CreateAsyncScope();
+        await using var connection = _options.CreateConnection(scope.ServiceProvider);
+        await connection.OpenAsync(cancellationToken);
+
+        while (true)
+        {
+            using var activity = OpenTelemetry.Source.StartActivity(
+                "Process Message Outbox",
+                ActivityKind.Consumer,
+                new ActivityContext());
+
+            if (!await ProcessEventAsync(connection, cancellationToken))
+            {
+                return await GetNextPollingIntervalAsync(connection, cancellationToken);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+    }
+
     private async Task<TimeSpan?> GetNextPollingIntervalAsync(
         NpgsqlConnection connection,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _queries.NextPollingInterval;
+        command.CommandText = _options.Queries.NextPollingInterval;
         await command.PrepareAsync(cancellationToken);
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
@@ -147,7 +146,7 @@ public sealed class PostgresOutboxProcessor
             // Lock an event for processing and increment TimesSent in case of failure
             await using var command = connection.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = _queries.ProcessEvent;
+            command.CommandText = _options.Queries.ProcessEvent;
 
             await command.PrepareAsync(cancellationToken);
 
@@ -324,7 +323,7 @@ public sealed class PostgresOutboxProcessor
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _queries.DeleteEvent;
+        command.CommandText = _options.Queries.DeleteEvent;
         command.Connection = connection;
         command.Transaction = transaction;
         command.Parameters.AddWithValue("@EventId", eventId);

@@ -214,6 +214,7 @@ If executions routinely time out at the gate, that is a signal to scale out or r
 
 # Next Steps
 
+- **"I want to cut the number of subgraph round trips"**: [Batching](./batching.md) covers variable, request, and alias batching, and the per-subgraph capabilities that select them.
 - **"I need CDN and HTTP response caching behavior"**: [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.
 - **"I need to secure my gateway"**: [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to deploy this"**: [Deployment & CI/CD](./deployment-and-ci-cd.md) covers production deployment patterns and CI pipeline setup.

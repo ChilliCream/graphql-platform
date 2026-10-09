@@ -7,7 +7,7 @@ import {
 
 export const dynamic = "force-static";
 
-export const alt = "ChilliCream GraphQL Platform";
+export const alt = "Open-Source .NET GraphQL Ecosystem - ChilliCream";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 

@@ -147,7 +147,7 @@ public static class NameUtils
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsLetterOrDigitOrUnderscore(this char c)
-        => IsLetterOrDigitOrUnderscore((byte)c);
+        => c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_';
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsLetterOrDigitOrUnderscore(this byte c)
@@ -188,5 +188,5 @@ public static class NameUtils
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsLetterOrUnderscore(this char c)
-        => IsLetterOrUnderscore((byte)c);
+        => c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_';
 }

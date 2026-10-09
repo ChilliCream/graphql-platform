@@ -1,4 +1,3 @@
-using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.InMemory;

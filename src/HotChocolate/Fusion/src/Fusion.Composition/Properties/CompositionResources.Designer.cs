@@ -1187,6 +1187,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer no larger than 2147483647 ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidDefaultListSizeSettingRange {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSettingRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be an integer ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidDefaultListSizeSettingType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSettingType", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
@@ -1201,6 +1219,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_InvalidGraphQLInExtensions {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InvalidGraphQLInExtensions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; must not be negative ({3})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidListSizeArgumentNegativeValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentNegativeValue", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; has an invalid value ({3})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidListSizeArgumentType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentType", resourceCulture);
             }
         }
 
@@ -1511,6 +1547,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The merged field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the deprecated type &apos;{2}&apos;. Either deprecate the field or change its return type..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToDeprecatedType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToDeprecatedType", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument {
@@ -1718,6 +1763,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}.{1}&apos; in schema &apos;{2}&apos; requires data from another schema, but schema &apos;{2}&apos; has no lookup for type &apos;{0}&apos; that could resolve the field once the required data has been fetched..
+        /// </summary>
+        internal static string RequirementsValidator_NoLookupForRequiringField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoLookupForRequiringField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
         /// </summary>
         internal static string RequirementsValidator_NoLookupsFoundForType {
@@ -1840,6 +1894,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_NodeTypeHasNoNodeLookup {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoNodeLookup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}.{1}&apos; in schema &apos;{2}&apos; requires data from another schema, but schema &apos;{2}&apos; has no lookup for type &apos;{0}&apos; that could resolve the field once the required data has been fetched..
+        /// </summary>
+        internal static string SatisfiabilityValidator_NoLookupForRequiringField {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_NoLookupForRequiringField", resourceCulture);
             }
         }
 

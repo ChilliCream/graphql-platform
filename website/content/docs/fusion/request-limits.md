@@ -167,6 +167,8 @@ The maximum HTTP request body size defaults to approximately 20 MB:
 builder.AddGraphQLGateway(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
 ```
 
+A JSON request body, or the `operations` field of a multipart request, over the limit is rejected before parsing with the error code `HC0010`. Under the `Draft20260903` [transport version](../hotchocolate/server/http-transport.md#transport-versions), the response has a `413` status code.
+
 ## Server Options
 
 Control which HTTP methods and features are available:
@@ -181,6 +183,7 @@ builder
 
 # Next Steps
 
+- **"I need to limit operation cost."** [Cost Analysis](./cost-analysis.md) covers field-cost, type-cost, and response-size limits before operation planning.
 - **"I need to secure my gateway."** [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to tune transport performance."** [Performance Tuning](./performance-tuning.md) covers HTTP/2, request deduplication, and concurrency limiting.
 - **"I need CDN and HTTP response caching behavior."** [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.

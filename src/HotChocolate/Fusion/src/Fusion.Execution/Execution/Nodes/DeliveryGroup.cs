@@ -22,7 +22,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed record DeliveryGroup(
     string? Label,
     DeliveryGroup? Parent,
-    byte DeferConditionIndex)
+    int DeferConditionIndex)
 {
     /// <summary>
     /// A plan-stable numeric identifier for this delivery group.

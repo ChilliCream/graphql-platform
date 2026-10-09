@@ -222,7 +222,7 @@
                         },
                         {
                           "Key": "graphql.operation.step.plan.id",
-                          "Value": "99ac66222461a285be3d03f60e60dd5cb63990ed42e28cc8e7f1dacc35ed429a"
+                          "Value": "bb94346d204b2f13a21dcba79a06b47065115db28b9ba2c04bce67382b50cef0"
                         },
                         {
                           "Key": "graphql.source_schema.name",
@@ -240,6 +240,27 @@
                       "event": []
                     }
                   ]
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 0.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 1.0
+                    }
+                  ],
+                  "event": []
                 },
                 {
                   "OperationName": "GraphQL Subscription Event",

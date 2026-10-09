@@ -16,14 +16,7 @@ public static class FeatureCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(featureCollection);
 
-        if (featureCollection.TryGet(out TFeature? feature))
-        {
-            return feature;
-        }
-
-        feature = new TFeature();
-        featureCollection.Set(feature);
-        return feature;
+        return featureCollection.GetOrSet<TFeature>();
     }
 
     /// <summary>
@@ -34,7 +27,11 @@ public static class FeatureCollectionExtensions
     /// <param name="value">The value to set if the feature is not present.</param>
     /// <returns>The existing or newly set feature.</returns>
     public static TFeature GetOrSet<TFeature>(this IFeatureCollection featureCollection, TFeature value)
-        => GetOrSet(featureCollection, static state => state, value);
+    {
+        ArgumentNullException.ThrowIfNull(featureCollection);
+
+        return featureCollection.GetOrSet(value);
+    }
 
     /// <summary>
     /// Retrieves the requested feature from the collection, or creates and adds it using the specified factory if not present.
@@ -47,14 +44,7 @@ public static class FeatureCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(featureCollection);
 
-        if (featureCollection.TryGet(out TFeature? feature))
-        {
-            return feature;
-        }
-
-        feature = factory();
-        featureCollection.Set(feature);
-        return feature;
+        return featureCollection.GetOrSet(factory);
     }
 
     /// <summary>
@@ -73,14 +63,7 @@ public static class FeatureCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(featureCollection);
 
-        if (featureCollection.TryGet(out TFeature? feature))
-        {
-            return feature;
-        }
-
-        feature = factory(state);
-        featureCollection.Set(feature);
-        return feature;
+        return featureCollection.GetOrSet(factory, state);
     }
 
     /// <summary>
@@ -95,6 +78,7 @@ public static class FeatureCollectionExtensions
         Action<TFeature> configure) where TFeature : new()
     {
         ArgumentNullException.ThrowIfNull(configure);
+        ArgumentNullException.ThrowIfNull(featureCollection);
 
         var feature = featureCollection.GetOrSet<TFeature>();
         configure(feature);

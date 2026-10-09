@@ -8,7 +8,4 @@ internal readonly record struct SchemaEndpointConfiguration(
         => ApolloFederationVersion is null
             ? SchemaEndpointProtocol.GraphQL
             : SchemaEndpointProtocol.ApolloFederation;
-
-    public string DefaultPath
-        => ApolloFederationVersion is null ? "/graphql/schema.graphql" : "/graphql";
 }

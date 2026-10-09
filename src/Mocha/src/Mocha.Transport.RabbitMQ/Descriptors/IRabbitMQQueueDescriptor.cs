@@ -112,6 +112,13 @@ public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDe
     IRabbitMQQueueDescriptor MaxConcurrency(int maxConcurrency);
 
     /// <summary>
+    /// Marks this queue's receive endpoint as temporary, provisioning a non-durable, auto-delete
+    /// queue whose lifecycle is scoped to the lifetime of the consuming process.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQQueueDescriptor Temporary();
+
+    /// <summary>
     /// Adds receive middleware to this queue's endpoint pipeline.
     /// </summary>
     /// <param name="configuration">The middleware configuration.</param>
@@ -157,4 +164,14 @@ public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDe
     /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey = null);
+
+    /// <summary>
+    /// Declares a binding from the source exchange to this queue with an explicit provisioning
+    /// opt-in or opt-out for the binding, overriding the queue's setting.
+    /// </summary>
+    /// <param name="source">The source exchange address.</param>
+    /// <param name="routingKey">The optional routing key, or <c>null</c> for none.</param>
+    /// <param name="autoProvision">Whether the binding is provisioned on the broker.</param>
+    /// <returns>The queue descriptor for chaining.</returns>
+    IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey, bool autoProvision);
 }

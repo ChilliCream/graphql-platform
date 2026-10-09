@@ -27,12 +27,12 @@ public sealed class QueryType : ObjectType
                 {
                     // Intentionally corrupted: Account.id is @external in
                     // this subgraph, so we return "never" as the id.
-                    return (INode)new Account { Id = "never", ChatIds = account.ChatIds };
+                    return new Account { Id = "never", ChatIds = account.ChatIds };
                 }
 
                 if (SubgraphBData.ChatsById.TryGetValue(id, out var chat))
                 {
-                    return (INode)chat;
+                    return chat;
                 }
 
                 return null;

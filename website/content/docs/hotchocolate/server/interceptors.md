@@ -1,5 +1,6 @@
 ---
 title: Interceptors
+metaTitle: "GraphQL Request Interceptors in Hot Chocolate"
 description: "Hook into transport events in Hot Chocolate with IHttpRequestInterceptor and ISocketSessionInterceptor to customize HTTP requests and WebSocket sessions."
 ---
 

@@ -403,4 +403,22 @@ public class ArgumentNamesRuleTests
             }
             """);
     }
+
+    [Fact]
+    public void Validate_Should_Report_When_ASpreadPassesAnArgumentTheFragmentDoesNotDeclare()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...withVariable(unknown: true)
+                }
+            }
+
+            fragment withVariable($atOtherHomes: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
 }

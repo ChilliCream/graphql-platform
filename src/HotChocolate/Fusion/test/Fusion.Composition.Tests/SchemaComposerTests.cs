@@ -24,10 +24,10 @@ public sealed class SchemaComposerTests
         var executionMetadataDefinitions = new DocumentNode(
             document.Definitions
                 .Where(definition => definition is EnumTypeDefinitionNode
-                    {
-                        Name.Value: "fusion__NodeResolution"
-                            or "fusion__ShareableFieldRuntimeTypeRouting"
-                    }
+                {
+                    Name.Value: "fusion__NodeResolution"
+                        or "fusion__ShareableFieldRuntimeTypeRouting"
+                }
                     or DirectiveDefinitionNode { Name.Value: "fusion__execution" })
                 .ToArray());
 
@@ -95,6 +95,63 @@ public sealed class SchemaComposerTests
                   shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
                 )
                 """);
+    }
+
+    [Fact]
+    public void Compose_Should_NotEmitCostOptions_When_DefaultListSizeIsUnset()
+    {
+        // arrange
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+
+        Assert.DoesNotContain(
+            schemaDefinition.Directives,
+            directive => directive.Name.Value == "fusion__cost_options");
+    }
+
+    [Fact]
+    public void Compose_Should_EmitCostOptions_When_DefaultListSizeIsSet()
+    {
+        // arrange
+        var options = new SchemaComposerOptions
+        {
+            Merger = { DefaultListSize = 7 }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+        var costOptionsApplications = schemaDefinition.Directives
+            .Where(directive => directive.Name.Value == "fusion__cost_options")
+            .ToArray();
+
+        var costOptionsApplication = Assert.Single(costOptionsApplications);
+        costOptionsApplication.ToString().MatchInlineSnapshot(
+            """
+            @fusion__cost_options(defaultListSize: 7)
+            """);
     }
 
     [Theory]
@@ -234,6 +291,63 @@ public sealed class SchemaComposerTests
                 "message": "The shareable field runtime type routing mode '42' is invalid.",
                 "code": "INVALID_SHAREABLE_FIELD_RUNTIME_TYPE_ROUTING",
                 "severity": "Error",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_MergedDeprecatedTypeIsReferencedByNonDeprecatedField()
+    {
+        // arrange
+        // Both source schemas are valid on their own. The first one deprecates 'Product' and
+        // deprecates the field returning it, the second one neither deprecates 'Product' nor the
+        // field returning it.
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query {
+                        productById(id: ID!): Product @deprecated(reason: "Use item.")
+                    }
+
+                    type Product @deprecated(reason: "Use Item.") {
+                        id: ID! @shareable
+                    }
+                    """),
+                new SourceSchemaText(
+                    "B",
+                    """
+                    type Query {
+                        product: Product
+                    }
+
+                    type Product {
+                        id: ID! @shareable
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The merged field 'product' in type 'Query' cannot reference the deprecated type 'Product'. Either deprecate the field or change its return type.",
+                "code": "REFERENCE_TO_DEPRECATED_TYPE",
+                "severity": "Error",
+                "coordinate": "Query.product",
+                "member": "product",
+                "schema": "default",
                 "extensions": {}
             }
             """
@@ -747,5 +861,402 @@ public sealed class SchemaComposerTests
                 sku: String! @fusion__field(schema: A)
             }
             """);
+    }
+
+    [Fact]
+    public void Compose_Should_UnionEnumValues_When_OutputOnlyEnumDiffersAcrossApolloSubgraphs()
+    {
+        // arrange
+        // Both Apollo subgraphs define "OrderPriority" with differing values, but the enum is
+        // only used in output positions, so the values are merged by union.
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var enumType = result.Value.ToSyntaxNode().Definitions
+            .OfType<EnumTypeDefinitionNode>()
+            .Single(definition => definition.Name.Value == "OrderPriority");
+
+        enumType.ToString().MatchInlineSnapshot(
+            """
+            enum OrderPriority
+              @fusion__type(schema: CATALOG)
+              @fusion__type(schema: WAREHOUSE) {
+              LOW @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              HIGH @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              RUSH @fusion__enumValue(schema: CATALOG)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_UnionEnumValues_When_OutputOnlyEnumValuesDifferSymmetricallyAcrossApolloSubgraphs()
+    {
+        // arrange
+        // Each Apollo subgraph declares a value for "OrderPriority" that the other lacks, but
+        // the enum is only used in output positions, so the values are merged by union.
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        EXPRESS
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var enumType = result.Value.ToSyntaxNode().Definitions
+            .OfType<EnumTypeDefinitionNode>()
+            .Single(definition => definition.Name.Value == "OrderPriority");
+
+        enumType.ToString().MatchInlineSnapshot(
+            """
+            enum OrderPriority
+              @fusion__type(schema: CATALOG)
+              @fusion__type(schema: WAREHOUSE) {
+              LOW @fusion__enumValue(schema: CATALOG) @fusion__enumValue(schema: WAREHOUSE)
+              RUSH @fusion__enumValue(schema: CATALOG)
+              EXPRESS @fusion__enumValue(schema: WAREHOUSE)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportEnumValuesMismatch_When_StrictMergeBehaviorConfigured()
+    {
+        // arrange
+        // The strict merge behavior overrules the Apollo subgraph detection, so the differing
+        // output-only enum values are reported.
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        orderById: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        priority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                        RUSH
+                    }
+                    """),
+                new SourceSchemaText(
+                    "warehouse",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.3"
+                            import: ["@key"])
+
+                    type Query {
+                        trackedOrder: Order
+                    }
+
+                    type Order @key(fields: "id") {
+                        id: ID!
+                        fulfillmentPriority: OrderPriority
+                    }
+
+                    enum OrderPriority {
+                        LOW
+                        HIGH
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions
+            {
+                Merger = { EnumValuesMergeBehavior = EnumValuesMergeBehavior.Strict }
+            },
+            log);
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The enum type 'OrderPriority' in schema 'warehouse' must define the value 'RUSH'.",
+                "code": "ENUM_VALUES_MISMATCH",
+                "severity": "Error",
+                "coordinate": "OrderPriority",
+                "member": "OrderPriority",
+                "schema": "warehouse",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void SourceSchemaRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.SourceSchemaRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "CostDirectiveDefinitionRule",
+                "DisallowedInaccessibleElementsRule",
+                "ExternalOnInterfaceRule",
+                "ExternalOverrideCollisionRule",
+                "ExternalProvidesCollisionRule",
+                "ExternalRequireCollisionRule",
+                "ExternalUnusedRule",
+                "EventCursorMarkerRule",
+                "InterfaceObjectKeyMissingRule",
+                "InvalidShareableUsageRule",
+                "IsInvalidFieldTypeRule",
+                "IsInvalidSyntaxRule",
+                "IsInvalidUsageRule",
+                "KeyDirectiveInFieldsArgumentRule",
+                "KeyFieldsSelectInvalidTypeRule",
+                "KeyInvalidArgumentsRule",
+                "KeyInvalidFieldsTypeRule",
+                "KeyInvalidSyntaxRule",
+                "ListSizeDirectiveArgumentRule",
+                "LookupMustHaveArgumentsRule",
+                "LookupReturnsListRule",
+                "LookupReturnsNonNullableTypeRule",
+                "OverrideFromSelfRule",
+                "OverrideOnInterfaceRule",
+                "ProvidesDirectiveInFieldsArgumentRule",
+                "ProvidesFieldsHasArgumentsRule",
+                "ProvidesFieldsMissingExternalRule",
+                "ProvidesInvalidFieldsRule",
+                "ProvidesInvalidFieldsTypeRule",
+                "ProvidesInvalidSyntaxRule",
+                "ProvidesOnNonCompositeFieldRule",
+                "QueryRootTypeInaccessibleRule",
+                "RequireInvalidFieldTypeRule",
+                "RequireInvalidSyntaxRule",
+                "RootMutationUsedRule",
+                "RootQueryUsedRule",
+                "RootSubscriptionUsedRule",
+                "EventStreamMessageInvalidFieldsRule",
+                "EventStreamTopicsEmptyRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void PreMergeRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer
+            .CreatePreMergeRules(new SchemaComposerOptions())
+            .Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "EnumValuesMismatchRule",
+                "ExternalArgumentDefaultMismatchRule",
+                "ExternalArgumentMissingRule",
+                "ExternalArgumentTypeMismatchRule",
+                "ExternalMissingOnBaseRule",
+                "ExternalTypeMismatchRule",
+                "FieldArgumentTypesMergeableRule",
+                "FieldWithMissingRequiredArgumentRule",
+                "InputFieldDefaultMismatchRule",
+                "InputFieldTypesMergeableRule",
+                "InputWithMissingRequiredFieldsRule",
+                "InputWithMissingOneOfRule",
+                "InterfaceObjectKeyMismatchRule",
+                "InterfaceObjectNoInterfaceRule",
+                "InvalidFieldSharingRule",
+                "MultipleEventStreamSourcesRule",
+                "OptInFeatureStabilityMismatchRule",
+                "OutputFieldTypesMergeableRule",
+                "SpecifiedByUrlMismatchRule",
+                "TypeKindMismatchRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void PostMergeRules_Should_ContainTheRegisteredRuleSet()
+    {
+        // act
+        var rules = SchemaComposer.PostMergeRules.Select(r => r.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            [
+                "EmptyMergedEnumTypeRule",
+                "EmptyMergedInputObjectTypeRule",
+                "EmptyMergedInterfaceTypeRule",
+                "EmptyMergedObjectTypeRule",
+                "EmptyMergedUnionTypeRule",
+                "EnumTypeDefaultValueInaccessibleRule",
+                "EventStreamMessageAbstractTypeRequiresTypeNameRule",
+                "ImplementedByInaccessibleRule",
+                "ImplementWithoutDefaultRule",
+                "InterfaceFieldNoImplementationRule",
+                "InterfaceObjectFieldRequiresImplementRule",
+                "InvalidProjectedFieldSharingRule",
+                "IsInvalidFieldsRule",
+                "KeyInvalidFieldsRule",
+                "NonNullInputFieldIsInaccessibleRule",
+                "NoQueriesRule",
+                "ReferenceToDeprecatedTypeRule",
+                "ReferenceToInaccessibleTypeRule",
+                "ReferenceToInternalTypeRule",
+                "RequireInvalidFieldsRule"
+            ],
+            rules);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportOnlyInvalidSchema_When_ValidSchemaFollowsIt()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    // lang=graphql
+                    """
+                    schema {
+                        query: Query
+                    }
+
+                    type Receipt {
+                        id: ID!
+                        total: Int
+                    }
+                    """),
+                new SourceSchemaText("B", "type Query { ping: String }")
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Source schema parsing failed.", error.Message);
+        var entry = Assert.Single(log);
+        Assert.Equal("A", entry.Schema?.Name);
+        Assert.Equal(
+            "Invalid GraphQL in source schema. Exception message: "
+            + "The query root type 'Query' is not defined..",
+            entry.Message);
     }
 }

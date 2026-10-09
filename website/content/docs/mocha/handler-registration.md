@@ -34,7 +34,7 @@ If you have used the [Mediator source generator](./mediator/index.md), this work
 
 The source generator names the extension method based on your assembly:
 
-1. If you apply `[assembly: MessagingModule("OrderService")]`, the method is `AddOrderService()`
+1. If you apply `#!csharp [assembly: MessagingModule("OrderService")]`, the method is `AddOrderService()`
 2. Otherwise, it uses the last segment of the assembly name: `MyCompany.OrderService.Api` produces `AddApi()`
 
 To set an explicit module name, add the attribute to any file in your project:

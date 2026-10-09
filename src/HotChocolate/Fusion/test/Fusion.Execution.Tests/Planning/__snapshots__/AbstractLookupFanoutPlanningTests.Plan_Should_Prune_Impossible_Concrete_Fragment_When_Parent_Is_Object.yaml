@@ -52,7 +52,7 @@ nodes:
       }
     source: $.magazineById
     target: $.products<Magazine>
-    batchingGroupId: 2
+    batchingGroupId: 10
     requirements:
       - name: __fusion_1_id
         selectionMap: >-
@@ -76,7 +76,7 @@ nodes:
       }
     source: $.bookById
     target: $.products<Book>
-    batchingGroupId: 2
+    batchingGroupId: 10
     requirements:
       - name: __fusion_5_id
         selectionMap: >-
@@ -99,7 +99,7 @@ nodes:
     targets:
       - $.products<Magazine>.reviews.product<Magazine>
       - $.products<Book>.reviews.product<Magazine>
-    batchingGroupId: 3
+    batchingGroupId: 11
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
@@ -120,7 +120,7 @@ nodes:
     targets:
       - $.products<Magazine>.reviews.product<Book>
       - $.products<Book>.reviews.product<Book>
-    batchingGroupId: 3
+    batchingGroupId: 11
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
@@ -141,7 +141,7 @@ nodes:
     targets:
       - $.products<Magazine>.reviews.product<Magazine><Magazine>
       - $.products<Book>.reviews.product<Magazine><Magazine>
-    batchingGroupId: 4
+    batchingGroupId: 12
     requirements:
       - name: __fusion_3_id
         selectionMap: >-

@@ -1,4 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
+import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
 import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
@@ -19,7 +20,7 @@ import {
 
 export const TOOLS = {
   blog: "/blog",
-  github: "https://github.com/ChilliCream/graphql-platform",
+  github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
   shop: "https://store.chillicream.com",
@@ -29,9 +30,6 @@ export const TOOLS = {
 };
 
 export const CONTACT_HREF = "/services/support/contact";
-export const GITHUB_REPO_URL =
-  "https://github.com/ChilliCream/graphql-platform";
-export const GITHUB_STARGAZERS_URL = `${GITHUB_REPO_URL}/stargazers`;
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -72,8 +70,8 @@ export const NAV_ITEMS: NavItem[] = [
             icon: WavePulseIcon,
           },
           {
-            href: "/platform/continuous-integration",
-            label: "Continuous Integration",
+            href: "/platform/release-safety",
+            label: "Release Safety",
             description: "Innovate with Confidence. Deliver with Quality.",
             icon: SparklesIcon,
           },
@@ -85,7 +83,7 @@ export const NAV_ITEMS: NavItem[] = [
           },
           {
             href: "/platform/agentic-coding",
-            label: "Agentic Coding",
+            label: "Agentic Development",
             description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
           },
@@ -97,7 +95,13 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/products/nitro",
             label: "Nitro",
-            description: "Observability, Governance, Delivery",
+            description: "Observability, governance, and delivery.",
+            icon: RocketIcon,
+          },
+          {
+            href: "/products/mocha",
+            label: "Mocha",
+            description: "Messaging for .NET.",
             icon: RocketIcon,
           },
         ],
@@ -157,7 +161,7 @@ export const NAV_ITEMS: NavItem[] = [
           { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
           { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
           { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skillz", label: "Skillz", icon: RocketIcon },
+          { href: "/docs/skills", label: "Skills", icon: RocketIcon },
         ],
       },
       {

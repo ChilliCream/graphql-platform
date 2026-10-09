@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type BandSkin = "accent" | "card" | "spectrum" | "bare" | "warm";
+export type BandSkin = "accent" | "card" | "spectrum" | "bare" | "warm";
 type BandLayout = "split" | "centered";
 
 interface BandProps {

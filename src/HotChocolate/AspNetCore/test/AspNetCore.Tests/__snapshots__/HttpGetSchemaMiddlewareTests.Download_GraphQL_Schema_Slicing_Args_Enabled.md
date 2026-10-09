@@ -16,13 +16,48 @@ schema {
 }
 
 type Query {
-  hero(episode: Episode! = NEW_HOPE): Character
-  heroByTraits(traits: Any!): Character
-  heroes(episodes: [Episode!]!): [Character!]
+  """
+  Retrieve a hero by a particular Star Wars episode.
+  
+  
+  **Returns:**
+  The character.
+  """
+  hero("The episode to look up by." episode: Episode! = NEW_HOPE): Character
+  """
+  Retrieve a hero by their traits.
+  
+  
+  **Returns:**
+  The character.
+  """
+  heroByTraits("The traits to look up by." traits: Any!): Character
+  """
+  Retrieve heroes by particular Star Wars episodes.
+  
+  
+  **Returns:**
+  The characters.
+  """
+  heroes("The episodes to look up by." episodes: [Episode!]!): [Character!]
   character(characterIds: [String!]!): [Character!]! @cost(weight: "10")
   search(text: String!): [SearchResult]
-  human(id: String!): Human
-  droid(id: String!): Droid
+  """
+  Gets a human by Id.
+  
+  
+  **Returns:**
+  The human.
+  """
+  human("The Id of the human to retrieve." id: String!): Human
+  """
+  Get a particular droid by Id.
+  
+  
+  **Returns:**
+  The droid.
+  """
+  droid("The Id of the droid." id: String!): Droid
   time: Long!
   evict: Boolean!
   wait(m: Int!): Boolean! @cost(weight: "10")
@@ -32,8 +67,19 @@ type Query {
 }
 
 type Mutation {
-  createReview(episode: Episode!, review: ReviewInput!): Review!
-    @cost(weight: "10")
+  """
+  Creates a review for a given Star Wars episode.
+  
+  
+  **Returns:**
+  The created review.
+  """
+  createReview(
+    "The episode to review."
+    episode: Episode!
+    "The review."
+    review: ReviewInput!
+  ): Review! @cost(weight: "10")
   complete(episode: Episode!): Boolean! @cost(weight: "10")
 }
 
@@ -42,9 +88,13 @@ type Subscription {
   delay(delay: Int!, count: Int!): String!
 }
 
+"A droid in the Star Wars universe."
 type Droid implements Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The episodes the character appears in."
   appearsIn: [Episode]
   friends(
     "Returns the first _n_ elements from the list."
@@ -64,7 +114,9 @@ type Droid implements Character {
     )
     @cost(weight: "10")
   height(unit: Unit): Float
+  "The droid's primary function."
   primaryFunction: String
+  "The traits of this character."
   traits: Any
 }
 
@@ -86,9 +138,13 @@ type FriendsEdge {
   node: Character
 }
 
+"A human character in the Star Wars universe."
 type Human implements Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The episodes the character appears in."
   appearsIn: [Episode]
   friends(
     "Returns the first _n_ elements from the list."
@@ -109,7 +165,9 @@ type Human implements Character {
     @cost(weight: "10")
   otherHuman: Human
   height(unit: Unit): Float
+  "The planet the character is originally from."
   homePlanet: String
+  "The traits of this character."
   traits: Any
 }
 
@@ -125,20 +183,30 @@ type PageInfo {
   endCursor: String
 }
 
+"A review of a particular movie."
 type Review {
+  "An explanation for the rating."
   commentary: String @cost(weight: "10")
+  "The number of stars given for this review."
   stars: Int!
 }
 
+"A starship in the Star Wars universe."
 type Starship {
+  "The Id of the starship."
   id: ID!
+  "The name of the starship."
   name: String!
   length(unit: Unit): Float!
 }
 
+"A character in the Star Wars universe."
 interface Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The names of the character's friends."
   friends(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -149,24 +217,35 @@ interface Character {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): FriendsConnection
+  "The episodes the character appears in."
   appearsIn: [Episode]
+  "The traits of this character."
   traits: Any
+  "The height of the character."
   height(unit: Unit): Float
 }
 
 union SearchResult = Starship | Human | Droid
 
+"A review of a particular movie."
 input ReviewInput {
+  "The number of stars given for this review."
   stars: Int!
+  "An explanation for the rating."
   commentary: String
 }
 
+"The Star Wars episodes."
 enum Episode {
+  "Star Wars Episode IV: A New Hope"
   NEW_HOPE
+  "Star Wars Episode V: Empire Strikes Back"
   EMPIRE
+  "Star Wars Episode VI: Return of the Jedi"
   JEDI
 }
 
+"Different units of measurement."
 enum Unit {
   FOOT
   METERS

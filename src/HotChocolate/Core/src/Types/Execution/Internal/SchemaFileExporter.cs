@@ -18,11 +18,16 @@ internal static class SchemaFileExporter
         string schemaFileName,
         IRequestExecutor executor,
         bool rewriteToSemanticNonNull,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
         var sdl = SchemaFormatter.FormatAsString(
             executor.Schema,
-            new SchemaFormatterOptions { RewriteToSemanticNonNull = rewriteToSemanticNonNull });
+            new SchemaFormatterOptions
+            {
+                RewriteToSemanticNonNull = rewriteToSemanticNonNull,
+                SpecVersion = specVersion
+            });
 
         if (Directory.Exists(schemaFileName))
         {
@@ -38,7 +43,7 @@ internal static class SchemaFileExporter
 
         var directory = System.IO.Path.GetDirectoryName(schemaFileName)!;
 
-        if (Directory.Exists(directory))
+        if (directory.Length > 0)
         {
             Directory.CreateDirectory(directory);
         }
@@ -52,7 +57,17 @@ internal static class SchemaFileExporter
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
             cancellationToken);
 
-        await WriteSettingsFile(settingsFileName, executor.Schema.Name, cancellationToken);
+        var capabilities = executor.Schema
+            .GetRootServiceProvider()
+            .GetService<ITransportCapabilitiesProvider>()
+            ?.GetCapabilities(executor.Schema.Name)
+            ?? new TransportCapabilities(VariableBatching: true, RequestBatching: true);
+
+        await WriteSettingsFile(
+            settingsFileName,
+            executor.Schema.Name,
+            capabilities,
+            cancellationToken);
 
         return new SchemaFileInfo(schemaFileName, settingsFileName);
     }
@@ -60,11 +75,12 @@ internal static class SchemaFileExporter
     private static async Task WriteSettingsFile(
         string fileName,
         string schemaName,
+        TransportCapabilities capabilities,
         CancellationToken cancellationToken)
     {
         if (!await TryUpdateSettingsFile(fileName, schemaName, cancellationToken))
         {
-            await CreateNewSettingsFile(fileName, schemaName, cancellationToken);
+            await CreateNewSettingsFile(fileName, schemaName, capabilities, cancellationToken);
         }
     }
 
@@ -109,6 +125,7 @@ internal static class SchemaFileExporter
     private static async Task CreateNewSettingsFile(
         string fileName,
         string schemaName,
+        TransportCapabilities capabilities,
         CancellationToken cancellationToken)
     {
         await using var settingsFileStream = File.Create(fileName);
@@ -123,6 +140,20 @@ internal static class SchemaFileExporter
         jsonWriter.WriteStartObject("http");
 
         jsonWriter.WriteString("url", "http://localhost:5000/graphql");
+
+        // The exported template declares the transport extensions the server accepts
+        // instead of leaving the gateway on the defaults.
+        jsonWriter.WriteStartObject("capabilities");
+
+        jsonWriter.WriteStartObject("batching");
+        jsonWriter.WriteBoolean("variableBatching", capabilities.VariableBatching);
+        jsonWriter.WriteBoolean("requestBatching", capabilities.RequestBatching);
+        jsonWriter.WriteBoolean("aliasBatching", true);
+        jsonWriter.WriteEndObject();
+
+        jsonWriter.WriteString("onError", "propagate");
+
+        jsonWriter.WriteEndObject();
 
         jsonWriter.WriteEndObject();
 

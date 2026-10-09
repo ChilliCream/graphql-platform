@@ -227,6 +227,50 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             .ReturnsAsync(() => CreateFusionArchiveStream(archiveFormat));
     }
 
+    protected void SetupFusionConfigurationDownloadWithCompositionSettings(string settingsJson)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.DownloadLatestFusionArchiveAsync(
+                ApiId,
+                Stage,
+                "2.0.0",
+                ArchiveFormats.Far,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => CreateFusionArchiveStreamWithCompositionSettings(settingsJson));
+    }
+
+    protected void SetupStageCompositionSettings(StageCompositionSettings? settings = null)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.GetStageCompositionSettingsAsync(
+                ApiId,
+                Stage,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(settings);
+    }
+
+    protected void SetupStageCompositionSettingsException()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.GetStageCompositionSettingsAsync(
+                ApiId,
+                Stage,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
+    }
+
+    protected void SetupStageCompositionSettingsPersistedOperationRejected()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.GetStageCompositionSettingsAsync(
+                ApiId,
+                Stage,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientGraphQLException(
+                "The persisted operation was not found.",
+                "HC0020"));
+    }
+
     protected void SetupMissingFusionConfigurationDownload(
         string version = "2.0.0",
         string archiveFormat = ArchiveFormats.Far)
@@ -297,6 +341,55 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         }
 
         SetupPublishingTaskSubscription(events);
+    }
+
+    protected MemoryStream SetupStartFusionConfigurationValidationMutation(
+        params IValidateFusionConfiguration_ValidateFusionConfiguration_Errors[] errors)
+    {
+        var archiveStream = new MemoryStream();
+
+        FusionConfigurationClientMock
+            .Setup(x => x.StartFusionConfigurationValidationAsync(
+                ApiId,
+                Stage,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata?, CancellationToken>((_, _, stream, _, _) =>
+            {
+                stream.CopyTo(archiveStream);
+                archiveStream.Position = 0;
+            })
+            .ReturnsAsync(() => CreateStartFusionConfigurationValidationPayload(errors));
+
+        return archiveStream;
+    }
+
+    protected void SetupStartFusionConfigurationValidationMutationException()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.StartFusionConfigurationValidationAsync(
+                ApiId,
+                Stage,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
+    }
+
+    protected void SetupFusionConfigurationValidationUpdatedSubscription(
+        params IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate[] events)
+    {
+        if (events.Length == 0)
+        {
+            events = [CreateValidationUpdateSuccessEvent()];
+        }
+
+        FusionConfigurationClientMock
+            .Setup(x => x.SubscribeToFusionConfigurationValidationAsync(
+                RequestId,
+                It.IsAny<CancellationToken>()))
+            .Returns(events.ToAsyncEnumerable());
     }
 
     protected MemoryStream SetupFusionConfigurationUploadMutation(
@@ -510,41 +603,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     protected static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
         CreateValidationFailedEventWithErrors()
     {
-        // 1. SchemaVersionChangeViolationError (empty changes list)
-        var schemaViolation = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_SchemaVersionChangeViolationError>(MockBehavior.Strict);
-        MockErrorFactory.SetupSchemaChangeViolationError(schemaViolation);
-
-        // 2. InvalidGraphQLSchemaError with one error entry
-        var graphqlError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_InvalidGraphQLSchemaError_1>(MockBehavior.Strict);
-        MockErrorFactory.SetupInvalidGraphQLSchemaError(graphqlError);
-
-        // 3. PersistedQueryValidationError with a client and query
-        var pqError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_PersistedQueryValidationError>(MockBehavior.Strict);
-        MockErrorFactory.SetupPersistedQueryValidationError(pqError);
-
-        // 4. OpenApiCollectionValidationError with an endpoint entity
-        var openApiError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_OpenApiCollectionValidationError>(MockBehavior.Strict);
-        MockErrorFactory.SetupOpenApiCollectionValidationError(openApiError);
-
-        // 5. McpFeatureCollectionValidationError with a tool entity
-        var mcpError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_McpFeatureCollectionValidationError>(MockBehavior.Strict);
-        MockErrorFactory.SetupMcpFeatureCollectionValidationError(mcpError);
-
-        // 6. UnexpectedProcessingError
-        var unexpectedError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_UnexpectedProcessingError_1>(MockBehavior.Strict);
-        MockErrorFactory.SetupUnexpectedProcessingError(unexpectedError);
-
-        // Assemble the event with all errors
         var mock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed>(MockBehavior.Strict);
-        mock.SetupGet(x => x.Errors).Returns(new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1[]
-        {
-            schemaViolation.Object,
-            graphqlError.Object,
-            pqError.Object,
-            openApiError.Object,
-            mcpError.Object,
-            unexpectedError.Object
-        });
+        mock.SetupGet(x => x.Errors).Returns(CreateFusionConfigurationValidationErrors());
         return mock.Object;
     }
 
@@ -565,6 +625,84 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
         var mock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_WaitForApproval>(MockBehavior.Strict);
         mock.SetupGet(x => x.Deployment).Returns(deploymentMock.Object);
+        return mock.Object;
+    }
+
+    private static IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors[]
+        CreateFusionConfigurationValidationErrors()
+    {
+        // 1. SchemaVersionChangeViolationError (empty changes list)
+        var schemaViolation = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_SchemaVersionChangeViolationError>(MockBehavior.Strict);
+        MockErrorFactory.SetupSchemaChangeViolationError(schemaViolation);
+
+        // 2. InvalidGraphQLSchemaError with one error entry
+        var graphqlError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_InvalidGraphQLSchemaError>(MockBehavior.Strict);
+        MockErrorFactory.SetupInvalidGraphQLSchemaError(graphqlError);
+
+        // 3. PersistedQueryValidationError with a client and query
+        var pqError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_PersistedQueryValidationError>(MockBehavior.Strict);
+        MockErrorFactory.SetupPersistedQueryValidationError(pqError);
+
+        // 4. OpenApiCollectionValidationError with an endpoint entity
+        var openApiError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_OpenApiCollectionValidationError>(MockBehavior.Strict);
+        MockErrorFactory.SetupOpenApiCollectionValidationError(openApiError);
+
+        // 5. McpFeatureCollectionValidationError with a tool entity
+        var mcpError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_McpFeatureCollectionValidationError>(MockBehavior.Strict);
+        MockErrorFactory.SetupMcpFeatureCollectionValidationError(mcpError);
+
+        // 6. UnexpectedProcessingError
+        var unexpectedError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_UnexpectedProcessingError>(MockBehavior.Strict);
+        MockErrorFactory.SetupUnexpectedProcessingError(unexpectedError);
+
+        // 7. ProcessingTimeoutError
+        var processingTimeoutError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ProcessingTimeoutError>(MockBehavior.Strict);
+        processingTimeoutError.SetupGet(x => x.Message).Returns("The validation timed out.");
+
+        // 8. ReadyTimeoutError
+        var readyTimeoutError = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors_ReadyTimeoutError>(MockBehavior.Strict);
+        readyTimeoutError.SetupGet(x => x.Message).Returns("The request did not become ready in time.");
+
+        return
+        [
+            schemaViolation.Object,
+            graphqlError.Object,
+            pqError.Object,
+            openApiError.Object,
+            mcpError.Object,
+            unexpectedError.Object,
+            processingTimeoutError.Object,
+            readyTimeoutError.Object
+        ];
+    }
+
+    #endregion
+
+    #region Subscription Event Factories — Fusion Configuration Validation
+
+    protected static IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate
+        CreateValidationUpdateSuccessEvent()
+    {
+        return new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_FusionConfigurationValidationSuccess>(MockBehavior.Strict).Object;
+    }
+
+    protected static IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate
+        CreateValidationUpdateOperationInProgressEvent()
+    {
+        return new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_OperationInProgress>(MockBehavior.Strict).Object;
+    }
+
+    protected static IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate
+        CreateValidationUpdateValidationInProgressEvent()
+    {
+        return new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_ValidationInProgress>(MockBehavior.Strict).Object;
+    }
+
+    protected static IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate
+        CreateValidationUpdateFailedEventWithErrors()
+    {
+        var mock = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_FusionConfigurationValidationFailed>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Errors).Returns(CreateFusionConfigurationValidationErrors());
         return mock.Object;
     }
 
@@ -634,6 +772,25 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         return memoryStream;
     }
 
+    private static MemoryStream CreateFusionArchiveStreamWithCompositionSettings(string settingsJson)
+    {
+        var stream = CreateFusionArchiveStream();
+
+        using (var archive = FusionArchive.Open(
+                   stream,
+                   FusionArchiveMode.Update,
+                   leaveOpen: true))
+        {
+            using var settings = JsonDocument.Parse(settingsJson);
+            archive.SetCompositionSettingsAsync(settings).GetAwaiter().GetResult();
+            archive.CommitAsync().GetAwaiter().GetResult();
+        }
+
+        stream.Position = 0;
+
+        return stream;
+    }
+
     private async Task<Stream> CreateSourceSchemaArchiveStreamAsync(
         string schema,
         string settings)
@@ -685,6 +842,21 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors[] errors)
     {
         var payload = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition>(MockBehavior.Strict);
+
+        payload.SetupGet(x => x.Errors)
+            .Returns(errors.Length > 0 ? errors : null);
+
+        return payload.Object;
+    }
+
+    private static IValidateFusionConfiguration_ValidateFusionConfiguration
+        CreateStartFusionConfigurationValidationPayload(
+            IValidateFusionConfiguration_ValidateFusionConfiguration_Errors[] errors)
+    {
+        var payload = new Mock<IValidateFusionConfiguration_ValidateFusionConfiguration>(MockBehavior.Strict);
+
+        payload.SetupGet(x => x.Id)
+            .Returns(errors.Length > 0 ? null : RequestId);
 
         payload.SetupGet(x => x.Errors)
             .Returns(errors.Length > 0 ? errors : null);
@@ -898,6 +1070,35 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         CreateValidationInvalidStateTransitionError(string message = "Invalid processing state transition.")
     {
         var mock = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
+
+    #region Error Factories — StartFusionConfigurationValidation
+
+    protected static IValidateFusionConfiguration_ValidateFusionConfiguration_Errors
+        CreateStartValidationUnauthorizedError(string message = "Unauthorized.")
+    {
+        var mock = new Mock<IValidateFusionConfiguration_ValidateFusionConfiguration_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IValidateFusionConfiguration_ValidateFusionConfiguration_Errors
+        CreateStartValidationApiNotFoundError(string apiId = ApiId)
+    {
+        var mock = new Mock<IValidateFusionConfiguration_ValidateFusionConfiguration_Errors_ApiNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns($"API '{apiId}' was not found.");
+        mock.SetupGet(x => x.ApiId).Returns(apiId);
+        return mock.Object;
+    }
+
+    protected static IValidateFusionConfiguration_ValidateFusionConfiguration_Errors
+        CreateStartValidationInvalidSourceMetadataError(string message = "Invalid source metadata input.")
+    {
+        var mock = new Mock<IValidateFusionConfiguration_ValidateFusionConfiguration_Errors_InvalidSourceMetadataInputError>(MockBehavior.Strict);
         mock.SetupGet(x => x.Message).Returns(message);
         return mock.Object;
     }

@@ -67,6 +67,8 @@ public sealed class Operation : IOperation
         _elementsById = elementsById;
         _features = features;
         HasIncrementalParts = hasIncrementalParts;
+        HasWideIncludeFlags = includeConditions.Count > 64;
+        HasWideDeferFlags = deferConditions.Count > 64;
         CacheId = CreateCacheId();
     }
 
@@ -129,6 +131,28 @@ public sealed class Operation : IOperation
 
     /// <inheritdoc />
     public bool HasIncrementalParts { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 include
+    /// conditions and therefore requires the wide include flag overloads.
+    /// </summary>
+    public bool HasWideIncludeFlags { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 defer
+    /// conditions and therefore requires the wide defer flag overloads.
+    /// </summary>
+    public bool HasWideDeferFlags { get; }
+
+    /// <summary>
+    /// Gets the number of distinct include conditions of this operation.
+    /// </summary>
+    internal int IncludeConditionCount => _includeConditions.Count;
+
+    /// <summary>
+    /// Gets the number of distinct defer conditions of this operation.
+    /// </summary>
+    internal int DeferConditionCount => _deferConditions.Count;
 
     /// <summary>
     /// Gets the process-unique cache identifier for this operation.
@@ -271,6 +295,13 @@ public sealed class Operation : IOperation
             }
 
             index++;
+
+            // Conditions with index >= 64 live in the overflow words created by
+            // CreateIncludeFlagsOverflow; setting their bits here would wrap.
+            if (index == 64)
+            {
+                break;
+            }
         }
 
         return includeFlags;
@@ -289,9 +320,78 @@ public sealed class Operation : IOperation
             }
 
             index++;
+
+            // Conditions with index >= 64 live in the overflow words created by
+            // CreateDeferFlagsOverflow; setting their bits here would wrap.
+            if (index == 64)
+            {
+                break;
+            }
         }
 
         return deferFlags;
+    }
+
+    /// <summary>
+    /// Creates the include condition flags for the specified variable values.
+    /// </summary>
+    public ConditionFlags CreateIncludeConditionFlags(IVariableValueCollection variables)
+    {
+        var overflow = HasWideIncludeFlags
+            ? new ulong[(_includeConditions.Count - 1) >> 6]
+            : null;
+        var index = 0;
+        var word0 = 0ul;
+
+        foreach (var includeCondition in _includeConditions)
+        {
+            if (includeCondition.IsIncluded(variables))
+            {
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
+            }
+
+            index++;
+        }
+
+        return new ConditionFlags(word0, overflow);
+    }
+
+    /// <summary>
+    /// Creates the defer condition flags for the specified variable values.
+    /// </summary>
+    public ConditionFlags CreateDeferConditionFlags(IVariableValueCollection variables)
+    {
+        var overflow = HasWideDeferFlags
+            ? new ulong[(_deferConditions.Count - 1) >> 6]
+            : null;
+        var index = 0;
+        var word0 = 0ul;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (deferCondition.IsDeferred(variables))
+            {
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
+            }
+
+            index++;
+        }
+
+        return new ConditionFlags(word0, overflow);
     }
 
     internal Selection GetSelectionById(int id)

@@ -159,22 +159,24 @@ internal sealed class QueryExecutor
 
         for (var i = 0; i < length; ++i)
         {
-            if (i == 0)
-            {
-                var branchId = parentContext.ExecutionBranchId;
-                await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-                parentContext.DeferExecutionCoordinator.EnqueueResult(parentContext.BuildResult());
-                results[i] = new ResponseStream(CreateStreamAndComplete, ExecutionResultKind.DeferredResult);
-            }
-            else
-            {
-                var context = operationContexts[i].OperationContext;
-                var branchId = context.ExecutionBranchId;
-                await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-                context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult());
-                results[i] = new ResponseStream(CreateStream, ExecutionResultKind.DeferredResult);
-            }
+            var context = operationContexts[i].OperationContext;
+            var branchId = context.ExecutionBranchId;
+            await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
+            context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult());
+
+            // The first item's stream drives completion of the shared execution: once it has
+            // delivered every payload it awaits the scheduler and seals the shared arena. Every
+            // item reads from its own coordinator and honors its own cancellation token, so a
+            // payload is never enqueued into one coordinator and read from another.
+            results[i] = i == 0
+                ? new ResponseStream(CreateStreamAndComplete, ExecutionResultKind.DeferredResult)
+                : CreateItemStream(context);
         }
+
+        static ResponseStream CreateItemStream(OperationContext context)
+            => new(
+                () => context.DeferExecutionCoordinator.ReadResultsAsync(context.RequestAborted),
+                ExecutionResultKind.DeferredResult);
 
         async IAsyncEnumerable<OperationResult> CreateStreamAndComplete()
         {
@@ -191,12 +193,6 @@ internal sealed class QueryExecutor
             // because in-flight parallel work (including the batch dispatcher) may still write to it.
             await execution.ConfigureAwait(false);
             memory.Seal();
-        }
-
-        IAsyncEnumerable<OperationResult> CreateStream()
-        {
-            var requestAborted = parentContext.RequestAborted;
-            return parentContext.DeferExecutionCoordinator.ReadResultsAsync(requestAborted);
         }
     }
 

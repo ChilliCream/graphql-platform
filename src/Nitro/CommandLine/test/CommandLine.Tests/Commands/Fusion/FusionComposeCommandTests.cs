@@ -42,10 +42,11 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               -f, --source-schema-file <source-schema-file>                               One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               --source-schema-url <source-schema-url>                                     A URL from which to download a source schema
               --source-schema-settings-file <source-schema-settings-file>                 A settings file paired by occurrence with '--source-schema-url'
-              -a, --archive, --configuration <archive>                                    The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -a, --archive <archive>                                                     The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
               -e, --env, --environment <environment>                                      The name of the environment used for value substitution in the schema-settings.json files
               --cache-control-merge-behavior <ignore|include|include-private>             Choose how @cacheControl directives are merged
               --enable-global-object-identification                                       Add the 'Query.node' field for global object identification
+              --enum-values-merge-behavior <auto|strict|union>                            Choose how enum values are merged across source schemas
               --node-resolution <gateway|source-schema>                                   Choose whether Query.node identifiers are resolved by the gateway or a source schema
               --tag-merge-behavior <ignore|include|include-private>                       Choose how @tag directives are merged
               --shareable-field-runtime-type-routing <common-runtime-types|source-local>  Choose how runtime types are routed for Apollo Federation shareable abstract fields
@@ -694,8 +695,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var archiveFileName = CreateTempFile();
         var workDir = Path.Combine(s_resourcesDir, "valid-extensions");
 
-        // Set up the directory mock to return both the primary and extensions file.
-        // Discovery must pick the primary schema, not the extensions sidecar.
+        // Expose both the primary schema and its extensions sidecar to directory discovery.
         SetupDirectory(workDir,
             Path.Combine(workDir, "source-schema-1.graphqls"),
             Path.Combine(workDir, "source-schema-1-extensions.graphqls"));
@@ -704,9 +704,10 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var settingsFile = Path.Combine(workDir, "source-schema-1-settings.json");
         var extensionsFile = Path.Combine(workDir, "source-schema-1-extensions.graphqls");
 
-        SetupFile(schemaFile, (await File.ReadAllTextAsync(
+        var schemaText = await File.ReadAllTextAsync(
             schemaFile,
-            TestContext.Current.CancellationToken)).TrimEnd());
+            TestContext.Current.CancellationToken);
+        SetupFile(schemaFile, schemaText.TrimEnd());
         SetupFile(settingsFile, new MemoryStream(await File.ReadAllBytesAsync(
             settingsFile,
             TestContext.Current.CancellationToken)));
@@ -904,7 +905,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Ignore",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": true,
+                "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "Gateway",
                 "removeUnreferencedDefinitions": null,
                 "tagMergeBehavior": "Include"
@@ -1254,7 +1257,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             "source-schema-1.graphqls",
             "source-schema-2.graphqls");
 
-        // act - no --source-schema-file specified, should auto-discover
+        // act
+        // Omit --source-schema-file to discover schemas in the working directory.
         var result = await ExecuteCommandAsync(
             "fusion",
             "compose",
@@ -1297,6 +1301,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             "--cache-control-merge-behavior",
             "ignore",
             "--enable-global-object-identification",
+            "--enum-values-merge-behavior",
+            "union",
             "--node-resolution",
             "gateway",
             "--tag-merge-behavior",

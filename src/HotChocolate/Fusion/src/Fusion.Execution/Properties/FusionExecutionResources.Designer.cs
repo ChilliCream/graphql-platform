@@ -93,6 +93,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string DeferredMutationLookupRequiredException_NoLookupAvailable {
+            get {
+                return ResourceManager.GetString("DeferredMutationLookupRequiredException_NoLookupAvailable", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup", resourceCulture);
@@ -114,6 +120,12 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SourceSchemaClient_SubscriptionsNotSupported {
             get {
                 return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupported", resourceCulture);
+            }
+        }
+
+        internal static string HttpSourceSchemaClient_InvalidAliasBatchResponse {
+            get {
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidAliasBatchResponse", resourceCulture);
             }
         }
 
@@ -222,6 +234,72 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FetchResultStore_InvalidTargetValueKind {
             get {
                 return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnInlineFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnInlineFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FragmentDoesNotExist", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxFieldCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxFieldCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxTypeCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxTypeCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxResponseSizeReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxResponseSizeReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_ResponseSizeAnalysisNotEnabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseSizeAnalysisNotEnabled", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_EmptyVariableBatch {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptyVariableBatch", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_OperationKindNotAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationKindNotAllowed", resourceCulture);
             }
         }
     }

@@ -28,13 +28,13 @@ internal static class FusionCompositionHelpers
         return nameWithoutExt.EndsWith("-extensions", StringComparison.OrdinalIgnoreCase);
     }
 
-    public static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
+    public static async Task<Dictionary<string, LocalSourceSchema>> ReadSourceSchemasAsync(
         IFileSystem fileSystem,
         string? workingDirectory,
         IReadOnlyList<string> sourceSchemaFiles,
         CancellationToken cancellationToken)
     {
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>();
 
         try
         {
@@ -46,7 +46,9 @@ internal static class FusionCompositionHelpers
                     sourceSchemaFile,
                     cancellationToken);
 
-                if (!sourceSchemas.TryAdd(schemaName, (sourceText, settings)))
+                var sourceSchema = new LocalSourceSchema(sourceText, settings, urlOverride: null);
+
+                if (!sourceSchemas.TryAdd(schemaName, sourceSchema))
                 {
                     settings.Dispose();
                     throw new ExitException(
@@ -58,9 +60,9 @@ internal static class FusionCompositionHelpers
         }
         catch
         {
-            foreach (var (_, settings) in sourceSchemas.Values)
+            foreach (var sourceSchema in sourceSchemas.Values)
             {
-                settings.Dispose();
+                sourceSchema.Settings.Dispose();
             }
 
             throw;
@@ -163,7 +165,7 @@ internal static class FusionCompositionHelpers
         }
     }
 
-    public static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>>
+    public static async Task<Dictionary<string, LocalSourceSchema>>
         FetchRemoteSourceSchemasAsync(
             IFileSystem fileSystem,
             IReadOnlyList<RemoteSourceSchemaInput> inputs,
@@ -233,7 +235,7 @@ internal static class FusionCompositionHelpers
                         version));
             }
 
-            var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
+            var sourceSchemas = new Dictionary<string, LocalSourceSchema>();
 
             foreach (var input in preparedInputs)
             {
@@ -251,7 +253,10 @@ internal static class FusionCompositionHelpers
 
                 sourceSchemas.Add(
                     input.Name,
-                    (new SourceSchemaText(input.Name, sourceText), input.Settings));
+                    new LocalSourceSchema(
+                        new SourceSchemaText(input.Name, sourceText),
+                        input.Settings,
+                        urlOverride: null));
             }
 
             foreach (var input in preparedInputs)

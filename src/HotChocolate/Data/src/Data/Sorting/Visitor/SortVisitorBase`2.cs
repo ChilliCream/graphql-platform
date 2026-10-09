@@ -83,7 +83,7 @@ public abstract class SortVisitorBase<TContext, T>
         if (context.Fields.Count > 0
             && context.Fields.Peek() is ISortField sortField)
         {
-            context.ReportError(ErrorHelper.SortingVisitor_ListValues(sortField, node));
+            context.ReportError(ErrorHelper.SortingVisitor_ListValues(sortField));
         }
         else
         {
@@ -100,7 +100,7 @@ public abstract class SortVisitorBase<TContext, T>
         if (context.Fields.Count > 0
             && context.Fields.Peek() is ISortField sortField)
         {
-            context.ReportError(ErrorHelper.SortingVisitor_ListValues(sortField, node));
+            context.ReportError(ErrorHelper.SortingVisitor_ListValues(sortField));
         }
         else
         {

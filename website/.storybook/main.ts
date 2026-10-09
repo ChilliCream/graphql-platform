@@ -8,7 +8,10 @@ const config: StorybookConfig = {
     "../src/og/**/*.stories.@(ts|tsx|mdx)",
     "../app/**/*.stories.@(ts|tsx|mdx)",
   ],
-  staticDirs: ["../.storybook/static"],
+  staticDirs: [
+    "../.storybook/static",
+    { from: "../src/og/fonts", to: "/og-fonts" },
+  ],
   framework: {
     name: "@storybook/nextjs-vite",
     options: {},

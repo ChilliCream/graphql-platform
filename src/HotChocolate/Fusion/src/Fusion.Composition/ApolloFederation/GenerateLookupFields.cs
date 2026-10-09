@@ -54,10 +54,10 @@ internal static class GenerateLookupFields
             synthesizedQuery = true;
         }
 
-        var internalDef = new MutableDirectiveDefinition("internal");
-        var lookupDef = new MutableDirectiveDefinition("lookup");
-        var isDef = new MutableDirectiveDefinition("is");
-        var shareableDef = new MutableDirectiveDefinition("shareable");
+        var internalDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Internal];
+        var lookupDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Lookup];
+        var isDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Is];
+        var shareableDef = FusionBuiltIns.SourceSchemaDirectives[WellKnownDirectiveNames.Shareable];
 
         // Generated input object types are cached by name so that repeated
         // references to the same nested shape share a single input type.
@@ -82,6 +82,7 @@ internal static class GenerateLookupFields
             // in '@key' selections.
             var keysToRemove = new List<Directive>();
             var fieldsToMarkShareable = new HashSet<string>(StringComparer.Ordinal);
+            var seenKeyIdentities = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var keyDirective in complexType.Directives["key"])
             {
@@ -99,6 +100,30 @@ internal static class GenerateLookupFields
                     resolvable = boolValue.Value;
                 }
 
+                SelectionSetNode selectionSet;
+
+                // Unparseable keys are left in place so that the source schema validation reports
+                // KEY_INVALID_SYNTAX for them.
+                try
+                {
+                    selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+                        "{ " + fieldsString.Value + " }");
+                }
+                catch (SyntaxException)
+                {
+                    continue;
+                }
+
+                var keyIdentity =
+                    FieldSelection.Normalize(selectionSet).ToString(false)
+                    + (resolvable ? "|resolvable" : "|non-resolvable");
+
+                if (!seenKeyIdentities.Add(keyIdentity))
+                {
+                    keysToRemove.Add(keyDirective);
+                    continue;
+                }
+
                 if (!resolvable)
                 {
                     continue;
@@ -107,7 +132,7 @@ internal static class GenerateLookupFields
                 var result = GenerateLookupField(
                     schema,
                     complexType,
-                    fieldsString.Value,
+                    selectionSet,
                     internalDef,
                     lookupDef,
                     isDef,
@@ -196,24 +221,12 @@ internal static class GenerateLookupFields
     private static GenerateLookupFieldResult? GenerateLookupField(
         MutableSchemaDefinition schema,
         MutableComplexTypeDefinition complexType,
-        string fieldsSelection,
+        SelectionSetNode selectionSet,
         MutableDirectiveDefinition internalDef,
         MutableDirectiveDefinition lookupDef,
         MutableDirectiveDefinition isDef,
         Dictionary<string, MutableInputObjectTypeDefinition> inputTypeCache)
     {
-        SelectionSetNode selectionSet;
-
-        try
-        {
-            selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
-                "{ " + fieldsSelection + " }");
-        }
-        catch (SyntaxException)
-        {
-            return null;
-        }
-
         var topLevelFieldNames = new List<string>();
         var hasNestedSegment = false;
         var keyHasListSegment = false;

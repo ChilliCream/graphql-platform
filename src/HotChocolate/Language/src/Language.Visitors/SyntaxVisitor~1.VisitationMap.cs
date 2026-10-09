@@ -290,6 +290,17 @@ public partial class SyntaxVisitor<TContext>
             return Break;
         }
 
+        if (_options.VisitArguments)
+        {
+            for (var i = 0; i < node.Arguments.Count; i++)
+            {
+                if (Visit(node.Arguments[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+        }
+
         if (_options.VisitDirectives)
         {
             for (var i = 0; i < node.Directives.Count; i++)
@@ -342,6 +353,14 @@ public partial class SyntaxVisitor<TContext>
         if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
         {
             return Break;
+        }
+
+        for (var i = 0; i < node.VariableDefinitions.Count; i++)
+        {
+            if (Visit(node.VariableDefinitions[i], node, context).IsBreak())
+            {
+                return Break;
+            }
         }
 
         if (Visit(node.TypeCondition, node, context).IsBreak())

@@ -7,7 +7,6 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -30,7 +29,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
         ?? throw new InvalidOperationException(
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
-    private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
@@ -55,8 +53,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var document = SourceResultDocument.Parse(
@@ -105,8 +103,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var results = new[]
@@ -190,6 +188,42 @@ public sealed class FetchResultStoreTests : FusionTestBase
         AssertDataElementStagingCleared(store, count);
         AssertResultsRegisteredInOrder(store, second);
         Assert.Equal($"{{\"field\":\"final-{count - 1}\"}}", RenderData(store));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResults_Should_MergeCorrectValue_When_SourcePathHasMultipleSegments(bool containsErrors)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ field }", resultArena, out var resultSelectionSet);
+        var sourcePath = SelectionPath.Root.AppendField("wrapper").AppendField("nested");
+
+        var results = new SourceSchemaResult[3];
+        for (var i = 0; i < results.Length; i++)
+        {
+            results[i] = CreateSourceSchemaResult(
+                sourceArena,
+                CompactPath.Root,
+                $"{{\"data\":{{\"wrapper\":{{\"nested\":{{\"field\":\"value-{i}\"}}}}}}}}");
+        }
+
+        // act
+        var added = store.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);
+
+        // assert
+        Assert.True(added);
+        Assert.Equal("{\"field\":\"value-2\"}", RenderData(store));
     }
 
     [Fact]
@@ -356,8 +390,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -378,7 +412,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             elementSelectionSet,
-            global::HotChocolate.Path.Root.Append("aliasedFoos").Append(0));
+            HotChocolate.Path.Root.Append("aliasedFoos").Append(0));
 
         // assert
         Assert.True(added);
@@ -435,8 +469,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -457,7 +491,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             fieldSelectionSet,
-            global::HotChocolate.Path.Root.Append("foo"));
+            HotChocolate.Path.Root.Append("foo"));
 
         // assert
         Assert.True(added);
@@ -559,6 +593,286 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void AddPartialResults_Should_MaskUnknownEnumValue_When_EnumValueIsListElement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              colors: [Color]
+            }
+
+            enum Color {
+              RED
+              GREEN
+              BLUE
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ colors }",
+            """{"data":{"colors":["RED","YELLOW","BLUE"]}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"colors":["RED",null,"BLUE"]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_MaskEnumValue_When_PayloadContainsEscapeSequence()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              color: Color
+              sibling: String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // the payload spells RED with a JSON escape sequence, which can never match an enum name
+        using var store = CreateLiveStore(
+            schema,
+            "{ color sibling }",
+            """{"data":{"color":"R\u0045D","sibling":"visible"}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"color":null,"sibling":"visible"}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData(
+        "[[Int]]",
+        """{"data":{"matrix":[[1,2],null,[3,null]]}}""",
+        """{"matrix":[[1,2],null,[3,null]]}""")]
+    [InlineData(
+        "[[Int!]!]",
+        """{"data":{"matrix":[[1,2],[3]]}}""",
+        """{"matrix":[[1,2],[3]]}""")]
+    public void AddPartialResults_Should_CompleteNestedLists_When_FieldIsListOfList(
+        string fieldType,
+        string payload,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            $$"""
+            # name: test
+            type Query {
+              matrix: {{fieldType}}
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ matrix }",
+            payload,
+            resultArena,
+            sourceArena);
+
+        // assert
+        Assert.Equal(expected, RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_PropagateNullToList_When_NonNullListElementIsNull()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              sibling: String
+              tags: [String!]
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // a null element in a non-null element list nulls the nullable list itself
+        using var store = CreateLiveStore(
+            schema,
+            "{ sibling tags }",
+            """{"data":{"sibling":"ok","tags":["a",null]}}""",
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"sibling":"ok","tags":null}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData("RED", """{"color":"RED","broken":null}""")]
+    [InlineData("YELLOW", """{"color":null,"broken":null}""")]
+    public void AddPartialResults_Should_CompleteEnumOnSlowPath_When_ErrorTrieIsPresent(
+        string enumValue,
+        string expected)
+    {
+        // arrange
+        // the error trie disables the scalar fast path, so enums complete on the slow path
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              color: Color
+              broken: String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        var plan = PlanOperation(schema, "{ color broken }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = Encoding.UTF8.GetBytes(
+            $$"""{"data":{"color":"{{enumValue}}","broken":null},"errors":[{"message":"boom","path":["broken"]}]}""");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: true);
+
+        // assert
+        Assert.True(added);
+        Assert.Equal(expected, RenderData(store));
+        Assert.NotNull(store.Errors);
+        var error = Assert.Single(store.Errors);
+        Assert.Equal("boom", error.Message);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_ResolveRuntimeTypes_When_AbstractTypeExceedsTypeNameLookupLimit()
+    {
+        // arrange
+        // Node has five implementers, which exceeds the type name lookup limit,
+        // so runtime type resolution goes through the schema lookup fallback.
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              nodes: [Node]
+            }
+
+            interface Node {
+              common: String
+            }
+
+            type A implements Node {
+              common: String
+              a: String
+            }
+
+            type B implements Node {
+              common: String
+              b: String
+            }
+
+            type C implements Node {
+              common: String
+              c: String
+            }
+
+            type D implements Node {
+              common: String
+              d: String
+            }
+
+            type E implements Node {
+              common: String
+              e: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        // repeated and alternating type names cover repeat, alternation, and first-seen elements
+        using var store = CreateLiveStore(
+            schema,
+            """
+            {
+              nodes {
+                __typename
+                common
+                ... on A { a }
+                ... on B { b }
+                ... on C { c }
+              }
+            }
+            """,
+            """
+            {"data":{"nodes":[
+              {"__typename":"A","common":"1","a":"a-1"},
+              {"__typename":"A","common":"2","a":"a-2"},
+              {"__typename":"B","common":"3","b":"b-3"},
+              {"__typename":"A","common":"4","a":"a-4"},
+              {"__typename":"C","common":"5","c":"c-5"}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"nodes":[{"__typename":"A","common":"1","a":"a-1"},{"__typename":"A","common":"2","a":"a-2"},{"__typename":"B","common":"3","b":"b-3"},{"__typename":"A","common":"4","a":"a-4"},{"__typename":"C","common":"5","c":"c-5"}]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
     public void AddErrors_Should_UseAliasesInErrorPath()
     {
         // arrange
@@ -595,8 +909,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload =
@@ -616,7 +930,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var completed = store.AddErrors(
             error,
             fieldSelectionSet,
-            global::HotChocolate.Path.Root.Append("aliasedFoo"));
+            HotChocolate.Path.Root.Append("aliasedFoo"));
 
         // assert
         Assert.True(added);
@@ -649,8 +963,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         store.AddError(ErrorBuilder.New().SetMessage("event 1").Build());
@@ -1742,8 +2056,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
         var payload = Encoding.UTF8.GetBytes(payloadJson);
@@ -1773,8 +2087,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             DefaultErrorHandler.Default,
             plan.Operation,
             ErrorHandlingMode.Propagate,
-            includeFlags: 0,
-            deferFlags: 0,
+            includeFlags: default,
+            deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
         resultSelectionSet = node.ResultSelectionSet;
         return store;

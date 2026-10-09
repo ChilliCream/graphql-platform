@@ -1,0 +1,84 @@
+operation:
+  - document: |
+      {
+        product {
+          total
+          id @fusion__requirement
+          computed @fusion__requirement
+          value @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 9
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_3($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
+          total(input: $__fusion_2_input)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_2_input
+        selectionMap: >-
+          {
+            computed
+          }
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 5
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
+        productById(id: $__fusion_6_id) {
+          computed(value: $__fusion_5_value)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_5_value
+        selectionMap: >-
+          value
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 6
+  - id: 6
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_6($__fusion_7_id: ID!) {
+        productById(id: $__fusion_7_id) {
+          value
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

@@ -49,4 +49,14 @@ public class DirectiveValidationRuleTests : TypeValidationTestBase
           directive @__badDirective() on FIELD
         ");
     }
+
+    [Fact]
+    public void RejectDirectiveArgumentWithIncompatibleDefaultValue()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          directive @foo(arg: Int = "abc") on FIELD
+        """);
+    }
 }
