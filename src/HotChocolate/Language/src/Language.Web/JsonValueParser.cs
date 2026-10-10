@@ -57,8 +57,12 @@ public ref struct JsonValueParser
         }
         catch
         {
-            _memory?.Abandon();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Abandon();
+                _memory = null;
+            }
+
             throw;
         }
         finally
@@ -211,8 +215,12 @@ public ref struct JsonValueParser
         }
         catch
         {
-            _memory?.Abandon();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Abandon();
+                _memory = null;
+            }
+
             throw;
         }
         finally
