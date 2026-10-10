@@ -15,9 +15,11 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
     <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Language.Web" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Web.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Language" />
     <InternalsVisibleTo Include="HotChocolate.Subscriptions" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
     <InternalsVisibleTo Include="HotChocolate.Language.Benchmarks" />
