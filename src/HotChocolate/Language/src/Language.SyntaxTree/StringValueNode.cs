@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Utilities;
@@ -13,6 +12,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
 {
     private ReadOnlyMemorySegment _memorySegment;
     private string? _value;
+    private volatile bool _hasMemorySegment;
 
     /// <summary>
     /// Initializes a new instance of the
@@ -65,6 +65,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     {
         Location = location;
         _memorySegment = value;
+        _hasMemorySegment = true;
         Block = block;
     }
 
@@ -143,34 +144,17 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
 
     public ReadOnlyMemorySegment AsMemorySegment()
     {
-        if (!_memorySegment.IsEmpty || _value is null)
+        if (_hasMemorySegment || _value is null)
         {
             return _memorySegment;
         }
 
-        var encoding = Encoding.UTF8;
-
-        byte[]? rented = null;
-        var requiredLength = encoding.GetByteCount(_value!);
-        var buffer = requiredLength < 256
-            ? stackalloc byte[256]
-            : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
-
-        try
-        {
-            var written = encoding.GetBytes(_value!, buffer);
-            buffer = buffer.Slice(0, written);
-            _memorySegment = new ReadOnlyMemorySegment(buffer.ToArray());
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
-        }
-
-        return _memorySegment;
+        // Concurrent writers store segments with the same start, length and content,
+        // so interleaved writes still leave a valid segment once the flag is published.
+        var memorySegment = new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes(_value));
+        _memorySegment = memorySegment;
+        _hasMemorySegment = true;
+        return memorySegment;
     }
 
     public StringValueNode WithLocation(Location? location)

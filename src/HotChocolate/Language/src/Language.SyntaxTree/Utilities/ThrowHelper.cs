@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language.Utilities;
@@ -18,4 +19,7 @@ internal static class ThrowHelper
         throw new ArgumentException(
             Resources.ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName,
             argumentName);
+
+    public static InvalidFormatException InvalidNumericValue(ReadOnlySpan<byte> value, string typeName) =>
+        new($"The value `{Encoding.UTF8.GetString(value)}` is not a valid {typeName}.");
 }

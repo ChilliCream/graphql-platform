@@ -1,4 +1,4 @@
-using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
@@ -12,8 +12,8 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class EnumValueNode : IValueNode<string>
 {
-    private ReadOnlyMemorySegment _memorySegment;
-    private string? _value;
+    private readonly ReadOnlyMemorySegment _memorySegment;
+    private object? _value;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
@@ -85,20 +85,12 @@ public sealed class EnumValueNode : IValueNode<string>
     public Location? Location { get; }
 
     /// <inheritdoc cref="IValueNode{T}" />
-    public unsafe string Value
+    public string Value
     {
         get
         {
-            if (_value is null)
-            {
-                var span = AsSpan();
-                fixed (byte* b = span)
-                {
-                    _value = Encoding.UTF8.GetString(b, span.Length);
-                }
-            }
-
-            return _value;
+            var value = _value;
+            return value is string stringValue ? stringValue : GetValue(value);
         }
     }
 
@@ -139,7 +131,7 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment.Span;
         }
 
-        return AsMemorySegment().Span;
+        return GetUtf8();
     }
 
     public ReadOnlyMemorySegment AsMemorySegment()
@@ -149,29 +141,37 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment;
         }
 
-        var encoding = Encoding.UTF8;
+        return new ReadOnlyMemorySegment(GetUtf8());
+    }
 
-        byte[]? rented = null;
-        var requiredLength = encoding.GetByteCount(_value!);
-        var buffer = requiredLength < 256
-            ? stackalloc byte[256]
-            : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
+    /// <summary>
+    /// Gets the UTF-8 bytes of a node built from a string, encoding them on first use.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private byte[] GetUtf8()
+    {
+        var value = _value;
+        return value is Utf8Value utf8Value ? utf8Value.Utf8 : Encode(value).Utf8;
+    }
 
-        try
+    private string GetValue(object? value)
+    {
+        if (value is Utf8Value utf8Value)
         {
-            var written = encoding.GetBytes(_value!, buffer);
-            buffer = buffer.Slice(0, written);
-            _memorySegment = new ReadOnlyMemorySegment(buffer.ToArray());
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
+            return utf8Value.Value;
         }
 
-        return _memorySegment;
+        var stringValue = Encoding.UTF8.GetString(_memorySegment.Span);
+        _value = stringValue;
+        return stringValue;
+    }
+
+    private Utf8Value Encode(object? value)
+    {
+        var stringValue = (string)value!;
+        var utf8Value = new Utf8Value(stringValue, Encoding.UTF8.GetBytes(stringValue));
+        _value = utf8Value;
+        return utf8Value;
     }
 
     /// <summary>
@@ -199,4 +199,13 @@ public sealed class EnumValueNode : IValueNode<string>
     /// </returns>
     public EnumValueNode WithValue(string value)
         => new(Location, value);
+
+    /// <summary>
+    /// The value of a node created from a string together with its UTF-8 encoding.
+    /// </summary>
+    private sealed class Utf8Value(string value, byte[] utf8)
+    {
+        public readonly string Value = value;
+        public readonly byte[] Utf8 = utf8;
+    }
 }

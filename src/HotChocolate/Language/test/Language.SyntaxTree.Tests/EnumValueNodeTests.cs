@@ -97,4 +97,16 @@ public class EnumValueNodeTests
 
         Assert.Equal(value, Encoding.UTF8.GetString(segment.Span));
     }
+
+    [Fact]
+    public void AsSpan_Should_ReturnEncodedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new EnumValueNode("ABC"),
+            node => Encoding.UTF8.GetString(node.AsSpan()));
+
+        // assert
+        Assert.Equal(["ABC"], results);
+    }
 }

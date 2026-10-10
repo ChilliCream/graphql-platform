@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace HotChocolate.Language.SyntaxTree;
 
 public class IntValueNodeTests
@@ -121,5 +123,74 @@ public class IntValueNodeTests
         Assert.NotEqual(aHash, cHash);
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
+    public void Value_Should_ReturnFormattedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new IntValueNode(1),
+            node => node.Value);
+
+        // assert
+        Assert.Equal(["1"], results);
+    }
+
+    [Fact]
+    public void AsSpan_Should_ReturnFormattedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new IntValueNode(1),
+            node => Encoding.UTF8.GetString(node.AsSpan()));
+
+        // assert
+        Assert.Equal(["1"], results);
+    }
+
+    [InlineData(long.MinValue, "-9223372036854775808")]
+    [InlineData(0L, "0")]
+    [InlineData(long.MaxValue, "9223372036854775807")]
+    [Theory]
+    public void ToInt64_Should_ReturnOriginalValue_When_CreatedFromInt64(long value, string expected)
+    {
+        // arrange
+        var node = new IntValueNode(value);
+
+        // act
+        var result = node.ToInt64();
+
+        // assert
+        Assert.Equal(value, result);
+        Assert.Equal(expected, node.Value);
+    }
+
+    [Fact]
+    public void ToUInt64_Should_ReturnOriginalValue_When_CreatedFromUInt64()
+    {
+        // arrange
+        var node = new IntValueNode(ulong.MaxValue);
+
+        // act
+        var result = node.ToUInt64();
+
+        // assert
+        Assert.Equal(ulong.MaxValue, result);
+        Assert.Equal("18446744073709551615", node.Value);
+    }
+
+    [Fact]
+    public void ToByte_Should_ReturnOriginalValue_When_CreatedFromByte()
+    {
+        // arrange
+        var node = new IntValueNode(byte.MaxValue);
+
+        // act
+        var result = node.ToByte();
+
+        // assert
+        Assert.Equal(byte.MaxValue, result);
+        Assert.Equal("255", node.Value);
     }
 }
