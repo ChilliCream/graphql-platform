@@ -1,5 +1,4 @@
 using System.Buffers.Text;
-using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
@@ -29,10 +28,9 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
 {
-    private readonly ReadOnlyMemorySegment _memorySegment;
-    private readonly Number _number;
-    private readonly NumberKind _kind;
-    private byte[]? _formatted;
+    private ReadOnlyMemorySegment _memorySegment;
+    private double _double;
+    private volatile State _state;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FloatValueNode"/>
@@ -58,8 +56,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         Location = location;
         Format = FloatFormat.FixedPoint;
-        _number = new Number(value);
-        _kind = NumberKind.Double;
+        _double = value;
+        _state = State.Double;
     }
 
     /// <summary>
@@ -86,8 +84,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     {
         Location = location;
         Format = FloatFormat.FixedPoint;
-        _number = new Number(value);
-        _kind = NumberKind.Decimal;
+        _memorySegment = new ReadOnlyMemorySegment(FormatValue(value));
+        _state = State.Decimal;
     }
 
     /// <summary>
@@ -128,16 +126,24 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         Location = location;
         _memorySegment = value;
         Format = format;
+        _state = State.Text;
     }
 
     private FloatValueNode(Location? location, FloatValueNode original)
     {
         Location = location;
         Format = original.Format;
-        _memorySegment = original._memorySegment;
-        _number = original._number;
-        _kind = original._kind;
-        _formatted = original._formatted;
+
+        // The state is read first so that the fields it publishes are read after it.
+        var state = original._state;
+        _double = original._double;
+
+        if (state is not State.Double)
+        {
+            _memorySegment = original._memorySegment;
+        }
+
+        _state = state;
     }
 
     /// <inheritdoc />
@@ -154,17 +160,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// <summary>
     /// The raw parsed string representation of the parsed value node.
     /// </summary>
-#if NET8_0_OR_GREATER
-    public string Value
-#else
-    public unsafe string Value
-#endif
-    {
-        get
-        {
-            return Encoding.UTF8.GetString(AsSpan());
-        }
-    }
+    public string Value => Encoding.UTF8.GetString(AsSpan());
 
     object IValueNode.Value => Value;
 
@@ -197,13 +193,14 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public float ToSingle()
     {
-        switch (_kind)
+        switch (_state)
         {
-            case NumberKind.Double:
-                return (float)_number.Double;
+            case State.Double:
+            case State.DoubleWithText:
+                return (float)_double;
 
-            case NumberKind.Decimal:
-                return (float)_number.Decimal;
+            case State.Decimal:
+                return (float)ToDecimal();
         }
 
         if (!Utf8Parser.TryParse(_memorySegment.Span, out float value, out _))
@@ -219,13 +216,15 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public double ToDouble()
     {
-        switch (_kind)
+        switch (_state)
         {
-            case NumberKind.Double:
-                return _number.Double;
+            case State.Double:
+            case State.DoubleWithText:
+            case State.TextWithDouble:
+                return _double;
 
-            case NumberKind.Decimal:
-                return (double)_number.Decimal;
+            case State.Decimal:
+                return (double)ToDecimal();
         }
 
         if (!Utf8Parser.TryParse(_memorySegment.Span, out double value, out _))
@@ -233,6 +232,9 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
             throw ThrowHelper.InvalidNumericValue(_memorySegment.Span, "double");
         }
 
+        // Concurrent writers store the same bits, so the value is valid once the state is published.
+        _double = value;
+        _state = State.TextWithDouble;
         return value;
     }
 
@@ -241,13 +243,11 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public decimal ToDecimal()
     {
-        switch (_kind)
+        switch (_state)
         {
-            case NumberKind.Double:
-                return (decimal)_number.Double;
-
-            case NumberKind.Decimal:
-                return _number.Decimal;
+            case State.Double:
+            case State.DoubleWithText:
+                return (decimal)_double;
         }
 
         if (!Utf8Parser.TryParse(_memorySegment.Span, out decimal value, out _))
@@ -265,20 +265,17 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
 
     public ReadOnlyMemorySegment AsMemorySegment()
     {
-        if (_kind == NumberKind.Parsed)
+        if (_state is not State.Double)
         {
             return _memorySegment;
         }
 
-        var formatted = _formatted;
-
-        if (formatted is null)
-        {
-            formatted = FormatValue(_number, _kind);
-            _formatted = formatted;
-        }
-
-        return new ReadOnlyMemorySegment(formatted);
+        // Concurrent writers store segments with the same start, length and content,
+        // so interleaved writes still leave a valid segment once the state is published.
+        var memorySegment = new ReadOnlyMemorySegment(FormatValue(_double));
+        _memorySegment = memorySegment;
+        _state = State.DoubleWithText;
+        return memorySegment;
     }
 
     /// <summary>
@@ -336,20 +333,10 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     public FloatValueNode WithValue(ReadOnlyMemorySegment value, FloatFormat format)
         => new(Location, value, format);
 
-    private static byte[] FormatValue(Number number, NumberKind kind)
+    private static byte[] FormatValue(double value)
     {
         Span<byte> buffer = stackalloc byte[32];
-        int written;
-
-        if (kind == NumberKind.Double)
-        {
-            Utf8Formatter.TryFormat(number.Double, buffer, out written);
-        }
-        else
-        {
-            Utf8Formatter.TryFormat(number.Decimal, buffer, out written);
-        }
-
+        Utf8Formatter.TryFormat(value, buffer, out var written);
 #if NET8_0_OR_GREATER
         return buffer[..written].ToArray();
 #else
@@ -357,32 +344,42 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
 #endif
     }
 
-    [StructLayout(LayoutKind.Explicit)]
-    private readonly struct Number
+    private static byte[] FormatValue(decimal value)
     {
-        [FieldOffset(0)]
-        public readonly double Double;
-
-        [FieldOffset(0)]
-        public readonly decimal Decimal;
-
-        public Number(double value)
-        {
-            Decimal = default;
-            Double = value;
-        }
-
-        public Number(decimal value)
-        {
-            Double = default;
-            Decimal = value;
-        }
+        Span<byte> buffer = stackalloc byte[32];
+        Utf8Formatter.TryFormat(value, buffer, out var written);
+#if NET8_0_OR_GREATER
+        return buffer[..written].ToArray();
+#else
+        return buffer.Slice(0, written).ToArray();
+#endif
     }
 
-    private enum NumberKind : byte
+    private enum State : byte
     {
-        Parsed,
+        /// <summary>
+        /// The node holds parsed text.
+        /// </summary>
+        Text,
+
+        /// <summary>
+        /// The node holds parsed text and the double it was parsed into.
+        /// </summary>
+        TextWithDouble,
+
+        /// <summary>
+        /// The node holds a double that has not been formatted yet.
+        /// </summary>
         Double,
+
+        /// <summary>
+        /// The node holds a double and its formatted text.
+        /// </summary>
+        DoubleWithText,
+
+        /// <summary>
+        /// The node holds the formatted text of a decimal.
+        /// </summary>
         Decimal
     }
 }

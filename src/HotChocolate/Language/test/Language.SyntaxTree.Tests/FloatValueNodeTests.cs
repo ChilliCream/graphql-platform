@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using HotChocolate.Buffers;
 
@@ -339,6 +340,39 @@ public class FloatValueNodeTests
 
         // assert
         Assert.Equal(["1.5"], results);
+    }
+
+    [Fact]
+    public void ToDouble_Should_ReturnParsedValue_When_ReadConcurrentlyForTheFirstTime()
+    {
+        // act
+        var results = ConcurrentReadHelper.ReadConcurrently(
+            () => new FloatValueNode(
+                new ReadOnlyMemorySegment(Encoding.UTF8.GetBytes("1.5")),
+                FloatFormat.FixedPoint),
+            node => node.ToDouble().ToString(CultureInfo.InvariantCulture));
+
+        // assert
+        Assert.Equal(["1.5"], results);
+    }
+
+    [Fact]
+    public void WithLocation_Should_KeepValue_When_CreatedFromDouble()
+    {
+        // arrange
+        var node = new FloatValueNode(1.5);
+        var formatted = new FloatValueNode(2.5);
+        _ = formatted.AsSpan();
+
+        // act
+        var result = node.WithLocation(new Location(1, 2, 3, 4));
+        var formattedResult = formatted.WithLocation(new Location(1, 2, 3, 4));
+
+        // assert
+        Assert.Equal(1.5, result.ToDouble());
+        Assert.Equal("1.5", result.Value);
+        Assert.Equal(2.5, formattedResult.ToDouble());
+        Assert.Equal("2.5", formattedResult.Value);
     }
 
     [Fact]

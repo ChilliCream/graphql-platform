@@ -425,17 +425,19 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public float ToSingle()
     {
-        return ParseSingle(_memorySegment.Span);
+        var span = _memorySegment.Span;
 
-        static float ParseSingle(ReadOnlySpan<byte> span)
+        if (Utf8Parser.TryParse(span, out long integer, out var consumed) && consumed == span.Length)
         {
-            if (!Utf8Parser.TryParse(span, out float value, out _, standardFormat: 'f'))
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            return value;
+            return integer;
         }
+
+        if (!Utf8Parser.TryParse(span, out float value, out _, standardFormat: 'f'))
+        {
+            throw ThrowHelper.InvalidNumericValue(span, "float");
+        }
+
+        return value;
     }
 
     /// <summary>
@@ -443,17 +445,19 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public double ToDouble()
     {
-        return ParseDouble(_memorySegment.Span);
+        var span = _memorySegment.Span;
 
-        static double ParseDouble(ReadOnlySpan<byte> span)
+        if (Utf8Parser.TryParse(span, out long integer, out var consumed) && consumed == span.Length)
         {
-            if (!Utf8Parser.TryParse(span, out double value, out _, standardFormat: 'f'))
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            return value;
+            return integer;
         }
+
+        if (!Utf8Parser.TryParse(span, out double value, out _, standardFormat: 'f'))
+        {
+            throw ThrowHelper.InvalidNumericValue(span, "double");
+        }
+
+        return value;
     }
 
     /// <summary>
@@ -461,17 +465,19 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public decimal ToDecimal()
     {
-        return ParseDecimal(_memorySegment.Span);
+        var span = _memorySegment.Span;
 
-        static decimal ParseDecimal(ReadOnlySpan<byte> span)
+        if (Utf8Parser.TryParse(span, out long integer, out var consumed) && consumed == span.Length)
         {
-            if (!Utf8Parser.TryParse(span, out decimal value, out _, standardFormat: 'f'))
-            {
-                throw new InvalidOperationException("No numeric value was stored.");
-            }
-
-            return value;
+            return integer;
         }
+
+        if (!Utf8Parser.TryParse(span, out decimal value, out _, standardFormat: 'f'))
+        {
+            throw ThrowHelper.InvalidNumericValue(span, "decimal");
+        }
+
+        return value;
     }
 
     /// <summary>

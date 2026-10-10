@@ -12,8 +12,7 @@ namespace HotChocolate.Language;
 public sealed class EnumValueNode : IValueNode<string>
 {
     private readonly ReadOnlyMemorySegment _memorySegment;
-    private string? _value;
-    private byte[]? _encoded;
+    private object? _value;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeDefinitionNode"/>.
@@ -85,20 +84,12 @@ public sealed class EnumValueNode : IValueNode<string>
     public Location? Location { get; }
 
     /// <inheritdoc cref="IValueNode{T}" />
-    public unsafe string Value
+    public string Value
     {
         get
         {
-            if (_value is null)
-            {
-                var span = AsSpan();
-                fixed (byte* b = span)
-                {
-                    _value = Encoding.UTF8.GetString(b, span.Length);
-                }
-            }
-
-            return _value;
+            var value = _value;
+            return value is string stringValue ? stringValue : GetValue(value);
         }
     }
 
@@ -139,7 +130,8 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment.Span;
         }
 
-        return AsMemorySegment().Span;
+        var value = _value;
+        return value is Utf8Value utf8Value ? utf8Value.Utf8 : Encode(value).Utf8;
     }
 
     public ReadOnlyMemorySegment AsMemorySegment()
@@ -149,15 +141,28 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment;
         }
 
-        var encoded = _encoded;
+        var value = _value;
+        return new ReadOnlyMemorySegment(value is Utf8Value utf8Value ? utf8Value.Utf8 : Encode(value).Utf8);
+    }
 
-        if (encoded is null)
+    private string GetValue(object? value)
+    {
+        if (value is Utf8Value utf8Value)
         {
-            encoded = Encoding.UTF8.GetBytes(_value!);
-            _encoded = encoded;
+            return utf8Value.Value;
         }
 
-        return new ReadOnlyMemorySegment(encoded);
+        var stringValue = Encoding.UTF8.GetString(_memorySegment.Span);
+        _value = stringValue;
+        return stringValue;
+    }
+
+    private Utf8Value Encode(object? value)
+    {
+        var stringValue = (string)value!;
+        var utf8Value = new Utf8Value(stringValue, Encoding.UTF8.GetBytes(stringValue));
+        _value = utf8Value;
+        return utf8Value;
     }
 
     /// <summary>
@@ -185,4 +190,13 @@ public sealed class EnumValueNode : IValueNode<string>
     /// </returns>
     public EnumValueNode WithValue(string value)
         => new(Location, value);
+
+    /// <summary>
+    /// The value of a node created from a string together with its UTF-8 encoding.
+    /// </summary>
+    private sealed class Utf8Value(string value, byte[] utf8)
+    {
+        public readonly string Value = value;
+        public readonly byte[] Utf8 = utf8;
+    }
 }
