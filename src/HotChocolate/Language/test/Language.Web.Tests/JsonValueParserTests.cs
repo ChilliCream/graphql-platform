@@ -8,6 +8,58 @@ namespace HotChocolate.Language;
 public class JsonValueParserTests
 {
     [Fact]
+    public void Parse_Should_AbandonCreatedBuilder_When_ParsingFailsWithDoNotSeal()
+    {
+        // arrange
+        // the number creates the builder, the string with a lone continuation byte fails to decode.
+        byte[] json = [.. "[1, \""u8, 0x80, .. "\"]"u8];
+        using var document = JsonDocument.Parse(json);
+        var parser = new JsonValueParser(doNotSeal: true);
+        Exception? exception = null;
+
+        // act
+        try
+        {
+            parser.Parse(document.RootElement);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+
+        // assert
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Null(parser._memory);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepProvidedBuilder_When_ParsingFailsWithDoNotSeal()
+    {
+        // arrange
+        byte[] json = [.. "[1, \""u8, 0x80, .. "\"]"u8];
+        using var document = JsonDocument.Parse(json);
+        var builder = new Utf8MemoryBuilder();
+        var parser = new JsonValueParser(doNotSeal: true) { _memory = builder };
+        Exception? exception = null;
+
+        // act
+        try
+        {
+            parser.Parse(document.RootElement);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
+
+        // assert
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Same(builder, parser._memory);
+        builder.Seal();
+        Assert.Equal("1"u8.ToArray(), builder.WrittenSpan.ToArray());
+    }
+
+    [Fact]
     public void Parse_JsonElement_StringWithEscapedQuotes_IsUnescaped()
     {
         // arrange

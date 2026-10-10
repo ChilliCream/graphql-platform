@@ -51,13 +51,17 @@ public ref struct JsonValueParser
             throw new ArgumentException("Undefined JSON value kind.");
         }
 
+        // A builder this parse creates is never handed to the caller when parsing fails,
+        // so it is abandoned even when the caller seals the builder it provided.
+        var createdBuilder = _memory is null;
+
         try
         {
             return Parse(element, 0);
         }
         catch
         {
-            if (!_doNotSeal)
+            if (!_doNotSeal || createdBuilder)
             {
                 _memory?.Abandon();
                 _memory = null;
@@ -209,13 +213,15 @@ public ref struct JsonValueParser
     /// <returns>The parsed GraphQL value node.</returns>
     public IValueNode Parse(ref Utf8JsonReader reader)
     {
+        var createdBuilder = _memory is null;
+
         try
         {
             return Parse(ref reader, 0);
         }
         catch
         {
-            if (!_doNotSeal)
+            if (!_doNotSeal || createdBuilder)
             {
                 _memory?.Abandon();
                 _memory = null;
