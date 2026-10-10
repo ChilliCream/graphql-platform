@@ -85,12 +85,13 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     }
 
     /// <summary>
-    /// Marks this queue as non-durable and auto-delete.
+    /// Marks this queue as auto-delete and sets the queue expiry after which the broker removes it
+    /// when it has no consumers.
     /// </summary>
-    internal void MarkTemporary()
+    internal void MarkTemporary(TimeSpan expiry)
     {
-        Durable = false;
         AutoDelete = true;
+        Arguments = Arguments.SetItem("x-expires", (int)expiry.TotalMilliseconds);
     }
 
     /// <summary>

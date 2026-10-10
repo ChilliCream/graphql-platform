@@ -330,9 +330,17 @@ transport.Queue($"tenant-events-{instanceId}")
     .Receives<TenantEvent>();
 ```
 
-`Temporary()` marks the queue non-durable and auto-delete (`Durable = false`, `AutoDelete = true`). The broker removes the queue once its last consumer disconnects, independent of any idle-time window.
+`Temporary()` marks the queue auto-delete and sets a queue expiry (`AutoDelete = true`, `x-expires`), leaving it durable. The broker removes the queue once its last consumer disconnects, and a queue that never gets a consumer is removed when the expiry elapses. The default expiry is 30 minutes; pass a `TimeSpan` to `Temporary(...)` to choose a different one:
 
-If the queue is already explicitly declared as durable or non-auto-delete, for example through `DeclareQueue(...)` without matching settings, startup fails with an explicit configuration error instead of silently ignoring `Temporary()`.
+```csharp
+transport.Queue($"tenant-events-{instanceId}")
+    .Temporary(TimeSpan.FromMinutes(5))
+    .Receives<TenantEvent>();
+```
+
+RabbitMQ 4.3 and later deny non-durable, non-exclusive queues by default. Temporary queues and the transport's per-instance reply queue are declared durable and pass that check.
+
+If the queue is already explicitly declared without auto-delete, for example through `DeclareQueue(...)`, startup fails with an explicit configuration error instead of silently ignoring `Temporary()`.
 
 # Control auto-provisioning
 
