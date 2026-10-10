@@ -1554,11 +1554,6 @@ public static class SymbolExtensions
 
     public static ResolverResultKind GetResultKind(this IMethodSymbol method)
     {
-        const string task = $"{WellKnownTypes.Task}<";
-        const string valueTask = $"{WellKnownTypes.ValueTask}<";
-        const string taskEnumerable = $"{WellKnownTypes.Task}<{WellKnownTypes.AsyncEnumerable}<";
-        const string valueTaskEnumerable = $"{WellKnownTypes.ValueTask}<{WellKnownTypes.AsyncEnumerable}<";
-
         if (method.ReturnsVoid || method.ReturnsByRef || method.ReturnsByRefReadonly)
         {
             return ResolverResultKind.Invalid;
@@ -1571,14 +1566,9 @@ public static class SymbolExtensions
             return ResolverResultKind.Invalid;
         }
 
-        if (returnType.StartsWith(task) || returnType.StartsWith(valueTask))
+        if (TryGetTaskResultKind(returnType, out var taskResultKind))
         {
-            if (returnType.StartsWith(taskEnumerable) || returnType.StartsWith(valueTaskEnumerable))
-            {
-                return ResolverResultKind.TaskAsyncEnumerable;
-            }
-
-            return ResolverResultKind.Task;
+            return taskResultKind;
         }
 
         if (returnType.StartsWith(WellKnownTypes.Executable))
@@ -1597,6 +1587,39 @@ public static class SymbolExtensions
         }
 
         return ResolverResultKind.Pure;
+    }
+
+    public static ResolverResultKind GetResultKind(this IPropertySymbol property)
+    {
+        var type = property.Type.ToDisplayString();
+
+        if (TryGetTaskResultKind(type, out var taskResultKind))
+        {
+            return taskResultKind;
+        }
+
+        return type.StartsWith(WellKnownTypes.AsyncEnumerable)
+            ? ResolverResultKind.AsyncEnumerable
+            : ResolverResultKind.Pure;
+    }
+
+    private static bool TryGetTaskResultKind(string type, out ResolverResultKind resultKind)
+    {
+        const string task = $"{WellKnownTypes.Task}<";
+        const string valueTask = $"{WellKnownTypes.ValueTask}<";
+        const string taskEnumerable = $"{WellKnownTypes.Task}<{WellKnownTypes.AsyncEnumerable}<";
+        const string valueTaskEnumerable = $"{WellKnownTypes.ValueTask}<{WellKnownTypes.AsyncEnumerable}<";
+
+        if (type.StartsWith(task) || type.StartsWith(valueTask))
+        {
+            resultKind = type.StartsWith(taskEnumerable) || type.StartsWith(valueTaskEnumerable)
+                ? ResolverResultKind.TaskAsyncEnumerable
+                : ResolverResultKind.Task;
+            return true;
+        }
+
+        resultKind = default;
+        return false;
     }
 
     public static bool IsListType(this ISymbol member, [NotNullWhen(true)] out string? elementType)

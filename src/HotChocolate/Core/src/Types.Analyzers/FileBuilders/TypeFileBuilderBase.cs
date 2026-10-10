@@ -1547,23 +1547,47 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     private void WritePropertyResolver(Resolver resolver)
     {
+        var isAwaited = resolver.ResultKind is ResolverResultKind.Task or ResolverResultKind.TaskAsyncEnumerable;
+        var isAsync = isAwaited || resolver.ResultKind is ResolverResultKind.AsyncEnumerable;
+
         Writer.WriteMethod(
             "public",
             returnType: WellKnownTypes.FieldResolverDelegates,
             methodName: $"{resolver.Member.Name}",
             [],
             string.Format(
-                "new global::{0}(pureResolver: {1})",
+                "new global::{0}({1}: {2})",
                 WellKnownTypes.FieldResolverDelegates,
+                isAsync ? "resolver" : "pureResolver",
                 resolver.Member.Name));
 
         Writer.WriteLine();
 
-        Writer.WriteIndentedLine(
-            "private global::{0}? {1}(global::{2} context)",
-            WellKnownTypes.Object,
-            resolver.Member.Name,
-            WellKnownTypes.ResolverContext);
+        if (isAsync)
+        {
+            Writer.WriteIndented("private ");
+
+            if (isAwaited)
+            {
+                Writer.Write("async ");
+            }
+
+            Writer.WriteLine(
+                "global::{0}<global::{1}?> {2}(global::{3} context)",
+                WellKnownTypes.ValueTask,
+                WellKnownTypes.Object,
+                resolver.Member.Name,
+                WellKnownTypes.ResolverContext);
+        }
+        else
+        {
+            Writer.WriteIndentedLine(
+                "private global::{0}? {1}(global::{2} context)",
+                WellKnownTypes.Object,
+                resolver.Member.Name,
+                WellKnownTypes.ResolverContext);
+        }
+
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
@@ -1571,11 +1595,21 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             var receiver = resolver.IsStatic ? typeName : GetInstanceReceiver(typeName);
 
             Writer.WriteIndentedLine(
-                "var result = {0}.{1};",
+                isAwaited ? "var result = await {0}.{1};" : "var result = {0}.{1};",
                 receiver,
                 resolver.Member.Name);
 
-            Writer.WriteIndentedLine("return result;");
+            if (isAsync && !isAwaited)
+            {
+                Writer.WriteIndentedLine(
+                    "return new global::{0}<global::{1}?>(result);",
+                    WellKnownTypes.ValueTask,
+                    WellKnownTypes.Object);
+            }
+            else
+            {
+                Writer.WriteIndentedLine("return result;");
+            }
         }
 
         Writer.WriteIndentedLine("}");

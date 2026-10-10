@@ -153,7 +153,28 @@ public sealed class ConnectionTypeInfo
             switch (member)
             {
                 case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
-                    resolvers.Add(CreateResolver(compilation, runtimeType, method, connectionName));
+                    var methodFlags = FieldFlags.None;
+
+                    if (method.Name.Equals("GetEdgesAsync", StringComparison.Ordinal))
+                    {
+                        methodFlags |= FieldFlags.ConnectionEdgesField;
+                    }
+                    else if (method.Name.Equals("GetNodesAsync", StringComparison.Ordinal))
+                    {
+                        methodFlags |= FieldFlags.ConnectionNodesField;
+                    }
+                    else if (method.Name.Equals("GetTotalCountAsync", StringComparison.Ordinal))
+                    {
+                        methodFlags |= FieldFlags.TotalCount;
+                    }
+
+                    resolvers.Add(
+                        CreateResolver(
+                            compilation,
+                            runtimeType,
+                            method,
+                            methodFlags,
+                            connectionName));
                     break;
 
                 case IPropertySymbol property:
@@ -178,7 +199,7 @@ public sealed class ConnectionTypeInfo
                             property,
                             compilation.GetDescription(property),
                             compilation.GetDeprecationReason(property),
-                            ResolverResultKind.Pure,
+                            property.GetResultKind(),
                             [],
                             GetMemberBindings(property),
                             compilation.CreateTypeReference(property),

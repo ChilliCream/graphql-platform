@@ -58,7 +58,7 @@ public class StreamPageConnection<TNode>
     /// The token that cancels the enumeration.
     /// </param>
     [GraphQLDescription("A flattened list of the nodes")]
-    public async IAsyncEnumerable<TNode>? GetNodesAsync(
+    public virtual async IAsyncEnumerable<TNode>? GetNodesAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await foreach (var node in _page.WithCancellation(cancellationToken).ConfigureAwait(false))
