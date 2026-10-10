@@ -5,9 +5,11 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate;
 
@@ -37,6 +39,8 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeInterceptors.TryAdd(new StoreGlobalPagingOptionsTypeInterceptor());
         typeInterceptors.TryAdd(new StoreGlobalSchemaOptionsTypeInterceptor());
         typeInterceptors.TryAdd(new OptInFeaturesTypeInterceptor());
+        typeInterceptors.TryAdd(new PageInfoShareableTypeInterceptor());
+        typeInterceptors.TryAdd(new PageInfoRelativeCursorFieldsTypeInterceptor());
 
         Features.Set(typeInterceptors);
     }

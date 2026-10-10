@@ -132,7 +132,7 @@ internal sealed class ConnectionType
         TypeSystemConfiguration configuration)
     {
         context.Dependencies.Add(new TypeDependency(
-            context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
+            context.TypeInspector.GetOutputTypeRef(typeof(PageInfo))));
 
         if (context.DescriptorContext.Options.ApplyShareableToConnections)
         {
@@ -172,7 +172,7 @@ internal sealed class ConnectionType
             new ObjectFieldConfiguration(
                 Names.PageInfo,
                 ConnectionType_PageInfo_Description,
-                TypeReference.Parse("PageInfo!"),
+                TypeReference.Parse(PageInfo.Names.PageInfo + "!"),
                 pureResolver: GetPagingInfo));
 
         definition.Fields.Add(

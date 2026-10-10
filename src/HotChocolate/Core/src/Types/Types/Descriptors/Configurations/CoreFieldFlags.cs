@@ -53,5 +53,16 @@ internal enum CoreFieldFlags : long
     HasPureResolver = 1L << 37,
     AlwaysProjected = 1L << 38,
     NotProjected = 1L << 39,
-    HasProjectionMiddleware = 1L << 40
+    HasProjectionMiddleware = 1L << 40,
+
+    /// <summary>
+    /// The field is not treated as a data resolver for automatic default directives.
+    /// Its reads are bounded and pre-paid by the connection that produced it.
+    /// </summary>
+    NotDataResolver = 1L << 41,
+
+    /// <summary>
+    /// The field exists on the schema only when relative cursors are enabled globally or on at least one field.
+    /// </summary>
+    RelativeCursorField = 1L << 42
 }

@@ -175,6 +175,11 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
+                if ((fieldDef.Flags & CoreFieldFlags.NotDataResolver) == CoreFieldFlags.NotDataResolver)
+                {
+                    continue;
+                }
+
                 if ((fieldDef.PureResolver is null
                         || (fieldDef.Flags & CoreFieldFlags.TotalCount) == CoreFieldFlags.TotalCount)
                     && _options.DefaultResolverCost.HasValue

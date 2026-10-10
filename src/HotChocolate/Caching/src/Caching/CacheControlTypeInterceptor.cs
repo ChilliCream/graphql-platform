@@ -74,6 +74,12 @@ internal sealed class CacheControlTypeInterceptor(
                 continue;
             }
 
+            if ((field.Flags & CoreFieldFlags.NotDataResolver) == CoreFieldFlags.NotDataResolver)
+            {
+                // Fields that are not data resolvers receive no defaults.
+                continue;
+            }
+
             if (HasCacheControlDirective(field))
             {
                 // If the field has a @cacheControl directive,

@@ -413,6 +413,34 @@ public class HttpCachingTests : ServerTestBase
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task PageInfo_Should_NotLowerMaxAge_When_SelectedOnClassicConnection()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .AddQueryType<PagingQuery>();
+        });
+
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.PostQueryAsync("{ products { pageInfo { hasNextPage endCursor } } }");
+
+        // assert
+        result.MatchSnapshot();
+    }
+}
+
+public class PagingQuery
+{
+    [UsePaging]
+    [CacheControl(500)]
+    public IEnumerable<int> GetProducts() => [1, 2, 3];
 }
 
 public class GraphQLResult
