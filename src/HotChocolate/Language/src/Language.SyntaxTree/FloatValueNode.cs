@@ -126,7 +126,6 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         Location = location;
         _memorySegment = value;
         Format = format;
-        _state = State.Text;
     }
 
     private FloatValueNode(Location? location, FloatValueNode original)
@@ -358,9 +357,9 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     private enum State : byte
     {
         /// <summary>
-        /// The node holds parsed text.
+        /// The node holds parsed text. A new node starts in this state.
         /// </summary>
-        Text,
+        Text = 0,
 
         /// <summary>
         /// The node holds parsed text and the double it was parsed into.

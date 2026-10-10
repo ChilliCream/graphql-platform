@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language.Properties;
@@ -130,8 +131,7 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment.Span;
         }
 
-        var value = _value;
-        return value is Utf8Value utf8Value ? utf8Value.Utf8 : Encode(value).Utf8;
+        return GetUtf8();
     }
 
     public ReadOnlyMemorySegment AsMemorySegment()
@@ -141,8 +141,17 @@ public sealed class EnumValueNode : IValueNode<string>
             return _memorySegment;
         }
 
+        return new ReadOnlyMemorySegment(GetUtf8());
+    }
+
+    /// <summary>
+    /// Gets the UTF-8 bytes of a node built from a string, encoding them on first use.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private byte[] GetUtf8()
+    {
         var value = _value;
-        return new ReadOnlyMemorySegment(value is Utf8Value utf8Value ? utf8Value.Utf8 : Encode(value).Utf8);
+        return value is Utf8Value utf8Value ? utf8Value.Utf8 : Encode(value).Utf8;
     }
 
     private string GetValue(object? value)

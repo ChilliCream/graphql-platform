@@ -65,7 +65,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     {
         Location = location;
         _memorySegment = value;
-        _hasMemorySegment = !value.IsEmpty;
+        _hasMemorySegment = true;
         Block = block;
     }
 
