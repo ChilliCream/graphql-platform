@@ -36,6 +36,9 @@ public sealed class MessagingRuntime(
     IEndpointRouter endpointRouter,
     IFeatureCollection features) : IMessagingRuntime, IAsyncDisposable
 {
+    private bool _stopped;
+    private bool _disposed;
+
     /// <inheritdoc />
     public IServiceProvider Services => services;
 
@@ -122,8 +125,14 @@ public sealed class MessagingRuntime(
     /// Starts all registered transports and their receive endpoints, enabling message consumption.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the runtime has been stopped.</exception>
     public async ValueTask StartAsync(CancellationToken cancellationToken)
     {
+        if (_stopped)
+        {
+            throw ThrowHelper.RuntimeStopped();
+        }
+
         if (IsStarted)
         {
             return;
@@ -137,14 +146,53 @@ public sealed class MessagingRuntime(
         IsStarted = true;
     }
 
+    /// <summary>
+    /// Stops the started transports so their receive endpoints stop consuming messages. A stopped
+    /// runtime cannot be started again.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the shutdown operations.</param>
+    public async ValueTask StopAsync(CancellationToken cancellationToken)
+    {
+        _stopped = true;
+
+        foreach (var transport in transports)
+        {
+            if (transport.IsStarted)
+            {
+                await transport.StopAsync(this, cancellationToken);
+            }
+        }
+
+        IsStarted = false;
+    }
+
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        foreach (var consumer in consumers)
+        if (_disposed)
         {
-            await consumer.DisposeAsync();
+            return;
         }
 
-        _changeTokenSource?.Dispose();
+        _disposed = true;
+
+        try
+        {
+            await StopAsync(CancellationToken.None);
+        }
+        finally
+        {
+            foreach (var consumer in consumers)
+            {
+                await consumer.DisposeAsync();
+            }
+
+            foreach (var transport in transports)
+            {
+                await transport.DisposeAsync();
+            }
+
+            _changeTokenSource?.Dispose();
+        }
     }
 }

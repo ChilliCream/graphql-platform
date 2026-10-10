@@ -419,7 +419,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    protected override async ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
+    protected override async ValueTask OnAfterStopAsync(CancellationToken cancellationToken)
     {
         await _backgroundTasks.DisposeAsync();
 

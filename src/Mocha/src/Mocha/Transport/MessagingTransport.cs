@@ -245,6 +245,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             await endpoint.StopAsync(context, cancellationToken);
         }
 
+        await OnAfterStopAsync(cancellationToken);
+
         IsStarted = false;
     }
 
@@ -265,6 +267,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the pre-stop operation.</param>
     protected virtual ValueTask OnBeforeStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+
+    /// <summary>
+    /// Called after receive endpoints are stopped, allowing derived transports to release resources
+    /// that the endpoints use while stopping.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the post-stop operation.</param>
+    protected virtual ValueTask OnAfterStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
     /// <summary>
     /// Creates the transport-specific configuration from the setup context during the bus build phase.
