@@ -19,8 +19,7 @@ public class ScalarTypeInputValueToLiteralTests
 
         // assert
         Assert.Equal("42", Assert.IsType<IntValueNode>(literal).ToString());
-        var feature = Assert.Single(context.Features);
-        Assert.Equal("Utf8MemoryBuilder", feature.Key.Name);
+        Assert.IsType<Utf8MemoryBuilder>(Assert.Single(context.Features).Value);
     }
 
     [Fact]
@@ -31,14 +30,14 @@ public class ScalarTypeInputValueToLiteralTests
         using var document = JsonDocument.Parse("[1, 2]");
         var context = new FeatureProviderStub();
         type.InputValueToLiteral(document.RootElement[0], context);
-        var builder = Assert.Single(context.Features).Value;
+        var builder = context.Features.Get<Utf8MemoryBuilder>();
 
         // act
         var literal = type.InputValueToLiteral(document.RootElement[1], context);
 
         // assert
         Assert.Equal("2", Assert.IsType<IntValueNode>(literal).ToString());
-        Assert.Same(builder, Assert.Single(context.Features).Value);
+        Assert.Same(builder, context.Features.Get<Utf8MemoryBuilder>());
     }
 
     private sealed class FeatureProviderStub : IFeatureProvider
