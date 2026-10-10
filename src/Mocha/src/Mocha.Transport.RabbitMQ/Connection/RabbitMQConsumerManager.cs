@@ -374,9 +374,9 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            await DisconnectAsync(CancellationToken.None);
             Manager.RemoveConsumer(this);
             await _consumerCts.CancelAsync();
+            await DisconnectAsync(CancellationToken.None);
             _consumerCts.Dispose();
         }
     }
