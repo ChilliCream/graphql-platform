@@ -21,3 +21,10 @@ public interface IOperationRequestFactory
     /// </returns>
     OperationRequest Create(IReadOnlyDictionary<string, object?>? variables);
 }
+
+public interface IOperationRequestFactory<out T> : IOperationRequestFactory
+{
+    T With(Action<OperationRequest> configure);
+    T WithRequestUri(Uri requestUri);
+    T WithHttpClient(HttpClient httpClient);
+}
