@@ -2,7 +2,9 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -387,13 +389,14 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
         private readonly string _schemaName;
-        private readonly IAsyncEnumerator<SourceSchemaResult> _eventEnumerator;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
         private readonly CancellationToken _cancellationToken;
-        private readonly IDisposable _subscriptionScope;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
         private readonly SubscriptionArenaSource _eventArenaSource = new();
-        private readonly ISourceSchemaClientScope _clientScope;
+        private IAsyncEnumerator<SourceSchemaResult>? _eventEnumerator;
+        private IDisposable? _subscriptionScope;
+        private ISourceSchemaClientScope? _clientScope;
+        private IDisposable? _clientScopeBorrow;
         private bool _completed;
         private bool _disposed;
 
@@ -412,13 +415,10 @@ public sealed class OperationExecutionNode : ExecutionNode
             _subscriptionId = subscriptionId;
             _diagnosticEvents = diagnosticEvents;
             _cancellationToken = cancellationToken;
-            _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
-
-            _clientScope = context.RequestContext.CreateClientScope();
-            _eventEnumerator = _clientScope.GetClient(schemaName, request.OperationType)
-                .SubscribeAsync(context, request, cancellationToken)
-                .GetAsyncEnumerator(cancellationToken);
+            Request = request;
         }
+
+        private SourceSchemaClientRequest Request { get; }
 
         public EventMessageResult Current { get; private set; } = null!;
 
@@ -431,28 +431,29 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             bool hasResult;
-            var received = false;
             var arenaBound = false;
+            SourceSchemaResult? eventResult = null;
             IDisposable? scope = null;
+            var scopeTransferred = false;
             long? start = null;
             var arenaBefore = _eventArenaSource.Arena;
 
             try
             {
+                await EnsureInitializedAsync();
                 _context.SetActiveEventArenaSource(_eventArenaSource);
-                hasResult = await _eventEnumerator.MoveNextAsync();
+                hasResult = await _eventEnumerator!.MoveNextAsync();
 
                 // From here the event arena is owned by this enumerator: the source has marked it
                 // transferred and it finally will no longer dispose it. If anything between here and
                 // the event arena being bound and registered as the active arena throws, the arena
                 // must be disposed on the failure path below.
-                received = hasResult;
-
                 if (hasResult)
                 {
                     scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
                     start = Stopwatch.GetTimestamp();
-                    _resultBuffer[0] = _eventEnumerator.Current;
+                    eventResult = _eventEnumerator.Current;
+                    _resultBuffer[0] = eventResult;
 
                     // Bind the event arena as the active arena before adding the event's result, so the
                     // event document and the result built for it share one arena and that arena travels
@@ -473,96 +474,232 @@ public sealed class OperationExecutionNode : ExecutionNode
                         Stopwatch.GetTimestamp(),
                         Exception: null,
                         VariableValueSets: _context.GetVariableValueSets(_node));
+                    scopeTransferred = true;
                     return true;
                 }
             }
             catch (Exception exception)
             {
-                // An event was received but its result was never delivered, so dispose the parsed
-                // result document to return its pooled tracking arrays.
-                if (received)
+                try
                 {
-                    _eventEnumerator.Current.Dispose();
-                }
+                    // An event was received but its result was never delivered, so dispose the parsed
+                    // result document to return its pooled tracking arrays.
+                    eventResult?.Dispose();
 
-                // An arena minted during this failed iteration is owned by this enumerator until it
-                // is bound as the active event arena. An arena carried over from a prior delivered
-                // event is still owned by that result.
-                var arena = _eventArenaSource.Arena;
-                var arenaMinted = !ReferenceEquals(arena, arenaBefore);
+                    // An arena minted during this failed iteration is owned by this enumerator until it
+                    // is bound as the active event arena. An arena carried over from a prior delivered
+                    // event is still owned by that result.
+                    var arena = _eventArenaSource.Arena;
+                    var arenaMinted = !ReferenceEquals(arena, arenaBefore);
 
-                // A cancellation signalled on the subscription token while the transport read
-                // was in flight (client abort or shutdown) is the same graceful teardown as
-                // observing the token before the read, not a subscription event error.
-                if (exception is OperationCanceledException
-                    && _cancellationToken.IsCancellationRequested)
-                {
-                    if (arenaMinted)
+                    // A cancellation signalled on the subscription token while the transport read
+                    // was in flight (client abort or shutdown) is the same graceful teardown as
+                    // observing the token before the read, not a subscription event error.
+                    if (exception is OperationCanceledException
+                        && _cancellationToken.IsCancellationRequested)
                     {
-                        ((IDisposable)arena).Dispose();
+                        if (arenaMinted)
+                        {
+                            DisposeArena(arena);
+                        }
+
+                        _completed = true;
+                        Current = null!;
+                        return false;
                     }
 
-                    scope?.Dispose();
+                    // Any other failure ends the subscription with a single terminal error result. The
+                    // error result is built on its own event arena, like every delivered event, so the
+                    // arena travels with that result. A minted arena that was never bound is released
+                    // and replaced by a fresh one; a bound arena stays the active arena.
                     _completed = true;
-                    Current = null!;
-                    return false;
-                }
 
-                // Any other failure ends the subscription with a single terminal error result. The
-                // error result is built on its own event arena, like every delivered event, so the
-                // arena travels with that result. A minted arena that was never bound is released
-                // and replaced by a fresh one; a bound arena stays the active arena.
-                _completed = true;
-
-                if (!arenaBound)
-                {
-                    if (arenaMinted)
+                    if (!arenaBound)
                     {
-                        ((IDisposable)arena).Dispose();
+                        if (arenaMinted)
+                        {
+                            DisposeArena(arena);
+                        }
+
+                        _context.SetActiveEventArena(_eventArenaSource.GetNextArena());
                     }
 
-                    _context.SetActiveEventArena(_eventArenaSource.GetNextArena());
+                    _context.DiagnosticEvents.SubscriptionEventError(
+                        _context,
+                        _node,
+                        _schemaName,
+                        _subscriptionId,
+                        exception);
+                    _context.AddErrors(
+                        ErrorBuilder.FromException(exception).Build(),
+                        _node._resultSelectionSet,
+                        Path.Root);
+
+                    Current = new EventMessageResult(
+                        _node.Id,
+                        Activity.Current,
+                        ExecutionStatus.Failed,
+                        scope ?? Disposable.Empty,
+                        start ?? Stopwatch.GetTimestamp(),
+                        Stopwatch.GetTimestamp(),
+                        Exception: exception,
+                        VariableValueSets: _context.GetVariableValueSets(_node));
+                    scopeTransferred = true;
+                    return true;
                 }
-
-                _context.DiagnosticEvents.SubscriptionEventError(
-                    _context,
-                    _node,
-                    _schemaName,
-                    _subscriptionId,
-                    exception);
-                _context.AddErrors(
-                    ErrorBuilder.FromException(exception).Build(),
-                    _node._resultSelectionSet,
-                    Path.Root);
-
-                Current = new EventMessageResult(
-                    _node.Id,
-                    Activity.Current,
-                    ExecutionStatus.Failed,
-                    scope ?? Disposable.Empty,
-                    start ?? Stopwatch.GetTimestamp(),
-                    Stopwatch.GetTimestamp(),
-                    Exception: exception,
-                    VariableValueSets: _context.GetVariableValueSets(_node));
-                return true;
+                finally
+                {
+                    DisposeUntransferredScope(scope, scopeTransferred);
+                    await DisposeResourcesAsync();
+                }
             }
 
             _completed = true;
             Current = null!;
+            var cleanupException = await DisposeResourcesAsync();
+            if (cleanupException is not null)
+            {
+                ExceptionDispatchInfo.Capture(cleanupException).Throw();
+            }
+
             return false;
         }
 
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            var cleanupException = await DisposeResourcesAsync();
+            if (cleanupException is not null)
+            {
+                ExceptionDispatchInfo.Capture(cleanupException).Throw();
+            }
+        }
+
+        private async ValueTask EnsureInitializedAsync()
+        {
+            if (_eventEnumerator is not null)
             {
                 return;
             }
 
+            try
+            {
+                _subscriptionScope = _diagnosticEvents.ExecuteSubscription(
+                    _context.RequestContext,
+                    _subscriptionId);
+                _clientScope = _context.RequestContext.CreateClientScope();
+                _clientScopeBorrow = _context.BorrowClientScope(_clientScope);
+                _eventEnumerator = _clientScope.GetClient(_schemaName, Request.OperationType)
+                    .SubscribeAsync(_context, Request, _cancellationToken)
+                    .GetAsyncEnumerator(_cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                await DisposeResourcesAsync();
+                ExceptionDispatchInfo.Capture(exception).Throw();
+                throw;
+            }
+        }
+
+        private static void DisposeUntransferredScope(IDisposable? scope, bool scopeTransferred)
+        {
+            if (scope is null || scopeTransferred)
+            {
+                return;
+            }
+
+            try
+            {
+                scope.Dispose();
+            }
+            catch
+            {
+                // The event failure is the terminal error reported to the caller.
+            }
+        }
+
+        private static void DisposeArena(IMemoryArena arena)
+        {
+            try
+            {
+                ((IDisposable)arena).Dispose();
+            }
+            catch
+            {
+                // The event failure is the terminal error reported to the caller.
+            }
+        }
+
+        private async ValueTask<Exception?> DisposeResourcesAsync()
+        {
+            if (_disposed)
+            {
+                return null;
+            }
+
             _disposed = true;
-            await _eventEnumerator.DisposeAsync();
-            _subscriptionScope.Dispose();
-            await _clientScope.DisposeAsync();
+            Exception? exception = null;
+
+            var eventEnumerator = _eventEnumerator;
+            _eventEnumerator = null;
+
+            if (eventEnumerator is not null)
+            {
+                try
+                {
+                    await eventEnumerator.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+            }
+
+            var subscriptionScope = _subscriptionScope;
+            _subscriptionScope = null;
+
+            if (subscriptionScope is not null)
+            {
+                try
+                {
+                    subscriptionScope.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    exception ??= ex;
+                }
+            }
+
+            var clientScopeBorrow = _clientScopeBorrow;
+            _clientScopeBorrow = null;
+
+            if (clientScopeBorrow is not null)
+            {
+                try
+                {
+                    clientScopeBorrow.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    exception ??= ex;
+                }
+            }
+
+            var clientScope = _clientScope;
+            _clientScope = null;
+
+            if (clientScope is not null)
+            {
+                try
+                {
+                    await clientScope.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    exception ??= ex;
+                }
+            }
+
+            return exception;
         }
     }
 }

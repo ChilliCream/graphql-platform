@@ -1,6 +1,14 @@
+#if FUSION
+using HotChocolate.Fusion.Transport.Serialization;
+#else
 using HotChocolate.Transport.Serialization;
+#endif
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
+#endif
 
 internal static class Utf8MessageProperties
 {

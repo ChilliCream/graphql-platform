@@ -1,6 +1,10 @@
 using System.Net.WebSockets;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
+#endif
 
 internal sealed class ConnectionMessageObserver<TConnectMessage> : IObserver<IOperationMessage>, IDisposable
 {
