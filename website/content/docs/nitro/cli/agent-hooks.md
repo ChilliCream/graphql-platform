@@ -1,11 +1,11 @@
 ---
 title: agent hooks Command
-description: "Wire a coding harness (Claude Code, Codex CLI, or Opencode) into Nitro's turn-boundary hooks with the `nitro agent hooks` commands: install, status, and uninstall, per harness."
+description: "Wire a coding harness (Claude Code, Codex CLI, Opencode, or Venti) into Nitro's turn-boundary hooks with the `nitro agent hooks` commands: install, status, and uninstall, per harness."
 ---
 
 The `nitro agent hooks` commands install, inspect, and remove the turn-boundary hook entries that connect a coding harness to Nitro. Once installed, three things happen automatically inside a coding session:
 
-- **Actor identity**: Claude Code and Codex CLI announce the session's actor name and role at `SessionStart`; Opencode announces it on the session's first chat message.
+- **Actor identity**: Claude Code, Codex CLI, and Venti announce the session's actor name and role at `SessionStart`; Opencode announces it on the session's first chat message.
 - **Unread-mail digests**: a prompt sent while `nitro agent mail` has unread messages for the session's actor is prefixed with a nudge naming how many are unread.
 - **Idle wake and delivery**: a session that goes idle with mail still unread is pushed a delivery.
 
@@ -15,6 +15,7 @@ Each harness wires these in differently. `nitro agent hooks <harness>` is a sibl
 nitro agent hooks claude install
 nitro agent hooks codex install
 nitro agent hooks opencode install
+nitro agent hooks venti install
 ```
 
 # Claude Code
@@ -191,6 +192,74 @@ Same `--scope` and `--output` options as `install`.
 ```shell
 nitro agent hooks opencode uninstall
 nitro agent hooks opencode uninstall --scope project
+```
+
+# Venti
+
+Venti hook entries live in a `settings.json` file and cover five events: `SessionStart`, `UserPromptSubmit`, `Stop`, `Notification`, and `SessionEnd`. Each entry runs `nitro agent hook venti <event>`. The `Stop` entry is a hard gate: it can block the turn from ending, up to three times per turn, until unread mail is read, resetting on the next `UserPromptSubmit`. The `Notification` entry only refreshes the agent's last-seen time, and only when Venti's `notification_type` is `idle_prompt`.
+
+`install` and `uninstall` only ever touch the entries Nitro itself owns; hook entries another tool added for the same event are left in place.
+
+Restart Venti after installing or uninstalling hooks. For project-scoped hooks, start Venti from the directory where you ran `install`.
+
+## `nitro agent hooks venti install`
+
+Add or update this CLI's Venti turn-boundary hook entries.
+
+```shell
+nitro agent hooks venti install
+```
+
+### Options
+
+| Option                    | Description                                                                                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--scope <project\|user>` | Where the settings file lives: `user` (`~/.venti/settings.json`) or `project` (`.venti/settings.json` in the current directory, inside a workspace). Default: `user`. |
+| `--output <json>`         | The output format. Setting `json` also enables non-interactive mode (see [Global Options](./global-options.md)).                                                      |
+
+### Examples
+
+```shell
+nitro agent hooks venti install
+nitro agent hooks venti install --scope project
+```
+
+## `nitro agent hooks venti status`
+
+Show whether this CLI's Venti hook entries are missing, current, or outdated.
+
+```shell
+nitro agent hooks venti status
+```
+
+### Options
+
+Same `--scope` and `--output` options as `install`.
+
+### Examples
+
+```shell
+nitro agent hooks venti status
+nitro agent hooks venti status --scope project
+```
+
+## `nitro agent hooks venti uninstall`
+
+Remove this CLI's Venti turn-boundary hook entries.
+
+```shell
+nitro agent hooks venti uninstall
+```
+
+### Options
+
+Same `--scope` and `--output` options as `install`.
+
+### Examples
+
+```shell
+nitro agent hooks venti uninstall
+nitro agent hooks venti uninstall --scope project
 ```
 
 # Caveats

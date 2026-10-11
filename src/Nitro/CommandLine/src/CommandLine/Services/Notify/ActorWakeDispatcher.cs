@@ -230,7 +230,7 @@ internal sealed class ActorWakeDispatcher(
             }
 
             if (row.EndpointKind is AgentSessionEndpointKind.ClaudePeer or AgentSessionEndpointKind.OpencodeServer
-                && row.SessionId is null)
+                && (row.SessionId is null || row.Harness is null))
             {
                 return await RecordSkippedAsync(batchId, target, ownerId, batchAttemptId, "unreachable");
             }
@@ -277,15 +277,17 @@ internal sealed class ActorWakeDispatcher(
 
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
-                var outcome = (row.EndpointKind, row.SessionId) switch
+                var outcome = (row.EndpointKind, row.Harness, row.SessionId) switch
                 {
-                    (AgentSessionEndpointKind.ClaudePeer, { } sessionId) => await executor.ExecuteClaudePeerAsync(
-                        target, sessionId, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
-                    (AgentSessionEndpointKind.CodexThread, _) => await executor.ExecuteCodexThreadAsync(
+                    (AgentSessionEndpointKind.ClaudePeer, { } harness, { } sessionId) =>
+                        await executor.ExecuteClaudePeerAsync(
+                            target, harness, sessionId, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
+                    (AgentSessionEndpointKind.CodexThread, _, _) => await executor.ExecuteCodexThreadAsync(
                         target, row.EndpointAddr, pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
-                    (AgentSessionEndpointKind.OpencodeServer, { } sessionId) => await executor.ExecuteOpencodeServerAsync(
-                        target, sessionId, row.EndpointAddr, row.EndpointSecret, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken),
+                    (AgentSessionEndpointKind.OpencodeServer, _, { } sessionId) =>
+                        await executor.ExecuteOpencodeServerAsync(
+                            target, sessionId, row.EndpointAddr, row.EndpointSecret, pingAttemptId, held.Slot,
+                            attemptDeadline, dispatchToken),
                     _ => throw new UnreachableException(
                         $"Endpoint kind '{row.EndpointKind}' passed the earlier supported-kind guard.")
                 };

@@ -1,7 +1,7 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Claude;
 
@@ -13,28 +13,36 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Claude;
 /// </summary>
 internal sealed class UninstallClaudeHooksCommand : Command
 {
-    public UninstallClaudeHooksCommand() : base("uninstall")
+    public UninstallClaudeHooksCommand(ClaudeHooksTemplate template, Option<string> scopeOption) : base("uninstall")
     {
-        Description = "Remove this CLI's Claude Code turn-boundary hook entries.";
+        Description = $"Remove this CLI's {AgentHarnessDisplay.Name(template.Harness)} "
+            + "turn-boundary hook entries.";
 
-        Options.Add(Opt<HookInstallScopeOption>.Instance);
+        Options.Add(scopeOption);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent hooks claude uninstall", "agent hooks claude uninstall --scope project");
+        this.AddExamples(
+            $"agent hooks {template.CommandName} uninstall",
+            $"agent hooks {template.CommandName} uninstall --scope project");
 
-        this.SetActionWithExceptionHandling(ExecuteAsync);
+        this.SetActionWithExceptionHandling(
+            (services, parseResult, cancellationToken) =>
+                ExecuteAsync(services, parseResult, template, scopeOption, cancellationToken));
     }
 
     internal static async Task<int> ExecuteAsync(
         ICommandServices services,
         ParseResult parseResult,
+        ClaudeHooksTemplate template,
+        Option<string> scopeOption,
         CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<INitroConsole>();
-        var installer = services.GetRequiredService<IClaudeHooksInstallerService>();
+        var installer = services.GetRequiredKeyedService<IClaudeHooksInstallerService>(template.Harness);
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var scope = parseResult.GetRequiredValue(Opt<HookInstallScopeOption>.Instance);
+        var scope = parseResult.GetRequiredValue(scopeOption);
+        var harnessName = AgentHarnessDisplay.Name(template.Harness);
 
         var report = await installer.UninstallAsync(scope, cancellationToken);
 
@@ -44,7 +52,7 @@ internal sealed class UninstallClaudeHooksCommand : Command
             return ExitCodes.Success;
         }
 
-        console.OkLine($"Removed Nitro's Claude Code hooks from '{report.SettingsPath.EscapeMarkup()}'.");
+        console.OkLine($"Removed Nitro's {harnessName} hooks from '{report.SettingsPath.EscapeMarkup()}'.");
 
         foreach (var eventResult in report.Events)
         {
@@ -63,9 +71,9 @@ internal sealed class UninstallClaudeHooksCommand : Command
 
     private static HooksUninstallResult ToResult(ClaudeHooksUninstallReport report) => new(
         report.SettingsPath,
-        [.. report.Events.Select(e => new HookEventResult(e.Event, e.Outcome.ToString()))]);
+        [.. report.Events.Select(e => new HookEventUninstallResult(e.Event, e.Outcome.ToString()))]);
 
-    public sealed record HookEventResult(string Event, string Outcome);
+    public sealed record HookEventUninstallResult(string Event, string Outcome);
 
-    public sealed record HooksUninstallResult(string SettingsPath, IReadOnlyList<HookEventResult> Events);
+    public sealed record HooksUninstallResult(string SettingsPath, IReadOnlyList<HookEventUninstallResult> Events);
 }

@@ -4,20 +4,21 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 
 /// <summary>
-/// Binds a Claude hook command to stdin payload handling through
-/// <see cref="ClaudeHookExecutor"/>.
+/// Binds a Claude-shaped hook command to stdin payload handling through
+/// <see cref="ClaudeHookExecutor"/> and the hook handler registered for its harness.
 /// </summary>
 internal static class ClaudeHookCommandExtensions
 {
     public static Command SetHookAction(
         this Command command,
+        string harness,
         string hookEventName,
         Func<IClaudeHookHandler, ClaudeHookPayload, CancellationToken, Task<ClaudeHookOutcome>> handle)
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
             var services = CommandExecutionContext.Services;
-            var handler = services.GetRequiredService<IClaudeHookHandler>();
+            var handler = services.GetRequiredKeyedService<IClaudeHookHandler>(harness);
             var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
             return await ClaudeHookExecutor.RunAsync(
                 environmentVariables,

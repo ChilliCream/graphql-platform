@@ -1,15 +1,21 @@
+using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Claude;
 
+/// <summary>
+/// Groups the turn-boundary hook adapters of one harness speaking Claude Code's hook contract.
+/// </summary>
 internal sealed class ClaudeHookCommand : Command
 {
-    public ClaudeHookCommand() : base("claude")
+    public ClaudeHookCommand(ClaudeHooksTemplate template) : base(template.CommandName)
     {
-        Description = "Adapt Claude Code turn-boundary hook events.";
+        Description = $"Adapt {AgentHarnessDisplay.Name(template.Harness)} turn-boundary hook events.";
 
-        Subcommands.Add(new SessionStartHookCommand());
-        Subcommands.Add(new UserPromptSubmitHookCommand());
-        Subcommands.Add(new StopHookCommand());
-        Subcommands.Add(new NotificationHookCommand());
-        Subcommands.Add(new SessionEndHookCommand());
+        Subcommands.Add(new SessionStartHookCommand(template));
+        Subcommands.Add(new UserPromptSubmitHookCommand(template));
+        Subcommands.Add(new StopHookCommand(template));
+        Subcommands.Add(new NotificationHookCommand(template));
+        Subcommands.Add(new SessionEndHookCommand(template));
     }
 }
