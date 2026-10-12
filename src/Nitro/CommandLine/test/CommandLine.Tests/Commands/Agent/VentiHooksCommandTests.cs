@@ -95,6 +95,18 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
                     ]
                   }
                 ],
+                "AgentNaming": [
+                  {
+                    "matcher": "main",
+                    "hooks": [
+                      {
+                        "type": "command",
+                        "command": "<nitro> agent hook venti agent-naming",
+                        "timeout": 10
+                      }
+                    ]
+                  }
+                ],
                 "SessionStart": [
                   {
                     "hooks": [
@@ -164,6 +176,7 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
         result.StdOut.Replace(SettingsPath, "<settings>").MatchInlineSnapshot(
             """
             ✓ Installed Venti hooks in '<settings>'.
+              AgentNaming       unchanged
               SessionStart      unchanged
               UserPromptSubmit  unchanged
               Stop              unchanged
@@ -188,12 +201,56 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
         result.StdOut.Replace(SettingsPath, "<settings>").MatchInlineSnapshot(
             """
             Venti hooks in '<settings>':
+              AgentNaming       installed
               SessionStart      installed
               UserPromptSubmit  installed
               Stop              installed
               Notification      installed
               SessionEnd        installed
             """);
+    }
+
+    [Fact]
+    public async Task Status_Should_ReportAgentNamingMissingAndFail_When_TheEntriesPredateIt()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "venti", "install", "--scope", "project");
+        var settings = JsonNode.Parse(
+            await File.ReadAllTextAsync(SettingsPath, TestContext.Current.CancellationToken))!;
+        settings["hooks"]!.AsObject().Remove("AgentNaming");
+        WriteSettings(settings.ToJsonString());
+
+        // act
+        var status = await ExecuteCommandAsync("agent", "hooks", "venti", "status", "--scope", "project");
+        var install = await ExecuteCommandAsync("agent", "hooks", "venti", "install", "--scope", "project");
+
+        // assert
+        Assert.Equal((1, 0), (status.ExitCode, install.ExitCode));
+        new[] { status.StdOut, install.StdOut }
+            .Select(output => output.Replace(SettingsPath, "<settings>"))
+            .MatchInlineSnapshots(
+            [
+                """
+                Venti hooks in '<settings>':
+                  AgentNaming       missing
+                  SessionStart      installed
+                  UserPromptSubmit  installed
+                  Stop              installed
+                  Notification      installed
+                  SessionEnd        installed
+                """,
+                """
+                ✓ Installed Venti hooks in '<settings>'.
+                  AgentNaming       installed
+                  SessionStart      unchanged
+                  UserPromptSubmit  unchanged
+                  Stop              unchanged
+                  Notification      unchanged
+                  SessionEnd        unchanged
+                """
+            ]);
     }
 
     [Fact]
@@ -389,6 +446,7 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
         ReplacePaths(result.StdOut).MatchInlineSnapshot(
             """
             ✓ Installed Venti hooks in '<settings>'.
+              AgentNaming       unchanged
               SessionStart      unchanged
               UserPromptSubmit  unchanged
               Stop              unchanged
@@ -414,6 +472,7 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
         ReplacePaths(result.StdOut).MatchInlineSnapshot(
             """
             Venti hooks in '<settings>':
+              AgentNaming       installed
               SessionStart      installed
               UserPromptSubmit  installed
               Stop              disabled
@@ -443,6 +502,7 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
         ReplacePaths(result.StdOut).MatchInlineSnapshot(
             """
             ✓ Installed Venti hooks in '<settings>'.
+              AgentNaming       unchanged
               SessionStart      unchanged
               UserPromptSubmit  unchanged
               Stop              disabled
@@ -506,6 +566,10 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
                   "settingsPath": "<settings>",
                   "events": [
                     {
+                      "event": "AgentNaming",
+                      "outcome": "Installed"
+                    },
+                    {
                       "event": "SessionStart",
                       "outcome": "Installed"
                     },
@@ -534,6 +598,11 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
                   "settingsPath": "<settings>",
                   "current": true,
                   "events": [
+                    {
+                      "event": "AgentNaming",
+                      "outcome": "Installed",
+                      "installedCommand": "<nitro> agent hook venti agent-naming"
+                    },
                     {
                       "event": "SessionStart",
                       "outcome": "Installed",
@@ -567,6 +636,10 @@ public sealed partial class VentiHooksCommandTests : AgentCommandTestBase
                 {
                   "settingsPath": "<settings>",
                   "events": [
+                    {
+                      "event": "AgentNaming",
+                      "outcome": "Removed"
+                    },
                     {
                       "event": "SessionStart",
                       "outcome": "Removed"

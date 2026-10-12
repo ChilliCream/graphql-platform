@@ -144,6 +144,30 @@ internal sealed class ClaudeHookHandler(
             : ClaudeHookOutcome.Neutral;
     }
 
+    public async Task<ClaudeHookOutcome> HandleAgentNamingAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
+    {
+        // A subagent's naming event carries its parent's session id, so only the main kind may
+        // register a session.
+        if (payload.AgentKind != "main")
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = Resolve(payload, skipSessionFileLookup);
+
+        if (resolved is null)
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var result = await agentStore.StartSessionAsync(BuildStartRequest(payload, resolved), cancellationToken);
+
+        return result.Kind == AgentSessionStartKind.Ignored
+            ? ClaudeHookOutcome.Neutral
+            : new ClaudeHookOutcome { AgentName = result.Row!.Name };
+    }
+
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {

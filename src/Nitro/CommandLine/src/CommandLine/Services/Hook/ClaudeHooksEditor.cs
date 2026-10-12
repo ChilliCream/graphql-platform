@@ -33,12 +33,9 @@ internal static class ClaudeHooksEditor
         IReadOnlyList<HookUninstallEventResult> Outcomes);
 
     /// <summary>
-    /// Leaves exactly one Nitro-owned handler per managed event, with the expected command and
-    /// timeout, in a group that runs on every occurrence of the event. The first owned handler
-    /// in such a group is updated in place, or else the first owned handler is moved to a new
-    /// group of its own, and every other owned handler is removed; sibling hooks and group
-    /// metadata stay. A handler the template's harness switches off stays off and is reported
-    /// as <see cref="HookInstallOutcome.Disabled"/>.
+    /// Leaves exactly one Nitro-owned handler per managed event with the expected command, timeout,
+    /// and matcher, preserving sibling hooks and group metadata. A retained disabled handler stays
+    /// disabled and is reported as <see cref="HookInstallOutcome.Disabled"/>.
     /// </summary>
     public static InstallResult Install(
         string? existingSettingsJson,
@@ -49,32 +46,42 @@ internal static class ClaudeHooksEditor
         var root = ParseOrEmpty(existingSettingsJson);
         var hooksNode = GetOrCreateHooksObject(root);
 
-        var outcomes = new List<HookInstallEventResult>(ClaudeHooksTemplate.Events.Count);
+        var outcomes = new List<HookInstallEventResult>(template.Events.Count);
         var sidecar = new Dictionary<string, ClaudeHooksSidecarEntry>();
 
-        foreach (var hookEvent in ClaudeHooksTemplate.Events)
+        foreach (var hookEvent in template.Events)
         {
             var eventArray = GetOrCreateEventArray(hooksNode, hookEvent);
             var before = eventArray.DeepClone();
             var desiredCommand = template.BuildCommand(descriptor, hookEvent);
+            var desiredMatcher = ClaudeHooksTemplate.Matcher(hookEvent);
             const int desiredTimeout = ClaudeHooksTemplate.TimeoutSeconds;
 
             var owned = FindOwnedHandlers(eventArray, template.CommandMarker, recordedCommand: null);
-            var kept = owned.FirstOrDefault(handler => RunsOnEveryOccurrence(handler.Group))
+            var kept = owned.FirstOrDefault(handler => HasMatcher(handler.Group, desiredMatcher))
                 ?? owned.FirstOrDefault();
 
             RemoveHandlers(eventArray, owned.Where(handler => !ReferenceEquals(handler, kept)));
 
             if (kept is null)
             {
-                AppendGroup(eventArray, BuildGroup(desiredCommand, desiredTimeout));
+                AppendGroup(
+                    eventArray,
+                    BuildGroup(
+                        desiredMatcher,
+                        new JsonObject
+                        {
+                            [TypeKey] = CommandType,
+                            [CommandKey] = desiredCommand,
+                            [TimeoutKey] = desiredTimeout
+                        }));
             }
             else
             {
-                if (!RunsOnEveryOccurrence(kept.Group))
+                if (!HasMatcher(kept.Group, desiredMatcher))
                 {
                     RemoveHandlers(eventArray, [kept]);
-                    AppendGroup(eventArray, new JsonObject { [GroupHooksKey] = new JsonArray(kept.Hook) });
+                    AppendGroup(eventArray, BuildGroup(desiredMatcher, kept.Hook));
                 }
 
                 if (!IsCurrent(kept.Hook, template, desiredCommand))
@@ -114,7 +121,7 @@ internal static class ClaudeHooksEditor
 
     /// <summary>
     /// Reports Missing when an event has no Nitro-owned handler, Installed when it has exactly
-    /// one with the expected command and timeout in a group that runs on every occurrence,
+    /// one with the expected command and timeout in a group with the event's expected matcher,
     /// Disabled when that one handler is switched off, and Outdated otherwise.
     /// </summary>
     public static IReadOnlyList<HookStatusEventResult> Status(
@@ -123,9 +130,9 @@ internal static class ClaudeHooksEditor
         var root = ParseOrEmpty(existingSettingsJson);
         var hooksNode = root[HooksKey] as JsonObject;
 
-        var results = new List<HookStatusEventResult>(ClaudeHooksTemplate.Events.Count);
+        var results = new List<HookStatusEventResult>(template.Events.Count);
 
-        foreach (var hookEvent in ClaudeHooksTemplate.Events)
+        foreach (var hookEvent in template.Events)
         {
             var owned = hooksNode?[hookEvent] is JsonArray eventArray
                 ? FindOwnedHandlers(eventArray, template.CommandMarker, recordedCommand: null)
@@ -141,7 +148,7 @@ internal static class ClaudeHooksEditor
             HookStatusOutcome outcome;
 
             if (owned.Count > 1
-                || !RunsOnEveryOccurrence(first.Group)
+                || !HasMatcher(first.Group, ClaudeHooksTemplate.Matcher(hookEvent))
                 || !IsCurrent(first.Hook, template, template.BuildCommand(descriptor, hookEvent)))
             {
                 outcome = HookStatusOutcome.Outdated;
@@ -172,9 +179,9 @@ internal static class ClaudeHooksEditor
         var root = ParseOrEmpty(existingSettingsJson);
         var hooksNode = root[HooksKey] as JsonObject;
 
-        var outcomes = new List<HookUninstallEventResult>(ClaudeHooksTemplate.Events.Count);
+        var outcomes = new List<HookUninstallEventResult>(template.Events.Count);
 
-        foreach (var hookEvent in ClaudeHooksTemplate.Events)
+        foreach (var hookEvent in template.Events)
         {
             if (hooksNode?[hookEvent] is not JsonArray eventArray)
             {
@@ -287,12 +294,15 @@ internal static class ClaudeHooksEditor
     }
 
     /// <summary>
-    /// A group runs its hooks on every occurrence of its event when its matcher is absent,
-    /// empty, or <c>*</c>; a matcher that is present but not text, <c>null</c> included,
-    /// keeps the group from running at all.
+    /// Whether <paramref name="group"/> has the matcher <paramref name="matcher"/>. A null
+    /// <paramref name="matcher"/> stands for every occurrence of the event, which a matcher that
+    /// is absent, empty, or <c>*</c> selects; a matcher that is present but not text,
+    /// <c>null</c> included, keeps the group from running at all.
     /// </summary>
-    private static bool RunsOnEveryOccurrence(JsonObject group)
-        => IsAbsentOr(group, MatcherKey, node => ReadText(node) is "" or "*");
+    private static bool HasMatcher(JsonObject group, string? matcher)
+        => matcher is null
+            ? IsAbsentOr(group, MatcherKey, node => ReadText(node) is "" or "*")
+            : ReadString(group, MatcherKey) == matcher;
 
     /// <summary>
     /// Whether <paramref name="hook"/> is a synchronous command handler running
@@ -409,16 +419,19 @@ internal static class ClaudeHooksEditor
     private static void AppendGroup(JsonArray array, JsonObject group)
         => ((IList<JsonNode?>)array).Add(group);
 
-    private static JsonObject BuildGroup(string command, int timeoutSeconds) => new()
+    private static JsonObject BuildGroup(string? matcher, JsonObject hook)
     {
-        [GroupHooksKey] = new JsonArray(
-            new JsonObject
-            {
-                [TypeKey] = CommandType,
-                [CommandKey] = command,
-                [TimeoutKey] = timeoutSeconds
-            })
-    };
+        var group = new JsonObject();
+
+        if (matcher is not null)
+        {
+            group[MatcherKey] = matcher;
+        }
+
+        group[GroupHooksKey] = new JsonArray(hook);
+
+        return group;
+    }
 
     private static string Serialize(JsonObject root)
         => root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });

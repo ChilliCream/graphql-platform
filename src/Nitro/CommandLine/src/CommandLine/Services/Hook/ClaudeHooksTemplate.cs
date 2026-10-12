@@ -13,34 +13,46 @@ internal sealed class ClaudeHooksTemplate
     /// The entries <c>nitro agent hooks claude</c> manages in Claude Code settings.
     /// </summary>
     public static ClaudeHooksTemplate Claude { get; } =
-        new(AgentSessionHarness.ClaudeCode, "claude", null, hasHookSwitches: false, runsWindowsHooksInPowerShell: false);
+        new(
+            AgentSessionHarness.ClaudeCode,
+            "claude",
+            null,
+            ["SessionStart", "UserPromptSubmit", "Stop", "Notification", "SessionEnd"],
+            hasHookSwitches: false,
+            runsWindowsHooksInPowerShell: false);
 
     /// <summary>
     /// The entries <c>nitro agent hooks venti</c> manages in Venti settings, which must not
     /// share a settings file with <see cref="Claude"/> entries.
     /// </summary>
     public static ClaudeHooksTemplate Venti { get; } =
-        new(AgentSessionHarness.Venti, "venti", Claude, hasHookSwitches: true, runsWindowsHooksInPowerShell: true);
+        new(
+            AgentSessionHarness.Venti,
+            "venti",
+            Claude,
+            [AgentNamingEvent, "SessionStart", "UserPromptSubmit", "Stop", "Notification", "SessionEnd"],
+            hasHookSwitches: true,
+            runsWindowsHooksInPowerShell: true);
 
     public const int TimeoutSeconds = 10;
 
     /// <summary>
-    /// Hook event names this installer manages, in the order
-    /// <c>hooks install</c> and <c>hooks status</c> report them.
+    /// Venti's event that asks a handler for the name of a new agent.
     /// </summary>
-    public static readonly IReadOnlyList<string> Events =
-        ["SessionStart", "UserPromptSubmit", "Stop", "Notification", "SessionEnd"];
+    public const string AgentNamingEvent = "AgentNaming";
 
     private ClaudeHooksTemplate(
         string harness,
         string commandName,
         ClaudeHooksTemplate? conflicting,
+        IReadOnlyList<string> events,
         bool hasHookSwitches,
         bool runsWindowsHooksInPowerShell)
     {
         Harness = harness;
         CommandName = commandName;
         Conflicting = conflicting;
+        Events = events;
         HasHookSwitches = hasHookSwitches;
         RunsWindowsHooksInPowerShell = runsWindowsHooksInPowerShell;
     }
@@ -67,6 +79,12 @@ internal sealed class ClaudeHooksTemplate
     public ClaudeHooksTemplate? Conflicting { get; }
 
     /// <summary>
+    /// Hook event names this template manages, in the order
+    /// <c>hooks install</c> and <c>hooks status</c> report them.
+    /// </summary>
+    public IReadOnlyList<string> Events { get; }
+
+    /// <summary>
     /// Whether the harness skips a handler whose <c>enabled</c> flag is <c>false</c>, and every
     /// handler while its user settings file sets <c>disableAllHooks</c> to <c>true</c>.
     /// </summary>
@@ -77,8 +95,15 @@ internal sealed class ClaudeHooksTemplate
     /// </summary>
     public bool RunsWindowsHooksInPowerShell { get; }
 
+    /// <summary>
+    /// The matcher of the group that runs <paramref name="hookEvent"/>'s entry, or null when the
+    /// entry runs on every occurrence of the event.
+    /// </summary>
+    public static string? Matcher(string hookEvent) => hookEvent == AgentNamingEvent ? "main" : null;
+
     public static string EventCommand(string hookEvent) => hookEvent switch
     {
+        AgentNamingEvent => "agent-naming",
         "SessionStart" => "session-start",
         "UserPromptSubmit" => "user-prompt-submit",
         "Stop" => "stop",

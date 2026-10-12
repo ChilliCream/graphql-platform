@@ -34,6 +34,79 @@ public sealed class VentiHookCommandTests(NitroCommandFixture fixture) : AgentCo
     }
 
     [Fact]
+    public async Task AgentNaming_Should_NameTheSessionAfterItsActor_When_TheAgentIsMain()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupStandardInput(
+            $$"""
+            {"session_id":"{{SessionId}}","transcript_path":null,"cwd":{{JsonSerializer.Serialize(WorkingDirectory)}},"permission_mode":"default","hook_event_name":"AgentNaming","agent_kind":"main"}
+            """);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "venti", "agent-naming");
+
+        // assert
+        var actor = await QueryScalarAsync(
+            $"SELECT name FROM agents WHERE harness = 'venti' AND session_id = '{SessionId}'");
+        Assert.Equal(0, result.ExitCode);
+        result.StdOut.Trim().Replace(actor!, "<actor>").MatchInlineSnapshot(
+            """{"hookSpecificOutput":{"hookEventName":"AgentNaming","agentName":"<actor>"}}""");
+    }
+
+    [Theory]
+    [InlineData(",\"agent_kind\":\"subagent\",\"agent_type\":\"default\",\"parent_agent_name\":\"main\"")]
+    [InlineData("")]
+    [InlineData(",\"agent_kind\":\"Main\"")]
+    [InlineData(",\"agent_kind\":1")]
+    [InlineData("\"agent_kind\":\"main\"")]
+    public async Task AgentNaming_Should_WriteNeutralResponseWithoutWriting_When_ThePayloadNamesNoMainAgent(
+        string kindProperties)
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        SetupStandardInput(
+            $$"""
+            {"session_id":"{{SessionId}}","transcript_path":null,"cwd":{{JsonSerializer.Serialize(WorkingDirectory)}},"hook_event_name":"AgentNaming"{{kindProperties}}}
+            """);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "venti", "agent-naming");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agents"));
+        result.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
+    public async Task SessionStart_Should_AnnounceTheNamedActor_When_AgentNamingRegisteredTheSession()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var cwd = JsonSerializer.Serialize(WorkingDirectory);
+        SetupStandardInput(
+            $$"""
+            {"session_id":"{{SessionId}}","transcript_path":null,"cwd":{{cwd}},"hook_event_name":"AgentNaming","agent_kind":"main"}
+            """);
+        var naming = await ExecuteCommandAsync("agent", "hook", "venti", "agent-naming");
+        var actor = JsonDocument.Parse(naming.StdOut).RootElement
+            .GetProperty("hookSpecificOutput").GetProperty("agentName").GetString()!;
+        SetupStandardInput(
+            $$"""
+            {"session_id":"{{SessionId}}","transcript_path":null,"cwd":{{cwd}},"hook_event_name":"SessionStart","source":"startup"}
+            """);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hook", "venti", "session-start");
+
+        // assert
+        Assert.Equal(actor, await QueryScalarAsync("SELECT group_concat(name) FROM agents"));
+        result.StdOut.Trim().Replace(actor, "<actor>").MatchInlineSnapshot(
+            """{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"Your Nitro actor name is \u0022<actor>\u0022. Pass this name to the \u0060--actor\u0060 option to act under this actor explicitly."}}""");
+    }
+
+    [Fact]
     public async Task Stop_Should_BlockTheTurn_When_UnreadMailIsUndelivered()
     {
         // arrange
@@ -141,6 +214,7 @@ public sealed class VentiHookCommandTests(NitroCommandFixture fixture) : AgentCo
               -?, -h, --help  Show help and usage information
 
             Commands:
+              agent-naming        Adapt Venti's AgentNaming hook: name a new main session after its actor.
               session-start       Adapt Venti's SessionStart hook: upsert this session's presence row.
               user-prompt-submit  Adapt Venti's UserPromptSubmit hook: reset the block budget and inject the unread-mail digest.
               stop                Adapt Venti's Stop hook: block the turn while unread mail is undelivered.

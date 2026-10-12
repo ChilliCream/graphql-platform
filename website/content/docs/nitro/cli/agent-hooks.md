@@ -196,11 +196,13 @@ nitro agent hooks opencode uninstall --scope project
 
 # Venti
 
-Venti hook entries live in a `settings.json` file and cover five events: `SessionStart`, `UserPromptSubmit`, `Stop`, `Notification`, and `SessionEnd`. Each entry runs `nitro agent hook venti <event>`. The `Stop` entry is a hard gate: it can block the turn from ending, up to three times per turn, until unread mail is read, resetting on the next `UserPromptSubmit`. The `Notification` entry only refreshes the agent's last-seen time, and only when Venti's `notification_type` is `idle_prompt`.
+Venti hook entries live in a `settings.json` file and cover six events: `AgentNaming`, `SessionStart`, `UserPromptSubmit`, `Stop`, `Notification`, and `SessionEnd`. Each entry runs `nitro agent hook venti <event>`. The `AgentNaming` entry runs only for main sessions (matcher `main`) and names each new session, including the one `/clear` starts, after its Nitro actor, so Venti and Nitro use the same name. A resumed session keeps its name and actor, and subagents keep the names Venti gives them. The `Stop` entry is a hard gate: it can block the turn from ending, up to three times per turn, until unread mail is read, resetting on the next `UserPromptSubmit`. The `Notification` entry only refreshes the agent's last-seen time, and only when Venti's `notification_type` is `idle_prompt`.
 
 `install` and `uninstall` only ever touch the entries Nitro itself owns; hook entries another tool added for the same event are left in place.
 
-Restart Venti after installing or uninstalling hooks. For project-scoped hooks, start Venti from the directory where you ran `install`.
+Restart Venti after installing or uninstalling hooks. For project-scoped hooks, start Venti from the directory where you ran `install`. Only sessions started after the restart are named after their actor; a session started earlier keeps the name Venti gave it, also when resumed.
+
+Entries installed by an earlier Nitro version have no `AgentNaming` entry: `status` reports it as missing, and running `install` again adds it.
 
 ## `nitro agent hooks venti install`
 

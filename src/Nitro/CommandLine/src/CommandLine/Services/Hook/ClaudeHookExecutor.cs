@@ -118,6 +118,18 @@ internal static class ClaudeHookExecutor
             return new ClaudeHookResponse { Decision = "block", Reason = outcome.BlockReason };
         }
 
+        if (outcome.AgentName is { Length: > 0 } agentName)
+        {
+            return new ClaudeHookResponse
+            {
+                HookSpecificOutput = new ClaudeHookSpecificOutput
+                {
+                    HookEventName = hookEventName,
+                    AgentName = agentName
+                }
+            };
+        }
+
         if (outcome.AdditionalContext is { Length: > 0 } context)
         {
             return new ClaudeHookResponse

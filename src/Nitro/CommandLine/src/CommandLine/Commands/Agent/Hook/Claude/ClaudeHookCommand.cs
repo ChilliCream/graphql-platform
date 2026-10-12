@@ -12,6 +12,11 @@ internal sealed class ClaudeHookCommand : Command
     {
         Description = $"Adapt {AgentHarnessDisplay.Name(template.Harness)} turn-boundary hook events.";
 
+        if (template.Events.Contains(ClaudeHooksTemplate.AgentNamingEvent))
+        {
+            Subcommands.Add(new AgentNamingHookCommand(template));
+        }
+
         Subcommands.Add(new SessionStartHookCommand(template));
         Subcommands.Add(new UserPromptSubmitHookCommand(template));
         Subcommands.Add(new StopHookCommand(template));

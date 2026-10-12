@@ -328,6 +328,182 @@ public sealed class VentiHookHandlerTests : IDisposable
             """);
     }
 
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_ReturnTheSameActor_When_TheSameSessionIdIsNamedAgain()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var first = await _venti.HandleAgentNamingAsync(MainNamingPayload(), skipSessionFileLookup: false, cancellationToken);
+
+        // act
+        var second = await _venti.HandleAgentNamingAsync(MainNamingPayload(), skipSessionFileLookup: false, cancellationToken);
+
+        // assert
+        var row = await _agentStore.FindBySessionAsync(AgentSessionHarness.Venti, SessionId, cancellationToken);
+        Assert.Equal((row!.Name, row.Name), (first.AgentName, second.AgentName));
+        Assert.Single(await _agentStore.ListAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_KeepTheActorAndRole_When_LifecycleEventsAndAResumeFollow()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var naming = await _venti.HandleAgentNamingAsync(MainNamingPayload(), skipSessionFileLookup: false, cancellationToken);
+        await _agentStore.SetRoleAsync(naming.AgentName!, "reviewer", cancellationToken);
+
+        // act
+        var start = await _venti.HandleSessionStartAsync(Payload(), skipSessionFileLookup: false, cancellationToken);
+        await _venti.HandleUserPromptSubmitAsync(Payload(), skipSessionFileLookup: false, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
+        await _venti.HandleNotificationAsync(
+            Payload() with { NotificationType = "idle_prompt" }, skipSessionFileLookup: false, cancellationToken);
+        await _venti.HandleSessionEndAsync(Payload(), skipSessionFileLookup: false, cancellationToken);
+        var resume = await _venti.HandleSessionStartAsync(Payload(), skipSessionFileLookup: false, cancellationToken);
+
+        // assert
+        var rows = await _agentStore.ListAsync(cancellationToken);
+        new
+        {
+            Rows = rows.Select(row => new { Name = row.Name.Replace(naming.AgentName!, "<actor>"), row.Role, row.SessionId }),
+            Start = start.AdditionalContext!.Replace(naming.AgentName!, "<actor>"),
+            Resume = resume.AdditionalContext!.Replace(naming.AgentName!, "<actor>")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Rows": [
+                {
+                  "Name": "<actor>",
+                  "Role": "reviewer",
+                  "SessionId": "0123456789abcdef0123456789abcdef"
+                }
+              ],
+              "Start": "Your Nitro actor name is \"<actor>\". Pass this name to the `--actor` option to act under this actor explicitly.\nYour Nitro role is \"reviewer\".",
+              "Resume": "Your Nitro actor name is \"<actor>\". Pass this name to the `--actor` option to act under this actor explicitly.\nYour Nitro role is \"reviewer\"."
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_GiveAFreshActor_When_AForkNamesANewSessionId()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var original = await _venti.HandleAgentNamingAsync(MainNamingPayload(), skipSessionFileLookup: false, cancellationToken);
+        await _agentStore.SetRoleAsync(original.AgentName!, "reviewer", cancellationToken);
+
+        // act
+        var fork = await _venti.HandleAgentNamingAsync(
+            MainNamingPayload() with { SessionId = "fedcba9876543210fedcba9876543210" },
+            skipSessionFileLookup: false,
+            cancellationToken);
+
+        // assert
+        var rows = await _agentStore.ListAsync(cancellationToken);
+        Assert.NotEqual(original.AgentName, fork.AgentName);
+        rows.OrderBy(row => row.SessionId)
+            .Select(row => new
+            {
+                Name = row.Name == original.AgentName ? "<original>" : row.Name == fork.AgentName ? "<fork>" : row.Name,
+                row.Role,
+                row.SessionId
+            })
+            .MatchInlineSnapshot(
+                """
+                [
+                  {
+                    "Name": "<original>",
+                    "Role": "reviewer",
+                    "SessionId": "0123456789abcdef0123456789abcdef"
+                  },
+                  {
+                    "Name": "<fork>",
+                    "Role": "",
+                    "SessionId": "fedcba9876543210fedcba9876543210"
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_NameEachSessionDistinctly_When_IndependentHandlersShareTheWorkspace()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var handlers = Enumerable.Range(0, 8).Select(_ => CreateIndependentVentiHandler()).ToList();
+
+        // act
+        var outcomes = await Task.WhenAll(handlers.Select((handler, index) => handler.HandleAgentNamingAsync(
+            MainNamingPayload() with { SessionId = $"session-{index}" }, skipSessionFileLookup: false, cancellationToken)));
+        await _claude.HandleSessionStartAsync(
+            Payload() with { SessionId = "session-0" }, skipSessionFileLookup: false, cancellationToken);
+
+        // assert
+        var rows = await _agentStore.ListAsync(cancellationToken);
+        Assert.Equal(9, rows.Select(row => row.Name).Distinct().Count());
+        Assert.Equal(
+            outcomes.Select(outcome => outcome.AgentName).Order(),
+            rows.Where(row => row.Harness == AgentSessionHarness.Venti).Select(row => row.Name).Order());
+    }
+
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_LeaveTheStoreUntouched_When_ASubagentIsNamedInABoundSession()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        var outcome = await _venti.HandleAgentNamingAsync(
+            Payload() with { AgentKind = "subagent" }, skipSessionFileLookup: false, cancellationToken);
+
+        // assert
+        var rows = await _agentStore.ListAsync(cancellationToken);
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.Equal(
+            (actor, _timeProvider.GetUtcNow() - TimeSpan.FromMinutes(5)),
+            (Assert.Single(rows).Name, rows[0].LastSeenAt));
+    }
+
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_ReturnNeutral_When_TheSessionBelongsToADeletedAgent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await _agentStore.DeleteAsync(actor, cancellationToken);
+
+        // act
+        var outcome = await _venti.HandleAgentNamingAsync(MainNamingPayload(), skipSessionFileLookup: false, cancellationToken);
+
+        // assert
+        var row = await _agentStore.FindBySessionAsync(AgentSessionHarness.Venti, SessionId, cancellationToken);
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.Equal((actor, true), (row!.Name, row.IsDeleted));
+        Assert.Empty(await _agentStore.ListAsync(cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleAgentNamingAsync_Should_ReturnNeutral_When_NoWorkspaceIsFound()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act
+        var outcome = await _venti.HandleAgentNamingAsync(MainNamingPayload(), skipSessionFileLookup: false, cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
+        Assert.False(File.Exists(AgentWorkspace.GetDatabasePath(_workspaceDirectory)));
+    }
+
     [Theory]
     [InlineData("headless", 1)]
     [InlineData("interactive", 2)]
@@ -357,6 +533,23 @@ public sealed class VentiHookHandlerTests : IDisposable
         sessionFileReader);
 
     private ClaudeHookPayload Payload() => new() { SessionId = SessionId, Cwd = _workspaceRoot };
+
+    private ClaudeHookPayload MainNamingPayload() => Payload() with { AgentKind = "main" };
+
+    private ClaudeHookHandler CreateIndependentVentiHandler()
+    {
+        var database = new AgentDatabase();
+        var agentStore = new AgentStore(_fileSystem, _timeProvider, database);
+
+        return new ClaudeHookHandler(
+            _fileSystem,
+            _timeProvider,
+            agentStore,
+            new AgentDeliveryLedger(_fileSystem, database),
+            new MailStore(_fileSystem, _timeProvider, database, agentStore),
+            AgentSessionHarness.Venti,
+            new VentiPeerRegistryReader(_peerDirectory));
+    }
 
     private Task WriteRegistryAsync(string kind, int protocol, CancellationToken cancellationToken)
         => File.WriteAllTextAsync(
