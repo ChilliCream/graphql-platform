@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Events;
 using Mocha.Outbox;
@@ -15,15 +14,16 @@ public sealed class PostgresOutboxFaultReplyTests(PostgresFixture fixture) : ICl
     public async Task Outbox_Should_DeliverFaultReply_When_ReplyAddressIsNotADispatchEndpoint()
     {
         // arrange
-        await using var env = await CreateBusWithOutboxAsync();
+        await using var host = await StartHostAsync();
 
         // The caller addresses its reply queue under its own host name. The handler host owns no
         // dispatch endpoint for that address, only its reply dispatch endpoint can deliver there.
-        var transport = env.Runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var runtime = (MessagingRuntime)host.Services.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
         var replyAddress = transport.ReplyReceiveEndpoint!.Source.Address;
         var callerReplyAddress = new UriBuilder(replyAddress) { Host = "caller" }.Uri;
 
-        using var scope = env.Provider.CreateScope();
+        using var scope = host.Services.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
@@ -38,14 +38,12 @@ public sealed class PostgresOutboxFaultReplyTests(PostgresFixture fixture) : ICl
         Assert.Contains(nameof(InvalidOperationException), exception.Message);
     }
 
-    private async Task<TestEnvironment> CreateBusWithOutboxAsync()
+    private async Task<MessagingTestHost> StartHostAsync()
     {
         var connectionString = await fixture.CreateDatabaseAsync();
 
         var services = new ServiceCollection();
-        services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
@@ -53,8 +51,6 @@ public sealed class PostgresOutboxFaultReplyTests(PostgresFixture fixture) : ICl
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(TestContext.Current.CancellationToken);
 
         using (var scope = provider.CreateScope())
         {
@@ -62,13 +58,7 @@ public sealed class PostgresOutboxFaultReplyTests(PostgresFixture fixture) : ICl
             await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         }
 
-        var hostedServices = provider.GetServices<IHostedService>().ToList();
-        foreach (var service in hostedServices)
-        {
-            await service.StartAsync(TestContext.Current.CancellationToken);
-        }
-
-        return new TestEnvironment(provider, runtime, hostedServices);
+        return await MessagingTestHost.StartAsync(provider, TestContext.Current.CancellationToken);
     }
 
     public sealed class FailingRequest : IEventRequest<FailingResponse>;
@@ -80,31 +70,6 @@ public sealed class PostgresOutboxFaultReplyTests(PostgresFixture fixture) : ICl
         public ValueTask<FailingResponse> HandleAsync(FailingRequest request, CancellationToken cancellationToken)
         {
             throw new InvalidOperationException("The request handler failed deliberately.");
-        }
-    }
-
-    private sealed class TestEnvironment(
-        ServiceProvider provider,
-        MessagingRuntime runtime,
-        List<IHostedService> hostedServices)
-        : IAsyncDisposable
-    {
-        public ServiceProvider Provider => provider;
-
-        public MessagingRuntime Runtime => runtime;
-
-        public async ValueTask DisposeAsync()
-        {
-            foreach (var service in hostedServices)
-            {
-                await service.StopAsync(CancellationToken.None);
-            }
-
-            // ContinuousTask.DisposeAsync cancels but does not await the background loop, so
-            // in-flight processor transactions need a moment to drain before disposal.
-            await Task.Delay(250);
-
-            await provider.DisposeAsync();
         }
     }
 }

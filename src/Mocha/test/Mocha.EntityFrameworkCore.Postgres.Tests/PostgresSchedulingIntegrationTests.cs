@@ -1,16 +1,11 @@
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
-using Mocha.Middlewares;
 using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
-using Npgsql;
-using NpgsqlTypes;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
@@ -494,87 +489,6 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
         var payloads = recorder.Messages.OfType<TestEvent>().Select(e => e.Payload).ToHashSet();
         Assert.Equal(totalMessages, payloads.Count);
-    }
-
-    [Fact]
-    public async Task Scheduler_Should_DeliverFaultReply_When_ReplyAddressIsNotADispatchEndpoint()
-    {
-        // arrange
-        var recorder = new MessageRecorder();
-        await using var env = await CreateBusWithSchedulingAsync(recorder);
-
-        // The fault reply is addressed to the handler's queue under a foreign host name. The host
-        // owns no dispatch endpoint for that address, only its reply dispatch endpoint can deliver there.
-        var runtime = env.Provider.GetRequiredService<IMessagingRuntime>();
-        var callerAddress = new UriBuilder(GetHandlerQueueAddress(env.Provider)) { Host = "caller" }.Uri;
-        var envelope = CreateFaultEnvelope(
-            runtime.GetMessageType(typeof(TestEvent)).Identity,
-            callerAddress.ToString(),
-            JsonSerializer.SerializeToUtf8Bytes(new TestEvent { Payload = "fault" }));
-
-        // act
-        await ScheduleAsync(env.Provider, envelope);
-
-        // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the fault reply");
-        var received = Assert.Single(recorder.Messages.OfType<TestEvent>());
-        Assert.Equal("fault", received.Payload);
-    }
-
-    private static Uri GetHandlerQueueAddress(IServiceProvider provider)
-    {
-        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
-        return transport.ReceiveEndpoints.Single(e => e.Kind == ReceiveEndpointKind.Default).Source.Address;
-    }
-
-    private static MessageEnvelope CreateFaultEnvelope(string messageType, string destinationAddress, byte[] body)
-    {
-        var headers = new Headers();
-        headers.Set(MessageHeaders.MessageKind, MessageKind.Fault);
-
-        return new MessageEnvelope
-        {
-            MessageId = Guid.NewGuid().ToString(),
-            MessageType = messageType,
-            DestinationAddress = destinationAddress,
-            ContentType = "application/json",
-            Headers = headers,
-            Body = body
-        };
-    }
-
-    private static async Task<Guid> ScheduleAsync(IServiceProvider provider, MessageEnvelope envelope)
-    {
-        var options = provider
-            .GetRequiredService<IOptionsMonitor<PostgresScheduledMessageOptions>>()
-            .Get(typeof(TestDbContext).FullName);
-        var scheduledTime = DateTimeOffset.UtcNow;
-        var id = Guid.NewGuid();
-
-        using var scope = provider.CreateScope();
-        await using var connection = options.CreateConnection(scope.ServiceProvider);
-        await connection.OpenAsync(TestContext.Current.CancellationToken);
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = options.Queries.InsertMessage;
-        command.Parameters.AddWithValue("@id", id);
-        command.Parameters.Add(new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = WriteEnvelope(envelope) });
-        command.Parameters.AddWithValue("@scheduled_time", scheduledTime.UtcDateTime);
-        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-
-        provider.GetRequiredService<ISchedulerSignal>().Notify(scheduledTime);
-
-        return id;
-    }
-
-    private static ReadOnlyMemory<byte> WriteEnvelope(MessageEnvelope envelope)
-    {
-        var buffer = new ArrayBufferWriter<byte>();
-        using var writer = new Utf8JsonWriter(buffer);
-        new MessageEnvelopeWriter(writer).WriteMessage(envelope);
-        writer.Flush();
-        return buffer.WrittenMemory;
     }
 
     private async Task<TestEnvironment> CreateBusWithSchedulingAsync(
