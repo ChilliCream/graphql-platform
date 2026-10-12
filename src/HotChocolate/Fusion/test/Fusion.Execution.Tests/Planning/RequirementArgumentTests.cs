@@ -260,6 +260,29 @@ public class RequirementArgumentTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_PlanLookupSeparately_When_MergedLookupChildSelectionsConflict()
+    {
+        // arrange
+        var schema = CreateNestedMergedLookupConflictSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              product {
+                fieldOne
+                fieldTwo
+              }
+            }
+            """);
+
+        // assert
+        SourceOperationFieldMergeAssert.AllOperationsCanMerge(plan);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Succeed_When_Require_Only_Input_Type_And_Upload_Scalar_Exist()
     {
         // arrange
@@ -536,6 +559,48 @@ public class RequirementArgumentTests : FusionTestBase
             type Category @key(fields: "id") {
               id: ID!
               averagePrice: Int
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateNestedMergedLookupConflictSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              product: Product
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              seed: Int
+              fieldOne(x: Int @require(field: "foo.x(first: 1)")): Int
+              fieldTwo(x: Int @require(field: "foo.x(first: 2)")): Int
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              foo(seed: Int @require(field: "seed")): Foo
+            }
+
+            type Foo {
+              x(first: Int): Int
             }
             """);
     }

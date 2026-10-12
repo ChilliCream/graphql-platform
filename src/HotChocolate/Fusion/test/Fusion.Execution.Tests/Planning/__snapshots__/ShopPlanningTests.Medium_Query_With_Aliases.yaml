@@ -113,8 +113,8 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 5
-    expandedNodes: 17
+    searchSpace: 141
+    expandedNodes: 1154
 nodes:
   - id: 1
     type: Operation
@@ -172,12 +172,12 @@ nodes:
           id
     dependencies:
       - id: 1
-  - id: 3
+  - id: 4
     type: OperationBatch
     schema: e
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
+      query Op_123456789101112_4($__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
           weight
           pictureFileName
           price
@@ -194,7 +194,7 @@ nodes:
       - $.products.nodes.reviews.nodes.product
     batchingGroupId: 21
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_3_id
         selectionMap: >-
           id
     dependencies:
@@ -219,12 +219,12 @@ nodes:
           id
     dependencies:
       - id: 2
-  - id: 4
+  - id: 3
     type: OperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        productByIdAsync(id: $__fusion_3_id) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
+        productByIdAsync(id: $__fusion_2_id) {
           quantity
           item {
             product {
@@ -239,7 +239,7 @@ nodes:
       - $.products.nodes.reviews.nodes.product
     batchingGroupId: 22
     requirements:
-      - name: __fusion_3_id
+      - name: __fusion_2_id
         selectionMap: >-
           id
     dependencies:
@@ -279,13 +279,39 @@ nodes:
       - id: 2
       - id: 3
       - id: 4
-      - id: 7
+      - id: 6
   - id: 6
     type: OperationBatch
-    schema: f
+    schema: e
     operation: |
       query Op_123456789101112_6($__fusion_6_id: ID!) {
         productById(id: $__fusion_6_id) {
+          weight
+          pictureFileName
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    targets:
+      - $.products.nodes.b.nodes.product.item.product
+      - $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 24
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+  - id: 7
+    type: OperationBatch
+    schema: f
+    operation: |
+      query Op_123456789101112_7($__fusion_7_id: ID!) {
+        productById(id: $__fusion_7_id) {
           reviews {
             edges {
               node {
@@ -301,39 +327,13 @@ nodes:
     targets:
       - $.products.nodes.b.nodes.product.item.product
       - $.products.nodes.reviews.nodes.product.item.product
-    batchingGroupId: 24
-    requirements:
-      - name: __fusion_6_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 4
-  - id: 7
-    type: OperationBatch
-    schema: e
-    operation: |
-      query Op_123456789101112_7($__fusion_7_id: ID!) {
-        productById(id: $__fusion_7_id) {
-          weight
-          pictureFileName
-          dimension {
-            length
-            width
-            height
-          }
-        }
-      }
-    source: $.productById
-    targets:
-      - $.products.nodes.b.nodes.product.item.product
-      - $.products.nodes.reviews.nodes.product.item.product
     batchingGroupId: 25
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
           id
     dependencies:
-      - id: 4
+      - id: 3
   - id: 9
     type: OperationBatch
     schema: a
@@ -353,7 +353,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 6
+      - id: 7
   - id: 11
     type: OperationBatch
     schema: a

@@ -1,0 +1,57 @@
+interface Node {
+  id: ID!
+}
+
+type CreateOrderPayload {
+  order: Order
+}
+
+type Mutation {
+  createOrder(input: CreateOrderInput!): CreateOrderPayload! @cost(weight: "10")
+}
+
+type Order implements Node {
+  user: User!
+  id: ID!
+  items: [OrderItem!]!
+  weight: Int!
+}
+
+type OrderItem {
+  product: Product!
+  id: Int!
+  quantity: Int!
+  price: Float!
+  orderId: Int!
+  order: Order
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+}
+
+type Query {
+  node(id: ID!): Node @lookup @shareable
+  nodes(ids: [ID!]!): [Node]! @shareable
+  orderById(id: ID!): Order @lookup @shareable
+  userById(id: ID!): User @lookup @internal
+}
+
+type User {
+  id: ID!
+}
+
+input CreateOrderInput {
+  userId: ID!
+  items: [OrderItemInput!]!
+  weight: Int!
+}
+
+input OrderItemInput {
+  productId: ID!
+  quantity: Int!
+  price: Float!
+}
+
+directive @cost(weight: String!)
+    on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

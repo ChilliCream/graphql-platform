@@ -1,0 +1,13 @@
+{
+  users {
+    nodes {
+      reviews {
+        nodes {
+          product {
+            deliveryEstimate(zip: "123")
+          }
+        }
+      }
+    }
+  }
+}

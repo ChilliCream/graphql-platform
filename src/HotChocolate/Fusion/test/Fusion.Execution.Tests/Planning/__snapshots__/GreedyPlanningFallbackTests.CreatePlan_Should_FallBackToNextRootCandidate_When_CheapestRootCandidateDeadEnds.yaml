@@ -1,0 +1,32 @@
+operation:
+  - document: |
+      {
+        root {
+          f
+          g
+          h
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        root {
+          f
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2 {
+        root {
+          g
+          h
+        }
+      }

@@ -170,7 +170,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_c03cccb0_2 {
+            query GetUser_c03cccb0_1 {
               users {
                 name
                 id
@@ -200,8 +200,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
-              node(id: $__fusion_2_id) {
+            query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
                 __typename
                 ... on User {
                   name
@@ -211,45 +211,99 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "VXNlcjoxNg=="
+                "__fusion_1_id": "VXNlcjo3"
               },
               {
-                "__fusion_2_id": "VXNlcjoxNw=="
+                "__fusion_1_id": "VXNlcjo4"
               },
               {
-                "__fusion_2_id": "VXNlcjoxOA=="
+                "__fusion_1_id": "VXNlcjo5"
               },
               {
-                "__fusion_2_id": "VXNlcjoxMw=="
+                "__fusion_1_id": "VXNlcjoxMA=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxNA=="
+                "__fusion_1_id": "VXNlcjoxMQ=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxNQ=="
+                "__fusion_1_id": "VXNlcjoxMg=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxMA=="
+                "__fusion_1_id": "VXNlcjoxNg=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxMQ=="
+                "__fusion_1_id": "VXNlcjoxNw=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxMg=="
+                "__fusion_1_id": "VXNlcjoxOA=="
               },
               {
-                "__fusion_2_id": "VXNlcjo3"
+                "__fusion_1_id": "VXNlcjoxMw=="
               },
               {
-                "__fusion_2_id": "VXNlcjo4"
+                "__fusion_1_id": "VXNlcjoxNA=="
               },
               {
-                "__fusion_2_id": "VXNlcjo5"
+                "__fusion_1_id": "VXNlcjoxNQ=="
               }
             ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo4"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo5"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
             - |
               {
                 "data": {
@@ -304,60 +358,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMA=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMQ=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMg=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjo3"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjo4"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjo5"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -396,7 +396,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_c03cccb0_1 {
+            query GetUser_c03cccb0_2 {
               a: reviews {
                 body
                 author {
@@ -460,8 +460,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
-              node(id: $__fusion_1_id) {
+            query GetUser_c03cccb0_5($__fusion_3_id: ID!) {
+              node(id: $__fusion_3_id) {
                 __typename
                 ... on User {
                   reviews {
@@ -476,13 +476,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "VXNlcjox"
+                "__fusion_3_id": "VXNlcjox"
               },
               {
-                "__fusion_1_id": "VXNlcjoy"
+                "__fusion_3_id": "VXNlcjoy"
               },
               {
-                "__fusion_1_id": "VXNlcjoz"
+                "__fusion_3_id": "VXNlcjoz"
               }
             ]
         response:
@@ -605,13 +605,23 @@ operationPlan:
       name: GetUser
       hash: d6811ed99310002151cc572283192263
       searchSpace: 2
-      expandedNodes: 5
+      expandedNodes: 14
   nodes:
     - id: 1
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query GetUser_c03cccb0_1 {
+          users {
+            name
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query GetUser_c03cccb0_2 {
           a: reviews {
             body
             author {
@@ -625,22 +635,12 @@ operationPlan:
             }
           }
         }
-    - id: 2
-      type: Operation
-      schema: A
-      operation: |
-        query GetUser_c03cccb0_2 {
-          users {
-            name
-            id
-          }
-        }
-    - id: 3
+    - id: 5
       type: Operation
       schema: B
       operation: |
-        query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
+        query GetUser_c03cccb0_5($__fusion_3_id: ID!) {
+          node(id: $__fusion_3_id) {
             __typename
             ... on User {
               reviews {
@@ -655,17 +655,17 @@ operationPlan:
       source: $.node<User>
       target: $.users
       requirements:
-        - name: __fusion_1_id
+        - name: __fusion_3_id
           selectionMap: >-
             id
       dependencies:
-        - id: 2
-    - id: 4
+        - id: 1
+    - id: 3
       type: OperationBatch
       schema: A
       operation: |
-        query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
+        query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
+          node(id: $__fusion_1_id) {
             __typename
             ... on User {
               name
@@ -674,14 +674,14 @@ operationPlan:
         }
       source: $.node<User>
       targets:
-        - $.users.reviews.author
         - $.b.author
         - $.a.author
+        - $.users.reviews.author
       batchingGroupId: 7
       requirements:
-        - name: __fusion_2_id
+        - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:
-        - id: 1
-        - id: 3
+        - id: 2
+        - id: 5

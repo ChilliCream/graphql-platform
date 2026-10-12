@@ -1,0 +1,79 @@
+interface Node {
+  id: ID!
+}
+
+type CreateReviewPayload {
+  review: Review
+}
+
+type Mutation {
+  createReview(input: CreateReviewInput!): CreateReviewPayload!
+}
+
+type PageInfo @shareable {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Product {
+  reviews(first: Int after: String last: Int before: String): ProductReviewsConnection
+  id: ID!
+}
+
+type ProductReviewsConnection {
+  pageInfo: PageInfo!
+  edges: [ProductReviewsEdge!]
+  nodes: [Review!]
+}
+
+type ProductReviewsEdge {
+  cursor: String!
+  node: Review!
+}
+
+type Query {
+  node(id: ID!): Node @lookup @shareable
+  nodes(ids: [ID!]!): [Node]! @shareable
+  productById(id: ID!): Product @lookup @internal
+  reviewById(id: ID!): Review @lookup
+  userById(id: ID!): User @lookup @internal
+}
+
+type Review implements Node {
+  product: Product!
+  author: User
+  id: ID!
+  body: String!
+  stars: Int!
+  createAt: String!
+}
+
+type Subscription {
+  onCreateReview: Review
+}
+
+type User {
+  reviews(first: Int after: String last: Int before: String): UserReviewsConnection
+  id: ID!
+  name: String! @shareable
+}
+
+type UserReviewsConnection {
+  pageInfo: PageInfo!
+  edges: [UserReviewsEdge!]
+  nodes: [Review!]
+}
+
+type UserReviewsEdge {
+  cursor: String!
+  node: Review!
+}
+
+input CreateReviewInput {
+  body: String!
+  stars: Int!
+  productId: ID!
+  authorId: ID!
+}

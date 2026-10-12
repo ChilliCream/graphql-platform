@@ -1,0 +1,267 @@
+title: Requirements_Should_ReachEachField_When_MergedLookupSelectsRequirementFieldOnce
+request:
+  document: |
+    {
+      products {
+        id
+        scaled
+        labelOne
+        labelTwo
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "scaled": 30,
+            "labelOne": "one:30",
+            "labelTwo": "two:30"
+          },
+          {
+            "id": "2",
+            "scaled": 70,
+            "labelOne": "one:70",
+            "labelTwo": "two:70"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        base: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_fa62c975_1 {
+              products {
+                id
+                base
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "1",
+                      "base": 3
+                    },
+                    {
+                      "id": "2",
+                      "base": 7
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        scaled(base: Int! @require(field: "base")): Int!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_fa62c975_4($__fusion_4_id: ID!, $__fusion_5_base: Int!) {
+              productById(id: $__fusion_4_id) {
+                scaled(base: $__fusion_5_base)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_4_id": "1",
+                "__fusion_5_base": 3
+              },
+              {
+                "__fusion_4_id": "2",
+                "__fusion_5_base": 7
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "scaled": 30
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "scaled": 70
+                  }
+                }
+              }
+  - name: c
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        labelOne(scaled: Int! @require(field: "scaled")): String!
+        labelTwo(scaled: Int! @require(field: "scaled")): String!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_fa62c975_3(
+              $__fusion_2_scaled: Int!
+              $__fusion_3_id: ID!
+              $__fusion_6_scaled: Int!
+            ) {
+              productById(id: $__fusion_3_id) {
+                labelTwo(scaled: $__fusion_2_scaled)
+                labelOne(scaled: $__fusion_6_scaled)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_scaled": 30,
+                "__fusion_3_id": "1",
+                "__fusion_6_scaled": 30
+              },
+              {
+                "__fusion_2_scaled": 70,
+                "__fusion_3_id": "2",
+                "__fusion_6_scaled": 70
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "labelTwo": "two:30",
+                    "labelOne": "one:30"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "labelTwo": "two:70",
+                    "labelOne": "one:70"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+            scaled
+            scaled @fusion__requirement
+            labelOne
+            labelTwo
+            base @fusion__requirement
+          }
+        }
+      hash: 269c96430bf438e43469d3417171d9d7
+      searchSpace: 5
+      expandedNodes: 32
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_fa62c975_1 {
+          products {
+            id
+            base
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: c
+      operation: |
+        query Op_fa62c975_3(
+          $__fusion_2_scaled: Int!
+          $__fusion_3_id: ID!
+          $__fusion_6_scaled: Int!
+        ) {
+          productById(id: $__fusion_3_id) {
+            labelTwo(scaled: $__fusion_2_scaled)
+            labelOne(scaled: $__fusion_6_scaled)
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_2_scaled
+          selectionMap: >-
+            scaled
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+        - name: __fusion_6_scaled
+          selectionMap: >-
+            scaled
+      dependencies:
+        - id: 1
+        - id: 4
+    - id: 4
+      type: Operation
+      schema: b
+      operation: |
+        query Op_fa62c975_4($__fusion_4_id: ID!, $__fusion_5_base: Int!) {
+          productById(id: $__fusion_4_id) {
+            scaled(base: $__fusion_5_base)
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+        - name: __fusion_5_base
+          selectionMap: >-
+            base
+      dependencies:
+        - id: 1

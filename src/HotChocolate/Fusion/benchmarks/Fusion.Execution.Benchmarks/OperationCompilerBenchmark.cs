@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Diagnostics.dotMemory;
-using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Configs;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
@@ -9,9 +8,8 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
-[DotMemoryDiagnoser]
 [MemoryDiagnoser]
-[ShortRunJob(RuntimeMoniker.Net10_0)]
+[Config(typeof(InProcessShortRunConfig))]
 [MarkdownExporter]
 public class OperationCompilerBenchmark : FusionBenchmarkBase
 {

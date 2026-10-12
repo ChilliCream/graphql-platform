@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
-[ShortRunJob(RuntimeMoniker.Net10_0)]
+[Config(typeof(InProcessDefaultRunConfig))]
 [MarkdownExporter]
 public class OperationPlannerBenchmark : FusionBenchmarkBase
 {
@@ -32,8 +31,7 @@ public class OperationPlannerBenchmark : FusionBenchmarkBase
         _complexQuery = documentRewriter.RewriteDocument(CreateComplexDocument()).GetOperation(operationName: null);
         _conditionalRedundancyQuery = documentRewriter.RewriteDocument(CreateConditionalRedundancyDocument()).GetOperation(operationName: null);
 
-        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+        var pool = new DefaultObjectPoolProvider().CreateFieldMapPool();
         var operationCompiler = new OperationCompiler(schema, pool);
 
         _planner = new OperationPlanner(schema, operationCompiler);

@@ -1,0 +1,64 @@
+operation:
+  - document: |
+      {
+        root {
+          f24
+          id @fusion__requirement
+          k @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 3
+    expandedNodes: 10
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        root {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: a
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on T {
+            f24
+          }
+        }
+      }
+    source: $._entities
+    target: $.root
+    requirements:
+      - name: __fusion_1_k
+        selectionMap: >-
+          k
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 3
+  - id: 3
+    type: ApolloOperation
+    schema: c
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on T {
+            k
+          }
+        }
+      }
+    source: $._entities
+    target: $.root
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

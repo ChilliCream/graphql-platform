@@ -719,7 +719,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
                   }
                 hash: 123456789101112
                 searchSpace: 1
-                expandedNodes: 2
+                expandedNodes: 3
             nodes:
               - id: 1
                 type: Operation

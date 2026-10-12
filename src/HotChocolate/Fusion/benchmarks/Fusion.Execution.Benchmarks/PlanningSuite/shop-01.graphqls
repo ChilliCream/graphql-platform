@@ -1,0 +1,38 @@
+interface Node {
+  id: ID!
+}
+
+type InventoryItem implements Node {
+  product: Product!
+  id: ID!
+  quantity: Int!
+}
+
+type Mutation {
+  restockProduct(input: RestockProductInput!): RestockProductPayload! @cost(weight: "10")
+}
+
+type Product {
+  quantity: Int! @cost(weight: "10")
+  id: ID!
+  item: InventoryItem
+}
+
+type Query {
+  node(id: ID!): Node @lookup @shareable
+  nodes(ids: [ID!]!): [Node]! @shareable
+  inventoryItemById(id: ID!): InventoryItem @lookup
+  productByIdAsync(id: ID!): Product @lookup @internal
+}
+
+type RestockProductPayload {
+  product: Product
+}
+
+input RestockProductInput {
+  id: ID!
+  quantity: Int!
+}
+
+directive @cost(weight: String!)
+    on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

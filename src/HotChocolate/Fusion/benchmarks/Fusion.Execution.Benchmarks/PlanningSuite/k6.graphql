@@ -1,0 +1,69 @@
+query TestQuery {
+  users {
+    id
+    username
+    name
+    reviews {
+      id
+      body
+      product {
+        inStock
+        name
+        price
+        shippingEstimate
+        upc
+        weight
+        reviews {
+          id
+          body
+          author {
+            id
+            username
+            name
+            reviews {
+              id
+              body
+              product {
+                inStock
+                name
+                price
+                shippingEstimate
+                upc
+                weight
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  topProducts(first: 5) {
+    inStock
+    name
+    price
+    shippingEstimate
+    upc
+    weight
+    reviews {
+      id
+      body
+      author {
+        id
+        username
+        name
+        reviews {
+          id
+          body
+          product {
+            inStock
+            name
+            price
+            shippingEstimate
+            upc
+            weight
+          }
+        }
+      }
+    }
+  }
+}

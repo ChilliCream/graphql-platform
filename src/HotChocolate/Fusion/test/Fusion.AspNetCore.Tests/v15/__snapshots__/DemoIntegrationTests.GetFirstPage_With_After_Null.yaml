@@ -97,7 +97,7 @@ operationPlan:
       name: AfterNull
       hash: d9a904ad9190596234dbfaf246df715f
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

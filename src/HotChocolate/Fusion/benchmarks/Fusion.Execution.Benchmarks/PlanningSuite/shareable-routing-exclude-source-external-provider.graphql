@@ -1,0 +1,13 @@
+{
+  actions {
+    ... on Common {
+      label
+    }
+    ... on OnlyA {
+      a
+    }
+    ... on OnlyB {
+      b
+    }
+  }
+}

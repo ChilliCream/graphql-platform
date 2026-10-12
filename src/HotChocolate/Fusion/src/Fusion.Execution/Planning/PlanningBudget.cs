@@ -5,8 +5,8 @@ using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Tracks the configured planner guardrails for a single operation across the greedy pass,
-/// the main search and every deferred search.
+/// Tracks the configured planner guardrails and the plan improvement allowance for a single
+/// operation across the greedy pass, the main search and every deferred search.
 /// </summary>
 internal sealed class PlanningBudget
 {
@@ -14,8 +14,10 @@ internal sealed class PlanningBudget
     private readonly int? _maxExpandedNodes;
     private readonly int? _maxQueueSize;
     private readonly int? _maxGeneratedOptionsPerWorkItem;
+    private readonly int? _maxPlanImprovementNodes;
     private readonly long _startedAt;
     private int _expandedNodes;
+    private int _improvementNodes;
 
     public PlanningBudget(OperationPlannerOptions options, bool emitPlannerEvents)
     {
@@ -25,6 +27,7 @@ internal sealed class PlanningBudget
         _maxExpandedNodes = options.MaxExpandedNodes;
         _maxQueueSize = options.MaxQueueSize;
         _maxGeneratedOptionsPerWorkItem = options.MaxGeneratedOptionsPerWorkItem;
+        _maxPlanImprovementNodes = options.MaxPlanImprovementNodes;
         _startedAt = _maxPlanningTime.HasValue ? Stopwatch.GetTimestamp() : 0L;
         EmitPlannerEvents = emitPlannerEvents;
     }
@@ -63,6 +66,31 @@ internal sealed class PlanningBudget
                 expandedNodesLimit,
                 _expandedNodes);
         }
+    }
+
+    /// <summary>
+    /// Counts one node expanded by a search that already holds a complete plan and returns
+    /// <c>false</c> when the plan improvement allowance of the operation is spent.
+    /// </summary>
+    public bool TryCountImprovement(string operationId)
+    {
+        if (_maxPlanImprovementNodes is not { } improvementLimit)
+        {
+            return true;
+        }
+
+        if (_improvementNodes >= improvementLimit)
+        {
+            if (EmitPlannerEvents)
+            {
+                PlannerEventSource.Log.PlanImprovementBudgetExhausted(operationId, improvementLimit);
+            }
+
+            return false;
+        }
+
+        _improvementNodes++;
+        return true;
     }
 
     /// <summary>

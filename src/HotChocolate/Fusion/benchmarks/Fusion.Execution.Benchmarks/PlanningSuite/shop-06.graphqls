@@ -1,0 +1,26 @@
+type Product {
+  deliveryEstimate(
+    zip: String!
+    dimension: ProductDimensionInput!
+      @require(field:
+        """
+        {
+          weight
+          length: dimension.length
+          width: dimension.width
+          height: dimension.height
+        }
+        """)): Int!
+  id: ID!
+}
+
+type Query {
+  productById(id: ID!): Product @lookup @internal
+}
+
+input ProductDimensionInput {
+  weight: Int!
+  length: Float!
+  width: Float!
+  height: Float!
+}

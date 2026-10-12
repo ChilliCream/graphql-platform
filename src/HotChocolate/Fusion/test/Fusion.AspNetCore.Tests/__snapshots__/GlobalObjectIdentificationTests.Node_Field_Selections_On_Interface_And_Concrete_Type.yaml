@@ -101,7 +101,7 @@ operationPlan:
       name: testQuery
       hash: df2c54290126bd66fa8cbe1ebe39a11a
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 4
   nodes:
     - id: 1
       type: Node

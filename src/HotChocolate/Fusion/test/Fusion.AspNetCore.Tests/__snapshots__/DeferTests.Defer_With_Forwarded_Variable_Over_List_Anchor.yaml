@@ -319,7 +319,7 @@ operationPlan:
       name: GetUsersPosts
       hash: 239f029fe008f6e4929f35b9f8e5f9ce
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

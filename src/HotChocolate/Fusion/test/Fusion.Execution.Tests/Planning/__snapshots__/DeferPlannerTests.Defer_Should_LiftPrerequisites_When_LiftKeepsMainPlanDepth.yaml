@@ -1,0 +1,101 @@
+operation:
+  - document: |
+      {
+        product {
+          id
+          id @fusion__requirement
+          other
+          raw @fusion__requirement
+          value @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+          raw
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        productById(id: $__fusion_1_id) {
+          other
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_defer_4($__fusion_5_id: ID!) {
+        productById(id: $__fusion_5_id) {
+          value
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+deliveryGroups:
+  - id: 0
+    path: $.product
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_2_input
+        selectionMap: >-
+          {
+            raw
+            value
+          }
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_2($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              total(input: $__fusion_2_input)
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_input
+            selectionMap: >-
+              {
+                raw
+                value
+              }
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+          - parentNodeId: 3

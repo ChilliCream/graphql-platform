@@ -68,7 +68,7 @@ operationPlan:
       name: Test
       hash: 7369888d56330c781a470a838d9cca55
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

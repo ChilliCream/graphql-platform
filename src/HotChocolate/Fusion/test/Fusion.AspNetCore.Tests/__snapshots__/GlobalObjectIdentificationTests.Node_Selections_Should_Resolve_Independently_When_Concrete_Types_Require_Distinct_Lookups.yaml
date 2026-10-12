@@ -84,7 +84,7 @@ sourceSchemas:
               node(id: $__fusion_4_id) {
                 __typename
                 ... on Chat {
-                  id
+                  chatId
                 }
               }
             }
@@ -99,7 +99,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Chat",
-                    "id": "Q2hhdDox"
+                    "chatId": "Q2hhdDox"
                   }
                 }
               }
@@ -204,26 +204,22 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_id: ID!) {
-              node(id: $__fusion_2_id) {
-                __typename
-                ... on Chat {
-                  displayName(requirement: $__fusion_1_requirement)
-                }
+            query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_chatId: ID!) {
+              chatById(chatId: $__fusion_2_chatId) {
+                displayName(requirement: $__fusion_1_requirement)
               }
             }
           variables: |
             {
               "__fusion_1_requirement": "Chat: Q2hhdDox",
-              "__fusion_2_id": "Q2hhdDox"
+              "__fusion_2_chatId": "Q2hhdDox"
             }
         response:
           results:
             - |
               {
                 "data": {
-                  "node": {
-                    "__typename": "Chat",
+                  "chatById": {
                     "displayName": "Chat: Q2hhdDox"
                   }
                 }
@@ -293,8 +289,9 @@ operationPlan:
             }
             ... on Chat {
               displayName
-              id @fusion__requirement
+              chatId @fusion__requirement
               chatRequirement @fusion__requirement
+              id @fusion__requirement
             }
           }
           chat: node(id: "Q2hhdDox") {
@@ -306,14 +303,15 @@ operationPlan:
             }
             ... on Chat {
               displayName
-              id @fusion__requirement
+              chatId @fusion__requirement
               chatRequirement @fusion__requirement
+              id @fusion__requirement
             }
           }
         }
       hash: 0712fe9e4cafd2decacfd095e0a4badc
-      searchSpace: 9
-      expandedNodes: 37
+      searchSpace: 39
+      expandedNodes: 179
   nodes:
     - id: 1
       type: Node
@@ -352,23 +350,20 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Chat {
-              displayName(requirement: $__fusion_1_requirement)
-            }
+        query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_chatId: ID!) {
+          chatById(chatId: $__fusion_2_chatId) {
+            displayName(requirement: $__fusion_1_requirement)
           }
         }
-      source: $.node<Chat>
+      source: $.chatById
       target: $.chat<Chat>
       requirements:
         - name: __fusion_1_requirement
           selectionMap: >-
             chatRequirement
-        - name: __fusion_2_id
+        - name: __fusion_2_chatId
           selectionMap: >-
-            id
+            chatId
       dependencies:
         - id: 5
         - id: 6
@@ -400,7 +395,7 @@ operationPlan:
           node(id: $__fusion_4_id) {
             __typename
             ... on Chat {
-              id
+              chatId
             }
           }
         }
@@ -525,20 +520,17 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_11d4fa47_14($__fusion_10_id: ID!, $__fusion_9_requirement: String) {
-          node(id: $__fusion_10_id) {
-            __typename
-            ... on Chat {
-              displayName(requirement: $__fusion_9_requirement)
-            }
+        query Op_11d4fa47_14($__fusion_10_chatId: ID!, $__fusion_9_requirement: String) {
+          chatById(chatId: $__fusion_10_chatId) {
+            displayName(requirement: $__fusion_9_requirement)
           }
         }
-      source: $.node<Chat>
+      source: $.chatById
       target: $.account<Chat>
       requirements:
-        - name: __fusion_10_id
+        - name: __fusion_10_chatId
           selectionMap: >-
-            id
+            chatId
         - name: __fusion_9_requirement
           selectionMap: >-
             chatRequirement
@@ -573,7 +565,7 @@ operationPlan:
           node(id: $__fusion_12_id) {
             __typename
             ... on Chat {
-              id
+              chatId
             }
           }
         }

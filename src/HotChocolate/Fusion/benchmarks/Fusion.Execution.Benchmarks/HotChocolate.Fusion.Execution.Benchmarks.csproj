@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="PlanningSuite\*" LogicalName="PlanningSuite/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />

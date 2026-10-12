@@ -3,19 +3,19 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Tracks the minimum guaranteed cost of all work items still in the backlog.
+/// Tracks the operations that the work items still in the backlog are guaranteed to add.
 /// </summary>
-/// <param name="MinimumCost">
-/// Sum of the cheapest possible cost for each backlog item.
+/// <param name="MinimumOperationCount">
+/// The number of operations the backlog items add at the very least.
 /// </param>
 /// <param name="MaxProjectedDepth">
-/// The deepest level at which backlog items are expected to produce operations.
+/// The deepest level at which backlog items are guaranteed to produce operations.
 /// </param>
 /// <param name="ProjectedOpsPerLevel">
-/// How many operations each depth level is expected to add.
+/// How many operations each depth level is guaranteed to receive from the backlog.
 /// </param>
 internal readonly record struct BacklogCost(
-    double MinimumCost,
+    int MinimumOperationCount,
     int MaxProjectedDepth,
     ImmutableDictionary<int, int> ProjectedOpsPerLevel)
 {
@@ -24,8 +24,8 @@ internal readonly record struct BacklogCost(
     /// </summary>
     public static BacklogCost Empty { get; } =
 #if NET10_0_OR_GREATER
-        new(0.0, 0, []);
+        new(0, 0, []);
 #else
-        new(0.0, 0, ImmutableDictionary<int, int>.Empty);
+        new(0, 0, ImmutableDictionary<int, int>.Empty);
 #endif
 }

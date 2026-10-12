@@ -1,0 +1,45 @@
+query findMe($skip: Boolean = true) {
+  users {
+    nodes {
+      id
+      birthdate
+      reviews {
+        nodes {
+          author {
+            id
+            name
+          }
+          product {
+            id
+            weight
+            deliveryEstimate(zip: "4383")
+            pictureFileName
+            price
+            reviews {
+              nodes {
+                author {
+                  birthdate
+                  reviews {
+                    nodes {
+                      stars
+                      product {
+                        weight
+                        item {
+                          quantity
+                          product {
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            quantity @skip(if: $skip)
+          }
+        }
+      }
+    }
+  }
+}

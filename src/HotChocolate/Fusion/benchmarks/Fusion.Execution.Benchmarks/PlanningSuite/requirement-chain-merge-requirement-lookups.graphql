@@ -1,0 +1,13 @@
+{
+  product {
+    id
+    price
+    hasDiscount
+    isExpensive
+    isExpensiveWithDiscount
+    canAfford
+    canAfford2
+    canAffordWithDiscount
+    canAffordWithDiscount2
+  }
+}

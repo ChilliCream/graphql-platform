@@ -289,7 +289,7 @@ operationPlan:
       name: DashboardQuery
       hash: 87b8579dd09cc316f6b3b954d6f3c284
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Node

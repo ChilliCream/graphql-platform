@@ -349,8 +349,8 @@ operationPlan:
         }
       name: t
       hash: 24d0cdfdb3140a5fbc2f9f0e4dbb0d40
-      searchSpace: 3
-      expandedNodes: 3
+      searchSpace: 4
+      expandedNodes: 21
   nodes:
     - id: 1
       type: Operation

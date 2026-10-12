@@ -169,8 +169,8 @@ operationPlan:
         }
       name: ProductReviews
       hash: 229d44af0c409ccd864b8c4c97a62a47
-      searchSpace: 1
-      expandedNodes: 1
+      searchSpace: 2
+      expandedNodes: 4
   nodes:
     - id: 1
       type: Node

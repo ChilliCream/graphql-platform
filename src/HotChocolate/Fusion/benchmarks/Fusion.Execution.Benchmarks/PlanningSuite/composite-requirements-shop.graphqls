@@ -1,0 +1,706 @@
+schema
+  @fusion__execution(
+    nodeResolution: GATEWAY
+    shareableFieldRuntimeTypeRouting: SOURCE_LOCAL
+  ) {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query
+  @fusion__type(schema: A)
+  @fusion__type(schema: B)
+  @fusion__type(schema: C)
+  @fusion__type(schema: D)
+  @fusion__type(schema: E)
+  @fusion__type(schema: F)
+  @fusion__type(schema: G) {
+  inventoryItemById(id: ID! @fusion__inputField(schema: B)): InventoryItem
+    @fusion__field(schema: B)
+  node(id: ID!): Node @fusion__gateway_field
+  orderById(
+    id: ID! @fusion__inputField(schema: C) @fusion__inputField(schema: D)
+  ): Order @fusion__field(schema: C) @fusion__field(schema: D)
+  paymentById(id: ID! @fusion__inputField(schema: D)): Payment
+    @fusion__field(schema: D)
+  productById(id: ID! @fusion__inputField(schema: E)): Product
+    @fusion__field(schema: E)
+  products(
+    after: String @fusion__inputField(schema: E)
+    before: String @fusion__inputField(schema: E)
+    first: Int @fusion__inputField(schema: E)
+    last: Int @fusion__inputField(schema: E)
+  ): ProductsConnection @fusion__field(schema: E)
+  reviewById(id: ID! @fusion__inputField(schema: F)): Review
+    @fusion__field(schema: F)
+  userById(id: ID! @fusion__inputField(schema: A)): User
+    @fusion__field(schema: A)
+  userByUsername(username: String! @fusion__inputField(schema: A)): User
+    @fusion__field(schema: A)
+  users(
+    after: String @fusion__inputField(schema: A)
+    before: String @fusion__inputField(schema: A)
+    first: Int @fusion__inputField(schema: A)
+    last: Int @fusion__inputField(schema: A)
+  ): UsersConnection @fusion__field(schema: A)
+}
+
+type Mutation
+  @fusion__type(schema: B)
+  @fusion__type(schema: C)
+  @fusion__type(schema: D)
+  @fusion__type(schema: E)
+  @fusion__type(schema: F) {
+  createOrder(input: CreateOrderInput! @fusion__inputField(schema: C)): CreateOrderPayload!
+    @cost(weight: "10")
+    @fusion__cost(schema: C, weight: "10")
+    @fusion__field(schema: C)
+  createPayment(input: CreatePaymentInput! @fusion__inputField(schema: D)): CreatePaymentPayload!
+    @fusion__field(schema: D)
+  createReview(input: CreateReviewInput! @fusion__inputField(schema: F)): CreateReviewPayload!
+    @fusion__field(schema: F)
+  restockProduct(input: RestockProductInput! @fusion__inputField(schema: B)): RestockProductPayload!
+    @cost(weight: "10")
+    @fusion__cost(schema: B, weight: "10")
+    @fusion__field(schema: B)
+  uploadProductPicture(
+    input: UploadProductPictureInput! @fusion__inputField(schema: E)
+  ): UploadProductPicturePayload! @fusion__field(schema: E)
+}
+
+type Subscription @fusion__type(schema: F) {
+  onCreateReview: Review @fusion__field(schema: F)
+}
+
+type CreateOrderPayload @fusion__type(schema: C) {
+  order: Order @fusion__field(schema: C)
+}
+
+type CreatePaymentPayload @fusion__type(schema: D) {
+  payment: Payment @fusion__field(schema: D)
+}
+
+type CreateReviewPayload @fusion__type(schema: F) {
+  review: Review @fusion__field(schema: F)
+}
+
+type InventoryItem implements Node
+  @fusion__type(schema: B)
+  @fusion__implements(schema: B, interface: "Node")
+  @fusion__lookup(
+    schema: B
+    key: "id"
+    field: "inventoryItemById(id: ID!): InventoryItem"
+    map: ["id"]
+    path: null
+    internal: false
+  ) {
+  id: ID! @fusion__field(schema: B)
+  product: Product! @fusion__field(schema: B)
+  quantity: Int! @fusion__field(schema: B)
+}
+
+type Order implements Node
+  @fusion__type(schema: C)
+  @fusion__type(schema: D)
+  @fusion__implements(schema: C, interface: "Node")
+  @fusion__lookup(
+    schema: C
+    key: "id"
+    field: "orderById(id: ID!): Order"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: D
+    key: "id"
+    field: "orderById(id: ID!): Order"
+    map: ["id"]
+    path: null
+    internal: false
+  ) {
+  id: ID! @fusion__field(schema: C) @fusion__field(schema: D)
+  items: [OrderItem!]! @fusion__field(schema: C)
+  payments: [Payment!]! @fusion__field(schema: D)
+  user: User! @fusion__field(schema: C)
+  weight: Int! @fusion__field(schema: C)
+}
+
+type OrderItem @fusion__type(schema: C) {
+  id: Int! @fusion__field(schema: C)
+  order: Order @fusion__field(schema: C)
+  orderId: Int! @fusion__field(schema: C)
+  price: Float! @fusion__field(schema: C)
+  product: Product! @fusion__field(schema: C)
+  quantity: Int! @fusion__field(schema: C)
+}
+
+type PageInfo
+  @fusion__type(schema: A)
+  @fusion__type(schema: E)
+  @fusion__type(schema: F) {
+  endCursor: String
+    @fusion__field(schema: A)
+    @fusion__field(schema: E)
+    @fusion__field(schema: F)
+  hasNextPage: Boolean!
+    @fusion__field(schema: A)
+    @fusion__field(schema: E)
+    @fusion__field(schema: F)
+  hasPreviousPage: Boolean!
+    @fusion__field(schema: A)
+    @fusion__field(schema: E)
+    @fusion__field(schema: F)
+  startCursor: String
+    @fusion__field(schema: A)
+    @fusion__field(schema: E)
+    @fusion__field(schema: F)
+}
+
+type Payment implements Node
+  @fusion__type(schema: D)
+  @fusion__implements(schema: D, interface: "Node")
+  @fusion__lookup(
+    schema: D
+    key: "id"
+    field: "paymentById(id: ID!): Payment"
+    map: ["id"]
+    path: null
+    internal: false
+  ) {
+  amount: Float! @fusion__field(schema: D)
+  createdAt: String! @fusion__field(schema: D)
+  id: ID! @fusion__field(schema: D)
+  order: Order! @fusion__field(schema: D)
+  status: PaymentStatus! @fusion__field(schema: D)
+}
+
+type Product implements Node
+  @fusion__type(schema: B)
+  @fusion__type(schema: C)
+  @fusion__type(schema: E)
+  @fusion__type(schema: F)
+  @fusion__type(schema: G)
+  @fusion__implements(schema: E, interface: "Node")
+  @fusion__lookup(
+    schema: B
+    key: "id"
+    field: "productByIdAsync(id: ID!): Product"
+    map: ["id"]
+    path: null
+    internal: true
+  )
+  @fusion__lookup(
+    schema: E
+    key: "id"
+    field: "productById(id: ID!): Product"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: F
+    key: "id"
+    field: "productById(id: ID!): Product"
+    map: ["id"]
+    path: null
+    internal: true
+  )
+  @fusion__lookup(
+    schema: G
+    key: "id"
+    field: "productById(id: ID!): Product"
+    map: ["id"]
+    path: null
+    internal: true
+  ) {
+  deliveryEstimate(zip: String! @fusion__inputField(schema: G)): Int!
+    @fusion__field(schema: G)
+    @fusion__requires(
+      schema: G
+      requirements: "weight dimension { length width height }"
+      field: "deliveryEstimate(zip: String! dimension: ProductDimensionInput!): Int!"
+      map: [
+        null
+        "{\n  weight\n  length: dimension.length\n  width: dimension.width\n  height: dimension.height\n}"
+      ]
+    )
+  dimension: ProductDimension! @fusion__field(schema: E)
+  id: ID!
+    @fusion__field(schema: B)
+    @fusion__field(schema: C)
+    @fusion__field(schema: E)
+    @fusion__field(schema: F)
+    @fusion__field(schema: G)
+  item: InventoryItem @fusion__field(schema: B)
+  name: String! @fusion__field(schema: E)
+  pictureFileName: String @fusion__field(schema: E)
+  pictureString: String @fusion__field(schema: E)
+  price: Float! @fusion__field(schema: E)
+  quantity: Int!
+    @cost(weight: "10")
+    @fusion__cost(schema: B, weight: "10")
+    @fusion__field(schema: B)
+  reviews(
+    after: String @fusion__inputField(schema: F)
+    before: String @fusion__inputField(schema: F)
+    first: Int @fusion__inputField(schema: F)
+    last: Int @fusion__inputField(schema: F)
+  ): ProductReviewsConnection @fusion__field(schema: F)
+  weight: Int! @fusion__field(schema: E)
+}
+
+type ProductDimension @fusion__type(schema: E) {
+  height: Float! @fusion__field(schema: E)
+  length: Float! @fusion__field(schema: E)
+  width: Float! @fusion__field(schema: E)
+}
+
+type ProductReviewsConnection @fusion__type(schema: F) {
+  edges: [ProductReviewsEdge!] @fusion__field(schema: F)
+  nodes: [Review!] @fusion__field(schema: F)
+  pageInfo: PageInfo! @fusion__field(schema: F)
+}
+
+type ProductReviewsEdge @fusion__type(schema: F) {
+  cursor: String! @fusion__field(schema: F)
+  node: Review! @fusion__field(schema: F)
+}
+
+type ProductsConnection @fusion__type(schema: E) {
+  edges: [ProductsEdge!] @fusion__field(schema: E)
+  nodes: [Product!] @fusion__field(schema: E)
+  pageInfo: PageInfo! @fusion__field(schema: E)
+}
+
+type ProductsEdge @fusion__type(schema: E) {
+  cursor: String! @fusion__field(schema: E)
+  node: Product! @fusion__field(schema: E)
+}
+
+type RestockProductPayload @fusion__type(schema: B) {
+  product: Product @fusion__field(schema: B)
+}
+
+type Review implements Node
+  @fusion__type(schema: F)
+  @fusion__implements(schema: F, interface: "Node")
+  @fusion__lookup(
+    schema: F
+    key: "id"
+    field: "reviewById(id: ID!): Review"
+    map: ["id"]
+    path: null
+    internal: false
+  ) {
+  author: User @fusion__field(schema: F)
+  body: String! @fusion__field(schema: F)
+  createAt: String! @fusion__field(schema: F)
+  id: ID! @fusion__field(schema: F)
+  product: Product! @fusion__field(schema: F)
+  stars: Int! @fusion__field(schema: F)
+}
+
+type UnknownProductError implements Error
+  @fusion__type(schema: E)
+  @fusion__implements(schema: E, interface: "Error") {
+  message: String! @fusion__field(schema: E)
+  productId: Int! @fusion__field(schema: E)
+}
+
+type UploadProductPicturePayload @fusion__type(schema: E) {
+  errors: [UploadProductPictureError!] @fusion__field(schema: E)
+  product: Product @fusion__field(schema: E)
+}
+
+type User implements Node
+  @fusion__type(schema: A)
+  @fusion__type(schema: C)
+  @fusion__type(schema: F)
+  @fusion__implements(schema: A, interface: "Node")
+  @fusion__lookup(
+    schema: A
+    key: "id"
+    field: "userById(id: ID!): User"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: A
+    key: "username"
+    field: "userByUsername(username: String!): User"
+    map: ["username"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: C
+    key: "id"
+    field: "userById(id: ID!): User"
+    map: ["id"]
+    path: null
+    internal: true
+  )
+  @fusion__lookup(
+    schema: F
+    key: "id"
+    field: "userById(id: ID!): User"
+    map: ["id"]
+    path: null
+    internal: true
+  ) {
+  birthdate: String! @fusion__field(schema: A)
+  id: ID!
+    @fusion__field(schema: A)
+    @fusion__field(schema: C)
+    @fusion__field(schema: F)
+  name: String! @fusion__field(schema: A) @fusion__field(schema: F)
+  reviews(
+    after: String @fusion__inputField(schema: F)
+    before: String @fusion__inputField(schema: F)
+    first: Int @fusion__inputField(schema: F)
+    last: Int @fusion__inputField(schema: F)
+  ): UserReviewsConnection @fusion__field(schema: F)
+  username: String! @fusion__field(schema: A)
+}
+
+type UserReviewsConnection @fusion__type(schema: F) {
+  edges: [UserReviewsEdge!] @fusion__field(schema: F)
+  nodes: [Review!] @fusion__field(schema: F)
+  pageInfo: PageInfo! @fusion__field(schema: F)
+}
+
+type UserReviewsEdge @fusion__type(schema: F) {
+  cursor: String! @fusion__field(schema: F)
+  node: Review! @fusion__field(schema: F)
+}
+
+type UsersConnection @fusion__type(schema: A) {
+  edges: [UsersEdge!] @fusion__field(schema: A)
+  nodes: [User!] @fusion__field(schema: A)
+  pageInfo: PageInfo! @fusion__field(schema: A)
+}
+
+type UsersEdge @fusion__type(schema: A) {
+  cursor: String! @fusion__field(schema: A)
+  node: User! @fusion__field(schema: A)
+}
+
+interface Error @fusion__type(schema: E) {
+  message: String! @fusion__field(schema: E)
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node
+  @fusion__type(schema: A)
+  @fusion__type(schema: B)
+  @fusion__type(schema: C)
+  @fusion__type(schema: D)
+  @fusion__type(schema: E)
+  @fusion__type(schema: F)
+  @fusion__lookup(
+    schema: A
+    key: "id"
+    field: "node(id: ID!): Node"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: B
+    key: "id"
+    field: "node(id: ID!): Node"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: C
+    key: "id"
+    field: "node(id: ID!): Node"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: D
+    key: "id"
+    field: "node(id: ID!): Node"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: E
+    key: "id"
+    field: "node(id: ID!): Node"
+    map: ["id"]
+    path: null
+    internal: false
+  )
+  @fusion__lookup(
+    schema: F
+    key: "id"
+    field: "node(id: ID!): Node"
+    map: ["id"]
+    path: null
+    internal: false
+  ) {
+  id: ID!
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+    @fusion__field(schema: C)
+    @fusion__field(schema: D)
+    @fusion__field(schema: E)
+    @fusion__field(schema: F)
+}
+
+union UploadProductPictureError
+  @fusion__type(schema: E)
+  @fusion__unionMember(schema: E, member: "UnknownProductError") =
+  | UnknownProductError
+
+input CreateOrderInput @fusion__type(schema: C) {
+  items: [OrderItemInput!]! @fusion__inputField(schema: C)
+  userId: ID! @fusion__inputField(schema: C)
+  weight: Int! @fusion__inputField(schema: C)
+}
+
+input CreatePaymentInput @fusion__type(schema: D) {
+  orderId: ID! @fusion__inputField(schema: D)
+}
+
+input CreateReviewInput @fusion__type(schema: F) {
+  authorId: ID! @fusion__inputField(schema: F)
+  body: String! @fusion__inputField(schema: F)
+  productId: ID! @fusion__inputField(schema: F)
+  stars: Int! @fusion__inputField(schema: F)
+}
+
+input OrderItemInput @fusion__type(schema: C) {
+  price: Float! @fusion__inputField(schema: C)
+  productId: ID! @fusion__inputField(schema: C)
+  quantity: Int! @fusion__inputField(schema: C)
+}
+
+input ProductDimensionInput @fusion__type(schema: G) {
+  height: Float! @fusion__inputField(schema: G)
+  length: Float! @fusion__inputField(schema: G)
+  weight: Int! @fusion__inputField(schema: G)
+  width: Float! @fusion__inputField(schema: G)
+}
+
+input RestockProductInput @fusion__type(schema: B) {
+  id: ID! @fusion__inputField(schema: B)
+  quantity: Int! @fusion__inputField(schema: B)
+}
+
+input UploadProductPictureInput @fusion__type(schema: E) {
+  picture: String! @fusion__inputField(schema: E)
+  productId: Int! @fusion__inputField(schema: E)
+}
+
+enum fusion__NodeResolution {
+  GATEWAY
+  SOURCE_SCHEMA
+}
+
+"The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
+enum fusion__Schema {
+  F @fusion__schema_metadata(name: "f")
+  G @fusion__schema_metadata(name: "g")
+  A @fusion__schema_metadata(name: "a")
+  B @fusion__schema_metadata(name: "b")
+  C @fusion__schema_metadata(name: "c")
+  D @fusion__schema_metadata(name: "d")
+  E @fusion__schema_metadata(name: "e")
+}
+
+enum fusion__ShareableFieldRuntimeTypeRouting {
+  SOURCE_LOCAL
+  COMMON_RUNTIME_TYPES
+}
+
+enum PaymentStatus @fusion__type(schema: D) {
+  PENDING @fusion__enumValue(schema: D)
+  AUTHORIZED @fusion__enumValue(schema: D)
+  DECLINED @fusion__enumValue(schema: D)
+  REFUNDED @fusion__enumValue(schema: D)
+}
+
+"The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec."
+scalar fusion__FieldDefinition
+
+"The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec."
+scalar fusion__FieldSelectionMap
+
+"The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type."
+scalar fusion__FieldSelectionPath
+
+"The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
+scalar fusion__FieldSelectionSet
+
+directive @cost(weight: String!) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
+
+"The @fusion__cost directive specifies cost metadata for each source schema."
+directive @fusion__cost(
+  "The name of the source schema that defined the cost metadata."
+  schema: fusion__Schema!
+  "The weight defined in the source schema."
+  weight: String!
+) repeatable on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
+
+directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+
+"The @fusion__enumValue directive specifies which source schema provides an enum value."
+directive @fusion__enumValue(
+  "The name of the source schema that provides the specified enum value."
+  schema: fusion__Schema!
+) repeatable on ENUM_VALUE
+
+directive @fusion__eventStream(
+  broker: String
+  cursorArgument: String
+  cursorField: String
+  message: fusion__FieldSelectionSet!
+  schema: fusion__Schema!
+  topics: [String!]
+) on FIELD_DEFINITION
+
+directive @fusion__execution(
+  nodeResolution: fusion__NodeResolution! = GATEWAY
+  shareableFieldRuntimeTypeRouting: fusion__ShareableFieldRuntimeTypeRouting! = SOURCE_LOCAL
+) on SCHEMA
+
+"The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has."
+directive @fusion__field(
+  "Indicates that this field is only partially provided and must be combined with `provides`."
+  partial: Boolean! = false
+  "A selection set of fields this field provides in the composite schema."
+  provides: fusion__FieldSelectionSet
+  "The name of the source schema that originally provided this field."
+  schema: fusion__Schema!
+  "Indicates that the source field was declared as external before connector preprocessing."
+  sourceExternal: Boolean! = false
+  "The field type in the source schema if it differs in nullability or structure."
+  sourceType: String
+) repeatable on FIELD_DEFINITION
+
+"The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+directive @fusion__gateway_field on FIELD_DEFINITION
+
+"The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
+directive @fusion__implements(
+  "The name of the interface type."
+  interface: String!
+  "The name of the source schema on which the annotated type implements the specified interface."
+  schema: fusion__Schema!
+) repeatable on OBJECT | INTERFACE
+
+"The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
+directive @fusion__inaccessible on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | INTERFACE
+  | UNION
+  | ENUM
+  | ENUM_VALUE
+  | INPUT_OBJECT
+  | INPUT_FIELD_DEFINITION
+
+"The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
+directive @fusion__inputField(
+  "The name of the source schema that originally provided this input field."
+  schema: fusion__Schema!
+  "The field type in the source schema if it differs in nullability or structure."
+  sourceType: String
+) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+"The @fusion__interfaceObject directive specifies the source schemas that expose an interface as an @interfaceObject stand-in, so values of the interface produced by those schemas are opaque."
+directive @fusion__interfaceObject(
+  "The name of the source schema that exposes this interface as an @interfaceObject stand-in."
+  schema: fusion__Schema!
+) repeatable on INTERFACE
+
+"The @fusion__listSize directive specifies list size metadata for each source schema."
+directive @fusion__listSize(
+  "The assumed size of the list as defined in the source schema."
+  assumedSize: Int
+  "The single slicing argument requirement of the list as defined in the source schema."
+  requireOneSlicingArgument: Boolean
+  "The name of the source schema that defined the list size metadata."
+  schema: fusion__Schema!
+  "The sized fields of the list as defined in the source schema."
+  sizedFields: [String!]
+  "The slicing argument default value of the list as defined in the source schema."
+  slicingArgumentDefaultValue: Int
+  "The slicing arguments of the list as defined in the source schema."
+  slicingArguments: [String!]
+) repeatable on FIELD_DEFINITION
+
+"The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
+directive @fusion__lookup(
+  "The GraphQL field definition in the source schema that can be used to look up the entity."
+  field: fusion__FieldDefinition!
+  "Is the lookup meant as an entry point or just to provide more data."
+  internal: Boolean! = false
+  "A selection set on the annotated entity type that describes the stable key for the lookup."
+  key: fusion__FieldSelectionSet!
+  "The map describes how the key values are resolved from the annotated entity type."
+  map: [fusion__FieldSelectionMap!]!
+  "The path to the lookup field relative to the Query type."
+  path: fusion__FieldSelectionPath
+  "The name of the source schema where the annotated entity type can be looked up from."
+  schema: fusion__Schema!
+) repeatable on OBJECT | INTERFACE | UNION
+
+"The @fusion__requires directive specifies if a field has requirements on a source schema."
+directive @fusion__requires(
+  "The GraphQL field definition in the source schema that this field depends on."
+  field: fusion__FieldDefinition!
+  "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
+  map: [fusion__FieldSelectionMap]!
+  "A selection set on the annotated field that describes its requirements."
+  requirements: fusion__FieldSelectionSet!
+  "The name of the source schema where this field has requirements to data on other source schemas."
+  schema: fusion__Schema!
+) repeatable on FIELD_DEFINITION
+
+"The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
+directive @fusion__schema_metadata(
+  allowNonResolvableInterfaceObjects: Boolean
+  kind: String
+  "The name of the source schema."
+  name: String!
+) on ENUM_VALUE
+
+"The @fusion__type directive specifies which source schemas provide parts of a composite type."
+directive @fusion__type(
+  "The name of the source schema that originally provided part of the annotated type."
+  schema: fusion__Schema!
+) repeatable on SCALAR | OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
+
+"The @fusion__unionMember directive specifies which source schema provides a member type of a union."
+directive @fusion__unionMember(
+  "The name of the member type."
+  member: String!
+  "The name of the source schema that provides the specified member type."
+  schema: fusion__Schema!
+) repeatable on UNION

@@ -15,7 +15,6 @@ using HotChocolate.Buffers;
 namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]
 [Config(typeof(PercentilesConfig))]
 public class GraphQLQueryBenchmark
 {
@@ -30,9 +29,10 @@ public class GraphQLQueryBenchmark
     private TransportGraphQLHttpRequest _transportItemsRequest = null!;
     private TransportGraphQLHttpRequest _transportFewItemsRequest = null!;
 
-    private sealed class PercentilesConfig : ManualConfig
+    private sealed class PercentilesConfig : InProcessBenchmarkConfig
     {
         public PercentilesConfig()
+            : base(Job.Default.WithWarmupCount(3).WithIterationCount(10))
         {
             AddColumn(StatisticColumn.P95);
             AddExporter(CsvMeasurementsExporter.Default);

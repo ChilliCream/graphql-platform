@@ -1,0 +1,69 @@
+interface Error {
+  message: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+type Mutation {
+  uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
+}
+
+type PageInfo @shareable {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Product implements Node {
+  dimension: ProductDimension!
+  pictureString: String
+  id: ID!
+  name: String!
+  price: Float!
+  weight: Int!
+  pictureFileName: String
+}
+
+type ProductDimension {
+  length: Float!
+  width: Float!
+  height: Float!
+}
+
+type ProductsConnection {
+  pageInfo: PageInfo!
+  edges: [ProductsEdge!]
+  nodes: [Product!]
+}
+
+type ProductsEdge {
+  cursor: String!
+  node: Product!
+}
+
+type Query {
+  node(id: ID!): Node @lookup @shareable
+  nodes(ids: [ID!]!): [Node]! @shareable
+  productById(id: ID!): Product @lookup
+  products(first: Int after: String last: Int before: String): ProductsConnection
+}
+
+type UnknownProductError implements Error {
+  productId: Int!
+  message: String!
+}
+
+type UploadProductPicturePayload {
+  product: Product
+  errors: [UploadProductPictureError!]
+}
+
+union UploadProductPictureError = UnknownProductError
+
+input UploadProductPictureInput {
+  productId: Int!
+  picture: String!
+}

@@ -121,9 +121,19 @@ internal sealed record PlanNode
     public EventStreamDirective? EventStreamDirective { get; init; }
 
     public double PathCost
-        => (MaxDepth * Options.DepthWeight)
-            + (OperationStepCount * Options.OperationWeight)
-            + (ExcessFanout * Options.ExcessFanoutWeight);
+        => CalculatePathCost(Options, MaxDepth, OperationStepCount, ExcessFanout);
+
+    /// <summary>
+    /// Calculates the path cost of a plan with the given counters.
+    /// </summary>
+    public static double CalculatePathCost(
+        OperationPlannerOptions options,
+        int maxDepth,
+        int operationStepCount,
+        int excessFanout)
+        => (maxDepth * options.DepthWeight)
+            + (operationStepCount * options.OperationWeight)
+            + (excessFanout * options.ExcessFanoutWeight);
 
     public double ResolutionCost { get; init; }
 

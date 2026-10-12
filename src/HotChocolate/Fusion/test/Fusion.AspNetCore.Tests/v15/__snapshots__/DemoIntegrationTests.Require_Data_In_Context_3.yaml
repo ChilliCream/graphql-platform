@@ -597,39 +597,39 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Large_62d57bc0_4($__fusion_3_id: ID!) {
-              productById(id: $__fusion_3_id) {
+            query Large_62d57bc0_3($__fusion_2_id: ID!) {
+              productById(id: $__fusion_2_id) {
                 name
               }
             }
           variables: |
             [
               {
-                "__fusion_3_id": "UHJvZHVjdDoyMw=="
+                "__fusion_2_id": "UHJvZHVjdDoyMw=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoyNQ=="
+                "__fusion_2_id": "UHJvZHVjdDoyNQ=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoyNw=="
+                "__fusion_2_id": "UHJvZHVjdDoyNw=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxNw=="
+                "__fusion_2_id": "UHJvZHVjdDoxNw=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxOQ=="
+                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoyMQ=="
+                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxMQ=="
+                "__fusion_2_id": "UHJvZHVjdDoxMQ=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxMw=="
+                "__fusion_2_id": "UHJvZHVjdDoxMw=="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxNQ=="
+                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
               }
             ]
         response:
@@ -737,8 +737,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Large_62d57bc0_3($__fusion_2_id: ID!) {
-              node(id: $__fusion_2_id) {
+            query Large_62d57bc0_4($__fusion_3_id: ID!) {
+              node(id: $__fusion_3_id) {
                 __typename
                 ... on Product {
                   deliveryEstimate(zip: "abc") {
@@ -750,31 +750,31 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDoyMw=="
+                "__fusion_3_id": "UHJvZHVjdDoyMw=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoyNQ=="
+                "__fusion_3_id": "UHJvZHVjdDoyNQ=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoyNw=="
+                "__fusion_3_id": "UHJvZHVjdDoyNw=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxNw=="
+                "__fusion_3_id": "UHJvZHVjdDoxNw=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+                "__fusion_3_id": "UHJvZHVjdDoxOQ=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
+                "__fusion_3_id": "UHJvZHVjdDoyMQ=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxMQ=="
+                "__fusion_3_id": "UHJvZHVjdDoxMQ=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxMw=="
+                "__fusion_3_id": "UHJvZHVjdDoxMw=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
+                "__fusion_3_id": "UHJvZHVjdDoxNQ=="
               }
             ]
         response:
@@ -909,7 +909,7 @@ operationPlan:
       name: Large
       hash: 4f94623210f21dd6188bb9f3ed313525
       searchSpace: 2
-      expandedNodes: 4
+      expandedNodes: 10
   nodes:
     - id: 1
       type: Operation
@@ -952,19 +952,14 @@ operationPlan:
         - id: 1
     - id: 3
       type: Operation
-      schema: D
+      schema: C
       operation: |
         query Large_62d57bc0_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "abc") {
-                max
-              }
-            }
+          productById(id: $__fusion_2_id) {
+            name
           }
         }
-      source: $.node<Product>
+      source: $.productById
       target: $.users.reviews.product
       requirements:
         - name: __fusion_2_id
@@ -974,14 +969,19 @@ operationPlan:
         - id: 2
     - id: 4
       type: Operation
-      schema: C
+      schema: D
       operation: |
         query Large_62d57bc0_4($__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            name
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on Product {
+              deliveryEstimate(zip: "abc") {
+                max
+              }
+            }
           }
         }
-      source: $.productById
+      source: $.node<Product>
       target: $.users.reviews.product
       requirements:
         - name: __fusion_3_id

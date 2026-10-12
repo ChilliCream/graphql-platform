@@ -180,7 +180,7 @@ operationPlan:
       name: ProductReviews
       hash: 6deec7579505aaea0b7d674bc4ea8bc9
       searchSpace: 1
-      expandedNodes: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

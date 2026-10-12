@@ -14,6 +14,7 @@ public class OperationPlannerConfigurationTests : FusionTestBase
         const int maxExpandedNodes = 1234;
         const int maxQueueSize = 4321;
         const int maxGeneratedOptionsPerWorkItem = 87;
+        const int maxPlanImprovementNodes = 55;
 
         var services = new ServiceCollection();
         services
@@ -25,6 +26,7 @@ public class OperationPlannerConfigurationTests : FusionTestBase
                     o.MaxExpandedNodes = maxExpandedNodes;
                     o.MaxQueueSize = maxQueueSize;
                     o.MaxGeneratedOptionsPerWorkItem = maxGeneratedOptionsPerWorkItem;
+                    o.MaxPlanImprovementNodes = maxPlanImprovementNodes;
                 })
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -45,5 +47,6 @@ public class OperationPlannerConfigurationTests : FusionTestBase
         Assert.Equal(maxExpandedNodes, planner.Options.MaxExpandedNodes);
         Assert.Equal(maxQueueSize, planner.Options.MaxQueueSize);
         Assert.Equal(maxGeneratedOptionsPerWorkItem, planner.Options.MaxGeneratedOptionsPerWorkItem);
+        Assert.Equal(maxPlanImprovementNodes, planner.Options.MaxPlanImprovementNodes);
     }
 }

@@ -2,6 +2,8 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
@@ -78,7 +80,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
         var deepChain = CreateBacklogCost(3, 4, 5);
         var flatParallel = CreateBacklogCost(3, 3, 3);
 
-        Assert.Equal(deepChain.MinimumCost, flatParallel.MinimumCost);
+        Assert.Equal(deepChain.MinimumOperationCount, flatParallel.MinimumOperationCount);
 
         var currentOpsPerLevel = ImmutableDictionary<int, int>.Empty.Add(2, 1);
 
@@ -94,8 +96,8 @@ public class OperationPlannerCostModelTests : FusionTestBase
             currentOpsPerLevel,
             flatParallel);
 
-        Assert.Equal(75.0, deepChainCost, 6);
-        Assert.Equal(45.0, flatParallelCost, 6);
+        Assert.Equal(49.5, deepChainCost, 6);
+        Assert.Equal(19.5, flatParallelCost, 6);
         Assert.True(deepChainCost > flatParallelCost);
     }
 
@@ -107,7 +109,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
         var moderateFanout = CreateBacklogCost(2, 2, 2, 2, 2, 3, 3, 3, 3, 3);
         var excessiveFanout = CreateBacklogCost(2, 2, 2, 2, 2, 2, 2, 2, 2, 2);
 
-        Assert.Equal(moderateFanout.MinimumCost, excessiveFanout.MinimumCost);
+        Assert.Equal(moderateFanout.MinimumOperationCount, excessiveFanout.MinimumOperationCount);
 
         var moderateFanoutCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
@@ -129,15 +131,13 @@ public class OperationPlannerCostModelTests : FusionTestBase
 #endif
             excessiveFanout);
 
-        Assert.Equal(100.0, moderateFanoutCost, 6);
-        Assert.Equal(106.0, excessiveFanoutCost, 6);
+        Assert.Equal(15.0, moderateFanoutCost, 6);
+        Assert.Equal(21.0, excessiveFanoutCost, 6);
         Assert.True(excessiveFanoutCost > moderateFanoutCost);
     }
 
     [Theory]
-    [InlineData(
-        1.5,
-        Skip = "Requires the admissible pruning bound, which lands together with the search-space reduction.")]
+    [InlineData(1.5)]
     [InlineData(10.0)]
     public void RemainingCost_Should_NotExceedCompletionCost_When_OneOperationRemains(
         double operationWeight)
@@ -165,9 +165,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
     }
 
     [Theory]
-    [InlineData(
-        1.5,
-        Skip = "Requires the admissible pruning bound, which lands together with the search-space reduction.")]
+    [InlineData(1.5)]
     [InlineData(10.0)]
     public void CreatePlan_Should_ChooseTwoRootFetches_When_GreedyCoverNeedsThree(
         double operationWeight)
@@ -270,6 +268,154 @@ public class OperationPlannerCostModelTests : FusionTestBase
 
         // assert
         plan.AllNodes.Select(node => node.SchemaName).MatchInlineSnapshots(["a", "b"]);
+    }
+
+    [Fact]
+    public void AddWorkItemCost_Should_CountOneOperation_When_WorkItemAlwaysAddsAnOperation()
+    {
+        // arrange
+        var selectionSet = CreateSelectionSet();
+        var workItems = new WorkItem[]
+        {
+            new OperationWorkItem(OperationWorkItemKind.Lookup, selectionSet, FromSchema: "test"),
+            new OperationWorkItem(OperationWorkItemKind.Lookup, selectionSet, CreateLookup(), "test"),
+            new OperationWorkItem(OperationWorkItemKind.Root, selectionSet),
+            new NodeFieldWorkItem(
+                new NodeField { Field = new FieldNode("node"), ParentFragments = null }),
+            new NodeLookupWorkItem(null, "node", new HotChocolate.Language.IntValueNode(1), selectionSet)
+        };
+
+        // act
+        var costs = workItems
+            .Select(workItem => PlannerCostEstimator.AddWorkItemCost(BacklogCost.Empty, workItem))
+            .Select(cost => cost.MinimumOperationCount)
+            .ToArray();
+
+        // assert
+        costs.MatchInlineSnapshot(
+            """
+            [
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+            """);
+    }
+
+    [Fact]
+    public void AddWorkItemCost_Should_NotProjectDepth_When_PathLookupCanBecomeRootWorkItem()
+    {
+        // arrange
+        var workItem = new OperationWorkItem(
+            OperationWorkItemKind.Lookup,
+            CreateSelectionSet(),
+            FromSchema: "test")
+        {
+            ParentDepth = 3
+        };
+
+        // act
+        var cost = PlannerCostEstimator.AddWorkItemCost(BacklogCost.Empty, workItem);
+
+        // assert
+        Assert.Equal(1, cost.MinimumOperationCount);
+        Assert.Equal(0, cost.MaxProjectedDepth);
+        Assert.Empty(cost.ProjectedOpsPerLevel);
+    }
+
+    [Fact]
+    public void AddWorkItemCost_Should_ProjectDepth_When_LookupIsChosen()
+    {
+        // arrange
+        var workItem = new OperationWorkItem(
+            OperationWorkItemKind.Lookup,
+            CreateSelectionSet(),
+            CreateLookup(),
+            "test")
+        {
+            ParentDepth = 3
+        };
+
+        // act
+        var cost = PlannerCostEstimator.AddWorkItemCost(BacklogCost.Empty, workItem);
+
+        // assert
+        Assert.Equal(1, cost.MinimumOperationCount);
+        Assert.Equal(4, cost.MaxProjectedDepth);
+        Assert.Equal(1, cost.ProjectedOpsPerLevel[4]);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AddWorkItemCost_Should_NotCountOperationOrDepth_When_WorkItemIsRequirement(
+        bool hasLookup)
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var field = schema.QueryType.Fields[0];
+        var selection = new FieldSelection(1, new FieldNode(field.Name), field, SelectionPath.Root);
+        var workItem = new FieldRequirementWorkItem(
+            selection,
+            new StepConsumer(1),
+            hasLookup ? CreateLookup() : null)
+        {
+            ParentDepth = 3
+        };
+
+        // act
+        var cost = PlannerCostEstimator.AddWorkItemCost(BacklogCost.Empty, workItem);
+
+        // assert
+        Assert.Equal(0, cost.MinimumOperationCount);
+        Assert.Equal(0, cost.MaxProjectedDepth);
+        Assert.Empty(cost.ProjectedOpsPerLevel);
+    }
+
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    [InlineData(-1.0)]
+    public void Options_Should_Throw_When_WeightIsNotFiniteAndNonNegative(double weight)
+    {
+        // arrange
+        var options = new OperationPlannerOptions();
+
+        // act
+        var errors = new[]
+        {
+            Assert.Throws<ArgumentException>(() => options.DepthWeight = weight).Message,
+            Assert.Throws<ArgumentException>(() => options.OperationWeight = weight).Message,
+            Assert.Throws<ArgumentException>(() => options.ExcessFanoutWeight = weight).Message
+        };
+
+        // assert
+        errors.MatchInlineSnapshot(
+            """
+            [
+              "The planner depth weight must be a finite, non-negative number.",
+              "The planner operation weight must be a finite, non-negative number.",
+              "The planner excess fan-out weight must be a finite, non-negative number."
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Options_Should_AcceptWeight_When_WeightIsZero()
+    {
+        // arrange
+        var options = new OperationPlannerOptions();
+
+        // act
+        options.DepthWeight = 0;
+        options.OperationWeight = 0;
+        options.ExcessFanoutWeight = 0;
+
+        // assert
+        Assert.Equal(0.0, options.DepthWeight + options.OperationWeight + options.ExcessFanoutWeight);
     }
 
     [Fact]
@@ -471,19 +617,8 @@ public class OperationPlannerCostModelTests : FusionTestBase
 
     private BacklogCost CreateBacklogCost(params int[] projectedDepths)
     {
-        var schema = CreateCompositeSchema();
-        var operationDefinition = Utf8GraphQLParser
-            .Parse("query Test { __typename }")
-            .Definitions
-            .OfType<OperationDefinitionNode>()
-            .Single();
-
-        var selectionSet = new SelectionSet(
-            1,
-            operationDefinition.SelectionSet,
-            schema.QueryType,
-            SelectionPath.Root);
-
+        var selectionSet = CreateSelectionSet();
+        var lookup = CreateLookup();
         var backlogCost = BacklogCost.Empty;
 
         foreach (var depth in projectedDepths)
@@ -496,6 +631,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
             var workItem = new OperationWorkItem(
                 OperationWorkItemKind.Lookup,
                 selectionSet,
+                lookup,
                 FromSchema: "test")
             {
                 ParentDepth = depth - 1
@@ -506,4 +642,31 @@ public class OperationPlannerCostModelTests : FusionTestBase
 
         return backlogCost;
     }
+
+    private SelectionSet CreateSelectionSet()
+    {
+        var schema = CreateCompositeSchema();
+        var operationDefinition = Utf8GraphQLParser
+            .Parse("query Test { __typename }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .Single();
+
+        return new SelectionSet(
+            1,
+            operationDefinition.SelectionSet,
+            schema.QueryType,
+            SelectionPath.Root);
+    }
+
+    private static Lookup CreateLookup()
+        => new(
+            "test",
+            "Query",
+            "lookup",
+            "Query",
+            isInternal: false,
+            [new LookupArgument("id", new NamedTypeNode("ID"))],
+            [new FieldSelectionMapParser("id").Parse()],
+            []);
 }

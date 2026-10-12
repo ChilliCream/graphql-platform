@@ -233,43 +233,14 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 12
-    expandedNodes: 66
+    searchSpace: 18
+    expandedNodes: 428
 nodes:
   - id: 1
     type: Operation
-    schema: reviews
-    operation: |
-      query Op_123456789101112_1($includeReviews: Boolean!) {
-        viewer {
-          reviews(first: 5) @include(if: $includeReviews) {
-            pageInfo {
-              hasNextPage
-              hasPreviousPage
-              startCursor
-              endCursor
-            }
-            edges {
-              cursor
-              node {
-                id
-                body
-                stars
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
-      }
-    forwardedVariables:
-      - includeReviews
-  - id: 2
-    type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_2(
+      query Op_123456789101112_1(
         $level1: Boolean!
         $level2: Boolean!
         $level3: Boolean!
@@ -305,6 +276,35 @@ nodes:
       - level1
       - level2
       - level3
+  - id: 2
+    type: Operation
+    schema: reviews
+    operation: |
+      query Op_123456789101112_2($includeReviews: Boolean!) {
+        viewer {
+          reviews(first: 5) @include(if: $includeReviews) {
+            pageInfo {
+              hasNextPage
+              hasPreviousPage
+              startCursor
+              endCursor
+            }
+            edges {
+              cursor
+              node {
+                id
+                body
+                stars
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    forwardedVariables:
+      - includeReviews
   - id: 3
     type: Operation
     schema: search
@@ -346,11 +346,11 @@ nodes:
           id
     dependencies:
       - id: 3
-  - id: 25
+  - id: 17
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_25 {
+      query Op_123456789101112_17 {
         viewer {
           displayName
         }
@@ -388,12 +388,12 @@ nodes:
       - level4
     dependencies:
       - id: 3
-  - id: 26
+  - id: 18
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_26($level3: Boolean!, $__fusion_22_id: ID!) {
-        userById(id: $__fusion_22_id) {
+      query Op_123456789101112_18($level3: Boolean!, $__fusion_14_id: ID!) {
+        userById(id: $__fusion_14_id) {
           displayName
           reviews(first: 3) @skip(if: $level3) {
             nodes {
@@ -406,7 +406,7 @@ nodes:
     target: $.viewer.reviews.edges.node.author
     batchingGroupId: 30
     requirements:
-      - name: __fusion_22_id
+      - name: __fusion_14_id
         selectionMap: >-
           id
     conditions:
@@ -415,7 +415,7 @@ nodes:
     forwardedVariables:
       - level3
     dependencies:
-      - id: 1
+      - id: 2
   - id: 9
     type: Operation
     schema: reviews
@@ -448,16 +448,16 @@ nodes:
       - level1
     dependencies:
       - id: 3
-  - id: 17
+  - id: 22
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_17(
+      query Op_123456789101112_22(
         $level1: Boolean!
         $includeReviews: Boolean!
-        $__fusion_14_id: ID!
+        $__fusion_18_id: ID!
       ) {
-        productById(id: $__fusion_14_id) {
+        productById(id: $__fusion_18_id) {
           averageRating
           reviews(first: 5) @include(if: $includeReviews) {
             nodes {
@@ -475,24 +475,24 @@ nodes:
     target: $.products.edges.node
     batchingGroupId: 31
     requirements:
-      - name: __fusion_14_id
+      - name: __fusion_18_id
         selectionMap: >-
           id
     forwardedVariables:
       - level1
       - includeReviews
     dependencies:
-      - id: 2
-  - id: 23
+      - id: 1
+  - id: 28
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_23(
+      query Op_123456789101112_28(
         $includeReviews: Boolean!
         $includeMetadata: Boolean!
-        $__fusion_20_id: ID!
+        $__fusion_24_id: ID!
       ) {
-        productById(id: $__fusion_20_id) {
+        productById(id: $__fusion_24_id) {
           reviews(first: 10) {
             pageInfo {
               hasNextPage
@@ -520,7 +520,7 @@ nodes:
     target: $.productById
     batchingGroupId: 31
     requirements:
-      - name: __fusion_20_id
+      - name: __fusion_24_id
         selectionMap: >-
           id
     conditions:
@@ -540,7 +540,7 @@ nodes:
       - includeReviews
       - includeMetadata
     dependencies:
-      - id: 2
+      - id: 1
   - id: 5
     type: Operation
     schema: reviews
@@ -593,16 +593,16 @@ nodes:
       - level5
     dependencies:
       - id: 4
-  - id: 27
+  - id: 19
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_27(
+      query Op_123456789101112_19(
         $level4: Boolean!
         $level5: Boolean!
-        $__fusion_23_id: ID!
+        $__fusion_15_id: ID!
       ) {
-        reviewById(id: $__fusion_23_id) {
+        reviewById(id: $__fusion_15_id) {
           body
           stars
           product @include(if: $level4) {
@@ -617,7 +617,7 @@ nodes:
     target: $.viewer.reviews.edges.node.author.reviews.nodes
     batchingGroupId: 32
     requirements:
-      - name: __fusion_23_id
+      - name: __fusion_15_id
         selectionMap: >-
           id
     conditions:
@@ -627,7 +627,7 @@ nodes:
       - level4
       - level5
     dependencies:
-      - id: 26
+      - id: 18
   - id: 11
     type: Operation
     schema: users
@@ -666,16 +666,16 @@ nodes:
       - level3
     dependencies:
       - id: 9
-  - id: 18
+  - id: 23
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_18(
+      query Op_123456789101112_23(
         $level2: Boolean!
         $level3: Boolean!
-        $__fusion_15_id: ID!
+        $__fusion_19_id: ID!
       ) {
-        userById(id: $__fusion_15_id) {
+        userById(id: $__fusion_19_id) {
           displayName
           reviews(first: 3) @include(if: $level2) {
             nodes {
@@ -691,7 +691,7 @@ nodes:
     target: $.products.edges.node.reviews.nodes.author
     batchingGroupId: 33
     requirements:
-      - name: __fusion_15_id
+      - name: __fusion_19_id
         selectionMap: >-
           id
     conditions:
@@ -703,13 +703,13 @@ nodes:
       - level2
       - level3
     dependencies:
-      - id: 17
-  - id: 24
+      - id: 22
+  - id: 29
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_24($__fusion_21_id: ID!) {
-        userById(id: $__fusion_21_id) {
+      query Op_123456789101112_29($__fusion_25_id: ID!) {
+        userById(id: $__fusion_25_id) {
           displayName
         }
       }
@@ -717,7 +717,7 @@ nodes:
     target: $.productById.reviews.edges.node.author
     batchingGroupId: 33
     requirements:
-      - name: __fusion_21_id
+      - name: __fusion_25_id
         selectionMap: >-
           id
     conditions:
@@ -726,7 +726,7 @@ nodes:
       - variable: $includeReviews
         passingValue: true
     dependencies:
-      - id: 23
+      - id: 28
   - id: 8
     type: Operation
     schema: products
@@ -754,12 +754,12 @@ nodes:
       - level6
     dependencies:
       - id: 6
-  - id: 28
+  - id: 20
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_28($__fusion_24_id: ID!) {
-        productById(id: $__fusion_24_id) {
+      query Op_123456789101112_20($__fusion_16_id: ID!) {
+        productById(id: $__fusion_16_id) {
           name
         }
       }
@@ -767,20 +767,20 @@ nodes:
     target: $.viewer.reviews.edges.node.author.reviews.nodes.product
     batchingGroupId: 34
     requirements:
-      - name: __fusion_24_id
+      - name: __fusion_16_id
         selectionMap: >-
           id
     conditions:
       - variable: $level4
         passingValue: true
     dependencies:
-      - id: 27
-  - id: 29
+      - id: 19
+  - id: 21
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_29($level6: Boolean!, $__fusion_25_id: ID!) {
-        productById(id: $__fusion_25_id) {
+      query Op_123456789101112_21($level6: Boolean!, $__fusion_17_id: ID!) {
+        productById(id: $__fusion_17_id) {
           price
           dimension @include(if: $level6) {
             height
@@ -792,7 +792,7 @@ nodes:
     target: $.viewer.reviews.edges.node.author.reviews.nodes.product
     batchingGroupId: 34
     requirements:
-      - name: __fusion_25_id
+      - name: __fusion_17_id
         selectionMap: >-
           id
     conditions:
@@ -803,7 +803,7 @@ nodes:
     forwardedVariables:
       - level6
     dependencies:
-      - id: 27
+      - id: 19
   - id: 12
     type: OperationBatch
     schema: reviews
@@ -827,7 +827,7 @@ nodes:
         passingValue: true
     dependencies:
       - id: 11
-      - id: 18
+      - id: 23
   - id: 13
     type: Operation
     schema: reviews
@@ -876,12 +876,12 @@ nodes:
       - level6
     dependencies:
       - id: 11
-  - id: 20
+  - id: 25
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_20($level4: Boolean!, $__fusion_17_id: ID!) {
-        reviewById(id: $__fusion_17_id) {
+      query Op_123456789101112_25($level4: Boolean!, $__fusion_21_id: ID!) {
+        reviewById(id: $__fusion_21_id) {
           stars
           product {
             id
@@ -895,7 +895,7 @@ nodes:
     target: $.products.edges.node.reviews.nodes.author.reviews.nodes
     batchingGroupId: 35
     requirements:
-      - name: __fusion_17_id
+      - name: __fusion_21_id
         selectionMap: >-
           id
     conditions:
@@ -906,7 +906,7 @@ nodes:
     forwardedVariables:
       - level4
     dependencies:
-      - id: 18
+      - id: 23
   - id: 7
     type: OperationBatch
     schema: products
@@ -929,7 +929,7 @@ nodes:
     dependencies:
       - id: 6
       - id: 13
-      - id: 20
+      - id: 25
   - id: 15
     type: Operation
     schema: products
@@ -977,12 +977,12 @@ nodes:
         passingValue: false
     dependencies:
       - id: 13
-  - id: 22
+  - id: 27
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_22($level5: Boolean!, $__fusion_19_id: ID!) {
-        productById(id: $__fusion_19_id) {
+      query Op_123456789101112_27($level5: Boolean!, $__fusion_23_id: ID!) {
+        productById(id: $__fusion_23_id) {
           price
           dimension @skip(if: $level5) {
             height
@@ -994,7 +994,7 @@ nodes:
     target: $.products.edges.node.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
     requirements:
-      - name: __fusion_19_id
+      - name: __fusion_23_id
         selectionMap: >-
           id
     conditions:
@@ -1003,4 +1003,4 @@ nodes:
     forwardedVariables:
       - level5
     dependencies:
-      - id: 20
+      - id: 25

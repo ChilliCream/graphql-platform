@@ -1,0 +1,6 @@
+{
+  feed {
+    id
+    createdAt
+  }
+}

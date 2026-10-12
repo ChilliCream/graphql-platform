@@ -15,11 +15,18 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using ArgumentNode = HotChocolate.Language.ArgumentNode;
 using NameNode = HotChocolate.Language.NameNode;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
 public sealed partial class OperationPlanner
 {
+    /// <summary>
+    /// The number of times the greedy pass may resume with a retained sibling after a dead end
+    /// before it gives up and leaves the search without an incumbent.
+    /// </summary>
+    private const int MaxGreedyBacktracks = 256;
+
     private readonly FusionSchemaDefinition _schema;
     private readonly OperationCompiler _operationCompiler;
     private readonly MergeSelectionSetRewriter _mergeRewriter;
@@ -56,7 +63,7 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
-    public static Version Version { get; } = new(2, 1, 0);
+    public static Version Version { get; } = new(2, 2, 0);
 
     internal OperationPlannerOptions Options => _options;
 
@@ -457,6 +464,13 @@ public sealed partial class OperationPlanner
             // so that we throw ones a request was canceled so that no unnecessary work is done.
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Once a complete plan exists, every further expansion draws from the shared
+            // improvement allowance and the search ends with the best plan when it is spent.
+            if (bestCompletePlan is not null && !budget.TryCountImprovement(operationId))
+            {
+                break;
+            }
+
             expandedNodes++;
             var possiblePlansCount = possiblePlans.Count;
             searchSpace = Math.Max(possiblePlansCount, searchSpace);
@@ -518,11 +532,11 @@ public sealed partial class OperationPlanner
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, possiblePlans);
+                    PlanRootSelections(wi, current, backlog, possiblePlans, bestCompletePlanCost);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans);
+                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans, bestCompletePlanCost);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -530,7 +544,8 @@ public sealed partial class OperationPlanner
                         wi,
                         current,
                         possiblePlans,
-                        backlog);
+                        backlog,
+                        bestCompletePlanCost);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -539,15 +554,17 @@ public sealed partial class OperationPlanner
                         wi.Lookup,
                         current,
                         possiblePlans,
-                        backlog);
+                        backlog,
+                        bestCompletePlanCost,
+                        allowMerge: true);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, possiblePlans, backlog);
+                    PlanNode(wi, current, possiblePlans, backlog, bestCompletePlanCost);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog);
+                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog, bestCompletePlanCost);
                     break;
 
                 default:
@@ -601,7 +618,14 @@ public sealed partial class OperationPlanner
             return null;
         }
 
-        var candidates = new PlanQueue(_schema);
+        // Each frame holds the untried siblings of one expansion. When the chosen candidate
+        // dead-ends, the next cheapest sibling of the deepest frame is tried instead. Once every
+        // frame is used up, the seeded root candidates other than the first form the last frame.
+        var frames = new Stack<PlanQueue>();
+        var spare = new Stack<PlanQueue>();
+        var seedPlan = current;
+        var rootFallbackAdded = false;
+        var backtracks = 0;
 
         while (true)
         {
@@ -617,15 +641,16 @@ public sealed partial class OperationPlanner
             budget.CountExpansion(operationId);
 
             backlog = backlog.Pop(out var workItem);
+            var candidates = spare.Count > 0 ? spare.Pop() : new PlanQueue(_schema);
 
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, candidates);
+                    PlanRootSelections(wi, current, backlog, candidates, double.PositiveInfinity);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, candidates);
+                    PlanLookupSelections(wi, lookup, current, backlog, candidates, double.PositiveInfinity);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -633,7 +658,8 @@ public sealed partial class OperationPlanner
                         wi,
                         current,
                         candidates,
-                        backlog);
+                        backlog,
+                        double.PositiveInfinity);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -642,15 +668,17 @@ public sealed partial class OperationPlanner
                         wi.Lookup,
                         current,
                         candidates,
-                        backlog);
+                        backlog,
+                        double.PositiveInfinity,
+                        allowMerge: true);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, candidates, backlog);
+                    PlanNode(wi, current, candidates, backlog, double.PositiveInfinity);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, candidates, backlog);
+                    PlanNodeLookup(wi, lookup, current, candidates, backlog, double.PositiveInfinity);
                     break;
 
                 default:
@@ -660,12 +688,50 @@ public sealed partial class OperationPlanner
 
             budget.EnsureGeneratedOptions(operationId, candidates.Count);
 
-            if (!candidates.TryDequeue(out current, out _))
+            if (candidates.TryDequeue(out var next, out _))
+            {
+                current = next;
+
+                if (candidates.Count > 0)
+                {
+                    frames.Push(candidates);
+                }
+                else
+                {
+                    spare.Push(candidates);
+                }
+
+                continue;
+            }
+
+            spare.Push(candidates);
+
+            // The chosen candidate has no way forward. The search resumes with the cheapest
+            // retained sibling, and gives up once the backtracking allowance is used up.
+            if (frames.Count == 0 && !rootFallbackAdded)
+            {
+                rootFallbackAdded = true;
+
+                if (possiblePlans.Count > 1)
+                {
+                    var rootCandidates = new PlanQueue(_schema);
+                    possiblePlans.CopyTo(rootCandidates, seedPlan);
+                    frames.Push(rootCandidates);
+                }
+            }
+
+            if (!frames.TryPeek(out var frame) || ++backtracks > MaxGreedyBacktracks)
             {
                 return null;
             }
 
-            candidates.Clear();
+            frame.TryDequeue(out current, out _);
+
+            if (frame.Count == 0)
+            {
+                frames.Pop();
+                spare.Push(frame);
+            }
         }
     }
 
@@ -689,6 +755,33 @@ public sealed partial class OperationPlanner
             opsPerLevel,
             current.OperationStepDepths.SetItem(stepId, stepDepth));
     }
+
+    private static bool CannotBeatIncumbent(
+        PlanNode current,
+        OperationStepCostState costState,
+        Backlog backlog,
+        double incumbentCost)
+        => PlanQueue.CannotBeatIncumbent(
+            current.Options,
+            costState.MaxDepth,
+            current.OperationStepCount + 1,
+            costState.ExcessFanout,
+            costState.OpsPerLevel,
+            backlog,
+            incumbentCost);
+
+    private static bool CannotBeatIncumbent(
+        PlanNode current,
+        Backlog backlog,
+        double incumbentCost)
+        => PlanQueue.CannotBeatIncumbent(
+            current.Options,
+            current.MaxDepth,
+            current.OperationStepCount,
+            current.ExcessFanout,
+            current.OpsPerLevel,
+            backlog,
+            incumbentCost);
 
     private static int GetOperationStepDepth(PlanNode current, int stepId)
         => current.OperationStepDepths.TryGetValue(stepId, out var stepDepth)
@@ -994,15 +1087,17 @@ public sealed partial class OperationPlanner
         OperationWorkItem workItem,
         PlanNode current,
         Backlog backlog,
-        PlanQueue possiblePlans)
-        => PlanSelections(workItem, current, null, backlog, possiblePlans);
+        PlanQueue possiblePlans,
+        double incumbentCost)
+        => PlanSelections(workItem, current, null, backlog, possiblePlans, incumbentCost);
 
     private void PlanLookupSelections(
         OperationWorkItem workItem,
         Lookup lookup,
         PlanNode current,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        double incumbentCost)
     {
         current = InlineLookupRequirements(
             workItem.SelectionSet,
@@ -1033,7 +1128,8 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             current.Backlog,
-            possiblePlans);
+            possiblePlans,
+            incumbentCost);
     }
 
     private void PlanSelections(
@@ -1041,7 +1137,8 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup? lookup,
         Backlog backlog,
-        PlanQueue possiblePlans)
+        PlanQueue possiblePlans,
+        double incumbentCost)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -1109,6 +1206,13 @@ public sealed partial class OperationPlanner
             workItem.SourceSchemaNodePolicy is null
                 ? null
                 : SourceSchemaNodePlanningPolicy.Descendant);
+
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
+        if (CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
 
         // Lookups are always queries. Root work items can also be rewritten to the query root
         // when walking shared paths (for example the viewer convention in mutations).
@@ -1178,7 +1282,6 @@ public sealed partial class OperationPlanner
             Lookup = lookup
         };
 
-        var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             current.Options,
             costState.MaxDepth,
@@ -1587,7 +1690,8 @@ public sealed partial class OperationPlanner
         FieldRequirementWorkItem workItem,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         // The main planning backlog handles step-owned requirements. Incremental
         // plan requirements are handled by defer planning.
@@ -1660,6 +1764,11 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 workItem.SourceSchemaNodePolicy);
 
+        if (CannotBeatIncumbent(current, backlog, incumbentCost))
+        {
+            return;
+        }
+
         var operation =
             InlineSelections(
                 currentStep.Definition,
@@ -1731,7 +1840,9 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost,
+        bool allowMerge)
     {
         // The main planning backlog handles step-owned requirements. Incremental
         // plan requirements are handled by defer planning.
@@ -1745,14 +1856,19 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        var originalCurrent = current;
+        var originalBacklog = backlog;
+        OperationPlanStep existingStep = null!;
+        var existingStepIndex = -1;
         var mergeWithExistingStep =
-            TryFindMergeableRequirementLookupStep(
+            allowMerge
+            && TryFindMergeableRequirementLookupStep(
                 current,
                 workItem,
                 lookup,
                 stepConsumer.StepId,
-                out var existingStep,
-                out var existingStepIndex);
+                out existingStep,
+                out existingStepIndex);
 
         if (!mergeWithExistingStep)
         {
@@ -1879,6 +1995,18 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 workItem.SourceSchemaNodePolicy);
 
+        // A merged lookup adds no operation step, a new lookup step adds one.
+        var costState = mergeWithExistingStep
+            ? default
+            : AddOperationStepCostState(current, stepId, stepDepth);
+
+        if (mergeWithExistingStep
+            ? CannotBeatIncumbent(current, backlog, incumbentCost)
+            : CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
+
         var selectionNode =
             workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections);
         OperationPlanStep? refreshedExistingStep = null;
@@ -1899,12 +2027,44 @@ public sealed partial class OperationPlanner
                 indexBuilder,
                 refreshedExistingStep.RootSelectionSetId);
 
-            if (existingSelectionSet is not null
-                && HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+            if (existingSelectionSet is not null)
             {
-                selectionNode = CreateFieldWithAlias(
-                    selectionNode,
-                    requirementAliases.MintAlias(selectionNode));
+                if (HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+                {
+                    if (TryBindToExistingSelection(
+                        selectionNode,
+                        existingSelectionSet.Selections,
+                        requirements,
+                        $"{requirementKey}_",
+                        out var boundSelection,
+                        out var boundRequirementKeys))
+                    {
+                        selectionNode = boundSelection;
+                        requirements = requirements.RemoveRange(boundRequirementKeys);
+                    }
+
+                    if (HasArgumentConflict(selectionNode, existingSelectionSet.Selections))
+                    {
+                        selectionNode = CreateFieldWithAlias(
+                            selectionNode,
+                            requirementAliases.MintAlias(selectionNode));
+                    }
+                }
+
+                // The merged document would violate FieldsInSetCanMerge below the
+                // selected field, so the lookup is planned as a step of its own.
+                if (HasFieldMergeConflict(selectionNode, existingSelectionSet.Selections))
+                {
+                    PlanFieldWithRequirement(
+                        workItem,
+                        lookup,
+                        originalCurrent,
+                        possiblePlans,
+                        originalBacklog,
+                        incumbentCost,
+                        allowMerge: false);
+                    return;
+                }
             }
         }
 
@@ -2011,7 +2171,6 @@ public sealed partial class OperationPlanner
             Lookup = lookup
         };
 
-        var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,
@@ -2100,7 +2259,8 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -2158,6 +2318,13 @@ public sealed partial class OperationPlanner
             new StepConsumer(stepId),
             stepDepth,
             descendantPolicy);
+
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
+        if (CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -2224,7 +2391,6 @@ public sealed partial class OperationPlanner
         // Add the lookup operation to the steps
         steps = steps.Add(operationPlanStep);
 
-        var costState = AddOperationStepCostState(current, stepId, stepDepth);
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,
@@ -2315,7 +2481,8 @@ public sealed partial class OperationPlanner
         NodeFieldWorkItem workItem,
         PlanNode current,
         PlanQueue possiblePlans,
-        Backlog backlog)
+        Backlog backlog,
+        double incumbentCost)
     {
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
@@ -2481,6 +2648,12 @@ public sealed partial class OperationPlanner
         }
 
         var costState = AddOperationStepCostState(current, fallbackQueryStepId, stepDepth);
+
+        if (CannotBeatIncumbent(current, costState, backlog, incumbentCost))
+        {
+            return;
+        }
+
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 current.Options,
@@ -3471,6 +3644,283 @@ public sealed partial class OperationPlanner
 
         return false;
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="field"/> cannot share a selection set with
+    /// <paramref name="existingSelections"/>: a field with the same response name selects
+    /// a different field or different arguments, or their child selections conflict in turn.
+    /// </summary>
+    private static bool HasFieldMergeConflict(
+        FieldNode field,
+        IReadOnlyList<ISelectionNode> existingSelections)
+    {
+        var responseName = field.Alias?.Value ?? field.Name.Value;
+
+        foreach (var selection in existingSelections)
+        {
+            switch (selection)
+            {
+                case FieldNode existingField
+                    when responseName.Equals(
+                        existingField.Alias?.Value ?? existingField.Name.Value,
+                        StringComparison.Ordinal):
+                    if (!CanMergeFields(field, existingField))
+                    {
+                        return true;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    if (HasFieldMergeConflict(field, fragment.SelectionSet.Selections))
+                    {
+                        return true;
+                    }
+
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool CanMergeFields(FieldNode left, FieldNode right)
+    {
+        if (!left.Name.Value.Equals(right.Name.Value, StringComparison.Ordinal)
+            || left.Arguments.Count != right.Arguments.Count)
+        {
+            return false;
+        }
+
+        foreach (var argument in left.Arguments)
+        {
+            var found = false;
+
+            foreach (var candidate in right.Arguments)
+            {
+                if (candidate.Name.Value.Equals(argument.Name.Value, StringComparison.Ordinal))
+                {
+                    if (!SyntaxComparer.BySyntax.Equals(argument, candidate))
+                    {
+                        return false;
+                    }
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                return false;
+            }
+        }
+
+        return left.SelectionSet is null
+            || right.SelectionSet is null
+            || CanMergeSelections(left.SelectionSet.Selections, right.SelectionSet.Selections);
+    }
+
+    private static bool CanMergeSelections(
+        IReadOnlyList<ISelectionNode> selections,
+        IReadOnlyList<ISelectionNode> otherSelections)
+    {
+        foreach (var selection in selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    if (HasFieldMergeConflict(field, otherSelections))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    if (!CanMergeSelections(fragment.SelectionSet.Selections, otherSelections))
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rewrites <paramref name="selection"/> to the arguments of an existing field with the
+    /// same response name when the two differ only in requirement variables whose requirements
+    /// read the same value. <paramref name="boundRequirementKeys"/> lists the new requirement
+    /// variables the rewritten selection no longer uses.
+    /// </summary>
+    internal static bool TryBindToExistingSelection(
+        FieldNode selection,
+        IReadOnlyList<ISelectionNode> existingSelections,
+        ImmutableDictionary<string, OperationRequirement> requirements,
+        string newRequirementKeyPrefix,
+        [NotNullWhen(true)] out FieldNode? boundSelection,
+        [NotNullWhen(true)] out List<string>? boundRequirementKeys)
+    {
+        var responseName = selection.Alias?.Value ?? selection.Name.Value;
+
+        foreach (var existing in existingSelections)
+        {
+            if (existing is FieldNode existingField
+                && responseName.Equals(
+                    existingField.Alias?.Value ?? existingField.Name.Value,
+                    StringComparison.Ordinal)
+                && TryBindArguments(
+                    selection,
+                    existingField,
+                    requirements,
+                    newRequirementKeyPrefix,
+                    out var arguments,
+                    out boundRequirementKeys))
+            {
+                boundSelection = selection.WithArguments(arguments);
+                return true;
+            }
+        }
+
+        boundSelection = null;
+        boundRequirementKeys = null;
+        return false;
+    }
+
+    private static bool TryBindArguments(
+        FieldNode selection,
+        FieldNode existing,
+        ImmutableDictionary<string, OperationRequirement> requirements,
+        string newRequirementKeyPrefix,
+        [NotNullWhen(true)] out List<ArgumentNode>? arguments,
+        [NotNullWhen(true)] out List<string>? boundRequirementKeys)
+    {
+        arguments = null;
+        boundRequirementKeys = null;
+
+        if (!selection.Name.Value.Equals(existing.Name.Value, StringComparison.Ordinal)
+            || selection.Arguments.Count != existing.Arguments.Count)
+        {
+            return false;
+        }
+
+        var boundCount = 0;
+
+        foreach (var argument in selection.Arguments)
+        {
+            if (!TryGetBindableArgument(
+                argument,
+                existing,
+                requirements,
+                newRequirementKeyPrefix,
+                out _,
+                out var isBound))
+            {
+                return false;
+            }
+
+            if (isBound)
+            {
+                boundCount++;
+            }
+        }
+
+        if (boundCount == 0)
+        {
+            return false;
+        }
+
+        var boundArguments = new List<ArgumentNode>(selection.Arguments.Count);
+        var boundKeys = new List<string>(boundCount);
+
+        foreach (var argument in selection.Arguments)
+        {
+            TryGetBindableArgument(
+                argument,
+                existing,
+                requirements,
+                newRequirementKeyPrefix,
+                out var target,
+                out var isBound);
+
+            boundArguments.Add(target!);
+
+            if (isBound)
+            {
+                boundKeys.Add(((VariableNode)argument.Value).Name.Value);
+            }
+        }
+
+        arguments = boundArguments;
+        boundRequirementKeys = boundKeys;
+        return true;
+    }
+
+    private static bool TryGetBindableArgument(
+        ArgumentNode argument,
+        FieldNode existing,
+        ImmutableDictionary<string, OperationRequirement> requirements,
+        string newRequirementKeyPrefix,
+        out ArgumentNode? target,
+        out bool isBound)
+    {
+        target = null;
+        isBound = false;
+
+        foreach (var candidate in existing.Arguments)
+        {
+            if (candidate.Name.Value.Equals(argument.Name.Value, StringComparison.Ordinal))
+            {
+                target = candidate;
+                break;
+            }
+        }
+
+        if (target is null)
+        {
+            return false;
+        }
+
+        if (SyntaxComparer.BySyntax.Equals(argument, target))
+        {
+            target = argument;
+            return true;
+        }
+
+        if (argument.Value is not VariableNode variable
+            || target.Value is not VariableNode existingVariable
+            || !variable.Name.Value.StartsWith(newRequirementKeyPrefix, StringComparison.Ordinal)
+            || existingVariable.Name.Value.StartsWith(newRequirementKeyPrefix, StringComparison.Ordinal)
+            || !requirements.TryGetValue(variable.Name.Value, out var requirement)
+            || !requirements.TryGetValue(existingVariable.Name.Value, out var existingRequirement))
+        {
+            return false;
+        }
+
+        if (!ReadsSameValue(requirement, existingRequirement))
+        {
+            throw ThrowHelper.RequirementBindingReadsDifferentValue(
+                variable.Name.Value,
+                existingVariable.Name.Value);
+        }
+
+        isBound = true;
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether two requirements read the same value: they are anchored at the
+    /// same path, declare the same type, use the same field selection map instance and are
+    /// read under the same internal alias.
+    /// </summary>
+    internal static bool ReadsSameValue(OperationRequirement left, OperationRequirement right)
+        => left.Path == right.Path
+            && string.Equals(left.InternalAlias, right.InternalAlias, StringComparison.Ordinal)
+            && ReferenceEquals(left.Map, right.Map)
+            && SyntaxComparer.BySyntax.Equals(left.Type, right.Type);
 
     private OperationDefinitionNode InlineSelectionsIntoOverallOperation(
         OperationDefinitionNode operation,

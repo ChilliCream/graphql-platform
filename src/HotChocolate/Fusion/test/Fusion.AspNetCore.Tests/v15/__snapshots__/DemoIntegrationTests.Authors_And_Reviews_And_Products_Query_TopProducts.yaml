@@ -481,7 +481,7 @@ operationPlan:
       name: TopProducts
       hash: 743c9af999a7ed7465af79434ae5e8fe
       searchSpace: 1
-      expandedNodes: 3
+      expandedNodes: 4
   nodes:
     - id: 1
       type: Operation
