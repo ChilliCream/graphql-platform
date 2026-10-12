@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mocha.Middlewares;
 using Mocha.Transport.AzureServiceBus.Features;
 
 namespace Mocha.Transport.AzureServiceBus;
@@ -153,8 +154,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         _logger.ReceiveEndpointStarted(Queue.Name, _prefetchCount, _maxConcurrentCalls);
 
         var processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
-        processor.ProcessMessageAsync += async args =>
-            await ExecuteAsync(
+        processor.ProcessMessageAsync += args =>
+            ProcessMessageAsync(
                 static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetNonSession(state),
                 args,
                 args.CancellationToken);
@@ -187,13 +188,28 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         _logger.SessionReceiveEndpointStarted(Queue.Name, prefetchCount, maxSessions, maxCallsPerSession);
 
         var sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
-        sessionProcessor.ProcessMessageAsync += async args =>
-            await ExecuteAsync(
+        sessionProcessor.ProcessMessageAsync += args =>
+            ProcessMessageAsync(
                 static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetSession(state),
                 args,
                 args.CancellationToken);
         sessionProcessor.ProcessErrorAsync += OnProcessorError;
         return sessionProcessor;
+    }
+
+    private async Task ProcessMessageAsync<TArgs>(
+        Action<ReceiveContext, TArgs> configure,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ExecuteAsync(configure, args, cancellationToken);
+        }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // Message processing was cancelled during shutdown.
+        }
     }
 
     /// <summary>

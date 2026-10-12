@@ -422,8 +422,79 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         Assert.False(runtime.IsStarted);
     }
 
+    [Fact]
+    public async Task ProcessMessageAsync_Should_NotThrow_When_ProcessorCancelledProcessing()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("cancelled-ep").Consumer<NoOpConsumer>().Queue("cancelled");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == "cancelled").Processor;
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        var args = new ProcessMessageEventArgs(
+            ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-1"),
+            new FakeServiceBusReceiver(),
+            cts.Token);
+
+        // act
+        // the SDK routes handler exceptions to the processor error handler, so a cancelled handler must not throw
+        var exception = await Record.ExceptionAsync(() => processor.RaiseProcessMessageAsync(args));
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task ProcessMessageAsync_Should_NotThrow_When_SessionProcessorCancelledProcessing()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.DeclareQueue("cancelled-session").RequiresSession();
+                t.Endpoint("cancelled-session-ep").Consumer<NoOpConsumer>().Queue("cancelled-session");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+        var processor = Assert.Single(client.CreatedSessionProcessors).Processor;
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        var args = new ProcessSessionMessageEventArgs(
+            ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-1", sessionId: "s-1"),
+            new StubSessionReceiver(),
+            cts.Token);
+
+        // act
+        var exception = await Record.ExceptionAsync(() => processor.RaiseProcessMessageAsync(args));
+
+        // assert
+        Assert.Null(exception);
+    }
+
     public sealed class NoOpConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
     }
+
+    /// <summary>
+    /// A session receiver for message event args whose handler never settles the message.
+    /// </summary>
+    private sealed class StubSessionReceiver : ServiceBusSessionReceiver;
 }
