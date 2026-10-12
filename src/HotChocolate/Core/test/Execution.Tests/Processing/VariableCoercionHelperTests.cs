@@ -1139,6 +1139,47 @@ public class VariableCoercionHelperTests
         Assert.Empty(coercedValues);
     }
 
+    [Fact]
+    public void Coerce_Number_Variables_Should_RemoveSharedMemoryBuilder_When_CoercionEnds()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("a"),
+                description: null,
+                new NamedTypeNode("Int"),
+                null,
+                Array.Empty<DirectiveNode>()),
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("b"),
+                description: null,
+                new NamedTypeNode("Float"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse("""{"a": 42, "b": 3.5}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Empty(featureProvider.Features);
+        Assert.Collection(
+            coercedValues.Values,
+            a => Assert.Equal("42", Assert.IsType<IntValueNode>(a.ValueLiteral).ToString()),
+            b => Assert.Equal("3.5", Assert.IsType<FloatValueNode>(b.ValueLiteral).ToString()));
+    }
+
     private class MockFeatureProvider : IFeatureProvider
     {
         public IFeatureCollection Features { get; } = new FeatureCollection();
