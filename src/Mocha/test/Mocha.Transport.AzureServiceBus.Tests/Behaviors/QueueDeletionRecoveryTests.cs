@@ -32,23 +32,35 @@ public sealed class QueueDeletionRecoveryTests
         // arrange - the queue is created up front regardless of AutoProvision, so the endpoint
         // has a real queue to connect to before it is deleted out from under the connection
         await using var ctx = _fixture.CreateTestContext();
-        var queueName = ctx.QueueName("deleted-q");
+        var queueName = ctx.QueueName(autoProvision ? "auto-deleted-q" : "deleted-q");
         var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         await adminClient.CreateQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
+        var recorder = new MessageRecorder();
         var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
         var services = new ServiceCollection();
         services.AddLogging(b => b.AddProvider(loggerProvider));
         await using var bus = await services
+            .AddSingleton(recorder)
             .AddMessageBus()
-            .AddConsumer<NoOpConsumer>()
+            .AddEventHandler<OrderCreatedHandler>()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
                 t.AdministrationConnectionString(ctx.AdminConnectionString);
                 t.AutoProvision(autoProvision);
-                t.Endpoint("del-ep").Consumer<NoOpConsumer>().Queue(queueName);
+                t.Endpoint("del-ep").Handler<OrderCreatedHandler>().Queue(queueName);
+                t.DispatchEndpoint("del-send-ep").ToQueue(queueName).Send<OrderCreated>();
             })
             .BuildTestBusAsync();
+
+        // the processor attaches its receive link in the background after start, so a delivered
+        // message is what proves the connection is live before the queue is deleted beneath it
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.SendAsync(new OrderCreated { OrderId = "DEL-1" }, Xunit.TestContext.Current.CancellationToken);
+        Assert.True(
+            await recorder.WaitAsync(s_timeout),
+            "the endpoint never received the message sent before deletion");
 
         // act - delete the queue while the receive connection stays open
         await adminClient.DeleteQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
@@ -61,10 +73,5 @@ public sealed class QueueDeletionRecoveryTests
             e => e.Exception is ServiceBusException { Reason: ServiceBusFailureReason.MessagingEntityNotFound },
             s_timeout);
         Assert.True(reported, "the processor never reported MessagingEntityNotFound for the deleted queue");
-    }
-
-    private sealed class NoOpConsumer : IConsumer<OrderCreated>
-    {
-        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
     }
 }
