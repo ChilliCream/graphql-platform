@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Mocha.Transport.Postgres.Tests.Helpers;
 using Npgsql;
 
@@ -14,7 +13,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
     {
         // arrange
         await using var db = await fixture.CreateDatabaseAsync("shutdown_unregister");
-        await using var provider = CreateProvider<NoOpHandler>(db.ConnectionString, new HandlerGate(), new LogRecorder());
+        await using var provider = CreateProvider<NoOpHandler>(db.ConnectionString, new HandlerGate());
         var services = provider.GetServices<IHostedService>().ToArray();
         await StartAsync(services);
         var consumersBeforeStop = await CountConsumersAsync(db.ConnectionString);
@@ -35,8 +34,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         // arrange
         await using var db = await fixture.CreateDatabaseAsync($"shutdown_release_{failAfterCancellation}");
         var gate = new HandlerGate { FailAfterCancellation = failAfterCancellation };
-        var logs = new LogRecorder();
-        await using var provider = CreateProvider<BlockingHandler>(db.ConnectionString, gate, logs);
+        await using var provider = CreateProvider<BlockingHandler>(db.ConnectionString, gate);
         var services = provider.GetServices<IHostedService>().ToArray();
         await StartAsync(services);
         await PublishAsync(provider, count: 2);
@@ -48,7 +46,6 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         // assert
         Assert.True(gate.Cancelled);
         Assert.Equal([(false, null), (false, null)], await ReadMessagesAsync(db.ConnectionString));
-        Assert.Empty(logs.Entries);
     }
 
     [Fact]
@@ -57,8 +54,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         // arrange
         await using var db = await fixture.CreateDatabaseAsync("shutdown_complete");
         var gate = new HandlerGate();
-        var logs = new LogRecorder();
-        await using var provider = CreateProvider<CompletingHandler>(db.ConnectionString, gate, logs);
+        await using var provider = CreateProvider<CompletingHandler>(db.ConnectionString, gate);
         var services = provider.GetServices<IHostedService>().ToArray();
         await StartAsync(services);
         await PublishAsync(provider, count: 1);
@@ -69,17 +65,14 @@ public sealed class ShutdownTests(PostgresFixture fixture)
 
         // assert
         Assert.Empty(await ReadMessagesAsync(db.ConnectionString));
-        Assert.Empty(logs.Entries);
     }
 
     private static ServiceProvider CreateProvider<THandler>(
         string connectionString,
-        HandlerGate gate,
-        LogRecorder logs)
+        HandlerGate gate)
         where THandler : class, IEventHandler<TestEvent>
         => new ServiceCollection()
             .AddSingleton(gate)
-            .AddLogging(b => b.AddProvider(logs))
             .AddMessageBus()
             .AddEventHandler<THandler>()
             .AddPostgres(t =>

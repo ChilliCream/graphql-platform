@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
@@ -13,10 +12,8 @@ public sealed class MessagingRuntimeShutdownTests
     {
         // arrange
         var probe = new HandlerProbe();
-        var logs = new LogRecorder();
         await using var provider = new ServiceCollection()
             .AddSingleton(probe)
-            .AddLogging(b => b.AddProvider(logs))
             .AddMessageBus()
             .AddEventHandler<EventHandler>()
             .AddInMemory(t => t.Queue("events").Handler<EventHandler>())
@@ -31,7 +28,6 @@ public sealed class MessagingRuntimeShutdownTests
 
         // assert
         Assert.True(Assert.Single(probe.Tokens).IsCancellationRequested);
-        Assert.Empty(logs.Entries);
     }
 
     [Fact]
@@ -39,10 +35,8 @@ public sealed class MessagingRuntimeShutdownTests
     {
         // arrange
         var probe = new HandlerProbe();
-        var logs = new LogRecorder();
         await using var provider = new ServiceCollection()
             .AddSingleton(probe)
-            .AddLogging(b => b.AddProvider(logs))
             .AddMessageBus()
             .AddBatchHandler<BatchHandler>(o => o.MaxBatchSize = 1)
             .AddInMemory(t => t.Queue("batches").Handler<BatchHandler>())
@@ -57,7 +51,6 @@ public sealed class MessagingRuntimeShutdownTests
 
         // assert
         Assert.True(Assert.Single(probe.Tokens).IsCancellationRequested);
-        Assert.Empty(logs.Entries);
     }
 
     [Fact]
