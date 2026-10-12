@@ -91,17 +91,17 @@ internal sealed class MailNudge(
 
     /// <summary>
     /// Reports whether <see cref="SendAsync"/> can deliver to the given agent's endpoint:
-    /// a Claude peer with a session, or a Codex thread.
+    /// a peer-protocol endpoint with a harness session, or a Codex thread.
     /// </summary>
     private static bool CanTransport(AgentRow row) => row.EndpointKind switch
     {
-        AgentSessionEndpointKind.ClaudePeer => row.SessionId is not null,
+        AgentSessionEndpointKind.ClaudePeer => row is { Harness: not null, SessionId: not null },
         AgentSessionEndpointKind.CodexThread => true,
         _ => false
     };
 
     /// <summary>
-    /// Sends through a Claude peer or Codex thread endpoint, skipping other endpoint kinds.
+    /// Sends through a peer-protocol or Codex thread endpoint, skipping other endpoint kinds.
     /// Cancellation propagates; other transport failures are ignored.
     /// </summary>
     private async Task SendAsync(
@@ -114,12 +114,12 @@ internal sealed class MailNudge(
             switch (row.EndpointKind)
             {
                 case AgentSessionEndpointKind.ClaudePeer:
-                    if (row.SessionId is null)
+                    if (row is not { Harness: { } harness, SessionId: { } sessionId })
                     {
                         break;
                     }
 
-                    await claudePeerClient.SendAsync(row.SessionId, text, cancellationToken);
+                    await claudePeerClient.SendAsync(harness, sessionId, text, cancellationToken);
                     break;
 
                 case AgentSessionEndpointKind.CodexThread:

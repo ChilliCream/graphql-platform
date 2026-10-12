@@ -75,7 +75,7 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
               "formatVersion": 1,
               "cliVersion": "<version>",
               "createdAt": "2026-01-01T00:00:00+00:00",
-              "databaseVersion": 18,
+              "databaseVersion": 19,
               "roots": [
                 "repo/.nitro",
                 "git/nitro"
@@ -105,7 +105,7 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
               "formatVersion": 1,
               "cliVersion": "<version>",
               "createdAt": "2026-01-01T00:00:00+00:00",
-              "databaseVersion": 18,
+              "databaseVersion": 19,
               "roots": [
                 "git/nitro"
               ]
@@ -140,7 +140,7 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
               "formatVersion": 1,
               "cliVersion": "<version>",
               "createdAt": "2026-01-01T00:00:00+00:00",
-              "databaseVersion": 18,
+              "databaseVersion": 19,
               "roots": [
                 "repo/.nitro",
                 "git/nitro"
@@ -189,7 +189,7 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
               "formatVersion": 1,
               "cliVersion": "<version>",
               "createdAt": "2026-01-01T00:00:00+00:00",
-              "databaseVersion": 18,
+              "databaseVersion": 19,
               "roots": [
                 "repo/.nitro"
               ]
@@ -255,7 +255,7 @@ public sealed partial class BackupAgentCommandTests(NitroCommandFixture fixture)
               "formatVersion": 1,
               "cliVersion": "<version>",
               "createdAt": "2026-01-01T00:00:00+00:00",
-              "databaseVersion": 18,
+              "databaseVersion": 19,
               "roots": [
                 "repo/.nitro"
               ]

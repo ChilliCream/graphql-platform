@@ -3,12 +3,17 @@ using System.Text;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
+/// <summary>
+/// Manages <paramref name="template"/>'s entries in the settings files
+/// <paramref name="pathResolver"/> resolves.
+/// </summary>
 internal sealed class ClaudeHooksInstallerService(
     IFileSystem fileSystem,
     IClaudeSettingsPathResolver pathResolver,
     ILaunchDescriptorResolver launchDescriptorResolver,
     IClaudeHooksSidecarStore sidecarStore,
-    TimeProvider timeProvider) : IClaudeHooksInstallerService
+    TimeProvider timeProvider,
+    ClaudeHooksTemplate template) : IClaudeHooksInstallerService
 {
     public async Task<ClaudeHooksInstallReport> InstallAsync(string scope, CancellationToken cancellationToken)
     {
@@ -17,7 +22,9 @@ internal sealed class ClaudeHooksInstallerService(
 
         var (textAtRead, hashAtRead) = await ReadWithHashAsync(path, cancellationToken);
 
-        var result = ClaudeHooksEditor.Install(textAtRead, descriptor, timeProvider.GetUtcNow());
+        var allHooksDisabledIn = await InspectCombinedSettingsAsync(path, textAtRead, cancellationToken);
+
+        var result = ClaudeHooksEditor.Install(textAtRead, template, descriptor, timeProvider.GetUtcNow());
 
         await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
 
@@ -25,7 +32,7 @@ internal sealed class ClaudeHooksInstallerService(
             s => s.Files[path] = new Dictionary<string, ClaudeHooksSidecarEntry>(result.Sidecar),
             cancellationToken);
 
-        return new ClaudeHooksInstallReport(path, result.Outcomes);
+        return new ClaudeHooksInstallReport(path, result.Outcomes, allHooksDisabledIn);
     }
 
     public async Task<ClaudeHooksStatusReport> StatusAsync(string scope, CancellationToken cancellationToken)
@@ -33,9 +40,12 @@ internal sealed class ClaudeHooksInstallerService(
         var path = pathResolver.Resolve(scope);
         var descriptor = launchDescriptorResolver.Resolve();
 
-        var text = fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+        var text = await ReadOrNullAsync(path, cancellationToken);
 
-        return new ClaudeHooksStatusReport(path, ClaudeHooksEditor.Status(text, descriptor));
+        var allHooksDisabledIn = await InspectCombinedSettingsAsync(path, text, cancellationToken);
+
+        return new ClaudeHooksStatusReport(
+            path, ClaudeHooksEditor.Status(text, template, descriptor), allHooksDisabledIn);
     }
 
     public async Task<ClaudeHooksUninstallReport> UninstallAsync(string scope, CancellationToken cancellationToken)
@@ -46,7 +56,7 @@ internal sealed class ClaudeHooksInstallerService(
 
         var priorEntries = (await sidecarStore.ReadAsync(cancellationToken)).EntriesFor(path);
 
-        var result = ClaudeHooksEditor.Uninstall(textAtRead, priorEntries);
+        var result = ClaudeHooksEditor.Uninstall(textAtRead, template, priorEntries);
 
         await WriteIfUnchangedSinceReadAsync(path, hashAtRead, result.SettingsJson, cancellationToken);
 
@@ -55,9 +65,55 @@ internal sealed class ClaudeHooksInstallerService(
         return new ClaudeHooksUninstallReport(path, result.Outcomes);
     }
 
+    /// <summary>
+    /// Throws when <paramref name="path"/>, or another settings file whose hooks run in the same
+    /// sessions, holds entries of the conflicting template. Returns the user settings file when
+    /// it switches every hook off, or null.
+    /// </summary>
+    private async Task<string?> InspectCombinedSettingsAsync(
+        string path, string? text, CancellationToken cancellationToken)
+    {
+        if (template.Conflicting is null && !template.HasHookSwitches)
+        {
+            return null;
+        }
+
+        var userPath = pathResolver.Resolve(HookInstallScopes.User);
+        string? allHooksDisabledIn = null;
+
+        foreach (var settingsPath in pathResolver.ResolveForCurrentDirectory().Append(path).Distinct())
+        {
+            var settingsText = settingsPath == path ? text : await ReadOrNullAsync(settingsPath, cancellationToken);
+
+            if (template.Conflicting is { } conflicting
+                && ClaudeHooksEditor.FindEventsWithCommandMarker(settingsText, conflicting.CommandMarker)
+                    is { Count: > 0 } conflictingEvents)
+            {
+                throw ThrowHelper.ConflictingHookEntries(
+                    settingsPath,
+                    path,
+                    conflicting.CommandMarker.TrimEnd(),
+                    template.CommandMarker.TrimEnd(),
+                    conflictingEvents);
+            }
+
+            if (template.HasHookSwitches
+                && settingsPath == userPath
+                && ClaudeHooksEditor.DisablesAllHooks(settingsText))
+            {
+                allHooksDisabledIn = settingsPath;
+            }
+        }
+
+        return allHooksDisabledIn;
+    }
+
+    private async Task<string?> ReadOrNullAsync(string path, CancellationToken cancellationToken)
+        => fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+
     private async Task<(string? Text, string Hash)> ReadWithHashAsync(string path, CancellationToken cancellationToken)
     {
-        var text = fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+        var text = await ReadOrNullAsync(path, cancellationToken);
 
         return (text, Hash(text));
     }

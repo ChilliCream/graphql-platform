@@ -166,4 +166,55 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         Assert.DoesNotContain("outdated", statusAfterUninstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("installed", statusAfterUninstall.StdOut, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task Status_Should_WriteAJsonResult_When_ClaudeJsonOutputIsRequested()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        var settingsPath = Path.Combine(WorkingDirectory, ".claude", "settings.json");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "hooks", "claude", "status", "--scope", "project", "--output", "json");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        result.StdOut.Replace(settingsPath, "<settings>").MatchInlineSnapshot(
+            """
+            {
+              "settingsPath": "<settings>",
+              "current": false,
+              "events": [
+                {
+                  "event": "SessionStart",
+                  "outcome": "Missing",
+                  "installedCommand": null
+                },
+                {
+                  "event": "UserPromptSubmit",
+                  "outcome": "Missing",
+                  "installedCommand": null
+                },
+                {
+                  "event": "Stop",
+                  "outcome": "Missing",
+                  "installedCommand": null
+                },
+                {
+                  "event": "Notification",
+                  "outcome": "Missing",
+                  "installedCommand": null
+                },
+                {
+                  "event": "SessionEnd",
+                  "outcome": "Missing",
+                  "installedCommand": null
+                }
+              ],
+              "allHooksDisabledIn": null
+            }
+            """);
+    }
 }

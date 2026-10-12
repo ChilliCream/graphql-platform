@@ -38,6 +38,7 @@ internal sealed class PingSessionExecutor(
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
         string actorName,
+        string harness,
         string sessionId,
         string attemptId,
         int slot,
@@ -50,7 +51,7 @@ internal sealed class PingSessionExecutor(
             deadline,
             async (digest, token) => digest is null
                 ? new TransportOutcome(PingAttemptReason.Ok, null)
-                : MapClaudePeerResult(await claudePeerClient.SendAsync(sessionId, digest, token)),
+                : MapClaudePeerResult(await claudePeerClient.SendAsync(harness, sessionId, digest, token)),
             cancellationToken);
 
     public Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
@@ -276,6 +277,8 @@ internal sealed class PingSessionExecutor(
             ClaudePeerSendReason.EndpointGone => PingAttemptReason.EndpointGone,
             ClaudePeerSendReason.InvalidAuth => PingAttemptReason.InvalidAuth,
             ClaudePeerSendReason.AccessDenied => PingAttemptReason.AccessDenied,
+            ClaudePeerSendReason.Unconfirmed => PingAttemptReason.Unconfirmed,
+            ClaudePeerSendReason.Timeout => PingAttemptReason.Timeout,
             _ => PingAttemptReason.TransportError
         },
         outcome.Detail);

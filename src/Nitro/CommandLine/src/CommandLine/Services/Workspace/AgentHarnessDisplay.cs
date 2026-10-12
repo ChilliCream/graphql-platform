@@ -14,6 +14,7 @@ internal static class AgentHarnessDisplay
         "codex" => "Codex",
         "copilot" => "Copilot",
         "opencode" => "OpenCode",
+        "venti" => "Venti",
         _ => "-"
     };
 }
