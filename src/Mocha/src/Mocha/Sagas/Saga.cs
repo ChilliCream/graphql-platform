@@ -619,10 +619,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         foreach (var route in router.GetInboundByConsumer(Consumer))
         {
-            // The saga's reply routes are also bound to the instance reply endpoint, which is skipped.
             if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Reply } endpoint }
-                && endpoint.Transport == transport
-                && endpoint != transport.ReplyReceiveEndpoint)
+                && endpoint.Transport == transport)
             {
                 return endpoint.Source.Address;
             }

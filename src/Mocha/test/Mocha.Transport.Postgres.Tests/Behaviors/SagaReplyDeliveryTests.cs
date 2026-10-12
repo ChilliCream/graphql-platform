@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -36,13 +35,8 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         var response = await request.WaitAsync(s_timeout, ct);
 
         // assert
-        new { response.Email, PersistedSagas = sagaStates.Count }.MatchInlineSnapshot(
-            """
-            {
-              "Email": "ada@example.com",
-              "PersistedSagas": 0
-            }
-            """);
+        Assert.Equal("ada@example.com", response.Email);
+        Assert.Equal(0, sagaStates.Count);
     }
 
     [Fact]
@@ -69,13 +63,8 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         var response = await request.WaitAsync(s_timeout, ct);
 
         // assert
-        new { response.Email, PersistedSagas = sagaStates.Count }.MatchInlineSnapshot(
-            """
-            {
-              "Email": "ada@example.com",
-              "PersistedSagas": 0
-            }
-            """);
+        Assert.Equal("ada@example.com", response.Email);
+        Assert.Equal(0, sagaStates.Count);
 
         await instanceA.Provider.DisposeAsync();
     }
@@ -151,19 +140,9 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         await replyLogger.Discarded.Task.WaitAsync(s_timeout, ct);
 
         // assert
-        new
-        {
-            response.Email,
-            PersistedSagas = sagaStates.Count,
-            QueuedMessages = await WaitForQueuesToDrainAsync(db.ConnectionString, ct)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Email": "ada@example.com",
-              "PersistedSagas": 0,
-              "QueuedMessages": []
-            }
-            """);
+        Assert.Equal("ada@example.com", response.Email);
+        Assert.Equal(0, sagaStates.Count);
+        Assert.Empty(await WaitForQueuesToDrainAsync(db.ConnectionString, ct));
     }
 
     private static Task<TestBus> StartWorkerAsync(

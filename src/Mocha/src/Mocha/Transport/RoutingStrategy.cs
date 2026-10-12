@@ -46,14 +46,6 @@ public abstract class RoutingStrategy
         IMessagingConfigurationContext context,
         InboundRoute route);
 
-    /// <summary>
-    /// Creates the configuration of a durable reply endpoint that all instances of the route's
-    /// consumer share, or <c>null</c> when the consumer receives replies on the instance reply
-    /// endpoint only.
-    /// </summary>
-    /// <param name="context">The messaging configuration context.</param>
-    /// <param name="route">A reply route of the consumer that owns the endpoint.</param>
-    /// <returns>The reply endpoint configuration, or <c>null</c>.</returns>
     public virtual ReceiveEndpointConfiguration? CreateReplyEndpointConfiguration(
         IMessagingConfigurationContext context,
         InboundRoute route)
@@ -74,13 +66,13 @@ public abstract class RoutingStrategy
     public virtual void DiscoverEndpoints(IMessagingSetupContext context)
     {
         DiscoverReplyEndpoints(context);
+        DiscoverSagaReplyEndpoints(context);
 
         if (Transport.BindMode == MessagingBindMode.Implicit)
         {
             DiscoverImplicitEndpoints(context);
         }
 
-        DiscoverSagaReplyEndpoints(context);
         DiscoverOutboundEndpoints(context);
         DiscoverEndpointTopology(context);
     }
@@ -147,7 +139,10 @@ public abstract class RoutingStrategy
 
         if (Transport.ReplyReceiveEndpoint is { } replyEndpoint)
         {
-            foreach (var route in context.Router.InboundRoutes.Where(static route => route.Kind == Reply).ToArray())
+            // A saga's reply routes are bound to the saga's own reply endpoint instead.
+            foreach (var route in context.Router.InboundRoutes
+                .Where(static route => route is { Kind: Reply, Consumer: not SagaConsumer })
+                .ToArray())
             {
                 context.BindRouteToEndpoint(route, replyEndpoint);
             }
@@ -204,7 +199,8 @@ public abstract class RoutingStrategy
     private void DiscoverSagaReplyEndpoints(IMessagingSetupContext context)
     {
         // A saga receives its replies on a durable endpoint that all of its instances share, so a
-        // reply outlives the instance that sent the request.
+        // reply outlives the instance that sent the request. A transport without such an endpoint
+        // delivers them to the instance reply endpoint.
         var sagaReplyRoutes = context.Router.InboundRoutes
             .Where(static route => route is { Kind: Reply, Consumer: SagaConsumer })
             .GroupBy(static route => route.Consumer)
@@ -212,12 +208,14 @@ public abstract class RoutingStrategy
 
         foreach (var routes in sagaReplyRoutes)
         {
-            if (CreateReplyEndpointConfiguration(context, routes.First()) is not { } configuration)
+            var endpoint = CreateReplyEndpointConfiguration(context, routes.First()) is { } configuration
+                ? Transport.AddEndpoint(context, configuration)
+                : Transport.ReplyReceiveEndpoint;
+
+            if (endpoint is null)
             {
                 continue;
             }
-
-            var endpoint = Transport.AddEndpoint(context, configuration);
 
             foreach (var route in routes)
             {

@@ -189,14 +189,9 @@ public class RabbitMQReceiveTopologyConventionTests
         var queue = topology.Queues.Single(q => q.Name == sagaReplyEndpoint.Queue.Name);
 
         // assert
-        new { queue.Name, queue.Durable, queue.AutoDelete }.MatchInlineSnapshot(
-            """
-            {
-              "Name": "mocha.transport.rabbit-m-q.tests.stock-check-saga_reply",
-              "Durable": true,
-              "AutoDelete": false
-            }
-            """);
+        Assert.Equal("mocha.transport.rabbit-m-q.tests.stock-check-saga_reply", queue.Name);
+        Assert.True(queue.Durable);
+        Assert.False(queue.AutoDelete);
     }
 
     [Fact]

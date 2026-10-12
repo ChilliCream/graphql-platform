@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
@@ -44,13 +43,8 @@ public sealed class SagaReplyDeliveryTests(RabbitMQFixture fixture)
         var response = await request.WaitAsync(s_timeout, ct);
 
         // assert
-        new { response.Email, PersistedSagas = sagaStates.Count }.MatchInlineSnapshot(
-            """
-            {
-              "Email": "ada@example.com",
-              "PersistedSagas": 0
-            }
-            """);
+        Assert.Equal("ada@example.com", response.Email);
+        Assert.Equal(0, sagaStates.Count);
     }
 
     private static async Task<TestBus> StartInstanceAsync(

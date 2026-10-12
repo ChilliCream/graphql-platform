@@ -1,16 +1,9 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
 
-/// <summary>
-/// Tests for the routes that <see cref="SagaConsumer"/> derives. Reply transitions are gated on the
-/// saga-id header so non saga replies on the shared reply endpoint cannot select a saga; catch-all
-/// replies exclude faults, typed replies keep their message type term, subscribe transitions route by
-/// type alone, and reply routes are bound to the saga's own reply endpoint.
-/// </summary>
 public class SagaRouteConditionTests
 {
     [Fact]
@@ -91,26 +84,12 @@ public class SagaRouteConditionTests
         });
 
         // assert
-        runtime
-            .Consumers.OfType<SagaConsumer>()
-            .SelectMany(runtime.Router.GetInboundByConsumer)
-            .Select(r => $"{r.Consumer!.Name} {r.Kind} {r.MessageType?.RuntimeType.Name}"
-                + $" -> {r.Endpoint!.Name} ({r.Endpoint.Kind})")
-            .Order(StringComparer.Ordinal)
-            .ToArray()
-            .MatchInlineSnapshot(
-                """
-                [
-                  "any-reply-saga Reply NotAcknowledgedEvent -> Replies (Reply)",
-                  "any-reply-saga Reply NotAcknowledgedEvent -> mocha.sagas.tests.any-reply-saga_reply (Reply)",
-                  "any-reply-saga Reply Object -> Replies (Reply)",
-                  "any-reply-saga Reply Object -> mocha.sagas.tests.any-reply-saga_reply (Reply)",
-                  "any-reply-saga Subscribe StartEvent -> mocha.sagas.tests.any-reply-saga (Default)",
-                  "typed-reply-saga Reply Response -> Replies (Reply)",
-                  "typed-reply-saga Reply Response -> mocha.sagas.tests.typed-reply-saga_reply (Reply)",
-                  "typed-reply-saga Subscribe StartEvent -> mocha.sagas.tests.typed-reply-saga (Default)"
-                ]
-                """);
+        var anyReplyEndpoint = GetReplyEndpoint(runtime, "any-reply-saga");
+        var typedReplyEndpoint = GetReplyEndpoint(runtime, "typed-reply-saga");
+        Assert.Equal("mocha.sagas.tests.any-reply-saga_reply", anyReplyEndpoint.Name);
+        Assert.Equal(ReceiveEndpointKind.Reply, anyReplyEndpoint.Kind);
+        Assert.Equal("mocha.sagas.tests.typed-reply-saga_reply", typedReplyEndpoint.Name);
+        Assert.Equal(ReceiveEndpointKind.Reply, typedReplyEndpoint.Kind);
     }
 
     private static InboundRoute GetSagaRoute(
@@ -121,9 +100,20 @@ public class SagaRouteConditionTests
         var consumer = runtime.Consumers.OfType<SagaConsumer>().Single();
         return runtime
             .Router.GetInboundByConsumer(consumer)
-            .Single(r => r.Kind == kind
-                && r.Endpoint != r.Endpoint?.Transport.ReplyReceiveEndpoint
-                && (messageType is null || r.MessageType?.RuntimeType == messageType));
+            .Single(r => r.Kind == kind && (messageType is null || r.MessageType?.RuntimeType == messageType));
+    }
+
+    private static ReceiveEndpoint GetReplyEndpoint(MessagingRuntime runtime, string sagaName)
+    {
+        var consumer = runtime.Consumers.OfType<SagaConsumer>().Single(c => c.Name == sagaName);
+
+        // every reply route of the saga binds to the same endpoint
+        return runtime
+            .Router.GetInboundByConsumer(consumer)
+            .Where(r => r.Kind == InboundRouteKind.Reply)
+            .Select(r => r.Endpoint!)
+            .Distinct()
+            .Single();
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
