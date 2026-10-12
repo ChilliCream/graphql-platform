@@ -416,8 +416,9 @@ public sealed class PostgresMessageStore
         => ReleaseMessageAsync(transportMessageId, errorInfo: null, cancellationToken);
 
     /// <summary>
-    /// Releases the messages that are still leased by the specified consumer back to the queue.
-    /// Messages that were deleted or already released are not affected.
+    /// Releases the messages that are still leased by the specified consumer back to the queue
+    /// without counting the interrupted delivery. Messages that were deleted or already released
+    /// are not affected.
     /// </summary>
     public async Task ReleaseLeasedMessagesAsync(
         Guid[] transportMessageIds,
@@ -430,7 +431,8 @@ public sealed class PostgresMessageStore
         command.CommandText = $"""
             WITH released AS (
                 UPDATE {_schemaOptions.MessageTable}
-                SET consumer_id = NULL
+                SET consumer_id = NULL,
+                    delivery_count = delivery_count - 1
                 WHERE transport_message_id = ANY(@ids)
                   AND consumer_id = @consumer_id
                 RETURNING queue_id

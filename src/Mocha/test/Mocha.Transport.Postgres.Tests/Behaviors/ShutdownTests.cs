@@ -45,7 +45,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
 
         // assert
         Assert.True(gate.Cancelled);
-        Assert.Equal([(false, null), (false, null)], await ReadMessagesAsync(db.ConnectionString));
+        Assert.Equal([(false, null, 0), (false, null, 0)], await ReadMessagesAsync(db.ConnectionString));
     }
 
     [Fact]
@@ -65,6 +65,30 @@ public sealed class ShutdownTests(PostgresFixture fixture)
 
         // assert
         Assert.Empty(await ReadMessagesAsync(db.ConnectionString));
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_RecordFailure_When_DeleteFailsAfterHandlerCompletes()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync("shutdown_delete_failure");
+        var gate = new HandlerGate();
+        await using var provider = CreateProvider<CompletingHandler>(db.ConnectionString, gate);
+        var services = provider.GetServices<IHostedService>().ToArray();
+        await StartAsync(services);
+        await PublishAsync(provider, count: 1);
+        await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        // the message is leased, so deleting it after the handler completes fails from here on
+        await BlockMessageDeletesAsync(db.ConnectionString);
+
+        // act
+        await StopAsync(services);
+
+        // assert
+        var message = Assert.Single(await ReadMessagesAsync(db.ConnectionString));
+        Assert.False(message.Leased);
+        Assert.Equal(1, message.DeliveryCount);
+        Assert.Contains("delete blocked", message.ErrorReason);
     }
 
     private static ServiceProvider CreateProvider<THandler>(
@@ -118,20 +142,38 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         return (long)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
     }
 
-    private static async Task<List<(bool Leased, string? ErrorReason)>> ReadMessagesAsync(string connectionString)
+    private static async Task<List<(bool Leased, string? ErrorReason, int DeliveryCount)>> ReadMessagesAsync(
+        string connectionString)
     {
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT consumer_id IS NOT NULL, error_reason FROM mocha_message";
+        command.CommandText = "SELECT consumer_id IS NOT NULL, error_reason, delivery_count FROM mocha_message";
         await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
-        var messages = new List<(bool Leased, string? ErrorReason)>();
+        var messages = new List<(bool Leased, string? ErrorReason, int DeliveryCount)>();
         while (await reader.ReadAsync(TestContext.Current.CancellationToken))
         {
-            messages.Add((reader.GetBoolean(0), reader.IsDBNull(1) ? null : reader.GetString(1)));
+            messages.Add((reader.GetBoolean(0), reader.IsDBNull(1) ? null : reader.GetString(1), reader.GetInt32(2)));
         }
 
         return messages;
+    }
+
+    private static async Task BlockMessageDeletesAsync(string connectionString)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE FUNCTION block_message_delete() RETURNS trigger AS $$
+            BEGIN
+                RAISE EXCEPTION 'delete blocked';
+            END;
+            $$ LANGUAGE plpgsql;
+            CREATE TRIGGER block_message_delete BEFORE DELETE ON mocha_message
+            FOR EACH ROW EXECUTE FUNCTION block_message_delete();
+            """;
+        await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }
 
     public sealed class TestEvent;

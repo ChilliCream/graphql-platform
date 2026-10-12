@@ -199,32 +199,46 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                 },
                 message,
                 cancellationToken);
+        }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // The interrupted message is released with the rest of its batch.
+            return;
+        }
+        catch (Exception ex)
+        {
+            await ReleaseFailedMessageAsync(message, ex, logger);
+            return;
+        }
 
+        try
+        {
             // The message was handled, so it is deleted even when the endpoint is stopping.
             await transport.MessageStore.DeleteMessageAsync(
                 message.TransportMessageId,
                 CancellationToken.None);
         }
-        catch (Exception) when (cancellationToken.IsCancellationRequested)
-        {
-            // The interrupted message is released with the rest of its batch.
-        }
         catch (Exception ex)
         {
-            logger.MessageProcessingFailed(ex, message.TransportMessageId);
+            await ReleaseFailedMessageAsync(message, ex, logger);
+        }
+    }
 
-            try
-            {
-                var errorInfo = ErrorInfo.From(ex);
-                await transport.MessageStore.ReleaseMessageAsync(
-                    message.TransportMessageId,
-                    errorInfo,
-                    CancellationToken.None);
-            }
-            catch (Exception releaseEx)
-            {
-                logger.MessageReleaseFailed(releaseEx, message.TransportMessageId);
-            }
+    private async Task ReleaseFailedMessageAsync(PostgresMessageItem message, Exception exception, ILogger logger)
+    {
+        logger.MessageProcessingFailed(exception, message.TransportMessageId);
+
+        try
+        {
+            var errorInfo = ErrorInfo.From(exception);
+            await transport.MessageStore.ReleaseMessageAsync(
+                message.TransportMessageId,
+                errorInfo,
+                CancellationToken.None);
+        }
+        catch (Exception releaseEx)
+        {
+            logger.MessageReleaseFailed(releaseEx, message.TransportMessageId);
         }
     }
 
