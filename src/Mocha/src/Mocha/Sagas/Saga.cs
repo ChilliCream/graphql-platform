@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -220,7 +221,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     private SagaState _initialState = null!;
 
-    private Dictionary<MessagingTransport, Uri>? _replyAddresses;
+    private readonly ConcurrentDictionary<MessagingTransport, Uri?> _replyAddresses = new();
 
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
@@ -604,30 +605,30 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     private Uri? GetReplyAddress(IMessagingRuntime runtime, MessagingTransport transport)
     {
-        var replyAddresses = _replyAddresses ??= CreateReplyAddresses(runtime.Router);
+        var replyAddress = _replyAddresses.GetOrAdd(
+            transport,
+            static (transport, state) => state.Saga.FindReplyAddress(state.Router, transport),
+            (Saga: this, Router: runtime.Router));
 
         // The saga's reply endpoint on this transport, or the instance's reply endpoint when the
         // transport has none.
-        return replyAddresses.TryGetValue(transport, out var address)
-            ? address
-            : transport.ReplyReceiveEndpoint?.Source.Address;
+        return replyAddress ?? transport.ReplyReceiveEndpoint?.Source.Address;
     }
 
-    private Dictionary<MessagingTransport, Uri> CreateReplyAddresses(IMessageRouter router)
+    private Uri? FindReplyAddress(IMessageRouter router, MessagingTransport transport)
     {
-        var replyAddresses = new Dictionary<MessagingTransport, Uri>();
-
         foreach (var route in router.GetInboundByConsumer(Consumer))
         {
             // The saga's reply routes are also bound to the instance reply endpoint, which is skipped.
             if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Reply } endpoint }
-                && endpoint != endpoint.Transport.ReplyReceiveEndpoint)
+                && endpoint.Transport == transport
+                && endpoint != transport.ReplyReceiveEndpoint)
             {
-                replyAddresses.TryAdd(endpoint.Transport, endpoint.Source.Address);
+                return endpoint.Source.Address;
             }
         }
 
-        return replyAddresses;
+        return null;
     }
 }
 
