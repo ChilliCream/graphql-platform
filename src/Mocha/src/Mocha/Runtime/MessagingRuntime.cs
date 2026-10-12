@@ -179,7 +179,11 @@ public sealed class MessagingRuntime(
         failure?.Throw();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Stops the runtime if it is still running, then disposes the consumers and transports. A failing
+    /// step does not prevent the remaining steps from running; the first failure is rethrown, except
+    /// for a stop failure after the runtime was already stopped, which that stop has reported.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -188,24 +192,46 @@ public sealed class MessagingRuntime(
         }
 
         _disposed = true;
+        var wasStopped = _stopped;
+        ExceptionDispatchInfo? failure = null;
 
         try
         {
             await StopAsync(CancellationToken.None);
         }
-        finally
+        catch (Exception ex)
         {
-            foreach (var consumer in consumers)
+            if (!wasStopped)
+            {
+                failure = ExceptionDispatchInfo.Capture(ex);
+            }
+        }
+
+        foreach (var consumer in consumers)
+        {
+            try
             {
                 await consumer.DisposeAsync();
             }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
+        }
 
-            foreach (var transport in transports)
+        foreach (var transport in transports)
+        {
+            try
             {
                 await transport.DisposeAsync();
             }
-
-            _changeTokenSource?.Dispose();
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
         }
+
+        _changeTokenSource?.Dispose();
+        failure?.Throw();
     }
 }
