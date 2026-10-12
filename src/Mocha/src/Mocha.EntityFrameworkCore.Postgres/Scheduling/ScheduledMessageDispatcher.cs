@@ -152,7 +152,9 @@ public sealed class ScheduledMessageDispatcher
                     {
                         _logger.CouldNotDeserializeScheduledMessageBody(id);
 
-                        await DropMessageAsync(reader, connection, id, transaction, cancellationToken);
+                        await reader.CloseAsync();
+
+                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
 
                         // we skipped this message, still have to check for the next ones
                         return true;
@@ -164,7 +166,9 @@ public sealed class ScheduledMessageDispatcher
                     {
                         _logger.CouldNotResolveScheduledMessageType(id, envelope.MessageType);
 
-                        await DropMessageAsync(reader, connection, id, transaction, cancellationToken);
+                        await reader.CloseAsync();
+
+                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
 
                         return true;
                     }
@@ -175,7 +179,9 @@ public sealed class ScheduledMessageDispatcher
                     {
                         _logger.CouldNotDetermineScheduledMessageDestination(id, envelope.DestinationAddress);
 
-                        await DropMessageAsync(reader, connection, id, transaction, cancellationToken);
+                        await reader.CloseAsync();
+
+                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
 
                         return true;
                     }
@@ -258,8 +264,6 @@ public sealed class ScheduledMessageDispatcher
 
     private DispatchEndpoint? ResolveDispatchEndpoint(MessageEnvelope envelope)
     {
-        // Replies and faults are addressed to the requester's reply address, which only the
-        // transport's reply dispatch endpoint can resolve.
         return envelope.Headers?.IsReplyOrFault() ?? false
             ? GetReplyDispatchEndpoint(envelope.DestinationAddress)
             : GetDispatchEndpoint(envelope.DestinationAddress);
@@ -343,18 +347,6 @@ public sealed class ScheduledMessageDispatcher
             _contextPool.Return(context);
             activity?.Dispose();
         }
-    }
-
-    private async Task DropMessageAsync(
-        NpgsqlDataReader reader,
-        NpgsqlConnection connection,
-        Guid eventId,
-        NpgsqlTransaction transaction,
-        CancellationToken cancellationToken)
-    {
-        await reader.CloseAsync();
-
-        await DeleteMessageAsync(connection, eventId, transaction, cancellationToken);
     }
 
     private async Task DeleteMessageAsync(

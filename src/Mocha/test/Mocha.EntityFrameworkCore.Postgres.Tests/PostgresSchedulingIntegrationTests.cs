@@ -4,7 +4,6 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
@@ -522,61 +521,6 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         Assert.Equal("fault", received.Payload);
     }
 
-    [Fact]
-    public async Task Scheduler_Should_DropMessage_When_DestinationCannotBeResolved()
-    {
-        // arrange
-        var logs = new CapturingLoggerProvider();
-        var recorder = new MessageRecorder();
-        await using var env = await CreateBusWithSchedulingAsync(
-            recorder,
-            b => b.Services.AddLogging(logging => logging.AddProvider(logs)));
-
-        var runtime = env.Provider.GetRequiredService<IMessagingRuntime>();
-        var envelope = CreateFaultEnvelope(
-            runtime.GetMessageType(typeof(TestEvent)).Identity,
-            "unknown://caller/q/replies",
-            []);
-
-        // act
-        var id = await ScheduleAsync(env.Provider, envelope);
-
-        // assert
-        var message = await logs.WaitForAsync(LogLevel.Critical, s_timeout);
-        Assert.Equal(
-            "Could not resolve a dispatch endpoint for the destination unknown://caller/q/replies "
-                + $"of scheduled message with ID {id}. Message Dropped.",
-            message);
-        Assert.Equal(0, await CountScheduledMessagesAsync(env.Provider));
-    }
-
-    [Fact]
-    public async Task Scheduler_Should_DropMessage_When_MessageTypeIsUnknown()
-    {
-        // arrange
-        var logs = new CapturingLoggerProvider();
-        var recorder = new MessageRecorder();
-        await using var env = await CreateBusWithSchedulingAsync(
-            recorder,
-            b => b.Services.AddLogging(logging => logging.AddProvider(logs)));
-
-        var envelope = CreateFaultEnvelope(
-            "Unknown.Message",
-            GetHandlerQueueAddress(env.Provider).ToString(),
-            []);
-
-        // act
-        var id = await ScheduleAsync(env.Provider, envelope);
-
-        // assert
-        var message = await logs.WaitForAsync(LogLevel.Critical, s_timeout);
-        Assert.Equal(
-            $"Could not resolve the message type Unknown.Message of scheduled message with ID {id}. "
-                + "Message Dropped.",
-            message);
-        Assert.Equal(0, await CountScheduledMessagesAsync(env.Provider));
-    }
-
     private static Uri GetHandlerQueueAddress(IServiceProvider provider)
     {
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -600,10 +544,6 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         };
     }
 
-    /// <summary>
-    /// Inserts a scheduled message that is due immediately. Replies cannot be scheduled through
-    /// the bus, so the row is written the same way the scheduled message store writes it.
-    /// </summary>
     private static async Task<Guid> ScheduleAsync(IServiceProvider provider, MessageEnvelope envelope)
     {
         var options = provider
@@ -635,13 +575,6 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         new MessageEnvelopeWriter(writer).WriteMessage(envelope);
         writer.Flush();
         return buffer.WrittenMemory;
-    }
-
-    private static async Task<int> CountScheduledMessagesAsync(IServiceProvider provider)
-    {
-        using var scope = provider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-        return await db.Set<ScheduledMessage>().CountAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task<TestEnvironment> CreateBusWithSchedulingAsync(

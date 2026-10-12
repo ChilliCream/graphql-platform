@@ -163,7 +163,9 @@ public sealed class PostgresOutboxProcessor
                     {
                         _logger.CouldNotDeserializeMessageBody(id);
 
-                        await DropEventAsync(reader, connection, id, transaction, cancellationToken);
+                        await reader.CloseAsync();
+
+                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
 
                         // we skipped this message yet, still have to check for the next ones
                         return true;
@@ -175,7 +177,9 @@ public sealed class PostgresOutboxProcessor
                     {
                         _logger.CouldNotResolveMessageType(id, envelope.MessageType);
 
-                        await DropEventAsync(reader, connection, id, transaction, cancellationToken);
+                        await reader.CloseAsync();
+
+                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
 
                         return true;
                     }
@@ -186,7 +190,9 @@ public sealed class PostgresOutboxProcessor
                     {
                         _logger.CouldNotDetermineDestination(id, envelope.DestinationAddress);
 
-                        await DropEventAsync(reader, connection, id, transaction, cancellationToken);
+                        await reader.CloseAsync();
+
+                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
 
                         return true;
                     }
@@ -253,8 +259,6 @@ public sealed class PostgresOutboxProcessor
 
     private DispatchEndpoint? ResolveDispatchEndpoint(MessageEnvelope envelope)
     {
-        // Replies and faults are addressed to the requester's reply address, which only the
-        // transport's reply dispatch endpoint can resolve.
         return envelope.Headers?.IsReplyOrFault() ?? false
             ? GetReplyDispatchEndpoint(envelope.DestinationAddress)
             : GetDispatchEndpoint(envelope.DestinationAddress);
@@ -338,18 +342,6 @@ public sealed class PostgresOutboxProcessor
             _contextPool.Return(context);
             activity?.Dispose();
         }
-    }
-
-    private async Task DropEventAsync(
-        NpgsqlDataReader reader,
-        NpgsqlConnection connection,
-        Guid eventId,
-        NpgsqlTransaction transaction,
-        CancellationToken cancellationToken)
-    {
-        await reader.CloseAsync();
-
-        await DeleteEventAsync(connection, eventId, transaction, cancellationToken);
     }
 
     private async Task DeleteEventAsync(
