@@ -147,21 +147,36 @@ public sealed class ScheduledMessageDispatcher
                     var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
                     var timesSent = reader.GetInt32(2);
                     var maxAttempts = reader.GetInt32(3);
-                    var messageType = GetMessageType(envelope?.MessageType);
-                    var isReply = envelope?.Headers?.IsReply() ?? false;
-                    var endpoint = isReply
-                        ? GetReplyDispatchEndpoint(envelope?.DestinationAddress)
-                        : GetDispatchEndpoint(envelope?.DestinationAddress);
 
-                    if (envelope is null || messageType is null || endpoint is null)
+                    if (envelope is null)
                     {
                         _logger.CouldNotDeserializeScheduledMessageBody(id);
 
-                        await reader.CloseAsync();
-
-                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
+                        await DropMessageAsync(reader, connection, id, transaction, cancellationToken);
 
                         // we skipped this message, still have to check for the next ones
+                        return true;
+                    }
+
+                    var messageType = GetMessageType(envelope.MessageType);
+
+                    if (messageType is null)
+                    {
+                        _logger.CouldNotResolveScheduledMessageType(id, envelope.MessageType);
+
+                        await DropMessageAsync(reader, connection, id, transaction, cancellationToken);
+
+                        return true;
+                    }
+
+                    var endpoint = ResolveDispatchEndpoint(envelope);
+
+                    if (endpoint is null)
+                    {
+                        _logger.CouldNotDetermineScheduledMessageDestination(id, envelope.DestinationAddress);
+
+                        await DropMessageAsync(reader, connection, id, transaction, cancellationToken);
+
                         return true;
                     }
 
@@ -239,6 +254,15 @@ public sealed class ScheduledMessageDispatcher
         {
             return null;
         }
+    }
+
+    private DispatchEndpoint? ResolveDispatchEndpoint(MessageEnvelope envelope)
+    {
+        // Replies and faults are addressed to the requester's reply address, which only the
+        // transport's reply dispatch endpoint can resolve.
+        return envelope.Headers?.IsReplyOrFault() ?? false
+            ? GetReplyDispatchEndpoint(envelope.DestinationAddress)
+            : GetDispatchEndpoint(envelope.DestinationAddress);
     }
 
     private DispatchEndpoint? GetReplyDispatchEndpoint(string? destinationAddress)
@@ -321,6 +345,18 @@ public sealed class ScheduledMessageDispatcher
         }
     }
 
+    private async Task DropMessageAsync(
+        NpgsqlDataReader reader,
+        NpgsqlConnection connection,
+        Guid eventId,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await reader.CloseAsync();
+
+        await DeleteMessageAsync(connection, eventId, transaction, cancellationToken);
+    }
+
     private async Task DeleteMessageAsync(
         NpgsqlConnection connection,
         Guid eventId,
@@ -385,6 +421,21 @@ internal static partial class SchedulerLogs
     [LoggerMessage(5, LogLevel.Warning,
         "Scheduled message {Id} exhausted all {MaxAttempts} retry attempts and will not be retried.")]
     public static partial void ScheduledMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
+
+    [LoggerMessage(
+        6,
+        LogLevel.Critical,
+        "Could not resolve the message type {MessageType} of scheduled message with ID {Id}. Message Dropped.")]
+    public static partial void CouldNotResolveScheduledMessageType(this ILogger logger, Guid id, string? messageType);
+
+    [LoggerMessage(
+        7,
+        LogLevel.Critical,
+        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of scheduled message with ID {Id}. Message Dropped.")]
+    public static partial void CouldNotDetermineScheduledMessageDestination(
+        this ILogger logger,
+        Guid id,
+        string? destinationAddress);
 }
 
 file static class Serializer

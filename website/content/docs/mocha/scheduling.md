@@ -311,8 +311,8 @@ Check that the background worker is running. Look for `Scheduler sleeping until 
 **Messages are delivered immediately instead of at the scheduled time.**
 Messages scheduled for a time in the past are dispatched immediately. Verify that your `ScheduledTime` is in the future.
 
-**"Could not deserialize message body" errors in logs.**
-The dispatcher could not parse the stored envelope. This can happen if the message type was renamed or removed after the message was scheduled. The dispatcher drops messages it cannot deserialize and logs at `Critical` level.
+**"Message Dropped" errors in logs.**
+The Postgres-backed dispatcher drops a scheduled message and logs at `Critical` level when it cannot dispatch it. The message names the cause: `Could not deserialize message body` means the stored envelope could not be parsed, `Could not resolve the message type` means the message type is no longer registered (for example after it was renamed or removed), and `Could not resolve a dispatch endpoint for the destination` means no transport can deliver to the stored destination address.
 
 **Scheduled messages fail repeatedly (Postgres-backed scheduling).**
 The Postgres-backed dispatcher records each failure in the `last_error` column and retries with exponential backoff. After 10 attempts, the message is no longer eligible for dispatch. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:

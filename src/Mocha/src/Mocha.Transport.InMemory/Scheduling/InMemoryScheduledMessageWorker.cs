@@ -99,7 +99,7 @@ internal sealed class InMemoryScheduledMessageWorker(
     {
         var envelope = entry.Envelope;
         var messageType = GetMessageType(envelope.MessageType);
-        var isReply = envelope.Headers?.IsReply() ?? false;
+        var isReply = envelope.Headers?.IsReplyOrFault() ?? false;
         var endpoint = isReply
             ? GetReplyDispatchEndpoint(envelope.DestinationAddress)
             : GetDispatchEndpoint(envelope.DestinationAddress);

@@ -158,21 +158,36 @@ public sealed class PostgresOutboxProcessor
                 {
                     var id = reader.GetGuid(0);
                     var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
-                    var messageType = GetMessageType(envelope?.MessageType);
-                    var isReply = envelope?.Headers?.IsReply() ?? false;
-                    var endpoint = isReply
-                        ? GetReplyDispatchEndpoint(envelope?.DestinationAddress)
-                        : GetDispatchEndpoint(envelope?.DestinationAddress);
 
-                    if (envelope is null || messageType is null || endpoint is null)
+                    if (envelope is null)
                     {
                         _logger.CouldNotDeserializeMessageBody(id);
 
-                        await reader.CloseAsync();
-
-                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
+                        await DropEventAsync(reader, connection, id, transaction, cancellationToken);
 
                         // we skipped this message yet, still have to check for the next ones
+                        return true;
+                    }
+
+                    var messageType = GetMessageType(envelope.MessageType);
+
+                    if (messageType is null)
+                    {
+                        _logger.CouldNotResolveMessageType(id, envelope.MessageType);
+
+                        await DropEventAsync(reader, connection, id, transaction, cancellationToken);
+
+                        return true;
+                    }
+
+                    var endpoint = ResolveDispatchEndpoint(envelope);
+
+                    if (endpoint is null)
+                    {
+                        _logger.CouldNotDetermineDestination(id, envelope.DestinationAddress);
+
+                        await DropEventAsync(reader, connection, id, transaction, cancellationToken);
+
                         return true;
                     }
 
@@ -234,6 +249,15 @@ public sealed class PostgresOutboxProcessor
         {
             return null;
         }
+    }
+
+    private DispatchEndpoint? ResolveDispatchEndpoint(MessageEnvelope envelope)
+    {
+        // Replies and faults are addressed to the requester's reply address, which only the
+        // transport's reply dispatch endpoint can resolve.
+        return envelope.Headers?.IsReplyOrFault() ?? false
+            ? GetReplyDispatchEndpoint(envelope.DestinationAddress)
+            : GetDispatchEndpoint(envelope.DestinationAddress);
     }
 
     private DispatchEndpoint? GetReplyDispatchEndpoint(string? destinationAddress)
@@ -316,6 +340,18 @@ public sealed class PostgresOutboxProcessor
         }
     }
 
+    private async Task DropEventAsync(
+        NpgsqlDataReader reader,
+        NpgsqlConnection connection,
+        Guid eventId,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await reader.CloseAsync();
+
+        await DeleteEventAsync(connection, eventId, transaction, cancellationToken);
+    }
+
     private async Task DeleteEventAsync(
         NpgsqlConnection connection,
         Guid eventId,
@@ -345,14 +381,23 @@ internal static partial class Logs
     [LoggerMessage(2, LogLevel.Error, "Message with ID {Id} was not an event request.")]
     public static partial void SendMessageWasNotAnEventRequest(this ILogger logger, Guid id);
 
-    [LoggerMessage(3, LogLevel.Error, "Could not determine destination for message with ID {Id}. Message Discarded.")]
-    public static partial void CouldNotDetermineDestination(this ILogger logger, Guid id);
+    [LoggerMessage(
+        3,
+        LogLevel.Critical,
+        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of message with ID {Id}. Message Dropped.")]
+    public static partial void CouldNotDetermineDestination(this ILogger logger, Guid id, string? destinationAddress);
 
     [LoggerMessage(4, LogLevel.Information, "Outbox processor is sleeping for {NextPollingInterval}.")]
     public static partial void OutboxProcessorSleeping(this ILogger logger, TimeSpan nextPollingInterval);
 
     [LoggerMessage(5, LogLevel.Error, "An unexpected error occurred while processing outbox event")]
     public static partial void UnexpectedErrorWhileProcessingOutboxEvent(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        6,
+        LogLevel.Critical,
+        "Could not resolve the message type {MessageType} of message with ID {Id}. Message Dropped.")]
+    public static partial void CouldNotResolveMessageType(this ILogger logger, Guid id, string? messageType);
 }
 
 file static class Serializer
