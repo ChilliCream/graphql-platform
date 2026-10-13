@@ -74,10 +74,21 @@ null
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "The provided value for filter `all` of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 29
+        }
+      ],
       "path": [
         "root"
-      ]
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "StringOperationFilterInput!",
+        "filterType": "StringOperationFilterInput"
+      }
     }
   ],
   "data": {

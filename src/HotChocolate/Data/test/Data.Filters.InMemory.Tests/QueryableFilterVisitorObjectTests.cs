@@ -734,6 +734,49 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoCondition_When_FieldFilterIsEmpty()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
+            s_barNullableEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { foo: { } }) { foo { barShort } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { foo: { barShort: { } } }) { foo { barShort } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res3 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    "{ root(where: { foo: { barShort: { }, barBool: { eq: true } } }) "
+                    + "{ foo { barShort } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res4 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    "{ root(where: { foo: { barBool: { eq: true }, barShort: { } } }) "
+                    + "{ foo { barShort } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "empty object")
+            .Add(res2, "empty operations")
+            .Add(res3, "empty field first")
+            .Add(res4, "empty field last")
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
     public class Foo
     {
         public int Id { get; set; }

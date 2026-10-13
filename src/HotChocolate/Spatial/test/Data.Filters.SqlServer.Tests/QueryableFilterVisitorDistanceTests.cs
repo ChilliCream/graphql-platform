@@ -99,6 +99,59 @@ public class QueryableFilterVisitorDistanceTests
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoCondition_When_DistanceHasNoComparison()
+    {
+        // arrange
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root(where: {
+                            bar: {
+                                distance: {
+                                    geometry: { type: Point, coordinates: [1, 1] }
+                                }
+                            }
+                        }) {
+                            id
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root(where: {
+                            bar: {
+                                distance: {
+                                    geometry: { type: Point, coordinates: [1, 1] }
+                                    buffer: 1
+                                }
+                            }
+                        }) {
+                            id
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "geometry")
+            .AddResult(res2, "geometry and buffer")
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
     public class Foo
     {
         public int Id { get; set; }
