@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Collections;
 
@@ -58,6 +59,66 @@ public class FusionInputFieldDefinitionCollectionTests
 
         // act
         var found = collection.TryGetField("\\u0069d"u8, out var field);
+
+        // assert
+        Assert.False(found);
+        Assert.Null(field);
+    }
+
+    [Fact]
+    public void TryGetField_Should_ReturnFalse_When_NameContainsNonAsciiBytes()
+    {
+        // arrange
+        var collection = new FusionInputFieldDefinitionCollection([Field(0, "name")]);
+
+        // act
+        var found = collection.TryGetField("näme"u8, out var field);
+
+        // assert
+        Assert.False(found);
+        Assert.Null(field);
+    }
+
+    [Fact]
+    public void TryGetField_Should_ReturnFalse_When_LargeCollectionNameContainsNonAsciiBytes()
+    {
+        // arrange
+        var collection = new FusionInputFieldDefinitionCollection(
+            [.. Enumerable.Range(0, 20).Select(i => Field(i, "f" + new string('x', 19 - i)))]);
+
+        // act
+        var found = collection.TryGetField("fxxxxä"u8, out var field);
+
+        // assert
+        Assert.False(found);
+        Assert.Null(field);
+    }
+
+    [Fact]
+    public void TryGetField_Should_ReturnMatchingField_When_NameExceedsStackallocThreshold()
+    {
+        // arrange
+        var longName = new string('a', 200);
+        var collection = new FusionInputFieldDefinitionCollection([Field(0, "id"), Field(1, longName)]);
+
+        // act
+        var found = collection.TryGetField(Encoding.UTF8.GetBytes(longName), out var field);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal(1, field!.Index);
+    }
+
+    [Fact]
+    public void TryGetField_Should_ReturnFalse_When_LongNameIsInaccessible()
+    {
+        // arrange
+        var longName = new string('a', 200);
+        var collection = new FusionInputFieldDefinitionCollection(
+            [Field(0, "id"), Field(1, longName, isInaccessible: true)]);
+
+        // act
+        var found = collection.TryGetField(Encoding.UTF8.GetBytes(longName), out var field);
 
         // assert
         Assert.False(found);

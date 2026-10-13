@@ -1,6 +1,10 @@
+#if NET9_0_OR_GREATER
+using System.Buffers;
+#endif
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -12,10 +16,17 @@ public sealed class FusionEnumValueCollection
     : IReadOnlyList<FusionEnumValue>
     , IReadOnlyEnumValueCollection
 {
+#if NET9_0_OR_GREATER
+    private const int CharStackallocThreshold = 128;
+    private const int LinearScanThreshold = 8;
+#endif
+
     private readonly FusionEnumValue[] _values;
     private readonly int _length;
     private readonly FrozenDictionary<string, FusionEnumValue> _map;
-    private readonly byte[][] _utf8AccessibleNames;
+#if NET9_0_OR_GREATER
+    private readonly FrozenDictionary<string, FusionEnumValue>.AlternateLookup<ReadOnlySpan<char>> _spanLookup;
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FusionEnumValueCollection"/> class.
@@ -30,7 +41,9 @@ public sealed class FusionEnumValueCollection
         _map = values.ToFrozenDictionary(t => t.Name);
         _values = values;
         _values.PartitionByAccessibility(out _length);
-        _utf8AccessibleNames = Utf8NameIndex.Create(_values, _length, static v => v.Name);
+#if NET9_0_OR_GREATER
+        _spanLookup = _map.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
     }
 
     /// <summary>
@@ -275,7 +288,31 @@ public sealed class FusionEnumValueCollection
     /// specified name; otherwise, <c>false</c>.
     /// </returns>
     public bool ContainsName(ReadOnlySpan<byte> utf8Name)
-        => Utf8NameIndex.IndexOf(_utf8AccessibleNames, utf8Name) != -1;
+    {
+#if NET9_0_OR_GREATER
+        if (_length > LinearScanThreshold && utf8Name.Length <= CharStackallocThreshold)
+        {
+            Span<char> buffer = stackalloc char[CharStackallocThreshold];
+
+            // Enum value names are validated GraphQL identifiers and therefore ASCII,
+            // so a non-ASCII byte can never match a value name.
+            return Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
+                && _spanLookup.TryGetValue(buffer[..written], out var value)
+                && !value.IsInaccessible;
+        }
+#endif
+
+        // a few names compare faster than they transcode and hash.
+        for (var i = 0; i < _length; i++)
+        {
+            if (Ascii.Equals(utf8Name, _values[i].Name.AsSpan()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Returns an enumerator for the enum values in the collection.
