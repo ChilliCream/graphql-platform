@@ -1261,6 +1261,42 @@ public class VariableCoercionHelperTests
         Assert.Equal("JEDI", literal.Value);
     }
 
+    [Fact]
+    public void Coerce_Enum_Should_Reuse_Literal_Across_Coercions()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("episode"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("Episode")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse("""{"episode":"JEDI"}""");
+
+        var first = new Dictionary<string, VariableValue>();
+        var second = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, first, featureProvider);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, second, featureProvider);
+
+        // assert
+        var literal = Assert.IsType<EnumValueNode>(first["episode"].ValueLiteral);
+        Assert.Equal("JEDI", literal.Value);
+        Assert.Same(literal, second["episode"].ValueLiteral);
+    }
+
     private class MockFeatureProvider : IFeatureProvider
     {
         public IFeatureCollection Features { get; } = new FeatureCollection();

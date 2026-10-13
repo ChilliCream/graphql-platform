@@ -55,6 +55,11 @@ public abstract class EnumValue
     public abstract object Value { get; }
 
     /// <summary>
+    /// Gets the GraphQL literal of this enum value. It is available once the enum value is completed.
+    /// </summary>
+    internal EnumValueNode Literal { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the directives of this enum value.
     /// </summary>
     public abstract DirectiveCollection Directives { get; }
@@ -86,6 +91,7 @@ public abstract class EnumValue
         ITypeSystemMember declaringMember)
     {
         DeclaringType = (EnumType)declaringMember;
+        Literal = new EnumValueNode(Name);
         OnCompleteMetadata(context, declaringMember);
     }
 
