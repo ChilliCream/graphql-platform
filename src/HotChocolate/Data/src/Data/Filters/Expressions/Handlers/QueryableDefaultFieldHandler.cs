@@ -119,7 +119,6 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        // Dequeue last
         if (!context.GetLevel().TryDequeue(out var condition))
         {
             // an empty filter object produces no condition, so the field adds none.

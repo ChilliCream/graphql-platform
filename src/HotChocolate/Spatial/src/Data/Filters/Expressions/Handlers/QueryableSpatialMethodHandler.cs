@@ -98,7 +98,6 @@ public abstract class QueryableSpatialMethodHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        // Dequeue last
         if (!context.GetLevel().TryDequeue(out var condition))
         {
             // an operation without a comparison produces no condition, so it adds none.
