@@ -1,0 +1,343 @@
+some Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": null
+      },
+      {
+        "fooNested": []
+      }
+    ]
+  }
+}
+---------------
+
+some Query:
+---------------
+find({ })
+---------------
+
+all Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": null
+      },
+      {
+        "fooNested": []
+      }
+    ]
+  }
+}
+---------------
+
+all Query:
+---------------
+find({ })
+---------------
+
+none Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": null
+      },
+      {
+        "fooNested": []
+      }
+    ]
+  }
+}
+---------------
+
+none Query:
+---------------
+find({ })
+---------------
+
+some with empty field Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": null
+      },
+      {
+        "fooNested": []
+      }
+    ]
+  }
+}
+---------------
+
+some with empty field Query:
+---------------
+find({ })
+---------------

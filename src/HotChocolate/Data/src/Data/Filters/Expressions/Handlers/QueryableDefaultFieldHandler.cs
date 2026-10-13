@@ -116,11 +116,16 @@ public class QueryableDefaultFieldHandler
             return false;
         }
 
-        // Dequeue last
-        var condition = context.GetLevel().Dequeue();
-
         context.PopInstance();
         context.RuntimeTypes.Pop();
+
+        if (!context.GetLevel().TryDequeue(out var condition))
+        {
+            // an empty filter object produces no condition, so the field adds none.
+            action = SyntaxVisitor.Continue;
+
+            return true;
+        }
 
         // When we are in an in-memory context, it is possible that we have null reference
         // exceptions. To avoid these exceptions, we need to add null checks to the chain. We always

@@ -95,11 +95,16 @@ public abstract class QueryableSpatialMethodHandler
         ObjectFieldNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
-        // Dequeue last
-        var condition = context.GetLevel().Dequeue();
-
         context.PopInstance();
         context.RuntimeTypes.Pop();
+
+        if (!context.GetLevel().TryDequeue(out var condition))
+        {
+            // an operation without a comparison produces no condition, so it adds none.
+            action = SyntaxVisitor.Continue;
+
+            return true;
+        }
 
         if (context.InMemory)
         {
