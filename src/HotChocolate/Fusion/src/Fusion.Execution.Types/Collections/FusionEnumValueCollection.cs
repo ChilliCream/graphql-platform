@@ -288,6 +288,23 @@ public sealed class FusionEnumValueCollection
     /// specified name; otherwise, <c>false</c>.
     /// </returns>
     public bool ContainsName(ReadOnlySpan<byte> utf8Name)
+        => TryGetValue(utf8Name, out _);
+
+    /// <summary>
+    /// Attempts to get the accessible enum value whose name matches the specified
+    /// UTF-8 encoded <paramref name="utf8Name"/>.
+    /// </summary>
+    /// <param name="utf8Name">
+    /// The GraphQL enum value name as UTF-8 bytes.
+    /// </param>
+    /// <param name="value">
+    /// When this method returns, contains the enum value with the specified name if found;
+    /// otherwise, <c>null</c>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the enum value was found; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetValue(ReadOnlySpan<byte> utf8Name, [NotNullWhen(true)] out FusionEnumValue? value)
     {
 #if NET9_0_OR_GREATER
         if (_length > LinearScanThreshold && utf8Name.Length <= CharStackallocThreshold)
@@ -296,21 +313,31 @@ public sealed class FusionEnumValueCollection
 
             // Enum value names are validated GraphQL identifiers and therefore ASCII,
             // so a non-ASCII byte can never match a value name.
-            return Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
-                && _spanLookup.TryGetValue(buffer[..written], out var value)
-                && !value.IsInaccessible;
+            if (Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
+                && _spanLookup.TryGetValue(buffer[..written], out value)
+                && !value.IsInaccessible)
+            {
+                return true;
+            }
+
+            value = null;
+            return false;
         }
 #endif
 
         // a few names compare faster than they transcode and hash.
         for (var i = 0; i < _length; i++)
         {
-            if (Ascii.Equals(utf8Name, _values[i].Name.AsSpan()))
+            var candidate = _values[i];
+
+            if (Ascii.Equals(utf8Name, candidate.Name.AsSpan()))
             {
+                value = candidate;
                 return true;
             }
         }
 
+        value = null;
         return false;
     }
 

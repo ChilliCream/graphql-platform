@@ -35,6 +35,7 @@ public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
         name.EnsureGraphQLName();
 
         Name = name;
+        Literal = new EnumValueNode(name);
         Description = description;
         DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
         IsInaccessible = isInaccessible;
@@ -50,6 +51,11 @@ public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
     /// Gets the name of this enum value.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the GraphQL literal of this enum value.
+    /// </summary>
+    internal EnumValueNode Literal { get; }
 
     /// <summary>
     /// Gets the description of this enum value.
