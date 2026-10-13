@@ -202,7 +202,8 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)
         {
-            // The interrupted message is released with the rest of its batch.
+            // The stop interrupted the handler. The message keeps its lease here and is released
+            // together with the rest of the batch, which also undoes its delivery count bump.
             return;
         }
         catch (Exception ex)

@@ -30,6 +30,8 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         {
             await next(context);
 
+            // Once next returns the handler's work is committed, so settlement runs to completion
+            // without the shutdown token. A cancelled handler throws and is abandoned instead.
             await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, CancellationToken.None);
         }
         catch

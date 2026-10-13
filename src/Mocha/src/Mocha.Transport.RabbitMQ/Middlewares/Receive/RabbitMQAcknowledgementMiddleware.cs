@@ -24,6 +24,8 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         {
             await next(context);
 
+            // Once next returns the handler's work is committed, so the ack is sent without the
+            // shutdown token. A cancelled handler throws and is nacked with requeue instead.
             if (channel.IsOpen)
             {
                 await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
