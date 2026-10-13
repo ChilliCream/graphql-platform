@@ -777,6 +777,37 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_CheckParentForNull_When_NestedFilterHasSeveralFields()
+    {
+        // arrange
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
+            s_barNullableEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    "{ root(where: { foo: { barShort: { eq: 12 }, barBool: { eq: true } } }) "
+                    + "{ foo { barShort } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    "{ root(where: { foo: { barBool: { eq: true }, barShort: { eq: 12 } } }) "
+                    + "{ foo { barShort } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "short first")
+            .Add(res2, "bool first")
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
     public class Foo
     {
         public int Id { get; set; }
