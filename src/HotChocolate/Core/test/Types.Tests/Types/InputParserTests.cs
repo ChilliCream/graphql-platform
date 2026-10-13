@@ -993,6 +993,35 @@ public class InputParserTests
         }
     }
 
+    [Fact]
+    public void Parse_InputObject_With_Escaped_Property_Name()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
+
+        using var fieldData = JsonDocument.Parse(
+            """
+            {"fi\u0065ld1":"abc","field2":123}
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseInputValue(fieldData.RootElement, type, context.Object, Path.Root);
+
+        // assert
+        var input = Assert.IsType<TestInput>(runtimeValue);
+        Assert.Equal("abc", input.Field1);
+        Assert.Equal(123, input.Field2);
+    }
+
     public class TestInput
     {
         public string? Field1 { get; set; }
