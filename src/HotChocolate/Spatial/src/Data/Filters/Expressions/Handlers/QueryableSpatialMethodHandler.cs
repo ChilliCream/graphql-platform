@@ -98,22 +98,25 @@ public abstract class QueryableSpatialMethodHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        if (!context.GetLevel().TryDequeue(out var condition))
-        {
-            // an operation without a comparison produces no condition, so it adds none.
-            action = SyntaxVisitor.Continue;
-
-            return true;
-        }
-
         if (context.InMemory)
         {
-            condition = FilterExpressionBuilder.NotNullAndAlso(
-                context.GetInstance(),
-                condition);
+            var level = context.GetLevel();
+
+            // the condition of this operation, if it produced one, is the newest in the level.
+            for (var i = 1; i < level.Count; i++)
+            {
+                level.Enqueue(level.Dequeue());
+            }
+
+            if (level.TryDequeue(out var condition))
+            {
+                condition = FilterExpressionBuilder.NotNullAndAlso(
+                    context.GetInstance(),
+                    condition);
+                level.Enqueue(condition);
+            }
         }
 
-        context.GetLevel().Enqueue(condition);
         action = SyntaxVisitor.Continue;
         return true;
     }
