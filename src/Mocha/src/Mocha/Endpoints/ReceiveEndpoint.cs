@@ -90,7 +90,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Allocates a scoped <see cref="IServiceProvider"/>, retrieves a pooled
     /// <see cref="ReceiveContext"/>, configures it via <paramref name="configure"/>, and
     /// executes the compiled middleware pipeline. Exceptions that escape the pipeline are
-    /// caught and logged at the Critical level to prevent transport-level crashes.
+    /// logged at the Critical level unless message processing was cancelled.
     /// </remarks>
     /// <typeparam name="TState">The type of caller-provided state passed to the configure action.</typeparam>
     /// <param name="configure">
@@ -104,6 +104,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         TState state,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = _runtimeState!.Logger;
         var services = _runtimeState!.ServiceProvider;
         var pools = _runtimeState.Pools;
@@ -123,7 +125,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
             await _pipeline(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             // exceptions should technically never bubble up here.
             logger.LogCritical(ex, "Error processing message");

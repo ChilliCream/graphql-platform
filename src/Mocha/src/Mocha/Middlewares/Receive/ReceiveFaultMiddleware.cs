@@ -26,7 +26,7 @@ internal sealed class ReceiveFaultMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             var fault = FaultInfo.From(Guid.NewGuid(), provider.GetUtcNow(), ex);
 

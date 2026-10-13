@@ -55,6 +55,40 @@ public sealed class BatchCollectorTests
     }
 
     [Fact]
+    public async Task TryRemove_Should_ExcludeEntryFromBatch_When_EntryIsBuffered()
+    {
+        // arrange
+        var dispatched = new BatchRecorder<TestEvent>();
+        await using var collector = CreateCollector(dispatched, opts => opts.MaxBatchSize = 2);
+        var removed = await collector.Add(CreateContext("removed"));
+
+        // act
+        var wasRemoved = collector.TryRemove(removed);
+        await AddEntries(collector, 2);
+
+        // assert
+        Assert.True(wasRemoved);
+        Assert.True(await dispatched.WaitAsync(s_timeout), "Batch was not dispatched when MaxBatchSize reached");
+        Assert.Equal(["msg-0", "msg-1"], dispatched.Single().Select(e => e.Id));
+    }
+
+    [Fact]
+    public async Task TryRemove_Should_ReturnFalse_When_EntryWasDispatched()
+    {
+        // arrange
+        var dispatched = new BatchRecorder<TestEvent>();
+        await using var collector = CreateCollector(dispatched, opts => opts.MaxBatchSize = 1);
+        var entry = await collector.Add(CreateContext("dispatched"));
+
+        // act
+        var wasRemoved = collector.TryRemove(entry);
+
+        // assert
+        Assert.False(wasRemoved);
+        Assert.Single(dispatched.Single());
+    }
+
+    [Fact]
     public async Task DisposeAsync_Should_FlushRemaining_When_BufferHasMessages()
     {
         // arrange
