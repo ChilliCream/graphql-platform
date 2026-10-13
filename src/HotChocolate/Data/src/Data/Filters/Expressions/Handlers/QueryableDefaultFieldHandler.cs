@@ -119,14 +119,6 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        if (!context.GetLevel().TryDequeue(out var condition))
-        {
-            // an empty filter object produces no condition, so the field adds none.
-            action = SyntaxVisitor.Continue;
-
-            return true;
-        }
-
         // When we are in an in-memory context, it is possible that we have null reference
         // exceptions. To avoid these exceptions, we need to add null checks to the chain. We always
         // wrap the field before in a null check.
@@ -137,15 +129,17 @@ public class QueryableDefaultFieldHandler
         // structs:
         //    previous.Value.current > 10   ==> previous is not null && previous.Value.current > 10
         //
+        // The condition of this field, if it produced one, is the newest in the level.
         if (context.InMemory
             && context.TryGetPreviousRuntimeType(out var previousRuntimeType)
-            && (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType()))
+            && (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType())
+            && context.GetLevel().TryDequeueNewest(out var condition))
         {
             var peekedInstance = context.GetInstance();
             condition = FilterExpressionBuilder.NotNullAndAlso(peekedInstance, condition);
+            context.GetLevel().Enqueue(condition);
         }
 
-        context.GetLevel().Enqueue(condition);
         action = SyntaxVisitor.Continue;
 
         return true;
@@ -193,6 +187,21 @@ file static class LocalExtensions
         [NotNullWhen(true)] out IExtendedType? runtimeType)
     {
         return context.RuntimeTypes.TryPeek(out runtimeType);
+    }
+
+    /// <summary>
+    /// Removes the most recently added condition and keeps the order of the others.
+    /// </summary>
+    public static bool TryDequeueNewest(
+        this Queue<Expression> level,
+        [NotNullWhen(true)] out Expression? condition)
+    {
+        for (var i = 1; i < level.Count; i++)
+        {
+            level.Enqueue(level.Dequeue());
+        }
+
+        return level.TryDequeue(out condition);
     }
 
     public static bool IsNullableValueType(this IExtendedType type)
