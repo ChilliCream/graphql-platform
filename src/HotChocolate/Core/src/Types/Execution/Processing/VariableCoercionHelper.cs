@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -164,16 +163,13 @@ internal sealed class VariableCoercionHelper
                 return Unsafe.As<ScalarType>(type).InputValueToLiteral(inputValue, context);
 
             case TypeKind.Enum:
-                if (inputValue.ValueKind is not JsonValueKind.String)
+                if (inputValue.ValueKind is not JsonValueKind.String
+                    || !((EnumType)type).TryGetValue(inputValue, out var enumValue))
                 {
                     throw new InvalidOperationException();
                 }
 
-                // the runtime value is coerced first, so the raw name is known unless it is escaped.
-                var utf8Name = JsonMarshal.GetRawUtf8Value(inputValue)[1..^1];
-                return ((EnumType)type).Values.TryGetValue(utf8Name, out var enumValue)
-                    ? new EnumValueNode(enumValue.Name)
-                    : new EnumValueNode(inputValue.GetString()!);
+                return new EnumValueNode(enumValue.Name);
 
             case TypeKind.InputObject:
                 if (inputValue.ValueKind is not JsonValueKind.Object)

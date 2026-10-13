@@ -127,7 +127,7 @@ public partial class EnumType
         throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    private bool TryGetValue(JsonElement inputValue, [NotNullWhen(true)] out EnumValue? value)
+    internal bool TryGetValue(JsonElement inputValue, [NotNullWhen(true)] out EnumValue? value)
     {
         // the raw value of a JSON string includes the surrounding quotes.
         var utf8Name = JsonMarshal.GetRawUtf8Value(inputValue)[1..^1];
@@ -137,8 +137,7 @@ public partial class EnumType
             return true;
         }
 
-        // JSON allows escaping any character of a string,
-        // so an escaped name is looked up unescaped.
+        // the JSON string escapes characters of the name, so we look it up unescaped.
         return utf8Name.IndexOf((byte)'\\') != -1
             && Values.TryGetValue(inputValue.GetString()!, out value);
     }

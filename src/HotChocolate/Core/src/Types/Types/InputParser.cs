@@ -722,8 +722,6 @@ public sealed class InputParser
             return true;
         }
 
-        // JSON allows escaping any character of a property name,
-        // so an escaped name is looked up unescaped.
         if (utf8Name.IndexOf((byte)'\\') == -1)
         {
             return false;

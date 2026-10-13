@@ -16,8 +16,8 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
 {
 #if NET9_0_OR_GREATER
     private const int CharStackallocThreshold = 128;
-#endif
     private const int LinearScanThreshold = 8;
+#endif
 
     private readonly EnumValue[] _values;
     private readonly FrozenDictionary<string, EnumValue> _nameLookup;
@@ -67,43 +67,30 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
     /// </returns>
     public bool TryGetValue(ReadOnlySpan<byte> utf8Name, [NotNullWhen(true)] out EnumValue? value)
     {
-        // a few names compare faster than they transcode and hash.
-        if (_ordinalNames && _values.Length <= LinearScanThreshold)
+        if (!_ordinalNames)
         {
-            return TryScan(utf8Name, out value);
+            return _nameLookup.TryGetValue(Encoding.UTF8.GetString(utf8Name), out value);
         }
 
 #if NET9_0_OR_GREATER
-        if (utf8Name.Length <= CharStackallocThreshold
-            && _nameLookup.TryGetAlternateLookup<ReadOnlySpan<char>>(out var lookup))
+        if (_values.Length > LinearScanThreshold && utf8Name.Length <= CharStackallocThreshold)
         {
             Span<char> buffer = stackalloc char[CharStackallocThreshold];
 
-            if (Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done)
+            // Enum value names are validated GraphQL identifiers and therefore ASCII,
+            // so a non-ASCII byte can never match a value name.
+            if (Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
+                && _nameLookup.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(buffer[..written], out value))
             {
-                return lookup.TryGetValue(buffer[..written], out value);
+                return true;
             }
 
-            // Enum value names are validated GraphQL identifiers and therefore ASCII,
-            // so a non-ASCII byte can never match a name compared ordinally.
-            if (_ordinalNames)
-            {
-                value = null;
-                return false;
-            }
+            value = null;
+            return false;
         }
 #endif
 
-        if (_ordinalNames)
-        {
-            return TryScan(utf8Name, out value);
-        }
-
-        return _nameLookup.TryGetValue(Encoding.UTF8.GetString(utf8Name), out value);
-    }
-
-    private bool TryScan(ReadOnlySpan<byte> utf8Name, [NotNullWhen(true)] out EnumValue? value)
-    {
+        // a few names compare faster than they transcode and hash.
         foreach (var candidate in _values)
         {
             if (Ascii.Equals(utf8Name, candidate.Name.AsSpan()))
