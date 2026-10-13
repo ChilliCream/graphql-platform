@@ -120,7 +120,7 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
 
     private async Task ProcessBatchAsync(MessageBatch<TEvent> batch, CancellationToken cancellationToken)
     {
-        using var cancellation = LinkCancellation(batch, cancellationToken);
+        using var cancellation = batch.LinkCancellation(cancellationToken);
         var batchToken = cancellation.Token;
 
         try
@@ -172,32 +172,6 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
                 }
             }
         }
-    }
-
-    private static CancellationTokenSource LinkCancellation(
-        MessageBatch<TEvent> batch,
-        CancellationToken processorToken)
-    {
-        var first = batch.Entries[0].Context.CancellationToken;
-        List<CancellationToken>? others = null;
-
-        for (var i = 1; i < batch.Count; i++)
-        {
-            var token = batch.Entries[i].Context.CancellationToken;
-            if (token != first && others?.Contains(token) != true)
-            {
-                (others ??= []).Add(token);
-            }
-        }
-
-        if (others is null)
-        {
-            return CancellationTokenSource.CreateLinkedTokenSource(processorToken, first);
-        }
-
-        others.Add(processorToken);
-        others.Add(first);
-        return CancellationTokenSource.CreateLinkedTokenSource([.. others]);
     }
 
     public override ConsumerDescription Describe()
