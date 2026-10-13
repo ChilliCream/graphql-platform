@@ -124,6 +124,60 @@ public class FusionEnumValueCollectionTests
         Assert.False(result);
     }
 
+    [Fact]
+    public void ContainsName_Should_Return_False_When_Name_Contains_NonAscii_Bytes()
+    {
+        // arrange
+        var collection = CreateCollection(Value("RED"));
+
+        // act
+        var result = collection.ContainsName("RÉD"u8);
+
+        // assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void ContainsName_Should_Return_False_When_Large_Enum_Name_Contains_NonAscii_Bytes()
+    {
+        // arrange
+        var collection = CreateCollection(CreateVaryingLengthValues(20));
+
+        // act
+        var result = collection.ContainsName("EEEÉ"u8);
+
+        // assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void ContainsName_Should_Return_True_When_Value_Exceeds_Stackalloc_Threshold()
+    {
+        // arrange
+        var longName = new string('E', 200);
+        var collection = CreateCollection(Value("RED"), Value(longName));
+
+        // act
+        var result = collection.ContainsName(Encoding.UTF8.GetBytes(longName));
+
+        // assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void ContainsName_Should_Return_False_When_Long_Value_Is_Inaccessible()
+    {
+        // arrange
+        var longName = new string('E', 200);
+        var collection = CreateCollection(Value("RED"), Value(longName, isInaccessible: true));
+
+        // act
+        var result = collection.ContainsName(Encoding.UTF8.GetBytes(longName));
+
+        // assert
+        Assert.False(result);
+    }
+
     private static FusionEnumValueCollection CreateCollection(params FusionEnumValue[] values)
         => new(values);
 
