@@ -1,7 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Middlewares;
 using Mocha.Transport.AzureServiceBus.Features;
 
 namespace Mocha.Transport.AzureServiceBus;
@@ -154,8 +153,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         _logger.ReceiveEndpointStarted(Queue.Name, _prefetchCount, _maxConcurrentCalls);
 
         var processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
-        processor.ProcessMessageAsync += args =>
-            ProcessMessageAsync(
+        processor.ProcessMessageAsync += async args =>
+            await ExecuteAsync(
                 static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetNonSession(state),
                 args,
                 args.CancellationToken);
@@ -188,8 +187,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         _logger.SessionReceiveEndpointStarted(Queue.Name, prefetchCount, maxSessions, maxCallsPerSession);
 
         var sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
-        sessionProcessor.ProcessMessageAsync += args =>
-            ProcessMessageAsync(
+        sessionProcessor.ProcessMessageAsync += async args =>
+            await ExecuteAsync(
                 static (ctx, state) => ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>().SetSession(state),
                 args,
                 args.CancellationToken);
@@ -197,28 +196,21 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         return sessionProcessor;
     }
 
-    private async Task ProcessMessageAsync<TArgs>(
-        Action<ReceiveContext, TArgs> configure,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await ExecuteAsync(configure, args, cancellationToken);
-        }
-        catch (Exception) when (cancellationToken.IsCancellationRequested)
-        {
-            // Message processing was cancelled during shutdown.
-        }
-    }
-
     /// <summary>
-    /// Handles an error reported by either Azure Service Bus processor. Transient errors are logged
-    /// as warnings and other errors as failures. Processor retry and connection recovery remain the
+    /// Handles an error reported by either Azure Service Bus processor. A handler cancelled because
+    /// the processor is stopping is expected and not logged. Transient errors are logged as warnings
+    /// and other errors as failures. Processor retry and connection recovery remain the
     /// responsibility of the Azure Service Bus SDK.
     /// </summary>
     private Task OnProcessorError(ProcessErrorEventArgs args)
     {
+        // The SDK reports a handler that threw because the processor is stopping. The pipeline has
+        // already abandoned the message, or the SDK abandons it after this handler returns.
+        if (args.Exception is OperationCanceledException && args.CancellationToken.IsCancellationRequested)
+        {
+            return Task.CompletedTask;
+        }
+
         // Transient/recoverable conditions are surfaced as warnings; only unknown faults escalate to error.
         if (IsTransientProcessorError(args.Exception))
         {

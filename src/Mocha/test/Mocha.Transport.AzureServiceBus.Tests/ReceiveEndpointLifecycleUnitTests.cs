@@ -423,7 +423,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
     }
 
     [Fact]
-    public async Task ProcessMessageAsync_Should_NotThrow_When_ProcessorCancelledProcessing()
+    public async Task ProcessMessageAsync_Should_ThrowOperationCanceled_When_ProcessorCancelledProcessing()
     {
         // arrange
         var client = new FakeServiceBusClient(_ => null);
@@ -448,15 +448,15 @@ public sealed class ReceiveEndpointLifecycleUnitTests
             cts.Token);
 
         // act
-        // the SDK routes handler exceptions to the processor error handler, so a cancelled handler must not throw
+        // the SDK abandons an unsettled message only when the handler throws, so cancellation must bubble
         var exception = await Record.ExceptionAsync(() => processor.RaiseProcessMessageAsync(args));
 
         // assert
-        Assert.Null(exception);
+        Assert.IsType<OperationCanceledException>(exception);
     }
 
     [Fact]
-    public async Task ProcessMessageAsync_Should_NotThrow_When_SessionProcessorCancelledProcessing()
+    public async Task ProcessMessageAsync_Should_ThrowOperationCanceled_When_SessionProcessorCancelledProcessing()
     {
         // arrange
         var client = new FakeServiceBusClient(_ => null);
@@ -485,7 +485,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         var exception = await Record.ExceptionAsync(() => processor.RaiseProcessMessageAsync(args));
 
         // assert
-        Assert.Null(exception);
+        Assert.IsType<OperationCanceledException>(exception);
     }
 
     public sealed class NoOpConsumer : IConsumer<OrderCreated>
