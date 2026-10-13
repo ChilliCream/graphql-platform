@@ -311,8 +311,8 @@ Check that the background worker is running. Look for `Scheduler sleeping until 
 **Messages are delivered immediately instead of at the scheduled time.**
 Messages scheduled for a time in the past are dispatched immediately. Verify that your `ScheduledTime` is in the future.
 
-**"Message Dropped" errors in logs.**
-The Postgres-backed dispatcher drops a scheduled message and logs at `Critical` level when it cannot dispatch it. The message names the cause: `Could not deserialize message body` means the stored envelope could not be parsed, `Could not resolve the message type` means the message type is no longer registered (for example after it was renamed or removed), and `Could not resolve a dispatch endpoint for the destination` means no transport can deliver to the stored destination address.
+**"The message will be retried" warnings in logs.**
+The Postgres-backed dispatcher logs at `Warning` level when it cannot read or route a scheduled message, and leaves the row in place for a later attempt by this or another instance. The log message names the cause: `Could not deserialize message body` means the stored envelope could not be parsed, `Could not resolve the message type` means the message type is not registered in the dispatching instance (for example after it was renamed or removed, or before a rolling deployment has reached every instance), and `Could not resolve a dispatch endpoint for the destination` means no transport in the dispatching instance can deliver to the stored destination address. Each attempt counts toward `max_attempts`. After the last attempt, the dispatcher logs `exhausted all ... retry attempts` at `Critical` level and the message is no longer eligible for dispatch.
 
 **Scheduled messages fail repeatedly (Postgres-backed scheduling).**
 The Postgres-backed dispatcher records each failure in the `last_error` column and retries with exponential backoff. After 10 attempts, the message is no longer eligible for dispatch. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:

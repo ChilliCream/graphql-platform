@@ -148,15 +148,13 @@ public sealed class ScheduledMessageDispatcher
                     var timesSent = reader.GetInt32(2);
                     var maxAttempts = reader.GetInt32(3);
 
+                    // A message this instance cannot read or route stays in the table and is
+                    // retried after its backoff.
                     if (envelope is null)
                     {
                         _logger.CouldNotDeserializeScheduledMessageBody(id);
+                        LogIfExhausted(id, timesSent, maxAttempts);
 
-                        await reader.CloseAsync();
-
-                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
-
-                        // we skipped this message, still have to check for the next ones
                         return true;
                     }
 
@@ -165,10 +163,7 @@ public sealed class ScheduledMessageDispatcher
                     if (messageType is null)
                     {
                         _logger.CouldNotResolveScheduledMessageType(id, envelope.MessageType);
-
-                        await reader.CloseAsync();
-
-                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
+                        LogIfExhausted(id, timesSent, maxAttempts);
 
                         return true;
                     }
@@ -178,10 +173,7 @@ public sealed class ScheduledMessageDispatcher
                     if (endpoint is null)
                     {
                         _logger.CouldNotDetermineScheduledMessageDestination(id, envelope.DestinationAddress);
-
-                        await reader.CloseAsync();
-
-                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
+                        LogIfExhausted(id, timesSent, maxAttempts);
 
                         return true;
                     }
@@ -202,10 +194,7 @@ public sealed class ScheduledMessageDispatcher
 
                         await UpdateLastErrorAsync(connection, id, ex, transaction, cancellationToken);
 
-                        if (timesSent >= maxAttempts)
-                        {
-                            _logger.ScheduledMessageExhausted(id, maxAttempts);
-                        }
+                        LogIfExhausted(id, timesSent, maxAttempts);
                     }
 
                     return true;
@@ -242,6 +231,14 @@ public sealed class ScheduledMessageDispatcher
             // Log only - no RollbackAsync here (commit already handled in finally)
             _logger.UnexpectedErrorWhileProcessingScheduledMessage(ex);
             throw;
+        }
+    }
+
+    private void LogIfExhausted(Guid id, int timesSent, int maxAttempts)
+    {
+        if (timesSent >= maxAttempts)
+        {
+            _logger.ScheduledMessageExhausted(id, maxAttempts);
         }
     }
 
@@ -397,8 +394,8 @@ internal static partial class SchedulerLogs
 {
     [LoggerMessage(
         1,
-        LogLevel.Critical,
-        "Could not deserialize message body for scheduled message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not deserialize message body for scheduled message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDeserializeScheduledMessageBody(this ILogger logger, Guid id);
 
     [LoggerMessage(2, LogLevel.Information, "Scheduler sleeping until {WakeTime}.")]
@@ -410,20 +407,22 @@ internal static partial class SchedulerLogs
     [LoggerMessage(4, LogLevel.Warning, "Failed to dispatch scheduled message {Id}. Error recorded for retry.")]
     public static partial void ScheduledMessageDispatchFailed(this ILogger logger, Guid id, Exception exception);
 
-    [LoggerMessage(5, LogLevel.Warning,
+    [LoggerMessage(
+        5,
+        LogLevel.Critical,
         "Scheduled message {Id} exhausted all {MaxAttempts} retry attempts and will not be retried.")]
     public static partial void ScheduledMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
 
     [LoggerMessage(
         6,
-        LogLevel.Critical,
-        "Could not resolve the message type {MessageType} of scheduled message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not resolve the message type {MessageType} of scheduled message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotResolveScheduledMessageType(this ILogger logger, Guid id, string? messageType);
 
     [LoggerMessage(
         7,
-        LogLevel.Critical,
-        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of scheduled message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of scheduled message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDetermineScheduledMessageDestination(
         this ILogger logger,
         Guid id,

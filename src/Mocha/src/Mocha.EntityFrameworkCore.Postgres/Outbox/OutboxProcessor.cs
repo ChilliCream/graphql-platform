@@ -158,16 +158,15 @@ public sealed class PostgresOutboxProcessor
                 {
                     var id = reader.GetGuid(0);
                     var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
+                    var timesSent = reader.GetInt32(2);
 
+                    // A message this instance cannot read or route stays in the outbox and is
+                    // retried after its backoff.
                     if (envelope is null)
                     {
                         _logger.CouldNotDeserializeMessageBody(id);
+                        LogIfExhausted(id, timesSent);
 
-                        await reader.CloseAsync();
-
-                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
-
-                        // we skipped this message yet, still have to check for the next ones
                         return true;
                     }
 
@@ -176,10 +175,7 @@ public sealed class PostgresOutboxProcessor
                     if (messageType is null)
                     {
                         _logger.CouldNotResolveMessageType(id, envelope.MessageType);
-
-                        await reader.CloseAsync();
-
-                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
+                        LogIfExhausted(id, timesSent);
 
                         return true;
                     }
@@ -189,10 +185,7 @@ public sealed class PostgresOutboxProcessor
                     if (endpoint is null)
                     {
                         _logger.CouldNotDetermineDestination(id, envelope.DestinationAddress);
-
-                        await reader.CloseAsync();
-
-                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
+                        LogIfExhausted(id, timesSent);
 
                         return true;
                     }
@@ -237,6 +230,14 @@ public sealed class PostgresOutboxProcessor
             // Log only - no RollbackAsync here (commit already handled in finally)
             _logger.UnexpectedErrorWhileProcessingOutboxEvent(ex);
             throw;
+        }
+    }
+
+    private void LogIfExhausted(Guid id, int timesSent)
+    {
+        if (timesSent >= PostgresMessageOutboxQueries.MaxAttempts)
+        {
+            _logger.OutboxMessageExhausted(id, PostgresMessageOutboxQueries.MaxAttempts);
         }
     }
 
@@ -366,8 +367,8 @@ internal static partial class Logs
 {
     [LoggerMessage(
         1,
-        LogLevel.Critical,
-        "Could not deserialize message body for message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not deserialize message body for message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDeserializeMessageBody(this ILogger logger, Guid id);
 
     [LoggerMessage(2, LogLevel.Error, "Message with ID {Id} was not an event request.")]
@@ -375,8 +376,8 @@ internal static partial class Logs
 
     [LoggerMessage(
         3,
-        LogLevel.Critical,
-        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDetermineDestination(this ILogger logger, Guid id, string? destinationAddress);
 
     [LoggerMessage(4, LogLevel.Information, "Outbox processor is sleeping for {NextPollingInterval}.")]
@@ -387,9 +388,15 @@ internal static partial class Logs
 
     [LoggerMessage(
         6,
-        LogLevel.Critical,
-        "Could not resolve the message type {MessageType} of message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not resolve the message type {MessageType} of message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotResolveMessageType(this ILogger logger, Guid id, string? messageType);
+
+    [LoggerMessage(
+        7,
+        LogLevel.Critical,
+        "Message with ID {Id} exhausted all {MaxAttempts} attempts and will not be retried.")]
+    public static partial void OutboxMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
 }
 
 file static class Serializer
