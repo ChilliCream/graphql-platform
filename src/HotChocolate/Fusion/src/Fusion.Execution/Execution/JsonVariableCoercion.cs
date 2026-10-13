@@ -395,7 +395,7 @@ internal ref struct JsonVariableCoercion
         JsonProperty property,
         [NotNullWhen(true)] out FusionInputFieldDefinition? field)
     {
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
         var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
 
         if (inputObjectType.Fields.TryGetField(utf8Name, out field))
