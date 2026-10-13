@@ -196,7 +196,10 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
             await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         }
 
-        var hostedServices = provider.GetServices<IHostedService>().ToList();
+        // the runtime is started above and stays running, only the outbox worker is restarted
+        var hostedServices = provider.GetServices<IHostedService>()
+            .Where(s => s is not MessagingRuntimeHostedService)
+            .ToList();
         foreach (var svc in hostedServices)
         {
             await svc.StartAsync(TestContext.Current.CancellationToken);

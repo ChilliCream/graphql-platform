@@ -110,6 +110,9 @@ internal static class ThrowHelper
     public static Exception TransportNotStarted()
         => new InvalidOperationException("Transport is not started");
 
+    public static Exception RuntimeStopped()
+        => new InvalidOperationException("Messaging runtime is stopped and cannot be started again");
+
     public static Exception EndpointConfigurationFailed()
         => new InvalidOperationException("Failed to create endpoint configuration");
 
