@@ -1180,6 +1180,54 @@ public class VariableCoercionHelperTests
             b => Assert.Equal("3.5", Assert.IsType<FloatValueNode>(b.ValueLiteral).ToString()));
     }
 
+    [Fact]
+    public void Coerce_InputObject_With_Escaped_Field_Names_And_Enum()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("review"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("ReviewInput")),
+                null,
+                Array.Empty<DirectiveNode>()),
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("episode"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("Episode")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse(
+            """
+            {"review":{"st\u0061rs":5,"commentary":"escaped"},"episode":"J\u0045DI"}
+            """);
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        var review = Assert.IsType<Review>(coercedValues["review"].RuntimeValue);
+        Assert.Equal(5, review.Stars);
+        Assert.Equal("escaped", review.Commentary);
+        Assert.Equal(Episode.Jedi, coercedValues["episode"].RuntimeValue);
+        coercedValues["review"].ValueLiteral.ToString().MatchInlineSnapshot(
+            """
+            { stars: 5, commentary: "escaped" }
+            """);
+    }
+
     private class MockFeatureProvider : IFeatureProvider
     {
         public IFeatureCollection Features { get; } = new FeatureCollection();

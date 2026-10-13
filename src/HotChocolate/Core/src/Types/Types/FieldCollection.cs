@@ -1,13 +1,22 @@
+#if NET9_0_OR_GREATER
+using System.Buffers;
+#endif
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types;
 
 public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvider
 {
+#if NET9_0_OR_GREATER
+    private const int CharStackallocThreshold = 128;
+    private const int LinearScanThreshold = 8;
+#endif
+
     private readonly FrozenDictionary<string, T> _fieldsLookup;
     private readonly T[] _fields;
 
@@ -49,6 +58,54 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
         {
             field = item;
             return true;
+        }
+
+        field = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to get a field by its UTF-8 encoded name.
+    /// </summary>
+    /// <param name="utf8FieldName">
+    /// The field name as UTF-8 bytes.
+    /// </param>
+    /// <param name="field">
+    /// When this method returns, contains the field with the specified name if found;
+    /// otherwise, the default value.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the field was found; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetField(ReadOnlySpan<byte> utf8FieldName, [NotNullWhen(true)] out T? field)
+    {
+#if NET9_0_OR_GREATER
+        if (_fields.Length > LinearScanThreshold && utf8FieldName.Length <= CharStackallocThreshold)
+        {
+            Span<char> buffer = stackalloc char[CharStackallocThreshold];
+
+            // Field names are validated GraphQL identifiers and therefore ASCII,
+            // so a non-ASCII byte can never match a field name.
+            if (Ascii.ToUtf16(utf8FieldName, buffer, out var written) is OperationStatus.Done
+                && _fieldsLookup.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(buffer[..written], out var item))
+            {
+                field = item;
+                return true;
+            }
+
+            field = default;
+            return false;
+        }
+#endif
+
+        // a few names compare faster than they transcode and hash.
+        foreach (var candidate in _fields)
+        {
+            if (Ascii.Equals(utf8FieldName, candidate.Name.AsSpan()))
+            {
+                field = candidate;
+                return true;
+            }
         }
 
         field = default;

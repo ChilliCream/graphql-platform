@@ -1,5 +1,9 @@
 using System.Buffers;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+#if NET10_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -576,19 +580,24 @@ public sealed class InputParser
                 }
             }
 
-            var processedFields = StringSetPool.Shared.Rent();
             List<string>? invalidFieldNames = null;
             var fieldValues = new object?[type.Fields.Count];
+            var processed = ArrayPool<bool>.Shared.Rent(fieldValues.Length);
+            processed.AsSpan(0, fieldValues.Length).Clear();
+            var processedCount = 0;
 
             try
             {
                 foreach (var property in inputValue.EnumerateObject())
                 {
-                    if (type.Fields.TryGetField(property.Name, out var field))
+                    if (TryGetField(type.Fields, property, out var field))
                     {
-                        var fieldPath = path.Append(field.Name);
-                        if (processedFields.Add(property.Name))
+                        if (!processed[field.Index])
                         {
+                            processed[field.Index] = true;
+                            processedCount++;
+                            var fieldPath = path.Append(field.Name);
+
                             if (property.Value.ValueKind is JsonValueKind.Null)
                             {
                                 if (field.Type.Kind is TypeKind.NonNull)
@@ -615,13 +624,13 @@ public sealed class InputParser
                     }
                 }
 
-                if (processedFields.Count < fieldValues.Length)
+                if (processedCount < fieldValues.Length)
                 {
                     for (var i = 0; i < fieldValues.Length; i++)
                     {
-                        var field = type.Fields[i];
-                        if (processedFields.Add(field.Name))
+                        if (!processed[i])
                         {
+                            var field = type.Fields[i];
                             var fieldPath = path.Append(field.Name);
                             fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
                         }
@@ -630,7 +639,7 @@ public sealed class InputParser
             }
             finally
             {
-                StringSetPool.Shared.Return(processedFields);
+                ArrayPool<bool>.Shared.Return(processed);
             }
 
             if (invalidFieldNames?.Count > 0)
@@ -688,13 +697,40 @@ public sealed class InputParser
 
         foreach (var property in value.EnumerateObject())
         {
-            if (type.Fields.ContainsField(property.Name) && ++count > 1)
+            if (TryGetField(type.Fields, property, out _) && ++count > 1)
             {
                 break;
             }
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// Attempts to get the field that the name of a JSON property refers to.
+    /// </summary>
+    internal static bool TryGetField(
+        InputFieldCollection fields,
+        JsonProperty property,
+        [NotNullWhen(true)] out InputField? field)
+    {
+#if NET10_0_OR_GREATER
+        var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
+
+        if (fields.TryGetField(utf8Name, out field))
+        {
+            return true;
+        }
+
+        // JSON allows escaping any character of a property name,
+        // so an escaped name is looked up unescaped.
+        if (utf8Name.IndexOf((byte)'\\') == -1)
+        {
+            return false;
+        }
+#endif
+
+        return fields.TryGetField(property.Name, out field);
     }
 
     private static object DeserializeLeaf(

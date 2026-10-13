@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -118,12 +119,28 @@ public partial class EnumType
     public object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String
-            && Values.TryGetValue(inputValue.GetString()!, out var enumValue))
+            && TryGetValue(inputValue, out var enumValue))
         {
             return enumValue.Value;
         }
 
         throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    private bool TryGetValue(JsonElement inputValue, [NotNullWhen(true)] out EnumValue? value)
+    {
+        // the raw value of a JSON string includes the surrounding quotes.
+        var utf8Name = JsonMarshal.GetRawUtf8Value(inputValue)[1..^1];
+
+        if (Values.TryGetValue(utf8Name, out value))
+        {
+            return true;
+        }
+
+        // JSON allows escaping any character of a string,
+        // so an escaped name is looked up unescaped.
+        return utf8Name.IndexOf((byte)'\\') != -1
+            && Values.TryGetValue(inputValue.GetString()!, out value);
     }
 
     /// <inheritdoc />
