@@ -169,7 +169,7 @@ internal sealed class VariableCoercionHelper
                     throw new InvalidOperationException();
                 }
 
-                return new EnumValueNode(enumValue.Name);
+                return enumValue.Literal;
 
             case TypeKind.InputObject:
                 if (inputValue.ValueKind is not JsonValueKind.Object)

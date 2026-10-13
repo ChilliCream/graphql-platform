@@ -22,6 +22,9 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
     private readonly EnumValue[] _values;
     private readonly FrozenDictionary<string, EnumValue> _nameLookup;
     private readonly bool _ordinalNames;
+#if NET9_0_OR_GREATER
+    private readonly FrozenDictionary<string, EnumValue>.AlternateLookup<ReadOnlySpan<char>> _spanLookup;
+#endif
     private ReadOnlyEnumValueCollection? _readOnlyValues;
 
     /// <summary>
@@ -39,6 +42,9 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
         _nameLookup = _values.ToFrozenDictionary(v => v.Name, nameComparer);
         _ordinalNames = ReferenceEquals(nameComparer, StringComparer.Ordinal)
             || ReferenceEquals(nameComparer, EqualityComparer<string>.Default);
+#if NET9_0_OR_GREATER
+        _nameLookup.TryGetAlternateLookup(out _spanLookup);
+#endif
     }
 
     public EnumValue this[string name] => _nameLookup[name];
@@ -80,7 +86,7 @@ public sealed class EnumValueCollection : IReadOnlyList<EnumValue>
             // Enum value names are validated GraphQL identifiers and therefore ASCII,
             // so a non-ASCII byte can never match a value name.
             if (Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
-                && _nameLookup.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(buffer[..written], out value))
+                && _spanLookup.TryGetValue(buffer[..written], out value))
             {
                 return true;
             }

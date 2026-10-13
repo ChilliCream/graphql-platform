@@ -815,6 +815,7 @@ public class VariableCoercionHelperTests : FusionTestBase
         Assert.True(success, error?.Message);
         Assert.Equal("GREEN", Assert.IsType<EnumValueNode>(coercedVariableValues!["plain"].Value).Value);
         Assert.Equal("GREEN", Assert.IsType<EnumValueNode>(coercedVariableValues["escaped"].Value).Value);
+        Assert.Same(coercedVariableValues["plain"].Value, coercedVariableValues["escaped"].Value);
     }
 
     private static IError CoerceError(

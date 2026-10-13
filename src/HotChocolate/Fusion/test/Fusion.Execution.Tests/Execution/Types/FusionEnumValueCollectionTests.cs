@@ -178,6 +178,34 @@ public class FusionEnumValueCollectionTests
         Assert.False(result);
     }
 
+    [Fact]
+    public void TryGetValue_Should_Return_Value_When_Small_Enum_Contains_Utf8_Name()
+    {
+        // arrange
+        var collection = CreateCollection(Value("RED"), Value("GREEN"), Value("BLUE"));
+
+        // act
+        var found = collection.TryGetValue("GREEN"u8, out var value);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal("GREEN", value!.Name);
+    }
+
+    [Fact]
+    public void TryGetValue_Should_Return_Value_When_Large_Enum_Contains_Utf8_Name()
+    {
+        // arrange
+        var collection = CreateCollection(CreateVaryingLengthValues(20));
+
+        // act
+        var found = collection.TryGetValue(Encoding.UTF8.GetBytes(new string('E', 7)), out var value);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal(new string('E', 7), value!.Name);
+    }
+
     private static FusionEnumValueCollection CreateCollection(params FusionEnumValue[] values)
         => new(values);
 
