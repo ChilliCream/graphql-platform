@@ -5,7 +5,7 @@ description: "Learn how to orchestrate long-running business processes with saga
 
 The saga pattern was introduced by Garcia-Molina & Salem in 1987 as a way to manage long-lived transactions without holding distributed locks. In a messaging system, sagas implement the [Process Manager pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html) - they coordinate a sequence of messages, track state across them, and drive a business process to completion. Mocha sagas use orchestration-style coordination: one central state machine issues commands and waits for replies, rather than choreographing services through shared events. See [microservices.io](https://microservices.io/patterns/data/saga.html) and the [Microsoft Azure Architecture: Saga pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/saga) for broader context on the pattern.
 
-A saga loads or creates state when a message arrives, applies the configured transition, dispatches any side-effects (publish or send), and persists the result. When the saga reaches a final state, its persisted state is deleted and an optional response is sent back to the originator.
+A saga loads or creates state when a message arrives, applies the configured transition, persists the result, and then dispatches any side-effects (publish or send). The side-effects leave after the saga state is committed, so a reply cannot arrive before the state that handles it exists. When the saga reaches a final state, its persisted state is deleted and an optional response is sent back to the originator.
 
 # When to use sagas vs. handlers
 
@@ -548,6 +548,8 @@ dotnet ef migrations add Sagas
 dotnet ef database update
 ```
 
+With the [Postgres outbox](./reliability.md#guarantee-delivery-with-the-transactional-outbox) on the same `DbContext`, the messages a saga sends are stored in the saga's transaction and relayed after it commits, so the saga state and its messages commit together.
+
 ## Create a saga with the fluent API
 
 For simple sagas that do not need a dedicated class, use `Saga.Create<TState>()`:
@@ -598,7 +600,7 @@ This retry is automatic and transparent. You do not need to handle it in your sa
 
 When a saga sends a command, Mocha attaches a `saga-id` header to the outgoing message. When the reply arrives, the saga runtime reads this header to find the existing saga instance and load its persisted state.
 
-Replies and faults to a saga's commands go to the saga's reply queue (`{service}.{saga}_reply`), a durable queue that every instance of the service consumes. A reply still reaches the saga when the instance that sent the command has stopped. A reply that none of the saga's transitions handles is discarded with a warning. Mocha creates a saga reply queue for each saga with reply or fault transitions, on every transport.
+Replies and faults to a saga's commands go to the saga's reply queue (`{service}.{saga}_reply`), a durable queue that every instance of the service consumes. A reply still reaches the saga when the instance that sent the command has stopped. A reply that none of the saga's transitions handles is discarded with a warning. The in-memory, RabbitMQ, Postgres, and Azure Service Bus transports create a saga reply queue for each saga with reply or fault transitions. A transport that does not provide one delivers the saga's replies to the instance reply queue, where a reply is lost when the instance that sent the command stops.
 
 For event-initiated sagas, correlation uses the `ICorrelatable` interface:
 

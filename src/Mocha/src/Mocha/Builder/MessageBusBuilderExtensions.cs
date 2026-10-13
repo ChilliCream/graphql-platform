@@ -30,6 +30,7 @@ public static class MessageBusBuilderExtensions
     internal static void AddDefaults(this MessageBusBuilder builder)
     {
         builder.UseConsume(ConsumerMiddlewares.Retry, before: "Instrumentation");
+        builder.UseConsume(ConsumerMiddlewares.DeferredDispatch, after: "Retry");
         builder.UseConsume(ConsumerMiddlewares.Instrumentation);
 
         builder.UseReceive(ReceiveMiddlewares.TransportCircuitBreaker);

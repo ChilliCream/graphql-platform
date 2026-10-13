@@ -1,0 +1,46 @@
+{
+  "Schema": "azuresb",
+  "TransportType": "AzureServiceBusMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.stock-check-saga",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.stock-check-saga_error",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.stock-check-saga_reply",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.stock-check-saga_skipped",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "topic",
+      "Name": "mocha.transport.azure-service-bus.tests.topology.azure-service-bus-topology-describe-tests.stock-check-started",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "subscription",
+      "From": "azuresb://localhost/t/mocha.transport.azure-service-bus.tests.topology.azure-service-bus-topology-describe-tests.stock-check-started",
+      "To": "azuresb://localhost/q/mocha.transport.azure-service-bus.tests.stock-check-saga",
+      "Name": "fwd-mocha.transport.azure-service-a3fb53509dcf76d2",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}

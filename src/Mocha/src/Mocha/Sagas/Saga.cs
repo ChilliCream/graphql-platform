@@ -256,6 +256,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             state = await LoadStateAsync(correlationId, context, ct);
             if (state is null)
             {
+                _logger!.SagaStateNotFound(Name, correlationId, @event.GetType().Name);
                 return false;
             }
 
@@ -661,6 +662,15 @@ internal static partial class Logs
         this ILogger logger,
         string sagaName,
         Guid correlationId);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "No saga state found for correlation id {SagaName} {CorrelationId}, discarding {Event}")]
+    public static partial void SagaStateNotFound(
+        this ILogger logger,
+        string sagaName,
+        Guid correlationId,
+        string @event);
 
     [LoggerMessage(LogLevel.Information, "Entering state {SagaName} {State}")]
     public static partial void EnteringState(this ILogger logger, string sagaName, string state);

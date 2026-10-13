@@ -27,6 +27,7 @@ public static class MessageBusServiceCollectionExtensions
         services.AddLogging();
         services.AddScoped<ConsumeContextAccessor>();
         services.AddScoped<IMessageBus, DefaultMessageBus>();
+        services.AddScoped<DeferredDispatchScope>();
         services.TryAddScoped(ScheduledMessageStoreResolver.Create);
 
         services.AddSingleton(static sp =>

@@ -32,6 +32,12 @@ public readonly struct PublishOptions
     public Dictionary<string, object?>? Headers { get; init; }
 
     /// <summary>
+    /// Gets whether the message leaves at once when dispatched from a consumer, instead of after the
+    /// consumer attempt completes.
+    /// </summary>
+    public bool ImmediateDispatch { get; init; }
+
+    /// <summary>
     /// Gets the default publish options with no overrides.
     /// </summary>
     public static readonly PublishOptions Default = new() { };
