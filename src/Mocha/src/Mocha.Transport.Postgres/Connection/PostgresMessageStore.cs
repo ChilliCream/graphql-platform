@@ -417,8 +417,8 @@ public sealed class PostgresMessageStore
 
     /// <summary>
     /// Releases the messages that are still leased by the specified consumer back to the queue
-    /// without counting the interrupted delivery. Messages that were deleted or already released
-    /// are not affected.
+    /// without counting the interrupted delivery, so they are eligible for delivery immediately.
+    /// Messages that were deleted or already released are not affected.
     /// </summary>
     public async Task ReleaseLeasedMessagesAsync(
         Guid[] transportMessageIds,
@@ -432,6 +432,7 @@ public sealed class PostgresMessageStore
             WITH released AS (
                 UPDATE {_schemaOptions.MessageTable}
                 SET consumer_id = NULL,
+                    last_delivered = NULL,
                     delivery_count = delivery_count - 1
                 WHERE transport_message_id = ANY(@ids)
                   AND consumer_id = @consumer_id

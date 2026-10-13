@@ -45,7 +45,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
 
         // assert
         Assert.True(gate.Cancelled);
-        Assert.Equal([(false, null, 0), (false, null, 0)], await ReadMessagesAsync(db.ConnectionString));
+        Assert.Equal([(false, null, 0, false), (false, null, 0, false)], await ReadMessagesAsync(db.ConnectionString));
     }
 
     [Fact]
@@ -142,18 +142,24 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         return (long)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
     }
 
-    private static async Task<List<(bool Leased, string? ErrorReason, int DeliveryCount)>> ReadMessagesAsync(
+    private static async Task<List<(bool Leased, string? ErrorReason, int DeliveryCount, bool Delivered)>> ReadMessagesAsync(
         string connectionString)
     {
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT consumer_id IS NOT NULL, error_reason, delivery_count FROM mocha_message";
+        command.CommandText =
+            "SELECT consumer_id IS NOT NULL, error_reason, delivery_count, last_delivered IS NOT NULL FROM mocha_message";
         await using var reader = await command.ExecuteReaderAsync(TestContext.Current.CancellationToken);
-        var messages = new List<(bool Leased, string? ErrorReason, int DeliveryCount)>();
+        var messages = new List<(bool Leased, string? ErrorReason, int DeliveryCount, bool Delivered)>();
         while (await reader.ReadAsync(TestContext.Current.CancellationToken))
         {
-            messages.Add((reader.GetBoolean(0), reader.IsDBNull(1) ? null : reader.GetString(1), reader.GetInt32(2)));
+            messages.Add(
+                (
+                    reader.GetBoolean(0),
+                    reader.IsDBNull(1) ? null : reader.GetString(1),
+                    reader.GetInt32(2),
+                    reader.GetBoolean(3)));
         }
 
         return messages;
