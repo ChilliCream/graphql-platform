@@ -47,7 +47,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
 
     private static async Task StopAsync(IHostedService[] services)
     {
-        foreach (var service in services.Reverse())
+        foreach (var service in Enumerable.Reverse(services))
         {
             await service.StopAsync(TestContext.Current.CancellationToken);
         }
