@@ -42,14 +42,24 @@ internal sealed class DeferredDispatchConsumeMiddleware(string consumerName)
 
     private async ValueTask FlushAsync(DeferredDispatchScope scope, CancellationToken cancellationToken)
     {
-        if (!scope.HasPending)
+        if (scope.Count == 0)
         {
             return;
         }
 
-        using var _ = OpenTelemetry.Source.StartActivity(_activityName, ActivityKind.Producer);
+        using var activity = OpenTelemetry.Source.StartActivity(_activityName, ActivityKind.Internal);
+        activity?.SetTag("messaging.batch.message_count", scope.Count);
 
-        await scope.FlushAsync(cancellationToken);
+        try
+        {
+            await scope.FlushAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
     }
 
     public static ConsumerMiddlewareConfiguration Create()

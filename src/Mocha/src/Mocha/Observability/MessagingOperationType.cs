@@ -11,6 +11,12 @@ public enum MessagingOperationType
     Send,
 
     /// <summary>
+    /// A message creation operation (producer). The message is created and handed to a later send,
+    /// which carries the creation context into the message.
+    /// </summary>
+    Create,
+
+    /// <summary>
     /// A message receive operation (consumer pull).
     /// </summary>
     Receive,

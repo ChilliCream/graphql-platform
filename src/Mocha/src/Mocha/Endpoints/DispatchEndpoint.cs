@@ -259,10 +259,11 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 
     private ValueTask DispatchOrDeferAsync(IDispatchContext context)
     {
-        if (context.Features.Get<DeferredDispatchFeature>() is { Scope: { IsOpen: true } scope }
+        if (context.Features.Get<DeferredDispatchFeature>() is { Scope: { IsOpen: true } scope } feature
             && context.Envelope is { } envelope)
         {
-            scope.Add(this, context.MessageType, envelope);
+            scope.Add(this, context.MessageType, context.DestinationAddress, envelope);
+            feature.IsHeld = true;
             return default;
         }
 

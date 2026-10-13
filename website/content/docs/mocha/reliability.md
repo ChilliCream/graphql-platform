@@ -612,11 +612,15 @@ await bus.PublishAsync(
     cancellationToken);
 ```
 
-An immediately dispatched message leaves before the handler's transaction commits, and a retried attempt sends it again.
+An immediately dispatched message leaves before the handler's transaction commits, and a retried attempt sends it again. The flag also bypasses the [transactional outbox](#guarantee-delivery-with-the-transactional-outbox), so the message is not part of the handler's transaction and goes to the transport at once.
 
 ## Do not wait for your own messages
 
 A handler that sends a message and then waits for a consequence of that message inside the same handler never completes, because the message does not leave until the handler returns. Return from the handler and continue in the consumer of the follow-up message, or use a [saga](./sagas.md). Request/reply inside a handler keeps working because `RequestAsync` is not held.
+
+## Telemetry of held messages
+
+The dispatch span of a held message ends when the message is captured and carries the `messaging.operation.type` value `create`. Its context goes into the message headers, so the receiving side links to it. The release runs under a `{consumer} dispatch` span with one `send` span per message, which records the transport call, its failure, and the sent-message metrics.
 
 ## Failures after the commit
 
@@ -841,7 +845,7 @@ The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processo
 
 ## Skip the outbox for specific dispatches
 
-Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
+Some messages - like internal system events or replies that do not need durability - can bypass the outbox. Set `ImmediateDispatch` on the publish, send, or reply options, or set `SkipOutbox = true` on the `OutboxMiddlewareFeature` of the dispatch context from a dispatch middleware. Both pass the message straight through to the transport.
 
 The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 

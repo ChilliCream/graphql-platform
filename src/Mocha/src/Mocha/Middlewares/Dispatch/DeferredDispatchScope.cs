@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Utils;
 
@@ -17,15 +18,18 @@ internal sealed class DeferredDispatchScope(
 {
     private readonly List<PendingDispatch> _pending = [];
 
+    private readonly IMessagingDiagnosticEvents _events =
+        runtime.Services.GetRequiredService<IMessagingDiagnosticEvents>();
+
     /// <summary>
     /// Gets whether dispatches are currently held back.
     /// </summary>
     public bool IsOpen { get; private set; }
 
     /// <summary>
-    /// Gets whether held messages are waiting to be released.
+    /// Gets the number of held messages waiting to be released.
     /// </summary>
-    public bool HasPending => _pending.Count > 0;
+    public int Count => _pending.Count;
 
     /// <summary>
     /// Starts holding dispatches.
@@ -46,8 +50,13 @@ internal sealed class DeferredDispatchScope(
     /// </summary>
     /// <param name="endpoint">The endpoint the message leaves through.</param>
     /// <param name="messageType">The message type, or <see langword="null"/> for an untyped envelope.</param>
+    /// <param name="destinationAddress">The address the message is sent to.</param>
     /// <param name="envelope">The serialized message.</param>
-    public void Add(DispatchEndpoint endpoint, MessageType? messageType, MessageEnvelope envelope)
+    public void Add(
+        DispatchEndpoint endpoint,
+        MessageType? messageType,
+        Uri? destinationAddress,
+        MessageEnvelope envelope)
     {
         var body = envelope.Body;
         var buffer = BufferPools.Rent(body.Length);
@@ -56,6 +65,7 @@ internal sealed class DeferredDispatchScope(
         var pending = new PendingDispatch(
             endpoint,
             messageType,
+            destinationAddress,
             new MessageEnvelope(envelope) { Body = buffer.AsMemory(0, body.Length) },
             buffer);
 
@@ -66,8 +76,8 @@ internal sealed class DeferredDispatchScope(
     }
 
     /// <summary>
-    /// Releases the held messages in the order they were added. A failure stops the release and
-    /// drops the messages that have not left yet.
+    /// Releases the held messages in the order they were added. Each release is reported as a
+    /// dispatch. A failure stops the release and drops the messages that have not left yet.
     /// </summary>
     /// <param name="cancellationToken">The token that cancels the release.</param>
     public async ValueTask FlushAsync(CancellationToken cancellationToken)
@@ -93,10 +103,21 @@ internal sealed class DeferredDispatchScope(
                     context.MessageId = pending.Envelope.MessageId;
                     context.CorrelationId = pending.Envelope.CorrelationId;
                     context.ConversationId = pending.Envelope.ConversationId;
+                    context.DestinationAddress = pending.DestinationAddress;
                     context.Initialize(services, pending.Endpoint, runtime, pending.MessageType, cancellationToken);
                     context.Envelope = pending.Envelope;
 
-                    await pending.Endpoint.DispatchDeferredAsync(context);
+                    using var dispatch = _events.Dispatch(context);
+
+                    try
+                    {
+                        await pending.Endpoint.DispatchDeferredAsync(context);
+                    }
+                    catch (Exception ex)
+                    {
+                        _events.DispatchError(context, ex);
+                        throw;
+                    }
                 }
                 finally
                 {
@@ -129,6 +150,7 @@ internal sealed class DeferredDispatchScope(
     private readonly record struct PendingDispatch(
         DispatchEndpoint Endpoint,
         MessageType? MessageType,
+        Uri? DestinationAddress,
         MessageEnvelope Envelope,
         byte[] Buffer);
 }

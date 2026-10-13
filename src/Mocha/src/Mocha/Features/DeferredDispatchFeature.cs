@@ -13,15 +13,23 @@ internal sealed class DeferredDispatchFeature : IPooledFeature
     /// </summary>
     public DeferredDispatchScope? Scope { get; set; }
 
+    /// <summary>
+    /// Gets or sets whether the dispatch pipeline handed the message to <see cref="Scope"/> instead of
+    /// the transport.
+    /// </summary>
+    public bool IsHeld { get; set; }
+
     /// <inheritdoc />
     public void Initialize(object state)
     {
         Scope = null;
+        IsHeld = false;
     }
 
     /// <inheritdoc />
     public void Reset()
     {
         Scope = null;
+        IsHeld = false;
     }
 }
