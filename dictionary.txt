@@ -315,6 +315,7 @@ upvote
 URQL
 Usercentrics
 uuuu
+venti
 vnext
 vsix
 VXNlcjox

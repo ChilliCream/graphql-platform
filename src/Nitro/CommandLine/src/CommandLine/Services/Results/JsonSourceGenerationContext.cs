@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients.List;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Claude;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
@@ -87,6 +88,9 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(ListResult<TaskLintFinding>))]
 [JsonSerializable(typeof(RegisterAgentCommand.AgentRegisterResult))]
 [JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
+[JsonSerializable(typeof(InstallClaudeHooksCommand.HooksInstallResult))]
+[JsonSerializable(typeof(StatusClaudeHooksCommand.HooksStatusResult))]
+[JsonSerializable(typeof(UninstallClaudeHooksCommand.HooksUninstallResult))]
 [JsonSerializable(typeof(InstallOpencodeHooksCommand.OpencodeHooksInstallResult))]
 [JsonSerializable(typeof(StatusOpencodeHooksCommand.OpencodeHooksStatusResult))]
 [JsonSerializable(typeof(TakeoverAgentCommand.AgentTakeoverResult))]
