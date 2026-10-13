@@ -124,6 +124,13 @@ internal sealed partial class FetchResultStore
         // reset variable writer (returns excess chunks, keeps the first)
         _variableWriter.Clean();
 
+        // release the forwarded variable buffer if a large input made it grow
+        if (_forwardedVariableWriter is { Capacity: > MaxRetainedForwardedVariableCapacity })
+        {
+            _forwardedVariableWriter.Dispose();
+            _forwardedVariableWriter = null;
+        }
+
         // clear collect target arrays to unroot CompositeResultDocument references;
         // if they grew too large during a burst, swap them for smaller ones.
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
