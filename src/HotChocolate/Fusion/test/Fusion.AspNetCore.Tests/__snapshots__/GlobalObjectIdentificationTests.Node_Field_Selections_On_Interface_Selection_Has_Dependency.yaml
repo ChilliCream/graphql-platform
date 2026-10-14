@@ -25,13 +25,13 @@ response:
           "id": "SXRlbTE6MQ==",
           "products": [
             {
-              "name": "Product: UHJvZHVjdDox"
+              "name": "Product: UHJvZHVjdDozMTY4MTI5NTUw"
             },
             {
-              "name": "Product: UHJvZHVjdDoy"
+              "name": "Product: UHJvZHVjdDoxNzQ4NjU0OTYz"
             },
             {
-              "name": "Product: UHJvZHVjdDoz"
+              "name": "Product: UHJvZHVjdDoxOTA1NTYzODQz"
             }
           ]
         }
@@ -99,13 +99,13 @@ sourceSchemas:
                     "id": "SXRlbTE6MQ==",
                     "products": [
                       {
-                        "id": "UHJvZHVjdDox"
+                        "id": "UHJvZHVjdDozMTY4MTI5NTUw"
                       },
                       {
-                        "id": "UHJvZHVjdDoy"
+                        "id": "UHJvZHVjdDoxNzQ4NjU0OTYz"
                       },
                       {
-                        "id": "UHJvZHVjdDoz"
+                        "id": "UHJvZHVjdDoxOTA1NTYzODQz"
                       }
                     ]
                   }
@@ -144,13 +144,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDox"
+                "__fusion_2_id": "UHJvZHVjdDozMTY4MTI5NTUw"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoy"
+                "__fusion_2_id": "UHJvZHVjdDoxNzQ4NjU0OTYz"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoz"
+                "__fusion_2_id": "UHJvZHVjdDoxOTA1NTYzODQz"
               }
             ]
         response:
@@ -161,7 +161,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDozMTY4MTI5NTUw"
                   }
                 }
               }
@@ -170,7 +170,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoy"
+                    "name": "Product: UHJvZHVjdDoxNzQ4NjU0OTYz"
                   }
                 }
               }
@@ -179,7 +179,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoz"
+                    "name": "Product: UHJvZHVjdDoxOTA1NTYzODQz"
                   }
                 }
               }

@@ -170,13 +170,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDox"
+                "__fusion_1_id": "UHJvZHVjdDoxNzg5NzkyNDI="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoy"
+                "__fusion_1_id": "UHJvZHVjdDozODE5NDAwOTQw"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoz"
+                "__fusion_1_id": "UHJvZHVjdDoyMzYxMDU0MTEx"
               }
             ]
         response:
@@ -327,15 +327,15 @@ sourceSchemas:
                   "topProducts": [
                     {
                       "__typename": "Product",
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDoxNzg5NzkyNDI="
                     },
                     {
                       "__typename": "Product",
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDozODE5NDAwOTQw"
                     },
                     {
                       "__typename": "Product",
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDoyMzYxMDU0MTEx"
                     }
                   ]
                 }

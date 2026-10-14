@@ -18,7 +18,7 @@ response:
         "node": {
           "shared": {
             "a": null,
-            "b": "SharedData: U2hhcmVkRGF0YToy"
+            "b": "SharedData: U2hhcmVkRGF0YToyMTc5NTYzMDYw"
           }
         }
       },
@@ -136,7 +136,7 @@ sourceSchemas:
                   "node": {
                     "__typename": "Product",
                     "shared": {
-                      "b": "SharedData: U2hhcmVkRGF0YToy"
+                      "b": "SharedData: U2hhcmVkRGF0YToyMTc5NTYzMDYw"
                     }
                   }
                 }

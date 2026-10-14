@@ -12,13 +12,13 @@ response:
       "data": {
         "trendingMedia": [
           {
-            "id": "TWVkaWE6MQ=="
+            "id": "TWVkaWE6MzYwMDExMzk5Mg=="
           },
           {
-            "id": "TWVkaWE6Mg=="
+            "id": "TWVkaWE6Mzg1ODYyNDc0NA=="
           },
           {
-            "id": "TWVkaWE6Mw=="
+            "id": "TWVkaWE6MTQ5MDg3Nzcy"
           }
         ]
       }
@@ -81,13 +81,13 @@ sourceSchemas:
                 "data": {
                   "trendingMedia": [
                     {
-                      "id": "TWVkaWE6MQ=="
+                      "id": "TWVkaWE6MzYwMDExMzk5Mg=="
                     },
                     {
-                      "id": "TWVkaWE6Mg=="
+                      "id": "TWVkaWE6Mzg1ODYyNDc0NA=="
                     },
                     {
-                      "id": "TWVkaWE6Mw=="
+                      "id": "TWVkaWE6MTQ5MDg3Nzcy"
                     }
                   ]
                 }

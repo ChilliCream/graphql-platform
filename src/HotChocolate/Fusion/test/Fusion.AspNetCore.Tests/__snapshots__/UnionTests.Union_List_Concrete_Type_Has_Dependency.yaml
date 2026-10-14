@@ -17,13 +17,13 @@ response:
       "data": {
         "posts": [
           {
-            "subgraph2": "Photo: UGhvdG86MQ=="
+            "subgraph2": "Photo: UGhvdG86Mzc4MDI0MDM3MA=="
           },
           {
-            "subgraph1": "Discussion: RGlzY3Vzc2lvbjoy"
+            "subgraph1": "Discussion: RGlzY3Vzc2lvbjo4MTY5MTg1NDY="
           },
           {
-            "subgraph2": "Photo: UGhvdG86Mw=="
+            "subgraph2": "Photo: UGhvdG86MTkwMzI2OTM2Ng=="
           }
         ]
       }
@@ -72,15 +72,15 @@ sourceSchemas:
                   "posts": [
                     {
                       "__typename": "Photo",
-                      "id": "UGhvdG86MQ=="
+                      "id": "UGhvdG86Mzc4MDI0MDM3MA=="
                     },
                     {
                       "__typename": "Discussion",
-                      "subgraph1": "Discussion: RGlzY3Vzc2lvbjoy"
+                      "subgraph1": "Discussion: RGlzY3Vzc2lvbjo4MTY5MTg1NDY="
                     },
                     {
                       "__typename": "Photo",
-                      "id": "UGhvdG86Mw=="
+                      "id": "UGhvdG86MTkwMzI2OTM2Ng=="
                     }
                   ]
                 }
@@ -111,10 +111,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UGhvdG86MQ=="
+                "__fusion_1_id": "UGhvdG86Mzc4MDI0MDM3MA=="
               },
               {
-                "__fusion_1_id": "UGhvdG86Mw=="
+                "__fusion_1_id": "UGhvdG86MTkwMzI2OTM2Ng=="
               }
             ]
         response:
@@ -124,7 +124,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86MQ=="
+                    "subgraph2": "Photo: UGhvdG86Mzc4MDI0MDM3MA=="
                   }
                 }
               }
@@ -132,7 +132,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Mw=="
+                    "subgraph2": "Photo: UGhvdG86MTkwMzI2OTM2Ng=="
                   }
                 }
               }

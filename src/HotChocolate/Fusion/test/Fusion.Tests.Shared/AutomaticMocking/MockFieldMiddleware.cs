@@ -1,3 +1,4 @@
+using System.IO.Hashing;
 using System.Text;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
@@ -16,10 +17,6 @@ internal sealed class MockFieldMiddleware
 
     public ValueTask InvokeAsync(IMiddlewareContext context)
     {
-        var mockingContext = context.GetOrSetGlobalState(
-            nameof(AutomaticMockingContext),
-            _ => new AutomaticMockingContext());
-
         var field = context.Selection.Field;
         var fieldName = field.Name;
         var fieldType = field.Type;
@@ -105,7 +102,6 @@ internal sealed class MockFieldMiddleware
                             ids,
                             requestedTypes,
                             context,
-                            mockingContext,
                             nullIndex);
                         return ValueTask.CompletedTask;
                     }
@@ -132,7 +128,7 @@ internal sealed class MockFieldMiddleware
         if (fieldType.IsCompositeType())
         {
             var type = GetConcreteTypes(requestedTypes, context, null, 1).First();
-            var id = CreateId(type, ++mockingContext.IdCounter);
+            var id = CreateId(type, context, null);
 
             context.Result = CreateObject(id, type);
         }
@@ -144,7 +140,6 @@ internal sealed class MockFieldMiddleware
                     null,
                     requestedTypes,
                     context,
-                    mockingContext,
                     nullIndex);
             }
             else if (namedFieldType is EnumType enumType)
@@ -157,7 +152,7 @@ internal sealed class MockFieldMiddleware
                     scalarType,
                     context.Parent<MockObject?>() ?? new MockObject(null, context.Operation.RootType, null),
                     nullIndex,
-                    mockingContext);
+                    context);
             }
         }
         else if (namedFieldType is EnumType enumType)
@@ -169,20 +164,22 @@ internal sealed class MockFieldMiddleware
             context.Result = CreateScalarValue(
                 scalarType,
                 context.Parent<MockObject?>() ?? new MockObject(null, context.Operation.RootType, null),
-                mockingContext);
+                context,
+                null);
         }
 
         return ValueTask.CompletedTask;
     }
 
-    private object? CreateScalarValue(
+    private static object? CreateScalarValue(
         IScalarTypeDefinition scalarType,
         MockObject parentObject,
-        AutomaticMockingContext mockingContext)
+        IResolverContext context,
+        int? index)
     {
         return scalarType switch
         {
-            IdType => parentObject.Id ?? CreateId(parentObject.Type, ++mockingContext.IdCounter),
+            IdType => parentObject.Id ?? CreateId(parentObject.Type, context, index),
             StringType => parentObject.Type.Name
                 + (parentObject.Id is not null && parentObject.Type.Name != "Viewer"
                     ? ": " + parentObject.Id
@@ -194,13 +191,42 @@ internal sealed class MockFieldMiddleware
         };
     }
 
-    private string CreateId(ITypeDefinition type, int id)
+    /// <summary>
+    /// Creates an ID that depends only on the parent object's ID, the field's response name
+    /// and argument values, and the list index.
+    /// </summary>
+    private static string CreateId(ITypeDefinition type, IResolverContext context, int? index)
     {
-        var idString = type.Name + ":" + id;
+        var key = new StringBuilder();
+        key.Append(context.Parent<MockObject?>()?.Id);
+        key.Append('/');
+        key.Append(context.ResponseName);
+        key.Append('(');
+
+        foreach (var argument in context.Selection.Field.Arguments)
+        {
+            key.Append(argument.Name);
+            key.Append(':');
+            key.Append(context.ArgumentLiteral<IValueNode>(argument.Name));
+            key.Append(',');
+        }
+
+        key.Append(')');
+
+        if (index.HasValue)
+        {
+            key.Append('[');
+            key.Append(index.Value);
+            key.Append(']');
+        }
+
+        var number = XxHash32.HashToUInt32(Encoding.UTF8.GetBytes(key.ToString()));
+        var idString = type.Name + ":" + number;
+
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(idString));
     }
 
-    private IEnumerable<ObjectType> GetConcreteTypes(
+    private static IEnumerable<ObjectType> GetConcreteTypes(
         ObjectType[] requestedTypes,
         IMiddlewareContext context,
         object[]? ids,
@@ -243,12 +269,12 @@ internal sealed class MockFieldMiddleware
         }
     }
 
-    private object? CreateEnumValue(EnumType enumType)
+    private static object? CreateEnumValue(EnumType enumType)
     {
         return enumType.Values.FirstOrDefault()?.Value;
     }
 
-    private object CreateObject(
+    private static object CreateObject(
         object id,
         ObjectType type,
         int? index = null)
@@ -256,29 +282,30 @@ internal sealed class MockFieldMiddleware
         return new MockObject(id, type, index);
     }
 
-    private object?[] CreateListOfScalars(
+    private static object?[] CreateListOfScalars(
         IScalarTypeDefinition scalarType,
         MockObject parentObject,
         int? nullIndex,
-        AutomaticMockingContext mockingContext)
+        IResolverContext context)
     {
         return Enumerable.Range(0, DefaultListSize)
-            .Select(index => nullIndex == index ? null : CreateScalarValue(scalarType, parentObject, mockingContext))
+            .Select(index => nullIndex == index
+                ? null
+                : CreateScalarValue(scalarType, parentObject, context, index))
             .ToArray();
     }
 
-    private object?[] CreateListOfEnums(EnumType enumType, int? nullIndex)
+    private static object?[] CreateListOfEnums(EnumType enumType, int? nullIndex)
     {
         return Enumerable.Range(0, DefaultListSize)
             .Select(index => nullIndex == index ? null : CreateEnumValue(enumType))
             .ToArray();
     }
 
-    private object?[] CreateListOfObjects(
+    private static object?[] CreateListOfObjects(
         object[]? ids,
         ObjectType[] requestedTypes,
         IMiddlewareContext context,
-        AutomaticMockingContext mockingContext,
         int? nullIndex)
     {
         var listLength = ids?.Length ?? DefaultListSize;
@@ -293,7 +320,7 @@ internal sealed class MockFieldMiddleware
                 }
 
                 var concreteType = concreteTypes[index];
-                var id = ids?.ElementAtOrDefault(index) ?? CreateId(concreteType, ++mockingContext.IdCounter);
+                var id = ids?.ElementAtOrDefault(index) ?? CreateId(concreteType, context, index);
 
                 return CreateObject(id, concreteType, index);
             })
@@ -314,10 +341,5 @@ internal sealed class MockFieldMiddleware
             .SetPath(path)
             .AddLocations(context.Selection)
             .Build();
-    }
-
-    private class AutomaticMockingContext
-    {
-        public int IdCounter { get; set; }
     }
 }

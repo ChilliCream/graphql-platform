@@ -26,17 +26,17 @@ response:
             "posts": [
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                  "subgraph2": "Product: UHJvZHVjdDoxMDc4NjA5MDI="
                 }
               },
               {
                 "author": {
-                  "subgraph2": "Author: QXV0aG9yOjIw"
+                  "subgraph2": "Author: QXV0aG9yOjI5MTU4Mjk5MjY="
                 }
               },
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  "subgraph2": "Product: UHJvZHVjdDo4Nzg2MjE2Nzc="
                 }
               }
             ]
@@ -45,17 +45,17 @@ response:
             "posts": [
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                  "subgraph2": "Product: UHJvZHVjdDo2MzQzMzQ3NDE="
                 }
               },
               {
                 "author": {
-                  "subgraph2": "Author: QXV0aG9yOjE3"
+                  "subgraph2": "Author: QXV0aG9yOjExNzg3NzM5MTU="
                 }
               },
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                  "subgraph2": "Product: UHJvZHVjdDo3NzUxOTg4MDM="
                 }
               }
             ]
@@ -64,17 +64,17 @@ response:
             "posts": [
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                  "subgraph2": "Product: UHJvZHVjdDoxMTQ0Nzg0NjA4"
                 }
               },
               {
                 "author": {
-                  "subgraph2": "Author: QXV0aG9yOjE0"
+                  "subgraph2": "Author: QXV0aG9yOjI4MjUyMTMyNzk="
                 }
               },
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+                  "subgraph2": "Product: UHJvZHVjdDozNjA0NjYzNTYw"
                 }
               }
             ]
@@ -148,19 +148,19 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxOQ=="
+                            "id": "UHJvZHVjdDoxMDc4NjA5MDI="
                           }
                         },
                         {
                           "__typename": "Discussion",
                           "author": {
-                            "id": "QXV0aG9yOjIw"
+                            "id": "QXV0aG9yOjI5MTU4Mjk5MjY="
                           }
                         },
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoyMQ=="
+                            "id": "UHJvZHVjdDo4Nzg2MjE2Nzc="
                           }
                         }
                       ]
@@ -170,19 +170,19 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxNg=="
+                            "id": "UHJvZHVjdDo2MzQzMzQ3NDE="
                           }
                         },
                         {
                           "__typename": "Discussion",
                           "author": {
-                            "id": "QXV0aG9yOjE3"
+                            "id": "QXV0aG9yOjExNzg3NzM5MTU="
                           }
                         },
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxOA=="
+                            "id": "UHJvZHVjdDo3NzUxOTg4MDM="
                           }
                         }
                       ]
@@ -192,19 +192,19 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxMw=="
+                            "id": "UHJvZHVjdDoxMTQ0Nzg0NjA4"
                           }
                         },
                         {
                           "__typename": "Discussion",
                           "author": {
-                            "id": "QXV0aG9yOjE0"
+                            "id": "QXV0aG9yOjI4MjUyMTMyNzk="
                           }
                         },
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxNQ=="
+                            "id": "UHJvZHVjdDozNjA0NjYzNTYw"
                           }
                         }
                       ]
@@ -246,13 +246,13 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_1_id": "QXV0aG9yOjIw"
+                    "__fusion_1_id": "QXV0aG9yOjI5MTU4Mjk5MjY="
                   },
                   {
-                    "__fusion_1_id": "QXV0aG9yOjE3"
+                    "__fusion_1_id": "QXV0aG9yOjExNzg3NzM5MTU="
                   },
                   {
-                    "__fusion_1_id": "QXV0aG9yOjE0"
+                    "__fusion_1_id": "QXV0aG9yOjI4MjUyMTMyNzk="
                   }
                 ]
             - document: |
@@ -264,22 +264,22 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+                    "__fusion_2_id": "UHJvZHVjdDoxMDc4NjA5MDI="
                   },
                   {
-                    "__fusion_2_id": "UHJvZHVjdDoyMQ=="
+                    "__fusion_2_id": "UHJvZHVjdDo4Nzg2MjE2Nzc="
                   },
                   {
-                    "__fusion_2_id": "UHJvZHVjdDoxNg=="
+                    "__fusion_2_id": "UHJvZHVjdDo2MzQzMzQ3NDE="
                   },
                   {
-                    "__fusion_2_id": "UHJvZHVjdDoxOA=="
+                    "__fusion_2_id": "UHJvZHVjdDo3NzUxOTg4MDM="
                   },
                   {
-                    "__fusion_2_id": "UHJvZHVjdDoxMw=="
+                    "__fusion_2_id": "UHJvZHVjdDoxMTQ0Nzg0NjA4"
                   },
                   {
-                    "__fusion_2_id": "UHJvZHVjdDoxNQ=="
+                    "__fusion_2_id": "UHJvZHVjdDozNjA0NjYzNTYw"
                   }
                 ]
         response:
@@ -289,7 +289,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                    "subgraph2": "Product: UHJvZHVjdDoxMTQ0Nzg0NjA4"
                   }
                 }
               }
@@ -297,7 +297,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
+                    "subgraph2": "Product: UHJvZHVjdDozNjA0NjYzNTYw"
                   }
                 }
               }
@@ -305,7 +305,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                    "subgraph2": "Product: UHJvZHVjdDo2MzQzMzQ3NDE="
                   }
                 }
               }
@@ -313,7 +313,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                    "subgraph2": "Product: UHJvZHVjdDo3NzUxOTg4MDM="
                   }
                 }
               }
@@ -321,7 +321,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                    "subgraph2": "Product: UHJvZHVjdDoxMDc4NjA5MDI="
                   }
                 }
               }
@@ -329,7 +329,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                    "subgraph2": "Product: UHJvZHVjdDo4Nzg2MjE2Nzc="
                   }
                 }
               }
@@ -337,7 +337,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE3"
+                    "subgraph2": "Author: QXV0aG9yOjExNzg3NzM5MTU="
                   }
                 }
               }
@@ -345,7 +345,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjE0"
+                    "subgraph2": "Author: QXV0aG9yOjI4MjUyMTMyNzk="
                   }
                 }
               }
@@ -353,7 +353,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjIw"
+                    "subgraph2": "Author: QXV0aG9yOjI5MTU4Mjk5MjY="
                   }
                 }
               }

@@ -75,7 +75,7 @@ stableResponseStream: |
               "feature": {
                 "__typename": "ImageFeature",
                 "file": {
-                  "url": "File: RmlsZTo0"
+                  "url": "File: RmlsZTo5NzU4NTQ4MTA="
                 }
               }
             }
@@ -99,7 +99,7 @@ stableResponseStream: |
               "feature": {
                 "__typename": "ImageFeature",
                 "file": {
-                  "url": "File: RmlsZTo0"
+                  "url": "File: RmlsZTo5NzU4NTQ4MTA="
                 }
               }
             }
@@ -239,7 +239,7 @@ sourceSchemas:
                         "feature": {
                           "__typename": "ImageFeature",
                           "file": {
-                            "url": "File: RmlsZTo0"
+                            "url": "File: RmlsZTo5NzU4NTQ4MTA="
                           }
                         }
                       }

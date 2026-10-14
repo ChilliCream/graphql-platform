@@ -358,7 +358,7 @@ public class AbstractTypeTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Equal(
                     """
-                    {"votable":{"id":"RGlzY3Vzc2lvbjox","viewerCanVote":true}}
+                    {"votable":{"id":"RGlzY3Vzc2lvbjozNTUxODE3ODYy","viewerCanVote":true}}
                     """,
                     response.Data.GetRawText());
             });
@@ -532,7 +532,7 @@ public class AbstractTypeTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Equal(
                     """
-                    {"votable":{"id":"RGlzY3Vzc2lvbjox","totalVotes":123}}
+                    {"votable":{"id":"RGlzY3Vzc2lvbjozNTUxODE3ODYy","totalVotes":123}}
                     """,
                     response.Data.GetRawText());
             });

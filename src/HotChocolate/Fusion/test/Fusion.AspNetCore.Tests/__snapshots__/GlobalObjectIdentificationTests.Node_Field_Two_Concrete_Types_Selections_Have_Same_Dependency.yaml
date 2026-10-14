@@ -25,7 +25,7 @@ response:
       "data": {
         "node": {
           "product": {
-            "name": "Product: UHJvZHVjdDox"
+            "name": "Product: UHJvZHVjdDo4OTEyMTMyMzc="
           }
         }
       }
@@ -80,7 +80,7 @@ sourceSchemas:
                   "node": {
                     "__typename": "Discussion",
                     "product": {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDo4OTEyMTMyMzc="
                     }
                   }
                 }
@@ -139,7 +139,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "UHJvZHVjdDox"
+              "__fusion_2_id": "UHJvZHVjdDo4OTEyMTMyMzc="
             }
         response:
           results:
@@ -148,7 +148,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDo4OTEyMTMyMzc="
                   }
                 }
               }

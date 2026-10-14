@@ -56,7 +56,7 @@ sourceSchemas:
                 "data": {
                   "productById": {
                     "nullableObject": {
-                      "field": "Wrapper: V3JhcHBlcjox"
+                      "field": "Wrapper: V3JhcHBlcjozMDc1MDI3ODk1"
                     }
                   }
                 }
@@ -106,7 +106,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_nullableArgument": "Wrapper: V3JhcHBlcjox",
+              "__fusion_1_nullableArgument": "Wrapper: V3JhcHBlcjozMDc1MDI3ODk1",
               "__fusion_2_id": "1"
             }
         response:

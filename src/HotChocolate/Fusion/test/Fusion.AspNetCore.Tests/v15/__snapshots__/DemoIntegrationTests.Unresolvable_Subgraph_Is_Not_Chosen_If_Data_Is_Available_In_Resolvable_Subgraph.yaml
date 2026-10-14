@@ -15,8 +15,8 @@ response:
       "data": {
         "viewer": {
           "product": {
-            "id": "UHJvZHVjdDoy",
-            "name": "Product: UHJvZHVjdDoy"
+            "id": "UHJvZHVjdDoxMzc5NDU5Mzc2",
+            "name": "Product: UHJvZHVjdDoxMzc5NDU5Mzc2"
           }
         }
       }
@@ -61,7 +61,7 @@ sourceSchemas:
                 "data": {
                   "viewer": {
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxMzc5NDU5Mzc2"
                     }
                   }
                 }
@@ -116,7 +116,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDoy"
+              "__fusion_1_id": "UHJvZHVjdDoxMzc5NDU5Mzc2"
             }
         response:
           results:
@@ -125,7 +125,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoy"
+                    "name": "Product: UHJvZHVjdDoxMzc5NDU5Mzc2"
                   }
                 }
               }

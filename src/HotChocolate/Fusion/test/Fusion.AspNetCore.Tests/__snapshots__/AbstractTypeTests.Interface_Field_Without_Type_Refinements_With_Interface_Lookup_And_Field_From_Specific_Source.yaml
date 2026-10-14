@@ -12,7 +12,7 @@ response:
     {
       "data": {
         "votable": {
-          "id": "RGlzY3Vzc2lvbjox",
+          "id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy",
           "totalVotes": 123
         }
       }
@@ -52,7 +52,7 @@ sourceSchemas:
                 "data": {
                   "votable": {
                     "__typename": "Discussion",
-                    "id": "RGlzY3Vzc2lvbjox"
+                    "id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
                   }
                 }
               }
@@ -106,7 +106,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+              "__fusion_1_id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
             }
         response:
           results:

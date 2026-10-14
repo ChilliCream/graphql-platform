@@ -15,17 +15,17 @@ response:
         "reviews": [
           {
             "product": {
-              "name": "Product: UHJvZHVjdDo0"
+              "name": "Product: UHJvZHVjdDo4NjY3OTExODI="
             }
           },
           {
             "product": {
-              "name": "Product: UHJvZHVjdDo1"
+              "name": "Product: UHJvZHVjdDoyMjEyMTgxMzU3"
             }
           },
           {
             "product": {
-              "name": "Product: UHJvZHVjdDo2"
+              "name": "Product: UHJvZHVjdDo2MDYyNDk4NDI="
             }
           }
         ]
@@ -72,17 +72,17 @@ sourceSchemas:
                   "reviews": [
                     {
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDo4NjY3OTExODI="
                       }
                     },
                     {
                       "product": {
-                        "id": "UHJvZHVjdDo1"
+                        "id": "UHJvZHVjdDoyMjEyMTgxMzU3"
                       }
                     },
                     {
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo2MDYyNDk4NDI="
                       }
                     }
                   ]
@@ -114,13 +114,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDo0"
+                "__fusion_1_id": "UHJvZHVjdDo4NjY3OTExODI="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo1"
+                "__fusion_1_id": "UHJvZHVjdDoyMjEyMTgxMzU3"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo2"
+                "__fusion_1_id": "UHJvZHVjdDo2MDYyNDk4NDI="
               }
             ]
         response:
@@ -130,7 +130,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDo0"
+                    "name": "Product: UHJvZHVjdDo4NjY3OTExODI="
                   }
                 }
               }
@@ -138,7 +138,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDo1"
+                    "name": "Product: UHJvZHVjdDoyMjEyMTgxMzU3"
                   }
                 }
               }
@@ -146,7 +146,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDo2"
+                    "name": "Product: UHJvZHVjdDo2MDYyNDk4NDI="
                   }
                 }
               }

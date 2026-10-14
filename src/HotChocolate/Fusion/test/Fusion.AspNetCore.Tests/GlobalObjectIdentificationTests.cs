@@ -114,7 +114,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Equal(
                     """
-                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjo1"}},{"author":{"name":"User: VXNlcjo2"}},{"author":{"name":"User: VXNlcjo3"}}]}}
+                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjozNTcxODUzNTkw"}},{"author":{"name":"User: VXNlcjoxMzczMDIyNzIz"}},{"author":{"name":"User: VXNlcjozNzk3NTEwMTM0"}}]}}
                     """,
                     response.Data.GetRawText());
             });
@@ -165,7 +165,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Equal(
                     """
-                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjo1"}},{"author":{"name":"User: VXNlcjo2"}},{"author":{"name":"User: VXNlcjo3"}}]}}
+                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjozNTcxODUzNTkw"}},{"author":{"name":"User: VXNlcjoxMzczMDIyNzIz"}},{"author":{"name":"User: VXNlcjozNzk3NTEwMTM0"}}]}}
                     """,
                     response.Data.GetRawText());
             });
