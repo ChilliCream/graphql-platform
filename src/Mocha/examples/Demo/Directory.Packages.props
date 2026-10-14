@@ -17,6 +17,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <!-- Npgsql.EntityFrameworkCore.PostgreSQL 11.0.0-rc.1.1 pins EF Core to exactly 11.0.0-rc.1.26425.128, so EF Core stays at RC 1 until Npgsql ships an RC 2. -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0-rc.1.26425.128" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
