@@ -17,16 +17,14 @@ public static class GreenDonutPageExtensions
     /// The maximum number of cursors to create.
     /// </param>
     /// <returns>
-    /// An array of cursors.
+    /// An array of cursors. Empty if the page index or first entry is unavailable, the current page is
+    /// the first page, or no cursors are requested.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Thrown if the page is null.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if the maximum number of cursors is less than 0.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the page does not allow relative cursors.
     /// </exception>
     /// <remarks>
     /// This method creates cursors for the previous pages based on the current page.
@@ -76,16 +74,14 @@ public static class GreenDonutPageExtensions
     /// The maximum number of cursors to create.
     /// </param>
     /// <returns>
-    /// An array of cursors.
+    /// An array of cursors. Empty if the page index, total count, or last entry is unavailable, the current
+    /// page is the last page, or no cursors are requested.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Thrown if the page is null.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown if the maximum number of cursors is less than 0.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the page does not allow relative cursors.
     /// </exception>
     /// <remarks>
     /// This method creates cursors for the next pages based on the current page.

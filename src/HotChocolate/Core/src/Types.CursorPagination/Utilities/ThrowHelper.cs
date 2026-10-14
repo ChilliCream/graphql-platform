@@ -1,4 +1,6 @@
-using HotChocolate.Types;
+using IOutputFieldDefinition = HotChocolate.Types.IOutputFieldDefinition;
+using PagingErrorHelper = HotChocolate.Types.Pagination.ErrorHelper;
+using PagingTypeExtensions = HotChocolate.Types.TypeExtensions;
 using static HotChocolate.Types.Properties.CursorResources;
 
 // ReSharper disable once CheckNamespace
@@ -41,7 +43,7 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_PagingHandler_NoBoundariesSet,
-                    field.Type.TypeName())
+                    PagingTypeExtensions.TypeName(field.Type))
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                 .SetPath(path)
                 .SetCoordinate(field.Coordinate)
@@ -54,7 +56,7 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_PagingHandler_FirstValueNotSet,
-                    field.Type.TypeName())
+                    PagingTypeExtensions.TypeName(field.Type))
                 .SetCode(ErrorCodes.Paging.FirstValueNotSet)
                 .SetPath(path)
                 .SetCoordinate(field.Coordinate)
@@ -66,6 +68,11 @@ internal static class ThrowHelper
                 .SetMessage(PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid)
                 .SetCode(ErrorCodes.Paging.SchemaTypeInvalid)
                 .Build());
+
+    public static GraphQLException PagingHandler_RelativeCursorsNotEnabled(
+        IOutputFieldDefinition field,
+        Path path)
+        => new(PagingErrorHelper.RelativeCursorsNotEnabled(field, path));
 
     public static GraphQLException InvalidIndexCursor(string argument, string cursor)
         => new GraphQLException(

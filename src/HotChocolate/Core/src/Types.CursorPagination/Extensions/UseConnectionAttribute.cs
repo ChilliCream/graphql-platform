@@ -173,10 +173,24 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         => next => context =>
         {
             var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+            ValidateRelativeCursors(context, options);
             ValidateContext(context, options);
             PublishPagingArguments(context, options);
             return next(context);
         };
+
+    private static void ValidateRelativeCursors(
+        IMiddlewareContext context,
+        PagingOptions options)
+    {
+        if (!(options.EnableRelativeCursors ?? PagingDefaults.EnableRelativeCursors)
+            && ConnectionFlagsHelper.AreRelativeCursorFieldsSelected(context, options))
+        {
+            throw ThrowHelper.PagingHandler_RelativeCursorsNotEnabled(
+                context.Selection.Field,
+                context.Path);
+        }
+    }
 
     private static void ValidateContext(
         IMiddlewareContext context,
