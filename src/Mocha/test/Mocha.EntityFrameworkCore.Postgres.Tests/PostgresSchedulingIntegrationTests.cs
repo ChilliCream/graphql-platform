@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
+using Mocha.Middlewares;
 using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
 
@@ -264,6 +265,36 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
 
         Assert.Fail("Timed out waiting for times_sent to reach 2");
+    }
+
+    [Fact]
+    public async Task Scheduler_Should_RetryMessage_When_MessageTypeIsUnknown()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        // The row mimics a message written by a newer instance whose type this host does not know.
+        var id = await MessageRows.InsertScheduledAsync(
+            env.ConnectionString,
+            new MessageEnvelope
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                MessageType = "urn:message:Mocha.Tests:UnknownEvent",
+                DestinationAddress = "memory://localhost/q/unknown"
+            },
+            TestContext.Current.CancellationToken);
+
+        // act
+        env.Provider.GetRequiredService<ISchedulerSignal>().Notify(DateTimeOffset.UtcNow);
+
+        // assert
+        var timesSent = await MessageRows.WaitForScheduledRetryAsync(
+            env.ConnectionString,
+            id,
+            s_timeout,
+            TestContext.Current.CancellationToken);
+        Assert.True(timesSent is >= 2, $"Expected a retried row, but times_sent was {timesSent?.ToString() ?? "missing"}.");
     }
 
     [Fact]
@@ -537,7 +568,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await svc.StartAsync(default);
         }
 
-        return new TestEnvironment(provider, hostedServices);
+        return new TestEnvironment(provider, hostedServices, connectionString);
     }
 
     public sealed class TestEvent
@@ -683,10 +714,15 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
     /// Ensures hosted services are stopped before the provider is disposed,
     /// preventing ObjectDisposedException from background tasks.
     /// </summary>
-    private sealed class TestEnvironment(ServiceProvider provider, List<IHostedService> hostedServices)
+    private sealed class TestEnvironment(
+        ServiceProvider provider,
+        List<IHostedService> hostedServices,
+        string connectionString)
         : IAsyncDisposable
     {
         public ServiceProvider Provider => provider;
+
+        public string ConnectionString => connectionString;
 
         public async ValueTask DisposeAsync()
         {
