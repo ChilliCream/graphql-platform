@@ -13,15 +13,15 @@ response:
       "data": {
         "trendingMedia": [
           {
-            "id": "TWVkaWE6MQ==",
+            "id": "TWVkaWE6MzYwMDExMzk5Mg==",
             "views": 123
           },
           {
-            "id": "TWVkaWE6Mg==",
+            "id": "TWVkaWE6Mzg1ODYyNDc0NA==",
             "views": 123
           },
           {
-            "id": "TWVkaWE6Mw==",
+            "id": "TWVkaWE6MTQ5MDg3Nzcy",
             "views": 123
           }
         ]
@@ -86,15 +86,15 @@ sourceSchemas:
                 "data": {
                   "trendingMedia": [
                     {
-                      "id": "TWVkaWE6MQ==",
+                      "id": "TWVkaWE6MzYwMDExMzk5Mg==",
                       "views": 123
                     },
                     {
-                      "id": "TWVkaWE6Mg==",
+                      "id": "TWVkaWE6Mzg1ODYyNDc0NA==",
                       "views": 123
                     },
                     {
-                      "id": "TWVkaWE6Mw==",
+                      "id": "TWVkaWE6MTQ5MDg3Nzcy",
                       "views": 123
                     }
                   ]

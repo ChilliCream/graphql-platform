@@ -26,15 +26,15 @@ response:
     {
       "data": {
         "createReview": {
-          "id": "UmV2aWV3OjE=",
-          "body": "Review: UmV2aWV3OjE=",
+          "id": "UmV2aWV3Ojk4ODE0ODgzMw==",
+          "body": "Review: UmV2aWV3Ojk4ODE0ODgzMw==",
           "author": {
-            "id": "QXV0aG9yOjI=",
-            "name": "Author: QXV0aG9yOjI="
+            "id": "QXV0aG9yOjMwMDA4NjI0MA==",
+            "name": "Author: QXV0aG9yOjMwMDA4NjI0MA=="
           },
           "product": {
-            "id": "UHJvZHVjdDoz",
-            "name": "Product: UHJvZHVjdDoz"
+            "id": "UHJvZHVjdDo3Mjk5MzkyMDI=",
+            "name": "Product: UHJvZHVjdDo3Mjk5MzkyMDI="
           }
         }
       }
@@ -105,13 +105,13 @@ sourceSchemas:
               {
                 "data": {
                   "createReview": {
-                    "id": "UmV2aWV3OjE=",
-                    "body": "Review: UmV2aWV3OjE=",
+                    "id": "UmV2aWV3Ojk4ODE0ODgzMw==",
+                    "body": "Review: UmV2aWV3Ojk4ODE0ODgzMw==",
                     "author": {
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjMwMDA4NjI0MA=="
                     },
                     "product": {
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDo3Mjk5MzkyMDI="
                     }
                   }
                 }
@@ -155,7 +155,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_1_id": "UHJvZHVjdDoz"
+                  "__fusion_1_id": "UHJvZHVjdDo3Mjk5MzkyMDI="
                 }
             - document: |
                 query createReview_df7efcac_3($__fusion_2_id: ID!) {
@@ -168,7 +168,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_2_id": "QXV0aG9yOjI="
+                  "__fusion_2_id": "QXV0aG9yOjMwMDA4NjI0MA=="
                 }
         response:
           contentType: application/jsonl; charset=utf-8
@@ -178,7 +178,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoz"
+                    "name": "Product: UHJvZHVjdDo3Mjk5MzkyMDI="
                   }
                 }
               }
@@ -187,7 +187,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Author",
-                    "name": "Author: QXV0aG9yOjI="
+                    "name": "Author: QXV0aG9yOjMwMDA4NjI0MA=="
                   }
                 }
               }

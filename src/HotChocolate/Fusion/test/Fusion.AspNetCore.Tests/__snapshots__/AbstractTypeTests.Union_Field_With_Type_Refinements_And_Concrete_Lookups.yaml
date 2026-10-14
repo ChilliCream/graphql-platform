@@ -62,7 +62,7 @@ sourceSchemas:
                 "data": {
                   "search": {
                     "__typename": "User",
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjoyNzkwNzU0ODY2"
                   }
                 }
               }
@@ -97,7 +97,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "VXNlcjox"
+              "__fusion_2_id": "VXNlcjoyNzkwNzU0ODY2"
             }
         response:
           results:

@@ -62,18 +62,18 @@ response:
           {
             "asset": {
               "meterType": {
-                "type": "MeterType: TWV0ZXJUeXBlOjE="
+                "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
               },
               "category": {
                 "allowedMeterTypes": [
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjI="
+                    "type": "MeterType: TWV0ZXJUeXBlOjc2Nzc3MTA0"
                   },
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjM="
+                    "type": "MeterType: TWV0ZXJUeXBlOjMxMTU1Mjg3MjQ="
                   },
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                    "type": "MeterType: TWV0ZXJUeXBlOjI3NTgzNDgzMjQ="
                   }
                 ]
               }
@@ -82,18 +82,18 @@ response:
           {
             "asset": {
               "meterType": {
-                "type": "MeterType: TWV0ZXJUeXBlOjE="
+                "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
               },
               "category": {
                 "allowedMeterTypes": [
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjI="
+                    "type": "MeterType: TWV0ZXJUeXBlOjc2Nzc3MTA0"
                   },
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjM="
+                    "type": "MeterType: TWV0ZXJUeXBlOjMxMTU1Mjg3MjQ="
                   },
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                    "type": "MeterType: TWV0ZXJUeXBlOjI3NTgzNDgzMjQ="
                   }
                 ]
               }
@@ -102,18 +102,18 @@ response:
           {
             "asset": {
               "meterType": {
-                "type": "MeterType: TWV0ZXJUeXBlOjE="
+                "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
               },
               "category": {
                 "allowedMeterTypes": [
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjI="
+                    "type": "MeterType: TWV0ZXJUeXBlOjc2Nzc3MTA0"
                   },
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjM="
+                    "type": "MeterType: TWV0ZXJUeXBlOjMxMTU1Mjg3MjQ="
                   },
                   {
-                    "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                    "type": "MeterType: TWV0ZXJUeXBlOjI3NTgzNDgzMjQ="
                   }
                 ]
               }
@@ -262,13 +262,13 @@ sourceSchemas:
                   "categoryByDbId": {
                     "allowedMeterTypes": [
                       {
-                        "type": "MeterType: TWV0ZXJUeXBlOjI="
+                        "type": "MeterType: TWV0ZXJUeXBlOjc2Nzc3MTA0"
                       },
                       {
-                        "type": "MeterType: TWV0ZXJUeXBlOjM="
+                        "type": "MeterType: TWV0ZXJUeXBlOjMxMTU1Mjg3MjQ="
                       },
                       {
-                        "type": "MeterType: TWV0ZXJUeXBlOjQ="
+                        "type": "MeterType: TWV0ZXJUeXBlOjI3NTgzNDgzMjQ="
                       }
                     ]
                   }
@@ -278,7 +278,7 @@ sourceSchemas:
               {
                 "data": {
                   "meterTypeById": {
-                    "type": "MeterType: TWV0ZXJUeXBlOjE="
+                    "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
                   }
                 }
               }

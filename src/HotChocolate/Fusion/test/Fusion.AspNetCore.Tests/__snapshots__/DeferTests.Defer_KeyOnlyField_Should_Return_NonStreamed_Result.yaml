@@ -13,13 +13,13 @@ stableResponseStream: |
     "data": {
       "users": [
         {
-          "id": "VXNlcjox"
+          "id": "VXNlcjoyNjE2NDgyNzU="
         },
         {
-          "id": "VXNlcjoy"
+          "id": "VXNlcjoxNTU5MzY4MDMx"
         },
         {
-          "id": "VXNlcjoz"
+          "id": "VXNlcjozNDQ5MTc0MTI0"
         }
       ]
     }
@@ -54,13 +54,13 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
-                      "id": "VXNlcjox"
+                      "id": "VXNlcjoyNjE2NDgyNzU="
                     },
                     {
-                      "id": "VXNlcjoy"
+                      "id": "VXNlcjoxNTU5MzY4MDMx"
                     },
                     {
-                      "id": "VXNlcjoz"
+                      "id": "VXNlcjozNDQ5MTc0MTI0"
                     }
                   ]
                 }

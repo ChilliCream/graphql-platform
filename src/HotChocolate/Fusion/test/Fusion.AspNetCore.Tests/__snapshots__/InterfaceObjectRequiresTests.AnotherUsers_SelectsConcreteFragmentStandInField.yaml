@@ -19,20 +19,20 @@ response:
       "data": {
         "anotherUsers": [
           {
-            "id": "Tm9kZVdpdGhOYW1lOjE=",
-            "name": "User: Tm9kZVdpdGhOYW1lOjE=",
+            "id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg=",
             "age": 123,
             "score": 123
           },
           {
-            "id": "Tm9kZVdpdGhOYW1lOjI=",
-            "name": "User: Tm9kZVdpdGhOYW1lOjI=",
+            "id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA=",
             "age": 123,
             "score": 123
           },
           {
-            "id": "Tm9kZVdpdGhOYW1lOjM=",
-            "name": "User: Tm9kZVdpdGhOYW1lOjM=",
+            "id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk=",
             "age": 123,
             "score": 123
           }
@@ -79,13 +79,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjE="
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
               },
               {
-                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjI="
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
               },
               {
-                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjM="
+                "__fusion_1_id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
               }
             ]
         response:
@@ -96,9 +96,9 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "name": "User: Tm9kZVdpdGhOYW1lOjE=",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg=",
                     "age": 123,
-                    "id": "Tm9kZVdpdGhOYW1lOjE="
+                    "id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                   }
                 }
               }
@@ -107,9 +107,9 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "name": "User: Tm9kZVdpdGhOYW1lOjI=",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA=",
                     "age": 123,
-                    "id": "Tm9kZVdpdGhOYW1lOjI="
+                    "id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                   }
                 }
               }
@@ -118,9 +118,9 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "name": "User: Tm9kZVdpdGhOYW1lOjM=",
+                    "name": "User: Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk=",
                     "age": 123,
-                    "id": "Tm9kZVdpdGhOYW1lOjM="
+                    "id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                   }
                 }
               }
@@ -157,13 +157,13 @@ sourceSchemas:
                 "data": {
                   "anotherUsers": [
                     {
-                      "id": "Tm9kZVdpdGhOYW1lOjE="
+                      "id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                     },
                     {
-                      "id": "Tm9kZVdpdGhOYW1lOjI="
+                      "id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                     },
                     {
-                      "id": "Tm9kZVdpdGhOYW1lOjM="
+                      "id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                     }
                   ]
                 }
@@ -179,13 +179,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE="
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
               },
               {
-                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjI="
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
               },
               {
-                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjM="
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
               }
             ]
         response:

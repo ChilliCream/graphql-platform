@@ -19,7 +19,7 @@ response:
     {
       "data": {
         "productBySlug": {
-          "name": "Product: UHJvZHVjdDox",
+          "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg=",
           "review": {
             "rating": 123
           }
@@ -64,9 +64,9 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "name": "Product: UHJvZHVjdDox",
+                    "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg=",
                     "review": {
-                      "id": "UmV2aWV3OjI="
+                      "id": "UmV2aWV3OjE2MTgxNTI5MA=="
                     }
                   }
                 }
@@ -99,7 +99,7 @@ sourceSchemas:
           variables: |
             {
               "skip": true,
-              "__fusion_1_id": "UmV2aWV3OjI="
+              "__fusion_1_id": "UmV2aWV3OjE2MTgxNTI5MA=="
             }
         response:
           results:

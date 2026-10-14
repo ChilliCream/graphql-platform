@@ -82,7 +82,7 @@ stableResponseStream: |
                 "__typename": "VideoFeature",
                 "file": {
                   "clip": {
-                    "duration": "VideoClip: VmlkZW9DbGlwOjU="
+                    "duration": "VideoClip: VmlkZW9DbGlwOjI1NzM0NDI2NTY="
                   }
                 }
               }
@@ -108,7 +108,7 @@ stableResponseStream: |
                 "__typename": "VideoFeature",
                 "file": {
                   "clip": {
-                    "duration": "VideoClip: VmlkZW9DbGlwOjU="
+                    "duration": "VideoClip: VmlkZW9DbGlwOjI1NzM0NDI2NTY="
                   }
                 }
               }
@@ -268,7 +268,7 @@ sourceSchemas:
                           "__typename": "VideoFeature",
                           "file": {
                             "clip": {
-                              "duration": "VideoClip: VmlkZW9DbGlwOjU="
+                              "duration": "VideoClip: VmlkZW9DbGlwOjI1NzM0NDI2NTY="
                             }
                           }
                         }

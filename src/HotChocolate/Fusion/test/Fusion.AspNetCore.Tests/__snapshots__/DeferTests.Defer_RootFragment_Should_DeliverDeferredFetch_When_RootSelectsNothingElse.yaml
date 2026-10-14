@@ -29,16 +29,16 @@ stableResponseStream: |
         "data": {
           "users": [
             {
-              "id": "VXNlcjox",
-              "name": "User: VXNlcjox"
+              "id": "VXNlcjoyNjE2NDgyNzU=",
+              "name": "User: VXNlcjoyNjE2NDgyNzU="
             },
             {
-              "id": "VXNlcjoy",
-              "name": "User: VXNlcjoy"
+              "id": "VXNlcjoxNTU5MzY4MDMx",
+              "name": "User: VXNlcjoxNTU5MzY4MDMx"
             },
             {
-              "id": "VXNlcjoz",
-              "name": "User: VXNlcjoz"
+              "id": "VXNlcjozNDQ5MTc0MTI0",
+              "name": "User: VXNlcjozNDQ5MTc0MTI0"
             }
           ]
         }
@@ -53,16 +53,16 @@ stableResponseStream: |
       "data": {
         "users": [
           {
-            "id": "VXNlcjox",
-            "name": "User: VXNlcjox"
+            "id": "VXNlcjoyNjE2NDgyNzU=",
+            "name": "User: VXNlcjoyNjE2NDgyNzU="
           },
           {
-            "id": "VXNlcjoy",
-            "name": "User: VXNlcjoy"
+            "id": "VXNlcjoxNTU5MzY4MDMx",
+            "name": "User: VXNlcjoxNTU5MzY4MDMx"
           },
           {
-            "id": "VXNlcjoz",
-            "name": "User: VXNlcjoz"
+            "id": "VXNlcjozNDQ5MTc0MTI0",
+            "name": "User: VXNlcjozNDQ5MTc0MTI0"
           }
         ]
       }
@@ -100,16 +100,16 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
-                      "id": "VXNlcjox",
-                      "name": "User: VXNlcjox"
+                      "id": "VXNlcjoyNjE2NDgyNzU=",
+                      "name": "User: VXNlcjoyNjE2NDgyNzU="
                     },
                     {
-                      "id": "VXNlcjoy",
-                      "name": "User: VXNlcjoy"
+                      "id": "VXNlcjoxNTU5MzY4MDMx",
+                      "name": "User: VXNlcjoxNTU5MzY4MDMx"
                     },
                     {
-                      "id": "VXNlcjoz",
-                      "name": "User: VXNlcjoz"
+                      "id": "VXNlcjozNDQ5MTc0MTI0",
+                      "name": "User: VXNlcjozNDQ5MTc0MTI0"
                     }
                   ]
                 }
