@@ -153,7 +153,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0" />
     <PackageVersion Include="System.IO.Hashing" Version="10.0.0" />
     <PackageVersion Include="System.IO.Packaging" Version="10.0.0" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.18" />
@@ -184,7 +184,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.3" />
     <PackageVersion Include="System.IO.Hashing" Version="9.0.6" />
     <PackageVersion Include="System.IO.Packaging" Version="9.0.6" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="9.0.8" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.29" />
@@ -215,7 +215,7 @@
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="System.IO.Packaging" Version="8.0.1" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.2" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageVersion Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
