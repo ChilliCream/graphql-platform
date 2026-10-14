@@ -19,19 +19,19 @@ response:
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo0"
+              "title": "Discussion: RGlzY3Vzc2lvbjozMzcxMjEwMzU1"
             }
           },
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo1"
+              "title": "Discussion: RGlzY3Vzc2lvbjoyNjYwMDg1Mzg1"
             }
           },
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo2"
+              "title": "Discussion: RGlzY3Vzc2lvbjoyMzA2MzgxODg4"
             }
           }
         ]
@@ -91,21 +91,21 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo0"
+                        "title": "Discussion: RGlzY3Vzc2lvbjozMzcxMjEwMzU1"
                       }
                     },
                     {
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo1"
+                        "title": "Discussion: RGlzY3Vzc2lvbjoyNjYwMDg1Mzg1"
                       }
                     },
                     {
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo2"
+                        "title": "Discussion: RGlzY3Vzc2lvbjoyMzA2MzgxODg4"
                       }
                     }
                   ]

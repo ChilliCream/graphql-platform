@@ -20,17 +20,17 @@ response:
         "postEdges": [
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86NA=="
+              "subgraph2": "Photo: UGhvdG86NDAzNTM5NDc5NA=="
             }
           },
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86NQ=="
+              "subgraph2": "Photo: UGhvdG86MTgzODkxNDU0OA=="
             }
           },
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86Ng=="
+              "subgraph2": "Photo: UGhvdG86OTg1NTI0NTgy"
             }
           }
         ]
@@ -87,19 +87,19 @@ sourceSchemas:
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86NA=="
+                        "id": "UGhvdG86NDAzNTM5NDc5NA=="
                       }
                     },
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86NQ=="
+                        "id": "UGhvdG86MTgzODkxNDU0OA=="
                       }
                     },
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86Ng=="
+                        "id": "UGhvdG86OTg1NTI0NTgy"
                       }
                     }
                   ]
@@ -131,13 +131,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UGhvdG86NA=="
+                "__fusion_1_id": "UGhvdG86NDAzNTM5NDc5NA=="
               },
               {
-                "__fusion_1_id": "UGhvdG86NQ=="
+                "__fusion_1_id": "UGhvdG86MTgzODkxNDU0OA=="
               },
               {
-                "__fusion_1_id": "UGhvdG86Ng=="
+                "__fusion_1_id": "UGhvdG86OTg1NTI0NTgy"
               }
             ]
         response:
@@ -147,7 +147,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86NA=="
+                    "subgraph2": "Photo: UGhvdG86NDAzNTM5NDc5NA=="
                   }
                 }
               }
@@ -155,7 +155,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86NQ=="
+                    "subgraph2": "Photo: UGhvdG86MTgzODkxNDU0OA=="
                   }
                 }
               }
@@ -163,7 +163,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Ng=="
+                    "subgraph2": "Photo: UGhvdG86OTg1NTI0NTgy"
                   }
                 }
               }

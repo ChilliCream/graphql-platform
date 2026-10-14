@@ -175,9 +175,9 @@ public class InterfaceObjectRequiresTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Collection(
                     response.Data.GetProperty("anotherUsers").EnumerateArray(),
-                    user => AssertUserWithScore(user, "Tm9kZVdpdGhOYW1lOjE="),
-                    user => AssertUserWithScore(user, "Tm9kZVdpdGhOYW1lOjI="),
-                    user => AssertUserWithScore(user, "Tm9kZVdpdGhOYW1lOjM="));
+                    user => AssertUserWithScore(user, "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="),
+                    user => AssertUserWithScore(user, "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="),
+                    user => AssertUserWithScore(user, "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="));
             });
     }
 

@@ -11,7 +11,7 @@ response:
     {
       "data": {
         "expensive": {
-          "value": "Expensive: RXhwZW5zaXZlOjE="
+          "value": "Expensive: RXhwZW5zaXZlOjg1NDE1NTE3Mw=="
         }
       }
     }
@@ -52,7 +52,7 @@ sourceSchemas:
               {
                 "data": {
                   "expensive": {
-                    "value": "Expensive: RXhwZW5zaXZlOjE="
+                    "value": "Expensive: RXhwZW5zaXZlOjg1NDE1NTE3Mw=="
                   }
                 }
               }

@@ -14,8 +14,8 @@ response:
     {
       "data": {
         "someField": {
-          "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox",
-          "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox"
+          "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz",
+          "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz"
         }
       }
     }
@@ -58,8 +58,8 @@ sourceSchemas:
                 "data": {
                   "someField": {
                     "__typename": "ConcreteTypeA",
-                    "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox",
-                    "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox"
+                    "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz",
+                    "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz"
                   }
                 }
               }

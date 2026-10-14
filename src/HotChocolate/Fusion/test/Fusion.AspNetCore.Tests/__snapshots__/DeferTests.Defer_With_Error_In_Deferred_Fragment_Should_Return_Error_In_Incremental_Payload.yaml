@@ -16,7 +16,7 @@ stableResponseStream: |
     "initial": {
       "data": {
         "user": {
-          "name": "User: VXNlcjox"
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     },
@@ -46,7 +46,7 @@ stableResponseStream: |
     "final": {
       "data": {
         "user": {
-          "name": "User: VXNlcjox"
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     }
@@ -82,8 +82,8 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "name": "User: VXNlcjox",
-                    "id": "VXNlcjox"
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -112,7 +112,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:

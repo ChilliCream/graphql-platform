@@ -22,17 +22,17 @@ response:
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo0"
+              "subgraph2": "Product: UHJvZHVjdDoxNTQ5MzgwMzU2"
             }
           },
           {
             "author": {
-              "subgraph2": "Author: QXV0aG9yOjU="
+              "subgraph2": "Author: QXV0aG9yOjQwMjk5OTI1NTU="
             }
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo2"
+              "subgraph2": "Product: UHJvZHVjdDo0MDM1NDE3Mzc3"
             }
           }
         ]
@@ -96,19 +96,19 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDoxNTQ5MzgwMzU2"
                       }
                     },
                     {
                       "__typename": "Discussion",
                       "author": {
-                        "id": "QXV0aG9yOjU="
+                        "id": "QXV0aG9yOjQwMjk5OTI1NTU="
                       }
                     },
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo0MDM1NDE3Mzc3"
                       }
                     }
                   ]
@@ -147,7 +147,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_1_id": "QXV0aG9yOjU="
+                  "__fusion_1_id": "QXV0aG9yOjQwMjk5OTI1NTU="
                 }
             - document: |
                 query testQuery_5f4670e8_3($__fusion_2_id: ID!) {
@@ -158,10 +158,10 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_2_id": "UHJvZHVjdDo0"
+                    "__fusion_2_id": "UHJvZHVjdDoxNTQ5MzgwMzU2"
                   },
                   {
-                    "__fusion_2_id": "UHJvZHVjdDo2"
+                    "__fusion_2_id": "UHJvZHVjdDo0MDM1NDE3Mzc3"
                   }
                 ]
         response:
@@ -171,7 +171,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo0"
+                    "subgraph2": "Product: UHJvZHVjdDoxNTQ5MzgwMzU2"
                   }
                 }
               }
@@ -179,7 +179,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo2"
+                    "subgraph2": "Product: UHJvZHVjdDo0MDM1NDE3Mzc3"
                   }
                 }
               }
@@ -187,7 +187,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "subgraph2": "Author: QXV0aG9yOjU="
+                    "subgraph2": "Author: QXV0aG9yOjQwMjk5OTI1NTU="
                   }
                 }
               }

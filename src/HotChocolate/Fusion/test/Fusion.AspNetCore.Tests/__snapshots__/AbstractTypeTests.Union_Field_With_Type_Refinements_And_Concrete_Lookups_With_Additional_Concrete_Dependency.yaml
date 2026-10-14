@@ -18,7 +18,7 @@ response:
       "data": {
         "search": {
           "reputation": 123,
-          "profile": "User: VXNlcjox"
+          "profile": "User: VXNlcjoyNzkwNzU0ODY2"
         }
       }
     }
@@ -64,7 +64,7 @@ sourceSchemas:
                 "data": {
                   "search": {
                     "__typename": "User",
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjoyNzkwNzU0ODY2"
                   }
                 }
               }
@@ -99,7 +99,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "VXNlcjox"
+              "__fusion_2_id": "VXNlcjoyNzkwNzU0ODY2"
             }
         response:
           results:
@@ -136,7 +136,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_3_id": "VXNlcjox"
+              "__fusion_3_id": "VXNlcjoyNzkwNzU0ODY2"
             }
         response:
           results:
@@ -144,7 +144,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "profile": "User: VXNlcjox"
+                    "profile": "User: VXNlcjoyNzkwNzU0ODY2"
                   }
                 }
               }

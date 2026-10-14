@@ -35,14 +35,14 @@ response:
           {
             "asset": {
               "meterType": {
-                "type": "MeterType: TWV0ZXJUeXBlOjE="
+                "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
               }
             }
           },
           {
             "asset": {
               "meterType": {
-                "type": "MeterType: TWV0ZXJUeXBlOjE="
+                "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
               }
             }
           },
@@ -173,7 +173,7 @@ sourceSchemas:
               {
                 "data": {
                   "meterTypeById": {
-                    "type": "MeterType: TWV0ZXJUeXBlOjE="
+                    "type": "MeterType: TWV0ZXJUeXBlOjExMjIxNTUwMTc="
                   }
                 }
               }
