@@ -178,6 +178,39 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             """);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoSorting_When_VariableIsOmitted()
+    {
+        // arrange
+        var tester = await CreateSchema<Foo, FooSortType>(s_fooEntities);
+        const string query =
+            "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "root": [
+                  {
+                    "bar": true
+                  },
+                  {
+                    "bar": false
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     private static readonly Item[] s_items =
     [
         new() { Name = "a" },

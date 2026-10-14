@@ -160,7 +160,7 @@ descriptor
 
 # Optional Properties
 
-Use `Optional<T>` to distinguish between a field that was not provided and a field explicitly set to `null`. This is important for partial updates where you need to know whether the client intended to clear a value.
+Use `Optional<T>` to distinguish between a field that was not provided and a field explicitly set to `null`. This is important for partial updates where you need to know whether the client intended to clear a value. A field set to a variable that the request does not provide counts as not provided.
 
 ```csharp
 public class UpdateBookInput
