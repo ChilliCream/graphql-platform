@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
 
@@ -30,6 +32,10 @@ internal sealed class RabbitMQAcknowledgementMiddleware
             {
                 await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
             }
+            else
+            {
+                LogSettlementSkipped(context, "ack", eventArgs.RoutingKey, eventArgs.DeliveryTag);
+            }
         }
         catch
         {
@@ -37,9 +43,23 @@ internal sealed class RabbitMQAcknowledgementMiddleware
             {
                 await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
             }
+            else
+            {
+                LogSettlementSkipped(context, "nack", eventArgs.RoutingKey, eventArgs.DeliveryTag);
+            }
 
             throw;
         }
+    }
+
+    private static void LogSettlementSkipped(
+        IReceiveContext context,
+        string settlement,
+        string routingKey,
+        ulong deliveryTag)
+    {
+        var logger = context.Services.GetRequiredService<ILogger<RabbitMQAcknowledgementMiddleware>>();
+        logger.SettlementSkippedChannelClosed(settlement, deliveryTag, routingKey);
     }
 
     private static readonly RabbitMQAcknowledgementMiddleware s_instance = new();
