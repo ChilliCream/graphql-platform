@@ -3559,6 +3559,87 @@ public class AutomaticMockingTests
         ]);
     }
 
+    [Fact]
+    public async Task Object_Ids_Use_Variable_Values_Not_Variable_Names()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              productBySku(sku: String!): Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """;
+        const string request =
+            """
+            query($sku: String!) {
+              productBySku(sku: $sku) {
+                id
+              }
+            }
+            """;
+        const string renamedRequest =
+            """
+            query($other: String!) {
+              productBySku(sku: $other) {
+                id
+              }
+            }
+            """;
+
+        // act
+        var batch = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(request)
+                .SetVariableValues("""[{ "sku": "a" }, { "sku": "b" }]""")
+                .Build(),
+            schema);
+        var renamed = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(renamedRequest)
+                .SetVariableValues("""{ "other": "a" }""")
+                .Build(),
+            schema);
+
+        // assert
+        IExecutionResult[] results = [.. batch.ExpectOperationResultBatch().Results, renamed];
+        results.MatchInlineSnapshots(
+        [
+            """
+            {
+              "variableIndex": 0,
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDoxMzQxNjYzMzY5"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "variableIndex": 1,
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDozMDQ5ODg0MzI5"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDoxMzQxNjYzMzY5"
+                }
+              }
+            }
+            """
+        ]);
+    }
+
     #endregion
 
     private static Task<IExecutionResult> ExecuteRequestAgainstSchemaAsync(
