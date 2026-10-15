@@ -1,4 +1,5 @@
 using System.IO.Pipelines;
+using System.Text;
 using HotChocolate.Transport.Formatters;
 
 namespace HotChocolate.AspNetCore.Serialization;
@@ -8,7 +9,7 @@ public sealed class ChunkedPipeBufferWriterTests
     private const int ChunkSize = 64 * 1024;
 
     [Fact]
-    public async Task GetSpan_Should_WriteToPipe_When_SizeHintReachesDirectWriteThreshold()
+    public async Task GetSpan_Should_BypassBuffer_When_SizeHintReachesDirectWriteThreshold()
     {
         // arrange
         await using var output = new MemoryStream();
@@ -33,7 +34,7 @@ public sealed class ChunkedPipeBufferWriterTests
     }
 
     [Fact]
-    public async Task GetSpan_Should_CopyChunkToPipe_When_SizeHintExceedsRemainingSpace()
+    public async Task GetSpan_Should_CopyBufferToPipe_When_SizeHintExceedsRemainingSpace()
     {
         // arrange
         await using var output = new MemoryStream();
@@ -81,17 +82,10 @@ public sealed class ChunkedPipeBufferWriterTests
         await pipe.CompleteAsync();
 
         // assert
-        Snapshot.Create()
-            .Add(
-                new
-                {
-                    HasBufferBeforeWrite = hasBufferBeforeWrite,
-                    HasBufferAfterWrite = hasBufferAfterWrite,
-                    HasBufferAfterFlush = writer.HasBuffer,
-                    Output = System.Text.Encoding.UTF8.GetString(output.ToArray())
-                },
-                "Writer State")
-            .MatchMarkdownSnapshot();
+        Assert.False(hasBufferBeforeWrite);
+        Assert.True(hasBufferAfterWrite);
+        Assert.False(writer.HasBuffer);
+        Assert.Equal("aaaaa", Encoding.UTF8.GetString(output.ToArray()));
     }
 
     [Fact]

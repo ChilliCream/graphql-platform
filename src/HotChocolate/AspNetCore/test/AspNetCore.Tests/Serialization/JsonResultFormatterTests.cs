@@ -36,10 +36,12 @@ public sealed class JsonResultFormatterTests
         await writer.CompleteAsync();
 
         // assert
-        Snapshot.Create()
-            .Add(Encoding.UTF8.GetString(output.ToArray()), "Response", MarkdownLanguages.Json)
-            .Add(new { writer.SpanCount, writer.AdvanceCount, writer.FlushCount }, "Pipe Calls")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(
+            """{"data":{"product":{"name":"Abc","price":12.5}}}""",
+            Encoding.UTF8.GetString(output.ToArray()));
+        Assert.Equal(1, writer.SpanCount);
+        Assert.Equal(1, writer.AdvanceCount);
+        Assert.Equal(1, writer.FlushCount);
     }
 
     [Fact]
@@ -121,10 +123,9 @@ public sealed class JsonResultFormatterTests
         await writer.CompleteAsync();
 
         // assert
-        Snapshot.Create()
-            .Add(Encoding.UTF8.GetString(output.ToArray()), "Response", MarkdownLanguages.Json)
-            .Add(new { writer.SpanCount, writer.FlushCount }, "Pipe Calls")
-            .MatchMarkdownSnapshot();
+        Assert.Equal("""{"data":{"a":1}}{"data":{"b":2}}""", Encoding.UTF8.GetString(output.ToArray()));
+        Assert.Equal(1, writer.SpanCount);
+        Assert.Equal(1, writer.FlushCount);
     }
 
     [Fact]
@@ -150,10 +151,9 @@ public sealed class JsonResultFormatterTests
         await writer.CompleteAsync();
 
         // assert
-        Snapshot.Create()
-            .Add(Encoding.UTF8.GetString(output.ToArray()), "Response", MarkdownLanguages.Json)
-            .Add(new { writer.SpanCount, writer.FlushCount }, "Pipe Calls")
-            .MatchMarkdownSnapshot();
+        Assert.Equal("""{"data":{"a":1}}{"data":{"b":2}}""", Encoding.UTF8.GetString(output.ToArray()));
+        Assert.Equal(2, writer.SpanCount);
+        Assert.Equal(2, writer.FlushCount);
     }
 
     private static async IAsyncEnumerable<OperationResult> CreateResults(IReadOnlyList<OperationResult> results)
