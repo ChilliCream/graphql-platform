@@ -122,6 +122,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                         catch (Exception ex)
                         {
                             scope?.AddError(ex);
+                            writer.Discard();
                             throw;
                         }
                         finally
@@ -237,7 +238,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
         SemaphoreSlim semaphore,
-        PipeWriter writer)
+        ChunkedPipeBufferWriter writer)
     {
         private OperationResultFormatterContext? _formatContext;
 
@@ -266,6 +267,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                     catch (Exception ex)
                     {
                         scope?.AddError(ex);
+                        writer.Discard();
                         throw;
                     }
                     finally

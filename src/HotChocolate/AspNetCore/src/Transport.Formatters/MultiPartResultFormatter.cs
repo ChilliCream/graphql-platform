@@ -150,9 +150,9 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                     break;
 
                 case IResponseStream responseStream:
-                    await FormatResponseStreamAsync(
+                    await WriteResponseStreamAsync(
                         responseStream,
-                        pipe,
+                        writer,
                         useIncrementalRfc1,
                         ct).ConfigureAwait(false);
                     break;
@@ -167,6 +167,15 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         CancellationToken ct = default)
     {
         using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        await WriteResponseStreamAsync(responseStream, writer, useIncrementalRfc1, ct).ConfigureAwait(false);
+    }
+
+    private async ValueTask WriteResponseStreamAsync(
+        IResponseStream responseStream,
+        ChunkedPipeBufferWriter writer,
+        bool useIncrementalRfc1,
+        CancellationToken ct)
+    {
         // first, we create the iterator.
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
         OperationResultFormatterContext? formatContext = null;

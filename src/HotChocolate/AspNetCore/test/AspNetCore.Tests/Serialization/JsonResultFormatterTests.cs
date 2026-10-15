@@ -1,10 +1,9 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Execution;
-using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
+using static HotChocolate.AspNetCore.Serialization.ResultTestHelper;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
@@ -154,25 +153,5 @@ public sealed class JsonResultFormatterTests
         Assert.Equal("""{"data":{"a":1}}{"data":{"b":2}}""", Encoding.UTF8.GetString(output.ToArray()));
         Assert.Equal(2, writer.SpanCount);
         Assert.Equal(2, writer.FlushCount);
-    }
-
-    private static async IAsyncEnumerable<OperationResult> CreateResults(IReadOnlyList<OperationResult> results)
-    {
-        foreach (var result in results)
-        {
-            yield return result;
-            await Task.Yield();
-        }
-    }
-
-    private static OperationResultData CreateData(object value)
-        => new(value, isValueNull: false, new DictionaryJsonFormatter(value), memoryHolder: null);
-
-    private sealed class DictionaryJsonFormatter(object value) : IRawJsonFormatter
-    {
-        private static readonly JsonSerializerOptions s_options = new(JsonSerializerDefaults.Web);
-
-        public void WriteDataTo(JsonWriter jsonWriter)
-            => JsonValueFormatter.WriteValue(jsonWriter, value, s_options);
     }
 }

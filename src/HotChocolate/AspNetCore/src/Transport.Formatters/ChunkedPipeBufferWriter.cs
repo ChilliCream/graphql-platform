@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 
 namespace HotChocolate.Transport.Formatters;
@@ -57,6 +58,11 @@ internal sealed class ChunkedPipeBufferWriter : PipeWriter, IDisposable
             return;
         }
 
+        if ((uint)bytes > (uint)(_buffer.Length - _position))
+        {
+            ThrowAdvanceOutOfRange(bytes);
+        }
+
         _position += bytes;
     }
 
@@ -101,6 +107,16 @@ internal sealed class ChunkedPipeBufferWriter : PipeWriter, IDisposable
 
         ReleaseBuffer();
         _pipe.Complete(exception);
+    }
+
+    /// <summary>
+    /// Discards the buffered bytes that have not been copied to the pipe yet.
+    /// Bytes that were already copied to the pipe are kept.
+    /// </summary>
+    public void Discard()
+    {
+        _writeToPipe = false;
+        ReleaseBuffer();
     }
 
     private void CopyToPipe()
@@ -152,6 +168,17 @@ internal sealed class ChunkedPipeBufferWriter : PipeWriter, IDisposable
         }
 
         return true;
+    }
+
+    [DoesNotReturn]
+    private static void ThrowAdvanceOutOfRange(int bytes)
+    {
+        if (bytes < 0)
+        {
+            throw ThrowHelper.ChunkedPipeBufferWriter_AdvanceNegative(bytes);
+        }
+
+        throw ThrowHelper.ChunkedPipeBufferWriter_AdvancePastBuffer();
     }
 
     /// <summary>

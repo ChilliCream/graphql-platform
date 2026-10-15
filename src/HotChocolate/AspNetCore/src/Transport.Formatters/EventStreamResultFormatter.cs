@@ -127,6 +127,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
                         catch (Exception ex)
                         {
                             scope?.AddError(ex);
+                            writer.Discard();
                         }
                         finally
                         {
@@ -283,7 +284,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
         SemaphoreSlim semaphore,
-        PipeWriter writer)
+        ChunkedPipeBufferWriter writer)
     {
         private OperationResultFormatterContext? _formatContext;
 
@@ -312,6 +313,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
                     catch (Exception ex)
                     {
                         scope?.AddError(ex);
+                        writer.Discard();
                         throw;
                     }
                     finally
