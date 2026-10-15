@@ -168,6 +168,11 @@ export const NAV_ITEMS: NavItem[] = [
         title: "Additional Resources",
         links: [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          {
+            href: "/benchmarks/graphql-federation",
+            label: "Federation Benchmarks",
+            icon: WavePulseIcon,
+          },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },

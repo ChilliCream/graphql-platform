@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "example": true,
+  "run": {
+    "id": 38728289575,
+    "number": 399,
+    "startedAt": "2026-10-15T11:34:22Z",
+    "sourceCommit": "b7cc98e4f4152d5dd044593e329e5f50fc74fbaf",
+    "reportCommit": "5be2f9523440c79c885b442129d73b58717cac57",
+    "status": "in-progress"
+  },
+  "hardware": {
+    "host": "bench-001",
+    "cpu": "AMD Ryzen 7 5700G with Radeon Graphics",
+    "logicalCpus": 16,
+    "memoryGb": 122,
+    "os": "Linux 6.8.0-147-generic"
+  },
+  "subgraphs": {
+    "implementation": "Hot Chocolate",
+    "version": "16.6.8"
+  },
+  "scenarios": [
+    {
+      "id": "constant-latency",
+      "status": "complete",
+      "durationSeconds": 120,
+      "virtualUsers": 50,
+      "subgraphDelayMs": 4,
+      "warmupRuns": 1,
+      "measuredRuns": 1,
+      "results": [
+        {
+          "gateway": "fusion-nightly-net11",
+          "version": "16.7.0-p.27",
+          "status": "ok",
+          "medianRps": 1945,
+          "bestRps": 1945,
+          "worstRps": 1945,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 416664,
+            "artifactId": 11974154275
+          }
+        },
+        {
+          "gateway": "fusion-nightly",
+          "version": "16.7.0-p.27",
+          "status": "ok",
+          "medianRps": 1941,
+          "bestRps": 1941,
+          "worstRps": 1941,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 392924,
+            "artifactId": 11973608744
+          }
+        },
+        {
+          "gateway": "fusion",
+          "version": "16.6.8",
+          "status": "ok",
+          "medianRps": 1940,
+          "bestRps": 1940,
+          "worstRps": 1940,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 375064,
+            "artifactId": 11969913443
+          }
+        },
+        {
+          "gateway": "hive-router",
+          "version": "v0.3.5",
+          "status": "ok",
+          "medianRps": 1931,
+          "bestRps": 1931,
+          "worstRps": 1931,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 133692,
+            "artifactId": 11969212474
+          }
+        },
+        {
+          "gateway": "fusion-nightly-fed",
+          "version": "16.7.0-p.27",
+          "status": "ok",
+          "medianRps": 1872,
+          "bestRps": 1872,
+          "worstRps": 1872,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 376476,
+            "artifactId": 11970928487
+          }
+        },
+        {
+          "gateway": "cosmo",
+          "version": "0.359.0",
+          "status": "ok",
+          "medianRps": 1376,
+          "bestRps": 1376,
+          "worstRps": 1376,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 154920,
+            "artifactId": 11971425328
+          }
+        },
+        {
+          "gateway": "caliban",
+          "version": "3.2.0",
+          "status": "ok",
+          "medianRps": 1374,
+          "bestRps": 1374,
+          "worstRps": 1374,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 4419996,
+            "artifactId": 11971900521
+          }
+        },
+        {
+          "gateway": "grafbase",
+          "version": "0.53.5",
+          "status": "ok",
+          "medianRps": 1337,
+          "bestRps": 1337,
+          "worstRps": 1337,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 104284,
+            "artifactId": 11970737623
+          }
+        },
+        {
+          "gateway": "feddi",
+          "version": "e91d605ed222",
+          "status": "ok",
+          "medianRps": 1165,
+          "bestRps": 1165,
+          "worstRps": 1165,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 1166936,
+            "artifactId": 11972361520
+          }
+        },
+        {
+          "gateway": "hive-gateway-router-runtime",
+          "version": "2.15.2",
+          "status": "ok",
+          "medianRps": 513,
+          "bestRps": 513,
+          "worstRps": 513,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 2810164,
+            "artifactId": 11975945467
+          }
+        },
+        {
+          "gateway": "apollo-router",
+          "version": "v2.18.0",
+          "status": "ok",
+          "medianRps": 453,
+          "bestRps": 453,
+          "worstRps": 453,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 190568,
+            "artifactId": 11973512614
+          }
+        },
+        {
+          "gateway": "apollo-router-v3",
+          "version": "v3.0.0-preview.0",
+          "status": "ok",
+          "medianRps": 415,
+          "bestRps": 415,
+          "worstRps": 415,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 209416,
+            "artifactId": 11971371581
+          }
+        },
+        {
+          "gateway": "hive-gateway",
+          "version": "2.15.2",
+          "status": "ok",
+          "medianRps": 268,
+          "bestRps": 268,
+          "worstRps": 268,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 3691612,
+            "artifactId": 11974116036
+          }
+        },
+        {
+          "gateway": "apollo-gateway",
+          "version": "2.14.4",
+          "status": "ok",
+          "medianRps": 266,
+          "bestRps": 266,
+          "worstRps": 266,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 2183820,
+            "artifactId": 11969669647
+          }
+        }
+      ]
+    },
+    {
+      "id": "burst",
+      "status": "pending",
+      "durationSeconds": 60,
+      "virtualUsers": 500,
+      "subgraphDelayMs": 0,
+      "warmupRuns": 1,
+      "measuredRuns": 1,
+      "results": []
+    },
+    {
+      "id": "constant",
+      "status": "complete",
+      "durationSeconds": 120,
+      "virtualUsers": 50,
+      "subgraphDelayMs": 0,
+      "warmupRuns": 1,
+      "measuredRuns": 1,
+      "results": [
+        {
+          "gateway": "hive-router",
+          "version": "v0.3.5",
+          "status": "ok",
+          "medianRps": 2740,
+          "bestRps": 2740,
+          "worstRps": 2740,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 133912,
+            "artifactId": 11978424495
+          }
+        },
+        {
+          "gateway": "fusion-nightly-net11",
+          "version": "16.7.0-p.27",
+          "status": "ok",
+          "medianRps": 2643,
+          "bestRps": 2643,
+          "worstRps": 2643,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 400744,
+            "artifactId": 11981062431
+          }
+        },
+        {
+          "gateway": "fusion-nightly",
+          "version": "16.7.0-p.27",
+          "status": "ok",
+          "medianRps": 2615,
+          "bestRps": 2615,
+          "worstRps": 2615,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 382900,
+            "artifactId": 11981720166
+          }
+        },
+        {
+          "gateway": "fusion",
+          "version": "16.6.8",
+          "status": "ok",
+          "medianRps": 2575,
+          "bestRps": 2575,
+          "worstRps": 2575,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 375768,
+            "artifactId": 11980245467
+          }
+        },
+        {
+          "gateway": "fusion-nightly-fed",
+          "version": "16.7.0-p.27",
+          "status": "ok",
+          "medianRps": 2337,
+          "bestRps": 2337,
+          "worstRps": 2337,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 378000,
+            "artifactId": 11976349697
+          }
+        },
+        {
+          "gateway": "grafbase",
+          "version": "0.53.5",
+          "status": "ok",
+          "medianRps": 1727,
+          "bestRps": 1727,
+          "worstRps": 1727,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 122992,
+            "artifactId": 11978131497
+          }
+        },
+        {
+          "gateway": "cosmo",
+          "version": "0.359.0",
+          "status": "ok",
+          "medianRps": 1502,
+          "bestRps": 1502,
+          "worstRps": 1502,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 169420,
+            "artifactId": 11976935113
+          }
+        },
+        {
+          "gateway": "caliban",
+          "version": "3.2.0",
+          "status": "ok",
+          "medianRps": 1438,
+          "bestRps": 1438,
+          "worstRps": 1438,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 4122468,
+            "artifactId": 11978360048
+          }
+        },
+        {
+          "gateway": "feddi",
+          "version": "e91d605ed222",
+          "status": "ok",
+          "medianRps": 1157,
+          "bestRps": 1157,
+          "worstRps": 1157,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 1149696,
+            "artifactId": 11979981741
+          }
+        },
+        {
+          "gateway": "hive-gateway-router-runtime",
+          "version": "2.15.2",
+          "status": "ok",
+          "medianRps": 527,
+          "bestRps": 527,
+          "worstRps": 527,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 2815520,
+            "artifactId": 11981722503
+          }
+        },
+        {
+          "gateway": "apollo-router",
+          "version": "v2.18.0",
+          "status": "ok",
+          "medianRps": 456,
+          "bestRps": 456,
+          "worstRps": 456,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 184648,
+            "artifactId": 11976063631
+          }
+        },
+        {
+          "gateway": "apollo-router-v3",
+          "version": "v3.0.0-preview.0",
+          "status": "ok",
+          "medianRps": 430,
+          "bestRps": 430,
+          "worstRps": 430,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 206888,
+            "artifactId": 11975421744
+          }
+        },
+        {
+          "gateway": "apollo-gateway",
+          "version": "2.14.4",
+          "status": "ok",
+          "medianRps": 279,
+          "bestRps": 279,
+          "worstRps": 279,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 2203040,
+            "artifactId": 11979449094
+          }
+        },
+        {
+          "gateway": "hive-gateway",
+          "version": "2.15.2",
+          "status": "ok",
+          "medianRps": 276,
+          "bestRps": 276,
+          "worstRps": 276,
+          "cvPercent": 0,
+          "memory": {
+            "peakRssKiB": 3631544,
+            "artifactId": 11976381758
+          }
+        }
+      ]
+    }
+  ]
+}
