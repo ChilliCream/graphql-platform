@@ -34,6 +34,163 @@ public sealed class FetchResultStoreTests : FusionTestBase
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(17)]
+    public void CreateVariableValueSets_Should_KeepDenseResultsReadable_When_KeyStorageGrowsAndIsReused(int count)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query { foos: [Foo] }
+            type Foo { id: ID }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"}]}}""",
+            resultArena,
+            sourceArena);
+        var keys = Enumerable.Range(0, count).Select(i => $"key{i}_{new string('x', 300)}_\"\\\nΩ").ToArray();
+        var requirements = keys.Select(key => Requirement(schema, key, "id", new NamedTypeNode("ID"))).ToArray();
+        var path = SelectionPath.Root.AppendField("foos");
+
+        // act
+        var result = store.CreateVariableValueSets(path, [], requirements);
+        var replacement = store.CreateVariableValueSets(
+            path, [], [requirements[0] with { Key = "replacement" }]);
+        var actual = result.Select(entry => Normalize(entry.Values)).ToArray();
+        var expected = new[] { "1", "2" }
+            .Select(id => JsonSerializer.Serialize(keys.ToDictionary(key => key, _ => id)))
+            .ToArray();
+
+        // assert
+        Assert.Equal(expected, actual);
+        replacement.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            ["""{"replacement":"1"}""", """{"replacement":"2"}"""]);
+    }
+
+    [Theory]
+    [InlineData(1, false)]
+    [InlineData(2, false)]
+    [InlineData(3, false)]
+    [InlineData(4, false)]
+    [InlineData(1, true)]
+    [InlineData(2, true)]
+    [InlineData(3, true)]
+    [InlineData(4, true)]
+    public void CreateVariableValueSets_Should_PreserveOrderingAndDeduplication_When_RequirementsUseBatchKeys(
+        int requirementCount,
+        bool forwarded)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query { foos: [Foo] }
+            type Foo { id: ID name: String sku: String weight: Int }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name sku weight } }",
+            """
+            {"data":{"foos":[
+              {"id":"1","name":"a","sku":null,"weight":10},
+              {"weight":10,"sku":null,"name":"a","id":"1"},
+              {"id":null,"name":"skip","sku":"skip","weight":0},
+              {"weight":20,"sku":"b","name":"b","id":"2"}]}}
+            """,
+            resultArena,
+            sourceArena);
+        OperationRequirement[] requirements =
+        [
+            Requirement(schema, "idKey", "id", new NonNullTypeNode(new NamedTypeNode("ID"))),
+            Requirement(schema, "nameKey", "name", new NamedTypeNode("String")),
+            Requirement(schema, "skuKey", "sku", new NamedTypeNode("String")),
+            Requirement(schema, "weightKey", "weight", new NamedTypeNode("Int"))
+        ];
+        var path = SelectionPath.Root.AppendField("foos");
+        string[] firstFields = ["\"idKey\":\"1\"", "\"nameKey\":\"a\"", "\"skuKey\":null", "\"weightKey\":10"];
+        string[] secondFields = ["\"idKey\":\"2\"", "\"nameKey\":\"b\"", "\"skuKey\":\"b\"", "\"weightKey\":20"];
+        var prefix = forwarded ? "{\"forwarded\":true," : "{";
+
+        // act
+        var result = store.CreateVariableValueSets(
+            path,
+            forwarded ? [Field("forwarded", HotChocolate.Language.BooleanValueNode.True)] : [],
+            requirements.AsSpan(0, requirementCount));
+        _ = store.CreateVariableValueSets(path, [], [requirements[0] with { Key = "differentKey" }]);
+
+        // assert
+        Assert.Equal(
+            new[]
+            {
+                prefix + string.Join(',', firstFields.Take(requirementCount)) + "}",
+                prefix + string.Join(',', secondFields.Take(requirementCount)) + "}"
+            },
+            result.Select(entry => Normalize(entry.Values)));
+        Assert.Equal(new[] { 0, 3 }, result.Select(entry => ~entry.Path[1]));
+        Assert.Equal(1, result[0].AdditionalPaths.Length);
+        Assert.Equal(1, ~result[0].AdditionalPaths.AsSpan()[0][1]);
+        Assert.Empty(result[1].AdditionalPaths.AsSpan().ToArray());
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteNewKey_When_StoreIsReusedAfterLargeKeyWasCleaned()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query { foos: [Foo] }
+            type Foo { id: ID }
+            """);
+        var plan = PlanOperation(schema, "{ foos { id } }");
+        var node = (OperationExecutionNode)plan.RootNodes.Single();
+        using var firstArena = new MemoryArena();
+        using var secondArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        var largeKey = new string('k', 40_000);
+        var path = SelectionPath.Root.AppendField("foos");
+        Initialize(firstArena);
+        var initial = store.CreateVariableValueSets(
+            path, [], [Requirement(schema, largeKey, "id", new NamedTypeNode("ID"))]);
+        using var initialJson = JsonDocument.Parse(initial[0].Values.AsSequence());
+        var originalValue = initialJson.RootElement.GetProperty(largeKey).GetString();
+
+        // act
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        Initialize(secondArena);
+        var result = store.CreateVariableValueSets(
+            path, [], [Requirement(schema, "short", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        Assert.Equal("1", originalValue);
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            ["""{"short":"1"}""", """{"short":"2"}"""]);
+
+        void Initialize(MemoryArena arena)
+        {
+            store.Initialize(
+                arena, schema, DefaultErrorHandler.Default, plan.Operation,
+                ErrorHandlingMode.Propagate, default, default, 16);
+            var bytes = """{"data":{"foos":[{"id":"1"},{"id":"2"}]}}"""u8.ToArray();
+            var document = SourceResultDocument.Parse(arena, bytes, bytes.Length);
+            Assert.True(store.AddPartialResults(
+                SelectionPath.Root,
+                [new SourceSchemaResult(CompactPath.Root, document)],
+                node.ResultSelectionSet,
+                containsErrors: false));
+        }
+    }
+
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
     {

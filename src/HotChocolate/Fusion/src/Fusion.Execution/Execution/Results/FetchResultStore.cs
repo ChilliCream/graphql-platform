@@ -39,6 +39,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
     private static readonly ArrayPool<byte> s_bytePool = ArrayPool<byte>.Shared;
     private static readonly ArrayPool<int> s_intPool = ArrayPool<int>.Shared;
+    private static readonly ConditionalWeakTable<OperationRequirement, byte[]> s_requirementKeys = new();
 
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
@@ -1216,6 +1217,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        byte[]? key = null;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
         var lookupName = requirement.InternalAlias ?? fieldName;
         var lookupMemo = default(PropertyLookupMemo);
@@ -1248,7 +1250,7 @@ AddErrors_Next:
 
             // Write variable JSON: {"key":rawValue}
             _jsonWriter.WriteStartObject();
-            _jsonWriter.WritePropertyName(requirement.Key);
+            WriteRequirementKey(requirement, elements.Length, ref key);
             WriteCompositeResultValue(value);
             _jsonWriter.WriteEndObject();
 
@@ -1350,6 +1352,8 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        byte[]? key1 = null;
+        byte[]? key2 = null;
         var lookupName1 = requirement1.InternalAlias ?? fieldName1;
         var lookupName2 = requirement2.InternalAlias ?? fieldName2;
         var lookupMemo1 = default(PropertyLookupMemo);
@@ -1378,9 +1382,9 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-            _jsonWriter.WritePropertyName(requirement1.Key);
+            WriteRequirementKey(requirement1, elements.Length, ref key1);
             WriteCompositeResultValue(value1);
-            _jsonWriter.WritePropertyName(requirement2.Key);
+            WriteRequirementKey(requirement2, elements.Length, ref key2);
             WriteCompositeResultValue(value2);
             _jsonWriter.WriteEndObject();
 
@@ -1505,6 +1509,9 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        byte[]? key1 = null;
+        byte[]? key2 = null;
+        byte[]? key3 = null;
         var lookupName1 = requirement1.InternalAlias ?? fieldName1;
         var lookupName2 = requirement2.InternalAlias ?? fieldName2;
         var lookupName3 = requirement3.InternalAlias ?? fieldName3;
@@ -1543,11 +1550,11 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-            _jsonWriter.WritePropertyName(requirement1.Key);
+            WriteRequirementKey(requirement1, elements.Length, ref key1);
             WriteCompositeResultValue(value1);
-            _jsonWriter.WritePropertyName(requirement2.Key);
+            WriteRequirementKey(requirement2, elements.Length, ref key2);
             WriteCompositeResultValue(value2);
-            _jsonWriter.WritePropertyName(requirement3.Key);
+            WriteRequirementKey(requirement3, elements.Length, ref key3);
             WriteCompositeResultValue(value3);
             _jsonWriter.WriteEndObject();
 
@@ -1641,6 +1648,32 @@ AddErrors_Next:
 
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteRequirementKey(OperationRequirement requirement, int entityCount, ref byte[]? encodedKey)
+    {
+        if (entityCount == 1)
+        {
+            _jsonWriter.WritePropertyName(requirement.Key);
+        }
+        else
+        {
+            encodedKey ??= GetEncodedRequirementKey(requirement);
+            _jsonWriter.WritePropertyNameUnescaped(encodedKey);
+        }
+    }
+
+    private static byte[] GetEncodedRequirementKey(OperationRequirement requirement)
+        => s_requirementKeys.GetValue(
+            requirement,
+            static requirement =>
+            {
+                using var buffer = new PooledArrayWriter();
+                var writer = new JsonWriter(buffer, new JsonWriterOptions { Indented = false });
+                writer.WriteStartObject();
+                writer.WritePropertyName(requirement.Key);
+                return buffer.WrittenSpan[2..^2].ToArray();
+            });
 
     private static bool TryGetSimpleRequirementFieldName(
         OperationRequirement requirement,
