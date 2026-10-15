@@ -61,6 +61,7 @@ conv
 Cookiebot
 coverable
 CQRS
+createdump
 creds
 csclient
 CUST
@@ -77,6 +78,8 @@ dexto
 Diagnoser
 Dispatchable
 DOCKERHUB
+dotmemory
+dottrace
 drawio
 emulatorhealth
 enisdenjo
@@ -90,6 +93,8 @@ Fanout
 FFFFFFFZ
 fffzzz
 fieldset
+finalizer
+finalizers
 FIPS
 firebender
 foos
@@ -99,6 +104,8 @@ frontends
 frontmatter
 FULLYQUALIFIEDNAMESPACE
 Fzzz
+gcdump
+gcdumps
 GEOGCS
 geolocation
 GHSA
@@ -158,7 +165,10 @@ Memberwise
 mercurius
 mergeable
 meros
+minidump
 Misordered
+mkfifo
+mktemp
 modelcontextprotocol
 msbuild
 msdata
@@ -171,6 +181,7 @@ neovate
 netcoreapp
 netrc
 netstandard
+nettrace
 NEWHOPE
 Newtonsoft
 ngte
@@ -267,6 +278,7 @@ snupkg
 sortings
 spctl
 Specwise
+speedscope
 sqft
 srid
 sszzz

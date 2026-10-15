@@ -99,6 +99,25 @@ This is framework code, performance matters. Aim for zero allocations on hot pat
 
 If you need to search for packages on nuget.org, use the `dotnet` CLI, e.g. `dotnet package search HotChocolate`.
 
+### Profiling
+
+The dev container has `dotnet-trace`, `dotnet-counters`, `dotnet-gcdump`, `dotnet-dump`, `dotnet-symbol`, `dottrace` and `dotmemory` installed. Versions are pinned in `.devcontainer/dockerfile`, and `docs/profiling.md` has the full commands and caveats. The tools attach to a running process in the same container. Write outputs to `perf/<label>-<git-short-sha>/`, which is gitignored.
+
+```bash
+OUT=perf/<label>-$(git rev-parse --short HEAD); mkdir -p "$OUT"
+dotnet-trace ps
+dotnet-trace collect -p <pid> --duration 00:00:00:30 --format speedscope -o "$OUT/cpu.nettrace"
+dotnet-trace report "$OUT/cpu.nettrace" topN -n 25 --inclusive
+dotnet-trace collect -p <pid> --profile gc-verbose --duration 00:00:00:15 -o "$OUT/alloc.nettrace"
+dotnet-gcdump collect -p <pid> -o "$OUT/heap.gcdump" && dotnet-gcdump report "$OUT/heap.gcdump" > "$OUT/heap-report.txt"
+dotnet-counters collect -p <pid> --format json -o "$OUT/counters.json" --duration 00:00:00:20 --counters System.Runtime,Microsoft.AspNetCore.Hosting,System.Net.Http
+```
+
+- Profile Release builds. Debug builds distort time and allocations.
+- Sampling gives time, not call counts. Call counts need dotTrace Tracing mode, which only `dottrace start` offers; `dottrace attach` is limited to Sampling and Timeline.
+- On Linux, EventPipe samples measure thread time. Ignore idle thread pool frames such as `LowLevelLifoSemaphore.WaitForSignal` and `WaitHandle.WaitOneNoCheck`.
+- `.dtp` (dotTrace) and `.dmw` (dotMemory) snapshots are for Rider on the host. Use the `dotnet-trace` and `dotnet-gcdump` outputs for analysis inside the container.
+
 ### Nitro persisted operations (Fusion Aspire)
 
 After adding or editing any `.graphql` document under `src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations`, regenerate the `.sha256` sidecars and verify them:
