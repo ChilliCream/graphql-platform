@@ -320,6 +320,32 @@ public class IsolatedProcessEndToEndTests
     }
 
     [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20260903, HttpStatusCode.UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var host = CreateHost(transportVersion);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Post,
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            """{"query":"{ person }"}""",
+            requestBodyContentType: null);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Theory]
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
     [InlineData(
@@ -347,6 +373,55 @@ public class IsolatedProcessEndToEndTests
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Equal(expectedAllow, GetHeader(response, "Allow"));
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy)]
+    [InlineData(HttpTransportVersion.Draft20250508)]
+    [InlineData(HttpTransportVersion.Draft20260903)]
+    public async Task Get_Should_ReturnNotFound_When_PreflightHeaderIsMissing(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var host = CreateHost(transportVersion, enforceGetRequestsPreflightHeader: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Fact]
+    public async Task Get_Should_ExecuteRequest_When_PreflightHeaderIsSent()
+    {
+        // arrange
+        var host = CreateHost(HttpTransportVersion.Latest, enforceGetRequestsPreflightHeader: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+        request.Headers.TryAddWithoutValidation("GraphQL-Preflight", "1");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"person":"Luke Skywalker"}}""",
+            await ReadResponseAsStringAsync(response));
     }
 
     [Fact]
@@ -399,6 +474,37 @@ public class IsolatedProcessEndToEndTests
         Assert.Equal(0, response.Body.Length);
     }
 
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.UnsupportedMediaType,
+        "application/json")]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var host = CreateHost(transportVersion, enableQueryRequests: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            "QUERY",
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            """{"query":"{ person }"}""",
+            requestBodyContentType: null);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAcceptQuery, GetHeader(response, "Accept-Query"));
+        Assert.Equal(0, response.Body.Length);
+    }
+
     [Fact]
     public async Task Query_Should_ExecuteRequest_When_QueryRequestsAreEnabled()
     {
@@ -424,7 +530,8 @@ public class IsolatedProcessEndToEndTests
     private static IHost CreateHost(
         HttpTransportVersion transportVersion,
         bool enableGetRequests = true,
-        bool enableQueryRequests = false)
+        bool enableQueryRequests = false,
+        bool enforceGetRequestsPreflightHeader = false)
     {
         var formatterOptions = new HttpResponseFormatterOptions
         {
@@ -441,6 +548,7 @@ public class IsolatedProcessEndToEndTests
                         {
                             o.EnableGetRequests = enableGetRequests;
                             o.EnableQueryRequests = enableQueryRequests;
+                            o.EnforceGetRequestsPreflightHeader = enforceGetRequestsPreflightHeader;
                         }))
             .Build();
     }
