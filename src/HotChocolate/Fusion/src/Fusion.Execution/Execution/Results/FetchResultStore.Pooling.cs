@@ -113,9 +113,8 @@ internal sealed partial class FetchResultStore
             memory.Dispose();
         }
 
-        // return path segments to global pool and reset local pool
-        _pathPool?.Dispose();
-        _pathPool = null!;
+        // free this request's path segment arrays for the next request
+        _pathPool?.Reset();
 
         // clear errors
         _errors?.Clear();

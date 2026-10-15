@@ -1451,4 +1451,48 @@ public class CompositeResultDocumentTests : FusionTestBase
         var json = Encoding.UTF8.GetString(memoryStream.ToArray());
         json.MatchSnapshot();
     }
+
+    [Fact]
+    public void CreateCompactPath_Should_AllocatePath_When_LocalPoolWasReset()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+
+        using var pool = new PathSegmentLocalPool(capacity: 64);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0, pathPool: pool);
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var pooledPath = productBySlug.CompactPath;
+        var ownedBeforeReset = pool.OwnedCount;
+        pool.Reset();
+        var freeAfterReset = pool.FreeCount;
+
+        // act
+        var allocatedPath = productBySlug.CompactPath;
+
+        // assert
+        Snapshot.Create()
+            .Add(
+                new
+                {
+                    OwnedBeforeReset = ownedBeforeReset,
+                    FreeAfterReset = freeAfterReset,
+                    FreeAfterAllocatedPath = pool.FreeCount,
+                    BackingArrayReused = ReferenceEquals(
+                        pooledPath.UnsafeGetBackingArray(),
+                        allocatedPath.UnsafeGetBackingArray()),
+                    PathsEqual = pooledPath.Equals(allocatedPath)
+                },
+                "Path State")
+            .MatchMarkdownSnapshot();
+    }
 }

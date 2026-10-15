@@ -3,6 +3,10 @@ using static HotChocolate.Fusion.Text.Json.PathSegmentPoolEventSource;
 
 namespace HotChocolate.Fusion.Text.Json;
 
+/// <summary>
+/// The shared pool of path segment arrays. Arrays are rented and returned in batches
+/// and the pool is safe for concurrent use.
+/// </summary>
 internal sealed class PathSegmentPool : IDisposable
 {
     private static int s_nextPoolId;
@@ -37,14 +41,21 @@ internal sealed class PathSegmentPool : IDisposable
         }
     }
 
-    public int[] Rent()
+    /// <summary>
+    /// Fills <paramref name="destination"/> with segment arrays.
+    /// Slots the pool cannot serve receive newly allocated arrays.
+    /// </summary>
+    public void Rent(Span<int[]?> destination)
     {
         var log = Log;
-        var buffer = _bucket.Rent();
+        var served = _bucket.Rent(destination);
 
-        if (buffer is null)
+        if (served < destination.Length)
         {
-            buffer = new int[_segmentArraySize];
+            for (var i = served; i < destination.Length; i++)
+            {
+                destination[i] = new int[_segmentArraySize];
+            }
 
             if (log.IsEnabled())
             {
@@ -54,32 +65,46 @@ internal sealed class PathSegmentPool : IDisposable
 
         if (log.IsEnabled())
         {
-            log.SegmentRented(buffer.GetHashCode(), buffer.Length, _poolId, _bucket.InUse);
-        }
+            var inUse = _bucket.InUse;
 
-        return buffer;
+            foreach (var buffer in destination)
+            {
+                log.SegmentRented(buffer!.GetHashCode(), buffer.Length, _poolId, inUse);
+            }
+        }
     }
 
-    public void Return(int[] array)
+    /// <summary>
+    /// Returns segment arrays to the pool. Arrays the pool has no room for and arrays
+    /// of another length are dropped.
+    /// </summary>
+    public void Return(ReadOnlySpan<int[]?> arrays)
     {
-        if (array.Length != _segmentArraySize)
-        {
-            return;
-        }
-
         var log = Log;
-        var returned = _bucket.Return(array);
+        var accepted = _bucket.Return(arrays);
 
         if (log.IsEnabled())
         {
-            log.SegmentReturned(array.GetHashCode(), array.Length, _poolId, _bucket.InUse);
-        }
+            var inUse = _bucket.InUse;
+            var matching = 0;
 
-        if (!returned && log.IsEnabled())
-        {
-            log.SegmentDropped(array.GetHashCode(), array.Length, _poolId);
+            for (var i = 0; i < arrays.Length; i++)
+            {
+                var array = arrays[i]!;
+                log.SegmentReturned(array.GetHashCode(), array.Length, _poolId, inUse);
+
+                if (array.Length != _segmentArraySize || matching++ >= accepted)
+                {
+                    log.SegmentDropped(array.GetHashCode(), array.Length, _poolId);
+                }
+            }
         }
     }
+
+    /// <summary>
+    /// Gets the number of arrays rented from this pool that have not been returned.
+    /// </summary>
+    internal int InUse => _bucket.InUse;
 
     public void Dispose() => _bucket.Dispose();
 
@@ -128,30 +153,36 @@ internal sealed class PathSegmentPool : IDisposable
 
         internal int InUse => _inUse;
 
-        internal int[]? Rent()
+        /// <summary>
+        /// Takes one pool slot per destination element until the pool is exhausted and
+        /// returns the number of slots taken. Empty slots are filled with new arrays.
+        /// </summary>
+        internal int Rent(Span<int[]?> destination)
         {
-            Interlocked.Increment(ref _inUse);
+            Interlocked.Add(ref _inUse, destination.Length);
 
             var buffers = _buffers;
-            int[]? buffer = null;
-
+            var served = 0;
             var lockTaken = false;
-            var allocateBuffer = false;
 
             try
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                while (served < destination.Length)
                 {
-                    _currentLevel++;
-                }
+                    if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                    {
+                        _currentLevel++;
+                    }
 
-                if (_index < _levels[_currentLevel])
-                {
-                    buffer = buffers[_index];
+                    if (_index >= _levels[_currentLevel])
+                    {
+                        break;
+                    }
+
+                    destination[served++] = buffers[_index];
                     buffers[_index++] = null;
-                    allocateBuffer = buffer == null;
                 }
             }
             finally
@@ -162,40 +193,60 @@ internal sealed class PathSegmentPool : IDisposable
                 }
             }
 
-            if (allocateBuffer)
+            for (var i = 0; i < served; i++)
             {
-                buffer = new int[_segmentArraySize];
-
-                var log = Log;
-                if (log.IsEnabled())
+                if (destination[i] is null)
                 {
-                    log.SegmentAllocated(buffer.GetHashCode(), _segmentArraySize, _poolId);
+                    var buffer = new int[_segmentArraySize];
+                    destination[i] = buffer;
+
+                    var log = Log;
+                    if (log.IsEnabled())
+                    {
+                        log.SegmentAllocated(buffer.GetHashCode(), _segmentArraySize, _poolId);
+                    }
                 }
             }
 
-            return buffer;
+            return served;
         }
 
-        internal bool Return(int[] array)
+        /// <summary>
+        /// Puts the arrays of the pool's segment size back into free pool slots and
+        /// returns how many were accepted. Arrays of another length do not count as returned.
+        /// </summary>
+        internal int Return(ReadOnlySpan<int[]?> arrays)
         {
-            Interlocked.Decrement(ref _inUse);
+            var returned = 0;
 
-            if (array.Length != _segmentArraySize)
+            foreach (var array in arrays)
             {
-                return false;
+                if (array is not null && array.Length == _segmentArraySize)
+                {
+                    returned++;
+                }
             }
 
-            var returned = false;
+            Interlocked.Add(ref _inUse, -returned);
+
+            var accepted = 0;
             var lockTaken = false;
 
             try
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_index > 0)
+                for (var i = 0; i < arrays.Length && _index > 0; i++)
                 {
+                    var array = arrays[i];
+
+                    if (array is null || array.Length != _segmentArraySize)
+                    {
+                        continue;
+                    }
+
                     _buffers[--_index] = array;
-                    returned = true;
+                    accepted++;
                 }
             }
             finally
@@ -206,7 +257,7 @@ internal sealed class PathSegmentPool : IDisposable
                 }
             }
 
-            return returned;
+            return accepted;
         }
 
         private void Trim()

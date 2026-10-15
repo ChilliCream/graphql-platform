@@ -80,8 +80,8 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 256;
 
     /// <summary>
-    /// Gets or sets the initial capacity of the local path segment pool used during result composition.
-    /// <c>64</c> by default. <c>1</c> is the minimum.
+    /// Gets or sets the number of path segment arrays a pooled request context keeps
+    /// between requests. <c>64</c> by default. <c>1</c> is the minimum.
     /// </summary>
     public int PathSegmentLocalPoolCapacity
     {
