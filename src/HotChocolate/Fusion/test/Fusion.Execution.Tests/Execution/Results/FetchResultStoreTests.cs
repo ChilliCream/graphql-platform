@@ -34,6 +34,90 @@ public sealed class FetchResultStoreTests : FusionTestBase
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResults_Should_CompleteReorderedFields_When_ObjectsContainMixedValues(bool containsErrors)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query { foos: [Foo] sibling: String }
+            type Foo { name: String status: Status child: Child }
+            type Child { id: ID matrix: [[Int]] }
+            enum Status { READY DONE }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(
+            schema,
+            "{ foos { label: name status child { id matrix } } sibling }",
+            resultArena,
+            out var selectionSet);
+        var result = CreateSourceSchemaResult(
+            sourceArena,
+            CompactPath.Root,
+            """
+            {"data":{"sibling":"tail","ignored":true,"foos":[
+              {"status":"READY","child":{"matrix":[[1,null],[],null],"id":"1"},"label":"first","label":"last"},
+              null,
+              {"child":null,"label":null,"status":"UNKNOWN"}]}}
+            """);
+
+        // act
+        var completed = store.AddPartialResults(
+            SelectionPath.Root,
+            [result],
+            selectionSet,
+            containsErrors);
+
+        // assert
+        Assert.True(completed);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[{"label":"last","status":"READY","child":{"id":"1","matrix":[[1,null],[],null]}},null,{"label":null,"status":null,"child":null}],"sibling":"tail"}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_CompleteEachRuntimeType_When_AbstractListLayoutsDiffer()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query { nodes: [Node] }
+            interface Node { name: String }
+            type A implements Node { name: String a: String }
+            type B implements Node { name: String b: Int }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ nodes { __typename name ... on A { a } ... on B { b } } }",
+            """
+            {"data":{"nodes":[
+              {"a":"first","name":"one","__typename":"A"},
+              {"__typename":"B","b":2,"name":"two"},
+              null,
+              {"name":"three","__typename":"A","a":"last"}]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"nodes":[{"__typename":"A","name":"one","a":"first"},{"__typename":"B","name":"two","b":2},null,{"__typename":"A","name":"three","a":"last"}]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
     {

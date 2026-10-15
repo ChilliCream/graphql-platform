@@ -476,6 +476,28 @@ internal readonly ref struct SourceResultElementSnapshot
     /// </exception>
     public SourceResultElement.ObjectEnumerator EnumerateObject() => Element.EnumerateObject();
 
+    internal SourceResultValueEnumerator EnumerateArrayValues()
+    {
+        if (TokenType is not JsonTokenType.StartArray)
+        {
+            Element.EnumerateArray();
+        }
+
+        _parent.GetArrayLength(_row);
+        return new SourceResultValueEnumerator(this, propertyNameOffset: 0);
+    }
+
+    internal SourceResultValueEnumerator EnumerateObjectValues()
+    {
+        if (TokenType is not JsonTokenType.StartObject)
+        {
+            Element.EnumerateObject();
+        }
+
+        _parent.GetPropertyCount(_row);
+        return new SourceResultValueEnumerator(this, propertyNameOffset: 1);
+    }
+
     /// <inheritdoc />
     public override string ToString()
     {

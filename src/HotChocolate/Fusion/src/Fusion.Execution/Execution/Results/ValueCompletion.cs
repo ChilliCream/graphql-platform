@@ -88,8 +88,11 @@ internal sealed class ValueCompletion
 
         if (resultSelectionSet.HasSourceResponseNameMappings)
         {
-            foreach (var property in source.EnumerateObject())
+            var properties = sourceSnapshot.EnumerateObjectValues();
+
+            while (properties.MoveNext())
             {
+                var property = properties.CurrentProperty;
                 CompositeResultElement resultField;
                 Selection selection;
                 string sourceResponseName;
@@ -123,7 +126,7 @@ internal sealed class ValueCompletion
                     sourceResponseName = selection.ResponseName;
                 }
 
-                var propertyValueSnapshot = property.Value.CreateSnapshot();
+                var propertyValueSnapshot = properties.Current;
                 var propertyValueKind = propertyValueSnapshot.ValueKind;
 
                 if (errorTrie is null && propertyValueKind.IsScalarValue())
@@ -166,14 +169,17 @@ internal sealed class ValueCompletion
         }
         else
         {
-            foreach (var property in source.EnumerateObject())
+            var properties = sourceSnapshot.EnumerateObjectValues();
+
+            while (properties.MoveNext())
             {
+                var property = properties.CurrentProperty;
                 if (!objectContext.TryGetProperty(property.NameSpan, out var resultField, out var selection))
                 {
                     continue;
                 }
 
-                var propertyValueSnapshot = property.Value.CreateSnapshot();
+                var propertyValueSnapshot = properties.Current;
                 var propertyValueKind = propertyValueSnapshot.ValueKind;
 
                 // Fast path: when there are no errors and the source value is a
@@ -1002,8 +1008,10 @@ internal sealed class ValueCompletion
         }
 
         var i = 0;
+        var elements = source.EnumerateArrayValues();
         using var targetEnumerator = target.EnumerateArray().GetEnumerator();
-        foreach (var element in source.EnumerateArray())
+
+        while (elements.MoveNext())
         {
             var success = targetEnumerator.MoveNext();
             Debug.Assert(success, "The lists must have the same size.");
@@ -1021,7 +1029,7 @@ internal sealed class ValueCompletion
                 _store.AddError(errorWithPath);
             }
 
-            var elementSnapshot = element.CreateSnapshot();
+            var elementSnapshot = elements.Current;
             var elementValueKind = elementSnapshot.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
@@ -1296,8 +1304,11 @@ TryCompleteList_MoveNext:
 
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
         {
-            foreach (var property in source.EnumerateObject())
+            var properties = source.EnumerateObjectValues();
+
+            while (properties.MoveNext())
             {
+                var property = properties.CurrentProperty;
                 CompositeResultElement targetProperty;
                 Selection selection;
                 string sourceResponseName;
@@ -1331,7 +1342,7 @@ TryCompleteList_MoveNext:
                     sourceResponseName = selection.ResponseName;
                 }
 
-                var propertyValueSnapshot = property.Value.CreateSnapshot();
+                var propertyValueSnapshot = properties.Current;
                 var propertyValueKind = propertyValueSnapshot.ValueKind;
 
                 if (errorTrie is null && propertyValueKind.IsScalarValue())
@@ -1367,14 +1378,17 @@ TryCompleteList_MoveNext:
         }
         else
         {
-            foreach (var property in source.EnumerateObject())
+            var properties = source.EnumerateObjectValues();
+
+            while (properties.MoveNext())
             {
+                var property = properties.CurrentProperty;
                 if (!objectContext.TryGetProperty(property.NameSpan, out var targetProperty, out var selection))
                 {
                     continue;
                 }
 
-                var propertyValueSnapshot = property.Value.CreateSnapshot();
+                var propertyValueSnapshot = properties.Current;
                 var propertyValueKind = propertyValueSnapshot.ValueKind;
 
                 // Fast path: when there are no errors and the source value is a
