@@ -1480,19 +1480,10 @@ public class CompositeResultDocumentTests : FusionTestBase
         var allocatedPath = productBySlug.CompactPath;
 
         // assert
-        Snapshot.Create()
-            .Add(
-                new
-                {
-                    OwnedBeforeReset = ownedBeforeReset,
-                    FreeAfterReset = freeAfterReset,
-                    FreeAfterAllocatedPath = pool.FreeCount,
-                    BackingArrayReused = ReferenceEquals(
-                        pooledPath.UnsafeGetBackingArray(),
-                        allocatedPath.UnsafeGetBackingArray()),
-                    PathsEqual = pooledPath.Equals(allocatedPath)
-                },
-                "Path State")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(32, ownedBeforeReset);
+        Assert.Equal(32, freeAfterReset);
+        Assert.Equal(32, pool.FreeCount);
+        Assert.NotSame(pooledPath.UnsafeGetBackingArray(), allocatedPath.UnsafeGetBackingArray());
+        Assert.Equal(pooledPath, allocatedPath);
     }
 }

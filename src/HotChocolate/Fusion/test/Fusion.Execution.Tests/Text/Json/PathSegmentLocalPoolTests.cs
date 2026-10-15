@@ -12,17 +12,9 @@ public class PathSegmentLocalPoolTests
         var array = pool.Rent();
 
         // assert
-        Snapshot.Create()
-            .Add(
-                new
-                {
-                    ArrayLength = array.Length,
-                    SegmentArraySize = PathSegmentMemory.SegmentArraySize,
-                    pool.OwnedCount,
-                    pool.FreeCount
-                },
-                "Pool State")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(PathSegmentMemory.SegmentArraySize, array.Length);
+        Assert.Equal(32, pool.OwnedCount);
+        Assert.Equal(31, pool.FreeCount);
     }
 
     [Fact]
@@ -91,16 +83,9 @@ public class PathSegmentLocalPoolTests
         }
 
         // assert
-        Snapshot.Create()
-            .Add(
-                new
-                {
-                    OwnedAfterReset = ownedAfterReset,
-                    OwnedAfterRenting = pool.OwnedCount,
-                    FirstArrayRentedAgain = rented.Contains(first)
-                },
-                "Pool State")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(32, ownedAfterReset);
+        Assert.Equal(32, pool.OwnedCount);
+        Assert.Contains(first, rented);
     }
 
     [Fact]
@@ -162,19 +147,11 @@ public class PathSegmentLocalPoolTests
         pool.Reset();
 
         // assert
-        Snapshot.Create()
-            .Add(
-                new
-                {
-                    OwnedCapacityAfterBurst = ownedCapacityAfterBurst,
-                    FreeCapacityAfterBurst = freeCapacityAfterBurst,
-                    pool.OwnedCount,
-                    pool.FreeCount,
-                    pool.OwnedCapacity,
-                    pool.FreeCapacity
-                },
-                "Bookkeeping")
-            .MatchMarkdownSnapshot();
+        Assert.Equal((16384, 16384), (ownedCapacityAfterBurst, freeCapacityAfterBurst));
+        Assert.Equal(64, pool.OwnedCount);
+        Assert.Equal(64, pool.FreeCount);
+        Assert.Equal(128, pool.OwnedCapacity);
+        Assert.Equal(64, pool.FreeCapacity);
     }
 
     [Fact]
@@ -194,17 +171,9 @@ public class PathSegmentLocalPoolTests
         var currentArray = pool.Rent();
 
         // assert
-        Snapshot.Create()
-            .Add(
-                new
-                {
-                    ReplacedArrayLength = replacedArray.Length,
-                    CurrentArrayLength = currentArray.Length,
-                    SegmentArraySize = PathSegmentMemory.SegmentArraySize,
-                    pool.OwnedCount
-                },
-                "Pool State")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(128, replacedArray.Length);
+        Assert.Equal(PathSegmentMemory.SegmentArraySize, currentArray.Length);
+        Assert.Equal(32, pool.OwnedCount);
     }
 
     [Fact]
