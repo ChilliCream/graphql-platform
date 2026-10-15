@@ -336,7 +336,7 @@ The default path is `/graphql/persisted`. The endpoint supports two URL patterns
 | `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
 | `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
 
-GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in the request body. A QUERY request executes query operations only.
+GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only.
 
 ## Custom Path
 

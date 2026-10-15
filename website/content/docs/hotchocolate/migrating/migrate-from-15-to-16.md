@@ -1570,6 +1570,12 @@ public static IQueryable<OrderDto> GetOrders(CatalogContext db)
 
 `OnAfterSortingApplied` callbacks can call `ThenBy` again when the resolver ends with a `Select` projection.
 
+## Persisted operation routes require a JSON Content-Type
+
+The routes that `MapGraphQLPersistedOperations` maps executed a POST request whatever its `Content-Type`. A POST request to one of them without an `application/json` `Content-Type` is now refused, as it is by `MapGraphQL`. This also applies to a Fusion gateway that maps these routes. This change lands in **16.6.9**.
+
+A client that posts a JSON body to a persisted operation route must send `Content-Type: application/json`.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
