@@ -1,6 +1,9 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+#if !NET9_0_OR_GREATER
+using System.Text.Json.Nodes;
+#endif
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
@@ -2397,7 +2400,14 @@ public sealed class FetchResultStoreTests : FusionTestBase
             {"text":"caf\u00E9 \u0022quoted\u0022 \\ \n \uD83D\uDE00 \u00FCber","plain":"plain","color":"GREEN","plainColor":"RED","count":42,"ratio":1.5e3}
             """);
         using var forwarded = JsonDocument.Parse(json);
+#if NET9_0_OR_GREATER
         Assert.True(JsonElement.DeepEquals(variables.RootElement, forwarded.RootElement));
+#else
+        Assert.True(
+            JsonNode.DeepEquals(
+                JsonNode.Parse(variables.RootElement.GetRawText()),
+                JsonNode.Parse(forwarded.RootElement.GetRawText())));
+#endif
     }
 
     private static VariableValues CreateVariableValues(
