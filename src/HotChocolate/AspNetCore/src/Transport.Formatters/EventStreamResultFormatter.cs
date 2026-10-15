@@ -51,10 +51,11 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
     private async ValueTask FormatOperationResultAsync(
         OperationResult operationResult,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         OperationResultFormatterContext? formatContext = null;
         var scope = Log.FormatOperationResultStart();
 
@@ -83,10 +84,11 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
         List<Task>? streams = null;
@@ -136,7 +138,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
                     }
 
                     case IResponseStream responseStream:
-                        keepAlive ??= new KeepAliveJob(semaphore, writer);
+                        keepAlive ??= new KeepAliveJob(semaphore, pipe);
                         var formatter = new StreamFormatter(
                             _payloadFormatter,
                             useIncrementalRfc1,
@@ -186,16 +188,17 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
 
         try
         {
-            using (var keepAlive = new KeepAliveJob(semaphore, writer))
+            using (var keepAlive = new KeepAliveJob(semaphore, pipe))
             {
                 var formatter = new StreamFormatter(
                     _payloadFormatter,

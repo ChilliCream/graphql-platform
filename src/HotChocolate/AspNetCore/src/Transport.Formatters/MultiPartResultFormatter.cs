@@ -77,10 +77,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatOperationResultAsync(
         OperationResult result,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         OperationResultFormatterContext? formatContext = null;
         try
         {
@@ -110,10 +111,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         foreach (var result in resultBatch.Results)
         {
             switch (result)
@@ -150,7 +152,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                 case IResponseStream responseStream:
                     await FormatResponseStreamAsync(
                         responseStream,
-                        writer,
+                        pipe,
                         useIncrementalRfc1,
                         ct).ConfigureAwait(false);
                     break;
@@ -160,10 +162,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         // first, we create the iterator.
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
         OperationResultFormatterContext? formatContext = null;
