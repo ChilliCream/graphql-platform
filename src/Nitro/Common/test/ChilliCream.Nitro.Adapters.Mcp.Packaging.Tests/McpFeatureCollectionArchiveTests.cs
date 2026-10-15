@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChilliCream.Nitro.Adapters.Mcp.Extensions;
 using ChilliCream.Nitro.Adapters.Mcp.Serialization;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -112,14 +113,14 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
             var prompt = await readArchive.TryGetPromptAsync("GetUsersPrompt", TestContext.Current.CancellationToken);
             Assert.NotNull(prompt);
-            Assert.True(JsonElement.DeepEquals(promptSettings.RootElement, prompt.Settings.RootElement));
+            Assert.True(DeepEquals(promptSettings.RootElement, prompt.Settings.RootElement));
             prompt.Dispose();
 
             using var tool = await readArchive.TryGetToolAsync("GetUsers", TestContext.Current.CancellationToken);
             Assert.NotNull(tool);
             Assert.Equal(operation, tool.Document.ToArray());
             Assert.NotNull(tool.Settings);
-            Assert.True(JsonElement.DeepEquals(toolSettings.RootElement, tool.Settings.RootElement));
+            Assert.True(DeepEquals(toolSettings.RootElement, tool.Settings.RootElement));
             Assert.Equal(viewHtml, tool.ViewHtml?.ToArray());
         }
     }
@@ -157,12 +158,12 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         {
             var prompt1 = await readArchive.TryGetPromptAsync(name1, TestContext.Current.CancellationToken);
             Assert.NotNull(prompt1);
-            Assert.True(JsonElement.DeepEquals(settings1.RootElement, prompt1.Settings.RootElement));
+            Assert.True(DeepEquals(settings1.RootElement, prompt1.Settings.RootElement));
             prompt1.Dispose();
 
             var prompt2 = await readArchive.TryGetPromptAsync(name2, TestContext.Current.CancellationToken);
             Assert.NotNull(prompt2);
-            Assert.True(JsonElement.DeepEquals(settings2.RootElement, prompt2.Settings.RootElement));
+            Assert.True(DeepEquals(settings2.RootElement, prompt2.Settings.RootElement));
             prompt2.Dispose();
         }
     }
@@ -500,7 +501,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         var prompt = await archive.TryGetPromptAsync("GetUserPrompt", TestContext.Current.CancellationToken);
 
         Assert.NotNull(prompt);
-        Assert.True(JsonElement.DeepEquals(prompt.Settings.RootElement, prompt.Settings.RootElement));
+        Assert.True(DeepEquals(prompt.Settings.RootElement, prompt.Settings.RootElement));
 
         // assert - Tools
         using var tool = await archive.TryGetToolAsync("GetUser", TestContext.Current.CancellationToken);
@@ -860,4 +861,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
             stream.Dispose();
         }
     }
+
+    private static bool DeepEquals(JsonElement left, JsonElement right)
+        => JsonNode.DeepEquals(JsonNode.Parse(left.GetRawText()), JsonNode.Parse(right.GetRawText()));
 }

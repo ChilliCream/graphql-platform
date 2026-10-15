@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
@@ -2396,8 +2397,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"text":"caf\u00E9 \u0022quoted\u0022 \\ \n \uD83D\uDE00 \u00FCber","plain":"plain","color":"GREEN","plainColor":"RED","count":42,"ratio":1.5e3}
             """);
-        using var forwarded = JsonDocument.Parse(json);
-        Assert.True(JsonElement.DeepEquals(variables.RootElement, forwarded.RootElement));
+        Assert.True(JsonNode.DeepEquals(JsonNode.Parse(variables.RootElement.GetRawText()), JsonNode.Parse(json)));
     }
 
     private static VariableValues CreateVariableValues(
