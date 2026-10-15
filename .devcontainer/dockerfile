@@ -95,6 +95,37 @@ RUN mkdir -p /home/vscode/.ssh \
     && chmod 700 /home/vscode/.ssh \
     && chmod 600 /home/vscode/.ssh/config
 
+# Install the .NET diagnostics tools and the dotTrace command-line profiler as
+# global tools for the vscode user (see docs/profiling.md). Versions are pinned.
+RUN su - vscode -c "dotnet tool install --global dotnet-trace --version 10.0.750501 \
+    && dotnet tool install --global dotnet-counters --version 10.0.750501 \
+    && dotnet tool install --global dotnet-gcdump --version 10.0.750501 \
+    && dotnet tool install --global dotnet-dump --version 10.0.750501 \
+    && dotnet tool install --global dotnet-symbol --version 10.0.750501 \
+    && dotnet tool install --global JetBrains.dotTrace.GlobalTools --version 2026.2.3.1 \
+    && dotnet nuget locals http-cache --clear"
+
+# Install the dotMemory command-line profiler. JetBrains publishes it only as a
+# per-architecture NuGet package that bundles its own runtime (a plain zip, not
+# a dotnet tool), so unpack it under /opt and expose the launcher on PATH.
+RUN case "$(dpkg --print-architecture)" in \
+        arm64) DOTMEMORY_RID=linux-arm64 ;; \
+        amd64) DOTMEMORY_RID=linux-x64 ;; \
+        *) echo "dotMemory: unsupported architecture $(dpkg --print-architecture)" >&2 && exit 1 ;; \
+    esac \
+    && curl -fsSL "https://api.nuget.org/v3-flatcontainer/jetbrains.dotmemory.console.${DOTMEMORY_RID}/2026.2.3.1/jetbrains.dotmemory.console.${DOTMEMORY_RID}.2026.2.3.1.nupkg" -o /tmp/dotmemory.nupkg \
+    && mkdir -p /opt/dotmemory \
+    && unzip -q /tmp/dotmemory.nupkg 'tools/*' -d /opt/dotmemory \
+    && rm /tmp/dotmemory.nupkg \
+    && chmod +x /opt/dotmemory/tools/dotmemory /opt/dotmemory/tools/runtime-dotnet.sh \
+    && find "/opt/dotmemory/tools/${DOTMEMORY_RID}" -type f \( ! -name '*.*' -o -name 'JetBrains.Profiler.PdbServer' \) -exec chmod +x {} + \
+    && printf '#!/bin/sh\nexec /opt/dotmemory/tools/dotmemory "$@"\n' > /usr/local/bin/dotmemory \
+    && chmod +x /usr/local/bin/dotmemory
+
+# Put the global tools on PATH for every process in the container, including
+# the non-interactive shells that agents and editor tasks use.
+ENV PATH="/home/vscode/.dotnet/tools:${PATH}"
+
 # Clean up
 RUN rm dotnet-install.sh \
     && apt-get clean \
