@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.1" />
   <PropertyGroup>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
     <OutputType>Exe</OutputType>
     <RootNamespace>PostgresTransport.AppHost</RootNamespace>
   </PropertyGroup>
