@@ -9,6 +9,7 @@ namespace HotChocolate.Fusion.Text.Json;
 /// </summary>
 internal sealed class PathSegmentPool : IDisposable
 {
+    private const int LockBatchSize = 32;
     private static int s_nextPoolId;
     internal readonly int _segmentArraySize;
     private readonly int _poolId;
@@ -47,6 +48,32 @@ internal sealed class PathSegmentPool : IDisposable
     /// </summary>
     public void Rent(Span<int[]?> destination)
     {
+        while (destination.Length > LockBatchSize)
+        {
+            RentBatch(destination[..LockBatchSize]);
+            destination = destination[LockBatchSize..];
+        }
+
+        RentBatch(destination);
+    }
+
+    /// <summary>
+    /// Returns segment arrays to the pool. Arrays the pool has no room for and arrays
+    /// of another length are dropped. Null entries are ignored.
+    /// </summary>
+    public void Return(ReadOnlySpan<int[]?> arrays)
+    {
+        while (arrays.Length > LockBatchSize)
+        {
+            ReturnBatch(arrays[..LockBatchSize]);
+            arrays = arrays[LockBatchSize..];
+        }
+
+        ReturnBatch(arrays);
+    }
+
+    private void RentBatch(Span<int[]?> destination)
+    {
         var log = Log;
         var served = _bucket.Rent(destination);
 
@@ -74,11 +101,7 @@ internal sealed class PathSegmentPool : IDisposable
         }
     }
 
-    /// <summary>
-    /// Returns segment arrays to the pool. Arrays the pool has no room for and arrays
-    /// of another length are dropped.
-    /// </summary>
-    public void Return(ReadOnlySpan<int[]?> arrays)
+    private void ReturnBatch(ReadOnlySpan<int[]?> arrays)
     {
         var log = Log;
         var accepted = _bucket.Return(arrays);
@@ -90,7 +113,11 @@ internal sealed class PathSegmentPool : IDisposable
 
             for (var i = 0; i < arrays.Length; i++)
             {
-                var array = arrays[i]!;
+                if (arrays[i] is not { } array)
+                {
+                    continue;
+                }
+
                 log.SegmentReturned(array.GetHashCode(), array.Length, _poolId, inUse);
 
                 if (array.Length != _segmentArraySize || matching++ >= accepted)

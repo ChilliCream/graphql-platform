@@ -102,6 +102,27 @@ internal sealed partial class FetchResultStore
     }
 
     /// <summary>
+    /// Hands every retained memory owner to <paramref name="result"/> for disposal.
+    /// Result documents stop renting from the request scoped path pool once handed off.
+    /// </summary>
+    internal void TransferMemoryOwnersTo(IExecutionResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        foreach (var memoryOwner in _memory)
+        {
+            if (memoryOwner is CompositeResultDocument document)
+            {
+                document.DetachPathPool();
+            }
+
+            result.RegisterForCleanup(memoryOwner);
+        }
+
+        _memory.Clear();
+    }
+
+    /// <summary>
     /// Cleans the store for return to the pool.
     /// Releases per-request state while retaining reusable buffers.
     /// </summary>

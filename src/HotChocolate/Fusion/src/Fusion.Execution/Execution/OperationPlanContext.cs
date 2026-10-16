@@ -614,15 +614,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <see cref="OperationResult"/>.
     /// </summary>
     internal void TransferRetainedMemoryTo(OperationResult operationResult)
-    {
-        var memoryOwners = _resultStore.MemoryOwners;
-        foreach (var disposable in memoryOwners)
-        {
-            operationResult.RegisterForCleanup(disposable);
-        }
-
-        memoryOwners.Clear();
-    }
+        => _resultStore.TransferMemoryOwnersTo(operationResult);
 
     private CompactPath ToResultPath(SelectionPath selectionSet)
     {
@@ -821,13 +813,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             // we take over the memory owners from the result context
             // and store them on the response so that the server can
             // dispose them when it disposes of the result itself.
-            var memoryOwners = _resultStore.MemoryOwners;
-            foreach (var disposable in memoryOwners)
-            {
-                operationResult.RegisterForCleanup(disposable);
-            }
-
-            memoryOwners.Clear();
+            _resultStore.TransferMemoryOwnersTo(operationResult);
         }
 
         operationResult.Features.Set(OperationPlan);

@@ -83,6 +83,8 @@ internal sealed partial class FetchResultStore : IDisposable
 
     public List<IDisposable> MemoryOwners => _memory;
 
+    internal PathSegmentLocalPool PathPool => _pathPool;
+
     public bool AddPartialResult(
         SelectionPath sourcePath,
         SourceSchemaResult result,

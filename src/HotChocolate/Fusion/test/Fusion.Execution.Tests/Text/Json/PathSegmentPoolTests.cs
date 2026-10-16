@@ -1,3 +1,5 @@
+using System.Diagnostics.Tracing;
+
 namespace HotChocolate.Fusion.Text.Json;
 
 public class PathSegmentPoolTests
@@ -105,4 +107,54 @@ public class PathSegmentPoolTests
         Assert.Equal(12, inUseAfterRent);
         Assert.Equal(0, pool.InUse);
     }
+
+    [Fact]
+    public void Rent_Should_HandOutEveryReturnedArray_When_BatchExceedsLockBatchSize()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(
+            segmentArraySize: 64,
+            levels: [4, 256],
+            trimInterval: TimeSpan.FromMinutes(1),
+            preAllocate: false);
+        var first = new int[]?[200];
+        pool.Rent(first);
+        pool.Return(first);
+        var inUseAfterReturn = pool.InUse;
+        var second = new int[]?[200];
+
+        // act
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(0, inUseAfterReturn);
+        Assert.Equal(200, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(first, ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
+    }
+
+    [Fact]
+    public void Return_Should_IgnoreNullEntries_When_EventSourceIsEnabled()
+    {
+        // arrange
+        using var listener = new VerboseListener();
+        listener.EnableEvents(PathSegmentPoolEventSource.Log, EventLevel.Verbose);
+        using var pool = new PathSegmentPool(
+            segmentArraySize: 64,
+            levels: [4, 8],
+            trimInterval: TimeSpan.FromMinutes(1),
+            preAllocate: false);
+        var rented = new int[]?[2];
+        pool.Rent(rented);
+
+        // act
+        pool.Return([rented[0], null, rented[1]]);
+
+        // assert
+        Assert.True(PathSegmentPoolEventSource.Log.IsEnabled());
+        Assert.Equal(0, pool.InUse);
+    }
+
+    private sealed class VerboseListener : EventListener;
 }

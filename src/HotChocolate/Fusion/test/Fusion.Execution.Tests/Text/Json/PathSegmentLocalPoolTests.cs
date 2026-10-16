@@ -192,16 +192,55 @@ public class PathSegmentLocalPoolTests
     }
 
     [Fact]
-    public void Reset_Should_AdvanceGeneration_When_Called()
+    public void Return_Should_IgnoreArray_When_EveryOwnedArrayIsFree()
     {
         // arrange
+        // the array belongs to the previous request and was freed by the reset already
         using var pool = new PathSegmentLocalPool(capacity: 64);
-        var generation = pool.Generation;
+        var straggler = pool.Rent();
+        pool.Reset();
+        var rented = new HashSet<int[]>(ReferenceEqualityComparer.Instance);
 
         // act
-        pool.Reset();
+        pool.Return(straggler);
+
+        for (var i = 0; i < pool.OwnedCount; i++)
+        {
+            rented.Add(pool.Rent());
+        }
 
         // assert
-        Assert.Equal(generation + 1, pool.Generation);
+        Assert.Equal(32, rented.Count);
+        Assert.Equal(0, pool.FreeCount);
+    }
+
+    [Fact]
+    public void Rent_Should_Throw_When_Disposed()
+    {
+        // arrange
+        var pool = new PathSegmentLocalPool(capacity: 64);
+        pool.Dispose();
+
+        // act
+        void Act() => pool.Rent();
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(Act);
+    }
+
+    [Fact]
+    public void Return_Should_IgnoreArray_When_Disposed()
+    {
+        // arrange
+        var pool = new PathSegmentLocalPool(capacity: 64);
+        var array = pool.Rent();
+        pool.Dispose();
+
+        // act
+        pool.Return(array);
+
+        // assert
+        Assert.Equal(0, pool.FreeCount);
+        Assert.Equal(0, pool.OwnedCount);
     }
 }

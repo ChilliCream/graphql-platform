@@ -17,8 +17,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _deferFlags;
     private readonly ulong[]? _wideIncludeFlags;
     private readonly ulong[]? _wideDeferFlags;
-    private readonly PathSegmentLocalPool? _pathPool;
-    private readonly int _pathPoolGeneration;
+    private PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
     private int _disposed;
@@ -58,12 +57,17 @@ public sealed partial class CompositeResultDocument : IDisposable
         _wideIncludeFlags = includeFlags.Overflow;
         _wideDeferFlags = deferFlags.Overflow;
         _pathPool = pathPool;
-        _pathPoolGeneration = pathPool?.Generation ?? 0;
 
         Data = CreateObject(zero, operation.RootSelectionSet);
     }
 
     public CompositeResultElement Data { get; }
+
+    /// <summary>
+    /// Stops this document from renting path segment arrays from the request scoped pool.
+    /// Paths created afterwards are allocated.
+    /// </summary>
+    internal void DetachPathPool() => Volatile.Write(ref _pathPool, null);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -189,12 +193,8 @@ public sealed partial class CompositeResultDocument : IDisposable
             }
         }
 
-        // once the pool has been reset for the next request this document allocates its paths
-        var pool = _pathPool is { } pathPool && pathPool.Generation == _pathPoolGeneration
-            ? pathPool
-            : null;
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer, pool);
+        var path = new CompactPathBuilder(pathBuffer, Volatile.Read(ref _pathPool));
         var parentTokenType = ElementTokenType.StartObject;
 
         for (var i = written - 1; i >= 0; i--)

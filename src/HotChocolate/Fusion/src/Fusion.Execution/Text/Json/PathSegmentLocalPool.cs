@@ -61,13 +61,12 @@ internal sealed class PathSegmentLocalPool : IDisposable
     internal int FreeCapacity => _free.Length;
 
     /// <summary>
-    /// Gets a value that changes with every <see cref="Reset"/> and <see cref="Dispose"/>.
-    /// A path created for an earlier value must not rent from this pool.
+    /// Rents a segment array. Throws <see cref="ObjectDisposedException"/> once the pool is disposed.
     /// </summary>
-    public int Generation { get; private set; }
-
     public int[] Rent()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         if (_freeCount == 0)
         {
             RentBatch();
@@ -78,9 +77,14 @@ internal sealed class PathSegmentLocalPool : IDisposable
         return array;
     }
 
+    /// <summary>
+    /// Makes <paramref name="array"/> available for the next <see cref="Rent"/>. Arrays of another
+    /// length, arrays returned after every owned array is already free and arrays returned to a
+    /// disposed pool are dropped.
+    /// </summary>
     public void Return(int[] array)
     {
-        if (array.Length != PathSegmentMemory.SegmentArraySize)
+        if (array.Length != PathSegmentMemory.SegmentArraySize || _freeCount >= _ownedCount)
         {
             return;
         }
@@ -96,8 +100,6 @@ internal sealed class PathSegmentLocalPool : IDisposable
     /// </summary>
     public void Reset()
     {
-        Generation++;
-
         var shared = PathSegmentMemory.Current;
 
         if (!ReferenceEquals(shared, _shared))
@@ -143,7 +145,7 @@ internal sealed class PathSegmentLocalPool : IDisposable
     {
         Debug.Assert(_freeCount == 0);
 
-        EnsureCapacity(ref _free, 0, BatchSize);
+        EnsureCapacity(ref _free, _freeCount, BatchSize);
         EnsureCapacity(ref _owned, _ownedCount, _ownedCount + BatchSize);
 
         var batch = _free.AsSpan(0, BatchSize);
@@ -174,7 +176,6 @@ internal sealed class PathSegmentLocalPool : IDisposable
         }
 
         _disposed = true;
-        Generation++;
 
         if (ReferenceEquals(_shared, PathSegmentMemory.Current))
         {

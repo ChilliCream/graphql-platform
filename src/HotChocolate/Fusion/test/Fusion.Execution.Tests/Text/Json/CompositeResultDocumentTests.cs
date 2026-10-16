@@ -1453,7 +1453,7 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
-    public void CreateCompactPath_Should_AllocatePath_When_LocalPoolWasReset()
+    public void CreateCompactPath_Should_AllocatePath_When_PathPoolWasDetached()
     {
         // arrange
         var schema = CreateCompositeSchema();
@@ -1472,17 +1472,17 @@ public class CompositeResultDocumentTests : FusionTestBase
         var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0, pathPool: pool);
         var productBySlug = compositeResult.Data.GetProperty("productBySlug");
         var pooledPath = productBySlug.CompactPath;
-        var ownedBeforeReset = pool.OwnedCount;
-        pool.Reset();
-        var freeAfterReset = pool.FreeCount;
+        var freeBeforeDetach = pool.FreeCount;
+        compositeResult.DetachPathPool();
 
         // act
         var allocatedPath = productBySlug.CompactPath;
 
         // assert
-        Assert.Equal(32, ownedBeforeReset);
-        Assert.Equal(32, freeAfterReset);
-        Assert.Equal(32, pool.FreeCount);
+        Assert.Equal(31, freeBeforeDetach);
+        Assert.Equal(31, pool.FreeCount);
+        // an allocated path is exact sized, a pooled one has the segment array size
+        Assert.Equal(2, allocatedPath.UnsafeGetBackingArray()!.Length);
         Assert.NotSame(pooledPath.UnsafeGetBackingArray(), allocatedPath.UnsafeGetBackingArray());
         Assert.Equal(pooledPath, allocatedPath);
     }

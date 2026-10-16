@@ -2608,4 +2608,51 @@ public sealed class FetchResultStoreTests : FusionTestBase
             CompactPath.Root,
             Field("k", new StringValueNode(new string('p', fillerLength))));
     }
+
+    [Fact]
+    public async Task TransferMemoryOwnersTo_Should_DetachPathPoolFromResult_When_Called()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ field }");
+
+        using var resultArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var document = store.Result;
+        var field = document.Data.GetProperty("field");
+        var pooledPath = field.CompactPath;
+        var pool = store.PathPool;
+        var freeBeforeTransfer = pool.FreeCount;
+        await using var operationResult = new OperationResult(
+            new OperationResultData(document, false, document, document));
+
+        // act
+        store.TransferMemoryOwnersTo(operationResult);
+        store.Clean(256, 256);
+        var allocatedPath = field.CompactPath;
+
+        // assert
+        // the reset kept the configured 16 arrays, the handed off document must not rent them
+        Assert.Equal(31, freeBeforeTransfer);
+        Assert.Equal(16, pool.FreeCount);
+        Assert.Empty(store.MemoryOwners);
+        Assert.NotSame(pooledPath.UnsafeGetBackingArray(), allocatedPath.UnsafeGetBackingArray());
+        Assert.Equal(pooledPath, allocatedPath);
+    }
 }
