@@ -17,7 +17,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _deferFlags;
     private readonly ulong[]? _wideIncludeFlags;
     private readonly ulong[]? _wideDeferFlags;
-    private readonly PathSegmentLocalPool? _pathPool;
+    private PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
     private int _disposed;
@@ -62,6 +62,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
+
+    /// <summary>
+    /// Stops this document from renting path segment arrays from the request scoped pool.
+    /// Paths created afterwards are allocated.
+    /// </summary>
+    internal void DetachPathPool() => Volatile.Write(ref _pathPool, null);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -188,7 +194,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer, _pathPool);
+        var path = new CompactPathBuilder(pathBuffer, Volatile.Read(ref _pathPool));
         var parentTokenType = ElementTokenType.StartObject;
 
         for (var i = written - 1; i >= 0; i--)

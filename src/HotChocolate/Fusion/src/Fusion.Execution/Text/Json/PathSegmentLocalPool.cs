@@ -1,78 +1,171 @@
 using System.Buffers;
+using System.Diagnostics;
 
 namespace HotChocolate.Fusion.Text.Json;
 
+/// <summary>
+/// A request scoped cache of path segment arrays in front of the shared
+/// <see cref="PathSegmentPool"/>. It keeps up to its capacity of arrays between
+/// requests and is not thread safe.
+/// </summary>
 internal sealed class PathSegmentLocalPool : IDisposable
 {
-    private int[]?[] _buffers;
-    private int _index;
-    private int[]?[] _allRented;
-    private int _allRentedCount;
+    private const int BatchSize = 32;
+    private const int BookkeepingRetainFactor = 4;
+
+    private readonly int _capacity;
+    private readonly int _freeLength;
+    private readonly int _ownedLength;
+    private PathSegmentPool _shared;
+    private int[]?[] _free;
+    private int _freeCount;
+    private int[]?[] _owned;
+    private int _ownedCount;
     private bool _disposed;
 
-    public PathSegmentLocalPool(int initialCapacity = 64)
+    public PathSegmentLocalPool(int capacity = 64)
+        : this(capacity, PathSegmentMemory.Current)
     {
-        var capacity = Math.Max(32, initialCapacity);
-
-        _buffers = ArrayPool<int[]?>.Shared.Rent(capacity);
-        _index = 0;
-        _allRented = ArrayPool<int[]?>.Shared.Rent(capacity * 2);
-        _allRentedCount = 0;
     }
 
+    internal PathSegmentLocalPool(int capacity, PathSegmentPool shared)
+    {
+        _capacity = Math.Max(1, capacity);
+        _freeLength = Math.Max(BatchSize, _capacity);
+        _ownedLength = _capacity + BatchSize;
+        _shared = shared;
+        _free = ArrayPool<int[]?>.Shared.Rent(_freeLength);
+        _freeCount = 0;
+        _owned = ArrayPool<int[]?>.Shared.Rent(_ownedLength);
+        _ownedCount = 0;
+    }
+
+    /// <summary>
+    /// Gets the number of arrays this pool holds, rented out or free.
+    /// </summary>
+    internal int OwnedCount => _ownedCount;
+
+    /// <summary>
+    /// Gets the number of arrays that can be rented without touching the shared pool.
+    /// </summary>
+    internal int FreeCount => _freeCount;
+
+    /// <summary>
+    /// Gets the number of arrays the owned bookkeeping can hold before it grows.
+    /// </summary>
+    internal int OwnedCapacity => _owned.Length;
+
+    /// <summary>
+    /// Gets the number of arrays the free bookkeeping can hold before it grows.
+    /// </summary>
+    internal int FreeCapacity => _free.Length;
+
+    /// <summary>
+    /// Rents a segment array. Throws <see cref="ObjectDisposedException"/> once the pool is disposed.
+    /// </summary>
     public int[] Rent()
     {
-        if (_index > 0)
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (_freeCount == 0)
         {
-            var array = _buffers[--_index]!;
-            _buffers[_index] = null;
-            return array;
+            RentBatch();
         }
 
-        var rented = PathSegmentMemory.Rent();
-        TrackRented(rented);
-        return rented;
+        var array = _free[--_freeCount]!;
+        _free[_freeCount] = null;
+        return array;
     }
 
+    /// <summary>
+    /// Makes <paramref name="array"/> available for the next <see cref="Rent"/>. Arrays of another
+    /// length, arrays returned after every owned array is already free and arrays returned to a
+    /// disposed pool are dropped.
+    /// </summary>
     public void Return(int[] array)
     {
-        if (array.Length != PathSegmentMemory.SegmentArraySize)
+        if (array.Length != PathSegmentMemory.SegmentArraySize || _freeCount >= _ownedCount)
         {
             return;
         }
 
-        if (_index == _buffers.Length)
+        EnsureCapacity(ref _free, _freeCount, _freeCount + 1);
+        _free[_freeCount++] = array;
+    }
+
+    /// <summary>
+    /// Makes every owned array available again and hands the arrays beyond the capacity
+    /// back to the shared pool. Arrays of a shared pool that has been replaced are dropped.
+    /// Paths created before the reset must no longer be used.
+    /// </summary>
+    public void Reset()
+    {
+        var shared = PathSegmentMemory.Current;
+
+        if (!ReferenceEquals(shared, _shared))
         {
-            GrowBuffers();
+            _owned.AsSpan(0, _ownedCount).Clear();
+            _ownedCount = 0;
+            _shared = shared;
+        }
+        else if (_ownedCount > _capacity)
+        {
+            var excess = _owned.AsSpan(_capacity, _ownedCount - _capacity);
+            _shared.Return(excess);
+            excess.Clear();
+            _ownedCount = _capacity;
         }
 
-        _buffers[_index++] = array;
-    }
-
-    private void TrackRented(int[] array)
-    {
-        if (_allRentedCount == _allRented.Length)
+        if (_owned.Length > _ownedLength * BookkeepingRetainFactor)
         {
-            GrowAllRented();
+            var replacement = ArrayPool<int[]?>.Shared.Rent(_ownedLength);
+            _owned.AsSpan(0, _ownedCount).CopyTo(replacement);
+            ArrayPool<int[]?>.Shared.Return(_owned, clearArray: true);
+            _owned = replacement;
         }
 
-        _allRented[_allRentedCount++] = array;
+        if (_free.Length > _freeLength * BookkeepingRetainFactor)
+        {
+            ArrayPool<int[]?>.Shared.Return(_free, clearArray: true);
+            _free = ArrayPool<int[]?>.Shared.Rent(_freeLength);
+            _freeCount = 0;
+        }
+
+        _owned.AsSpan(0, _ownedCount).CopyTo(_free);
+
+        if (_freeCount > _ownedCount)
+        {
+            _free.AsSpan(_ownedCount, _freeCount - _ownedCount).Clear();
+        }
+
+        _freeCount = _ownedCount;
     }
 
-    private void GrowBuffers()
+    private void RentBatch()
     {
-        var newBuffers = ArrayPool<int[]?>.Shared.Rent(_buffers.Length * 2);
-        _buffers.AsSpan(0, _index).CopyTo(newBuffers);
-        ArrayPool<int[]?>.Shared.Return(_buffers, clearArray: true);
-        _buffers = newBuffers;
+        Debug.Assert(_freeCount == 0);
+
+        EnsureCapacity(ref _free, _freeCount, BatchSize);
+        EnsureCapacity(ref _owned, _ownedCount, _ownedCount + BatchSize);
+
+        var batch = _free.AsSpan(0, BatchSize);
+        _shared.Rent(batch);
+        batch.CopyTo(_owned.AsSpan(_ownedCount));
+        _ownedCount += BatchSize;
+        _freeCount = BatchSize;
     }
 
-    private void GrowAllRented()
+    private static void EnsureCapacity(ref int[]?[] array, int count, int required)
     {
-        var newAllRented = ArrayPool<int[]?>.Shared.Rent(_allRented.Length * 2);
-        _allRented.AsSpan(0, _allRentedCount).CopyTo(newAllRented);
-        ArrayPool<int[]?>.Shared.Return(_allRented, clearArray: true);
-        _allRented = newAllRented;
+        if (array.Length >= required)
+        {
+            return;
+        }
+
+        var replacement = ArrayPool<int[]?>.Shared.Rent(Math.Max(required, array.Length * 2));
+        array.AsSpan(0, count).CopyTo(replacement);
+        ArrayPool<int[]?>.Shared.Return(array, clearArray: true);
+        array = replacement;
     }
 
     public void Dispose()
@@ -84,19 +177,17 @@ internal sealed class PathSegmentLocalPool : IDisposable
 
         _disposed = true;
 
-        for (var i = 0; i < _allRentedCount; i++)
+        if (ReferenceEquals(_shared, PathSegmentMemory.Current))
         {
-            PathSegmentMemory.Return(_allRented[i]!);
-            _allRented[i] = null;
+            _shared.Return(_owned.AsSpan(0, _ownedCount));
         }
 
-        _allRentedCount = 0;
-        _index = 0;
+        ArrayPool<int[]?>.Shared.Return(_free, clearArray: true);
+        ArrayPool<int[]?>.Shared.Return(_owned, clearArray: true);
 
-        ArrayPool<int[]?>.Shared.Return(_buffers, clearArray: true);
-        ArrayPool<int[]?>.Shared.Return(_allRented, clearArray: true);
-
-        _buffers = [];
-        _allRented = [];
+        _free = [];
+        _freeCount = 0;
+        _owned = [];
+        _ownedCount = 0;
     }
 }
