@@ -2,7 +2,10 @@ import { BenchmarkExplorer } from "@/src/components/benchmarks/BenchmarkExplorer
 import { BenchmarkHero } from "@/src/components/benchmarks/BenchmarkHero";
 import { BenchmarkMethodology } from "@/src/components/benchmarks/BenchmarkMethodology";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
-import { federationBenchmarks as report } from "@/src/data/federationBenchmarks";
+import {
+  federationBenchmarkHistory as history,
+  federationBenchmarks as report,
+} from "@/src/data/federationBenchmarks";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 const PAGE = {
@@ -26,7 +29,7 @@ export default function FederationBenchmarksPage() {
         ]}
       />
       <BenchmarkHero report={report} />
-      <BenchmarkExplorer report={report} />
+      <BenchmarkExplorer report={report} history={history} />
       <BenchmarkMethodology report={report} />
     </>
   );

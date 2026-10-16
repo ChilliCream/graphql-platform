@@ -160,6 +160,37 @@ export interface BenchmarkReport {
   readonly scenarios: readonly BenchmarkScenario[];
 }
 
+export interface BenchmarkHistoryRun {
+  readonly number: number;
+  readonly url?: string;
+}
+
+export type BenchmarkHistoryVersion = Omit<
+  BenchmarkVariantResult,
+  "variant"
+> & {
+  readonly version: string;
+  readonly run: BenchmarkHistoryRun;
+  readonly platform: BenchmarkPlatform;
+};
+
+export interface BenchmarkHistoryScenario {
+  readonly id: ScenarioId;
+  readonly name: string;
+  readonly config: BenchmarkScenario["config"];
+  readonly variants: readonly {
+    readonly variant: string;
+    readonly gateway: string;
+    readonly versions: readonly BenchmarkHistoryVersion[];
+  }[];
+}
+
+export interface BenchmarkHistory {
+  readonly latestRun: BenchmarkHistoryRun;
+  readonly gateways: readonly BenchmarkGateway[];
+  readonly scenarios: readonly BenchmarkHistoryScenario[];
+}
+
 /** A catalog variant together with the gateway that declares it. */
 export interface BenchmarkCatalogEntry {
   readonly gateway: BenchmarkGateway;
@@ -372,6 +403,67 @@ function measurement(
   });
 }
 
+function catalog(value: unknown): {
+  readonly parents: ReadonlyMap<unknown, unknown>;
+  readonly gatewayIds: ReadonlySet<unknown>;
+} {
+  const parents = new Map<unknown, unknown>();
+  const gatewayIds = new Set<unknown>();
+  for (const item of list(value)) {
+    const gateway = record(
+      item,
+      ["id", "name", "variants"],
+      ["vendor", "repositoryUrl"],
+    );
+    text(gateway.id);
+    unique(gatewayIds, gateway.id);
+    text(gateway.name);
+    optional(gateway.vendor, text);
+    optional(gateway.repositoryUrl, uri);
+    for (const entry of list(gateway.variants, 1)) {
+      const variant = record(
+        entry,
+        ["id", "version", "composition", "platform"],
+        ["label", "features", "notes"],
+      );
+      text(variant.id);
+      if (parents.has(variant.id)) {
+        throw new Error("Duplicate benchmark report identity.");
+      }
+      parents.set(variant.id, gateway.id);
+      if (variant.version !== null) {
+        text(variant.version, /^[^vV]/);
+      }
+      optional(variant.label, (value) => text(value, /^[\s\S]/));
+      member(variant.composition, Object.keys(COMPOSITIONS));
+      platform(variant.platform);
+      optional(variant.features, features);
+      optional(variant.notes, text);
+    }
+  }
+  return { parents, gatewayIds };
+}
+
+function scenarioConfig(value: unknown): number | undefined {
+  const config = record(
+    value,
+    ["subgraphDelayMs", "warmupRuns"],
+    ["durationSeconds", "virtualUsers", "measuredRuns", "cpuAllocation"],
+  );
+  optional(config.durationSeconds, (value) => integer(value, 0));
+  optional(config.virtualUsers, (value) => integer(value, 1));
+  number(config.subgraphDelayMs, 0);
+  integer(config.warmupRuns, 0);
+  optional(config.measuredRuns, (value) => integer(value, 1));
+  optional(config.cpuAllocation, (value) => {
+    const allocation = record(value, [], ["gateway", "subgraphs", "k6"]);
+    optional(allocation.gateway, cpuSet);
+    optional(allocation.subgraphs, cpuSet);
+    optional(allocation.k6, cpuSet);
+  });
+  return config.measuredRuns as number | undefined;
+}
+
 /** Parses a benchmark report of at most 256 KiB and rejects anything its JSON schema does not allow. */
 export function parseBenchmarkReport(json: string): BenchmarkReport {
   if (new TextEncoder().encode(json).byteLength > 262_144) {
@@ -425,40 +517,7 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
   optional(framework.version, text);
   platform(subgraphs.platform);
 
-  const parents = new Map<unknown, unknown>();
-  const gatewayIds = new Set<unknown>();
-  for (const item of list(report.gateways)) {
-    const gateway = record(
-      item,
-      ["id", "name", "variants"],
-      ["vendor", "repositoryUrl"],
-    );
-    text(gateway.id);
-    unique(gatewayIds, gateway.id);
-    text(gateway.name);
-    optional(gateway.vendor, text);
-    optional(gateway.repositoryUrl, uri);
-    for (const entry of list(gateway.variants, 1)) {
-      const variant = record(
-        entry,
-        ["id", "version", "composition", "platform"],
-        ["label", "features", "notes"],
-      );
-      text(variant.id);
-      if (parents.has(variant.id)) {
-        throw new Error("Duplicate benchmark report identity.");
-      }
-      parents.set(variant.id, gateway.id);
-      if (variant.version !== null) {
-        text(variant.version, /^[^vV]/);
-      }
-      optional(variant.label, (value) => text(value, /^[\s\S]/));
-      member(variant.composition, Object.keys(COMPOSITIONS));
-      platform(variant.platform);
-      optional(variant.features, features);
-      optional(variant.notes, text);
-    }
-  }
+  const { parents, gatewayIds } = catalog(report.gateways);
 
   const scenarioIds = new Set<unknown>();
   for (const value of list(report.scenarios)) {
@@ -472,22 +531,7 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
     text(scenario.name);
     optional(scenario.description, text);
     member(scenario.status, SCENARIO_STATUSES);
-    const config = record(
-      scenario.config,
-      ["subgraphDelayMs", "warmupRuns"],
-      ["durationSeconds", "virtualUsers", "measuredRuns", "cpuAllocation"],
-    );
-    optional(config.durationSeconds, (value) => integer(value, 0));
-    optional(config.virtualUsers, (value) => integer(value, 1));
-    number(config.subgraphDelayMs, 0);
-    integer(config.warmupRuns, 0);
-    optional(config.measuredRuns, (value) => integer(value, 1));
-    optional(config.cpuAllocation, (value) => {
-      const allocation = record(value, [], ["gateway", "subgraphs", "k6"]);
-      optional(allocation.gateway, cpuSet);
-      optional(allocation.subgraphs, cpuSet);
-      optional(allocation.k6, cpuSet);
-    });
+    const measuredRuns = scenarioConfig(scenario.config);
 
     const resultGateways = new Set<unknown>();
     const resultVariants = new Set<unknown>();
@@ -508,11 +552,65 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
           throw new Error("Benchmark result variant is not in its gateway.");
         }
         unique(resultVariants, variant.variant);
-        measurement(variant, config.measuredRuns as number | undefined);
+        measurement(variant, measuredRuns);
       }
     }
   }
   return report as unknown as BenchmarkReport;
+}
+
+function historyRun(value: unknown): void {
+  const run = record(value, ["number"], ["url"]);
+  integer(run.number, -Number.MAX_SAFE_INTEGER);
+  optional(run.url, uri);
+}
+
+/** Parses a benchmark history of at most 256 KiB and rejects anything its JSON schema does not allow. */
+export function parseBenchmarkHistory(json: string): BenchmarkHistory {
+  if (new TextEncoder().encode(json).byteLength > 262_144) {
+    throw new Error("Benchmark history exceeds 256 KiB.");
+  }
+  const history = record(JSON.parse(json), [
+    "latestRun",
+    "gateways",
+    "scenarios",
+  ]);
+  historyRun(history.latestRun);
+  const { parents, gatewayIds } = catalog(history.gateways);
+
+  const scenarioIds = new Set<unknown>();
+  for (const value of list(history.scenarios)) {
+    const scenario = record(value, ["id", "name", "config", "variants"]);
+    member(scenario.id, ["constant-latency", "burst", "constant"]);
+    unique(scenarioIds, scenario.id);
+    text(scenario.name);
+    const measuredRuns = scenarioConfig(scenario.config);
+
+    const variants = new Set<unknown>();
+    for (const item of list(scenario.variants)) {
+      const variant = record(item, ["variant", "gateway", "versions"]);
+      text(variant.gateway);
+      if (!gatewayIds.has(variant.gateway)) {
+        throw new Error("Benchmark history references an unknown gateway.");
+      }
+      if (parents.get(variant.variant) !== variant.gateway) {
+        throw new Error("Benchmark history variant is not in its gateway.");
+      }
+      unique(variants, variant.variant);
+      for (const entry of list(variant.versions, 1)) {
+        const version = record(
+          entry,
+          ["version", "run", "platform", "throughput", "requests"],
+          ["latencyMs", "memory", "cpu"],
+        );
+        text(version.version);
+        historyRun(version.run);
+        platform(version.platform);
+        measurement(version, measuredRuns);
+      }
+    }
+  }
+  return history as unknown as BenchmarkHistory;
 }
 
 /** Returns the numeric GitHub Actions run ID, or undefined when the run URL is not a run of the benchmark repository. */
@@ -522,7 +620,7 @@ export function benchmarkRunId(report: BenchmarkReport): string | undefined {
 
 /** Returns each catalog variant with its gateway, keyed by variant ID. */
 export function benchmarkVariants(
-  report: BenchmarkReport,
+  report: Pick<BenchmarkReport, "gateways">,
 ): ReadonlyMap<string, BenchmarkCatalogEntry> {
   return new Map(
     report.gateways.flatMap((gateway) =>
@@ -549,6 +647,20 @@ export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
   return gateway.repositoryUrl?.startsWith("https://")
     ? gateway.repositoryUrl
     : undefined;
+}
+
+const PRERELEASE = /^\d+(\.\d+)*-/;
+
+/** Returns whether a gateway version or its runtime version is a prerelease, such as `16.7.0-p.27` or a `-rc` runtime. */
+export function isPreview(
+  version: string | null,
+  platform: BenchmarkPlatform,
+): boolean {
+  return (
+    (version !== null && PRERELEASE.test(version)) ||
+    (platform.runtime?.version !== undefined &&
+      PRERELEASE.test(platform.runtime.version))
+  );
 }
 
 /** Formats a platform as its runtime name and major version (major and minor for 0.x and 1.x), or its language when it has no runtime. */

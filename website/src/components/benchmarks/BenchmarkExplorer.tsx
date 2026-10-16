@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BenchmarkHistoryChart } from "@/src/components/benchmarks/BenchmarkHistoryChart";
 import {
   benchmarkVariants,
   formatRuntimeTag,
   gatewayLink,
+  isPreview,
   variantName,
   type BenchmarkCatalogEntry,
+  type BenchmarkHistory,
   type BenchmarkReport,
   type BenchmarkScenario,
   type BenchmarkVariantResult,
@@ -18,6 +21,7 @@ import {
 
 interface BenchmarkExplorerProps {
   readonly report: BenchmarkReport;
+  readonly history?: BenchmarkHistory;
 }
 
 const SCENARIOS = {
@@ -122,11 +126,13 @@ const isReliable = (row: BenchmarkVariantResult) =>
 const winningThroughputOf = (row: BenchmarkVariantResult) =>
   isReliable(row) ? row.throughput.medianRps : -1;
 
-export function BenchmarkExplorer({ report }: BenchmarkExplorerProps) {
+export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
   const variants = benchmarkVariants(report);
+  const historyVariants = history && benchmarkVariants(history);
   const scenarios = report.scenarios.toSorted(
     (a, b) => SCENARIO_ORDER.indexOf(a.id) - SCENARIO_ORDER.indexOf(b.id),
   );
+  const [stableOnly, setStableOnly] = useState(true);
   const [selected, setSelected] = useState<ScenarioId | undefined>(
     () =>
       scenarios.find((scenario) => scenario.id === "constant-latency")?.id ??
@@ -188,6 +194,17 @@ export function BenchmarkExplorer({ report }: BenchmarkExplorerProps) {
           </label>
         ))}
       </fieldset>
+      <div className="mb-5 text-sm" data-benchmark-controls>
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={stableOnly}
+            onChange={(event) => setStableOnly(event.target.checked)}
+            className="accent-cc-accent size-4"
+          />
+          Only stable versions
+        </label>
+      </div>
       {scenarios.length === 0 && (
         <p className="border-cc-card-border bg-cc-surface/60 text-cc-heading rounded-2xl border p-8 font-semibold sm:p-12">
           This report contains no scenarios.
@@ -199,8 +216,15 @@ export function BenchmarkExplorer({ report }: BenchmarkExplorerProps) {
       {scenarios.map((scenario) => {
         const info = SCENARIOS[scenario.id];
         const { config } = scenario;
+        const scenarioHistory = history?.scenarios.find(
+          (item) => item.id === scenario.id,
+        );
         const rows = scenario.results
           .flatMap((result) => result.variants)
+          .filter((row) => {
+            const { variant } = variants.get(row.variant)!;
+            return !stableOnly || !isPreview(variant.version, variant.platform);
+          })
           .toSorted(
             (a, b) =>
               throughputOf(b) - throughputOf(a) ||
@@ -269,6 +293,14 @@ export function BenchmarkExplorer({ report }: BenchmarkExplorerProps) {
             <p className="text-caption text-cc-ink-dim mt-4">
               {describeConditions(scenario)}
             </p>
+            {scenarioHistory && historyVariants && (
+              <BenchmarkHistoryChart
+                id={scenario.id}
+                scenario={scenarioHistory}
+                variants={historyVariants}
+                stableOnly={stableOnly}
+              />
+            )}
             {config.measuredRuns === 1 && rows.length > 0 && (
               <p className="text-caption text-cc-warning mt-4">
                 Only one measured run is available. Run-to-run variation cannot
@@ -282,7 +314,9 @@ export function BenchmarkExplorer({ report }: BenchmarkExplorerProps) {
       <p className="text-caption text-cc-ink-dim mt-5">
         Bars start at zero and scale to the highest throughput in each table.
         The highest throughput without failed requests is highlighted. Rows with
-        failed requests show their reliability in amber.
+        failed requests show their reliability in amber. Preview versions, whose
+        gateway or runtime version is a prerelease, are hidden while &ldquo;Only
+        stable versions&rdquo; is selected.
       </p>
       <p className="text-caption text-cc-ink-dim mt-3">
         Memory is the peak sampled resident set size (RSS) of the gateway

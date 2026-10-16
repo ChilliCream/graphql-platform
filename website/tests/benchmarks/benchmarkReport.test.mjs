@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   benchmarkRunId,
+  parseBenchmarkHistory,
   benchmarkVariants,
   formatPlatform,
   formatRuntimeTag,
@@ -10,6 +11,11 @@ import {
   parseBenchmarkReport,
   variantName,
 } from "../../src/helpers/benchmarkReport.ts";
+
+const historyFixture = readFileSync(
+  new URL("../../src/data/federationBenchmarkHistory.json", import.meta.url),
+  "utf8",
+);
 
 const fixture = readFileSync(
   new URL("../../src/data/federationBenchmarkReport.json", import.meta.url),
@@ -500,3 +506,119 @@ test("names and links unknown gateways from the report", () => {
     ],
   );
 });
+
+test("accepts the history and keeps versions oldest first", () => {
+  const history = parseBenchmarkHistory(historyFixture);
+  assert.deepEqual(
+    history.scenarios.map(({ id, variants }) => ({
+      id,
+      variants: variants.map(({ variant, versions }) => [
+        variant,
+        versions.map(({ version, run, throughput }) => [
+          version,
+          run.number,
+          throughput.medianRps,
+        ]),
+      ]),
+    }))[0],
+    {
+      id: "constant",
+      variants: [
+        [
+          "apollo-router",
+          [
+            ["2.16.0", 397, 426],
+            ["2.17.0", 398, 433],
+            ["2.18.0", 400, 446],
+          ],
+        ],
+        ["apollo-router-v3", [["3.0.0-preview.0", 400, 379]]],
+        [
+          "hive-router",
+          [
+            ["0.3.3", 397, 2388],
+            ["0.3.4", 399, 2463],
+            ["0.3.5", 400, 2501],
+          ],
+        ],
+        [
+          "fusion",
+          [
+            ["16.6.6", 397, 2304],
+            ["16.6.7", 399, 2377],
+            ["16.6.8", 400, 2413],
+          ],
+        ],
+      ],
+    },
+  );
+});
+
+const firstHistoryVersion = (history) =>
+  history.scenarios[0].variants[0].versions[0];
+
+const invalidHistories = [
+  [
+    "schema versions",
+    (history) => {
+      history.schemaVersion = 1;
+    },
+  ],
+  [
+    "run completion times",
+    (history) => {
+      history.latestRun.completedAt = "2026-10-16T10:24:10Z";
+    },
+  ],
+  [
+    "version run completion times",
+    (history) => {
+      firstHistoryVersion(history).run.completedAt = "2026-10-16T10:24:10Z";
+    },
+  ],
+  [
+    "variants without versions",
+    (history) => {
+      history.scenarios[0].variants[0].versions = [];
+    },
+  ],
+  [
+    "variants under the wrong gateway",
+    (history) => {
+      history.scenarios[0].variants[0].gateway = "hive-router";
+    },
+  ],
+  [
+    "unknown gateways",
+    (history) => {
+      history.scenarios[0].variants[0].gateway = "constructor";
+    },
+  ],
+  [
+    "duplicate variants",
+    (history) => {
+      const { variants } = history.scenarios[0];
+      variants.push(structuredClone(variants[0]));
+    },
+  ],
+  [
+    "a best run that does not match the runs",
+    (history) => {
+      firstHistoryVersion(history).throughput.bestRps += 1;
+    },
+  ],
+  [
+    "versions without throughput",
+    (history) => {
+      delete firstHistoryVersion(history).throughput;
+    },
+  ],
+];
+
+for (const [name, mutate] of invalidHistories) {
+  test(`rejects histories with ${name}`, () => {
+    const history = JSON.parse(historyFixture);
+    mutate(history);
+    assert.throws(() => parseBenchmarkHistory(JSON.stringify(history)));
+  });
+}
