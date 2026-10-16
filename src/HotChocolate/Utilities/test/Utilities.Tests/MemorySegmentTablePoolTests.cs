@@ -3,15 +3,58 @@ namespace HotChocolate.Buffers;
 [Collection(MemorySegmentTablePoolCollection.Name)]
 public class MemorySegmentTablePoolTests
 {
-    [Fact]
-    public void Rent_Should_RoundUpToBucketLength_When_BelowSmallestBucket()
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(1, 1)]
+    [InlineData(2, 2)]
+    [InlineData(3, 4)]
+    [InlineData(4, 4)]
+    [InlineData(5, 8)]
+    [InlineData(8, 8)]
+    [InlineData(9, 16)]
+    public void Rent_Should_RoundUpToBucketLength_When_RequestingSmallTables(int requested, int expected)
     {
-        // arrange & act
-        // a metadata table asks for 9 entries; it must round up to the smallest bucket length of 16.
-        var table = MemorySegmentTablePool.Rent(9);
+        // arrange
+        // act
+        var table = MemorySegmentTablePool.Rent(requested);
 
-        // assert
-        Assert.Equal(16, table.Length);
+        try
+        {
+            // assert
+            Assert.Equal(expected, table.Length);
+            Assert.All(table, segment => Assert.Equal(default, segment));
+        }
+        finally
+        {
+            MemorySegmentTablePool.Return(table);
+        }
+    }
+
+    [Fact]
+    public void ReturnBatch_Should_ClearAndRecycleEveryTable_When_UsingSmallBuckets()
+    {
+        // arrange
+        int[] lengths = [1, 2, 4, 8, 16, 64, 128];
+        var tables = lengths.Select(MemorySegmentTablePool.Rent).ToArray();
+        foreach (var table in tables)
+        {
+            Array.Fill(table, new MemorySegment(new byte[8], 1, 2));
+        }
+
+        // act
+        MemorySegmentTablePool.ReturnBatch(tables);
+        var recycled = lengths.Select(MemorySegmentTablePool.Rent).ToArray();
+
+        try
+        {
+            // assert
+            Assert.Equal(tables, recycled);
+            Assert.All(recycled.SelectMany(table => table), segment => Assert.Equal(default, segment));
+        }
+        finally
+        {
+            MemorySegmentTablePool.ReturnBatch(recycled);
+        }
     }
 
     [Fact]

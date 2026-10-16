@@ -1,0 +1,8 @@
+{
+  "name": "inventory-api",
+  "transports": {
+    "http": {
+      "url": "http://127.0.0.1:5322/graphql"
+    }
+  }
+}
