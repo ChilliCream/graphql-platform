@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Runtime.ExceptionServices;
 
 namespace Mocha.EntityFrameworkCore;
@@ -35,19 +36,18 @@ public static class MessageBusHostBuilderExtensions
 
         configure(persistenceBuilder);
 
-        if (persistenceBuilder.IsOutboxEnabled)
-        {
-            builder.Services.AddOutboxDbContext<TContext>();
-        }
+        builder.Services.TryAddKeyedScoped<DbContextAccessor>(
+            typeof(TContext),
+            static (services, _) => DbContextAccessor.Create<TContext>(services));
 
         builder
             .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
             .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
 
-        builder.Services.AddSingleton<
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<
             IDbContextOptionsConfiguration<TContext>,
             MessagingDbContextOptionsConfiguration<TContext>
-        >();
+        >());
 
         builder.ConfigureMessageBus(x =>
             x.ConfigureFeature(f => f.Set(new EntityFrameworkConfigurationFeature { ContextType = typeof(TContext) }))
@@ -106,7 +106,7 @@ internal sealed class EntityFrameworkConsumerExecutionStrategy(Type contextType)
     public async ValueTask ExecuteAsync(IConsumeContext context, Func<CancellationToken, ValueTask> executeAttempt)
     {
         await using var scope = context.Services.CreateAsyncScope();
-        var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+        var dbContext = scope.ServiceProvider.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
         var strategy = dbContext.Database.CreateExecutionStrategy();
 
         if (!strategy.RetriesOnFailure)
@@ -133,7 +133,7 @@ internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextTy
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
-        var dbContext = (DbContext)context.Services.GetRequiredService(contextType);
+        var dbContext = context.Services.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(context.CancellationToken);
 

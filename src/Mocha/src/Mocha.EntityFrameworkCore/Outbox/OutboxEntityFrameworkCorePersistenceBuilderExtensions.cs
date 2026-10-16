@@ -19,12 +19,15 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
-        builder.HostBuilder.UseOutboxCore();
-
-        if (builder is EntityFrameworkCoreBuilder persistenceBuilder)
+        if (!builder.Services.AddOutboxDbContext(builder.ContextType))
         {
-            persistenceBuilder.IsOutboxEnabled = true;
+            return builder;
         }
+
+        builder.HostBuilder.UseOutboxCore();
+        builder.HostBuilder.ConfigureMessageBus(bus => bus
+            .UseConsume(OutboxMessageCorrelation.CreateConsumeMiddleware(), after: "Retry")
+            .UseDispatch(OutboxMessageCorrelation.CreateDispatchMiddleware(), before: "Instrumentation"));
 
         builder.ConfigureEntityFrameworkServices((sp, services) =>
         {
@@ -34,7 +37,11 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
             {
                 services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
                 services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-                services.AddScoped(s => new DbContextOutbox(s.GetRequiredService<ICurrentDbContext>().Context));
+                services.AddScoped(_ => new DbContextOutboxScope(sp.GetRequiredService<IServiceScopeFactory>()));
+                services.AddScoped<IResettableService>(s => s.GetRequiredService<DbContextOutboxScope>());
+                services.AddScoped(s => new DbContextOutbox(
+                    s.GetRequiredService<ICurrentDbContext>().Context,
+                    s.GetRequiredService<DbContextOutboxScope>()));
             }
         });
         return builder;

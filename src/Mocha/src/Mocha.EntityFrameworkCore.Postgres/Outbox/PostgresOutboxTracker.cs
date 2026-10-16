@@ -30,6 +30,12 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
         for (var i = _entries.Count - 1; i >= 0; i--)
         {
             var entry = _entries[i];
+            if (entry.State == EntityState.Added)
+            {
+                // Entries cached before ChangeTracker.Clear can retain their previous state.
+                entry = eventData.Context!.Entry(entry.Entity);
+            }
+
             if (entry.State is EntityState.Unchanged or EntityState.Detached)
             {
                 entry.State = EntityState.Detached;

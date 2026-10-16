@@ -825,19 +825,72 @@ app.MapPost("/products/{id:guid}/price", async (
 
 Await `Outbox.PublishAsync` before saving. It serializes the message immediately, so later changes to the message object do not change the stored envelope. You can call synchronous `SaveChanges` after the awaited publish.
 
-The outbox uses the bus from the application or consumer scope that resolved the DbContext, including the consumer's conversation and causation identifiers.
+Messages always belong to the DbContext instance used to publish them, whether the context is resolved from DI or created through `IDbContextFactory<TContext>`. Register the context or its factory before or after `AddEntityFramework<TContext>()`; factory lifetimes are unchanged.
 
-Register the DbContext before calling `AddEntityFramework<TContext>()`. Resolve the DbContext itself from an application scope. This includes pooled contexts and contexts registered through a factory.
+For example, register a pooled factory and create a context directly:
 
-Factory registrations retain their configured lifetime. Contexts created directly through `IDbContextFactory<TContext>` are not bound to an application scope and cannot use `DbContext.Outbox.PublishAsync`.
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(p => p.UsePostgresOutbox());
 
-Complete publishes and saves before disposing the application scope.
+builder.Services.AddPooledDbContextFactory<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+```
 
-`Outbox.PublishAsync` also accepts `PublishOptions` after the message, for headers or an expiration time. Setting `ScheduledTime` throws an `ArgumentException`; this API does not support scheduled messages.
+```csharp
+await using var db = await factory.CreateDbContextAsync(cancellationToken);
+
+db.Products.Add(product);
+
+await db.Outbox.PublishAsync(
+    new ProductChanged { ProductId = product.Id },
+    cancellationToken);
+
+await db.SaveChangesAsync(cancellationToken);
+```
+
+The same API works with `AddDbContextFactory<TContext>()`. No additional scoped DbContext registration is required for direct factory use. Only one DbContext type can have an outbox in a service collection; multiple instances of that type are supported. Repeating outbox registration for the same type is idempotent.
+
+Each context owns a messaging service scope, created on its first publication. The scope is released when an unpooled context is disposed or a pooled context is returned to its pool. Publish middleware uses this scope both inside and outside handlers. It does not reuse services from the caller's request or handler scope. Complete publishes and saves before disposing the context.
+
+The active consumer's conversation and causation identifiers flow into published message metadata. Supply request-specific metadata, such as a tenant identifier, explicitly through `PublishOptions.Headers`:
+
+```csharp
+await db.Outbox.PublishAsync(
+    message,
+    new PublishOptions
+    {
+        Headers = new() { ["x-tenant"] = tenantId }
+    },
+    cancellationToken);
+```
+
+`PublishOptions` can also set an expiration time. Setting `ScheduledTime` throws an `ArgumentException`; this API does not support scheduled messages.
+
+Multiple contexts have independent save and transaction boundaries, including inside a handler. `UseTransaction()` manages the configured context in the handler scope. Additional factory-created contexts do not automatically join that transaction. If one commits and the handler later fails, that commit remains; a handler retry can repeat the work. Make such work idempotent, or explicitly enlist the contexts in a shared transaction.
 
 A `SaveChangesAsync` override can await `Outbox.PublishAsync` before calling `base.SaveChangesAsync`. A `SavingChangesAsync` interceptor registered with `AddInterceptors` can also await it to include messages in the current save.
 
-Messages that are never followed by a save are not sent. When a save fails, the messages stay tracked together with your other changes, and a retried save writes them again. `ChangeTracker.Clear()` discards unsaved messages along with other tracked changes. A pooled DbContext discards unsaved messages when it returns to the pool.
+A failed save keeps staged messages available for another save. Calling `Outbox.PublishAsync` again stages a separate message, even for the same event object.
+
+When publishing domain events from an override or interceptor, remove each event from its pending queue only after `Outbox.PublishAsync` completes successfully:
+
+```csharp
+while (pendingEvents.TryPeek(out var domainEvent))
+{
+    await db.Outbox.PublishAsync(domainEvent, cancellationToken);
+    pendingEvents.Dequeue();
+}
+```
+
+`SaveChanges(acceptAllChangesOnSuccess: false)` and its asynchronous equivalent leave saved messages in the `Added` state until `ChangeTracker.AcceptAllChanges()` is called. Saving again before acceptance attempts to insert those messages again.
+
+Rolling back an outer transaction after an accepted save does not restore entity or outbox tracking state. Use a new unit of work to retry, or save with `acceptAllChangesOnSuccess: false` and call `ChangeTracker.AcceptAllChanges()` only after the transaction commits.
+
+Messages published from a `SavedChangesAsync` interceptor are written by a subsequent save.
+
+Messages that are never followed by a save are not sent. `ChangeTracker.Clear()`, context disposal, and returning a pooled context discard unsaved messages.
 
 `DbContext.Outbox` throws an `InvalidOperationException` when the DbContext has no outbox registered through `AddEntityFramework<TContext>()`.
 

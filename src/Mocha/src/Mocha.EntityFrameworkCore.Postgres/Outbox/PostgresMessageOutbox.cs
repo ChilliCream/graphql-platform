@@ -153,7 +153,8 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     private DbContext OriginalDbContext
-        => _originalDbContext ??= (DbContext)_services.GetRequiredService(_contextType);
+        => _originalDbContext ??= _services.GetKeyedService<DbContextAccessor>(_contextType)?.Context
+            ?? (DbContext)_services.GetRequiredService(_contextType);
 
     private bool HasTransaction()
         => Transaction.Current is not null || OriginalDbContext.Database.CurrentTransaction is not null;
