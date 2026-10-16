@@ -1,3 +1,4 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -127,6 +128,57 @@ public class RequestReplyTests
         Assert.Equal("Shipped", orderResponse.Status);
         Assert.Equal("TRK-1", shipmentResponse.TrackingNumber);
         Assert.Equal("InTransit", shipmentResponse.Status);
+    }
+
+    [Fact]
+    public async Task Transport_Should_DeclareDurableAutoDeleteReplyQueue_When_Started()
+    {
+        // arrange
+        // The broker denies non-durable, non-exclusive queues by default since RabbitMQ 4.3, so a
+        // host that starts at all proves the reply queue shape is accepted. The listing pins it.
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ()
+            .BuildTestBusAsync();
+
+        // act
+        var output = await _fixture.InvokeCommandAsync(
+            [
+                "rabbitmqctl",
+                "list_queues",
+                "name",
+                "durable",
+                "auto_delete",
+                "exclusive",
+                "arguments",
+                "-p",
+                vhost.VhostName,
+                "--no-table-headers"
+            ]);
+        var replyQueue = output
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Single(line => line.StartsWith("response-", StringComparison.Ordinal))
+            .Split('\t');
+
+        // assert
+        new
+        {
+            Durable = replyQueue[1],
+            AutoDelete = replyQueue[2],
+            Exclusive = replyQueue[3],
+            Arguments = replyQueue[4]
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Durable": "true",
+              "AutoDelete": "true",
+              "Exclusive": "false",
+              "Arguments": "[{\"x-expires\",1800000},{\"x-queue-type\",\"classic\"}]"
+            }
+            """);
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
