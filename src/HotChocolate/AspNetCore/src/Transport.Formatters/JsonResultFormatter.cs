@@ -236,19 +236,41 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ref OperationResultFormatterContext? context,
         CancellationToken cancellationToken)
     {
-        FormatInternal(result, writer, useIncrementalRfc1, ref context);
-        return FlushAsync(writer, cancellationToken);
+        var buffer = ChunkedPipeBufferWriter.Rent(writer);
 
-        static async ValueTask FlushAsync(PipeWriter w, CancellationToken ct)
-            => await w.FlushAsync(ct).ConfigureAwait(false);
+        try
+        {
+            FormatInternal(result, buffer, useIncrementalRfc1, ref context);
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
+
+        return FlushAsync(buffer, cancellationToken);
+
+        static async ValueTask FlushAsync(ChunkedPipeBufferWriter buffer, CancellationToken ct)
+        {
+            try
+            {
+                await buffer.FlushAsync(ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                buffer.Dispose();
+            }
+        }
     }
 
     private async ValueTask FormatInternalAsync(
         OperationResultBatch resultBatch,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken cancellationToken = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+
         foreach (var result in resultBatch.Results)
         {
             switch (result)
@@ -300,10 +322,11 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private async ValueTask FormatInternalAsync(
         IResponseStream responseStream,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken cancellationToken = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         OperationResultFormatterContext? context = null;
         try
         {
