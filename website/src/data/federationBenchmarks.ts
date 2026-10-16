@@ -1,4 +1,4 @@
-import exampleReport from "@/public/benchmarks/federation/latest.json";
+import exampleReport from "@/src/data/federationBenchmarkReport.json";
 import { parseBenchmarkReport } from "@/src/helpers/benchmarkReport";
 
 export const federationBenchmarks = parseBenchmarkReport(

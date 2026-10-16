@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BENCHMARK_REPOSITORY,
+  formatPlatform,
   type BenchmarkReport,
 } from "@/src/helpers/benchmarkReport";
 
@@ -114,7 +115,7 @@ export function BenchmarkMethodology({ report }: BenchmarkMethodologyProps) {
                 ["Benchmark host", report.hardware.host],
                 [
                   "Subgraphs",
-                  `${report.subgraphs.implementation} ${report.subgraphs.version} (.NET)`,
+                  `${[report.subgraphs.framework.name, report.subgraphs.framework.version].filter(Boolean).join(" ")} (${formatPlatform(report.subgraphs.platform)})`,
                 ],
               ].map(([label, value]) => (
                 <div
@@ -148,22 +149,29 @@ export function BenchmarkMethodology({ report }: BenchmarkMethodologyProps) {
             <div className="text-cc-prose mt-5 space-y-5">
               <p>
                 RPS means HTTP requests per second reported by k6. The table
-                uses the median across measured runs. Best and worst show the
-                range; CV is the coefficient of variation across those runs. A
+                uses the median across measured runs. Run variance is the
+                coefficient of variation of throughput across those runs.
+                Reliability is the share of HTTP requests that did not fail. A
                 full-duration warmup run is discarded before measurements begin.
+                Results are grouped by the composition each configuration uses.
               </p>
               <p>
-                Peak memory is the highest sampled gateway process RSS in the
-                measured run selected for median RPS, including its monitored
-                child processes. Values are converted from KiB to MiB and do not
-                include the load generator or subgraph processes. Missing
+                Latency is the HTTP request duration reported by k6; the table
+                shows the 95th and 99.9th percentiles. Peak memory is the
+                highest sampled gateway process RSS, including its monitored
+                child processes, converted from KiB to MiB. CPU is the average
+                number of cores used by the gateway, out of the cores allocated
+                to it. Neither includes the load generator or subgraph
+                processes. The cores allocated to the gateway, subgraphs, and
+                load generator are listed under each scenario. Missing
                 measurements are shown as not reported.
               </p>
               <p>
                 k6 checks HTTP status, GraphQL errors, and the expected response
-                structure. Invalid responses and failed runs receive a status
-                instead of a throughput ranking. These checks cover this
-                operation, not general GraphQL conformance.
+                structure. Requests that fail these checks count against
+                reliability, and a gateway with failed requests is not
+                highlighted as the fastest. These checks cover this operation,
+                not general GraphQL conformance.
               </p>
               <p>
                 Fusion and feddi use GraphQL Federation; the other
@@ -176,8 +184,7 @@ export function BenchmarkMethodology({ report }: BenchmarkMethodologyProps) {
                 These results describe this workload, concurrency,
                 configuration, and hardware. They do not measure production
                 database behavior or predict throughput for a different graph.
-                Throughput alone does not show tail latency or recovery after a
-                burst.
+                They do not show recovery after a burst.
               </p>
             </div>
             <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">

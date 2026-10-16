@@ -34,10 +34,9 @@ RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
     && ./dotnet-install.sh --channel 11.0 --install-dir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
-# Install Node.js 24 and the npm version required by website/package.json.
+# Install Node.js 24 (the version CI uses)
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install --global npm@11.18.0
+    && apt-get install -y nodejs
 
 # Install GitHub Copilot CLI and Codex CLI
 RUN npm install -g @openai/codex @github/copilot

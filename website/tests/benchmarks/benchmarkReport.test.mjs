@@ -1,81 +1,111 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { parseBenchmarkReport } from "../../src/helpers/benchmarkReport.ts";
+import {
+  benchmarkRunId,
+  benchmarkVariants,
+  formatPlatform,
+  formatRuntimeTag,
+  gatewayLink,
+  parseBenchmarkReport,
+  variantName,
+} from "../../src/helpers/benchmarkReport.ts";
 
 const fixture = readFileSync(
-  new URL("../../public/benchmarks/federation/latest.json", import.meta.url),
+  new URL("../../src/data/federationBenchmarkReport.json", import.meta.url),
   "utf8",
 );
 
-test("accepts the example report and preserves its source measurements", () => {
+const variant = (report, scenario, id) =>
+  report.scenarios
+    .find((item) => item.id === scenario)
+    .results.flatMap((result) => result.variants)
+    .find((item) => item.variant === id);
+
+test("accepts the report and preserves its source measurements", () => {
   const report = parseBenchmarkReport(fixture);
   assert.deepEqual(
-    report.scenarios.map(({ id, status, measuredRuns, results }) => ({
+    report.scenarios.map(({ id, status, config, results }) => ({
       id,
       status,
-      measuredRuns,
-      count: results.length,
+      measuredRuns: config.measuredRuns,
+      count: results.flatMap((result) => result.variants).length,
     })),
     [
+      { id: "constant", status: "complete", measuredRuns: 9, count: 14 },
       {
         id: "constant-latency",
         status: "complete",
-        measuredRuns: 1,
+        measuredRuns: 9,
         count: 14,
       },
-      { id: "burst", status: "pending", measuredRuns: 1, count: 0 },
-      { id: "constant", status: "complete", measuredRuns: 1, count: 14 },
+      { id: "burst", status: "complete", measuredRuns: 9, count: 13 },
     ],
   );
-  assert.equal(
-    report.scenarios[0].results.find((row) => row.gateway === "fusion")
-      .medianRps,
-    1940,
+  assert.deepEqual(report.scenarios[1].config.cpuAllocation, {
+    gateway: { cores: 4, cpuset: "2-3,10-11" },
+    k6: { cores: 2, cpuset: "1,9" },
+    subgraphs: { cores: 8, cpuset: "4-7,12-15" },
+  });
+  const fusion = variant(report, "constant-latency", "fusion");
+  assert.deepEqual(
+    {
+      throughput: fusion.throughput.medianRps,
+      p95: fusion.latencyMs.p95,
+      memory: fusion.memory,
+      cpu: fusion.cpu,
+    },
+    {
+      throughput: 1886,
+      p95: 32.076,
+      memory: { peakRssKiB: 381300 },
+      cpu: { avgCores: 3.42, maxCores: 3.57 },
+    },
   );
   assert.deepEqual(
-    report.scenarios[0].results.find((row) => row.gateway === "fusion").memory,
-    { peakRssKiB: 375064, artifactId: 11969913443 },
+    {
+      grafbase: variant(report, "burst", "grafbase").requests,
+      feddi: variant(report, "burst", "feddi"),
+    },
+    {
+      grafbase: { total: 1026823, successful: 704033, failed: 322790 },
+      feddi: undefined,
+    },
   );
 });
 
+test("derives the run ID and platform labels", () => {
+  const report = parseBenchmarkReport(fixture);
+  const platforms = Object.fromEntries(
+    report.gateways
+      .flatMap((gateway) => gateway.variants)
+      .map((item) => [item.id, formatPlatform(item.platform)]),
+  );
+  assert.deepEqual(
+    {
+      runId: benchmarkRunId(report),
+      fusion: platforms["fusion-nightly-net11"],
+      router: platforms["apollo-router"],
+      subgraphs: formatPlatform(report.subgraphs.platform),
+    },
+    {
+      runId: "38806982970",
+      fusion: ".NET 11.0.0-rc.2.26504.105",
+      router: "Rust",
+      subgraphs: ".NET 10.0.13",
+    },
+  );
+});
+
+const firstResult = (report) => report.scenarios[0].results[0].variants[0];
+
+const parse = (mutate) => {
+  const report = JSON.parse(fixture);
+  mutate(report);
+  return parseBenchmarkReport(JSON.stringify(report));
+};
+
 const invalidReports = [
-  [
-    "negative peak RSS",
-    (report) => {
-      report.scenarios[0].results[0].memory.peakRssKiB = -1;
-    },
-  ],
-  [
-    "fractional peak RSS",
-    (report) => {
-      report.scenarios[0].results[0].memory.peakRssKiB = 1.5;
-    },
-  ],
-  [
-    "oversized peak RSS",
-    (report) => {
-      report.scenarios[0].results[0].memory.peakRssKiB = 1e20;
-    },
-  ],
-  [
-    "memory without artifact provenance",
-    (report) => {
-      delete report.scenarios[0].results[0].memory.artifactId;
-    },
-  ],
-  [
-    "artifact paths instead of IDs",
-    (report) => {
-      report.scenarios[0].results[0].memory.artifactId = "../../workflow.yml";
-    },
-  ],
-  [
-    "unknown memory fields",
-    (report) => {
-      report.scenarios[0].results[0].memory.url = "https://example.com";
-    },
-  ],
   [
     "unknown fields",
     (report) => {
@@ -92,46 +122,9 @@ const invalidReports = [
     },
   ],
   [
-    "HTML in hardware",
+    "missing required fields",
     (report) => {
-      report.hardware.cpu = "<script>alert(1)</script>";
-    },
-  ],
-  [
-    "shell syntax in versions",
-    (report) => {
-      report.scenarios[0].results[0].version = "$(touch /tmp/injected)";
-    },
-  ],
-  [
-    "paths in commit IDs",
-    (report) => {
-      report.run.reportCommit = "../../.github/workflows/publish.yml";
-    },
-  ],
-  [
-    "unknown gateways",
-    (report) => {
-      report.scenarios[0].results[0].gateway = "constructor";
-    },
-  ],
-  [
-    "duplicate gateways",
-    (report) => {
-      report.scenarios[0].results[1].gateway =
-        report.scenarios[0].results[0].gateway;
-    },
-  ],
-  [
-    "duplicate scenarios",
-    (report) => {
-      report.scenarios[1].id = report.scenarios[0].id;
-    },
-  ],
-  [
-    "negative throughput",
-    (report) => {
-      report.scenarios[0].results[0].medianRps = -1;
+      delete report.run.sourceCommit;
     },
   ],
   [
@@ -141,33 +134,21 @@ const invalidReports = [
     },
   ],
   [
-    "inconsistent ranges",
+    "fractional integers",
     (report) => {
-      report.scenarios[0].results[0].bestRps = 0;
+      firstResult(report).requests.total = 1.5;
     },
   ],
   [
-    "failed rows with throughput",
+    "commit IDs that are not hexadecimal",
     (report) => {
-      report.scenarios[0].results[0].status = "incompatible";
+      report.run.sourceCommit = "../../.github/workflows/publish.yml";
     },
   ],
   [
-    "successful rows without versions",
+    "run URLs that are not URIs",
     (report) => {
-      report.scenarios[0].results[0].version = null;
-    },
-  ],
-  [
-    "pending scenarios with rows",
-    (report) => {
-      report.scenarios[0].status = "pending";
-    },
-  ],
-  [
-    "completed reports with pending scenarios",
-    (report) => {
-      report.run.status = "complete";
+      report.run.url = "not a uri";
     },
   ],
   [
@@ -177,18 +158,168 @@ const invalidReports = [
     },
   ],
   [
-    "unsupported schema versions",
+    "dates without a time zone",
     (report) => {
-      report.schemaVersion = 2;
+      report.run.completedAt = "2026-10-16T10:24:10";
+    },
+  ],
+  [
+    "runs completed before they started",
+    (report) => {
+      report.run.completedAt = "2026-10-14T00:00:00Z";
+    },
+  ],
+  [
+    "versions with a v prefix",
+    (report) => {
+      report.gateways[0].variants[0].version = "v2.14.4";
+    },
+  ],
+  [
+    "empty labels",
+    (report) => {
+      report.gateways[0].variants[0].label = "";
+    },
+  ],
+  [
+    "unknown compositions",
+    (report) => {
+      report.gateways[0].variants[0].composition = "schema-stitching";
+    },
+  ],
+  [
+    "unknown scenario IDs",
+    (report) => {
+      report.scenarios[0].id = "soak";
+    },
+  ],
+  [
+    "unknown scenario statuses",
+    (report) => {
+      report.scenarios[0].status = "cancelled";
+    },
+  ],
+  [
+    "CPU sets without cores",
+    (report) => {
+      report.scenarios[0].config.cpuAllocation.k6.cores = 0;
+    },
+  ],
+  [
+    "gateways without variants",
+    (report) => {
+      report.gateways[0].variants = [];
+    },
+  ],
+  [
+    "duplicate gateway IDs",
+    (report) => {
+      report.gateways[1].id = report.gateways[0].id;
+    },
+  ],
+  [
+    "duplicate variant IDs",
+    (report) => {
+      report.gateways[0].variants.push(report.gateways[1].variants[0]);
+    },
+  ],
+  [
+    "results for unknown gateways",
+    (report) => {
+      report.scenarios[0].results[0].gateway = "constructor";
+    },
+  ],
+  [
+    "results for variants missing from the catalog",
+    (report) => {
+      report.gateways[1].variants.pop();
+    },
+  ],
+  [
+    "results under the wrong gateway",
+    (report) => {
+      firstResult(report).variant = "apollo-router";
+    },
+  ],
+  [
+    "duplicate gateway results",
+    (report) => {
+      report.scenarios[0].results[1].gateway =
+        report.scenarios[0].results[0].gateway;
+    },
+  ],
+  [
+    "duplicate variant results",
+    (report) => {
+      const variants = report.scenarios[0].results[1].variants;
+      variants[1] = structuredClone(variants[0]);
+    },
+  ],
+  [
+    "duplicate scenarios",
+    (report) => {
+      report.scenarios[1].id = report.scenarios[0].id;
+    },
+  ],
+  [
+    "result status fields",
+    (report) => {
+      firstResult(report).status = "ok";
+    },
+  ],
+  [
+    "results without throughput",
+    (report) => {
+      delete firstResult(report).throughput;
+    },
+  ],
+  [
+    "negative throughput",
+    (report) => {
+      firstResult(report).throughput.worstRps = -1;
+    },
+  ],
+  [
+    "a median outside the best and worst runs",
+    (report) => {
+      firstResult(report).throughput.medianRps = 1e6;
+    },
+  ],
+  [
+    "a best run that does not match the runs",
+    (report) => {
+      firstResult(report).throughput.bestRps += 1;
+    },
+  ],
+  [
+    "a run count that does not match the configuration",
+    (report) => {
+      firstResult(report).throughput.runsRps.pop();
+    },
+  ],
+  [
+    "unordered latency percentiles",
+    (report) => {
+      firstResult(report).latencyMs.p95 = 0;
+    },
+  ],
+  [
+    "average CPU above its maximum",
+    (report) => {
+      firstResult(report).cpu.avgCores = 99;
+    },
+  ],
+  [
+    "null memory",
+    (report) => {
+      firstResult(report).memory = null;
     },
   ],
 ];
 
 for (const [name, mutate] of invalidReports) {
   test(`rejects ${name}`, () => {
-    const report = JSON.parse(fixture);
-    mutate(report);
-    assert.throws(() => parseBenchmarkReport(JSON.stringify(report)));
+    assert.throws(() => parse(mutate));
   });
 }
 
@@ -196,48 +327,176 @@ test("rejects oversized and non-finite input", () => {
   assert.throws(() => parseBenchmarkReport(" ".repeat(262_145)));
   assert.throws(() =>
     parseBenchmarkReport(
-      fixture.replace('"medianRps": 1945', '"medianRps": 1e999'),
+      fixture.replace('"medianRps": 266', '"medianRps": 1e999'),
     ),
   );
 });
 
-test("accepts an incompatible response without presenting it as zero throughput", () => {
-  const report = JSON.parse(fixture);
-  Object.assign(report.scenarios[0].results[0], {
-    status: "incompatible",
-    medianRps: null,
-    bestRps: null,
-    worstRps: null,
-    cvPercent: null,
-    memory: null,
-  });
-  assert.equal(
-    parseBenchmarkReport(JSON.stringify(report)).scenarios[0].results[0]
-      .medianRps,
-    null,
+test("formats runtime tags with the major version", () => {
+  const report = parseBenchmarkReport(fixture);
+  assert.deepEqual(
+    Object.fromEntries(
+      report.gateways
+        .flatMap((gateway) => gateway.variants)
+        .map((item) => [item.id, formatRuntimeTag(item.platform)]),
+    ),
+    {
+      "apollo-gateway": "Node 22",
+      "apollo-router": "Rust",
+      "apollo-router-v3": "Rust",
+      caliban: "JVM 25",
+      cosmo: "Go 1.27",
+      grafbase: "Rust",
+      "hive-gateway": "Node 22",
+      "hive-gateway-router-runtime": "Node 22",
+      "hive-router": "Rust",
+      fusion: ".NET 10",
+      "fusion-nightly": ".NET 10",
+      "fusion-nightly-net11": ".NET 11",
+      "fusion-nightly-fed": ".NET 10",
+      feddi: "JVM 25",
+    },
   );
 });
 
-test("accepts missing memory without presenting it as zero", () => {
-  const report = JSON.parse(fixture);
-  report.scenarios[0].results[0].memory = null;
-  assert.equal(
-    parseBenchmarkReport(JSON.stringify(report)).scenarios[0].results[0].memory,
-    null,
+test("accepts a report with only the fields the schema requires", () => {
+  const report = parse((report) => {
+    report.run = {
+      number: 1,
+      startedAt: null,
+      sourceCommit: report.run.sourceCommit,
+    };
+    delete report.subgraphs.framework.version;
+    delete report.subgraphs.platform.runtime.version;
+    for (const gateway of report.gateways) {
+      delete gateway.vendor;
+      delete gateway.repositoryUrl;
+      for (const variant of gateway.variants) {
+        variant.version = null;
+        delete variant.label;
+        delete variant.features;
+        delete variant.platform.features;
+      }
+    }
+    for (const scenario of report.scenarios) {
+      delete scenario.description;
+      scenario.config = { subgraphDelayMs: 0, warmupRuns: 0 };
+      for (const result of scenario.results) {
+        for (const variant of result.variants) {
+          delete variant.throughput.runsRps;
+          delete variant.latencyMs;
+          delete variant.memory;
+          delete variant.cpu;
+        }
+      }
+    }
+  });
+  assert.deepEqual(
+    {
+      runId: benchmarkRunId(report),
+      version: report.gateways[0].variants[0].version,
+      runtime: formatRuntimeTag(report.subgraphs.platform),
+      subgraphs: formatPlatform(report.subgraphs.platform),
+      result: firstResult(report),
+    },
+    {
+      runId: undefined,
+      version: null,
+      runtime: ".NET",
+      subgraphs: ".NET",
+      result: {
+        variant: "apollo-gateway",
+        throughput: {
+          medianRps: 266,
+          bestRps: 271,
+          worstRps: 265,
+          cvPercent: 0.7,
+        },
+        requests: { total: 290303, successful: 290303, failed: 0 },
+      },
+    },
   );
 });
 
-test("rejects memory on an unsuccessful result", () => {
-  const report = JSON.parse(fixture);
-  Object.assign(report.scenarios[0].results[0], {
-    status: "failed",
-    medianRps: null,
-    bestRps: null,
-    worstRps: null,
-    cvPercent: null,
+test("accepts every optional field the schema allows", () => {
+  const report = parse((report) => {
+    Object.assign(report.run, {
+      startedAt: "2026-10-15T23:04:03.5+02:00",
+      inputs: { gateways: "fusion", repeat: 3 },
+    });
+    Object.assign(report.gateways[0].variants[0], {
+      label: "Apollo Gateway (custom)",
+      notes: "Built from a fork.",
+      features: [{ id: "query-plan-cache" }],
+    });
+    Object.assign(firstResult(report).latencyMs, { p99: 250 });
+    report.scenarios[0].config.cpuAllocation = {
+      gateway: { cpuset: "any value", cores: 4 },
+    };
+    report.scenarios[0].status = "in-progress";
+    report.scenarios[1].status = "failed";
+    report.scenarios[2] = {
+      ...report.scenarios[2],
+      status: "skipped",
+      results: [],
+    };
   });
-  assert.throws(
-    () => parseBenchmarkReport(JSON.stringify(report)),
-    /Unsuccessful results must have null memory/,
+  assert.deepEqual(
+    {
+      inputs: report.run.inputs,
+      notes: report.gateways[0].variants[0].notes,
+      p99: firstResult(report).latencyMs.p99,
+      statuses: report.scenarios.map((scenario) => scenario.status),
+    },
+    {
+      inputs: { gateways: "fusion", repeat: 3 },
+      notes: "Built from a fork.",
+      p99: 250,
+      statuses: ["in-progress", "failed", "skipped"],
+    },
+  );
+});
+
+test("names and links unknown gateways from the report", () => {
+  const report = parse((report) => {
+    report.gateways.push({
+      id: "new-router",
+      name: "New Router",
+      repositoryUrl: "https://github.com/example/new-router",
+      variants: [
+        {
+          id: "new-router-preview",
+          label: "New Router Preview",
+          version: "0.1.0",
+          composition: "apollo-federation",
+          platform: { language: { name: "Zig" } },
+        },
+      ],
+    });
+    report.gateways.push({
+      id: "unsafe-router",
+      name: "Unsafe Router",
+      repositoryUrl: "javascript:alert(1)",
+      variants: [
+        {
+          id: "unsafe-router",
+          version: "1.0.0",
+          composition: "apollo-federation",
+          platform: { language: { name: "C" } },
+        },
+      ],
+    });
+  });
+  const variants = benchmarkVariants(report);
+  assert.deepEqual(
+    ["fusion", "new-router-preview", "unsafe-router"].map((id) => {
+      const entry = variants.get(id);
+      return [variantName(entry), gatewayLink(entry.gateway)];
+    }),
+    [
+      ["Fusion", "/docs/fusion"],
+      ["New Router Preview", "https://github.com/example/new-router"],
+      ["Unsafe Router", undefined],
+    ],
   );
 });
