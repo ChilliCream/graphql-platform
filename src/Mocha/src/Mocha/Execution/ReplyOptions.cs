@@ -31,6 +31,12 @@ public readonly struct ReplyOptions
     public string? MessageKind { get; init; }
 
     /// <summary>
+    /// Gets whether the message leaves at once when dispatched from a consumer, instead of after the
+    /// consumer attempt completes.
+    /// </summary>
+    public bool ImmediateDispatch { get; init; }
+
+    /// <summary>
     /// Gets the default reply options with no overrides.
     /// </summary>
     public static readonly ReplyOptions Default;

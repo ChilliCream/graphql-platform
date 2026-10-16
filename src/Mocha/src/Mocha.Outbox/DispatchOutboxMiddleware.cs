@@ -10,7 +10,8 @@ namespace Mocha.Outbox;
 /// <remarks>
 /// Messages of kind Publish, Send, Reply, or Fault are redirected to <see cref="IMessageOutbox"/>.
 /// All other message kinds (e.g., system messages) and dispatches marked with
-/// <see cref="OutboxMiddlewareFeature.SkipOutbox"/> pass through to the next middleware.
+/// <see cref="OutboxMiddlewareFeature.SkipOutbox"/> or <see cref="ImmediateDispatchFeature"/> pass
+/// through to the next middleware.
 /// </remarks>
 public sealed class DispatchOutboxMiddleware
 {
@@ -25,6 +26,7 @@ public sealed class DispatchOutboxMiddleware
         var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
         if (feature.SkipOutbox
+            || context.Features.Get<ImmediateDispatchFeature>() is { Enabled: true }
             || messageKind
                 is not MessageKind.Publish
                 and not MessageKind.Send

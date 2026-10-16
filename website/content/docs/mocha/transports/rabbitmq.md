@@ -500,13 +500,14 @@ builder.Services
 
 # Auto-provisioned resource naming
 
-| Resource           | Naming convention                                   | Created when                       |
-| ------------------ | --------------------------------------------------- | ---------------------------------- |
-| Exchange (event)   | Message type name (e.g., `OrderPlacedEvent`)        | First publish or subscribe         |
-| Exchange (command) | Message type name (e.g., `ReserveInventoryCommand`) | First send or handler registration |
-| Queue              | Endpoint name derived from handler registration     | Handler is bound to the transport  |
-| Reply queue        | Instance-specific name                              | Transport starts                   |
-| Bindings           | Exchange-to-queue                                   | Endpoint discovery phase           |
+| Resource           | Naming convention                                         | Created when                       |
+| ------------------ | --------------------------------------------------------- | ---------------------------------- |
+| Exchange (event)   | Message type name (e.g., `OrderPlacedEvent`)              | First publish or subscribe         |
+| Exchange (command) | Message type name (e.g., `ReserveInventoryCommand`)       | First send or handler registration |
+| Queue              | Endpoint name derived from handler registration           | Handler is bound to the transport  |
+| Reply queue        | Instance-specific name                                    | Transport starts                   |
+| Saga reply queue   | Service and saga name (e.g., `billing.refund-saga_reply`) | Transport starts                   |
+| Bindings           | Exchange-to-queue                                         | Endpoint discovery phase           |
 
 All auto-provisioned resources are durable by default and survive broker restarts.
 

@@ -6,6 +6,7 @@ internal static class MessagingOperationTypeExtensions
         => type switch
         {
             MessagingOperationType.Send => "send",
+            MessagingOperationType.Create => "create",
             MessagingOperationType.Receive => "receive",
             MessagingOperationType.Process => "process",
             MessagingOperationType.Settle => "settle",

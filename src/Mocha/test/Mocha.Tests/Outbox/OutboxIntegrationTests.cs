@@ -97,6 +97,38 @@ public class OutboxIntegrationTests
         Assert.Single(recorder.Messages);
     }
 
+    [Fact]
+    public async Task Outbox_Should_SkipCapture_When_ImmediateDispatchIsSet()
+    {
+        // arrange
+        var outbox = new InMemoryMessageOutbox();
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithOutboxAsync(
+            outbox,
+            b =>
+            {
+                b.Services.AddSingleton(recorder);
+                b.AddEventHandler<OutboxTestEventHandler>();
+            });
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(
+            new OutboxTestEvent { Payload = "leave-now" },
+            new PublishOptions { ImmediateDispatch = true },
+            CancellationToken.None);
+        await bus.PublishAsync(new OutboxTestEvent { Payload = "capture-me" }, CancellationToken.None);
+
+        // assert - the immediate message reached the handler, the other one went to the outbox
+        Assert.True(await recorder.WaitAsync(s_timeout), "Immediate message should have been delivered to handler");
+        await WaitUntilAsync(() => !outbox.Envelopes.IsEmpty, s_timeout);
+
+        Assert.Equal("leave-now", Assert.IsType<OutboxTestEvent>(Assert.Single(recorder.Messages)).Payload);
+        Assert.Single(outbox.Envelopes);
+    }
+
     // ──────────────────────────────────────────────────────────────────────
     // Test 4: Outbox signal is invoked when message persisted
     // ──────────────────────────────────────────────────────────────────────

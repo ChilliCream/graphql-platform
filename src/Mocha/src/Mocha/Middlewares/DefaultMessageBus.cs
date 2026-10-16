@@ -29,6 +29,8 @@ public sealed class DefaultMessageBus(
     private readonly DeferredResponseManager _deferredResponseManager =
         runtime.Services.GetRequiredService<DeferredResponseManager>();
 
+    private readonly DeferredDispatchScope _deferredDispatch = services.GetRequiredService<DeferredDispatchScope>();
+
     /// <summary>
     /// Publishes a message to all subscribed consumers using default publish options.
     /// </summary>
@@ -64,6 +66,7 @@ public sealed class DefaultMessageBus(
         {
             PropagateCorrelationIds(context);
             context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+            SetDispatchTiming(context, options.ImmediateDispatch);
             context.Message = message;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
@@ -120,6 +123,7 @@ public sealed class DefaultMessageBus(
         {
             PropagateCorrelationIds(context);
             context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+            SetDispatchTiming(context, options.ImmediateDispatch);
 
             context.Message = message;
             context.AddHeaders(headers);
@@ -236,6 +240,7 @@ public sealed class DefaultMessageBus(
             context.SourceAddress = replyEndpoint.Address;
 
             context.Initialize(services, replyEndpoint, runtime, messageType, cancellationToken);
+            SetDispatchTiming(context, options.ImmediateDispatch);
 
             context.Message = response;
 
@@ -429,6 +434,24 @@ public sealed class DefaultMessageBus(
 
         var resolver = services.GetRequiredService<ScheduledMessageStoreResolver>();
         return await resolver.CancelAsync(token, cancellationToken);
+    }
+
+    private void SetDispatchTiming(DispatchContext context, bool immediateDispatch)
+    {
+        if (immediateDispatch)
+        {
+            // The message bypasses the attempt's hold and every middleware that stores messages for
+            // later delivery, such as the outbox.
+            context.Features.GetOrSet<ImmediateDispatchFeature>().Enabled = true;
+            return;
+        }
+
+        // Inside a consumer attempt the dispatch pipeline ends in the attempt's hold instead of the
+        // transport, so the message leaves once the attempt completes.
+        if (_deferredDispatch.IsOpen)
+        {
+            context.Features.GetOrSet<DeferredDispatchFeature>().Scope = _deferredDispatch;
+        }
     }
 
     private void PropagateCorrelationIds(DispatchContext context)

@@ -199,18 +199,32 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
         public void Dispose()
         {
             var destination = _context.DestinationAddress;
-            var operationName = $"{destination} {_operationType}";
             var transportName = _context.Transport.Name;
 
-            // Enrich activity with context state after all middlewares have run
-            _activity?
-                .SetMessageId(_context.MessageId ?? string.Empty)
-                .SetConversationId(_context.ConversationId ?? string.Empty)
-                .SetInstanceId(_context.Host.InstanceId)
-                .SetDestinationTemporary(false)
-                .SetDestinationAddress(destination);
+            // A message held until the consumer attempt completes was created here and is sent by the
+            // release, which reports the send on its own.
+            var isHeld = _context.Features.Get<DeferredDispatchFeature>() is { IsHeld: true };
+            var operationType = isHeld ? MessagingOperationType.Create : MessagingOperationType.Send;
+            var operationName = isHeld ? $"{destination} create" : $"{destination} {_operationType}";
 
-            _activity?.Dispose();
+            if (_activity is not null)
+            {
+                if (isHeld)
+                {
+                    _activity.DisplayName = operationName;
+                    _activity.SetOperationName(operationName).SetOperationType(operationType);
+                }
+
+                // Enrich activity with context state after all middlewares have run
+                _activity
+                    .SetMessageId(_context.MessageId ?? string.Empty)
+                    .SetConversationId(_context.ConversationId ?? string.Empty)
+                    .SetInstanceId(_context.Host.InstanceId)
+                    .SetDestinationTemporary(false)
+                    .SetDestinationAddress(destination);
+
+                _activity.Dispose();
+            }
 
             var elapsed = Stopwatch.GetElapsedTime(_startTime);
 
@@ -218,15 +232,18 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                 elapsed,
                 operationName,
                 destination,
-                MessagingOperationType.Send,
+                operationType,
                 _context.Envelope?.MessageType ?? _context.MessageType?.Identity ?? string.Empty,
                 transportName);
 
-            OpenTelemetry.Meters.RecordSendMessage(
-                operationName,
-                destination,
-                _context.Envelope?.MessageType ?? _context.MessageType?.Identity ?? string.Empty,
-                transportName);
+            if (!isHeld)
+            {
+                OpenTelemetry.Meters.RecordSendMessage(
+                    operationName,
+                    destination,
+                    _context.Envelope?.MessageType ?? _context.MessageType?.Identity ?? string.Empty,
+                    transportName);
+            }
         }
 
         public static DispatchActivity Create(IDispatchContext context) => new(context);

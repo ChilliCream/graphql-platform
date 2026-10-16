@@ -30,11 +30,11 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
 
         return route.Kind switch
         {
-            InboundRouteKind.Subscribe => (host.ServiceName is not null ? ToKebabCase(host.ServiceName) + "." : "")
-                + GetReceiveEndpointName(route.Consumer.Name, kind),
+            InboundRouteKind.Subscribe or InboundRouteKind.Reply
+                => (host.ServiceName is not null ? ToKebabCase(host.ServiceName) + "." : "")
+                    + GetReceiveEndpointName(route.Consumer.Name, kind),
             InboundRouteKind.Send => GetSendEndpointName(route.MessageType!.RuntimeType),
             InboundRouteKind.Request => GetSendEndpointName(route.MessageType!.RuntimeType),
-            InboundRouteKind.Reply => "reply-endpoint",
             _ => throw new ArgumentException("Invalid inbound route kind.", nameof(route))
         };
     }
