@@ -9,6 +9,8 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class VariableCoercionHelper
 {
+    private const int MaxInitialVariableCapacity = 256;
+
     public static bool TryCoerceVariableValues(
         IFeatureProvider context,
         ISchemaDefinition schema,
@@ -30,7 +32,20 @@ internal static class VariableCoercionHelper
 
         Utf8MemoryBuilder? memory = null;
         var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
-        coercedVariableValues = [];
+        var capacity = 0;
+
+        if (hasVariables)
+        {
+            var limit = Math.Min(variableDefinitions.Count, MaxInitialVariableCapacity);
+            var properties = variableValues.EnumerateObject();
+
+            while (capacity < limit && properties.MoveNext())
+            {
+                capacity++;
+            }
+        }
+
+        coercedVariableValues = new Dictionary<string, VariableValue>(capacity);
         error = null;
 
         for (var i = 0; i < variableDefinitions.Count; i++)
