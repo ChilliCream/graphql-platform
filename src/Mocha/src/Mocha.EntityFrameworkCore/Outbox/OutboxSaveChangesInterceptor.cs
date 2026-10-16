@@ -4,8 +4,7 @@ using Mocha.Outbox;
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// Intercepts Entity Framework Core save changes events to signal the outbox processor
-/// that messages are ready for dispatch.
+/// Signals the outbox processor after saves.
 /// </summary>
 internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveChangesInterceptor, ISingletonInterceptor
 {
