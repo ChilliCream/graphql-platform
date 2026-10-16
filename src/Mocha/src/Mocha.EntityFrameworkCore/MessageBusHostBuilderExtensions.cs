@@ -35,6 +35,11 @@ public static class MessageBusHostBuilderExtensions
 
         configure(persistenceBuilder);
 
+        if (persistenceBuilder.IsOutboxEnabled)
+        {
+            builder.Services.AddOutboxDbContext<TContext>();
+        }
+
         builder
             .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
             .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
